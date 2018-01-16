@@ -1,0 +1,42 @@
+;header
+desc          = Uzi
+
+;Identity Details
+isweapon      = modern\uzi
+quantity      = 10
+isimmobile    = 1
+
+;ai
+aiinit	      = 
+aimain	      = weapon.lua
+aidestroy     = 
+
+;visualinfo
+textured      = gamecore\guns\modern\Uzi\Uzi_D.dds
+effect        = effectbank\reloaded\entity_basic.fx
+castshadow    = 0
+
+;orientation
+model         = gamecore\guns\modern\Uzi\Uzi.X
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 0
+
+;Sound
+soundset      = audiobank\misc\weapon.wav
+
+;statistics
+strength      = 0
+explodable    = 0
+debrisshape   = 0
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+

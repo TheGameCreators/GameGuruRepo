@@ -1,0 +1,9 @@
+;dark
+;SUNLIGHT DIRECTION POSITION VECTOR (based on 25000x25000 being center of world)
+SunDirection	= 30000,10000,30000
+;SUNLIGHT STRENGH MULTIPLIER (DEFAULT 100)
+SunStrength     = 75
+;SUN COLOR (RGB)
+SunColor        = 95,111,64
+;SUN ROTATION
+SunRotation	= 0

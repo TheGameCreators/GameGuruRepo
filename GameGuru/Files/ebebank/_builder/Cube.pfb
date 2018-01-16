@@ -1,0 +1,10 @@
+;EBE Spec (max 20x20x20)
+width = 1
+height = 1
+depth = 1
+
+;Preserve Mode ( 0-simple )
+preservemode = 0
+
+;Pattern
+prow0x0 = 1

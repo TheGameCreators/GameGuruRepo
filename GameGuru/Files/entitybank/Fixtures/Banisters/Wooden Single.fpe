@@ -1,0 +1,27 @@
+;Header
+desc          = Wooden Single
+
+;AI
+aimain	      = default.lua
+
+;Orientation
+model         = Wooden Single.x
+offsety       = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+materialindex = 3
+defaultstatic = 1
+collisionmode = 1
+
+;Visualinfo
+textured      = Wooden Single_D.dds
+effect        = effectbank\reloaded\entity_basic.fx
+castshadow    = 0
+
+;Identity Details
+strength      = 0
+isimmobile    = 1
+
+;Animationinfo
+animmax       = 0

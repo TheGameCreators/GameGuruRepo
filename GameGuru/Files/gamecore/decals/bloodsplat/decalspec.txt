@@ -1,0 +1,25 @@
+;decal spec
+
+;DECAL
+across         = 1
+down           = 1
+offsety        = 0
+scale          = 30
+
+;DECALPARTICLES (in units of 100th, i.e. 150=1.5f)
+randomstartx   = 100
+randomstarty   = 100
+randomstartz   = 100
+linearmotionx  = 0
+linearmotiony  = 300
+linearmotionz  = 0
+lineargravity  = 450
+randommotionx  = 200
+randommotiony  = 100
+randommotionz  = 200
+mirrormode     = 2
+camerazshift   = 1000
+scaleonlyx     = 100
+lifeincrement  = 50
+alphaintensity = 100
+animated       = 0

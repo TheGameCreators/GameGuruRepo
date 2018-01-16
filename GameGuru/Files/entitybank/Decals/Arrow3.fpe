@@ -1,0 +1,27 @@
+
+;header
+desc          = Arrow 3
+
+;visualinfo
+textured      = Arrow3.dds
+effect        = effectbank\reloaded\decal_animate4.fx
+addhandle     = decalhandle.dds
+castshadow    = -1
+transparency  = 6
+
+;orientation
+model         = Decal.X
+defaultstatic = 0
+defaultheight = 50
+scale         = 300
+materialindex = 0
+cullmode      = 1
+collisionmode = 11
+
+;statistics
+strength      = 0
+explodable    = 0
+
+;ai
+aimain	      = decal_flat.lua
+

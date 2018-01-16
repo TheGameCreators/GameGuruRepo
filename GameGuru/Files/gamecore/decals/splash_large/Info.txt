@@ -1,0 +1,9 @@
+droplets.dds : this is a single image of water droplets, meant to use simple gravity physics to fall away
+
+largesplash5x5.dds and smallsplash5x5.dds:  two 5x5 sprite sheets of water spraying upward
+
+misty6x6.dds : a 6x6 sprite sheet of very fine, misty water spray, almost cloudlike
+
+foam7x7.dds : a 7x7 sprite sheet of water surface foam, like you would see when an object hits the surface of water
+
+ripple4x4.dds :  a looping 4x4 sprite sheet of a single water ripple, also with normal map
