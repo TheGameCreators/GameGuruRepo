@@ -1,0 +1,37 @@
+;header
+desc          = Agave Plant
+
+;visualinfo
+textured      = agave plant_D.dds
+effect        = effectbank\reloaded\tree_basic.fx
+castshadow    = 0
+transparency  = 0
+cullmode      = 1
+
+;orientation
+model         = agave plant.X
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 1
+materialindex = 3
+collisionmode = 11
+resetlimbmatrix = 1
+
+;statistics
+strength      = 25
+explodable    = 0
+debrisshape   = 1
+
+;ai
+aimain         = default.lua
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+

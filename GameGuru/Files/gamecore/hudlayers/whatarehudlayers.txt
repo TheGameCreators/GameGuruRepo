@@ -1,0 +1,2 @@
+HUD LAYERS are the 2D and 3D assets that can be layered over the top or integrated
+into the First Person Camera View such as Jet Packs, Helmets, Status Displays, Etc

@@ -1,0 +1,9 @@
+;Overcast Sky 
+;SUNLIGHT DIRECTION VECTOR
+SunDirection	= 100,100,100
+;SUNLIGHT STRENGH MULTIPLIER (DEFAULT 100)
+SunStrength     = 100
+;SUN COLOR (RGB)
+SunColor        = 194,206,213
+;SUN ROTATION
+SunRotation	= 130

@@ -1,0 +1,8 @@
+;decal spec
+
+;DECAL
+across         = 8
+down           = 8
+offsety        = 0
+variants       = 2
+playspeed      = 300

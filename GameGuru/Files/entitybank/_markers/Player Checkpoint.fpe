@@ -1,0 +1,28 @@
+;Entity Spec
+
+;Header
+desc          = Player Checkpoint
+
+;Details
+ismarker      = 6
+
+;AI
+aiinit	      =
+aimain	      = checkpoint.lua
+aidestroy     =
+
+;Orientation
+model         = arrow.x
+defaultheight = 5
+textured      = Player Checkpoint.dds
+scale         = 100
+fixnewy       = 0
+
+;Identity Details
+lives         = -1
+
+;Sound
+soundset      = audiobank\misc\checkpoint.wav
+
+;Trigger data
+stylecolor    = 6

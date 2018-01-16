@@ -1,0 +1,76 @@
+GameGuru Testing Plan
+---------------------
+
+The following is a sequence of steps undertaken to ensure that every core feature of GameGuru is tested prior to a release. Some of the steps are exhaustive and can be skipped for a quicker test session. The whole test is anticipated to take from around two hours.
+
+The Installation
+----------------
+
+1. First ensure your test environment is backed up to protect against catastrophic failure
+2. Now uninstall GameGuru from Steam, then delete the local folder located here: Steam\steamapps\common\Game Guru
+3. Install a fresh copy of GameGuru from the BETA variation of the product
+
+The IDE
+-------
+
+1. All welcome dialog buttons
+
+2. All menu items
+
+3. All toolbar buttons
+
+4. Add all markers and entity selection from default assets (include a few from each folder, enemies, doors, weapons)
+
+5. Widget menu and all shortcut features of editor (press F1 for keys)
+
+6. Save the level you created in the above sequence (name it _coretest.fpm)
+
+The Multiplayer
+---------------
+
+1. Host the _coretest.fpm level and run instantly (do not allow others to join)
+
+2. Repeat above step with secondary joiners (only if possible and have a team on standby)
+
+The Test Game
+-------------
+
+1. Run up to each entity in above loaded level to test material index (shoot to see material)
+
+2. Also check collision bounds for each entity, be they static or dynamic (do you go through them)
+
+3. Go into F9 mode and use all terrain editing modes, then all entity placement modes
+
+4. Create a hole filled with water and test player drowning
+
+5. Press TAB TAB and adjust every slider to ensure the correct effect is applied
+
+6. Try at least three different terrains, skies and vegetation from available items
+
+7. Lightmap the level with F1, F2, F3 and F4 to ensure the baking works and looks okay
+
+8. Exit test game and save results of modifications
+
+The Standalone
+--------------
+
+1. Using the above level, use the Save Standalone feature to create an executable called _coretest
+
+2. Rnu this executable and click through all the menus in the main menu and in-game menus
+
+3. You added a winzone in the level, get to this to end the game
+
+4. Return to GameGuru, edit the winzone in the above level to show IFUSED=_coretest2 then create a level of this name
+
+5. Create a second standalone executable using the above saved level, get to level two and exit the game
+
+Restricted Content Mode
+-----------------------
+
+1. Activate restricted content mode from the Help menu
+
+2. Ensure the asset store, multiplayer and download store items items are hidden
+
+3. Ensure no violent weapons, bloody zombies or enemies with modern guns in library
+
+4. Ensure no blood toggle properties appear in player start marker and character entities

@@ -1,0 +1,16 @@
+Sounds
+------
+
+;GUN Sounds
+sound1	       = fire.wav
+sound2         = retrieve.wav
+sound3         = putaway.wav
+sound4         = idle.wav
+
+;HUD sound frames list
+soundframes    = X
+sframe0        = Y,Z
+
+X = Number of sounds
+Y = The frame you want to trigger a sound
+Z = A sound code (relate to the index given with GUN Sounds section above)

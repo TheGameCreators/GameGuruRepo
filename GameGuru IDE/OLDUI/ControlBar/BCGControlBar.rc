@@ -1,0 +1,882 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "bcgbarres.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Neutral resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
+#ifdef _WIN32
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_BCGBAR_RES_PRINT_PREVIEW DIALOG DISCARDABLE  0, 0, 72, 15
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "dummy",AFX_ID_PREVIEW_PRINT,2,0,50,13,NOT WS_VISIBLE
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_BCGBAR_RES_PRINT_PREVIEW, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 13
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BCGBARRES_HELP      BITMAP  DISCARDABLE     "res\\help.bmp"
+IDB_BCGBARRES_MENU_IMAGES BITMAP  DISCARDABLE     "res\\menuimg.bmp"
+IDR_BCGRES_PALETTE      BITMAP  DISCARDABLE     "res\\palette.bmp"
+IDB_BCGBARRES_NEW       BITMAP  DISCARDABLE     "res\\new.bmp"
+IDB_BCGBARRES_DELETE    BITMAP  DISCARDABLE     "res\\delete.bmp"
+IDB_BCGBARRES_UP        BITMAP  DISCARDABLE     "res\\up.bmp"
+IDB_BCGBARRES_DOWN      BITMAP  DISCARDABLE     "res\\down.bmp"
+IDR_BCGRES_PRINT_PREVIEW BITMAP  DISCARDABLE     "res\\PrintPreview.bmp"
+IDB_BCGBARRES_PRINT     BITMAP  DISCARDABLE     "res\\print.bmp"
+IDB_BCGBARRES_COPY      BITMAP  DISCARDABLE     "res\\copy.bmp"
+IDB_BCGBARRES_FONT      BITMAP  DISCARDABLE     "res\\font.bmp"
+IDB_BCGBARRES_MAIL      BITMAP  DISCARDABLE     "res\\mail.bmp"
+IDB_BCGBARRES_URL       BITMAP  DISCARDABLE     "res\\url.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_BCGBARRES_RECT      CURSOR  DISCARDABLE     "res\\rect.cur"
+IDC_BCGBARRES_ELLIPSE   CURSOR  DISCARDABLE     "res\\ellipse.cur"
+IDC_BCGBARRES_FILL      CURSOR  DISCARDABLE     "res\\fill.cur"
+IDC_BCGBARRES_LINE      CURSOR  DISCARDABLE     "res\\line.cur"
+IDC_BCGBARRES_PEN       CURSOR  DISCARDABLE     "res\\pen.cur"
+IDC_BCGBARRES_COLOR     CURSOR  DISCARDABLE     "res\\color.cur"
+IDC_BCGBARRES_DELETE    CURSOR  DISCARDABLE     "res\\delete.cur"
+IDC_BCGBARRES_MOVE      CURSOR  DISCARDABLE     "res\\move.cur"
+IDC_BCGBARRES_COPY      CURSOR  DISCARDABLE     "res\\copy.cur"
+IDC_BCGBARRES_HAND      CURSOR  DISCARDABLE     "res\\hand.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_BCGRES_PALETTE TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_BCG_TOOL_PEN
+    BUTTON      ID_BCG_TOOL_FILL
+    BUTTON      ID_BCG_TOOL_PICK
+    BUTTON      ID_BCG_TOOL_LINE
+    BUTTON      ID_BCG_TOOL_RECT
+    BUTTON      ID_BCG_TOOL_ELLIPSE
+    SEPARATOR
+    BUTTON      ID_BCG_TOOL_COPY
+    BUTTON      ID_BCG_TOOL_PASTE
+    BUTTON      ID_BCG_TOOL_CLEAR
+END
+
+IDR_BCGRES_PRINT_PREVIEW TOOLBAR DISCARDABLE  16, 16
+BEGIN
+    BUTTON      AFX_ID_PREVIEW_PRINT
+    BUTTON      AFX_ID_PREVIEW_NEXT
+    BUTTON      AFX_ID_PREVIEW_PREV
+    BUTTON      AFX_ID_PREVIEW_NUMPAGE
+    BUTTON      AFX_ID_PREVIEW_ZOOMIN
+    BUTTON      AFX_ID_PREVIEW_ZOOMOUT
+    BUTTON      AFX_ID_PREVIEW_CLOSE
+    BUTTON      ID_BCGRES_TWO_PAGES_DUMMY
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_BCGRES_TOOL         ICON    DISCARDABLE     "res\\tool.ico"
+IDI_BCGBARRES_HELP      ICON    DISCARDABLE     "res\\help.ico"
+#endif    // Neutral resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_BCGBARRES_TOOLBAR_NAME DIALOG DISCARDABLE  0, 0, 241, 46
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Toolbar Name"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Toolbar Name:",IDC_STATIC,7,7,48,8
+    EDITTEXT        IDC_BCGBARRES_TOOLBAR_NAME,7,19,155,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,184,7,50,14,WS_DISABLED
+    PUSHBUTTON      "Cancel",IDCANCEL,184,24,50,14
+END
+
+IDD_BCGBARRES_BUTTON_PROPS DIALOGEX 0, 0, 254, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Button Appearance"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "&Image only",IDC_BCGBARRES_IMAGE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,7,7,50,10
+    CONTROL         "&Text only",IDC_BCGBARRES_TEXT,"Button",
+                    BS_AUTORADIOBUTTON,7,20,45,10
+    CONTROL         "Image &and text",IDC_BCGBARRES_IMAGE_TEXT,"Button",
+                    BS_AUTORADIOBUTTON,7,34,63,10
+    LTEXT           "Description:",IDC_STATIC,7,54,38,8
+    LTEXT           "<descr>",IDC_BCGBARRES_BUTTON_DESCR,7,65,54,59,0,
+                    WS_EX_CLIENTEDGE
+    LTEXT           "&Button text:",IDC_STATIC,7,134,37,8
+    EDITTEXT        IDC_BCGBARRES_BUTTON_TEXT,48,132,114,14,ES_AUTOHSCROLL
+    GROUPBOX        "",IDC_STATIC,73,20,173,105,WS_GROUP
+    CONTROL         "Use &Default Image: ",IDC_BCGBARRES_DEFAULT_IMAGE,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,83,7,
+                    75,10
+    CONTROL         "Select &User-defined Image: ",IDC_BCGBARRES_USER_IMAGE,
+                    "Button",BS_AUTORADIOBUTTON,83,20,103,10
+    CONTROL         "Images",IDC_BCGBARRES_IMAGE_LIST,"Button",BS_OWNERDRAW | 
+                    WS_GROUP | WS_TABSTOP,79,35,121,82
+    CONTROL         "",IDC_BCGBARRES_DEFAULT_IMAGE_AREA,"Static",
+                    SS_BLACKFRAME | NOT WS_VISIBLE | WS_GROUP,163,7,20,20
+    PUSHBUTTON      "&New...",IDC_BCGBARRES_ADD_IMAGE,205,35,36,14,WS_GROUP
+    PUSHBUTTON      "&Edit...",IDC_BCGBARRES_EDIT_IMAGE,205,52,36,14,
+                    WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,170,132,37,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,210,132,37,14
+END
+
+IDD_BCGBARRES_IMAGE_EDITOR DIALOGEX 0, 0, 211, 206
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Edit Button Image"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Picture:",IDC_STATIC,7,7,25,8
+    CONTROL         "Draw",IDC_BCGBARRES_DRAW_AREA,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,7,17,110,110
+    LTEXT           "Colors:",IDC_STATIC,138,7,22,8
+    GROUPBOX        "Preview: ",IDC_STATIC,7,135,65,36
+    CONTROL         "",IDC_BCGBARRES_PREVIEW_AREA,"Static",SS_GRAYRECT | NOT 
+                    WS_VISIBLE,29,147,26,16
+    LTEXT           "Tools:",IDC_STATIC,138,94,20,8
+    CONTROL         "",IDC_BCGBARRES_PALETTE,"Static",SS_ETCHEDFRAME,138,105,
+                    66,58,WS_EX_DLGMODALFRAME
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,178,197,1
+    DEFPUSHBUTTON   "OK",IDOK,127,185,36,14
+    PUSHBUTTON      "Cancel",IDCANCEL,168,185,36,14
+    CONTROL         "",IDC_BCGBARRES_COLORS,"Static",SS_ETCHEDFRAME,138,18,
+                    66,72,WS_EX_DLGMODALFRAME
+END
+
+IDD_BCGBARRES_PROPPAGE1 DIALOGEX 0, 0, 265, 146
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Commands"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Cate&gories:",IDC_STATIC,7,7,36,8
+    LISTBOX         IDC_BCGBARRES_CATEGORY,7,19,93,87,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Comman&ds:",IDC_STATIC,115,7,38,8
+    LISTBOX         IDC_BCGBARRES_USER_TOOLS,115,19,143,87,
+                    LBS_OWNERDRAWVARIABLE | LBS_HASSTRINGS | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Description:",IDC_STATIC,7,116,38,8
+    LTEXT           "<descr>",IDC_BCGBARRES_BUTTON_DESCR,51,116,207,23,0,
+                    WS_EX_STATICEDGE
+END
+
+IDD_BCGBARRES_PROPPAGE2 DIALOG DISCARDABLE  0, 0, 265, 146
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Toolbars"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Toolbars:",IDC_STATIC,7,7,30,8,NOT WS_GROUP
+    LISTBOX         IDC_BCGBARRES_TOOLBAR_LIST,7,18,150,121,LBS_SORT | 
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Reset",IDC_BCGBARRES_RESET,173,18,84,14,WS_DISABLED | 
+                    WS_GROUP
+    PUSHBUTTON      "Reset &All",IDC_BCGBARRES_RESET_ALL,173,37,84,14
+    PUSHBUTTON      "&New...",IDC_BCGBARRES_NEW_TOOLBAR,173,56,84,14
+    PUSHBUTTON      "Rena&me...",IDC_BCGBARRES_RENAME_TOOLBAR,173,75,84,14,
+                    WS_DISABLED
+    PUSHBUTTON      "&Delete",IDC_BCGBARRES_DELETE_TOOLBAR,173,94,84,14,
+                    WS_DISABLED
+    CONTROL         "&Show text labels",IDC_BCGBARRES_TEXT_LABELS,"Button",
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_GROUP | WS_TABSTOP,
+                    173,129,67,10
+END
+
+IDD_BCGBARRES_PROPPAGE3 DIALOGEX 0, 0, 265, 146
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Menu"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "&Show Menus for:",IDC_STATIC,18,22,54,8
+    COMBOBOX        IDC_BCGBARRES_MENU_LIST,18,33,103,66,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    ICON            "",IDC_BCGBARRES_TEMPL_ICON,81,52,20,20
+    LTEXT           "<.....>",IDC_BCGBARRES_MENU_DESCRIPTION,18,77,103,26,0,
+                    WS_EX_CLIENTEDGE
+    LTEXT           "Select &context menu:",
+                    IDC_BCGBARRES_CONTEXT_MENU_CAPTION,148,22,68,8
+    COMBOBOX        IDC_BCGBARRES_CONTEXT_MENU_LIST,148,33,103,66,
+                    CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "R&eset",IDC_BCGBARRES_RESET_MENU,148,52,50,14,
+                    WS_DISABLED
+    GROUPBOX        "Application Frame Menus: ",IDC_STATIC,7,7,120,103
+    GROUPBOX        "Context Menus: ",IDC_BCGBARRES_CONTEXT_FRAME,138,7,120,
+                    132
+    LTEXT           "Hint: select the context menu, change the page to ""Commands"" and drag the toolbar buttons into the menu window.",
+                    IDC_BCGBARRES_CONTEXT_HINT,148,81,103,48,0,
+                    WS_EX_CLIENTEDGE
+    PUSHBUTTON      "&Reset",IDC_BCGBARRES_RESET_FRAME_MENU,18,52,50,14
+    LTEXT           "&Menu animations:",IDC_BCGBARRES_MENU_ANIMATION_LABEL,7,
+                    115,56,8
+    COMBOBOX        IDC_BCGBARRES_MENU_ANIMATION,69,114,52,77,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Menu s&hadows",IDC_BCGBARRES_MENU_SHADOWS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,129,64,10
+END
+
+IDD_BCGBARRES_PROPPAGE4 DIALOGEX 0, 0, 265, 146
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Mouse"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "&View:",IDC_STATIC,7,7,18,8
+    CONTROL         "List1",IDC_BCGBARRES_LIST_VIEWS,"SysListView32",
+                    LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | 
+                    LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,7,18,108,120,WS_EX_CLIENTEDGE
+    GROUPBOX        "",IDC_STATIC,122,19,136,119
+    CONTROL         "&No double-click event",IDC_BCGBARRES_NO_DBLCLIICK,
+                    "Button",BS_AUTORADIOBUTTON,127,7,85,10
+    CONTROL         "&Associate double-click event with:",
+                    IDC_BCGBARRES_USE_DBLCLIICK,"Button",BS_AUTORADIOBUTTON,
+                    127,19,123,10
+    LISTBOX         IDC_BCGBARRES_LIST_OF_COMMANDS,140,34,110,71,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Static",IDC_BCGBARRES_COMMAND_DESCRIPTION,140,113,111,
+                    18,0,WS_EX_STATICEDGE
+END
+
+IDD_BCGBARRES_PROPPAGE5 DIALOGEX 0, 0, 265, 146
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Keyboard"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "&Category:",IDC_STATIC,7,7,31,8
+    COMBOBOX        IDC_BCGBARRES_CATEGORY,7,18,91,95,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "C&ommands:",IDC_STATIC,7,35,38,8
+    LISTBOX         IDC_BCGBARRES_COMMANDS_LIST,7,46,91,48,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Description:",IDC_STATIC,7,98,38,8
+    LTEXT           "Static",IDC_BCGBARRES_COMMAND_DESCRIPTION,7,109,91,28,0,
+                    WS_EX_STATICEDGE
+    LTEXT           "Set Accelerator &for:",IDC_STATIC,109,7,62,8
+    COMBOBOX        IDC_BCGBARRES_VIEW_TYPE,109,18,91,95,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "C&urrent Keys:",IDC_STATIC,109,35,43,8
+    LISTBOX         IDC_BCGBARRES_CURRENT_KEYS_LIST,109,46,91,39,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Press &New Shortcut Key:",IDC_STATIC,109,89,80,8
+    EDITTEXT        IDC_BCGBARRES_NEW_SHORTCUT_KEY,109,100,91,14,
+                    ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "&Assign",IDC_BCGBARRES_ASSIGN,212,46,44,14,WS_DISABLED
+    PUSHBUTTON      "&Remove",IDC_BCGBARRES_REMOVE,212,65,44,14,WS_DISABLED
+    PUSHBUTTON      "Re&set All",IDC_BCGBARRES_RESET_SHORTCUTS,212,84,44,14
+    ICON            "",IDC_BCGBARRES_VIEW_ICON,212,15,20,20
+    LTEXT           "Assigned to:",IDC_BCGBARRES_ASSIGNED_TO_TITLE,109,118,
+                    40,8,NOT WS_VISIBLE
+    LTEXT           ".....",IDC_BCGBARRES_ASSIGNED_TO,109,129,91,8
+END
+
+IDD_BCGBARRES_PROPPAGE6 DIALOG DISCARDABLE  0, 0, 265, 146
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Toolbar",IDC_STATIC,8,8,25,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,34,12,211,1
+    CONTROL         "Show Screen&Tips on toolbars",
+                    IDC_BCGBARRES_SHOW_TOOLTIPS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,20,19,109,10
+    CONTROL         "Show shortcut &keys in ScreenTips",
+                    IDC_BCGBARRES_SHOW_TOOLTIPS_WITH_KEYS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,34,33,123,10
+    CONTROL         "&Large Icons",IDC_BCGBARRES_LARGE_ICONS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,47,53,10
+    CONTROL         "Look &2000",IDC_BCGBARRES_LOOK2000,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,61,50,10
+    PUSHBUTTON      "&Visualizations...",IDC_BCGBARRES_SKINS,179,47,68,14
+    LTEXT           "Personalized Menus and Toolbars",IDC_RU_MENUS_TITLE,8,
+                    78,108,8
+    CONTROL         "",IDC_RU_MENUS_LINE,"Static",SS_ETCHEDHORZ,120,82,125,1
+    CONTROL         "Me&nus show recently used commands first",
+                    IDC_BCGBARRES_SHOW_RECENTLY_USED_MENUS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,90,149,10
+    CONTROL         "Show f&ull menus after a short delay",
+                    IDC_BCGBARRES_SHOW_MENUS_DELAY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,34,104,125,10
+    PUSHBUTTON      "&Reset my usage data",IDC_BCGBARRES_RESET_USAGE_DATA,20,
+                    124,83,14
+END
+
+IDD_BCGBARRES_WINDOWS_DLG DIALOG DISCARDABLE  0, 0, 316, 169
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Windows"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_BCGBARRES_LIST,7,18,230,144,LBS_SORT | 
+                    LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_USETABSTOPS | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "&Activate",IDC_BCGBARRES_ACTIVATE,243,7,66,15
+    PUSHBUTTON      "&OK",IDOK,243,25,66,15
+    PUSHBUTTON      "&Save",IDC_BCGBARRES_SAVE,243,43,66,15
+    PUSHBUTTON      "&Close Window(s)",IDC_BCGBARRES_CLOSE,243,61,66,15
+    PUSHBUTTON      "Cascade",IDC_BCGBARRES_CASCADE,243,79,66,14
+    PUSHBUTTON      "Tile &Horizontally",IDC_BCGBARRES_TILEHORZ,243,96,66,14
+    PUSHBUTTON      "Tile &Vertically",IDC_BCGBARRES_TILEVERT,243,113,66,14
+    PUSHBUTTON      "&Minimize",IDC_BCGBARRES_MINIMIZE,243,130,66,14
+    LTEXT           "Select &window:",IDC_STATIC,7,7,49,8
+    PUSHBUTTON      "&Help",ID_HELP,243,148,66,14
+END
+
+IDD_BCGBARRES_COLOR_DLG DIALOG DISCARDABLE  0, 0, 222, 180
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Colors"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Tab Placeholder",IDC_BCGBARRES_STATICPLACEHOLDER,4,4,
+                    152,172,NOT WS_VISIBLE | WS_BORDER
+    PUSHBUTTON      "OK",IDOK,164,16,53,14
+    PUSHBUTTON      "Cancel",IDCANCEL,164,34,53,14
+    CTEXT           "New",IDC_STATIC,164,110,53,9,SS_CENTERIMAGE
+    CTEXT           "Current",IDC_STATIC,164,166,53,10,SS_CENTERIMAGE
+    PUSHBUTTON      "Color",IDC_BCGBARRES_COLOURPLACEHOLDER,164,122,53,41
+END
+
+IDD_BCGBARRES_COLOR_PAGE_ONE DIALOG DISCARDABLE  0, 0, 147, 161
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Standard"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Colors:",IDC_STATIC,2,4,43,10
+    PUSHBUTTON      "Hex",IDC_BCGBARRES_HEXPLACEHOLDER,2,17,143,107
+    PUSHBUTTON      "Gray",IDC_BCGBARRES_GREYSCALEPLACEHOLDER,2,131,143,26
+END
+
+IDD_BCGBARRES_COLORPAGE_TWO DIALOG DISCARDABLE  0, 0, 147, 161
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Custom"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "H&ue:",IDC_STATIC,2,103,16,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_BCGBARRES_H,22,102,30,13,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_BCGBARRES_SPIN1,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,52,102,11,14
+    LTEXT           "&Sat:",IDC_STATIC,2,120,14,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_BCGBARRES_S,22,119,30,13,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_BCGBARRES_SPIN2,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,51,119,11,14
+    LTEXT           "&Lum:",IDC_STATIC,2,137,16,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_BCGBARRES_L,22,136,30,13,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_BCGBARRES_SPIN3,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,52,135,11,14
+    LTEXT           "&Red:",IDC_STATIC,65,103,16,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_BCGBARRES_R,90,102,30,13,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_BCGBARRES_SPIN4,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,118,102,11,14
+    LTEXT           "&Green:",IDC_STATIC,65,120,22,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_BCGBARRES_G,90,119,30,13,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",IDC_BCGBARRES_SPIN5,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,118,119,11,14
+    LTEXT           "&Blue:",IDC_STATIC,65,137,17,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_BCGBARRES_B,90,136,30,13,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_BCGBARRES_SPIN6,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,118,136,11,14
+    LTEXT           "Colors:",IDC_STATIC,2,4,48,9
+    PUSHBUTTON      "Color",IDC_BCGBARRES_COLOURPLACEHOLDER,2,14,120,80
+    PUSHBUTTON      "Lum",IDC_BCGBARRES_LUMINANCEPLACEHOLDER,126,14,18,80
+END
+
+IDD_BCGBARRES_KEYMAP DIALOG DISCARDABLE  0, 0, 344, 220
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Help Keyboard"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_BCGBARRES_KEYLIST,"SysListView32",LVS_REPORT | 
+                    WS_BORDER | WS_TABSTOP,0,28,342,190
+    PUSHBUTTON      "Print",IDC_BCGBARRES_PRINT_KEYMAP,3,5,15,14,NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "Copy",IDC_BCGBARRES_COPY_KEYMAP,21,5,15,14,NOT 
+                    WS_TABSTOP
+    LTEXT           "&Category:",IDC_STATIC,44,9,31,8
+    COMBOBOX        IDC_BCGBARRES_CATEGORY,76,7,63,131,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Show &Accelerator for:",IDC_BCGBARRES_ACCEL_LABEL,148,9,
+                    69,8
+    COMBOBOX        IDC_BCGBARRES_VIEW_TYPE,219,7,71,137,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    ICON            "",IDC_BCGBARRES_VIEW_ICON,298,2,20,20
+END
+
+IDD_BCGBARRES_PROPPAGE7 DIALOG DISCARDABLE  0, 0, 274, 146
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Tools"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Menu contents:",IDD_BCGBARRES_COMMANDS_LIST,8,8,258,59,
+                    WS_TABSTOP
+    LTEXT           "&Command:",IDC_STATIC,8,77,34,8
+    EDITTEXT        IDD_BCGBARRES_COMMAND,69,75,178,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&...",IDD_BCGBARRES_BROWSE_COMMAND,253,75,13,14
+    LTEXT           "&Arguments:",IDC_STATIC,8,95,36,8
+    EDITTEXT        IDD_BCGBARRES_ARGUMENTS,69,93,178,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "",IDD_BCGBARRES_MENU_ARGUMENTS,253,93,13,14,NOT 
+                    WS_VISIBLE
+    LTEXT           "&Initial directory:",IDC_STATIC,8,113,48,8
+    EDITTEXT        IDD_BCGBARRES_INITIAL_DIRECTORY,69,111,178,14,
+                    ES_AUTOHSCROLL
+    PUSHBUTTON      "",IDD_BCGBARRES_MENU_INITIAL_DIRECTORY,253,111,13,14,
+                    NOT WS_VISIBLE
+END
+
+IDD_BCGBARRES_SKINS_DLG DIALOG DISCARDABLE  0, 0, 303, 167
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Visualizations"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Available Visualizations:",IDC_STATIC,7,7,76,8
+    LISTBOX         IDC_BCGBARRES_SKINS_LIST,7,18,128,81,
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Created by:",IDC_STATIC,7,105,37,8
+    EDITTEXT        IDC_BCGBARRES_AUTHOR,7,116,95,14,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    CONTROL         "Mail",IDC_BCGBARRES_MAIL,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,105,116,15,14
+    CONTROL         "URL",IDC_BCGBARRES_URL,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,121,116,15,14
+    PUSHBUTTON      "&Download...",IDC_BCGBARRES_DOWNLOAD_SKINS,7,146,50,14
+    DEFPUSHBUTTON   "OK",IDOK,145,146,47,14
+    PUSHBUTTON      "Cancel",IDCANCEL,197,146,47,14
+    PUSHBUTTON      "Apply",IDC_BCGBARRES_APPLY,249,146,47,14
+    CONTROL         "",IDC_BCGBARRES_SKIN_PREVIEW,"Static",SS_GRAYRECT | NOT 
+                    WS_VISIBLE,145,7,151,123
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,138,289,1
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_BCGBARRES_IMAGE_EDITOR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        VERTGUIDE, 138
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 199
+        HORZGUIDE, 18
+        HORZGUIDE, 171
+    END
+
+    IDD_BCGBARRES_PROPPAGE1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 258
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 139
+    END
+
+    IDD_BCGBARRES_PROPPAGE2, DIALOG
+    BEGIN
+        RIGHTMARGIN, 259
+        VERTGUIDE, 173
+        BOTTOMMARGIN, 139
+        HORZGUIDE, 18
+    END
+
+    IDD_BCGBARRES_PROPPAGE3, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 258
+        VERTGUIDE, 121
+        VERTGUIDE, 148
+        VERTGUIDE, 251
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 139
+        HORZGUIDE, 52
+    END
+
+    IDD_BCGBARRES_PROPPAGE5, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 256
+        VERTGUIDE, 98
+        VERTGUIDE, 109
+        VERTGUIDE, 200
+        VERTGUIDE, 212
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 137
+    END
+
+    IDD_BCGBARRES_PROPPAGE6, DIALOG
+    BEGIN
+        LEFTMARGIN, 8
+        RIGHTMARGIN, 257
+        VERTGUIDE, 20
+        VERTGUIDE, 34
+        VERTGUIDE, 247
+        TOPMARGIN, 8
+        BOTTOMMARGIN, 138
+        HORZGUIDE, 47
+    END
+
+    IDD_BCGBARRES_WINDOWS_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        VERTGUIDE, 243
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_BCGBARRES_COLOR_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 217
+        VERTGUIDE, 156
+        VERTGUIDE, 164
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 176
+    END
+
+    IDD_BCGBARRES_COLOR_PAGE_ONE, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 145
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 157
+    END
+
+    IDD_BCGBARRES_COLORPAGE_TWO, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 144
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 157
+        HORZGUIDE, 14
+        HORZGUIDE, 94
+    END
+
+    IDD_BCGBARRES_KEYMAP, DIALOG
+    BEGIN
+        RIGHTMARGIN, 342
+        BOTTOMMARGIN, 218
+    END
+
+    IDD_BCGBARRES_PROPPAGE7, DIALOG
+    BEGIN
+        LEFTMARGIN, 8
+        RIGHTMARGIN, 266
+        VERTGUIDE, 69
+        VERTGUIDE, 247
+        TOPMARGIN, 8
+        BOTTOMMARGIN, 138
+    END
+
+    IDD_BCGBARRES_SKINS_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 296
+        VERTGUIDE, 135
+        VERTGUIDE, 145
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 160
+        HORZGUIDE, 130
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_BCGBARRES_PROPPAGE3 DLGINIT
+BEGIN
+    IDC_BCGBARRES_MENU_ANIMATION, 0x403, 5, 0
+0x6f4e, 0x656e, "\000" 
+    IDC_BCGBARRES_MENU_ANIMATION, 0x403, 7, 0
+0x6e55, 0x6f66, 0x646c, "\000" 
+    IDC_BCGBARRES_MENU_ANIMATION, 0x403, 6, 0
+0x6c53, 0x6469, 0x0065, 
+    IDC_BCGBARRES_MENU_ANIMATION, 0x403, 5, 0
+0x6146, 0x6564, "\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_BCGBARRES_POPUP_BCGTOOL_BAR MENU DISCARDABLE 
+BEGIN
+    POPUP "_POPUP_"
+    BEGIN
+        MENUITEM "&Reset to Default",           ID_BCGBARRES_TOOLBAR_RESET
+        MENUITEM "&Copy Button Image",          ID_BCGBARRES_COPY_IMAGE
+        MENUITEM "&Delete",                     ID_BCGBARRES_TOOLBAR_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Button Appearance...",       ID_BCGBARRES_TOOLBAR_APPEARANCE
+
+        MENUITEM "&Image",                      ID_BCGBARRES_TOOLBAR_IMAGE
+        MENUITEM "&Text",                       ID_BCGBARRES_TOOLBAR_TEXT
+        MENUITEM "Image &and Text",             ID_BCGBARRES_TOOLBAR_IMAGE_AND_TEXT
+
+        MENUITEM SEPARATOR
+        MENUITEM "&Start Group",                ID_BCGBARRES_TOOLBAR_START_GROUP
+
+    END
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "bcgbarres.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif\r\n"
+    "#include ""res\\BCGControlBar.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""                        // Standard components\r\n"
+    "#endif\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDP_BCGBARRES_IMAGE_IS_REQUIRED "You should select an image!"
+    IDP_BCGBARRES_TEXT_IS_REQUIRED "You should enter a text!"
+    IDP_BCGBARRES_CANNT_CREATE_IMAGE "Can't create a new image!"
+    IDP_BCGBARRES_CANT_PASTE_BITMAP 
+                            "Can't paste bitmap image from the clipboard!"
+    IDS_BCGBARRES_WRONG_IMAGE_SIZE 
+                            "You can paste bitmap with the size (%d x %d) only!"
+    IDS_BCGBARRES_MENU_BAR_TITLE "Menu Bar"
+    IDS_BCGBARRES_NO_MENUBAR "Can't customize menues!"
+    IDP_BCGBARRES_INTERLAL_ERROR 
+                            "BCG Toolbar internal error. Please contact your application vendor."
+    IDP_BCGBARRES_UNASSIGNED "[Unassigned]"
+    IDP_BCGBARRES_CANT_COPY_BITMAP 
+                            "Can't copy bitmap image into the clipboard!"
+    IDS_BCGBARRES_HIDE_BAR  "Hide docked window"
+    IDS_BCGBARRES_EXPAND_BAR "Expand docked window"
+    IDS_BCGBARRES_CONTRACT_BAR "Contract docked window"
+    IDS_BCGBARRES_NEW_MENU  "New Menu"
+    IDS_BCGBARRES_FILE      "File"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_BCGBARRES_FOLDER    "Folder"
+    IDS_BCGBARRES_NEW       "New"
+    IDS_BCGBARRES_EXISTING  "Existing"
+    IDS_BCGBARRES_RECENT    "Recent"
+    IDS_BCGBARRES_DELETE    "Delete"
+    IDS_BCGBARRES_MOVEUP    "Move Item Up"
+    IDS_BCGBARRES_MOVEDN    "Move Item Down"
+    IDS_BCGBARRES_CMD_FILTER 
+                            "Executable (*.exe)|*.exe|Command (*.com)|*.com|Information (*.pdf)|*.pdf|Batch (*.bat)|*.bat|All Files (*.*)|*.*||"
+    IDS_BCGBARRES_TOO_MANY_TOOLS_FMT "You may define up to %d tools."
+    IDS_BCGBARRES_EXPAND_FMT "Expand (%s)"
+    IDS_BCGBARRES_MORE_BUTTONS "More Buttons"
+    IDS_BCGBARRES_NEW_FILE  "New"
+    IDS_TEAR_OFF            "Drag to make this menu float"
+    IDS_BCGBARRES_COMMAND   "Command"
+    IDS_BCGBARRES_KEYS      "Keys"
+    IDS_BCGBARRES_DESCRIPTION "Description"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_BCGBARRES_PROPSHT_CAPTION "Customize"
+    IDS_BCGBARRES_UNTITLED_TOOLBAR "<Untitled>"
+    IDS_BCGBARRES_CLOSE     "Close"
+    IDS_BCGBARRES_DEFUALT_MENU "Default Menu"
+    IDS_BCGBARRES_DEFAULT_MENU_DESCR 
+                            "Default application menu. Appears when no documents are open."
+    IDS_BCGBARRES_NO_CONTEXT 
+                            "-------------------------------------------------------------------------------------------"
+    IDS_BCGBARRES_DELETE_TOOLBAR_FMT 
+                            "Do you really want to delete the toolbar '%s'?"
+    IDS_BCGBARRES_ALL_COMMANDS "All Commands"
+    IDS_BCGBARRES_RESET_TOOLBAR_FMT 
+                            "All your changes will be lost! Do you really want to reset the toolbar '%s'?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_BCGBARRES_RESET_ALL_TOOLBARS 
+                            "All your changes will be lost! Do you really want to reset all toolbars and menus?"
+    IDS_BCGBARRES_RESET_MENU_FMT 
+                            "All your changes will be lost! Do you really want to reset the menu '%s'?"
+    IDS_BCGBARRES_DEFAULT_VIEW "Default"
+    IDS_BCGBARRES_RESET_KEYBOARD 
+                            "All your changes will be lost! Do you really want to reset the keyboard assignments?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_BCGBARRES_TOO_MANY_TOOLBARS_FMT 
+                            "You can't create more than %d user-defined toolbars!"
+    IDS_BCGBARRES_RESET_USAGE_WARNING 
+                            "This will delete the record of commands you've used in this application and restore the default set of visible commands to the menus and toolbars. It will not undo any explicit customizations. Are you sure you want to do this?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BCG_TOOL_FILL        "Fill Tool\nFill"
+    ID_BCG_TOOL_PEN         "Pencil Tool\nPencil"
+    ID_BCG_TOOL_PICK        "Select Color Tool\nSelect Color"
+    ID_BCG_TOOL_LINE        "Line Tool\nLine"
+    ID_BCG_TOOL_RECT        "Rectangle Tool\nRectangle"
+    ID_BCG_TOOL_ELLIPSE     "Ellipse Tools\nEllipse"
+    ID_BCG_TOOL_COPY        "Copy Tool\nCopy"
+    ID_BCG_TOOL_PASTE       "Paste Tool\nPaste"
+    ID_BCG_TOOL_CLEAR       "Clear Tool\nClear"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_BCGBARRES_CANT_LOAD_DLL_FMT 
+                            "The dynamic link library ""%s"" could not be found."
+    IDS_BCGBARRES_CANNT_FIND_ENTRY 
+                            """%s"" was loaded, but the entry ""%s"" was not found."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    AFX_ID_PREVIEW_CLOSE    "Close Print Preview\n&Close"
+    AFX_ID_PREVIEW_NUMPAGE  "Toggle One/Two Pages display\nToggle One/Two Pages display"
+    AFX_ID_PREVIEW_NEXT     "Next Page\nNext Page"
+    AFX_ID_PREVIEW_PREV     "Previous Page\nPrevious Page"
+    AFX_ID_PREVIEW_PRINT    "Print Document\n&Print"
+    AFX_ID_PREVIEW_ZOOMIN   "Zoom In\nZoom In"
+    AFX_ID_PREVIEW_ZOOMOUT  "Zoom Out\nZoom Out"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif
+#include "res\BCGControlBar.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"                        // Standard components
+#endif
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

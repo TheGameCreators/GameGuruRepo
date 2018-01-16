@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{af56f558-0006-4ba2-99a8-f6cbe5ad8322}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Table">
+      <UniqueIdentifier>{81109c22-b953-4f30-93da-95fba40d50e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK">
+      <UniqueIdentifier>{cd7a2003-b905-42cf-911f-8cdc8401b3a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK\ogg">
+      <UniqueIdentifier>{4be2567f-6680-4419-949a-a786d064293d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK\vorbisfile">
+      <UniqueIdentifier>{e3bc836d-5434-4ae4-bebf-c1d2ec72ff19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK\vorbis">
+      <UniqueIdentifier>{a21b477a-4241-40b2-8cf3-8fde57f409cf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="OggVorbis.cpp" />
+    <ClCompile Include="OggVorbisEncoderAudio.cpp" />
+    <ClCompile Include="OggVorbisEncoderEncode.cpp" />
+    <ClCompile Include="OggVorbisEncoderMain.cpp" />
+    <ClCompile Include="SDK\libvorbis-1.3.3\analysis.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\bitrate.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\block.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\codebook.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\envelope.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\floor0.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\floor1.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\info.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\lookup.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\lpc.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\lsp.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\mapping0.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\mdct.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\psy.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\registry.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\res0.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\sharedbook.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\smallft.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\synthesis.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\window.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\vorbisfile.c">
+      <Filter>SDK\vorbisfile</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libogg-1.3.0\bitwise.c">
+      <Filter>SDK\ogg</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libogg-1.3.0\framing.c">
+      <Filter>SDK\ogg</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\libvorbis-1.3.3\vorbisenc.c">
+      <Filter>SDK\vorbis</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Table</Filter>
+    </ClInclude>
+    <ClInclude Include="OggVorbisEncoderAudio.h" />
+    <ClInclude Include="OggVorbisEncoderEncode.h" />
+    <ClInclude Include="OggVorbisEncoderPlatform.h" />
+    <ClInclude Include="SDK\libvorbis-1.3.3\backends.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\bitrate.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\codebook.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\codec_internal.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\envelope.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\highlevel.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\lookup.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\lookup_data.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\lpc.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\lsp.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\masking.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\mdct.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\misc.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\os.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\psy.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\registry.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\scales.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\smallft.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\libvorbis-1.3.3\window.h">
+      <Filter>SDK\vorbis</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="commands.rc">
+      <Filter>Table</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

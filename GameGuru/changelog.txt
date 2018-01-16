@@ -1,0 +1,1884 @@
+V 2018.02.14 DX11 PREVIEW
+
+* Added two new Grand Pianos to the Furniture folder (thanks to GraPhiX)
+* Added a new glass fence to the Fixtures folder (thanks to GraPhiX)
+* Improved post processing features to include FXAA-CV-LS and Split testing
+* Added 'ChromaticAbberation.lua' script to show postprocess shader command
+* Added scripts and a sample map to show Chess played inside GameGuru
+
+V 2017.12.13 DX11 PREVIEW
+
+* PositionMouse LUA command now updates values in g_MouseX & g_MouseY
+* When FreezeAI used, AIGetEntityIsMoving returns zero to stop movement
+* Fixed defaultterrainheight to 600 from 500 (to correct +100 internal)
+* Updated docs on GetGamePlayerStateFiringMode() for gameplayercontrol.lua
+* Updated many Public Preview shaders (thanks to Preben)!
+* Fixed issue causing melee only TPP standalone games to never attack
+* Added many more Preview ORBS for PBR (thanks to GraPhiX)!
+* The "dividetexturesize" in SETUP.INI now works again (reduce texture use)
+* Increased minimum requirements to 2GB on Steam Product Website
+
+V 2017.11 DX11 PREVIEW
+
+* Added 'CUBE.dds' for default environment map (change sky to alter)
+* NOTE: First PBR shader does not have variation maps, hard edge, 
+*       terrain pattern removal, LOD terrain, per object light, 
+*       tri-Planar rock and Specular camera
+* Improved wirepole entities in Cityscape folder
+* Added more PBR assets to the CityscapePBR folder (for Big Escape)
+* Added better deadzones for controller logic in gameplayercontrol.lua
+* Terrain now clips for main camera and reflection camera (for water)
+* Restored shadow transparency for leaves and other masked textures
+* Dented Barrel is again visible (caused by new PBR texture swap)
+
+V 2017.11 DX11 BETA 30
+
+* Updated UZI textures to use new PBR rendering model
+* Ensured .BLOB files for shaders part of Steam installed update
+* Added script so that F11 will trigger PBR debug view (keys 1-9)
+* Character creator tints for head attachment and hair restored
+* LOCK entities no longer inverts the render caused by disabled Z
+* Import Model no longer clips model when camera was near terrain
+* Ambient RGB and Surface RGB slides now affect PBR (not recommended)
+* Weapons with bone and non-bone parts still use weapon shader set
+* Asylum doors (and other animated instances) now render under PBR
+
+V 2017.11 DX11 BETA 29
+
+* Updated PBR shader to refine handling of metalness/envfresnel
+* New default for GlobalSpecular in VISUALS.INI is 1.0f
+* If XBOX=1 flag set in SETUP.INI, save it for standalone export
+* Fixed alpha masking of decal rendering of projectiles
+* Third person characters now use PBR to render themselves
+* When in third person mode, shadow update is never delayed
+* Fixed issue causing thumbnails not to be created (just white)
+* Sniper rifle no longer disappears when lightrays active
+* Character creator parts now hide when going into Importer
+* Importer no longer crashes when try to apply a texture to FBX
+* Lightrays no longer cancel out the depth of field effect
+* Widget no longer gets hidden behind entities that are transparent
+* TAB mode to cut through entities now works again with PBR shader
+
+V 2017.11 DX11 BETA 27
+
+* Tweaked PBR shader remove extra Fresnel activity
+* Now shows blood splat for characters that spawn with material 'flesh'
+* Added 'old bridge' to the CityscapePBR asset folder
+* Replaced RealtimePBR option with PBROVERRIDE=1 in SETUP.INI (default)
+* NOTE: To restore 'non-PBR' shaders, set PBROVERRIDE=0 in SETUP.INI
+* Improved shadows when in default PBR override mode in editor
+* Save Standalone now exports any material decals associated with level
+* Flashlight lighting now works in PBR rendering mode
+* Moved muzzle flash light closer to affect weapon and close surfaces
+* Restored proper test game image with correct control instructions
+* Fixed lightrays so they work in new PBR render sequence
+* Brass folders for included guns are now copied to standalone
+* Rearranged 3D render pipeline to render weapon before lightrays
+* Calmed water ripple to 0.01 from 0.02 ripple delta and improved mask
+* Reinstated clipPlane for PBR rendering for correct water reflections
+
+V 2017.11 DX11 BETA 23
+
+* Added CityscapePBR folder which contains extra PBR assets for Big Escape
+* Updated Big Escape opening message for better new users experience
+* Fixed collision modes for all CityscapePBR models
+* UZI Weapon improved for PBR rendering (hands no longer look wet)
+* Moved 'default' cubemap generation location to lowerleft corner of terrain
+* Added 'Center All' to FBX import features so center on XZ and Y axis
+* First-time importing of FBX models will adjust settings for best results
+* If BMP exists for FBX model at source location, that BMP thumb will be used
+* Fixed bug erroneously assigning objective value to exported FPE file
+* Fixed importer export so physics box not exported if this collision not used
+* Improved importer for FBX models to detect associate PBR texture files
+* Cleaned up all PNG files from effectbank media folder
+* Updated PBR shader from Preben to refine Physically Based Render pipeline
+* Added 'Preview Orbs' folder to Misc models for PBR material previewing
+* Updated Big Escape level to use more of the new PBR art
+* Fixed issue of muzzle flash decal rendering behind scenery objects
+* Simplified weapon shader to use universal PBR render system
+
+V 2017.11 DX11 BETA 21
+
+* Added slab_D.dds set back into Fixtures folder for other non-PBR assets
+* Fixed missing shadows issue caused by FOV being set on shadow renders
+
+V 2017.11 DX11 BETA 20
+
+* Added missing 'detail_default.dds' to effectbank\media folder
+* Fixed Weapon FOV slider while retaining standalone FOV menu fix
+* Fixed bug so Prompt3D now aligns to camera angle when not overridden
+* Deleted left-over Prompt3D object when return from game level session
+* Corrected 'PositionPrompt3D' documentation to include 4th angle param
+* Changed CutOutDepth to BackwardCull to fit BSP weapons (not sealed mesh)
+* Ensured asses from Big Escape all have mipmaps in their texture files
+
+V 2017.11 DX11 BETA 17
+
+* Fixed issue of AI obstacles not regenerating when affect static entities
+* Added muzzle flash spot lighting to modern day weapons
+* Added muzzle flash flags to all modern day guns
+* When specify FBX in the FPE for direct load, it now converts to DBO (faster)
+* Fixed PBR shader for tree rendering (no alpha transparency during clip)
+* Added APBR_TREE shader to handle leaves with no alpha transparency effect
+* Prevented FPE based FBX loading from using twizzle/center flags from importer
+* Allow shadows to reduce env contribution in PBR by 50% (defeat bright cuberef)
+* Editor now restores non-PBR terrain for editing with low-level shadows
+* Standalone no longer eats shadows when enter in-game menu and FOV setting fixed
+* Removed erroneous INI files from standalone executable processes
+* Added 'hidedistantshadows=0' to standalone executable SETUP INI
+* Fixed issue causing SKIPFVFCONVERT flag in FPE to wipe out character firespot
+* Fixed issue of being able to slide METRICS PANEL sliders (harmless bug fix)
+* Added screen/override to 'none' post process for spin up fade in
+* Weapon no longer randomly selects after entering new level or exiting menu
+* No longer shows HUD panels if F11 FPS View is displayed (used to show HUDs)
+* Fixed jetpack HUD rendering issue (related to newer weapon shader system)
+* Fixed issue of muzzle flash decal sinking into terrain via Z clipping
+* Added new 'PromptLocalForVR' command which prompts normal if not in VR mode
+* Modified all scripts that prompt the player for action with 'PromptLocalForVR'
+* Fixed Prompt3D and PositionPrompt3D for when not in a VR mode
+* If legacy weapon still uses entity_basic, switch to use weapon_basic shader
+* Restored weapon HUD to game view, caused by incorrect restricted mode flag
+* Fixed cube map generation so it uses FOV of 90 and ASPECT of 1.0
+
+V 2017.11 DX11 BETA 06
+
+* Added new 'Miscellaneous' folder with 'Massive Chess' (thanks to GraPhiX)
+* Tweaked shadow code to skip shadow calculation if surface faces away
+* Improved resume session prompt and code
+* Improved fidelity of Z buffer to avoid Z clash, and updated DOF and MB
+* Fixed handling of normals when animating animated entities
+* Further improvements to the PBR shader to closer match standards
+* Weapon shaders now using PBR texture sets if present
+* Disabled CameraNEAR in VISUALS.INI to fix clipping issues
+* Fix Win7 crash on second run of test game
+* Added code to detect if IDE fails to pick up MapEditor window (slow PCs)
+* Inverted input of gloss map (so white=roughness) as suggested by artists
+* Corrected PBR shader for true ambient contribution and shadows on reflections
+* Fixed issue of grass using PBR specular but did not have correct normals
+
+V 2017.10 DX11 BETA 24
+
+* Removed long-silence when standalone first runs (slow on some systems)
+* Added code which creates .blob shaders if not present (faster loading)
+* Fixed issue of ammo hud disappearing
+* Improved load time from desktop to game (typically 38s down to 18s)
+* Major fix which prevents standalone loading from original texture location
+* Increased speed of standalone loading (PCTEST: 60sec -> 12sec)
+* Added final button images to new welcome system
+* Can now deactivate startup with working toggle tick
+* Switched VSYNC on by default to show smoother in-game motion
+* Editor launch times reduced due to above standalone loading work
+* The "forceloadtestgameshaders" flag now deletes BLOB shader files
+
+V 2017.10 DX11 BETA 19
+
+* Through community testing, the 'Steam Overlay' has been fixed with DX11
+* Changed camera zero clear color to grey for a different sharper look
+* Removed IDE splash dialog and replaced with full screen backdrop UI
+* NOTE: Above allows any pre-editor panels to be done with DX graphics
+* New Welcome System which allows fullscreen splash, buttons and text
+* Added new test game splash for when restricted content mode active
+* Fixed "anglex=rx; angley=ry; anglez=rz;" in global UpdateEntity
+* Fixed issue of character creator models being clipped at shoulders
+* Restricted Content mode now uses the new welcome system graphics
+* Startup now has a first-time mode so can display a one-time welcome
+* Updated scripts to localise in-game prompts to the specific entity
+
+V 2017.10 DX11 BETA 06
+
+* Fixed a crash when running engine with less than 8 shadow cascades
+* NOTE: Enlarged and redesigned UI editor icons - min res is 1280x768
+* Added New Welcome System to prepare users better for 3D game making
+* NOTE: You can use the alpha of terrain diffuse as Gloss value
+* Specular Override now increases both gloss and spec in PBR shader
+* Fixed save standalone to now include all PBR texture set types
+* Added '_metalness' to texture set (interchangable with specular)
+* Made default detail map smooth, allowing per-PBR-entity choice
+* Fixed issue of terrain without texture_D showing as black
+* Added graceful error when shader fails to load (i.e. not HLSL 5.0)
+* Tweaked PBR shader to give non-metals some env reflection
+
+V 2017.09 DX11 BETA 30
+
+* Tweaked Escape level to stop rocket man from messing up LOD animation
+* Added generation of global environment map from sky/floor for PBR effect
+* Saved env map with level to cache generated texture for quicker reload
+* PBR entities in editor can now alphaclip and highlight as static/dynamic
+* PBR render now supports alpha override and specular multiply effects
+* Updated Mega Pack 1 Skybank from TGA to DDS (TGA not supported in DX11)
+
+V 2017.09 DX11 BETA 27
+
+* Removed 'locktorefreshrate' as the VSYNC mode does this same job
+* Fixed VSYNC flag from SETUP.INI to restore ability to use vertical-sync
+* Added vegetation handling to the PBR core shader (APBR_VEG.FX)
+* Fixed shadow mapper which can now handle shader switches
+* PBR Vegetation shader now has benefit of cascade shadows
+* Fixed collision issue for raycasts on bone-less animating entity
+
+V 2017.09 DX11 BETA 25
+
+* Removed some internal grid update code from AI for improved speeds
+* Added shadow map debug view mode when debug slider is 1 and ReturnKey()
+* Tweaked shadow mapping shaders to eliminate artifacts at distance/angles
+* Added "forceloadtestgameshaders" to SETUP.INI to refresh shaders each run
+* Fixed portal warp entity in Cartoon folder to avoid FX crash
+* Cleaned up SETTINGS.FX slightly to reflect changes to shader
+* Fixed the LAPTOP flag in SETTINGS.FX so it no longer FX crashes
+* The editor no longer starts up dimmed, and defaults to non-PBR terrain
+* Improved filter on Import Model shader choices to remove internal ones
+* Added 'lightmappingdeactivatedirectionallight=0' to SETUP.INI
+* Added 'lightmappingambientred=25' to SETUP.INI
+* Added 'lightmappingambientgreen=25' to SETUP.INI
+* Added 'lightmappingambientblue=25' to SETUP.INI
+* NOTE: Set above to 1,75,75,75 for sun everywhere
+* NOTE: Set above to 1,0,0,0 for sun nowhere (static lights require)
+* Added 'lightmappinglocaliseterrainlighting=1' to allow ALL terrain LM
+* NOTE: Above when set to zero will LM the entire level (if desired)
+* Added 'allowcpuanimations=0' to SETUP (new default prevents all CPU anims)
+* NOTE: Above optimization will freeze entities 'relying' on CPU anims
+* Tweaked entity core shader to allow transparency AND clips zero-alpha
+* Added support for the Logitech F310 controller (xboxcontrollertype=2)
+
+V 2017.09 DX11 BETA 19
+
+* Created PBR shader for terrain handling
+* Added SetShaderVariable(shaderindex,constantname,vectorindex,value)
+* NOTE: Above can assign a value to a specific shader if index known
+* Replaced external X file converter with internal DirectX 9 converter
+* NOTE: Buildings Hut 2 never had materials, fixed its invisibility
+* Fixed transparency issue for regular entity rendering
+* Further consolidated all character shaders into entity core shader
+* Fixed issue of entity bounds disappearing when going underground
+* Fixed issue with AI threaded race control when AI bot destroyed
+
+V 2017.09 DX11 BETA 14
+
+* Added 'unscroll=u,v' and 'uvscale=u,v' to FPE to change entity UV shader data
+* Fixed issue causing depth map to decouple when SAO was switched off
+* Fixed issue with AI threading code freezing logic when lots of BOTS out of range
+* Restored full cascade shadow range for entities, terrain and character shaders
+* Fixed bug for fresh installs so model files are loaded ok during DBO conversion
+* Consolidated all separate HLSL shadow code into single cascadeshadow.fx shader
+
+V 2017.09 DX11 BETA 12
+
+* Added extra code to skip AI obstacle generation if dynamic entities modified
+* Added extra string clue to all runtime errors for file exist/not exist
+* Fixed Security Gate entity so when it closes, it does not disappear
+* Ensured the realshadowcascadecount in SETUP.INI can specify upto 8 cascades
+* NOTE: Created new good cascade range values for an 8 cascade shadow mapper
+* Added new 'hidelimbs' field into FPE to specify a range of limbs to be hidden
+* Extended support for 'associated textures' load to PNG even if DDS specified
+
+V 2017.09 DX11 BETA 11
+
+* Added 'hairlimbs=x,y' to specify a series of limbs that represent hair
+* NOTE: Above can also be used for any limb that required the culling switched OFF
+* Importing of some static FBX models now preserve single PBR texture sets for export
+* Updated texture loading code to prefer .DDS if it sits alongside a PNG/JPG file
+* Improved shadow rendering so can specify 'realshadowresolution' larger than 1024
+
+V 2017.09 DX11 BETA 08
+
+* Added Security Fence and Gate (thanks to GraPhiX from the GameGuru community)
+* Added support back in for 'adapterordinal' when creating DX11 device
+* Fixed issue with weapon HUD models not creating DBO files from X files
+* Now detects older FPM levels with corrupt obstacle data and deletes OBS data
+* AI Waypoint Data not cleared on reload, causing crashes on repeat runs, fixed
+* Fixed code which skips water mask generation if NO terrain is underwater
+* Updated texture customiser in Import Model feature to indicate 'multitexture'
+* Added new sprite batcher system to capture HUD draw calls into a tighter loop
+
+V 2017.09 DX11 BETA 06
+
+* Fixed bug so all four gun sound effect variations are detected and loaded
+* Regenerated Obstacle data for The Big Escape, and resaved, to speed up loading
+* Fixed nasty bug that caused edge data in obstacle data to be incorrectly saved
+* NOTE: Legacy levels will need to be loaded, move entity, test game then saved!
+
+V 2017.09 DX11 BETA 05
+
+* Modified splash loader to select 'nearest' image in 'languagebank\x\artwork\watermark\'
+* Fixed Paintedbarrier_N.dds which had corruption in the alpha channel of this normal map
+* Fixed issue of projectile models not loading now X files removed from standalone executables
+* Restored gun loading in standalone, now looks for DBO instead of old X files
+
+V 2017.09 DX11 BETA 04
+
+* Added entity_anim.fx to solve issue of entities with animations not animating
+* Reduced intensity of SAO so have finer controls of shading range
+* Added 'character_transparency.fx' to allow for characters that require transparency
+* Restored gun muzzle flash and smoke decal shaders from weapons
+* Reduced SAO effect at very close range, removing artefacts from weapons
+* Adjusted weapon shader so lowest shader level shadows uses camera position reference
+* Can now change between sky shaders (basic vs scroll)
+* Unified sky shaders for better HLSL editing in the future
+* Corrected binormal calcation in entity_core highest shader level (inverted normal shading)
+
+V 2017.09 DX11 BETA 02
+
+* Save Standalone now works and produces standalone which runs (with issues)
+* NOTE: Above test metrics: launch to menu=30sec, start game=100 sec, FPS=123
+* Added 'suspendscreenprompts=0' to SETUP.INI to hide any text prompts in standalone startup
+* Fixed castle gate animation in Easter DLC
+* Added support back in for multimaterial models
+* Added missing shader for effect_scroll.fx
+* Corrected Core AI homing logic to avoid 'circling coordinate' if not being crowded by AI
+* Prevented Core AI from attacking through walls (needs line of sight) FPS & TPP aware
+
+V 2017.09 DX11 BETA 01
+
+* Fixed EBE saving and handle object issue
+* Can now erase data from a specific limb (internally) for the above fix
+* Fixed issues causing animatable entities to not animate (doors, scifi dlc assets)
+* Fixed issue of decals causing Z write rendering issues
+* Fixed Galazy Seed Shaders from Expansion Pack
+* Fixed issue that causes object renders to drop mesh renders if earlier ones are unshaded
+* Fixed issue of CPUANIM entities not animating (restored CPU animation but not recommended)
+
+V 2017.06.26 BETA
+
+* Added defaultebegridoffsetx=0 and defaultebegridoffsetz=0 to SETUP.INI (EBE grid offset)
+* Cleaned up engine project files ready for migration to DirectX 11
+* Dropped support for 3DS file format (even older than the X file format support)
+* NOTE: 3DS support will be included in a new X/3DS to DBO legacy converter for next upgrade
+
+V 2017.05.05
+
+Fixed issue causing terrains not to load in correct texture for multi-level games
+Fixed conflict between Building Editor and Terrain Painter resources
+Changed footfall sounds for GRASS, STONE and WOOD. Good to get feedback during preview
+When loading in a new level, ensure old texture_D.dds / _N.dds are deleted first
+Fixed PLRVISIBLE data from entity in script always 0 for entities inside Floor Zones
+Rasied virtual player position during enemy sight detection (moved from waste to eye)
+NOTE: Above solves issue of enemy not seeing player at distance if stood behind barrel
+Added new 'defaultwaterheight=500' to SETUP.INI for manual control of water line
+Added new 'defaultterrainheight=500' to SETUP.INI to decouple terrain from water
+Improved DarkAI time slicing to avoid skipping AI bots during intense scenes
+Added new LUA commands; SetAnimationSpeedModulation and GetAnimationSpeedModulation (anim modulation)
+Added new LUA commands; GetMovementDelta to return real entity movement since last cycle
+Fixed issue of GetEntityXXX commands not returning floats (returned integers only)
+Moved all intense 'pathfinding' logic to secondary thread to speed up main game thread
+Tweaked GUARD scripts so they revert to ATTACKERS once they are hurt
+Added three new character reskins for soldier, shotgun and uzi enemies (thanks to Michael Stockton)
+Updated metal material for footfalls to match changes to other materials (generic, stone, wood)
+Now supports up to 1000 weapons in the gunbank (plenty of community weapons out there!)
+Now sorts weapons listed in HasWeapon field of entity properties into alphabetical order
+Ensured 1st level is loaded before Save Standalone to guarentee levelbank\testmap contents
+Fixed critical bug which 'deleted' textures that internal EBE structures relied on when saving
+First entity loaded into editor no longer causes up to 7 second delay before it displays
+Large delay when EBE structure first added to editor also removed thanks to above fix
+Updated several shaders to new Preben shaders featuring Retro Post Process and Performance
+Further updated terrain shader thanks to Preben to add new varation map technique to the mix
+Added variation_D.png and variation2_D.png to texturesource folder for above variation map trick
+Updated IDE links to Game Asset Store to newest site URL of "https://www.tgcstore.net/"
+Externalised player control system to scriptbank\gameplayercontrol.lua
+Added 483 new LUA commands to the scripting system to support Player Control Mechanics
+Added SetSurfaceIntensity, SetSurfaceSunFactor, SetGlobalSpecular, SetBrightness, SetContrast
+Added SetPostBloom, SetPostLightRayLength, SetPostLightRayQuality, SetPostLightRayDecay
+Added SetPostSAORadius, SetPostSAOIntensity, SetPostLensFlareIntensity
+Added SetOptionReflection, SetOptionShadows, SetOptionLightRays, SetOptionVegetation, SetOptionOcclusion
+Added SetCameraPanelDistance, SetCameraPanelFOV, SetCameraPanelZoomPercentage, SetCameraPanelWeaponFOV
+Added SetTerrainLODNear, SetTerrainLODMid, SetTerrainLODFar, SetTerrainSize
+Added SetVegetationQuantity, SetVegetationWidth, SetVegetationHeight
+Small tweaks to Fantasy and Scifi DLC levels
+AI INIT now called again for non-spawnatstart entities when they SPAWN
+Changed AI combat core so setting activate to 1 no longer instantly alerts them to attack (now 2)
+Fixed issue of 'hunting mode' ignoring cone range defining viewing distance of AI
+Fixed issue of cone of sight not always aligning with visual angle of AI character
+Improved AI so hunter mode will track last location of player from firing on spot
+Enhanced AI detect module to update tracking information of player target
+When load in an FPM that uses a terrain or veg style not on local machine, now resets to last slot
+When hurt, AI character now instantly spins to face player who shot them (quicker reflexes)
+Fixed issue of movement delta going to zero during some script activity (slow anim issue)
+Added regular soldier behavior so returns to patrol after 5 seconds of losing player
+Corrected visual settings for new levels so as not to carry over old lighting settings
+Changed sound detection so idle characters will look in direction of the noise if within 2000 units
+Improved aggression of agro'd AI so they track player location outside of range when raised
+Reduce AI activation flag to zero after used so can use normal behavior outside of provoked event
+When sound detected by patrolling AI, idle is started to look in direction of player who made sound
+Prevented occluder from hiding the heads of custom characters from built-in character creator
+Added g_PlrKeyX LUA globals which represent mappable keys for in-game use (for arrowkeys/controllers)
+
+V 2017.03.31
+
+Changed default LUSH texture set to include 16 variations to demonstrate choice
+Improved speed of the terrain shader for lower-end machines
+Added a secondary overlay mode for the texture in the first slot (path slot)
+Removed redundant terrain texture items from Terrain Main Bar
+Fixed crash caused by the terrain blend function on some levels
+Now prompts user when switching terrain in test game to warn of possible delay
+Updated grass textures and default terrain texture plate to lower specular term
+Removed legacy use of VegShadowSampler.g for 'painted shadows' - never used
+
+V 2017.03.29
+
+Added new switches in fixtures folder with new scripts to control doors remotely
+Breaks association from linked parent when EXTRACT used on an entity
+Improved accuracy of texture paint cursor at lowest brush radius
+Fixed AI_WANDERER script to use correct internal function names
+EBE structures loaded into level now carry the correct textures into level
+EBE structures being edited now use their own correct textures previously stored
+When save EBE structure, it now uses unique texture in ebebank, not current one
+Prevented rogue 'loaded' temp EBE items being added to local library list
+Stopped crash when an EBE that shares a texture is edited to customise the texture
+Created new terrain texture system which uses a single atlas texture inc 16 textures
+Terrain texture system scans for old terrainbank folders and creates new atlas
+Add new UI for terrain texture painter to select and customize up to 16 textures
+Grass no longer overwrites underlying terrain paint for more grassy options
+Corrected several AI_*.LUA scripts which used incorrect MAIN and INIT names
+Created new terrainbuild\texturesource folder to store new terrain texture choices
+Now only shows grass paint in grass painting mode for better texture editing
+Updated supertexture to handle new 16 texture terrain (instead of previous 4)
+Trigger supertexture to recalculate if terrain texture change detected
+Added new 'default.fpm' which loads automatically when welcome splash present
+NOTE: Above helps show new users GameGuru is more than just a green flat landscape
+Moved super terrain texture palette generation until leave texture selector panel
+Resets terrain texture painting mode when start new map to remove unwanted panel
+When start new level, texture terrain panel instantly removed if was open
+When change levels in editor, terrain texture panel now reflects latest texture
+Removed redundant terrain texture toolbar icons, replaced with single button
+Terrain textuer selector custom requester now points to PNG initially
+NOTE: Above coupled with Diffuse Only PNGs screens out accompanying Normal files
+Fixed small seam effect between texture choices (thanks to the mighty Preben!!)
+Now removes the terrain texture panel quicker when have it open and load FPM
+When enter F9 mode, no longer brings up terrain texture panel in-game
+Entirely moved terrain texture palette generation to test/game process
+Empties custom terrain texture files from testmap when start new level map
+When start new level, terrain texture panel selection image restored to default
+Moved terrain texture paint toolbar icons to join other terrain button tools
+The IMPROVEDDISTANCE setting is now set to ON by default, improving distant textures
+Small corrections to terrain rock ratio and normal mapping for improved visuals
+Fixed issue causing all specular to be dropped from textures, now restored
+Ensured terrain texture panel texture selection does not render its alpha elements
+Switched the new terrain texture diffuse plate to use DXT5 which preserves specular
+
+V 2017.03.10 : Tweaks to A.I and a DLC Boost
+
+Fixed melee punch condition to revert to recover and prevent startidle movement
+NOTE: Noticed MoveForward creates physics inertia and slides AI object WAY ahead of final pos when FAST
+Increased timing of path regeneration to avoid fast AI bots stop/start effect
+Improved COMBATCORE script for better classic Zombie and melee AI behavior
+Zombies (combat melee script) now remain idle until player detected
+Critically halved motion multiplayer to stop zombie/legacy character sliding
+Fixed soldier AI so those who patrol paths can continue doing so, even after stopping
+Updated the legacy character movement to include the new character avoidance logic
+Restored AI bot speed system and readjusted Zombie characters to correct issues
+Reduced turn speed so characters no longer turn instantly to their new direction
+Ensured when high speed AI reaches very last node, stop movement flag sooner (stop move spin)
+Replaced code which contains AI within their designated floor zones
+Increased frequency of path generation from 1 second down to 0.75 seconds
+Removed forced animation speed from new AI behaviors to allow entity property control
+Removed forced turn speed from new AI behaviors to change it via entity SPEED property control
+Improved stair climbing detection for faster AI bots and characters in general
+Removed TEXTUREPATH from saved EBE entities to prevent use of temp ebebank\default caches
+Increased speed of all soldier characters to match legacy tweaks and AI back-end movers
+Stopped duplicate EBE thumbs being created in local library entitybank list
+Any EBE temp files and EBE texture files are removed from testmap folder on NEW level
+NOTE: It is normal for EBE items to disappear from local library, only their copies are used
+NOTE: To treat an EBE as a normal entity, simply delete the EBE file associated with it
+Building Editor textures recovered after texture cache clearance deletes them on session exit
+Fixed issue of multimaterial models with short texture names corrupting model data
+Corrected multimaterial object rendering to once again populate first slot with diffuse texture
+NOTE: The above fixes ensures the Galaxy Seed sky scrolling effect is restored
+The ENDCOLLISION property no longer sends ragdolls through floor and entities
+Added 'forceobstaclesliceheight' to FPE fields to allow AI obstacle plane height to be set
+Added 'notanoccludee' to FPE so entities can be designed to never get occluded by occluder
+Adjusted blood splat decal effect so only used if NO 'materialindex' specified in FPE
+Added 'explodedamage' to FPE to specify the default explosion yeild of specfic entities
+Added 'hoverfactor' to FPE to give hovering capability to 'flying' entities (drones)
+New SCIFI DLC Assets (Mission To Mars) and all new DRONES - Definately Check It Out!
+
+V 2017.02.28 : A.I and Third Person
+
+Waypoint nodes no longer being edited when in EBE mode
+Fixed crash bug caused when you place an entity then immdiately use UNDO
+Fixed issue of mouse wheel disabling when leave EBE for first time each session
+When EXTRACT performed, mouse now centers on Widget position, less chance for mess
+IDE now expands the Fixtures entitybank folder for one less click to get a door
+Changed the Fixtured subfolders to capital first letter to match entitybank
+Modified loading EBE from local entity library to create new instance in level
+NOTE: Above allows modifications to be retained on save/reload and protect saved EBE
+Now when delete EBE file from saved EBE, it turns into regular (uneditable) entity
+Corrected static_basic.fx to re-include the SpecularOverride constant (lightmap shader)
+Fixed lightmapper to no longer force meshes to flat-shading (now keeps smoothing groups)
+Added slider to control Lens Flare intensity, and adapted post process shader to suit
+When you hold down CTRL while EBE painting, it axis locks the initial direction
+Added slider to control Surface Sun Intensity (defeats sun influence for indoor scenes)
+Adjusted main surface and shadow shading to use Sun Surface Factor
+NOTE: The Surface Sun Intensity slider is experimental but can control DOT3 lighting
+Added credit text file to texturesource folder to credit authors as collection grows
+Added two new shaders (tree_basic.fx and treea_basic.fx) for better tree rendering
+Updated all foliage entities in core, MP1 and MP3 packs to use new tree shader
+NOTE: New shaders and FPEs above fix the transparent edge issue on trees and plants
+Fixed issue of F9/E crashing test game, was the result of new object mask flag code
+Fixed issue relating to entities that have bones in only some limbs not being mouse detected
+Fixed issue of entities stop animating if change specular to a non 100 value
+Further improvements to the shaders by Preben (improved shadows and per-object light flag)
+Tweaked all ROOF asset pieces in fixtures\roofs to avoid 'out the box' Z clash
+Added 'dontfindfloor' field to FPE to initially ignore floor finder (roof pieces)
+Added 'keyframe speed' field to GUNSPEC file to allow per-weapon anim speed control
+Created wider entity properties panel to see weapon choices better
+Fixed issue of waypoint nodes being hidden after regular entity/EBE highlighted
+Enabled ZREAD for waypoint/zone objects to get idea of where they are in scene
+Added 'PlayVideoNoSkip' to LUA commands to control a video which should not be stopped
+Added PlayVideoNoSkip to global.lua so the above command will work
+Replaced blank_N.dds from effectbank\media so legacy entities are smooth on HIGHEST
+Added hidedistantshadows field to SETUP.INI (V1.14 defauled this to 1 for ON)
+Set new hidedistantshadows to 2 to retain LARGER entity shadow for buildings
+NOTE: Above improves IDE editor view as large buildings now have shadows when high
+Improved cascade shadow mapping code by using R32F format (cards under 10 years)
+Improved cascade shadow mapping code with larger base shadow texture and bias per cascade
+Added 'realshadowresolution' to SETUP.INI (old V1.14 default was 1024), now 4096
+NOTE: New 4096 shadow resolution will be sought, but will use lower if HW not available
+Restored realtime shadows to hidedistantshadows=1 & realshadowresolution=1024 (performance)
+Added shadow depth tweak to overlay_basic.fx used by new windows entities (for shadowing)
+Entity loader will now attempt to find and load _cube.dds file if _i.dds not found
+Added spinloop.lua to scriptbank with logic to spin an entity slowly on the Y axis
+Added new Shiny Skull entity in Scenery to demonstrate new Cube Mapping capability
+Added support for loading _normal, _specular and _gloss if multi-material object uses them
+NOTE: Above will allow Fuse Characters (via FBX2GG) to be imported with full shader effects
+Added new special value to 'smoothangle' FPE field over 101 which 'GENERATES SMOOTH' normals
+Also new special value over 101 will also seal and blend position and normal values
+Added new ai_dance.lua as the first official AI work towards V1.15
+Added new effect called character_notangents.fx to ignore corrupt tangents in models
+Added new "entitybank\user\fusecharacters" folder with material to help importers
+Modified cube_basic.fx so that cube mapping is independent of light direction
+Added new 'isspinetracker' to FPE to control new spine tracker for modern character anims
+Added MoveWithAnimation(e,v) LUA command which moves entity if v is 1 using spine tracker
+Added REALSHADOWCASCADE 0-3 to SETUP.INI for manual control of shadow mapping cascade levels
+NOTE: New cascade values are 2, 6, 18 and 75 (though reverted to old 10, 20, 50, 100)
+Fixed ragdoll and collision settings on new FuseModel FPE template
+Fixed bug so PHYWEIGHT and PHYFRICTION specified in FPE are no longer reset to 100
+Added three new roof pieces (thanks Belidos) to give you the option of flat-topped roofs
+Added "treea_basic.fx" awareness to switch entity to DYNAMIC if selected (for animspeed control)
+Updated with latest Preben shader tweaks with improved shadows and debugging flags
+NOTE: realshadowresolution=1536 to anything upto 4096, the bias works without changes
+Added new LUA command ID=GetPlayerWeaponID() where ID returned is the WeaponID index
+Added new LUA commands SetCameraOverride, SetCameraPosition and SetCameraAngle (main cam control)
+Added new LUA commands GetCameraPositionX,Y,Z and GetCameraAngleX,Y,Z for full set/get
+Added much needed LUA command "WrapAngle" which will save lots of LUA code to handle angles
+Created a re-usable 'module_cameraoverride.lua' LUA script to keep newer scripts cleaner
+Reactivated support for FOOTFALLMAX and FOOTFALLx in FPE where x is the footfall index
+NOTE: Above allows entities to specify keyframes that would trigger a footfall sound effect
+Added code to the physics system to report material types to the entity footfall system
+Added sounds to new faster zombie and related AI script (ai_idlemovebitehurt.lua)
+Added AGRO logic to new AI script which alerts nearby enemies within radius of an event
+Added sound awareness to new AI script for wider agro alerts
+Added headshots to new AI script to ensure player can benefit from single shot kills
+Added new 'CharacterControlManual(e)' which forces AI to a new 'full manual mode'
+Added new LUA commands 'GetEntityPositionX,Y,Z()' in order to update AI in manual mode
+NOTE: Gives LUA scripter FULL control of how entities are handled based on AI data
+Added new LUA command 'AISetEntityTurnSpeed(obj,speed)' to help control path navigation
+Refined the AI path finding to allow for VERY fast anim-movements without delays
+Thanks to a Rafhalzer fix, and my tweaking, imported Fuse characters now have normals
+Fixed so tangent and binormals animate properly in character shader
+Added 'character_gloss.fx' to effectbank to use illumination slot as gloss map
+Fixed big bug causing most AI obstacles to fail if depend on loading them in (EXE/TestGamex2)
+Corrected path finder so fast tracking of paths detect node quickly and moves to next
+Reactivated avoidance code (mode 1) in AI system so entity Vs entity avoidance works
+Added new LUA command 'GetAnimationSpeed' to obtain the ANIMSPEED when entity first starts
+Added FIVE new Doors to Fixtures (thanks to Cesar Correa for making them freely available)
+Fixed Entity physics for characters so vertical velocity replaced with gravity force
+Two new entity physics LUA commands added FreezeEntity(e,m) and UnFreezeEntity(e)
+SurfaceSnap = created new default mode which finds any surface to place entity/waypoint
+NOTE: Above mode can be broken with use of RETURN or PGUP/PGDN keys (restoring old modes)
+NOTE: This mode is deactivated when extracting via the widget to preserve entity positioning
+Waypoints now use surface snap detection to place waypoint nodes anywhere in 3D space
+Updated entity_basic to use variants entity_cube / cubealpha and cubeambience shader files
+NOTE: Above allows much code re-use while while maintaining extra modes for cube mapping
+Added new Floor Zone marker which can create 'navmesh' containment areas for the AI system
+Waypoints now double as floor zone (navmesh) connectors, allowing AI to move between them
+Added 'deletetxpcachesonexit=0' to SETUP.INI which deletes TXP cache for smaller HDDs
+NOTE: Above will cause TXP to regenerate each time a new EBE texture plate is required
+Changed Floor Zone from 'inverted obstacle' to 'obstacle walls' for extra-safe navmesh
+New improved shader tweaks from Preben for shadows and cube mapping
+Added ability for characters to detect and climb stairs and ramps and ascend/decend them
+Added 'Building Editor Guide.pdf' to DOCS folder (thanks to community help and advice)
+Capsule Vs Capsule Physics can PUSH AI out of zone bounds, so replaced with maths avoidance
+View cone in AI debug now points in same direction as character facing angle
+Added new 'disablesurfacesnap=0' to SETUP.INI to disable the 'surfacesnap' editor default
+Changed Player Start Ammo quantity from 1 to 100 so default TPP character has more bullets
+Added 'jumpmodifier' to FPE to control third person jump multiplier (wizard uses 250)
+NOTE: When set jumpmodifier to zero, it will completely disable TPP ability to jump
+Added 'jumphold' to FPE to specify which jump frame is held during fall to ground
+Added 'jumpvaulttrim' to FPE to deactivate automatic trim applied to VAULT animation
+NOTE: Above jumpvaulttrim state is on by default, allowing ALL characters better jump anim
+Added 'jumpresume' to FPE which controls when the jump anim can give over to move anim
+Wiped default VAULT animations from anim system so characters must specify them in FPE
+Added support for TPP characters to shoot all main weapons (pistol thru launcher)
+Prevented LUA scripts associated with character used in Third Person Mode (as player)
+Fixed editor stutter on larger levels, now only uses 'surface snap' when holding entity
+Also engages surfacesnap in all cases when waypoint nodes being dragged individually
+Added code to deactivate melee LMB if there are no PUNCH animations in character FPE
+Modified editor opening zoom height and brush size so characters are not so small
+Remove ISTHIRDPERSON field from Wizard FPE's as not used any more 
+Allowed melee action to intercept move/run so Third Person Mode can instant attack
+Added 'meleerange' and meleehitangle' to FPE to control TPP melee attack metrics
+Added 'meleestrikest' and 'meleestrikefn' to FPE to define 'deadly' melee anim frames
+Added 'meleedamagest' and 'meleedamagefn' to FPE to define range of damage per strike
+NOTE: Above commands override defaults used by stock characters that don't have them
+Refined waypoint node mouse detection for better selection of zone vs waypoint paths
+AI bots can now move across multiple-zones in one movement, no more pausing mid-run
+AI bots now detect the closest zone to the player, and make an extended path to it
+Removed code which set characters to immobile with Y position 20 units above floor
+Created new COMBATSHOOT module so can retain AI_SOLDIER.LUA placement and call new AI
+Allowed third person character script to remain in tact (for tricks involving TPP)
+Added 'tpp\\thirdperson.lua' to scriptbank for any TPP script overrides for character
+New Solider script (combatshoot module) will resort to kicking if get too close
+RotateToPlayer now updates visual object now object control decoupled from AI
+All zones now collect obstacle data to ensure good pathfinding above default ground
+Added 11 solid doors to the Fixtures folder for additional choices, thanks to Peter!
+Lowered 'fine grain' obstacle generation from 30.0 to 14.0 for better stair detection
+Ensured when place down entity, waypoint node at location not moved until first release
+Added 'forceobstaclepolysize' to FPE to allow control of 'obstacle slice' resolution
+Fixed 'door awareness' for AI, which can block path decisions for closed doors
+NOTE: An entity is a AI Door if the first 4 characters of the script is 'door'
+Fixed issue of doors thare are collision offset not blocking AI obstacles properly
+NOTE: To remove terrain physics altogether, use 'superflatterrain=2' in SETUP.INI
+Player now registers correct zone/container ID using height within the world
+Corrected how door bounds are calculated to always seal door gaps in EBE structures
+Corrected rotation logic for camera override for simpler and more accurate attacking
+Added 'ForcePlayer(angle,force)' command to allow kicks to knock back the player
+Combined new AI scripts into more organised modular system to maximise code re-use
+Added missing 'AIPathGetPointY' LUA command for better control of 3D nodes
+Commented out old AI globals (will affect any scripts using old AI system)
+NOTE: To continue older script projects, you can comment global.lua OLD-AI back in
+Added 'AIGetTotalCover,AICoverGetPointX/Y/Z and AICoverGetAngle' from Cover Markers
+NOTE: Can now obtain all cover marker positions and angles within LUA script (go nuts!)
+Improved COMBATSHOOT system for path follow, kick, cover, seek and shoot
+Added 'IFUSED' field to Cover Zone marker and provided access in LUA using AICoverIfUsed
+Added 'AICoverIfUsed' to commands which returns the IFUSED string into script
+Added code to detect if DBO in FPE does not exist, and tries to use .X file instead
+Added 'GetAmmoClipMax, GetAmmoClip and SetAmmoClip' commands to manage character reloads
+Updated all stock characters with revised animation set for new AI scripts
+Updated all core Ai scripts to new modular system
+Improved AI debug view so container zero obstacles and paths follow the terrain geometry
+Modified The Big Escape level and increased soldier aggression (i.e. some now not guards)
+The Floor Zone marker is now created as a square to better fit quick floors in structures
+Removed redundant cover zone code now we have exposed the cover zones to the LUA system
+Loading FPM levels now first clears temp folder of all EBE files and textures
+Entities marked as dynamic isimmobile=1 are now treated as obstacle creators
+Improved soldier Cover behavior to leave cover strategy if get hurt
+Tested all sample levels to ensure AI reflects improvements
+
+V1.14 : Easy Building Editor
+
+Improved performance of Gem World demo by reducing camera draw distance and adding fog system
+Changed vShadowTexCoord.z bias from 0.0003f to 0.00009f to fix realtime shadows (entity/static/char)
+Added missing DarkAI commands and additional help in Docs\DarkAI Documentation\*
+Added new FAQ section to main TGC site to collect and centralise all Lee answers in 2017
+Changed SAO bias from 1.2f to 1.48f to reduce artefacts in final rendering
+Added a fix to ensure all GameGuru MessageBox pop up in FRONT of IDE not behind
+Added SAVE button to EBE Entities so they can be saved to the Builders tab
+Added code to save EBE when save level, load when load level, and load EBE from Builders tab
+Increased capacity of EBE grid to handle FULL 3D volume (200x200x200 cubes)
+Reinstated FirePlayerWeapon(2) functionality
+Fixed GetAmbienceIntensity() and similar visual setting retreivers
+Optimized the EBE creation/edit step so mesh assets are created on the fly, removes delay-start
+EBE now retains editing settings from last EBE edit site, quicker productivity
+Added simple STAIRS prefab to EBE constructor so can quickly make navigatable multi-level rooms
+Added first-round of matterial and wall textures to EBE 'texturesource' folder (370MB)
+Fixed issue of ResetPosition() command not returning characters to the specified location
+Added mipmapping to EBE grid system so pixel swim has been eliminated from gadgets
+Added ability to right click on any texture within plate to choose a custom texture file
+Fixed PFB system to allow larger prefab shapes to be crafted and used (20x20x20 columns)
+Fixed issue of mouse pointer disappearing on file requesters after using free flight mode
+Added 'preservemode' to PFB system to allow wall types to gracefully add and delete
+Added system to create a border to the texture plate to allow seamless atlas textures
+Adjusted UV coordinates of textured cubes to allow sub-pixel seamless texturing
+Fixed CHURCH DOOR entity so it does not disappear for one cycle when closing
+Fixed issue of entities keeping their lightray mask after clone/instance switch
+Replaced Freaks\Elhumongo and removed Viral Outbreak\Jaws and Medusa from asset library
+Fixed issue of 'Site Switching' only works when click another EBE site - not any entity
+EBE no longer persists if start a new level whilst creating an EBE structure
+EBE no longer crashes if edit an structure after an attempt to lightmap it (F4)
+Added single stage UNDO and REDO to EBE editor for convenience of one-off mistakes
+Added Help Panel to show keyboard shortcuts for the EBE editor system
+Added improved STAIRS and new COLUMN PFB build shapes for complete basic set
+Added two built-in preserve modes for more intuitive building for new users
+Fixed issue of staircase rotation corrupting right facing constructions
+Added subtle arrow to cursor highlighter so can determine rotation direction
+Created simple TALLBUILDING to demonstrate EBE loading and possible multi-storey
+Added 9 more textures to EBE texturesource and created default Texture Plate choices
+Moved created EBE structures from inside ebebank to entitybank (ready for store selling)
+Added 'EBE Material Types.txt' to DOCS to instruct user on what the material letters mean
+Added support for assigning material references to each texture in plate
+Added support for saving and loading material information between EBE entities
+Added new G_LIGHTS_DATA constant to shader sends, use .X to gain access to light quantity
+Above constant will allow some clever shader writer to increase overall performance!
+Added code to inject EBE material choices into physics for footfall sound effects
+Added code to inject EBE material choices into geometry for bullet impact effects
+Fixed lightmapper to detect and lightmap EBE structures as regular entities
+Fixed issue of materials 16, 17 and 18 not converting to the final optimized object
+Added rest of material sounds back into load sequence (materials 4-16 were missing)
+Material choices now carry through to lightmapped version of the EBE structures
+Removed spikey sphere handle mesh from lightmapping process (editor mesh artefact)
+Added texture group references into EBE file to track which textures were used
+Unique filename generated for EBE texture arrangements so can share texture files
+Each EBE structure saved now has its own 'unique-named' texture set
+You can now switch between two different Texture Plate groups
+Fixed issue of specular settings not carrying to prebaked static entities
+Added SpecularOverride to static_basic.fx shader so specular setting can work in prebake
+When EXTRACT entity, any child entities are also extracted, moved and rotated as a group
+When pasting extracted entity group, child references are maintained
+Fixed issued with group highlighting disengaging when extract/paste process over
+Built-in functionality to save and load parent/child associations for FPM levels
+Added new field to FPE called "offyoverride" which overrides Y offset to correct models
+Added new scifi door/lift sound effects to the audiobank folder
+Added new doorautolegacy.lua script to control a door frame animation (proximity)
+Now the entity link system disables the 'findground' system for better connecting
+Added new 'GetEntityAnimationStart and GetEntityAnimationFinish' LUA commands
+Added 8 new doors with frames to entitybank\fixtures\doors folder
+Added 5 new windows with frames to entitybank\fixtures\windows folder
+Added 3 new roofs to entitybank\fixtures\roofs folder
+Updated F1 help screen to show 'L + DRAG = Link Entity' functionality
+Reset EBE editor state when start a new level
+EBE entity no longer corrupts when enter and exit the entity LOCK system
+Prevented child entities from detatching when mouse exit and enters edit area
+When PGDN EBE cursor to ground, will now reset to zero layer even if grid size > 1
+Added new ROW shape to the EBE prefab shapes to allow quicker hole punching task
+Changed preserve mode for Column so it does not respect cubes next to it
+Added special case for EBE grid size so ROW shape can match 1 cube high dimension
+Fixed issue of EBE surfaces that share materials no longer sharing texture ref
+Adjusted visual defaults of GameGuru to prefer HIGHEST and stronger color settings
+Fixed LightRay shader to accept the adjustment from the Lightray Mode slider
+Finally removed the EBE grab marker from the lightmapping blocker list
+Adjusted the EBE entity grid offset to match regular 100x100 global grid system
+Written 'forcesimpleobstacle = 3' for all EBE structures to give them better AI
+Updated Door and Window Frames to use 'forcesimpleobstacle = 3' (as above)
+
+V1.1331 : 
+
+Added extra toggle text to F and G modes to help new users to the editor view types
+Fixed issue of specular not working on entities that are not characters
+Updated global.lua to include the SetPlayerRun(x) instruction
+
+V1.133 :
+
+Optimized entity loops to favor dynamic elements (do static entities need loop and animloop functionalities)
+Limited DarkAI to only control AI bots within a 2000 unit range (only AI bots within game play area matter)
+Improved occluder with predictive occlusion (marches in advance of player motion) - stops disappearing walls
+Fixed bug which stops updating lightray render when terrain is hidden (F11 terrain off mode)
+Added secret backdoor password for Restricted Content Mode (9119 unlocks restricted content mode)
+When playing video in standalone executable, left click now ends the video as designed
+When video playback is stopped, the sound is also stopped (used to carry on to the end)
+When play video in standalone, on exiting video, no longer shows low FPS warning
+Added new END COLLISION field to entity properties; can now switch off collision of ragdolls
+Added new OCCLUDER and OCCLUDEE fields in properties to control per-entity occlusion states
+Added new SKYSHADER and SKYSCROLLSHADER fields to SKYSPEC.TXT file to allow custom sky shaders
+Added new LUA command "SetPlayerRun(x)" where a value of zero in X will disable player ability to run (SHIFT)
+Added 12 new Zombie sound effects to "audiobank\zombies" to improve 'repetitiveness of current audio'
+Added 3 new sound slots to all entity properties (Sound2, Sound3 and Sound4) for more LUA opportunities
+Fixed issue which prevented SOUNDSET slot to be used by regular non-voice sound file
+Updated AI_FASTZOMBIE, AI_ZOMBIEWALK and AI_ZOMBIEWALK3 to use new Zombie sounds
+Fixed MAJOR LUA script issue which would call _init 'BEFORE' preparing g_Entity structure
+Improved AI_FASTZOMBIE to fix issue of roar responding to sound but not chasing the player afterwards
+Further improved AI_FASTZOMBIE to increase ferocity of attack and manouvers - a taste of better AI
+Added new field to FPE called 'endcollision' which when set to zero will disable collision of ragdolls
+Fixed issue of camera locked third person locking onto itself when firing fireball
+Fixed lua_setfreezepositionXYZ and lua_setfreezepositionAXYZ commands to use floats (not ints)
+NOTE: You can use 'ignorematerial = 1' in GUNSPEC file to hide the decal impact from weapons fire
+Fixed issue of third person weapon not activating when move from level 1 to level 2
+Ensured lightmapper updated with new entityelement/profile data structures
+Added the following new LUA commands for attribute control of any in-game weapon:
+GetWeaponSlot: GetWeaponSlot ( index ) -- Gets WeaponID from slot, index is 1 through 10
+GetWeaponID: GetWeaponID ( GunNameString ) -- Gets WeaponID associated with current GunNameString
+GetEntityWeaponID: GetEntityWeaponID ( e ) -- Gets the WeaponID associated with the entity specified
+SetWeaponDamage: SetWeaponDamage ( WeaponID, FireModeIndex, Value ) -- Sets damage value of weapon
+SetWeaponAccuracy: SetWeaponAccuracy ( WeaponID, FireModeIndex, Value ) -- Sets accuracy value of weapon
+SetWeaponReloadQuantity: SetWeaponReloadQuantity ( WeaponID, FireModeIndex, Value ) -- Sets reload quantity value of weapon
+SetWeaponFireIterations: SetWeaponFireIterations ( WeaponID, FireModeIndex, Value ) -- Sets shot iterations value of weapon
+SetWeaponRange: SetWeaponRange ( WeaponID, FireModeIndex, Value ) -- Sets range value of weapon
+SetWeaponDropoff: SetWeaponDropoff ( WeaponID, FireModeIndex, Value ) -- Sets dropoff value of weapon
+SetWeaponSpotLighting: SetWeaponSpotLighting ( WeaponID, FireModeIndex, Value ) -- Sets whether weapon uses spot light effect
+GetWeaponDamage: Value = GetWeaponDamage ( WeaponID, FireModeIndex ) -- Get damage value of weapon
+GetWeaponAccuracy: Value = GetWeaponAccuracy ( WeaponID, FireModeIndex ) -- Get accuracy value of weapon
+GetWeaponReloadQuantity: Value = GetWeaponReloadQuantity ( WeaponID, FireModeIndex ) -- Get reload quantity value of weapon
+GetWeaponFireIterations: Value = GetWeaponFireIterations ( WeaponID, FireModeIndex ) -- Get shot iterations value of weapon
+GetWeaponRange: Value = GetWeaponRange ( WeaponID, FireModeIndex ) -- Get range value of weapon
+GetWeaponDropoff: Value = GetWeaponDropoff ( WeaponID, FireModeIndex ) -- Get dropoff value of weapon
+GetWeaponSpotLighting: Value = GetWeaponSpotLighting ( WeaponID, FireModeIndex ) -- Get whether weapon uses spot light effect
+Added legacy terrain generation system when select NEW RANDOM LEVEL from FILE menu (by popular request)
+NOTE: Further increased terrain randomness by changing old fixed range (6) to new (5+Random(4)) for better choices
+Fixed issue of game running slower after a saved game reload
+Updated Classic Character Scripts (from expansion pack) thanks to SmallG's scipting talents!
+Prevented sky messing up when save standalone (removed auto NIGHT export for now)
+Now saves out textures from internal ELEPROF and parent ELEPROF data (MMS level textures)
+Shifted 'graphicsmediumgrass=high' and 'graphicshighgrass=highest' for better default export in SETUP.INI
+Added code to TITLE.LUA to reinstate the auto-title-music feature, just add TITLE.OGG to DEFAULT folder
+Fixed issue of distant path-based AI bots stuttering by allowing ALWAYS ACTIVE flag to work within AI system
+Also increased AI deactivation range so that the stutter is never seen (3000 now same as GG range disabler)
+Improved random terrain generator to create good balance of flats and hills (more like legacy system)
+Fixed issue of DOF not working when SAO is zero
+Added support for per entity specular modulation, specified as a percentage of the global specular setting
+NOTE: Above feature can overexpose specular for cool metallic effects on entities of your choice!
+Fixed issue causing some characters (zombies no ragdoll) to get hit/headhot and not use fall animation
+Added code to character physics vertical positioning so AI like Clown Zombies find the Asylum floor
+Improved constants (TIME,SINTIME,DELTATIME) passed into shader so they use PerformanceCounter precision
+NOTE: The above affects sky scroll shader, grass animation, anything that uses timer for shaders
+Extended higher precision timing code to physics update for triple-figure FPS fidelity
+Extended higher precision timing further to include time slicing logic for all in-game logic
+Solved the slight jerkiness when mouselooking quickly - now SMOOTH AS DATA'S BOTTOM - Oh yeah!
+Fixed issue of SAO = Zero triggering SAO shader instead of BLOOM shader in recent beta fix
+Changed defaults in VISUALS.INI to HIGHEST by default - improve first impressions of GameGuru
+
+V1.132 :
+
+Fixed issue which caused 'hidelowfpswarning' in SETUP.INI to be ignored
+Move LUA and AI processing to AFTER PHYSICS/PLR code in main loop so scripts have more up to date plr/camera values
+Added new 'zdepth' field to entity FPE file which can disable the zdepth render order (it will draw like a HUD weapon)
+Fixed issue of GUNSPEC 'textured' field not finding internal HUD.X model textures when it was blank (legacy medieval weapons)
+Added 'usespotlighting' as field in GUNSPEC to control default as to whether projectile has dynamic spot lighting
+Added 'usespotlighting=1' to Modern RPG weapon and Fantasy Staff weapon to ensure they use spot lighting
+SCIFI PACK: Updated Buildings and Interiors with correct AI obstacle settings
+Changed geometry for Light marker so you can better manipulate in 3D free flight mode
+New GAMEDATA.LUA that now supports global tables (thanks to feature and bug work by that fine fellow; Rickie Allen)
+Added extra functionality which disables auto-removal of dead characters if ALWAYS ACTIVE is YES
+Fixed bug in LUA spawn command which confused the entity parent ID (would cause strange behaviours)
+Fixed issue of repeated calls to SetObjectEffect internally when SetFogRed(x), etc is called (performance hit!)
+Used setForceUpdateAllAabbs( false ) in physics engine to speed up handling of static meshes in physics scene
+
+V1.131 :
+
+Fixed both (Peek) behavior character soldiers to now use ai_cover.lua
+Added OBSTACLERADIUS to SETUP.INI to control the margin radius of static obstacles
+Fixed issue of gun and entity animations freezing when DEBUG MODE shows AI markers
+Added 'lightmappingexcludeterrain' to SETUP.INI which can switch off terrain shadows
+Accelerated speed of the 'create smoothing normals' inside lightmapper
+Improved the lighting levels of Asylum level and changed the sky to hide occlude flick
+Changed initial default to DDS when selecting new texture in IMPORT MODEL feature
+Modified INVISIBLE WALL entity to use default.lua (from old easter script)
+Added support for better importing of FBX static meshes (skinning sidelined for now)
+The IMPORT MODEL feature now remembers the last import folder location
+Added [W][S] in IMPORT MODEL to move camera up and down to better view the target
+Added MouseWheel in IMPORT MODEL to zoom camera in and out to better view the target
+When using scaling slider, no longer interfers with object rotation if object large
+Toggled Texture Loader so PNG is the preferred image type looked for (good for FBX import)
+Added invisible wall script and fixed invisible wall entity
+Updated the DOCS file on importing models to include a section on Shadow Management
+Added new Geo Twizzle and Center Mesh options for finer control of FBX importing
+Added CULLMODE to Import Model Panel for some entities which are cull inverted
+Added new LUA command 'GetTerrainHeight(x,z)' which returns the terrain height at that point
+Fixed a bug so that characters now report their true height via entity[e]['y'] in scripts
+Fixed RADAR.LUA to allow objectives to disappear (including change to OBJECTIVE.LUA)
+Now restored collision box markers when reload an FPE entity back into IMPORTER
+Changed button highlight for IMPORTER panel buttons and renamed to 'Height Guide'
+Added new showdebugcollisonboxes=1 in SETUP.INI to visualise collision box shapes
+Fixed issue with collisionbox shapes shifting when scale and rotation applied to them
+Fixed issue so g_PlayerAngX, g_PlayerAngY and g_PlayerAngZ now wrap angles to 0-360
+Increased Sprite and Image maximums in LUA script system to 10,000 each
+Removed the WIDTH, HEIGHT and DEPTH from SETUP.INI in Standalone as they don't do anything
+When saving a standalone with multiple levels, the test game splash no longer appears in error
+Changed prompt to correct text of "LOCKED - Hold SPACEBAR and click to unlock"
+When making multi level standalone games, weapons collected in previous level carried over
+Ensured [GAMEMENUOPTIONS] is copied to SETUP.INI in Standalone, and that it works fully
+Added SAO (Scalable Ambient Obstruction) to Post Processor (needs DOF or MB > 0 to work)
+Added 'invisible_wall.lua' to script bank so invisible wall entity no longer black when rendered
+Fixed weight and friction so they now affect all objects in the game
+Weight value now changes the weight of ragdolls when created from dying characters
+Added sliders for SAO Radius and Intensity
+Fixed issue of SAO effect bleeding through FOG layers
+Added much asked for LOAD SOUND command (see bottom of global.lua for new command descriptions)
+Added LoadGlobalSound,DeleteGlobalSound,PlayGlobalSound,LoopGlobalSound,StopGlobalSound
+Added SetGlobalSoundSpeed,SetGlobalSoundVolume,GetGlobalSoundExist,GetGlobalSoundPlaying,GetGlobalSoundLooping
+Fixed issue of SAO effect bleeding through FOG layers
+Fixed issue of SAO not working on some cards that do not support 1920x1080
+Character shader no longer switches out after 3000 units (now respects AlwaysActive)
+Fixed SAO transparency on character shader revealed when adding trees to scene
+Fixed major issue which caused larger levels to lose normal and specular textures (image vs texture resource)
+Added code to correct flicker issue caused by low velocity issues in motion blur technique
+Fixed issue of random noise generator in SAO linked to screen, now linked to world positions
+Fixed issue where LOD2DISTANCE not specified and breaking entities that only have LOD1
+Player camera (FPS) now stops instantly (no wobble fade) to prevent SAO swim artifacts
+Added extra logging to .LOG file to show what LUA scripts loaded (and if any failed to load)
+Added new link in IDE Help Menu to view the GameGuru user manual (previously alittle hidden)
+Increased LUA config maximums to allow larger levels to run logic (improved scripting)
+Recompiled LUA module to not use Optimization flags to improve stability (large LUA level crashes)
+Simplified SAO to not generate a noise vector for the moment - clever but produces swimming effect
+Added 'GetFogNearest' through 'GetPostDepthOfFieldIntensity' for getting current visual settings
+Fixed issue of IDE crashing if you click outside of an entity icon
+Increased velocity caps on motion blur to avoid distant flicker on some scenes
+Fixed an issue where the forth bone of boned weapons was being ignored
+Fixed issue of characters set to ISIMMOBILE from floating above the floor
+Fixed SAO shimmer and was able to put noise function back in for much better SAO effect
+Updated RADAR.LUA script to remove hard coded coordinates of radar image (thanks to RETROGAMEBLOKE)
+Increased MUSICSYSTEM_MAXTRACKS from 4 to 32 to allow dynamic music system more freedom
+Character entities using RAGDOLL=0 now works with third person so death/impact animations used
+Added support back in for SETUP.INI fields xbox, xboxinvert and xboxcontrollertype (XBOX Controller)
+Static entities in level set to "Spawn At Start = No" no longer get lightmapped during LM process
+Fixed sound and music volume so they respect stored settings when start each new level
+Dynamic music no longer stops when enter games menu, only instance sound effects
+Added new POST-SAO.FX to free regular BLOOM shader pass for a much quicker non-SAO rendering
+
+V1.13 : 
+
+Removed hard coded headshot damage multiplayer (now in LUA scripts)
+Updated ARROWS ammo to include ammo pickup sound effect
+Fixed CharacterControlArmed to re-arm character after Limbo state
+Fixed issue of adding waypoint and zones mix, AI paths get corrupted
+Fixed issue so waypoints of zero points do not create AI paths
+Fixed issue so explodable damage from entities correctly applies to player
+Fixed issue of correct damage fall-off based on proximity to explosion
+Correctly reversed the blast-back force of an explosion against the player
+Standalone save now stores player weapon, health, lives
+Standalone save now stores all weapon slots, ammo and pool ammo
+Changed DOWNLOAD STORE ITEMS text to remove 'reloaded' reference
+Added INVISIBLE WALL entity to Scenery folder (a useful level design tool)
+Standalone save now stores entity data (position,collision,active)
+FANTASY DLC : Sample level fixed to allow characters to use correct scripts
+EASTER DLC : Fixed scripts that relied on EggRadar and EggCount globals
+Fixed issue with saving a standalone from a level file in the root folder of mapbank
+Projectname no longer extends with garbage copies of itself (related to above)
+When use new 'allowfragmentation=1' flag to speed up menu restart, now deletes rogue sprite
+Fixed the BLUE DOOR entity so it no longer momentarily disappears when closing
+Adjusted the g_Time value in the engine so it cannot return a reversed time count
+Standalone save now records the 'level file' the game was saved at (for later reloading)
+Standalone load now loads correct level immediately from main menu and from different levels
+Doubled the speed of the fade out when leaving a level (quicker slicker feel)
+Now freeze more of the game and game logic when loading a new level in (fade out step)
+Standalone now deletes all entities when level ends, ensures 3D not shown back in menus
+Added code to clear occlusion objects before each level and after level frees resources
+The FPS WARNING prompt no longer pops up after leaving the game menu system
+Prevented entity damage (such as headshot) carrying over to a new game session (reload)
+Stopped enemy to ragdoll pausing mid-fall due to a timing issue
+Improved speed of game progress reloading (removed expensive FOR DO loop in LUA)
+Added code to skip sending g_Entity data to LUA if entity is static (no use in LUA)
+Standalone save now detects in-game spawning and restores them properly
+When use LUA mouse override command (activatemouse), prevents 'windows' mouse from moving
+Fixed start marker position of GEM WORLD level so Standalone Game runs correctly
+When UnFreezePlayer called, player position is restored exactly (no Y shift issue)
+Created a standalone installer for Educational Usage (using INNO installer)
+Changed the way entities are unlocked, you now need to hold down the SPACEBAR
+SPACEBAR one-press can also be used to dehighlight all rubber-band selected entities
+Removed Easter Game Standalone from core product (watch out for new version in 2017)
+Added new Toggle Parental Control and initial intro to allow parents to hide violent content
+Added new parental control black list for entities not suitable for kids
+Loading different levels in standalone back and forth no longer freeze
+Increased entity objects allowed in level to 20,000 (per level) - fixes related crash
+All sprites created during level LUA scripts are deleted before next level
+Added a black screen when click Load Game to give instant response if load time long
+Fixed Gem World game player start marker to be above ground floor in windmill
+Added new Masked Civilian (non combat) character for Parental Control choices
+Prevents third person player from animating and moving physics when frozen
+NOTE: Important Rule; any user-script globals you want saving need to start with "g_"
+EASTER DLC: Updated all scripts to rename key gameplay globals to use "g_" as above
+Added support for importing some FBX model types (there are MANY variants here)
+Fixed issue of dragging in new FBX entity, now same size as final entity in editor
+Added MATRIXMODE to FPE fields which adds a transform with the original model matrix per limb
+Fixed issue which forced RotateToPlayer/LookAtPlayer command not to work when not moving
+Increased the reaction time for enemies using ai_soldier.lua script (slightly better AI)
+Fixed issue causing new fixed CharacterControlArmed() to fail if character has no weapon
+Fixed issue of level contents disappearing on return to editor - occlusion clearance code
+Renamed Parental Control to Restricted Content - better reflects purpose of feature
+Included NUMPAD on larger keyboards in the detection of Restricted Content password
+Added new TransportToFreezePositionOnly() LUA command to force new player XYZ (not angle)
+Added new 'floating_platform.lua' to show off how to associate player with moving entity
+Added new 'GetEntityFilePath(e)' LUA command which returns the entity file path (useful)
+When set enemy CAN TAKE WEAPON to NO, weapon now disappears with character when removed
+Modified Rocketman animation ranges and improved scripts for slightly better AI response
+Fixed issue of unspawned enemies showing on radar before they have beenin-game spawned
+Fixed issue of newly added FANTASY DLC Creature not appearing when use test game
+Restored speed of FANTASY DLC sample level to full speed, related to above bounds fix
+Fixed issue of the IDE entity browser crashing if enter a folder with > 1000 items
+
+V1.121 : 
+
+Added documentation of PasteSprite, a new command to render sprite in LUA-time
+Added new PasteSpritePosition ( spr, x, y ) as above but specify XY coordinate
+Introduced new SAVE and LOAD menus to the Standalone Executable
+Updated Save Standalone LUA scripts to use style.txt to indicate folder location
+Added common fillgameslots.lua in titlesbank for central game slot handling
+Added SetFreezePosition(xyz), SetFreezeAngle(xyz) and TransportToFreezePosition()
+Save game position now stores; player position and player angle
+Added code to delete zone markers if map.way missing in FPM file and testmap folder
+FANTASY DLC : Added first person weapons for SWORDS and AXE
+Added code to hide weapon selection if have no first person model (HUD.X)
+Added code to not offer CAN TAKE WEAPON in character properties if no HUD.X
+Added gamedata and restoregame LUA scripts to handle game state functionality
+Game now restores game state from LOAD menu in MAIN MENU or IN-GAME MENU
+Fixed issue of HUDs disappearing in standalone executable
+Added 'Outline72' font to the fontbank for use in LUA scripting
+Added 'noxzrotation' to FPE to deactivate XZ rotation on spraying this entity
+Runtime Error Messages now use the TOPMOST flag so they are not hidden when shown
+Added extra runtime information to CreateSprite when image number not loaded
+When the DESTROY command is called in LUA script, entity health is now set to zero
+Fixed an issue with multi-level games not saving standalone properly
+Added new STANDALONE menu to IDE to host Easter Game + Easter Game Standalone
+Removed limit on player 'grunts when hurt', now happens anytime, not last 25%
+Externalised the Player Health Regeneration code into new gameloop.lua script
+NOTE: Above architecture will help shift more hard coded mechanisms into LUA
+Fixed issue causing nested ingame LUA menu to trigger invisible FPS warning box
+Moved drawing of weapon HUD so HIDEHUD system not making it disappear
+GameLoop.lua now included in Standalone Executables
+
+V1.12 : 
+
+Fixed lightmapper to match same texture models better (dummy limb issue)
+Lightmapper can no longer duplicate polygons of first mesh in batching process
+Fixed issue causing character entities to rotate to player when enter unfreeze range
+Fixed issue with character entities not updating the 'angley' field
+LOCK now added to grouped entity menu
+Locking entities now prevents entity movement when editing terrain
+Fixed 'musicplaytrackX.lua' scripts to use correct full 100 volume
+Fixed GetTimer(e) so it reports zero immediately after using StartTimer(e)
+Fixed issue of entities spawning 50 units above ground, now just 30 units above
+NOTE: Make sure if your model has more than 60 bones, use CPUANIMS=1 and entity_basic.fx
+Added SETLIMBINDEX, ROTATELIMBX, ROTATELIMBY and ROTATELIMBZ as LUA commands
+Fixed transportinzone.lua to play sound as non 3D for louder replay
+Added new ai_viewanimations.lua to allow quick view of all model animations
+Changed the way dymamic lights calculate range to workaround NVIDIA 361 flicker bug
+Updated several decal textures to improve quality and looping sequence
+Fixed legacy behaviour whereby ISIMMOBILE FPE entities CAN lose health (but only to 1)
+Added 'LUA Scripting Advice' to the HELP menu
+The LUA command HIDEHUDS no longer hides the TAB TAB menus or metrics panel
+Added TITLE, OPTIONS, INGAME, SAVE, LOAD, GFX and SFX option pages under LUA scripts
+Added WIN, LOSE, NEXTLEVEL and more advanced loading page LUA script
+Added 'resolutions.lua' and usd require to use common resolution finding code in LUA
+Fixed issue of previous level cleanup deleting character creator heads for new level
+Camera Y Offset now if more than twice the camera distance, camera collision disables
+Removed SAVE and LOAD pages to bring forward the V1.12 release (above tweaks)
+Fixed g_Inkey and g_Scancode which stopped working with the recent beta update
+Really added new ai_viewanimations.lua to allow quick view of all model animations
+Updated Abandonned building meshes from Death Valley DLC (minor geometry fixes)
+Fixed issue of sinking characters, due to quick-physics boxes for unchanged terrain
+Fixed issue with occlusion hiding entities at a distance greater than 12000
+Fixed issue with how entity sizes are calculated for the occluder, now less flicker
+Fixed issue of Inkey returning key press inside speech marks
+Fixed issue with flickering occlusion caused by threshold not scaling with distance
+Added new scriptbank\stories\HealthTypes scripts and sample level (shields!!)
+Corrected mask texture of Archer in Fantasy DLC - shoe tint issue resolved
+Added SCIFI PACK to More Media menu as prompted - good catch!
+Added support for View Range in Fantasy Character/Creature script (both Core and DLC)
+Prevented F11 menu from being blocked if HIDEHUD is in force
+Prevented standalone executables from using any HUDs (TABTAB and F11 menus)
+Standardised terrain brush size to be same size in both editor and F9 mode
+Added support for g_MouseWheel in DeactivateMouse() mode (absolute not relative)
+Corrected description in global.lua - GetImageWidth() is percentage not pixel
+Both GetImageWidth() and GetImageHeight() now return as float values
+Fixed issue of splash image being off center when set OS font > 100%
+
+V1.112 "Christmas BETA":
+
+Global.lua now lists all new direct call commands in comments at the bottom of the file
+Fixed MP issue where being killed by an uzi would spawn you back and continually kill you
+Fixed MP issue with CC characters bodys not showing up until camera is moved
+Fixed MP issue where ragdoll force was never ending
+Corrected typos in sharing custom content
+Fixed crash in multiplayer when landing a headshot on another player
+Fixed issue with saving custom media maps that was not producing the information needed by multiplayer - you may need to resave your map containing custom content before hosting multiplayer
+Fixed an issue where a black bar would show up on the loading screen in multiplayer and then single player
+Fixed issue of entities not highlighting when return from test game (lowest shader setting not taking glow value)
+* NOTE: Remember to use FULLBOUNDS=1 in your FPE if you want to detect limbs that move out of range of the original frame zero bound box
+Added 'detectcoloff' field to GUNSPEC.TXT which will allow guns/interactive weapons to HIT entities using CollisionOff(e)
+Added 'ignorematerial' field to GUNSPEC.TXT which will skip material decal impact visual and sound when bullet hits any surface
+Added new global.lua field called g_PlayerGunName which reports the name string of the currently selected weapon
+Added new FirePlayerWeapon(mode) command which forces the player weapon to fire in mode 1 (left click) or 2 (right click)
+* NOTE: Above FirePlayerWeapon command can be used to constantly fire 'interactive weapons' to create entity highlighting in-game
+Added new LUA command 'ChangePlayerWeapon(str)' which will force a weapon change to the gun name specified
+Fixed issue causing character shader to ignore dynamic lights on MEDIUM which they should respond to
+Added a new command called ChangePlayerWeaponID(v) where v is the ID of the gun (from g_PlayerGunID)
+Changed some LUA scripts to use math commands to convert between degrees and radians for consistency
+Fixed a memory leak in the engine that occurred when determining limbs for characters
+Fixed a memory leak in the engine relating to string token manipulation
+Fixed a crash that would happen when a large amount of character creator entities were in a map
+Fixed a crash that would occur when a large amount of custom physics boxes produced by the importer was used
+Fixed door.lua to correctly allow for the door to open before switching off collision
+
+V1.111 :
+
+When a sprite is created it is now set to a default depth of 10
+Fixed radar.lua to use SetSpriteDepth rather than SetSpritePriority (which doesn't exist)
+
+V1.11 :
+
+New Gem World game added, with lots of new content!
+Fixed a slow down in the IDE when not selecting an object or scrolling with WASD or arrow keys
+Importer collision tab drag handles now work
+Character Creator now reports head limbs being shot and has been added to lightray render
+Fixed an issue with Character Creator heads not displaying correctly
+UnFreezePlayer() no longer has the fade in effect or resets anything in the game
+The Occluder no longer causes shadows of occluded objects to not be rendered
+Fixed an issue where fairly large objects would be distance occluded far too soon
+Fixed a memory leak relating to keyboard input
+Fixed a crash that could occur in multiplayer when a selected avatar has been deleted
+Fixed an issue with the occluder where certain objects would flicker
+Added a new LUA command SetSound(e,v) to be used before functions such as SetSoundVolume(vol) which do not specify a sound to use
+The Download button in the Store Downloader is not ghosted out whilst updating the list of items
+Fixed a LUA bug where GetInkey() would report the previous key pressed when a shift key was held down
+Added new keyboard, mouse and entityinzone LUA commands and scripts
+HeadShot feature added
+Added lightmapping settings in SETUP.INI for higher quality shadows
+SetAnimationSpeed now accepts a negative number to allow playing in reverse
+Fixed Dynamic music system (new scripts included)
+Fixed an issue with the lightmapper that ignored certain objects scaling
+
+New LUA Sprite Commands (Sprite Test.fpm showcases the commands)
+(size and position all use the percentage system, e.g. 50,50 is the middle of the screen)
+* LoadImage: myImage = LoadImage ( "myFolder\\myImage.png" ) -- Anywhere inside GG Files folder (however it is best to put into scriptbank images folder for making standalones)
+* CreateSprite: mySprite = CreateSprite ( myImage )
+* DeleteSprite: DeleteSprite ( mySprite )
+* SetSpritePosition: SetSpritePosition ( mySprite , x , y )
+* SetSpriteSize: SetSpriteSize ( mySprite , sizeX , sizeZ ) -- passing -1 as one of the params ensure the sprite retains its aspect ratio
+* SetSpriteDepth: SetSpriteDepth ( mySprite , 10 ) (0 is front, 100 is back)
+* SetSpriteColor: SetSpriteColor ( mySprite , red , green, blue, alpha )
+* SetSpriteAngle: SetSpriteAngle ( mySprite , 180 )
+* SetSpriteOffset: SetSpriteOffset ( mySprite , 5 , -1 ) -- would be the centre for a 10% width image assigned to a sprite, passing -1 as one of the params ensure the sprite retains its aspect ratio
+* SetSpriteImage: SetSpriteImage ( mySprite , myImage )
+
+LUA Error and Stave Standalone messages can no longer go behind the window and appear to freeze the program
+Removed objectives from the importer options as they are never used
+New LUA command: SetPlayerWeapons(0) disabled player weapons, SetPlayerWeapons(1) restores them
+New LUA command: SetAttachmentVisible(e,1). 1 sets the entities attachment to be visible (such as their weapon), 0 switches it off
+New LUA command: SetFlashLight(1), 1 switches the flashlight on, 0 off
+New LUA command: SetOcclusion(100), control the occluder from script! set the occlude from 0 (off) to 100 (max). 10 and under for minimal popping
+Waypoints are no longer shown in the importer
+Fixed the occluder to handle spinning round fast (The asylum doors would suddenly appear for example previously)
+Entity highlighter is now back to normal, retaining the speed improvement to the editor
+Sped up entity zoom in mode
+Spray mode now has a range right similar to the dynamic lights
+Added back spot flashes for player and enemies shooting
+Added a modifier to all entity properties to control when LOD kicks in
+New toolbar option which allows the selections of markers only
+Fixed an undo issue with regards to raising terrain with characters on, then undoing
+Ambient now does not contribute to shadows on highest entity settings
+Picking up an enemy weapon now yields more than one bullet
+Current editing mode is now displayed in window title area
+Fixed an issue where an entity would turn to wireframe when still above ground
+Fixed an issue with SKYSPEC file settings
+Fixed an issue where the property panel would stay open if a video was selected whilst in properties
+Shadow intensities now match when comparing real time to prebake
+Fixed a problem with reseting weapons
+Fixed an issue with using the widget and R key to rotate
+Using return with clip mode finds the floor rather than the roof
+Fixed PGUP and DN to respect the size of the selected entity when in snap mode
+Adjusted free flight mode to not break the sound barrier
+Fixed an issue where enemy fire decals were not displayed in the correct order
+Fixed LUA command disablemusicreset
+If SetAnimationSpeed(speed) has a speed value over 100, it is divided by 100. So 100 becomes 1.
+Fixed an issue where updating an x file did not trigger a new dbo to be created
+Fixed a LOD issue most apparent in the Warehouse level
+New LUA command: SetFlashLightKeyEnabled(1) - 1 for on, 0 for off. Disables the flashlight key from being used
+Fixed rocket enemy killing themselves after respawning
+Fixed an issue with F9 mode where sometimes characters would not animate
+Fixed a text error in the store downloader
+Smoothing angle added to lightmapper settings and setup.ini
+Fixed an issue in LUA where it would not report errors at runtime
+Fixed a crash issue in Character Creator when saving
+New LUA Command: SetFont ( "FontName" , 1) To change in game font. Fonts 1-3 are the default ones used.
+SetFlashLightKeyEnabled() Now works due to being named correctly
+Loading an image no longer causes a runtime error, instead it silently fails and writes to the default log file
+Fixed lightmap darkness issue by correctly applying ambient light calc from non-LM shader
+Markers can now be single selected, even if clipping mode is active
+Adjusted widget system so X, Y, Z, XYZ scaling is axis aligned to entity orientation
+Added new EDITORS\KEYMAP folder with ability to remap any key used by GameGuru
+Added SetFogIntensity(v) LUA command
+Shadows+Occluder are sped up to previous fast speed, but retrain the non popping of nearby objects
+When in F9 mode, going into entity (e) mode no longer causes a slow down
+Radar and objective scripts, plus media can be found in scriptbank\radar
+Fixed debug code in AI_NEUTRAL.LUA
+Can no longer rapidly move entity via PGUP/DN in snap mode if SHIFT held down
+DBO self-delete now detects down to the minute so any change in minutes upwards triggers a refresh
+Fixed issue of standalone looking for keymap folder if not exist
+Fixed crash when load and run BEACH LEVEL, post process script needs ABS command
+Sped up frame rate drop after quick turnaround
+New LUA commands: GetFirstEntitySpawn() GetNextEntitySpawn() useful for scripts (such as the radar) that need to deal with entities that can come into existance at any time (both return 0 if no new entity)
+New LUA commands: GetDeviceWidth() and GetDeviceHeight()
+SetSpriteOffset() LUA command changed to use percentage relative to sprites size. Like other commands you can pass -1 to let the engine work out the other parameter
+Added Radar to The Big Escape, Morning Mountain Stroll and Get To The River maps
+Fixed issue of 'distant characters' not using same lighting model as regular character shading
+Fixed issue causing some LUA scripts that rotate to not affect the entity, now rotates as before
+Updated IDE to use newer VS2015 build, unifying binary with main GameGuru executable
+Fixed issue of some custom media not having lightmap shader applied to them
+Radar and any LoadImage files used in LUA are now identified and include in standalone games
+Fixed an issue where regen could bring you back from death
+Radar script updated to use all new commands
+Fixed an issue where deleting objects in the editor could cause a runtime error
+Fixed IDE code so that no items are added to the recent files list in the FILE menu that don't exist
+Added code which makes a backup of the .LOG file when the GameGuru editor executable restarts
+F10 in IDE interferes with default Windows Menu Options functionality so removed this from kscancode when in IDE
+
+V1.1 :
+
+Performance Improvements
+* Converted the whole GameGuru engine from DarkBasicPro source code to C++
+* Optimised the C++ source code;
+- Speed increase on real-time shadows and grass
+- LUA Speed increase 
+- Sound Speed increase
+- Spawned entities
+
+* Developed the Occluder further
+- Occluder runs on a separate thread and creates optimum draw calls for rendering each frame
+- Entities that make bad occluders are marked in the fpe (lots of fpes updated)
+
+Editor
+One of the key new features added to the editor is the new rubber band selector. You can now drag and group select many entities and the move, rotate, scale and delete them.
+* New rubber band control lets you highlight multiple entities. 
+* When spraying characters, X and Z angles are no longer adjusted
+* Fixed visual settings getting wiped after a reloaded session
+* Pressing space key now deselects any entity current selected
+* Objects are now easier to scale when they are already a large size
+* Green resource bar is now reset between levels
+* When you exit GG and choose to save on exit, the level no longer reloads after saving
+* Fixed an issue where an entity that was a clone would not de-highlight and remain green
+* Fixed the RECENT folder not showing up on some machines
+* EDIT ALL in the IDE is now called CLIP OFF to be clearer
+
+Test Game
+* numpad + and - now work in F9 mode
+* You can now use TAB from the last F11 FPS Screen
+* Performance boost if DOF and Motion Blur are set to 0!
+* Dynamic resolution: If the draw count is high and fps is below 60, the resolution will dynamically adjust to improve frame rate
+* Characters use a diff shader from a distance and do not animate, even when instances
+* Shadows speed up: Shadows are not always drawn for objects dependant on their distance and size
+* When in test game the mouse no longer affects the game if GG does not have the focus
+
+Sound
+* Changed zombie sounds to mono so they can be used as 3d sounds
+* Fixed ogg files memory leak
+
+LUA
+* Fixed SetSoundSpeed in LUA
+* Fixed all LUA shader related commands to not freeze animations when called (changing DOF, Vignette etc)
+
+Standalone
+* Fixed crash issue after playing multiple levels in standalone
+* Fixed an issue with games that used their own custom images not having them when building in standalone
+
+Model Importer
+* Fixed importer from not naming normal and specular files
+
+Weapons
+* Fixed Uzi V mode issue which locked damage to 30 regardless of settings
+
+Lightmapping
+* Fixed an issue where some buildings disappeared when lightmapped
+
+Misc
+* LOD specified in the FPE now works
+* You can now shoot the winged fantasy creature thanks to a new FPE field
+* Dynamic resolution can now be switched off via setup.ini with disabledynamicres=1
+* Fixed several issues with fantasy characters
+* Demo games now have a start and complete screens
+
+V1.01.0031 :
+
+* Removed 'loading range' report from debug log as redundant
+
+V1.01.003 :
+
+* Fixed all marker entities so they no longer Z clash with terrain & floors
+* Removed redundant , and . keys in game as visual adjusted with sliders now
+* Fixed code which detects for Entity BIN versions - no more corrupt animations
+* Now allows entities as static, even if animates (except character_basic.fx)
+* Added new WIZARD EVIL and WIZARD ROYAL to the character assets
+* Increased speed of APPLY CHANGES in Entity Properties (activemouse detection)
+* If no water exposed in terrain, test game will skip water mask generation
+* Fixed issue which ignored ROT values when spraying entities with 'I' key
+* Re-activated code which XZ rotates entities slightly in spray mode
+* F1 Help Page now stays on screen when F1 key held down
+* Changed CLIP mode (TAB then CTRL+MouseWheel) to be independent of zoom
+* Fixed issue of shotgun loading two shells when only one remained
+* Added new STAFF icon and ammo icon (and new HUD mode of 11 to gunspec)
+* Ensured all Fantasy Creatures do not 'repeat-hit' and only hit once
+* Ensured Fantasy Creatures can hurt at double range to make combat tougher
+* Moved hardwareflags reset to game init routine, terrain visibility reset
+* Created shader instance for TPV characters for zero-depth rendering
+* Created shader instance for TPV entity for zero-depth rendering
+* Removed clipping cap and ensured Y position value is accurate
+* Added new RECENT folder to PURCHASED folder to list all store items
+* Fixed a crash that could occur when hosting a multiplayer game
+* Fixed an issue with Character Creator characters not registering a headshot
+* You can now create your own custom character faces for both male and female by choosing and adjusting an image
+* Custom character heads can color match the skin tone of your imported image with the original texture on the character
+* Fixed an issue in multiplayer where a Character Creator characters head would wobble if shot
+* Store Downloader now tries to resume a file when the connection has dropped rather than start over
+* Fixed a rare crash in shadow mapping
+* New hair and hats have been added to Character Creator
+* You can now color hair and hats in Character Creator
+* Can no longer drag TAB TAB slider panels until 'click' on the panel header
+* Can now scroll contents of large drop down lists by moving mouse outside of box area
+* Changed post process shader passes to all use Shader Model 3.0 (driver friendly)
+* Updated TAURUS characters in Fantasy DLC to proper scale (super large)
+* When character turns to instance in distance, uses correct idle (not 3000-3100)
+* Also assign correct anim speed to instances at distance
+* Prevent any animations on distant objects where CPUANIM flag is set in FPE
+* Fixed RECENT view in PURCHASED folder to sort by CREATION date
+* Replaced CHECKING FOR FILES with full status progress text (catch any issues)
+* Moved version number display to start of splash sequence (saved 1.5 seconds)
+* Added support for XBOX Controller (disabled for 003);
+* LEFT STICK = MOVE, RIGHT STICK = LOOK, X=RELOAD, B=SHOOT, Y=ENTER, A=JUMP
+* LB = PREVIOUS WEAPON, RB = NEXT WEAPON, LT = ZOOM MODE, RT = UNZOOM SHOOT
+* LEFT ARROW = PREVIOUS WEAPON, RIGHT ARROW = NEXT WEAPON
+* Added 'g_PlayerController' to LUA globals, knows when XBOX controller flagged
+* Changed WEAPON script to detect if controller used and change user prompts
+* Fixed issue with POST PROCESS shader using fixed DOF render size (now adapts)
+* If character has no .DAT file associated (UBER), no longer rotates the waste
+* Adjusted non DAT characters (above) to accurately line up gun direction
+* Low FPS Warning can no longer interfere with MP games (showing mouse ptr)
+* You can now select a custom head Character Creator character as your avatar in multiplayer games
+* Moved fonts image offset higher than grass texture to fix MP nameplate issue
+* Prevented accidental rotation when switch to terrain mode via toolbar
+* Disabled XBOX Controller flag while we test against more controllers
+* Will now exit splash windows if select FILE MENU items at Getting Started
+* Fixed ORC and REPTILIAN character feet heights (for Fantasy Pack DLC)
+* Resume From Previous Session now works again after IDE front dialog changes
+* Removed INTERACTIVE TUTORIAL MODE in favour of existing VIDEO TUTORIAL LINKS
+* Prevented character AI from using ANIMSPEED of zero, reverts to 100 by default
+* Added new DEMO GAMES and MORE MEDIA menus for additional help for new users
+* Fixed issue causing Save Standalone to fail if mouse in 3D area when clicked
+* Fixed an issue where Character Creator characters would not show their head from certain distances
+* Tidied up Character Creator text and panels
+* You can now use save standalone and multiplayer with character creator characters with custom heads
+* Female Character Creator characters now have female voices
+* When choosing your online avatar in multiplayer the name and thumbnails are shown
+* Skin tone in Character Creator is now more subtle and no longer washes away the texture detailing
+* When saving a Character Creator character, the produced thumbnail is a much closer head and shoulders shot
+* A new selection of male and female heads and head attachments have been added to Character Creator
+* Heads are now detected when custom character shot and removed after ragdoll
+* Custom character heads now stay attached even at extreme out of range distances
+* When collect JETPACK and in TPV, FPV HUD is now hidden from view
+* To solve ancient BIN file issue, all entities reset the BIN each time they load
+* Removed the TransparentFace message error when lightmapping some store content
+
+V1.01.002 :
+
+* Third person character now gets hurt and dies properly from rocket guy
+* Third person now fires in direction of camera (with retical dot)
+* Ensured the early out frame of the jump land is now taken from FPE keyframes
+* When camera gets too close to third person head, camera avoids penetration
+* No longer able to collect/use jetpacks, weapons and ammo
+* Removed hard coded early exit jump frame from third person control
+* Moved retical for third person fireballs higher for true targeting
+* When saving standalone that includes Cartoon Gun, works fine now
+* You can now use mouse wheel to zoom in and out of free flight mode
+* Fixed third person wizard to remove jump y position hack motion
+* Fixed third person wizard jump intersect animation error
+* Added dynamic light effect to any projectile fired by player
+* Added dynamic light effect to exploding fireball
+* No more water clipping when viewing editor terrain from a distance
+* Added keys 1 through 6 for widget rotation control of entity
+* Changed TOOLTIP Test Level to Test Game (aligns with tutorials)
+* Added SPOT LIGHTING to weapon properties or dynamic spot light effect
+* When in entity SPRAY MODE (press I), no longer need to hold SHIFT
+* Fixed crash caused by submitting vert-only meshes to physics
+* New feature; hold down Ctrl+MouseWheel in free flight to adjust clip
+* NOTE: You can use camera clip by pressing TAB in the IDE editor
+* Added Vignetting to post process shader for more modern game look
+* Added general motion blur to post process shader on HIGHEST
+* Extended MOTION BLUR to all shader levels as it smooths at low FPS
+* Added Depth-Of-Field effect to post process shader (far distance only)
+* NOTE: For MOTION+DOF you need Bloom Level to be a value of one or more
+* Fixed mouse cursor alignment and post process crash issues
+* Prevented depth generation in other camera renders, solves red leaf issue
+* Prevented WEAPON model from being motion blurred (gun trails looked bad)
+* Replaced CROSSHAIR from 3D to 2D (avoids motion blur issue)
+* Supports middle button mouse press for camera drag and pan control
+* Added slider panel for POST EFFECTS control (bloom, motion blur, dof)
+* Added dofdistance and dofintensity fields in GUNSPEC for DOF override
+* Added six new LUA commands to control new POST EFFECTS in scripts;
+* SetPostVignetteRadius(v) where v controls the size of the vignette effect
+* SetPostVignetteIntensity(v) where v controls the strength of the vignette
+* SetPostMotionDistance(v) where v controls distance at which blur starts
+* SetPostMotionIntensity(v) where v controls the intensity of motion blur
+* SetPostDepthOfFieldDistance(v) where v controls distance DOF starts
+* SetPostDepthOfFieldIntensity(v) where v controls the strength of DOF
+* Added zoomhidecrosshair to GUNSPEC to hide crosshair when zoomed (sniper)
+* Widget alignment fix when 'looking up from horizon' (can be improved)
+* Prevented semi-transparent entities from eliminating DOF/Motion effects
+* Added depth rendering to decal shader and added new 'overlay_basic.fx'
+* Name plates in multiplayer no longer get distorted with depth effects
+* Fixed issue with low resolution depth values causing 'depth shake'
+* Changed way the weapon ray iterations work for increased performance
+* Added new SKYBANK choice called FOREST, special thanks to MR LOGAN!
+* Added smoothing so when enter scope mode, DOF effect fades out slower
+* New support in LIGHTRAY shader for sun color and strength (skyspec.txt)
+* Entities on 'auto find floor' no longer sink below terrain
+* Updated Fantasy Level with new FOREST sky and balanced DOF settings
+* Fixed AI_DEMON script so all foes fall to floor now, not freeze in air
+* Added 'Camera Locked' property to third person camera for isometrics
+* Restored system of auto-targetting if in camera locked mode
+* Added new properties to third person camera controls;
+* 'Over Shoulder' allows you to shift the camera for over-shoulder views
+* 'Follow Player' will not force camera behind protagonist during game
+* 'Show Reticle' will control visibility of the third person crosshair
+* Can now put entities on top of other entities of any size (pyramids!)
+* Replaced CLOSE button in getting started dialog with highlighted one
+* Character physics capsules are now created proportional to their size
+* Fixed issue causing characters not to shoot until last shot sound done
+* Improved 'rate of fire' to produce a less 'timed repeat' feel to it
+* Fixed Medieval and Zombie characters so they are not floating
+* Discontinued use of OFFY in FPE settings and fixed capsule physics
+* Character physics capsules now size to the model to support creatures
+* Fixed crash when collected stones weapon which has no retical image
+* Fixed depth render from weapon_basic shader (Hatchett Weapon DOF)
+* Multiplayer: Chat messages that exceed maximum length are now truncated properly rather than loosing the last few characters
+* Multiplayer: You can no longer pick up weapons and ammo when the final score screen is being dislayed
+* Multiplayer: Fixed an issue where chat messages would occasionally repeat
+* Multiplayer: Character Creator characters can now be used as your avatar in multiplayer sessions
+* Multiplayer Co-op: Fixed various issues which affected the updating of enemies across the network
+* Multiplayer: Fixed an issue where a map with less spawn points than players would stop some players being able to spawn in
+* Multiplayer: Cleaned up going from lobby to server start
+* Fixed character creator entities lagging when being manipulated in the editor
+* Fixed an issue where character creator players would appear headless when spawning in after a round ends
+* When loading an older visuals.ini file, ensure new DOF effects reset
+* Fixed issue with reflections flickering when shadow mode is zero
+* Fixed issue with smoke and explosions now accounting for DOF effect
+* Marker (player start) entities no longer cast shadows for cleaner visual
+* Removed Wobbles, Footfall Pace from player start properties in TPV
+* Fixed Anim Speed field in player start marker when using TPV
+* Fixed issue of Multiplayer name plate blurring from DOF effects
+* Fixed an issue in Multiplayer where the mouse pointer would stay on screen sometimes
+* Fixed an issue in Multiplayer with Character Creator characters that would show them headless at the start of round 2+
+* Updated fireball graphics to appear more 'magic styled' than 'modern day'
+* Updated all tutorial maps to use new Post Effects settings by default
+* Added 'forest1' terrain to the core asset library and updated 'Yellow Brick Road' FPM
+* Added DOF effect to GRASS shader to round off distant effect
+* Fixed several Zombies to point to correct zombie_groan_female.wav sound
+* Fixed script to allow Barbarian Medieval character to stop running on spot
+* Medieval characters now use single hit damage (not repeat) based on quarter health
+* Updated entity profile data structure magic number to ensure correct BIN generation
+* Fixed physics to allow LARGE index data based models (such as the container ship)
+* Replaced EDIT:INSIDE with CLIPY=XXX where XXX is the vertical clip height
+* NOTE: Above feature is activated with TAB and CONTROL+WHEEL in IDE mode
+* Sped up MOUSEWHEEL ZOOM in free flight mode by a factor of three
+* Fixed an issue in Multiplayer than would occasionally result in Lua thinking a match was team based when it was coop
+* Added new third person camera properties and modes (WASD run mode/camera retract)
+* Reticule only shows now after the fade in sequence has happened
+* Added new command; SpawnIfUsed(e) will spawn any entity with name (held in IFUSED)
+* When collect weapon already have and ammo is zero, trigger a reload with new ammo
+* Fixed an issue in Multiplayer where doors opening and closing was not always correctly sent to all clients
+* Fixed an issue with Character Creator preventing characters from receiving head shots
+* Fixed a Multiplayer issue where a lightmapped map would not render correctly after the first round
+* Fixed a rare issue that would cause the slider panel in Character Creator to be incorrectly placed
+* Fixed issue of foreground objects contributing to far objects in DOF effect
+* Fixed issue of LOW and MEDIUM grass shader adding geometry to DOF effect
+* Added start marker to Desert Fortress so don't start inside a wall
+* Updated LIMBO.FPM to remove dependence on Futuretech Shotgun
+* Added PERFORMANCE.TXT file which will track base line FPS on each stock level
+* Updated FOREST1 palette to fix the orange horizon issue
+
+V1.01.001 :
+
+* Third person character can now open doors
+* Added ability for the camera to look up and down in third person
+* Prevented third person from accidently equiping new weapons
+* Removed recoil effect from firing fireball in third person
+* Stopped third person stuttering if hold down left mouse button
+* Fixed player start marker rotation issue not affecting test game
+* Fixed issue where facial hair color would reset for characters in the editor after using Character Creator
+* Fixed issue when using test or starting multiplayer whilst using Character Creator or the Importer
+* When choosing skin tone you can decided not to choose by clicking outside the color palette, or select "none" from inside the palette
+* Fixed an issue that would prevent GameGuru from starting up on some machines
+
+V1.01.000 :
+
+* Added new INTERACTIVE TUTORIAL mode to help new users
+* Above introduces 30 new 'scene levels' in mapbank folder
+* Added 20 new default decals and new decal scripts
+* Added SHIMMER terrain texture set to stock media
+* Added third party creation to IDE - drag character to marker
+* Added GRASSY terrain texture set to stock media
+* Added basic support for THIRD PERSON CONTROL via Start Marker
+* NOTE: For above, just drag a compatible character over Start Marker
+* Added ISTHIRDPERSON flag to FPE to tightly control valid characters
+* Increased .REPLACE system from 100 to 1000 elements (larger convert)
+* Added extra '=replace+entpath' to .LOG when map fails to load entity
+* Updated 'hideallhuds=1' so it does not hide the TAB panel views
+* Added SETPLAYERPOWER(e,v) and ADDPLAYERPOWER(e,v) to LUA commands
+* NOTE: Above increases how much damage player can deal (default=100)
+* Added new internal FIREBALL projectile which is tied to player power
+* Added new FILE MENU option to launch Character Creator module
+* Connected new PLAYER POWER in third person to overall damage dealt
+* Connected new PLAYER POWER in third person to projectile size
+* Entities that are IMMOBILE and NON-CHARACTERS now indestructable
+* Fixed issue with ']' key not working in IDE mode
+* Save standalone now detects and transfers formerly JPGs as DDSs
+* Added Character Creator: You can now create your own characters using Character Creator via the File menu
+* Fixed mouse pointer to show when saving in the importer
+* DAMAGERADIUS specified in projectile settings now works for RPG and FIREBALL
+* When first select an animating entity, IDE now animates default anim
+* Works when third person controlled player meets first person enemy
+* When save map while in free flight mode, camera position retained on load
+* When use F9 mode in third person view, no longer crashes & restores gameplay
+* Removed detect reject when inside an entity, allows large building selection
+* Added extra code to prevent new snap grid system from causing object exist error
+* Improved speed of INTERACTIVE TUTORIAL scene selection
+* Detecting entity selection improved when inside large buildings
+* Fantasy characters no longer have repeat-sound jitter issue
+* Fantasy character can now be hit by enemy rockets/fireballs
+* When an FPE has FIXNEWY field set, collision and lightmapping now also work
+* Third person protagonist now resets properly and enemies dont wander off
+* When enter F9 mode from third person, hide protagonist and his weapon
+* Camera facing decals no longer track third person position
+* Refined the third person jumping for greater height and anim quality
+
+V1.00.029 :
+
+* Fixed 'mouse-misalignment' caused with font size at 100%/125%
+
+V1.00.028 :
+
+* Added FULLBOUNDS field to FPE to ensure wide scope anims are handled
+* Added CPUANIMS field to FPE which forces entity to use CPU animation;
+* CPUANIMS=0 GPU animation
+* CPUANIMS=1 CPU animation (for wide scope anims needing ray detection)
+* CPUANIMS=2 Same as [1] but will hide any meshes that do not have animations
+* Tweaked Zombies so animations are smoother and less fragmented
+* Zombie damage timings fixed for all ranges of attack
+* Added syncronised scream feature to fast zombie script
+* Stopped distant zombies attacking thin air
+* All zombies start with correct idle animation at spawn
+* Zombies now idle at specific distances to reduce overhead
+* Fast Zombies now attack much quicker instead of slo-mo attack
+* Updated Fire.OGG for UZI to the latest one, not the old one
+* When delete entity in F9, then exit, and return, bitblob would crash
+* Above fix may also fix 'F9 entity delete issue' - hard to reproduce
+* When press M in F9 mode, now looks at ground, not sky
+* Some keyboard map / as ], so added detection of extra code to fix
+* Ensured F9 key mappings for camera up/down, brush shrink/enlarge
+* Removed FIRE sound effects from UZI except FIRE.OGG (latest sound)
+* Abive may also resolve issue of UZI being out of sync when firing
+* Added code to speed up the detection in 'find ground' entity mode
+* When delete entities in F9 mode then save, still deleted on reload
+* Can now exit software even if in F1 help and Quick Start splashes
+* Scale is now retained for FPE scaled entities in IDE and F9 mode
+* PGUP and PGDN and RETURN now work correctly in F9 mode
+* Ensured plrreloadspeedmod defaults to 1 when absent from gunspec
+* Created 'decal_facing.lua' to perform decal facing player trick
+* Created 'decal_animate4.fx' which will animate 4x4 decal animations
+* When add entity with F9 mode, now respects the DEFAULTHEIGHT value
+* Can now handle all resolutions in 100%, 125% and 150% font sizes
+* Special DECAL HANDLE field for FPE which allows better selection
+* When lightmap a legacy level that has LMs, could corrupt geometry
+* NOTE: Some levels may need re-lightmapping with latest build
+* You can now pass through doors in ASYLUM level and others
+* Minor updates to some non-MP sample levels
+* Any levels that used FPE SCALED entities will need manual rescaling
+* lightmapping now works with FPE SCALED entities
+* Clicking TEST GAME from FREE FLIGHT camera mode uses correct XZ
+* Added player breath sounds for hold-breath zoom mode
+* Running jumps no longer hiccup and instead perform a real jump
+* Fixed issue with SCALE=0 in FPE making entities invisible
+* When using EXTRACT and facing sky, entity no longer disappears
+* Removed corupt slowzombie_4.x and updated Fat Zombie FPEs
+* Removed corupt slowzombie_1.x and updated Skelly Zombie FPEs
+* In MULTIPLAYER modes, all player speed mod fields from gunspec void
+* Added enableplrspeedmods to SETUP.INI to activate gunspec mods
+* Changed modern day gunspecs to ensure auto reload takes place
+* When lower start marker below terrain, does not make wireframe
+* Added sound frequency caps for weapon system (avoids freq. crash)
+* Fixed issue where F9 RETURN might crash on rare occasions
+* Removed corupt mobzombie_5.x and updated Tough Zombie FPE/etc
+* Removed corupt mobzombie_8.x and updated Office Zombie FPE/etc
+* Removed corupt mobzombie_1.x and updated Office Zombie FPE/etc
+* Fixed AI_ZOMBIEWALK.LUA to use correct low-order frame anims
+* Tweaked DOOR.LUA so need to SEE door before 'E to open prompt'
+* Prevented AI characters from auto-activating (even unspawned)
+* Unspawned entities still processed LUA, so stopped this event
+* Added new LOST.JPG to TITLESBANK for new Game Over screens
+* When run out of lives in Standalone Game, now get Game Over
+* Some DOORS in the WAREHOUSE level did not open (no E prompt)
+* Restore any highlighted entities before entering test game
+* Added enablefullfreeflightview=1 to SETUP.INI (full distance)
+* Fixed SUPERPALETTE file for WASTELAND terrain texture set
+* Changed FIRE.OGG to FIRE.WAV for UZI (for enemy firing sound)
+* Fixed issue of looping UZI fire not being forced to stop
+* Fixed rare issue causing bounds array overrun crash
+
+V1.00.027 :
+
+* ErrantAI update to existing UZI weapon to add alternative fire mode (V key)
+* Updated UI graphic for F9 terrain editing to reflect correct keys
+* Mapped -/+ keys on NUMPAD to QUERTY -/= keys to fix AZERTY keyboard issue
+* When using snap mode (press B once) same-type entities will snap together
+* The plrreloadspeedmod field in gunspec now slows player
+* Dryfire animation no longer loops endlessly when LMB held
+* Added support for ZOOM LAST START/END FIRE (can be seen in MK23)
+* Added disablefreeflight=0 to setup.ini to control if RMB free flight used
+* Smoothed out transition of player bobble when jump in air
+* Only slow weapon animations for idle, move and run when jumping
+* Now continues playing footfall sounds if jump and keep SPACE held
+* Ensured lightmapped entities retain their full texture set (DNSI)
+* All default MODERN DAY weapons upgraded by ErrantAI (better guns)
+* Fixed issue with large multimaterial objects causing lightmap to fail
+
+V1.00.026 :
+
+* Fixed a multiplayer issue after latest Steam update that caused a crash when trying to list lobbies that contained a workshop item
+* Fixed a co-op multiplayer issue that prevented a restart after a completing for some players
+* Fixed co-op custom characters, to not slide around lying down!
+
+V1.00.025 :
+
+* Multiplayer Hosting: Fixed an issue with latest Steam update that uses more stack space, which prevented hosting a multiplayer game
+* Updated CITYSCAPE entities to reset any ROTY rotations causing odd angles
+* Adjusted free flight ANGX cap to 89.999 so transition from G to F smooth
+* When repeat a test game, some weapons will put ammo in clip, not in gun
+* When using Font at 150%, editor now correctly aligns cursor
+* Added ZOOMHOLDBREATH=16 to SETUP.INI to externally control hold breath key
+* Changed zoomaccuracybreathkey to zoomaccuracybreathHOLD flag to disable breath
+* Added support for ALTICON.PNG and ALTAMMO.PNG in gun folder for status panels
+* Added support for DRYFIRE animation for weapons with no bullets to shoot
+* Added support for Zooming without available ammo (for scoping an area)
+* Added support for plrmovespeedmod, plrturnspeedmod, plrjumpspeedmod in gunspec
+* plrmovespeedmod; percentile for player speed when carrying weapon with ammo
+* plremptyspeedmod; percentile for player speed when carrying weapon with no ammo
+* plrturnspeedmod; percentile for player turning speed when carrying weapon 
+* plrjumpspeedmod; percentile for player jumping height when carrying weapon 
+* plrreloadspeedmod; percentile for player reload speed when carrying weapon 
+* Added MELEE FORCE to gunspec to separately control physics force of melee hits
+* Fixed MELEE DAMAGE so it overrides regular DAMAGE of the native weapon
+* When jump, weapon animation speed is slowed drastically to avoid mid-air anims
+* Replaced VIDEO.MP4 with VIDEO.WMV which is the sole supported video format
+
+V1.00.024 :
+
+* Added prompt when pressing E in F9 mode and there are NO entities added
+* When press F after moving from center, will correctly zoom into current location
+* When move entity underground, substitute with wireframe marker so does not get lost
+* RMB no longer deletes entities attached to cursor, to benefit free flight controls
+* Allowed free flight mouselook even when entity has been selected by cursor
+* In right mouse button mode, no longer shifts entity attached to cursor
+* When use an entity that has a SCALE value, allows F9 to place at right size
+* HUD IMAGE prompt no longer shows when F9 Edit mode is active
+* The free flight mode is now reset when a new level is loaded
+* Software no longer responds to keys when the main IDE does not have focus
+* Widget now appears at the point of clicking, not the entity centre
+* Added extra script logic for melee/zombie attacks, need to now SEE the player
+* Changed Zombie scripts so they stop attacking if they cannot see player
+* Removed debug log entry when loading LM based levels (loading speed-up)
+* Software now saves AI obstacle data generated in test game for faster loading
+* Above performance improvement; The Big Escape from 72 seconds to 40 seconds
+* Added VWEAPTEX field to GUNSPEC to provide specific texture for held weapons
+* STATUSPANELCODE = 0-colt,1-magnum,2-uzi,3-shotgun,4-rifle,5-rpg,6-grenade,7-bow,8-mace,9-stone,10-sword
+* New STATUSPANELCODE=100 will force use of AMMO.PNG and ICON.PNG in gunfolder
+* Added zoomaccuracy, zoomaccuracybreathkey, zoomaccuracybreath, zoomaccuracyheld to GUNSPEC
+* zoomaccuracy; the amount of swaying the weapon makes during zoom mode
+* zoomaccuracybreathkey; the keystate code the weapon detects to steady the zoom accuracy sway
+* zoomaccuracybreath; the time in milliseconds the weapon can be steadied in one go
+* zoomaccuracyheld; the percentage of steadiness the weapon can be held motionless
+* Added new TUTORIALS menu in main IDE for direct links to getting started videos
+* The PUTAWAY sound effect for weapons is no longer cut short when swapping guns
+* Weapon Ammo Panel now flashes red in error when weapon is jammed
+* When collect weapon with ammo included, fixes double ammo for sharedammo types
+* When weapon is on the last bullet, now supports LAST START FIRE + LAST FINISH FIRE
+* When entering and exiting zoom with no bullets, EMPTY ZOOMTO/FROM anims now used
+* When switching TO/FROM ALT weapon mode, how supports empty variants of animation
+* LMB now adds just ONE entity down, hold SHIFT for legacy DUPLICATE entity mode
+* Keys no longer affect software when in test game (now must be foreground window)
+* Mouselook and mouselock no longer affect software when test game not foreground
+* New foreground input focus system no longer locks out all keys/mouse in standalone
+
+V1.00.023 :
+
+* Adjusted Zombie FPEs to ensure all characters foot plant properly on ground
+* Confirmed an issue that caused some entities not to occlude lightmap now work
+* Added weapons and ammo in F9 mode will now activate and work when exit F9 mode
+* Added code to ensure newly added characters in F9 mode come to life in game
+* Removed OPTIONAL VISUALS folder from entity properties - not used any more
+* Tested INVMOUSE=1 in SETUP.INI to ensure 'inverted mouse' feature works fine
+* FORCEZOOMOUT no longer depends on SIMPLEZOOM value in GUNSPEC, and will force unzoom
+* Refixed the issue of the dry fire repeating when gun shot finished
+* Fixed issue causing gun to freeze/disable when repeat test game and select again
+* Speed of player (set in player properties) now affects camera and footfall sync
+* When click ADD NEW ENTITY, instantly default to BARRELS instead of blank page
+* Expands the top level categories in Entity Librart to reveal cool sub-folders
+* Added STORY ZONE to Markers Cateogry to allow video play back in game (WMV/MP4)
+* Improved the BRASS45 textures ejected by the Colt 1911 thanks to ErrantAI
+* When in entity mode, you can hold right mouse button to mouselook to view
+* When in entity mode, you can hold RMB and use W,A,S,D keys to move around in 3D
+* When moving in free flight camera mode, press SHIFT to speed up movement
+* When moving in free flight camera mode, press CONTROL to slow down movement
+* To exit free flight camera mode in the IDE, simply press G
+* To re-enter free flight camera mode in the IDE, simply press F
+* Changed Add New Entity to only expand top level CHARACTERS and BUILDINGS folders
+* Fixed issue of more distant entities being selected in main IDE editor FF view
+* Fixed issue of free flight camera going under terrain ground height
+* Pressing F (free flight) from fresh run no longer messes up camera
+* Prevented a crash relating to entity highlighter system
+* Selected entities no longer rotate when numerics 1-6 used in entity properties
+* When characters die, then press F9 twice, ragdoll characters stay dead
+* When specify a weapon under Start Marker, no longer wipes out ammo statistics
+* Tested Importer SKETCHUP->COLLADA->ONLINECONV->X (www.greentoken.de/onlineconv)
+* Added support for basic importing of 3DS model files (Sketchup Pro & Others)
+* New multiplayer map: "Construction Destruction"
+* New multiplayer map: "Firing Range"
+* New multiplayer map: "Hide and Seek"
+* New multiplayer map: "LIMBO"
+* New multiplayer map: "The Crossing"
+* Updated pre-bake entity renderer so HIGHEST produces better dynamic shadows
+* When return from zoomed-in property view, now restores clipping if in TAB 'inside' mode
+* Can no longer highlight an entity when cursor outside of editing window
+* F1 in IDE editor mode now works with new more responsive key detection system
+* Right Mouse + SHIFT now used for Alternative Terrain Editing modes
+* Slowed down the default raise/lower speed for terrain editing (no more SHIFT)
+* Widget Scaling of entities now avoids the 'bounce effect' for more control
+* Increased the relative speed of widget scaling for larger quicker scale changes
+* Added ratio based scaling to the XYZ mode of the Widget scaling
+* Biaxis handles and pointers of the wigdet now always face camera angle
+* When the widget core is out of the screen, the menu is auto hidden
+* Widget XY and YZ biaxis controls no longer shift when single clicked
+* When click right mouse button without moving, cursor no longer jumps
+* Switched off detection of entities when in right mouse button mode
+* When moving, rotating or scaling using widget, UNDO and REDO now reverse last change
+* Keyboard shortcuts that require holding CTRL and SHIFT now work again
+* Now remembers last subfolder when adding new entity with new tree view tweak
+* Added limiter to free flight X angle so camera can avoid insane gimble lock
+* When clicking XYZ scale widget, entity no longer shifts size when clicked
+* When select New Level, free flight view settings and mode are reset
+* Updated all FIXTURES entities to correctly set STONE materials
+* Updated all FIXTURES SIGNS and SPRAYS to transparency overlay mode
+* Corrected The Beach (MP) level to remove corrupted start marker entities
+* Extended the gridlock system (press B) to the Y axis for vertical gridding
+* Allowed new entity placement to find floor surface if within 11 vertical units
+* Fixed ability to be able to mouselook upwards in free flight mode
+* Can press M to toggle marker visibility, but only when not in widget mode
+* Bright green grass highlighter only glows when in terrain paint modes
+* Changed light range shortcut keys from [ and ] to - and +
+* When load a new level, ensure all lights are calculated for IDE rendering
+* Removed MP4 from Story Zone support as some codecs can create their OWN window
+
+V1.00.022 :
+
+* Fixed when selecting a character from the test game during F9 edit mode
+* No longer crashes when remove character and then exit F9 mode
+* Restored ability to the < and > keys to select and position entities in F9 mode
+* After saving standalone mode, no longer corrupts icon when viewed as LARGE ICONS
+* Now removed the attachment objects (guns) from characters in F9 edit mode
+* You can now extract entities in the IDE from the very corners
+* Fixed issue of gun freezing animation when holding down the left mouse button
+* When using full automatic weapons, bullet visibility is updated at correct time
+* Fixes misalignment of quick start splash and highlighter when DPI greater than 100%
+* Fixed issue allowing quick start to show on fresh install of Steam Game Guru
+* Fixed issue of widget menu being clipped at top of screen when DPI greater than 100%
+* Fixed issue with brass model from Colt 1911 using wrong shader textures
+* Fixed issue of scaled entities in F9 mode not pasting same scale when adding
+* Prevented objects over 65535 verts from crashing and allowed them to lightmap
+* When locking objects in the IDE editor, they no longer hide entities behind them
+* Changed Barrel 1 Stack entity to box collision as polygon collision was too slow
+
+V1.00.021 :
+
+* Added new LUA globals;
+* g_PlayerFlashlight = Switches to 1 when the player is using the flash light (F)
+* g_PlayerGunID = The currently held weapon ID value
+* g_PlayerGunCount = The total number of weapons currently carried
+* Amended Sound DLL binary to avoid creating false positive with BitDefender
+* Added extra debug code to trace steps during software initialisation
+* Added ability to replace a weapon by pressing T when collecting new one
+* Prevented the camera from sinking into floor when zooming into large entity
+* Extra prompts preventing player collecting more than 9 weapons
+* Replaced entity highlighter with shrink wrap colour, removed old circle highlighter
+* Removed Red Circle Highlighter in F9 Edit Mode in favor of shrink wrap method
+* Added (autoflatten) text to status panel when U key mode activated
+* Added cursor icon to F9 Entity Edit Mode to allow finer entity selection
+* Terrain Editing Ramp Mode now smooths out the ramp edges to avoid stretch effect
+* Solved issue of multi-level standalones using the wrong terrain paint texture
+* Fixed issue of rogue sprites corrupting standalone menu after one round of playing
+* Full Automatic Weapons now overheat and jam in response to GUNSPEC jamming fields
+* Fixed issue of custom scripts being flagged as needing a Workshop item create, despite not being used in a map
+* Fixed an issue where you would sometimes appear to be underwater when spawning in or dying in multiplayer
+* Improved multiplayer gui when playing a team match
+* Fixed issue with full-auto weapons showing bullet-sequence after reload
+* Added a full Display Mode data dump if software fails to create D3D device
+* IDE Editor now reports if entity is locked, and hints about holding SHIFT
+* Entity selection now more accurate in F9 Entity Edit Mode
+* Changed camera raise/lower keys to [ and ] (to avoid confusion with entity Y change)
+* Changed entity Y modifier from - and + keys to PGUP and PGDN for consistency
+* Editor now asks if you want to save an unsaved level before quitting
+* Transparency on locked entities removed when in TEST GAME
+* When hold down SHIFT, any locked entities are instantly highlighted
+* When selecting an entity in F9 mode, entity no longer shifts and resets rotation
+		 
+V1.00.020 :
+
+* Added new TEAM field to MULTIPLAYER START MARKER
+* Changed 'VIOLENCE' to 'BLOOD EFFECTS' for more accurate naming
+* Added Team Multiplayer mode. To use just add 2 multiplayer markers, set 4 to Team A, 4 to Team B to activate
+* New LUA command SetMultiplayerGameFriendlyFireOff() to disable friendly fire
+* New LUA command GetMultiplayerTeamBased() which returns 1 if the game is team based, 0 if not
+* Script change: multiplayer_teamfirstto10.lua now has friendly fire off by default and handles both team and free for all games
+* New script: multiplayer_teamfirstto10FriendlyFire.lua to enable friendly fire in your game (handles both team and free for all games)
+* Three new team based multiplayer maps have been added: Rocket Arena (Team MP), Desert Fortress (Team MP) and The Beach (Team MP)
+
+V1.00.019 :
+
+* Fixed issue in the importer where the mouse would dissapear sometimes when saving
+* If hosting a multiplayer map containing lightmaps, you will now use them.
+* On initial spawn in a multiplayer game, you can no longer invisibly move
+* Added polish to end of a muiltiplayer game to fade out neatly
+* Fixed an error relating to a missing image
+
+V1.00.018 :
+
+* Ensured weapons that do not specify GUN texture internal or external assume GUN_D.DDS
+* Fixed weapon jam logic so single shot weapons do not jam when LMB held down
+* Moved MELEE KEY and SWITCHTOALT to SETUP.INI and disabled from GUNSPEC.TXT
+* Muzzle Spot Flash now happens in FRONT of weapon, not at camera position
+* Muzzle Spot Flash color now taking colour RGB from GUNSPEC.TXT as required
+* Weapons now correctly dry fire when they run out of ammo or get jammed
+* Sunset Island multiplayer level has been updated so players do not start too high of the floor
+* Fixed issue of extracted entity switching from static to dynamic
+* Fixed issue of rockets and ray casts going through entities on subsequent multiplayer sessions
+* Fixed rabbit characters so they no longer sink into the floor
+* All string entries in entity properties clipped to 63 characters
+* Gun decals for Store and custom weapons are now used in multiplayer
+* Light maps in a multiplayer map no longer cause a crash (light maps are not used)
+* Fixed a rare crash bug relating to distance of entities
+
+V1.00.017 :
+
+* Save Standalone no longer deletes all entities when zone marker IFUSED field filled with text
+* Added logging code to detect when save standalone fails to create a destination folder
+* Increased logging file from 2000 to 5000 debug slots for improved back-end debugging
+* Changed GUNSPEC maximum line count from 300 to 500
+* Fixed a LUA crash when pressing the backslash key
+* Guns from the store or user made now include the muzzleflash in workshop items
+* LUA errors now always appear on the top of the display
+
+V1.00.016 :
+
+* Custom weapons either from the Game Guru Store or user created will now work with Multiplayer Workshop games
+* Fixed a lobby list issue which would sometimes show the incorrect number of lobbies
+* Changed the error message show when a Workshop item failed to upload to be more informative.
+* Fixed a LUA crash issue
+
+V1.00.015 :
+
+* New LUA command added: GetInKey() which will return the character string of the key currently pressed
+* New LUA command added: GetScanCode() which will get the scancode of the key currently pressed
+* Lobbies that have not sent their name through yet no longer show as being installed and now shows "Waiting for lobby details"
+* The startup help message will no longer be reset every time an update it released
+* "About this build" from the Help menu now takes you to a page detailing the changes in each build
+* Moved the dll management back to temp folder to try and overcome the update issues that have affecting some users.
+  The folder created remains constant though, so users can still exclude it from virus checkers if their virus checker has not updated their definitions
+
+V1.00.014 :
+
+* Fixed an issue with entity selection after resizing the editor window
+* Fixed an issue that caused GameGuru to fail to start up after an update
+
+V1.00.013 :
+
+* Added lobby chat, so as soon as you join a lobby you are able to chat with everyone else that has joined
+* Fixed an issue with the Store Downloader that would incorrectly report an item to download when there was not one
+* Fixed a rare crash bug that occurred when using the multiplayer interface just as the loading process begins
+
+V1.00.012 :
+
+* Fixed the slowdown that would occur in the GameGuru editor if running in Steam Offline mode
+* When the host of a Multiplayer game leaves the game, a game over message is sent for clarity, rather than lost connection
+* Changed the status bar in the editor to report if there are multiplayer lobbies open to join
+* Fixed a crash issue
+
+V1.00.011 : 
+
+* When load in EVERY LEVEL, crashes when click TEST GAME on WAREHOUSE level. Fixed.
+* When loading non DDS images, software tried to save DDS each time. Redundant.
+* An Enhancement Module DLL was grabbing a PTR to Sound DLL. Redundant.
+* Changed location of DLLs to "GameGuru\Files\dllbank" to help overcome some virus checkers incorrectly deleting dlls
+
+V1.00.010 : Early Access Launched

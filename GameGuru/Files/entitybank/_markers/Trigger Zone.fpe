@@ -1,0 +1,31 @@
+;Entity Spec
+
+;Header
+desc          = Trigger Zone
+
+;AI For Trigger
+aiinit	      = appear.lua
+aimain        = plrinzone.lua
+aidestroy     = disappear.lua
+
+;AIUsed
+ifused        = 
+
+;Sound
+soundset      = audiobank\misc\soundtrigger.wav
+
+;Orientation
+model         = triggerzone.x
+defaultheight = 5
+textured      = triggerzone.dds
+scale         = 100
+fixnewy       = 0
+
+;Marker Extras
+ismarker      = 3
+markerindex   = 0
+isobjective   = 0
+
+;Trigger data
+stylecolor    = 2
+

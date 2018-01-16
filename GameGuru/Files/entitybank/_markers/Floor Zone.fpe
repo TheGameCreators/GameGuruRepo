@@ -1,0 +1,19 @@
+;Header
+desc          = Floor Zone
+
+;AI For Trigger
+aimain        = floorzone.lua
+
+;Orientation
+model         = triggerzone.x
+defaultheight = 5
+textured      = triggerzone.dds
+scale         = 100
+fixnewy       = 0
+
+;Marker Extras
+ismarker      = 8
+markerindex   = 0
+
+;Trigger data
+stylecolor    = 7

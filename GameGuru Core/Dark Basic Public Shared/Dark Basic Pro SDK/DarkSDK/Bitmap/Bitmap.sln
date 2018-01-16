@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bitmap", "Bitmap.vcproj", "{915C64BA-E26E-4248-AA84-DDF67A8104BD}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{915C64BA-E26E-4248-AA84-DDF67A8104BD}.Debug.ActiveCfg = Debug|Win32
+		{915C64BA-E26E-4248-AA84-DDF67A8104BD}.Debug.Build.0 = Debug|Win32
+		{915C64BA-E26E-4248-AA84-DDF67A8104BD}.Release.ActiveCfg = Debug|Win32
+		{915C64BA-E26E-4248-AA84-DDF67A8104BD}.Release.Build.0 = Debug|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

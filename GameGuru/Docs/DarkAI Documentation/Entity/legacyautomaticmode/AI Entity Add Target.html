@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.0  (Win32)">
+	<META NAME="CREATED" CONTENT="20060418;17355200">
+	<META NAME="CHANGED" CONTENT="20060829;205421">
+	<STYLE>
+	<!--
+		@page { size: 21.59cm 27.94cm; margin: 2cm }
+		P { margin-bottom: 0.21cm }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-GB" BACKGROUND="../../../gfx/backdrop.jpg" DIR="LTR">
+<P STYLE="margin-bottom: 0cm"><FONT FACE="Arial, sans-serif"><FONT SIZE=4><B>AI
+ENTITY ADD TARGET<BR></B><BR><FONT SIZE=3>This command will add an
+entity or player (<I>Target ID</I>) to another entity's target list
+(<I>Entity Number</I>) which will then be regarded as a valid target
+and fired upon as if the target was an enemy of the entity. The
+target will remain in the target list whilst the entity can see the
+target and for a short time after. Once the target has been lost for
+a certain amount of time it will be removed from the target list and
+will not be re-added unless it is re-spotted and is naturally a valid
+target or you add it again.<BR><BR>For example, normally enemy
+entities will only attack friendly entities or the player, but using
+this command you can add enemy entities to each others target lists
+and they will attack each other so long as they can see each other.
+To create a free for all style scenario you can create a group of
+entities, all on the same team, and use the <I>AI Get Entity Can See</I>
+command to check if each entity can see any other, and if so to add
+it to the target list using this command. <BR><BR>If the target
+already exists in the target list it will not be added again, so this
+command can safely be used many times on the same target. If you want
+to remove a target from the list before it loses sight use the <I>AI
+Entity Remove Target</I> command. The target does not have to exist,
+if it does not no change is made.<BR><BR>Entities are allowed any
+number of targets in their target list and it will be sorted
+automatically to select what the entity thinks is the biggest threat
+to it at the time, this is mostly based on distance.</FONT><BR></FONT><B><BR>Syntax<BR></B>AI
+Entity Add Target <I>Entity Number, Target ID<BR></I><B><BR>Parameters<BR></B><I>Entity
+Number,</I> The id of the entity you want to add the target to<BR><I>Target
+ID,</I> The id of the target object you want to add to the entity's
+target list.<BR><B><BR>Return<BR></B>n/a</FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+</BODY>
+</HTML>

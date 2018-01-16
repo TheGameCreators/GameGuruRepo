@@ -1,0 +1,170 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+//#define _USING_V110_SDK71_
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United Kingdom) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,0,2,2
+ PRODUCTVERSION 2,0,2,2
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "CompanyName", "Blitzwerks"
+            VALUE "FileDescription", "Blitzwerks Terrain"
+            VALUE "FileVersion", "2.0.2.2"
+            VALUE "InternalName", "BlitzTerrain"
+            VALUE "LegalCopyright", "Copyright (C) Blitzwerks 2009 - 2011"
+            VALUE "ProductName", "Blitzwerks Terrain"
+            VALUE "ProductVersion", "2.0.2.2"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_STRING101           "BT MAKETERRAIN[%D%?BT_MakeTerrain@@YAKXZ%*No Parameters*"
+    IDS_STRING102           "BT GETSTATISTIC[%DD%?BT_GetStatistic@@YAKK@Z%int Code"
+    IDS_STRING103           "BT SETTERRAINHEIGHTMAP%DD%?BT_SetTerrainHeightmap@@YAXKK@Z%int TerrainID, int ImageID"
+    IDS_STRING104           "BT RENDERTERRAIN%D%?BT_RenderTerrain@@YAXK@Z%int TerrainID"
+    IDS_STRING105           "BT GETGROUNDHEIGHT[%FDFFD%?BT_GetGroundHeight@@YAKKMM_N@Z%int TerrainID, float X, float Z, bool Round"
+    IDS_STRING106           "BT INTERN RENDER%0%?BT_Intern_Render@@YAXXZ%*No parameters*"
+    IDS_STRING107           "BT GETGROUNDHEIGHT[%FDFF%?BT_GetGroundHeight@@YAKKMM@Z%int TerrainID, float X, float Z"
+    IDS_STRING108           "BT GETPOINTEXCLUDED[%DDFF%?BT_GetPointExcluded@@YAKKMM@Z%int TerrainID, float PointX, float PointZ"
+    IDS_STRING109           "BT SETTERRAINEXCLUSION%DD%?BT_SetTerrainExclusion@@YAXKK@Z%int TerrainID, int ImageID"
+    IDS_STRING110           "BT GETTERRAINOBJECTID[%DD%?BT_GetTerrainObjectID@@YAKK@Z%int TerrainID"
+    IDS_STRING111           "BT SETTERRAINDETAIL%DD%?BT_SetTerrainDetail@@YAXKK@Z%int TerrainID, int ImageID"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING112           "BT MAKETERRAINOBJECT%DDD%?BT_MakeTerrainObject@@YAXKKK@Z%int TerrainID, int LODLevel, int ObjectID"
+    IDS_STRING113           "BT SETTERRAINLOD%DD%?BT_SetTerrainLOD@@YAXKE@Z%int TerrainID, int LODLevels"
+    IDS_STRING114           "BT MAKESECTOROBJECT%DDDD%?BT_MakeSectorObject@@YAXKKKK@Z%int TerrainID, int LODLevel, int SectorID, int ObjectID"
+    IDS_STRING115           "BT GETSECTORCOUNT[%DDD%?BT_GetSectorCount@@YAKKK@Z%int TerrainID, int LODLevel"
+    IDS_STRING116           "BT GETSECTORPOSITIONX[%FDDD%?BT_GetSectorPositionX@@YAKKKK@Z%int TerrainID, int LODLevel, int SectorID"
+    IDS_STRING117           "BT SETTERRAINSPLIT%DD%?BT_SetTerrainSplit@@YAXKK@Z%int TerrainID, int Split"
+    IDS_STRING118           "BT GETSECTORPOSITIONY[%FDDD%?BT_GetSectorPositionY@@YAKKKK@Z%int TerrainID, int LODLevel, int SectorID"
+    IDS_STRING119           "BT SETTERRAINDETAILTILE%DF%?BT_SetTerrainDetailTile@@YAXKM@Z%int TerrainID, float Tile"
+    IDS_STRING120           "BT GETSECTORPOSITIONZ[%FDDD%?BT_GetSectorPositionZ@@YAKKKK@Z%int TerrainID, int LODLevel, int SectorID"
+    IDS_STRING121           "BT UPDATETERRAINCULL%D%?BT_UpdateTerrainCull@@YAXK@Z%int TerrainID"
+    IDS_STRING122           "BT UPDATETERRAINLOD%D%?BT_UpdateTerrainLOD@@YAXK@Z%int TerrainID"
+    IDS_STRING123           "BT FORCETECHNIQUEMODE%D%?BT_ForceTerrainTechnique@@YAXK@Z%int TechniqueMode"
+    IDS_STRING124           "BT SETCURRENTCAMERA%D%?BT_SetCurrentCamera@@YAXK@Z%int CameraID"
+    IDS_STRING125           "BT SETTERRAINQUADROTATION%DD%?BT_SetTerrainQuadRotation@@YAXK_N@Z%int TerrainID, bool Enabled"
+    IDS_STRING126           "BT SETTERRAINRENDERLEVEL%L%?SetTerrainRenderLevel@@YAXH@Z%int Level (0-100)"
+    IDS_STRING127           "BT SETTERRAINSMOOTHING%DD%?BT_SetTerrainSmoothing@@YAXKK@Z%int TerrainID, bool Enabled"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING128           "BT SETTERRAINEXCLUSIONTHRESHOLD%DD%?BT_SetTerrainExclusionThreshold@@YAXKK@Z%int TerrainID, int Threshold"
+    IDS_STRING129           "BT SETTERRAINSCALE%DF%?BT_SetTerrainScale@@YAXKM@Z%int TerrainID, float Scale"
+    IDS_STRING131           "BT SETTERRAINYSCALE%DF%?BT_SetTerrainYScale@@YAXKM@Z%int TerrainID, float YScale"
+    IDS_STRING133           "BT SETTERRAINLODDISTANCE%DDF%?BT_SetTerrainLODDistance@@YAXKEM@Z%int TerrainID, int LODLevel, float Value"
+    IDS_STRING134           "BT GETSECTOREXCLUDED[%DDDD%?BT_GetSectorExcluded@@YAKKKK@Z%int TerrainID, int LODLevelID, int SectorID"
+    IDS_STRING135           "BT BUILDTERRAIN%DD%?BT_BuildTerrain@@YAXKK@Z%int TerrainID, int ObjectID"
+    IDS_STRING136           "BT SETATMODE%D%?BT_SetATMode@@YAX_N@Z%bool Enabled"
+    IDS_STRING137           "BT CONTINUEBUILD[%L%?BT_ContinueBuild@@YAHXZ%*No Parameters*"
+    IDS_STRING138           "BT SETTERRAINDETAILBLENDMODE%DD%?BT_SetTerrainDetailBlendMode@@YAXKE@Z%int TerrainID, int Mode"
+    IDS_STRING139           "BT SETTERRAINENVIRONMENT%DD%?BT_SetTerrainEnvironment@@YAXKK@Z%int TerrainID, int ImageID"
+    IDS_STRING140           "BT BUILDTERRAIN%DDD%?BT_BuildTerrain@@YAXKK_N@Z%int TerrainID, int ObjectID, bool Build Fully"
+    IDS_STRING142           "BT ADDTERRAINENVIRONMENT[%DDD%?BT_AddTerrainEnvironment@@YAKKK@Z%int TerrainID, dword Colour"
+    IDS_STRING143           "BT TERRAINEXIST[%DD%?BT_TerrainExist@@YAKK@Z%int TerrainID"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING144           "BT GETVERSION[%S%?BT_GetVersion@@YAKXZ%*No Parameters*"
+    IDS_STRING145           "BT GETPOINTENVIRONMENT[%DDFF%?BT_GetPointEnvironment@@YAKKMM@Z%int TerrainID, float X, float Z"
+    IDS_STRING146           "BT SETTERRAINTEXTURE%DD%?BT_SetTerrainTexture@@YAXKK@Z%int TerrainID, int ImageID"
+    IDS_STRING147           "BT DELETETERRAIN%D%?BT_DeleteTerrain@@YAXK@Z%int TerrainID"
+    IDS_STRING153           "BT SETBUILDSTEP%D%?BT_SetBuildStep@@YAXK@Z%int Step"
+    IDS_STRING149           "BT GETTERRAINSIZE[%FD%?BT_GetTerrainSize@@YAKK@Z%int TerrainID"
+    IDS_STRING150           "BT UPDATETERRAINOBJECTS%D%?BT_UpdateTerrainObjects@@YAXK@Z%int TerrainID"
+    IDS_STRING151           "BT ENABLEAUTORENDER%D%?BT_EnableAutoRender@@YAX_N@Z%bool Enabled"
+END
+
+#endif    // English (United Kingdom) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

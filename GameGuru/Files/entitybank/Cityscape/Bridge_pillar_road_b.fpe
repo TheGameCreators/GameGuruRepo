@@ -1,0 +1,42 @@
+;header
+desc          = Bridge Pillar Road Bottom
+
+;ai
+aiinit	      = appear.lua
+aimain	      = default.lua
+aidestroy     = disappear.lua
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+;orientation
+
+model         = Bridge_Pillar_Road_B.dbo
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+scale         = 0
+fixnewy       = 0
+defaultstatic = 1
+materialindex = 1
+collisionmode = 1
+strength      = 0
+isimmobile    = 1
+forcesimpleobstacle = 3
+
+
+
+;visualinfo
+
+textured      = Concrete_pipe_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
+castshadow    = 0
+
+;Animationinfo
+animmax       = 0
+anim0         = 0,0

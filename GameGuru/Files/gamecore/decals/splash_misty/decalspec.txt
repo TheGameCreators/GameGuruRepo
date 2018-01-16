@@ -1,0 +1,7 @@
+;decal spec
+
+;DECAL
+across         = 6
+down           = 6
+offsety        = 50
+

@@ -1,0 +1,20 @@
+Initial_Pose 0-10
+Idle 20-293
+Walk_Forward 300-335
+Walk_Backward 340-375
+Walk_Strafe_Right 380-410
+Walk_Strafe_Left 420-450
+Run_Forward 460-480
+Run_Backward 490-511
+Run_Strafe_Right 520-542
+Run_Strafe_Left 550-572
+Idle_to_Crouch 580-590
+Crouch_Move_Forward 600-626
+Crouch_Move_Backward 630-654
+Crouch_Move_Right 660-684
+Crouch_Move_Left 690-716
+Jump 736-774
+Pickup_Item 790-860
+Block_Attack 872-878  (block pose is at frame 875)
+Cast_Spell 890-899    (cast pose is at frame 894) 
+Get_Hit 905-915

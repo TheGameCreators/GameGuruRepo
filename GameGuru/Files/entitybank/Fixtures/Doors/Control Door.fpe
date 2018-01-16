@@ -1,0 +1,30 @@
+;Header
+desc          = Control Door
+
+;AI
+aimain	      = doorautolegacy.lua
+
+;Orientation
+model         = door_c.x
+rotx          = 0
+roty          = 0
+rotz          = 0
+offyoverride  = 50
+materialindex = 2
+collisionmode = 0
+soundset      = audiobank\misc\scifi\doors\open.wav
+soundset1     = audiobank\misc\scifi\doors\close.wav
+
+;Visualinfo
+textured      = door_c_D2.dds
+effect        = effectbank\reloaded\character_basic.fx
+castshadow    = 0
+
+;Identity Details
+strength      = 0
+isimmobile    = 1
+
+;Animationinfo
+playanimineditor = 0
+animmax       = 1
+anim0         = 0,29

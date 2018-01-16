@@ -1,0 +1,101 @@
+;Texture Plate Dimensions
+Width = 4
+iHeight = 4
+
+;Texture Plate Files
+T00 = cobbles_d.dds
+T01 = rock_d.dds
+T02 = rusty_d.dds
+T03 = cobbles_d.dds
+T04 = concretelight_d.dds
+T05 = concretelight_d.dds
+T06 = concretelight_d.dds
+T07 = concretelight_d.dds
+T08 = concretelight_d.dds
+T09 = concretelight_d.dds
+T10 = cobbles_d.dds
+T11 = concretelight_d.dds
+T12 = concretelight_d.dds
+T13 = concretelight_d.dds
+T14 = concretelight_d.dds
+T15 = concretelight_d.dds
+
+;Texture Plate Materials
+M00 = 1
+M01 = 1
+M02 = 2
+M03 = 3
+M04 = 0
+M05 = 0
+M06 = 0
+M07 = 0
+M08 = 0
+M09 = 0
+M10 = 0
+M11 = 0
+M12 = 0
+M13 = 0
+M14 = 0
+M15 = 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

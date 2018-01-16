@@ -1,0 +1,31 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZipArchive", "ZipArchive.vcxproj", "{AE6D19FB-D362-487B-B27B-913B2A0DAE74}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+		Static Release|Win32 = Static Release|Win32
+		Unicode Debug|Win32 = Unicode Debug|Win32
+		Unicode Release|Win32 = Unicode Release|Win32
+		Unicode Static Release|Win32 = Unicode Static Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Debug|Win32.Build.0 = Debug|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Release|Win32.ActiveCfg = Release|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Release|Win32.Build.0 = Release|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Static Release|Win32.ActiveCfg = Static Release|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Static Release|Win32.Build.0 = Static Release|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Unicode Debug|Win32.ActiveCfg = Unicode Debug|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Unicode Debug|Win32.Build.0 = Unicode Debug|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Unicode Release|Win32.ActiveCfg = Unicode Release|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Unicode Release|Win32.Build.0 = Unicode Release|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Unicode Static Release|Win32.ActiveCfg = Unicode Static Release|Win32
+		{AE6D19FB-D362-487B-B27B-913B2A0DAE74}.Unicode Static Release|Win32.Build.0 = Unicode Static Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

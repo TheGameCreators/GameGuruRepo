@@ -1,0 +1,46 @@
+AdvancedMatrix:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\AdvancedMatrix
+Animation:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Animation
+Basic2D:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Basic2D
+Bitmap:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Bitmap
+BSPCompiler:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\BSPCompiler
+Camera:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Camera
+Conv3DS:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Conv3DS
+ConvMD2:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\ConvMD2
+ConvMD3:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\ConvMD3
+ConvMDL:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\ConvMDL
+ConvX:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\ConvX
+DBDLLCore:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Core
+CustomBSP:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\CustomBSP
+File:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\File
+FTP:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\FTP
+Image:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Image
+Input:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Input
+Light:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Light
+Matrix:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Matrix
+Memblocks:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Memblocks
+Multiplayer:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Multiplayer
+MultiplayerPlus:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\MultiplayerPlus
+Music:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Music
+Objects:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Objects
+ODE:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\ODE
+Particles:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Particles
+Q2BSP:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Q2BSP
+Q3BSP:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Q3BSP
+Setup:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Setup
+Sound:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Sound
+Sprites:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Sprites
+System:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\System
+Text:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Text
+Transforms:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Transforms
+Vectors:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Vectors
+GameFX:Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\GameFX
+DBPCompiler:DBProCompiler\DBPCompiler
+DarkEXE:DBProCompiler\DBPCompilerEXE
+DBPCompilerPROTECTPLUGINS:DBProCompiler\DBPCompilerPROTECTPLUGINS
+DBPEditor Config:DBProCompiler\DBPEditor Config
+DBProDebugger:DBProCompiler\DBProDebugger
+DBProLauncher:DBProCompiler\DBProLauncher
+DBSetupScreen:DBProCompiler\DBSetupScreen
+LightMapper:DBProCompiler\Projects\Expansion Packs\DarkLIGHTS\LightMapper
+Main:DBProCompiler\Projects\Expansion Packs\Enhancements\Code
+Ogg Vorbis:DBProCompiler\Projects\Expansion Packs\Enhancements\Code\ogg vorbis

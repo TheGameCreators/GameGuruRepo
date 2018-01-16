@@ -1,0 +1,745 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Misc">
+      <UniqueIdentifier>{5e3aca30-1e89-438a-876a-3decde39ef16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{7cb81f7d-4125-4469-b1af-c55fbe254490}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs">
+      <UniqueIdentifier>{c7d6b9b9-36fc-43a0-a4a1-94b76bea9d3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Test Game">
+      <UniqueIdentifier>{f03b6170-f860-452d-9b1e-feab35581604}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Build Game">
+      <UniqueIdentifier>{7725c18a-6297-43c8-8701-71e0368d730a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Build Game\Project">
+      <UniqueIdentifier>{db7b8c00-08bb-4f03-a8bb-cc6d4b71a7b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\About">
+      <UniqueIdentifier>{51111206-e05f-4c51-8dd3-4a2e3a331cd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\New Project">
+      <UniqueIdentifier>{f6ae150c-874d-4639-85bb-a8af78bced32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Level Resize">
+      <UniqueIdentifier>{aac7d334-866d-4cb4-8bc8-73ec78785ebf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Preferences">
+      <UniqueIdentifier>{b3dcd820-d5f1-4041-a5d2-0e7592ae5d34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Splash">
+      <UniqueIdentifier>{1caccf29-b4b7-48a8-80c2-97c8f0ef3758}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\FPI">
+      <UniqueIdentifier>{99d45a97-83b7-4ba0-b852-f0dfaeadd71b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Property">
+      <UniqueIdentifier>{383cbe6d-5739-4273-96c7-c1101c2bffeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Popup">
+      <UniqueIdentifier>{b475a8e0-f541-4902-a9ab-8e658924bc77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Credits">
+      <UniqueIdentifier>{0c6b0696-ce7b-4992-a2c1-9c08ec94ad9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\Poster">
+      <UniqueIdentifier>{f12a644a-969c-4c25-95c7-5dcfc8c2ff2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{10e312ad-b6d6-4bc6-9b79-11d7c49b7992}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Document">
+      <UniqueIdentifier>{66bbb198-bffd-4898-932f-1a1ed1c104e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\View">
+      <UniqueIdentifier>{11844618-ba63-4d2f-88f6-895135fd7c6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Frame">
+      <UniqueIdentifier>{8a33067f-c534-4938-ba1b-cfca671194e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Entity">
+      <UniqueIdentifier>{82dfc3f5-bfd4-458b-8b0c-ba44d93b3c08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Browser">
+      <UniqueIdentifier>{c47d4c5c-00b9-47c9-ba41-e22e91206f03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DialogIPC">
+      <UniqueIdentifier>{9b18d5c5-0781-4d9e-b0de-2af9fd217c1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HelpWizard">
+      <UniqueIdentifier>{2e4c2a8e-7b1f-44c1-9d8f-5c59503b29be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AutoUpdate">
+      <UniqueIdentifier>{dbe8b505-50ea-4fdb-b69c-a4bb73a127df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SerialCode">
+      <UniqueIdentifier>{69b5aa75-514d-463b-b3a8-fb11fdc9b72f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OggPlayer">
+      <UniqueIdentifier>{b3125e06-2294-46af-8318-f8094f31fbdb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UploadGame">
+      <UniqueIdentifier>{b2aeecbe-df66-495d-ac99-562845d456a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DownloadStoreItems">
+      <UniqueIdentifier>{da5f4087-545a-4918-82f7-dceaae24eb24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zip">
+      <UniqueIdentifier>{53b9c4f7-d9d6-4944-b628-55f326439ccd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library">
+      <UniqueIdentifier>{5d15b619-ad73-4572-b335-6d1d8e2ae8b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Splitter">
+      <UniqueIdentifier>{a79d31c8-181a-4ea6-ba05-14973679e730}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\NewTabs">
+      <UniqueIdentifier>{8d7fae7e-58b7-4c8d-a286-2c8142c04f9f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ChildFrm.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="CntrItem.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="Browser.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="BrowserNew.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputBar.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="ZSplitter.cpp">
+      <Filter>Library\Splitter</Filter>
+    </ClCompile>
+    <ClCompile Include="ZSplitterDlg.cpp">
+      <Filter>Library\Splitter</Filter>
+    </ClCompile>
+    <ClCompile Include="TabCtrlSSL.cpp">
+      <Filter>Library\NewTabs</Filter>
+    </ClCompile>
+    <ClCompile Include="TabPageSSL.cpp">
+      <Filter>Library\NewTabs</Filter>
+    </ClCompile>
+    <ClCompile Include="cControls.cpp">
+      <Filter>Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="cMessages.cpp">
+      <Filter>Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
+      <Filter>Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="cTestGame.cpp">
+      <Filter>Dialogs\Test Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cBuildGame.cpp">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cBuildGameBuild.cpp">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cBuildGameLevel.cpp">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cBuildGameLight.cpp">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cBuildGameMultiplayer.cpp">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cBuildGameProject.cpp">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cBuildGameKeys.cpp">
+      <Filter>Dialogs\Build Game\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="cBuildGameWeapons.cpp">
+      <Filter>Dialogs\Build Game\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="About.cpp">
+      <Filter>Dialogs\About</Filter>
+    </ClCompile>
+    <ClCompile Include="cNewProject.cpp">
+      <Filter>Dialogs\New Project</Filter>
+    </ClCompile>
+    <ClCompile Include="cLevelResize.cpp">
+      <Filter>Dialogs\Level Resize</Filter>
+    </ClCompile>
+    <ClCompile Include="cPreferences.cpp">
+      <Filter>Dialogs\Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="cFront.cpp">
+      <Filter>Dialogs\Splash</Filter>
+    </ClCompile>
+    <ClCompile Include="Splash.cpp">
+      <Filter>Dialogs\Splash</Filter>
+    </ClCompile>
+    <ClCompile Include="cFPIWizard.cpp">
+      <Filter>Dialogs\FPI</Filter>
+    </ClCompile>
+    <ClCompile Include="cProperty.cpp">
+      <Filter>Dialogs\Property</Filter>
+    </ClCompile>
+    <ClCompile Include="cPopup.cpp">
+      <Filter>Dialogs\Popup</Filter>
+    </ClCompile>
+    <ClCompile Include="cCredits.cpp">
+      <Filter>Dialogs\Credits</Filter>
+    </ClCompile>
+    <ClCompile Include="Poster.cpp">
+      <Filter>Dialogs\Poster</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumProcess.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorDoc.cpp">
+      <Filter>Editor\Document</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorView.cpp">
+      <Filter>Editor\View</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>Editor\Frame</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectProperty.cpp">
+      <Filter>Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="WorkspaceBar.cpp">
+      <Filter>Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="cLibraryImage.cpp">
+      <Filter>Browser</Filter>
+    </ClCompile>
+    <ClCompile Include="cLibraryTree.cpp">
+      <Filter>Browser</Filter>
+    </ClCompile>
+    <ClCompile Include="cLibraryWindow.cpp">
+      <Filter>Browser</Filter>
+    </ClCompile>
+    <ClCompile Include="PreviewRect.cpp">
+      <Filter>Browser</Filter>
+    </ClCompile>
+    <ClCompile Include="StoreButton.cpp">
+      <Filter>Browser</Filter>
+    </ClCompile>
+    <ClCompile Include="cDebug.cpp">
+      <Filter>DialogIPC</Filter>
+    </ClCompile>
+    <ClCompile Include="cDialogEnd.cpp">
+      <Filter>DialogIPC</Filter>
+    </ClCompile>
+    <ClCompile Include="cDialogFront.cpp">
+      <Filter>DialogIPC</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC.cpp">
+      <Filter>DialogIPC</Filter>
+    </ClCompile>
+    <ClCompile Include="BlackBox.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="cVideo.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="HelpWizard.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="MyTabCtrl.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="SampleList.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="StringFunc.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="Tab1.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="Tab2.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="Tab3.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoList.cpp">
+      <Filter>HelpWizard</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoUpdate.cpp">
+      <Filter>AutoUpdate</Filter>
+    </ClCompile>
+    <ClCompile Include="UpdateCheckThread.cpp">
+      <Filter>AutoUpdate</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialCode\md5.cpp">
+      <Filter>SerialCode</Filter>
+    </ClCompile>
+    <ClCompile Include="OggPlayer.cpp">
+      <Filter>OggPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="HTTPComm.cpp">
+      <Filter>UploadGame</Filter>
+    </ClCompile>
+    <ClCompile Include="LoginDialog2.cpp">
+      <Filter>UploadGame</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressSpinner.cpp">
+      <Filter>UploadGame</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadGame.cpp">
+      <Filter>UploadGame</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadThread2.cpp">
+      <Filter>UploadGame</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="HashTree.cpp" />
+    <ClCompile Include="DownloadStoreItems\DownloadStoreItems.cpp">
+      <Filter>DownloadStoreItems</Filter>
+    </ClCompile>
+    <ClCompile Include="DownloadStoreItems\DownloadStoreItemsFile.cpp">
+      <Filter>DownloadStoreItems</Filter>
+    </ClCompile>
+    <ClCompile Include="DownloadStoreItems\urlDecode.cpp">
+      <Filter>DownloadStoreItems</Filter>
+    </ClCompile>
+    <ClCompile Include="DownloadStoreItems\cleanupFolders.cpp">
+      <Filter>DownloadStoreItems</Filter>
+    </ClCompile>
+    <ClCompile Include="zip\ZipArchive.cpp">
+      <Filter>Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="zip\ZipAutoBuffer.cpp">
+      <Filter>Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="zip\ZipBigFile.cpp">
+      <Filter>Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="zip\ZipCentralDir.cpp">
+      <Filter>Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="zip\ZipException.cpp">
+      <Filter>Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="zip\ZipFileHeader.cpp">
+      <Filter>Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="zip\ZipInternalInfo.cpp">
+      <Filter>Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="zip\ZipStorage.cpp">
+      <Filter>Zip</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ChildFrm.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="CntrItem.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Browser.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="BrowserNew.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputBar.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="ZSplitter.h">
+      <Filter>Library\Splitter</Filter>
+    </ClInclude>
+    <ClInclude Include="ZSplitterDlg.h">
+      <Filter>Library\Splitter</Filter>
+    </ClInclude>
+    <ClInclude Include="TabCtrlSSL.h">
+      <Filter>Library\NewTabs</Filter>
+    </ClInclude>
+    <ClInclude Include="TabPageSSL.h">
+      <Filter>Library\NewTabs</Filter>
+    </ClInclude>
+    <ClInclude Include="cControls.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="cMessages.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="cTestGame.h">
+      <Filter>Dialogs\Test Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cBuildGame.h">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cBuildGameBuild.h">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cBuildGameLevel.h">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cBuildGameLight.h">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cBuildGameMultiplayer.h">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cBuildGameProject.h">
+      <Filter>Dialogs\Build Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cBuildGameKeys.h">
+      <Filter>Dialogs\Build Game\Project</Filter>
+    </ClInclude>
+    <ClInclude Include="cBuildGameWeapons.h">
+      <Filter>Dialogs\Build Game\Project</Filter>
+    </ClInclude>
+    <ClInclude Include="About.h">
+      <Filter>Dialogs\About</Filter>
+    </ClInclude>
+    <ClInclude Include="cNewProject.h">
+      <Filter>Dialogs\New Project</Filter>
+    </ClInclude>
+    <ClInclude Include="cLevelResize.h">
+      <Filter>Dialogs\Level Resize</Filter>
+    </ClInclude>
+    <ClInclude Include="cPreferences.h">
+      <Filter>Dialogs\Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="cFront.h">
+      <Filter>Dialogs\Splash</Filter>
+    </ClInclude>
+    <ClInclude Include="Splash.h">
+      <Filter>Dialogs\Splash</Filter>
+    </ClInclude>
+    <ClInclude Include="cFPIWizard.h">
+      <Filter>Dialogs\FPI</Filter>
+    </ClInclude>
+    <ClInclude Include="cProperty.h">
+      <Filter>Dialogs\Property</Filter>
+    </ClInclude>
+    <ClInclude Include="cPopup.h">
+      <Filter>Dialogs\Popup</Filter>
+    </ClInclude>
+    <ClInclude Include="cCredits.h">
+      <Filter>Dialogs\Credits</Filter>
+    </ClInclude>
+    <ClInclude Include="Poster.h">
+      <Filter>Dialogs\Poster</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumProcess.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorDoc.h">
+      <Filter>Editor\Document</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorView.h">
+      <Filter>Editor\View</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrm.h">
+      <Filter>Editor\Frame</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectProperty.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="WorkspaceBar.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="cLibraryImage.h">
+      <Filter>Browser</Filter>
+    </ClInclude>
+    <ClInclude Include="cLibraryTree.h">
+      <Filter>Browser</Filter>
+    </ClInclude>
+    <ClInclude Include="cLibraryWindow.h">
+      <Filter>Browser</Filter>
+    </ClInclude>
+    <ClInclude Include="PreviewRect.h">
+      <Filter>Browser</Filter>
+    </ClInclude>
+    <ClInclude Include="StoreButton.h">
+      <Filter>Browser</Filter>
+    </ClInclude>
+    <ClInclude Include="TCExpand.h">
+      <Filter>Browser</Filter>
+    </ClInclude>
+    <ClInclude Include="TCIterator.h">
+      <Filter>Browser</Filter>
+    </ClInclude>
+    <ClInclude Include="TCPersist.h">
+      <Filter>Browser</Filter>
+    </ClInclude>
+    <ClInclude Include="cDebug.h">
+      <Filter>DialogIPC</Filter>
+    </ClInclude>
+    <ClInclude Include="cDialogEnd.h">
+      <Filter>DialogIPC</Filter>
+    </ClInclude>
+    <ClInclude Include="cDialogFront.h">
+      <Filter>DialogIPC</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC.h">
+      <Filter>DialogIPC</Filter>
+    </ClInclude>
+    <ClInclude Include="BlackBox.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="cVideo.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="HelpWizard.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="MyTabCtrl.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="SampleList.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="StringFunc.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="Tab1.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="Tab2.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="Tab3.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoList.h">
+      <Filter>HelpWizard</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoUpdate.h">
+      <Filter>AutoUpdate</Filter>
+    </ClInclude>
+    <ClInclude Include="UpdateCheckThread.h">
+      <Filter>AutoUpdate</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialCode\md5.h">
+      <Filter>SerialCode</Filter>
+    </ClInclude>
+    <ClInclude Include="OggPlayer.h">
+      <Filter>OggPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="HTTPComm.h">
+      <Filter>UploadGame</Filter>
+    </ClInclude>
+    <ClInclude Include="LoginDialog2.h">
+      <Filter>UploadGame</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressSpinner.h">
+      <Filter>UploadGame</Filter>
+    </ClInclude>
+    <ClInclude Include="UploadGame.h">
+      <Filter>UploadGame</Filter>
+    </ClInclude>
+    <ClInclude Include="UploadThread2.h">
+      <Filter>UploadGame</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor.h" />
+    <ClInclude Include="HashTree.h" />
+    <ClInclude Include="DownloadStoreItems\DownloadStoreItems.h">
+      <Filter>DownloadStoreItems</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\ZipArchive.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="DownloadStoreItems\DownloadStoreItemsFile.h">
+      <Filter>DownloadStoreItems</Filter>
+    </ClInclude>
+    <ClInclude Include="DownloadStoreItems\urlDecode.h">
+      <Filter>DownloadStoreItems</Filter>
+    </ClInclude>
+    <ClInclude Include="DownloadStoreItems\cleanupFolders.h">
+      <Filter>DownloadStoreItems</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\zconf.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\ZipAutoBuffer.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\ZipBigFile.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\ZipCentralDir.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\ZipException.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\ZipFileHeader.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\ZipInternalInfo.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\ZipStorage.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="zip\zlib.h">
+      <Filter>Zip</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\bitmap1.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bitmap10.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bitmap11.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bitmap14.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bitmap15.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bitmap8.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bitmap9.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bmp00001.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bmp00002.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bmp00003.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bmp00004.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bmp00005.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bmp00006.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bmp00007.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\bmp00008.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\DISmainfram.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\Editor.ico">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\EditorDoc.ico">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\lightmapoff.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\lightmapon.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\mainfram.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="Splsh16.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\Toolbar.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\toolbar1.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\toolbar1a.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\Toolbar256.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\toolbar2a.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\toolbar3a.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\toolbar4a.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\toolbar5a.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\toolbar6a.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\toolbar7a.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\ToolbarCold256.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\workspace.bmp">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="res\AddPoster.bmp" />
+    <None Include="res\Game Creator Portal Button.bmp" />
+    <None Include="res\Game Creator Store Button.bmp" />
+    <None Include="res\logo.bmp" />
+    <None Include="res\SampleImage.bmp" />
+    <None Include="res\TGCbitmap8.bmp" />
+    <None Include="res\TGCbmp00003.bmp" />
+    <None Include="res\TGCbmp00005.bmp" />
+    <None Include="res\TGCbmp00007.bmp" />
+    <None Include="res\TGCbmp00008.bmp" />
+    <None Include="res\TGCgame1.bmp" />
+    <None Include="res\TGCmainfram.bmp" />
+    <None Include="res\TGCtoolbar.bmp" />
+    <None Include="res\TGCtoolbar1a.bmp" />
+    <None Include="res\TGCToolbar256.bmp" />
+    <None Include="res\TGCtoolbar3a.bmp" />
+    <None Include="res\TGCtoolbar5a.bmp" />
+    <None Include="res\TGCtoolbar7a.bmp" />
+    <None Include="res\TGCToolbarCold256.bmp" />
+    <None Include="res\update_l.bmp" />
+    <None Include="res\StandardToolbar2.bmp" />
+    <None Include="res\ZoomToolbar2.bmp" />
+    <None Include="res\ModeToolbar3.bmp" />
+    <None Include="res\TerrainToolbar.bmp" />
+    <None Include="res\WaypointToolbar.bmp" />
+    <None Include="res\GameToolbar.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Editor.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="messages.mc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="FPSCreator.exe.manifest" />
+  </ItemGroup>
+</Project>

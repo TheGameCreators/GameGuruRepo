@@ -1,0 +1,1 @@
+this decal has been overridden by the Files\databank\bloodsplash1.png variants

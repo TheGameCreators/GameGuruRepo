@@ -1,0 +1,36 @@
+;header
+desc          = White Pawn
+;visualinfo
+textured      = White Pawn_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
+castshadow    = 0
+ 
+;orientation
+model         = White Pawn.x
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 1
+collisionmode = 0
+scale         = 0
+ 
+;statistics
+strength      = 25
+explodable    = 0
+debrisshape   = 1
+transparency  = 5
+forcesimpleobstacle = 3
+ 
+;ai
+aiinit        = appear.lua
+aimain        = default.lua
+aidestroy     = disappear.lua
+ 
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0

@@ -1,0 +1,22 @@
+;Entity Spec
+
+;Header
+desc          = New Site
+
+;AI
+aimain	      = default.lua
+
+;Orientation
+model         = New Site.X
+textured      = New Site_D.dds
+effect        = effectbank\reloaded\entity_basic.fx
+transparency  = 0
+scale         = 100
+defaultstatic = 1
+
+;Generate ground floor obstacle from polygons
+forcesimpleobstacle = 3
+forceobstaclepolysize = 4.5
+
+;EBE Builder Extras
+isebe         = 3
