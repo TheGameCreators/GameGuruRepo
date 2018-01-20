@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Test script to interfere with post processing shaders.
+-- Test script to control post processing shaders from LUA.
 -- To test this , enable CHROMATICABBERATION and CHROMATICABBERATIONLUA in settings.fx
 -- assign ChromaticAbberation.lua to a object
 -- set "Static Mode" = "No" , and "Always Active?" = "Yes".
