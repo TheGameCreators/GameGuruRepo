@@ -1,2 +1,35 @@
 *.sdf
 *.ipch
+GameGuru IDE/Debug/GameGuru.tlog/BscMake.command.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/bscmake.read.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/bscmake.write.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/CL.command.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/CL.read.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/CL.write.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/custombuild.command.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/custombuild.read.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/custombuild.write.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/GameGuru.lastbuildstate
+GameGuru IDE/Debug/GameGuru.tlog/link.command.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/link.read.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/link.write.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/rc.command.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/rc.read.1.tlog
+GameGuru IDE/Debug/GameGuru.tlog/rc.write.1.tlog
+GameGuru IDE/Debug/Editor.res
+GameGuru IDE/Debug/vc140.idb
+GameGuru IDE/Release/GameGuru.tlog/CL.command.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/CL.read.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/CL.write.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/custombuild.command.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/custombuild.read.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/custombuild.write.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/GameGuru.lastbuildstate
+GameGuru IDE/Release/GameGuru.tlog/link.command.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/link.read.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/link.write.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/rc.command.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/rc.read.1.tlog
+GameGuru IDE/Release/GameGuru.tlog/rc.write.1.tlog
+GameGuru IDE/Release/Editor.res
+GameGuru/GameGuru.map
