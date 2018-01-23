@@ -1,3 +1,5 @@
+IT WOULD BE GOOD TO HAVE THIS RUN THROUGH TO FIND WHICH ONES STILL EXIST AND ADDED TO ISSUES TRACKER
+
 TODO: Can also extend dividetexturesize to LoadObject command (characters!)
 
 TODO: There is a faster way to create smaller textures, load in DDS fast then copy MIPMAP levels lower than high one to make a smaller one!!

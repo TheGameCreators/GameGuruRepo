@@ -1,10 +1,13 @@
-V 2018.02.14 DX11 PREVIEW
+NOTE: Is there a better GitHubby way to record a change log instead of old-school text files?
+
+V 2018.02.XX DX11 PREVIEW
 
 * Added two new Grand Pianos to the Furniture folder (thanks to GraPhiX)
 * Added a new glass fence to the Fixtures folder (thanks to GraPhiX)
 * Improved post processing features to include FXAA-CV-LS and Split testing
 * Added 'ChromaticAbberation.lua' script to show postprocess shader command
 * Added scripts and a sample map to show Chess played inside GameGuru
+* Added new PBR assets to CityscapePBR
 
 V 2017.12.13 DX11 PREVIEW
 
