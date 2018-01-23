@@ -150,23 +150,24 @@ technique11 Lowest
         SetGeometryShader(NULL);
     }
 }
-
-technique11 DepthMap
-{
-    pass MainPass
-    {
-        SetVertexShader(NULL);
-        SetPixelShader(NULL);
-        SetGeometryShader(NULL);
-    }
-}
-
-technique11 DepthMapNoAnim
-{
-    pass MainPass
-    {
-        SetVertexShader(NULL);
-        SetPixelShader(NULL);
-        SetGeometryShader(NULL);
-    }
-}
+//PE: GameGuru Editor crash ? When DepthMap is in the decal shaders ?
+//Not sure what the real reason for this crash is.(thanks cybernescence)
+//technique11 DepthMap
+//{
+//    pass MainPass
+//    {
+//        SetVertexShader(NULL);
+//        SetPixelShader(NULL);
+//        SetGeometryShader(NULL);
+//    }
+//}
+//
+//technique11 DepthMapNoAnim
+//{
+//    pass MainPass
+//    {
+//        SetVertexShader(NULL);
+//        SetPixelShader(NULL);
+//        SetGeometryShader(NULL);
+//    }
+//}
