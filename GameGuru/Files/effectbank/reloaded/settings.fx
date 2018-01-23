@@ -10,8 +10,7 @@
 
 //#define USEPBRTERRAIN // USE PBR terrain even if you have pbroverride=0 ( medium, only work with one cascade (3) using pbroverride=0 ).
 //#define USEPBRVEGETATION // USE PBR for vegetation even if you have pbroverride=0
-
-//#define FASTROCKTEXTURE // disable tri-planar rock for faster terrain. 
+#define FASTROCKTEXTURE // disable tri-planar rock for faster terrain. 
 
 #define IMPROVEDISTANCE // Improve distance terrain.
 #define MEDIUMIMPROVEDISTANCE // PE: missing in PBR, Improve medium distance terrain.
@@ -25,6 +24,7 @@
 //#define RETRODITHER // make a retro dither look
 //#define RETRODITHER64 // make a retro C64 dither look.
 //#define CHROMATICABBERATION (7.0,9.0,3.0)
+//#define CHROMATICABBERATIONLUA // Define this if you want to use SetShaderVariable(0,"ChromaticAbberation", R split , G split, B split, 0=Disable,1=Enable) from lua.
 #define DOF // enable / disable depth of field.
 #define MOTIONBLUR // enable / disable motion blur.
 //#define NOSAO
@@ -58,6 +58,11 @@
 #define MAXFLASHLIGHT (0.975) // PE: max intensity of flashlight 1.0 = 100% , 0.5 = 50%.
 //#define PEROJECTLIGHT // Change per object specular to per object light.
 //#define BOOSTILLUM // Add more light from the illumination texture.
+
+//Settings used by FXAA-CV-LS
+#define COLORVIBRANCE (0.40)
+#define LUMASHARPEN (0.65)
+//#define SPLITTESTFXAACVLS // Run the new FXAA-CV-LS in a split screen test so you can compare it.
 
 // Below you can enable/disable the features you like in your LAPTOP setup.
 // The more you disable the more speed you get.
