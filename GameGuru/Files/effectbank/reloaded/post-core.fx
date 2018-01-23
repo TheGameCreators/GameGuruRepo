@@ -27,6 +27,9 @@ float2 ViewSize : ViewSize;
 float deltatime : deltatime;
 float4 ScrollScaleUV;
 float SpecularOverride;
+#ifdef CHROMATICABBERATIONLUA
+	float4 ChromaticAbberation = float4(0,0,0,0);
+#endif
 
 float4x4 g_ProjectionInv : ProjectionInverse;
 float4x4 ViewProjection : ViewProjection;
@@ -823,12 +826,13 @@ float4 PSDepthOfField( output IN, uniform texture2D srcTex ) : COLOR
    }
    return float4(color,1);
 }
-                  
+
+
 //@https://www.opengl.org/discussion_boards/showthread.php/184192-GLSL-FXAA-rendering-off-screen
 #define FXAA_REDUCE_MIN (1.0/128.0)
 #define FXAA_REDUCE_MUL (1.0/8.0)
 #define FXAA_SPAN_MAX 8.0
-                      
+
 float4 fxaa(uniform texture2D sampler0,float2 fcoords, float4 curcolor )
 {
    float2 resolution = ViewSize; //float2(1280.0,768.0); // ViewSize
@@ -855,20 +859,70 @@ float4 fxaa(uniform texture2D sampler0,float2 fcoords, float4 curcolor )
    float3 rgbA = 0.5 * (sampler0.Sample(SampleWrap,   fcoords.xy  + dir * (1.0/3.0 - 0.5)).xyz + sampler0.Sample(SampleWrap,   fcoords.xy  + dir * (2.0/3.0 - 0.5)).xyz);
    float3 rgbB = rgbA * 0.5 + 0.25 * (sampler0.Sample(SampleWrap,  fcoords.xy  + dir *  - 0.5).xyz + sampler0.Sample(SampleWrap,  fcoords.xy + dir * 0.5).xyz);
    float lumaB = dot(rgbB, luma);
+   float3 ori;
    if((lumaB < lumaMin) || (lumaB > lumaMax)) {
-      return( float4(rgbA,1.0) );
+      ori = rgbA;
    } else {
-      return( float4(rgbB,1.0) );
+      ori=rgbB;
    }
+
+#ifdef LUMASHARPEN
+	//float3 sharp_strength_luma = ( float3(0.2126, 0.7152, 0.0722) * LUMASHARPEN) *= 1.5; // sRBG luma coefficient ( monitor/HD tv).(0.299, 0.587, 0.114) = non HD to test.
+	float3 blur_ori;
+	//PE: reuse fxaa samples.
+	blur_ori  = rgbNW; // North West
+	blur_ori += rgbSE; // South East
+	blur_ori += rgbNE; // North East
+	blur_ori += rgbSW; // South West
+	//PE: Add more samples to produce better result.
+	blur_ori *= 0.25;  //Divide by the number of texture fetches
+	//sharp_strength_luma *= 1.5;
+	float3 sharp = ori - blur_ori;  //subtract blurred image from the original.
+	//float sharp_luma = dot(sharp,  ( float3(0.2126, 0.7152, 0.0722) * LUMASHARPEN) * 1.5  );
+	float sharpen = clamp( dot(sharp,  ( float3(0.2126, 0.7152, 0.0722) * LUMASHARPEN) * 1.5  )  , -0.035, 0.035); // 0.035 = to prevent artifacts.
+#ifdef SPLITTESTFXAACVLS
+	if( frac(fcoords.x) > 0.5 ) {
+		ori.rgb = saturate(ori + sharpen);
+	}
+#else
+		ori.rgb = saturate(ori + sharpen);
+#endif
+#endif
+
+   return float4(ori,1.0);
 }
 
 float4 presentfxaa(output IN, uniform texture2D srcTex ) : COLOR
 {
     float2 texCoord = IN.uv;
     float4 ScreenMap = srcTex.Sample(SampleWrap, texCoord);
-    return fxaa( srcTex , texCoord , ScreenMap );
+    float4 fxaatex = fxaa( srcTex , texCoord , ScreenMap );
+
+#ifdef COLORVIBRANCE
+
+#ifdef SPLITTESTFXAACVLS
+	if( frac(texCoord.x) > 0.5 ) {
+#endif
+	float luma = dot(float3(0.2126, 0.7152, 0.0722), fxaatex.rgb);
+	float max_color = max(fxaatex.r, max(fxaatex.g, fxaatex.b)); // Find the strongest color
+	float min_color = min(fxaatex.r, min(fxaatex.g, fxaatex.b)); // Find the weakest color
+	float color_saturation = max_color - min_color; // The difference between the two is the saturation
+	float3 coeffVibrance = float3(COLORVIBRANCE,COLORVIBRANCE,COLORVIBRANCE);
+	fxaatex.rgb = lerp(luma, fxaatex.rgb, 1.0 + (coeffVibrance * (1.0 - (sign(coeffVibrance) * color_saturation))));
+#ifdef SPLITTESTFXAACVLS
+	}
+	if( frac(texCoord.x) > 0.499 && frac(texCoord.x) < 0.501) {
+		fxaatex.r = 0.0;
+		fxaatex.g = 0.0;
+		fxaatex.b = 0.0;
+	}
+#endif
+	
+#endif
+
+    return fxaatex;
 }
- 
+
 float threshold( float thr1,  float thr2 ,  float val) {
  if (val < thr1) {return 0.0;}
  if (val > thr2) {return 1.0;}
@@ -1070,9 +1124,18 @@ float4 PSPresent( output IN, uniform texture2D srcTex, uniform texture2D srcTex2
     #else
      float4 MaxAmount = ScreenMap + BloomMap;
     #endif
-    
+
 #ifdef CHROMATICABBERATION
+
+#ifdef CHROMATICABBERATIONLUA
+	//ChromaticAbberation.rgb split values , .w enable.
+	if ( ChromaticAbberation.w > 0 )
+	{
+	float3 rgbsplit;
+	rgbsplit = ChromaticAbberation.rgb;
+#else
 	float3 rgbsplit = float3 CHROMATICABBERATION;
+#endif
 	float2 stexelSize = 1.0 / ViewSize;
 
     float2 CAxy = ((IN.uv*2)-1) * 1.0;
@@ -1094,6 +1157,9 @@ float4 PSPresent( output IN, uniform texture2D srcTex, uniform texture2D srcTex2
     #else
      MaxAmount = ScreenMap + BloomMap;
     #endif
+#ifdef CHROMATICABBERATIONLUA
+	}
+#endif
 #endif
 
     float3 final = lerp(MaxAmount.xyz, ScreenMap.xyz, ToneLuminance);
