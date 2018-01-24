@@ -2473,6 +2473,23 @@ void entity_loadtexturesandeffect ( void )
 				// object entity uses multi-material (Fuse character)
 				// and already loaded D N and S into 0, 2 and 3
 				t.entityprofile[t.entid].texiid = 0;
+
+				//PE 240118: not always if missing texture= in fpe , normal/spec is not always in the objects texture lists. ( we must have normal maps on all objects ).
+				//Fix: https://github.com/LeeBamberTGC/GameGuruRepo/issues/10
+
+				if (t.entityprofile[t.entid].texnid == 0)
+				{
+					t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_N.dds", 1, t.tfullorhalfdivide);
+					t.entityprofile[t.entid].texnid = t.texuseid;
+					TextureObject(t.entobj, 2, t.entityprofile[t.entid].texnid);
+				}
+				if (t.entityprofile[t.entid].texsid == 0)
+				{
+					t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
+					t.entityprofile[t.entid].texsid = t.texuseid;
+					TextureObject(t.entobj, 3, t.entityprofile[t.entid].texsid);
+				}
+
 			}
 
 			//  Apply all textures to REMAINING entity parent object (V C I)
