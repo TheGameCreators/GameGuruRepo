@@ -1004,6 +1004,7 @@ struct Sglobals
 	int custend;
 	int drowned;
 	int gvrmode;
+	int gvrmodeoriginal;
 	int lastcam;
 	int lefthip;
 	int lmbheld;

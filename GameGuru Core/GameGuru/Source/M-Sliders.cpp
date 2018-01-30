@@ -369,7 +369,7 @@ void sliders_init ( void )
 	//  Weapons in-game panel
 	++g.slidersmenumax;
 	t.slidersmenunames.weapon=g.slidersmenumax;
-	if ( g.vrqcontrolmode != 0 || g.gvrmode != 0 ) 
+	if ( g.vrqcontrolmode != 0 || g.gvrmodeoriginal != 0 ) 
 	{
 		// hide ammo/weapon panel if no weapon specified at start
 		t.slidersmenu[g.slidersmenumax].tabpage=-10;

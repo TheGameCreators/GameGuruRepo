@@ -1651,6 +1651,7 @@ void FPSC_SetDefaults ( void )
 	g.gfullscreen = 0;
 	g.gvsync = 1;
 	g.gvrmode = 0;
+	g.gvrmodeoriginal = 0;
 	g.gvrmodemag = 100;
 	g.gmousesensitivity = 100;
 	g.guniquesignature = 0;
@@ -1890,7 +1891,7 @@ void FPSC_LoadSETUPINI ( void )
 					// 1 : VR920/iWear
 					// 5 : detects VR920/iWear (switches OFF if not found)
 					// 6 : special case, side by side rendering
-					t.tryfield_s = "vrmode" ; if (  t.field_s == t.tryfield_s  )  g.gvrmode = t.value1;
+					t.tryfield_s = "vrmode" ; if (  t.field_s == t.tryfield_s  )  { g.gvrmode = t.value1; g.gvrmodeoriginal = t.value1; }
 					t.tryfield_s = "vrmodemag" ; if (  t.field_s == t.tryfield_s  )  g.gvrmodemag = t.value1;
 
 					t.tryfield_s = "dynamiclighting" ; if (  t.field_s == t.tryfield_s  )  g.gdynamiclightingstate = t.value1;
