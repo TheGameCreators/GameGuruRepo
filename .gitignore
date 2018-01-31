@@ -39,3 +39,14 @@ GameGuru/reviewrequestreminder.ini
 GameGuru/visuals.ini
 GameGuru Core/GameGuru.VC.opendb
 GameGuru Core/Guru-MapEditor/Debug/
+GameGuru/Guru-Lightmapper.exp
+GameGuru/Guru-Lightmapper.lib
+GameGuru/Guru-MapEditor.exp
+GameGuru/Guru-MapEditor.lib
+*.lastbuildstate
+*.tlog
+*.res
+*.bsc
+*.cod
+*.idb
+GameGuru Core/Lib/
