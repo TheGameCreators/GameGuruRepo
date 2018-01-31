@@ -1,7 +1,7 @@
 ;header
-desc          = Gold ORB
+desc          = Cracked ORB
 ;visualinfo
-textured      = ORB_gold_color.png
+textured      = ORB_cracked_color.png
 effect        = effectbank\reloaded\apbr_basic.fx
 castshadow    = 0
  

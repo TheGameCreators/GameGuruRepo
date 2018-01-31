@@ -1,7 +1,7 @@
 ;header
-desc          = Gold ORB
+desc          = Asphalt ORB
 ;visualinfo
-textured      = ORB_gold_color.png
+textured      = ORB_asphalt_color.png
 effect        = effectbank\reloaded\apbr_basic.fx
 castshadow    = 0
  
