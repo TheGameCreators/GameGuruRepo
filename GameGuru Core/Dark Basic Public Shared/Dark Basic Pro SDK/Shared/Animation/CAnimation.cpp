@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <strsafe.h>
+#include "mmsystem.h"
 
 #include "canimation.h"
 #include ".\..\error\cerror.h"
@@ -19,20 +20,67 @@
 #include <theoraplayer/VideoClip.h>
 #include <theoraplayer/VideoFrame.h>
 
-extern int GetBitDepthFromFormat(GGFORMAT Format);
-
+// Structures
 #define ANIMATIONMAX 33
+struct
+{
+	char						AnimFile[256];
+	theoraplayer::VideoClip*	pMediaClip;
+	GGFORMAT					TextureFormat;
+	LPGGSURFACE					pTexture;
+	LPGGSHADERRESOURCEVIEW		pTextureRef;
+	float						ClipU;
+	float						ClipV;
+	RECT						StreamRect;
+	int							x1;
+	int							y1;
+	int							x2;
+	int							y2;
+	RECT						WantRect;
+	bool						bStreamingNow;
+	bool						loop;
+	int							iOutputToImage;
+	//LPGGTEXTURE				pOutputToTexture;
+} Anim[ANIMATIONMAX];
+
+struct ANIMATIONTYPE
+{
+	bool						active;
+	bool						playing;
+	bool						paused;
+	bool						looped;
+	int							volume;
+	int							speed;
+};
+ANIMATIONTYPE animation [ ANIMATIONMAX ];
+theoraplayer::OutputMode theoraOutputMode = theoraplayer::FORMAT_UNDEFINED;
+float fLastTimeVideoManagerUpdated = 0.0f;
+
+// Externals
+extern float					timeGetSecond(void);
+extern int						GetBitDepthFromFormat(GGFORMAT Format);
+extern GlobStruct*				g_pGlob;
+extern LPGG						m_pDX;
+extern LPGGDEVICE				m_pD3D;
+extern LPGGIMMEDIATECONTEXT		m_pImmediateContext;
+//extern PTR_FuncCreateStr					g_pCreateDeleteStringFunction;
+//DBPRO_GLOBAL bool							g_bDoNotLockTextureAtThisTime = false;
 
 #ifdef DX11
 
-// DX11 Video To Texture Functions
-
 void AnimationConstructor ( void )
 {
-}
+	// Initialise the Theora Player manager (.ogv)
+	theoraplayer::init(1);
+	theoraOutputMode = theoraplayer::FORMAT_BGRX;
+	theoraplayer::manager->setWorkerThreadCount(1);
 
-void AnimationRefreshGRAFIX ( int iMode )
-{
+	// Provide MP4 support (.mp4)
+	//clipffmpeg::init();
+
+	// Clear Arrays
+	ZeroMemory(&Anim, sizeof(Anim));
+	ZeroMemory(&animation, sizeof(animation));
 }
 
 int potCeil(int value)
@@ -47,127 +95,684 @@ int potCeil(int value)
 	return value;
 }
 
-void LoadAnimation ( LPSTR pFilename, int iIndex )
+void AnimationRefreshGRAFIX ( int iMode )
 {
-	// TEST CODE - Load, Play And Delete
+}
 
-	// This should go in initialisation
-	theoraplayer::init(1);
-
-	// This would provide MP4 support
-	//clipffmpeg::init(); //MP4!
-
-	// vars for video handling
-	bool started = false;
-	theoraplayer::VideoClip* clip = NULL;
-	theoraplayer::OutputMode outputMode = theoraplayer::FORMAT_BGRX;
-
-	// can change thread count for video manager
-	theoraplayer::manager->setWorkerThreadCount(1);
-
-	// load in an OGV video file (streaming)
-	clip = theoraplayer::manager->createVideoClip(pFilename, outputMode, 16);
-
-	// alternatively load all into memory before video playback (in memory)
-	//clip = theoraplayer::manager->createVideoClip(new theoraplayer::MemoryDataSource(pFilename), outputMode, 16);
-
-	// can cause video to loop
-	clip->setAutoRestart(true);
-
-	// at this point create a texture to store video frame data as it plays
-	//textureId = createTexture(potCeil(clip->getWidth()), potCeil(clip->getHeight()), textureFormat);
-	int iWidth = potCeil(clip->getWidth());
-	int iHeight = potCeil(clip->getHeight());
-
-	// this would be the loop that cycles while video is playing
+DARKSDK void AnimationDestructor ( void )
+{
+	// Free All Animations
+	for(int AnimIndex=0; AnimIndex<ANIMATIONMAX; AnimIndex++)
 	{
-		// an update call to the video manager
-		float fDelta = 0.1f; // MS delta from last time this was called (to keep video in sync)
-		theoraplayer::manager->update(fDelta);
-
-		// ensure we wait until video frames buffered in cache before we display anything
-		if (!started)
-		{
-			// let's wait until the system caches up a few frames on startup
-			if (clip->getReadyFramesCount() < clip->getPrecachedFramesCount() * 0.5f)
-			{
-				started = false;
-			}
-			started = true;
-		}
-
-		// pull next available frame
-		theoraplayer::VideoFrame* frame = clip->fetchNextFrame();
-		if (frame != NULL)
-		{
-			// get raw data from frame
-			unsigned char* pData = frame->getBuffer();
-
-			// write data to texture for later rendering
-			//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, clip->getWidth(), clip->getHeight(), textureFormat, GL_UNSIGNED_BYTE, frame->getBuffer());
-
-			// pop this frame so can get the next one
-			clip->popFrame();
-		}
-
-		// some basic clip interoggation functions
-		float w = clip->getWidth();
-		float h = clip->getHeight();
-		float sx = clip->getSubFrameX(); // not sure what subframes are, MP4 returns zero for them!
-		float sy = clip->getSubFrameY();
-		float tw = potCeil(w);
-		float th = potCeil(h);
+		DB_FreeAnimation(AnimIndex);
+		ZeroMemory(&Anim[AnimIndex], sizeof(Anim[AnimIndex]));
+		ZeroMemory(&animation[AnimIndex], sizeof(animation[AnimIndex]));
 	}
 
-	// destroy clip when animation no longer needed
-	if ( clip != NULL )
-	{
-		theoraplayer::manager->destroyVideoClip(clip);
-		clip = NULL;
-	}
-
-	// Free resources
-	//clipffmpeg::destroy(); //MP4!
+	// Free Theora Player manager
+	//clipffmpeg::destroy();
 	theoraplayer::destroy();
 }
 
-void DeleteAnimation ( int animindex )
+BOOL CoreLoadAnimation( int AnimIndex, char* Filename )
 {
+	// Vars
+    HRESULT hr = S_OK;
+
+	// load in an OGV video file (streaming)
+	Anim[AnimIndex].pMediaClip = theoraplayer::manager->createVideoClip(Filename, theoraOutputMode, 16);
+	if ( Anim[AnimIndex].pMediaClip )
+	{
+		// can cause video to loop
+		Anim[AnimIndex].pMediaClip->setAutoRestart(false);
+		Anim[AnimIndex].pMediaClip->stop();
+
+		// Get size of video
+		float fWidth = Anim[AnimIndex].pMediaClip->getWidth();
+		float fHeight = Anim[AnimIndex].pMediaClip->getHeight();
+		float tTexWidthPOT = potCeil(fWidth);
+		float tTexHeightPOT = potCeil(fHeight);
+
+		// Determine DX11 format from THEORA Video Format
+		DXGI_FORMAT chooseTextureFormat = DXGI_FORMAT_UNKNOWN;
+		switch ( Anim[AnimIndex].pMediaClip->getOutputMode() )
+		{
+			case theoraplayer::FORMAT_BGRX : chooseTextureFormat = DXGI_FORMAT_B8G8R8X8_UNORM; break;
+		}
+		Anim[AnimIndex].TextureFormat = chooseTextureFormat;
+
+		// Create Texture for video to be written to
+		SAFE_RELEASE(Anim[AnimIndex].pTextureRef);
+		SAFE_RELEASE(Anim[AnimIndex].pTexture);
+		D3D11_TEXTURE2D_DESC VideoTextureDesc = { tTexWidthPOT, tTexHeightPOT, 1, 1, chooseTextureFormat, 1, 0, D3D11_USAGE_DEFAULT, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, 0, 0 };
+		m_pD3D->CreateTexture2D( &VideoTextureDesc, NULL, &Anim[AnimIndex].pTexture );
+		Anim[AnimIndex].ClipU = fWidth / tTexWidthPOT;
+		Anim[AnimIndex].ClipV = fHeight / tTexHeightPOT;
+
+		// Create resource view of above texture
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		shaderResourceViewDesc.Format = chooseTextureFormat;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+		shaderResourceViewDesc.Texture2D.MipLevels = -1;
+		m_pD3D->CreateShaderResourceView(Anim[AnimIndex].pTexture, &shaderResourceViewDesc, &Anim[AnimIndex].pTextureRef);
+
+		// Get Size of Animation
+		Anim[AnimIndex].StreamRect.top=0;
+		Anim[AnimIndex].StreamRect.left=0;
+		Anim[AnimIndex].StreamRect.right=fWidth;
+		Anim[AnimIndex].StreamRect.bottom=fHeight;
+
+		// Complete
+		return TRUE;
+	}
+	return FALSE;
 }
 
-void UpdateAllAnimation	( void )
+BOOL DB_LoadAnimationCore(int AnimIndex, char* Filename)
 {
+	// Attempt to load video
+	if (CoreLoadAnimation(AnimIndex, Filename))
+	{
+		// File loaded, store name for re-play
+		strcpy(Anim[AnimIndex].AnimFile, Filename);
+
+		// Use default anim size
+		Anim[AnimIndex].iOutputToImage = 0;
+		Anim[AnimIndex].x1 = 0;
+		Anim[AnimIndex].y1 = 0;
+		Anim[AnimIndex].x2 = 0;
+		Anim[AnimIndex].y2 = 0;
+		Anim[AnimIndex].WantRect.left = 0;
+		Anim[AnimIndex].WantRect.top = 0;
+		Anim[AnimIndex].WantRect.right = 0;
+		Anim[AnimIndex].WantRect.bottom = 0;
+		Anim[AnimIndex].bStreamingNow = false;
+
+		// Complete
+		return TRUE;
+	}
 }
 
-void PlayAnimation ( int iIndex )
+BOOL DB_LoadAnimation(int AnimIndex, char* Filename)
 {
+	// Uses actual or virtual file..
+	char VirtualFilename[_MAX_PATH];
+	strcpy(VirtualFilename, Filename);
+	g_pGlob->UpdateFilenameFromVirtualTable( (DWORD)VirtualFilename);
+
+	// Decrypt and use media, re-encrypt
+	g_pGlob->Decrypt( (DWORD)VirtualFilename );
+	BOOL bRes = DB_LoadAnimationCore(AnimIndex, VirtualFilename);
+	g_pGlob->Encrypt( (DWORD)VirtualFilename );
+	return bRes;
 }
 
-void PlayAnimation ( int animindex, int x1, int y1, int x2, int y2 )
+DARKSDK BOOL DB_FreeAnimation(int AnimIndex)
 {
+	// Shut down the graph
+	if(Anim[AnimIndex].pMediaClip)
+	{
+		// Release video
+        Anim[AnimIndex].pMediaClip->stop();
+		theoraplayer::manager->destroyVideoClip(Anim[AnimIndex].pMediaClip);
+		Anim[AnimIndex].pMediaClip = NULL;
+
+		// Release resources used by video
+		SAFE_RELEASE ( Anim[AnimIndex].pTextureRef );
+		SAFE_RELEASE ( Anim[AnimIndex].pTexture );
+		//SAFE_RELEASE ( Anim[AnimIndex].pOutputToTexture );
+	}
+
+	// Complete
+	return TRUE;
 }
 
-void StopAnimation ( int animindex )
+DARKSDK BOOL DB_PlayAnimationToScreen(int AnimIndex, int set, int x, int y, int x2, int y2, bool bPlayFromScratch)
 {
+	// Set new animation placements if so
+	if(set==1)
+	{
+		Anim[AnimIndex].x1 = x;
+		Anim[AnimIndex].y1 = y;
+		Anim[AnimIndex].x2 = x2;
+		Anim[AnimIndex].y2 = y2;
+	}
+	else
+	{
+		x = Anim[AnimIndex].x1;
+		y = Anim[AnimIndex].y1;
+		x2 = Anim[AnimIndex].x2;
+		y2 = Anim[AnimIndex].y2;
+	}
+
+	// Must have animation to play
+	if(Anim[AnimIndex].pMediaClip==NULL)
+		return FALSE;
+
+	// Output Size
+	if(x2==0 && y2==0)
+	{
+		Anim[AnimIndex].WantRect.left	= x;
+		Anim[AnimIndex].WantRect.top	= y;
+		Anim[AnimIndex].WantRect.right	= x + Anim[AnimIndex].StreamRect.right;
+		Anim[AnimIndex].WantRect.bottom	= y + Anim[AnimIndex].StreamRect.bottom;
+	}
+	else
+	{
+		Anim[AnimIndex].WantRect.left	= x;
+		Anim[AnimIndex].WantRect.top	= y;
+		Anim[AnimIndex].WantRect.right	= x2;
+		Anim[AnimIndex].WantRect.bottom	= y2;
+	}
+
+	// Set State to Run
+	Anim[AnimIndex].bStreamingNow=true;
+	//Anim[AnimIndex].pMediaPosition->put_CurrentPosition(0);
+	Anim[AnimIndex].pMediaClip->play();
+
+	// Complete
+	return TRUE;
 }
 
-void PlaceAnimation ( int animindex, int x1, int y1, int x2, int y2)
+DARKSDK BOOL DB_ResizeAnimation(int AnimIndex, int x1, int y1, int x2, int y2)
 {
+	Anim[AnimIndex].x1 = x1;
+	Anim[AnimIndex].y1 = y1;
+	Anim[AnimIndex].x2 = x2;
+	Anim[AnimIndex].y2 = y2;
+	Anim[AnimIndex].WantRect.left	= x1;
+	Anim[AnimIndex].WantRect.top	= y1;
+	Anim[AnimIndex].WantRect.right	= x2;
+	Anim[AnimIndex].WantRect.bottom	= y2;
+	return TRUE;
 }
 
-int AnimationExist ( int animindex )
+BOOL DB_StopAnimation(int AnimIndex)
 {
+	// If currently not playing this animation, nothing to stop
+	if(Anim[AnimIndex].pMediaClip==NULL)
+		return FALSE;
+
+	// stop animation
+	Anim[AnimIndex].bStreamingNow=false;
+	Anim[AnimIndex].pMediaClip->stop();
+
+	// Complete
+	return TRUE;
+}
+
+DARKSDK BOOL DB_LoopAnimationOn(int AnimIndex)
+{
+	Anim[AnimIndex].loop=true;
+	return TRUE;
+}
+
+DARKSDK BOOL DB_LoopAnimationOff(int AnimIndex)
+{
+	Anim[AnimIndex].loop=false;
+	return TRUE;
+}
+
+DARKSDK void UpdateAllAnimation(void)
+{
+	// an update call to the video manager
+	bool bSkipFirstCycle = false;
+	if ( fLastTimeVideoManagerUpdated == 0.0f ) bSkipFirstCycle = true;
+	float fTimeNow = timeGetSecond();
+	float fDeltaTime = fTimeNow - fLastTimeVideoManagerUpdated;
+	fLastTimeVideoManagerUpdated = fTimeNow;
+	if ( bSkipFirstCycle == false ) theoraplayer::manager->update(fDeltaTime);
+
+	// Monitor all Animations
+	for(int AnimIndex=0; AnimIndex<ANIMATIONMAX; AnimIndex++)
+	{
+		if(Anim[AnimIndex].pMediaClip)
+		{
+			// only if playing
+			if ( animation[AnimIndex].playing == true )
+			{
+				// possibly need to wait until video frames buffered in cache before we display anything
+				//if (!started)
+				//{
+				//	// let's wait until the system caches up a few frames on startup
+				//	if (clip->getReadyFramesCount() < clip->getPrecachedFramesCount() * 0.5f)
+				//	{
+				//		started = false;
+				//	}
+				//	started = true;
+				//}
+
+				// pull next available frame
+				theoraplayer::VideoFrame* frame = Anim[AnimIndex].pMediaClip->fetchNextFrame();
+				if (frame != NULL)
+				{
+					// Copy data from video to video texture
+					GGSURFACE_DESC destdesc;
+					LPGGSURFACE pTextureInterface = NULL;
+					Anim[AnimIndex].pTexture->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
+					pTextureInterface->GetDesc(&destdesc);
+					SAFE_RELEASE ( pTextureInterface );
+					DWORD dwDescBPP = GetBitDepthFromFormat ( destdesc.Format ) / 8;
+					ID3D11Texture2D* pTempDestStageTexture = NULL;
+					D3D11_TEXTURE2D_DESC StagedDestDesc = { destdesc.Width, destdesc.Height, 1, 1, destdesc.Format, 1, 0, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_WRITE, 0 };
+					m_pD3D->CreateTexture2D( &StagedDestDesc, NULL, &pTempDestStageTexture );
+					if ( pTempDestStageTexture )
+					{
+						// lock for writing staging texture
+						GGLOCKED_RECT grafixlr;
+						if(SUCCEEDED(m_pImmediateContext->Map(pTempDestStageTexture, 0, D3D11_MAP_WRITE, 0, &grafixlr)))
+						{
+							// get raw data from frame and copy it directly to video dest stage texture
+							unsigned char* pSrc = frame->getBuffer();
+							unsigned char* pPtr = (unsigned char*)grafixlr.pData;
+							DWORD dwVideoWidth = Anim[AnimIndex].pMediaClip->getWidth();
+							DWORD dwVideoHeight = Anim[AnimIndex].pMediaClip->getHeight();
+							DWORD dwDataWidth = dwVideoWidth * dwDescBPP;
+							for(DWORD y=0; y<dwVideoHeight; y++)
+							{
+								memcpy(pPtr, pSrc, dwDataWidth);
+								pPtr+=grafixlr.RowPitch;
+								pSrc+=dwDataWidth;
+							}
+
+							/* format conversion during writing from video data to video texture
+							for ( int iY=RegionRect.top; iY<RegionRect.bottom; iY++)
+							{
+								int yadd = (int)iY*grafixlr.RowPitch;
+								int animyadd = (int)fAnimY*animd3dlr.RowPitch;
+								for ( int iX=RegionRect.left; iX<(int)RegionRect.right; iX++)
+								{
+									// Get source pixel and write to dest
+									LPSTR pRead = (LPSTR)animd3dlr.pData+(int)fAnimX*dwSrcBPP+(animyadd);
+
+									if ( dwDescBPP==2 )
+									{
+										DWORD dwPxl = *(WORD*)pRead;
+										if(dwSrcBPP==4)
+										{
+											// convert 8888 to 1555
+											dwPxl = *(DWORD*)pRead;
+											int red =	(int)(((dwPxl & (255<<16)) >> 16) / 8.3);
+											int green = (int)(((dwPxl & (255<<8) ) >> 8)  / 8.3);
+											int blue =	(int)(( dwPxl &  255     )        / 8.3);
+											if(red>31) red=31;
+											if(green>31) green=31;
+											if(blue>31) blue=31;
+											dwPxl = (1<<15)+(red<<10)+(green<<5)+(blue);
+										}
+										LPSTR pWrite = (LPSTR)grafixlr.pData+(int)iX*dwDescBPP+(yadd);
+										*(WORD*)pWrite = (WORD)dwPxl;
+									}
+									if ( dwDescBPP==4 )
+									{
+										DWORD dwPxl = *(DWORD*)pRead;
+										LPSTR pWrite = (LPSTR)grafixlr.pData+(int)iX*dwDescBPP+(yadd);
+										*(DWORD*)pWrite = dwPxl;
+									}
+
+									// Advance source vector
+									fAnimX += fXBit;
+								}
+
+								// Advance source vector
+								fAnimY += fYBit;
+								fAnimX = 0.0f;
+							}
+							*/
+
+							// release temp destination stage texture lock
+							m_pImmediateContext->Unmap(pTempDestStageTexture, 0);
+
+							// and finally copy the staged dest texture to the real video texture
+							D3D11_BOX rc = { 0, 0, 0, (LONG)(destdesc.Width), (LONG)(destdesc.Height), 1 }; 
+							m_pImmediateContext->CopySubresourceRegion(Anim[AnimIndex].pTexture, 0, 0, 0, 0, pTempDestStageTexture, 0, &rc);
+						}
+
+						// performance can be improved if this is created once during video playback
+						SAFE_RELEASE ( pTempDestStageTexture );
+					}
+
+					// pop this frame so can get the next one
+					Anim[AnimIndex].pMediaClip->popFrame();
+				}
+
+				// Handle Animations that loop
+				if(Anim[AnimIndex].bStreamingNow==true)
+				{
+					// If Looping, repeat run when it ends
+					if ( Anim[AnimIndex].pMediaClip->getTimePosition() >= Anim[AnimIndex].pMediaClip->getDuration() )
+					{
+						if(Anim[AnimIndex].loop==true)
+						{
+							//if(Anim[AnimIndex].pMediaPosition)
+							//{
+							//	Anim[AnimIndex].pMediaPosition->put_CurrentPosition(0);
+							//}
+							Anim[AnimIndex].pMediaClip->stop();
+							Anim[AnimIndex].pMediaClip->play();
+						}
+						else
+						{
+							Anim[AnimIndex].pMediaClip->stop();
+							animation[AnimIndex].playing=false;
+						}
+					}
+				}
+
+				// To image or current render target
+				if ( Anim[AnimIndex].iOutputToImage == 0 )
+				{
+					// Update sample in backbuffer (reverse Y as anim data is reversed)
+					float myClipV = Anim[AnimIndex].ClipV;
+					PasteTextureToRect( Anim[AnimIndex].pTextureRef, Anim[AnimIndex].ClipU, myClipV, Anim[AnimIndex].WantRect );
+				}
+				else
+				{
+					/* no video to texture for now - but can be easily restored
+					// Get destination size
+					GGSURFACE_DESC destdesc;
+					LPGGSURFACE pTextureInterface = NULL;
+					Anim[AnimIndex].pOutputToTexture->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
+					pTextureInterface->GetDesc(&destdesc);
+					SAFE_RELEASE ( pTextureInterface );
+					DWORD dwDescBPP = GetBitDepthFromFormat ( destdesc.Format ) / 8;
+
+					// Get source size
+					GGSURFACE_DESC srcdesc;
+					pTextureInterface = NULL;
+					Anim[AnimIndex].pTexture->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
+					pTextureInterface->GetDesc(&srcdesc);
+					SAFE_RELEASE ( pTextureInterface );
+					DWORD dwSrcBPP = GetBitDepthFromFormat ( srcdesc.Format ) / 8;
+
+					// Get region to draw animation to
+					RECT RegionRect = Anim[AnimIndex].WantRect;
+
+					// Work out texture/image ratio
+					int tImageWidth = ImageWidth ( Anim[AnimIndex].iOutputToImage );
+					int tImageHeight = ImageHeight ( Anim[AnimIndex].iOutputToImage );
+					float ratioX = (float)destdesc.Width / (float)tImageWidth;
+					float ratioY = (float)destdesc.Height / (float)tImageHeight;
+
+					// Scale region to any texture stretching
+					RegionRect.top = (int)((float)RegionRect.top * ratioY);
+					RegionRect.bottom = (int)((float)RegionRect.bottom * ratioY);
+					RegionRect.left = (int)((float)RegionRect.left * ratioX);
+					RegionRect.right = (int)((float)RegionRect.right * ratioX);
+
+					// Final Region dimension
+					DWORD RegionWidth = RegionRect.right - RegionRect.left;
+					DWORD RegionHeight = RegionRect.bottom - RegionRect.top;
+
+					// if image texutre smaller than dest area, reduce dest area
+					DWORD dwWidth = Anim[AnimIndex].StreamRect.right;
+					DWORD dwHeight = Anim[AnimIndex].StreamRect.bottom;
+					if(destdesc.Width<dwWidth) dwWidth=destdesc.Width;
+					if(destdesc.Height<dwHeight) dwHeight=destdesc.Height;
+					float fAnimX=0.0f;
+					float fAnimY=0.0f;
+					float fXBit=(float)Anim[AnimIndex].StreamRect.right/(float)RegionWidth;
+					float fYBit=(float)Anim[AnimIndex].StreamRect.bottom/(float)RegionHeight;
+
+					// Sort out anim source
+					ID3D11Texture2D* pTempSysMemTexture = NULL;
+					D3D11_TEXTURE2D_DESC StagedDesc = { srcdesc.Width, srcdesc.Height, 1, 1, srcdesc.Format, 1, 0, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_READ, 0 };
+					m_pD3D->CreateTexture2D( &StagedDesc, NULL, &pTempSysMemTexture );
+					if ( pTempSysMemTexture )
+					{
+						// and copy texture image to it
+						D3D11_BOX rc = { 0, 0, 0, (LONG)(srcdesc.Width), (LONG)(srcdesc.Height), 1 }; 
+						m_pImmediateContext->CopySubresourceRegion(pTempSysMemTexture, 0, 0, 0, 0, Anim[AnimIndex].pTexture, 0, &rc);
+
+						// lock for reading staging texture
+						GGLOCKED_RECT animd3dlr;
+						if(SUCCEEDED(m_pImmediateContext->Map(pTempSysMemTexture, 0, D3D11_MAP_READ, 0, &animd3dlr)))
+						{
+							ID3D11Texture2D* pTempDestStageTexture = NULL;
+							D3D11_TEXTURE2D_DESC StagedDestDesc = { destdesc.Width, destdesc.Height, 1, 1, destdesc.Format, 1, 0, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_WRITE, 0 };
+							m_pD3D->CreateTexture2D( &StagedDestDesc, NULL, &pTempDestStageTexture );
+							if ( pTempDestStageTexture )
+							{
+								// lock for writing staging texture
+								GGLOCKED_RECT grafixlr;
+								if(SUCCEEDED(m_pImmediateContext->Map(pTempDestStageTexture, 0, D3D11_MAP_WRITE, 0, &grafixlr)))
+								{
+									for ( int iY=RegionRect.top; iY<RegionRect.bottom; iY++)
+									{
+										int yadd = (int)iY*grafixlr.RowPitch;
+										int animyadd = (int)fAnimY*animd3dlr.RowPitch;
+										for ( int iX=RegionRect.left; iX<(int)RegionRect.right; iX++)
+										{
+											// Get source pixel and write to dest
+											LPSTR pRead = (LPSTR)animd3dlr.pData+(int)fAnimX*dwSrcBPP+(animyadd);
+
+											if ( dwDescBPP==2 )
+											{
+												DWORD dwPxl = *(WORD*)pRead;
+												if(dwSrcBPP==4)
+												{
+													// convert 8888 to 1555
+													dwPxl = *(DWORD*)pRead;
+													int red =	(int)(((dwPxl & (255<<16)) >> 16) / 8.3);
+													int green = (int)(((dwPxl & (255<<8) ) >> 8)  / 8.3);
+													int blue =	(int)(( dwPxl &  255     )        / 8.3);
+													if(red>31) red=31;
+													if(green>31) green=31;
+													if(blue>31) blue=31;
+													dwPxl = (1<<15)+(red<<10)+(green<<5)+(blue);
+												}
+												LPSTR pWrite = (LPSTR)grafixlr.pData+(int)iX*dwDescBPP+(yadd);
+												*(WORD*)pWrite = (WORD)dwPxl;
+											}
+											if ( dwDescBPP==4 )
+											{
+												DWORD dwPxl = *(DWORD*)pRead;
+												LPSTR pWrite = (LPSTR)grafixlr.pData+(int)iX*dwDescBPP+(yadd);
+												*(DWORD*)pWrite = dwPxl;
+											}
+
+											// Advance source vector
+											fAnimX += fXBit;
+										}
+
+										// Advance source vector
+										fAnimY += fYBit;
+										fAnimX = 0.0f;
+									}
+
+									// release temp destination stage texture lock
+									m_pImmediateContext->Unmap(pTempDestStageTexture, 0);
+
+									// and finally copy the staged dest texture to the real output texture
+									D3D11_BOX rc = { 0, 0, 0, (LONG)(destdesc.Width), (LONG)(destdesc.Height), 1 }; 
+									m_pImmediateContext->CopySubresourceRegion(Anim[AnimIndex].pOutputToTexture, 0, 0, 0, 0, pTempDestStageTexture, 0, &rc);
+								}
+							}
+
+							// release temp stage texture lock
+							m_pImmediateContext->Unmap(pTempSysMemTexture, 0);
+						}
+	
+						// free temp system surface
+						SAFE_RELEASE(pTempSysMemTexture);
+					}
+					*/
+				}
+			}
+		}
+	}
+}
+
+//
+// Actual function calls used by GameGuru below
+//
+
+DARKSDK void LoadAnimation( LPSTR pFilename, int animindex )
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		// Delete before proceeding to load..
+		if(animation[animindex].active==true)
+		{
+			DB_FreeAnimation(animindex);
+			animation[animindex].active=false;
+		}
+
+		if(DB_LoadAnimation(animindex, pFilename))
+		{
+			animation[animindex].active=true;
+			animation[animindex].playing=false;
+			animation[animindex].paused=false;
+			animation[animindex].looped=false;
+			animation[animindex].volume=100;
+			animation[animindex].speed=100;
+		}
+		else
+			RunTimeError(RUNTIMEERROR_ANIMLOADFAILED);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+DARKSDK void DeleteAnimation( int animindex )
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		if(animation[animindex].active==true)
+		{
+			DB_FreeAnimation(animindex);
+			animation[animindex].active=false;
+		}
+		else
+			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+DARKSDK void PlayAnimation( int animindex )
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		if(animation[animindex].active==true)
+		{
+			if(DB_PlayAnimationToScreen(animindex, 0, 0, 0, 0, 0, true))
+			{
+				DB_LoopAnimationOff(animindex);
+				animation[animindex].playing=true;
+				animation[animindex].looped=false;
+				animation[animindex].paused=false;
+			}
+			else
+				RunTimeError(RUNTIMEERROR_ANIMALREADYPLAYING);
+		}
+		else
+			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+DARKSDK void StopAnimation( int animindex )
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		if(animation[animindex].active==true)
+		{
+			if(DB_StopAnimation(animindex))
+			{
+				animation[animindex].playing=false;
+				animation[animindex].looped=false;
+			}
+			else
+				RunTimeError(RUNTIMEERROR_ANIMNOTPLAYING);
+		}
+		else
+			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+DARKSDK void PlayAnimation( int animindex, int x1, int y1, int x2, int y2 )
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		if(animation[animindex].active==true)
+		{
+			if(DB_PlayAnimationToScreen(animindex, 1, x1, y1, x2, y2, true))
+			{
+				DB_LoopAnimationOff(animindex);
+				animation[animindex].playing=true;
+				animation[animindex].looped=false;
+				animation[animindex].paused=false;
+			}
+			else
+				RunTimeError(RUNTIMEERROR_ANIMALREADYPLAYING);
+		}
+		else
+			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+DARKSDK void PlaceAnimation( int animindex, int x1, int y1, int x2, int y2)
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		if(animation[animindex].active==true)
+		{
+			DB_ResizeAnimation(animindex, x1, y1, x2, y2);
+		}
+		else
+			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+//
+// Command Expressions Functions
+//
+
+DARKSDK int AnimationExist( int animindex )
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		if(animation[animindex].active==true)
+			return 1;
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+
 	return 0;
 }
 
-int AnimationPlaying ( int animindex )
+DARKSDK int AnimationPlaying( int animindex )
 {
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		if(animation[animindex].active==true)
+		{
+			if(animation[animindex].playing==true)
+				return 1;
+		}
+		else
+			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+
 	return 0;
 }
 
-int GetAnimationLength ( int animindex )
+DARKSDK int DB_GetAnimationLength ( int AnimIndex )
 {
-	return 0;
+	REFTIME length = 0;
+	//HRESULT hRes = Anim[AnimIndex].pMediaPosition->get_Duration(&length);
+	return (int)length;
 }
 
 #else

@@ -362,7 +362,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 	// Store reference to CL$()
 	#ifdef _DEBUG
-	MessageBox ( NULL, "Debug Mode - You can attach VS debugger to Guru-MapEditor.exe now", "", MB_OK );
+	// Removed in favor of automated attachment of debugger to child process
+	// buy this: http://entrian.com/attach/download.html
+	// MessageBox ( NULL, "Debug Mode - You can attach VS debugger to Guru-MapEditor.exe now", "", MB_OK );
 	#endif
 	gRefCommandLineString=lpCmdLine;
 

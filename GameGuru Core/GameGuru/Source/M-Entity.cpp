@@ -1827,18 +1827,16 @@ void entity_loaddata ( void )
 void entity_loadvideoid ( void )
 {
 	t.tvideoid=0;
-	t.text_s=Lower(Right(t.tvideofile_s.Get(),4)) ;
-	if (  t.text_s == ".wmv" ) 
+	t.text_s = Lower(Right(t.tvideofile_s.Get(),4));
+	if ( t.text_s == ".ogv" || t.text_s == ".mp4" ) 
 	{
 		t.tvideoid=32;
 		for ( t.tt = 1 ; t.tt<=  32; t.tt++ )
 		{
 			if (  AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
 		}
-		LoadAnimation (  t.tvideofile_s.Get(),t.tvideoid );
+		LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid );
 	}
-return;
-
 }
 
 void entity_loadactivesoundsandvideo ( void )

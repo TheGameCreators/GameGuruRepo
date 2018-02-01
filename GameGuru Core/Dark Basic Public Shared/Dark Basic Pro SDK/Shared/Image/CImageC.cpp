@@ -19,9 +19,9 @@
 #include "CObjectsC.h"
 #include "DarkLUA.h"
 
-extern GlobStruct* g_pGlob;
-extern LPGG							m_pDX;
-extern LPGGDEVICE					m_pD3D;
+extern GlobStruct*				g_pGlob;
+extern LPGG						m_pDX;
+extern LPGGDEVICE				m_pD3D;
 
 namespace
 {
@@ -2859,7 +2859,6 @@ DARKSDK void GetImageData( int iID, DWORD* dwWidth, DWORD* dwHeight, DWORD* dwDe
 
 		// create system memory version
 		ID3D11Texture2D* pTempSysMemTexture = NULL;
-		//D3D11_TEXTURE2D_DESC StagedDesc = { desc.Width, desc.Height, 1, 1, GGFMT_A8R8G8B8, 1, 0, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_READ, 0 };
 		D3D11_TEXTURE2D_DESC StagedDesc = { desc.Width, desc.Height, 1, 1, desc.Format, 1, 0, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_READ, 0 };
 		m_pD3D->CreateTexture2D( &StagedDesc, NULL, &pTempSysMemTexture );
 		if ( pTempSysMemTexture )

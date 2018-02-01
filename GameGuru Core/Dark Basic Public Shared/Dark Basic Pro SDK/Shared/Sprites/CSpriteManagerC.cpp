@@ -438,8 +438,12 @@ void CSpriteManager::RenderDrawList ( tagSpriteData** pList, int iListSize, int 
 					m_pImmediateContext->OMSetBlendState(m_pBlendStateNoAlpha, 0, 0xffffffff);
 			}
 
-			// Set texture
-			ID3D11ShaderResourceView* lpTexture = GetImagePointerView ( pCurrent->iImage );
+			// Set texture (from image ID or direct from pTexture(videotexture))
+			ID3D11ShaderResourceView* lpTexture = pCurrent->lpTexture;
+			if ( pCurrent->iImage > 0 )
+			{
+				lpTexture = GetImagePointerView ( pCurrent->iImage );
+			}
 			m_pImmediateContext->PSSetShaderResources ( 0, 1, &lpTexture );
 
 			// calculate world/v/p position of terrain chunk

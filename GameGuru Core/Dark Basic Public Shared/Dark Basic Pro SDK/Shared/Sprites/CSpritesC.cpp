@@ -253,7 +253,7 @@ DARKSDK void CreateSprite( int iID, int iX, int iY, int iImage )
 	data.iImage	   = iImage;							// image reference
 	data.iWidth    = ImageWidth   ( iImage );		// get image width
 	data.iHeight   = ImageHeight  ( iImage );		// get image height
-	data.lpTexture = GetImagePointer ( iImage );		// get image data
+	data.lpTexture = GetImagePointerView ( iImage );		// get image data
 	data.fClipU    = ImageUMax    ( iImage );		// get image
 	data.fClipV    = ImageVMax    ( iImage );		// get image
 //	CalcClipFromTexture ( data.lpTexture, data.iWidth, data.iHeight, &data.fClipU, &data.fClipV );
@@ -736,7 +736,7 @@ DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV, int 
 	m_ImagePtr.iImage	   = iImageID;							// image reference
 	m_ImagePtr.iWidth    = ImageWidth   ( iImageID );		// get image width
 	m_ImagePtr.iHeight   = ImageHeight  ( iImageID );		// get image height
-	m_ImagePtr.lpTexture = GetImagePointer ( iImageID );		// get image data
+	m_ImagePtr.lpTexture = GetImagePointerView ( iImageID );		// get image data
 	m_ImagePtr.fClipU    = fU;		// get image
 	m_ImagePtr.fClipV    = fV;		// get image
 	m_ImagePtr.bVisible  = true;								// default to visible
@@ -781,7 +781,7 @@ DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV, int 
 }
 
 // mike - 220604 - addition for text
-DARKSDK void PasteTextureToRectEx ( LPGGTEXTURE pTexture, float fU, float fOrigV, RECT Rect, int iX, int iY )
+DARKSDK void PasteTextureToRectEx ( LPGGTEXTUREREF pTextureRef, float fU, float fOrigV, RECT Rect, int iX, int iY )
 {
 	// if fOrigV is negative, reverse UV on the Y
 	float fRev = 0.0f;
@@ -801,7 +801,7 @@ DARKSDK void PasteTextureToRectEx ( LPGGTEXTURE pTexture, float fU, float fOrigV
 	m_ImagePtr.iImage	   = 0;							// image reference
 	m_ImagePtr.iWidth    = iWidth;		// get passed width
 	m_ImagePtr.iHeight   = iHeight;		// get passed height
-	m_ImagePtr.lpTexture = pTexture;	// get passed texture
+	m_ImagePtr.lpTexture = pTextureRef;	// get passed texture
 	m_ImagePtr.bVisible  = true;								// default to visible
 	m_ImagePtr.bFlipped  = false;								// turn flipping off
 	m_ImagePtr.bMirrored = false;								// turn mirrored off
@@ -840,7 +840,7 @@ DARKSDK void PasteTextureToRectEx ( LPGGTEXTURE pTexture, float fU, float fOrigV
 	m_SpriteManager.DrawImmediate ( m_ptr );
 }
 
-DARKSDK void PasteTextureToRect ( LPGGTEXTURE pTexture, float fU, float fOrigV, RECT Rect )
+DARKSDK void PasteTextureToRect ( LPGGTEXTUREREF pTextureRef, float fU, float fOrigV, RECT Rect )
 {
 	// if fOrigV is negative, reverse UV on the Y
 	float fRev = 0.0f;
@@ -860,7 +860,7 @@ DARKSDK void PasteTextureToRect ( LPGGTEXTURE pTexture, float fU, float fOrigV, 
 	m_ImagePtr.iImage	   = 0;							// image reference
 	m_ImagePtr.iWidth    = iWidth;		// get passed width
 	m_ImagePtr.iHeight   = iHeight;		// get passed height
-	m_ImagePtr.lpTexture = pTexture;	// get passed texture
+	m_ImagePtr.lpTexture = pTextureRef;	// get passed texture
 	m_ImagePtr.bVisible  = true;								// default to visible
 	m_ImagePtr.bFlipped  = false;								// turn flipping off
 	m_ImagePtr.bMirrored = false;								// turn mirrored off
@@ -995,7 +995,7 @@ DARKSDK void Sprite ( int iID, float fX, float fY, int iImage )
 			{
 				m_ptr->iWidth = ImageWidth ( iImage );
 				m_ptr->iHeight = ImageHeight ( iImage );
-				m_ptr->lpTexture = GetImagePointer ( iImage );
+				m_ptr->lpTexture = GetImagePointerView ( iImage );
 				m_ptr->fClipU = ImageUMax ( iImage );
 				m_ptr->fClipV = ImageVMax ( iImage );
 			}
@@ -1059,7 +1059,7 @@ DARKSDK void Sprite ( int iID, int iX, int iY, int iImage )
 			{
 				m_ptr->iWidth = ImageWidth ( iImage );
 				m_ptr->iHeight = ImageHeight ( iImage );
-				m_ptr->lpTexture = GetImagePointer ( iImage );
+				m_ptr->lpTexture = GetImagePointerView ( iImage );
 				m_ptr->fClipU = ImageUMax ( iImage );
 				m_ptr->fClipV = ImageVMax ( iImage );
 			}
@@ -1614,7 +1614,7 @@ DARKSDK void SetSpriteImage ( int iID, int iImage )
 
 	// set the image that the sprite uses
 	m_ptr->iImage    = iImage;							// store the image number
-	m_ptr->lpTexture = GetImagePointer ( iImage );	// get a pointer to the image data
+	m_ptr->lpTexture = GetImagePointerView ( iImage );	// get a pointer to the image data
 	m_ptr->fClipU = ImageUMax ( iImage );
 	m_ptr->fClipV = ImageVMax ( iImage );
 
@@ -1794,7 +1794,7 @@ DARKSDK void SetSpriteFrameEx ( int iID, int iFrame )
 			m_ptr->iImage = iFrame;
 
 			// retrieve the correct image based on the anim
-			m_ptr->lpTexture = GetImagePointer ( m_ptr->iImage );
+			m_ptr->lpTexture = GetImagePointerView ( m_ptr->iImage );
 		}
 		break;
 

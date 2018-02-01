@@ -54,7 +54,7 @@ struct tagSpriteData
 
 	int						iPriority;
 
-	LPGGTEXTURE		lpTexture;		// pointer to texture data
+	LPGGTEXTUREREF			lpTexture;		// pointer to texture view
 	int						iImage;			// image id
 
 	bool					bVisible;

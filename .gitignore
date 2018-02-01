@@ -52,3 +52,4 @@ GameGuru/Guru-MapEditor.lib
 GameGuru Core/Lib/
 *.map
 GameGuru Core/Guru-MapEditor/showonstartup.ini
+GameGuru/Files/mapbank/_A_TEST_MAP.fpm
