@@ -11,6 +11,14 @@
 #include "CImageC.h"
 #include "CSpritesC.h"
 
+//#include <clipffmpeg/clipffmpeg.h> MP4!
+#include <theoraplayer/FrameQueue.h>
+#include <theoraplayer/Manager.h>
+#include <theoraplayer/MemoryDataSource.h>
+#include <theoraplayer/theoraplayer.h>
+#include <theoraplayer/VideoClip.h>
+#include <theoraplayer/VideoFrame.h>
+
 extern int GetBitDepthFromFormat(GGFORMAT Format);
 
 #define ANIMATIONMAX 33
@@ -27,8 +35,100 @@ void AnimationRefreshGRAFIX ( int iMode )
 {
 }
 
+int potCeil(int value)
+{
+	--value;
+	value |= value >> 1;
+	value |= value >> 2;
+	value |= value >> 4;
+	value |= value >> 8;
+	value |= value >> 16;
+	++value;
+	return value;
+}
+
 void LoadAnimation ( LPSTR pFilename, int iIndex )
 {
+	// TEST CODE - Load, Play And Delete
+
+	// This should go in initialisation
+	theoraplayer::init(1);
+
+	// This would provide MP4 support
+	//clipffmpeg::init(); //MP4!
+
+	// vars for video handling
+	bool started = false;
+	theoraplayer::VideoClip* clip = NULL;
+	theoraplayer::OutputMode outputMode = theoraplayer::FORMAT_BGRX;
+
+	// can change thread count for video manager
+	theoraplayer::manager->setWorkerThreadCount(1);
+
+	// load in an OGV video file (streaming)
+	clip = theoraplayer::manager->createVideoClip(pFilename, outputMode, 16);
+
+	// alternatively load all into memory before video playback (in memory)
+	//clip = theoraplayer::manager->createVideoClip(new theoraplayer::MemoryDataSource(pFilename), outputMode, 16);
+
+	// can cause video to loop
+	clip->setAutoRestart(true);
+
+	// at this point create a texture to store video frame data as it plays
+	//textureId = createTexture(potCeil(clip->getWidth()), potCeil(clip->getHeight()), textureFormat);
+	int iWidth = potCeil(clip->getWidth());
+	int iHeight = potCeil(clip->getHeight());
+
+	// this would be the loop that cycles while video is playing
+	{
+		// an update call to the video manager
+		float fDelta = 0.1f; // MS delta from last time this was called (to keep video in sync)
+		theoraplayer::manager->update(fDelta);
+
+		// ensure we wait until video frames buffered in cache before we display anything
+		if (!started)
+		{
+			// let's wait until the system caches up a few frames on startup
+			if (clip->getReadyFramesCount() < clip->getPrecachedFramesCount() * 0.5f)
+			{
+				started = false;
+			}
+			started = true;
+		}
+
+		// pull next available frame
+		theoraplayer::VideoFrame* frame = clip->fetchNextFrame();
+		if (frame != NULL)
+		{
+			// get raw data from frame
+			unsigned char* pData = frame->getBuffer();
+
+			// write data to texture for later rendering
+			//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, clip->getWidth(), clip->getHeight(), textureFormat, GL_UNSIGNED_BYTE, frame->getBuffer());
+
+			// pop this frame so can get the next one
+			clip->popFrame();
+		}
+
+		// some basic clip interoggation functions
+		float w = clip->getWidth();
+		float h = clip->getHeight();
+		float sx = clip->getSubFrameX(); // not sure what subframes are, MP4 returns zero for them!
+		float sy = clip->getSubFrameY();
+		float tw = potCeil(w);
+		float th = potCeil(h);
+	}
+
+	// destroy clip when animation no longer needed
+	if ( clip != NULL )
+	{
+		theoraplayer::manager->destroyVideoClip(clip);
+		clip = NULL;
+	}
+
+	// Free resources
+	//clipffmpeg::destroy(); //MP4!
+	theoraplayer::destroy();
 }
 
 void DeleteAnimation ( int animindex )

@@ -1,6 +1,8 @@
 #ifndef _CANIMATION_H_
 #define _CANIMATION_H_
 
+#define _LIB
+
 #include "windows.h"
 #include <mmsystem.h>
 #include <atlbase.h>

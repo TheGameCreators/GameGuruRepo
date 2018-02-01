@@ -29,6 +29,9 @@ Stemps t;
 
 void common_init ( void )
 {
+	// HACK EXPERIMENT
+	//LoadAnimation ( "Files\\videobank\\video", 1 );
+
 	// ensures the DWORD to INT conversion always produces a positive value
 	SetLocalTimerReset();
 
