@@ -50,3 +50,5 @@ GameGuru/Guru-MapEditor.lib
 *.cod
 *.idb
 GameGuru Core/Lib/
+*.map
+GameGuru Core/Guru-MapEditor/showonstartup.ini
