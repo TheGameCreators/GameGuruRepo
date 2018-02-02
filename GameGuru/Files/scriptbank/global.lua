@@ -3,7 +3,7 @@
 --
 
 -- Constants
-AI_MANUAL = 0 -- Preferred Mode With Direct Script Control 
+AI_MANUAL    = 0 -- Preferred Mode With Direct Script Control 
 AI_AUTOMATIC = 1 -- Discontinued Legacy Mode
 
 -- Globals (built-in)
@@ -222,15 +222,18 @@ function UpdateWeaponStatsItem(mode,index,value)
 end
 
 -- Macro Functions
+local sqrt = math.sqrt
+local abs  = math.abs
 
-function GetPlayerDistance(e)
-  tPlayerDX = (g_Entity[e]['x'] - g_PlayerPosX)
-  tPlayerDY = (g_Entity[e]['y'] - g_PlayerPosY)
-  tPlayerDZ = (g_Entity[e]['z'] - g_PlayerPosZ)
-  if math.abs(tPlayerDY) > 100 then 
-   tPlayerDY = tPlayerDY * 4
-  end
-  return math.sqrt(math.abs(tPlayerDX*tPlayerDX)+math.abs(tPlayerDY*tPlayerDY)+math.abs(tPlayerDZ*tPlayerDZ));
+function GetPlayerDistance( e )
+    local Ent = g_Entity[ e ]
+    local PDX, PDY, PDZ = Ent.x - g_PlayerPosX, 
+                          Ent.y - g_PlayerPosY,
+						  Ent.z - g_PlayerPosZ;
+  
+    if abs( PDY ) > 100 then PDY = PDY * 4 end
+  
+    return sqrt( PDX*PDX + PDY*PDY + PDZ*PDZ )
 end
 
 -- Common Action Functions (called by LUA)
@@ -1725,4 +1728,19 @@ GetHeadTrackerRoll : GetHeadTrackerRoll() - returns the roll of the head tracker
 Prompt3D : Prompt3D(text,duration) -- renders a 3D text panel in front of camera showing 'text'
 PositionPrompt3D : PositionPrompt3D(x,y,z,angle) -- repositions 3D text panel to any XYZ world coordinate
 
+ScaleObject : ScaleObject( obj, x, y, z ) -- Scales object in all axis (Note: uses object id not entity!)
+
+***** The following four functions return multiple values, if you do not need them all just replace 
+***** the ones you don't need with '_' for example : _, _, _, Ax, Ay, Az = GetEntityPosAng( e ) would
+***** just give you last three of the 6 values returned
+GetObjectPosAng : x, y, z, Ax, Ay, Az = GetObjectPosAng( obj ) -- returns position and Euler angles of object
+GetEntityPosAng : x, y, z, Ax, Ay, Az = GetEntityPosAng( e )   -- returns position and Euler angles of entity
+
+GetObjectCollBox : xmin, ymin, zmin, xmax, ymax, zmax = GetObjectCollBox( obj ) -- returns collision cube of object
+GetEntityCollBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityCollBox( e )   -- returns collision cube of entity
+        Collision box is defined by coordinates of two opposing corners, from these it is easy to 
+		calculate the size of the object
+
+GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
+  
 --]]
