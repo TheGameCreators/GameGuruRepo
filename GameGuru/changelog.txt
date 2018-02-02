@@ -1,6 +1,6 @@
-NOTE: Is there a better GitHubby way to record a change log instead of old-school text files?
+V 2018.02.XX DX11 PREVIEW AND ABOVE - SEE REVISION HISTORY FOR CHANGE LOG
 
-V 2018.02.XX DX11 PREVIEW
+V 2018.01.XX DX11 PREVIEW PRE-FEB-2018
 
 * Added two new Grand Pianos to the Furniture folder (thanks to GraPhiX)
 * Added a new glass fence to the Fixtures folder (thanks to GraPhiX)
