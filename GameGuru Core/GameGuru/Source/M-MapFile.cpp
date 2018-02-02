@@ -468,7 +468,6 @@ void mapfile_loadplayerconfig ( void )
 
 void mapfile_saveplayerconfig ( void )
 {
-
 	//  Store old folder
 	t.old_s=GetDir();
 
@@ -520,8 +519,6 @@ void mapfile_saveplayerconfig ( void )
 
 	//  Restore
 	SetDir (  t.old_s.Get() );
-
-	return;
 }
 
 void mapfile_savestandalone ( void )
@@ -533,6 +530,9 @@ void mapfile_savestandalone ( void )
 
 	// this flag ensures the loadassets splash does not appear when making standalone
 	t.levelsforstandalone = 1;
+
+	// give prompts while standalone is saving
+	popup_text("Saving Standalone Game : Collecting Files");
 
 	//  check for character creator usage
 	characterkit_checkForCharacters ( );
@@ -620,6 +620,10 @@ void mapfile_savestandalone ( void )
 	Dim (  t.filecollection_s,500  );
 
 	//  Stage 1 - specify all common files
+	addtocollection("avcodec-57.dll");
+	addtocollection("avformat-57.dll");
+	addtocollection("avutil-55.dll");
+	addtocollection("swresample-2.dll");
 	addtocollection("editors\\gfx\\guru-forexe.ico");
 	addtocollection( cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-wordcount.ini").Get() );
 	addtocollection(cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-words.txt").Get() );
@@ -1030,6 +1034,9 @@ void mapfile_savestandalone ( void )
 		addtocollection("levelbank\\testmap\\header.dat");
 	}
 
+	// prompt
+	popup_text_change("Saving Standalone Game : Creating Paths");
+
 	//  Create game folder
 	SetDir (  t.exepath_s.Get() );
 	MakeDirectory (  t.exename_s.Get() );
@@ -1144,6 +1151,9 @@ void mapfile_savestandalone ( void )
 			}
 		}
 	}
+
+	// prompt
+	popup_text_change("Saving Standalone Game : Copying Files");
 
 	//  CopyAFile (  collection to exe folder )
 	for ( t.fileindex = 1 ; t.fileindex<=  t.filesmax; t.fileindex++ )
@@ -1396,6 +1406,9 @@ void mapfile_savestandalone ( void )
 			gridedit_load_map ( );
 		}
 	}
+
+	// finish popup system
+	popup_text_close();
 
 	// no longer making standalone
 	t.levelsforstandalone = 0;

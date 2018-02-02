@@ -12,7 +12,7 @@
 #include "CImageC.h"
 #include "CSpritesC.h"
 
-//#include <clipffmpeg/clipffmpeg.h> MP4!
+#include <clipffmpeg/clipffmpeg.h>
 #include <theoraplayer/FrameQueue.h>
 #include <theoraplayer/Manager.h>
 #include <theoraplayer/MemoryDataSource.h>
@@ -76,7 +76,7 @@ void AnimationConstructor ( void )
 	theoraplayer::manager->setWorkerThreadCount(1);
 
 	// Provide MP4 support (.mp4)
-	//clipffmpeg::init();
+	clipffmpeg::init();
 
 	// Clear Arrays
 	ZeroMemory(&Anim, sizeof(Anim));
@@ -110,7 +110,7 @@ DARKSDK void AnimationDestructor ( void )
 	}
 
 	// Free Theora Player manager
-	//clipffmpeg::destroy();
+	clipffmpeg::destroy();
 	theoraplayer::destroy();
 }
 

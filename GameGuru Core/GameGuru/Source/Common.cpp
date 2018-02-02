@@ -3863,9 +3863,6 @@ void popup_text_close ( void )
 	OpenFileMap (  2, "FPSPOPUP" );
 	SetFileMapDWORD (  2, 8, 1 );
 	SetEventAndWait (  2 );
-	//CloseFileMap (  2 );
-//endfunction
-
 }
 
 void loadresource ( void )

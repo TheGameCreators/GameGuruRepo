@@ -10406,14 +10406,13 @@ char* get_control_description ( int  group, int  control )
 	return t.szreturn;
 }
 
-void popup_text ( char*  statusbar_s )
+void popup_text ( char* statusbar_s )
 {
 	t.strwork = "" ; t.strwork = t.strwork + "1:popup_text "+statusbar_s;
 	timestampactivity(0, t.strwork.Get() );
 	OpenFileMap (  1,"FPSEXCHANGE" );
 	SetFileMapDWORD (  1, 750, 1 );
 	SetEventAndWait (  1 );
-	//CloseFileMap (  1 );
 	while (  1 ) 
 	{
 		OpenFileMap (  2, "FPSPOPUP" );
@@ -10427,19 +10426,13 @@ void popup_text ( char*  statusbar_s )
 			{
 				SetEventAndWait (  2 );
 			}
-			//CloseFileMap (  2 );
 			return;
 		}
-		//CloseFileMap (  2 );
-//   `timestampactivity(0,"9:popup_text "+statusbar$)
-
 		Sync (  );
 	}
-//endfunction
-
 }
 
-void popup_text_change ( char*  statusbar_s )
+void popup_text_change ( char* statusbar_s )
 {
 	OpenFileMap (  2, "FPSPOPUP" );
 	SetEventAndWait (  2 );
@@ -10452,10 +10445,7 @@ void popup_text_change ( char*  statusbar_s )
 		{
 			SetEventAndWait (  2 );
 		}
-		//CloseFileMap (  2 );
 	}
-//endfunction
-
 }
 
 
