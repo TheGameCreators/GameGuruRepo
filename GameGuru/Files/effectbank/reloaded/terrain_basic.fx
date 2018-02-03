@@ -127,6 +127,7 @@ SamplerState SampleWrap
     Filter = MIN_MAG_MIP_LINEAR;
     AddressU = Wrap;
     AddressV = Wrap;
+    MAXLOD = 5;
 };
 SamplerState SampleClamp
 {
