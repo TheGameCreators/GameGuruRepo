@@ -124,10 +124,15 @@ Texture2D Reserved3Map : register( t7 );
 
 SamplerState SampleWrap
 {
+#ifdef TRILINEAR
     Filter = MIN_MAG_MIP_LINEAR;
+#else
+    Filter = ANISOTROPIC;
+    MaxAnisotropy = MAXANISOTROPYTERRAIN;
+#endif
     AddressU = Wrap;
     AddressV = Wrap;
-    MAXLOD = 5;
+    MAXLOD = 6;
 };
 SamplerState SampleClamp
 {

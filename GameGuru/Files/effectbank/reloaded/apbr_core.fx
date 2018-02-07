@@ -287,16 +287,27 @@ SamplerState AnisoClamp
 };
 SamplerState SampleWrap
 {
+#ifdef TRILINEAR
     Filter = MIN_MAG_MIP_LINEAR;
+#else
+	Filter = ANISOTROPIC;
+    MaxAnisotropy = MAXANISOTROPY;
+#endif
     AddressU = Wrap;
     AddressV = Wrap;
 };
+
 SamplerState SampleAniso
 {
+#ifdef TRILINEAR
+    Filter = MIN_MAG_MIP_LINEAR;
+#else
     Filter = ANISOTROPIC;
+    MaxAnisotropy = MAXANISOTROPYTERRAIN;
+#endif
     AddressU = Wrap;
     AddressV = Wrap;
-    MAXLOD = 5;
+    MAXLOD = 6; // prevent "brown" lines in the distance.
 };
 SamplerState SampleClamp
 {
