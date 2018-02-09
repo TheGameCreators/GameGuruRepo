@@ -92,7 +92,12 @@ Texture2D MaskMap : register( t11 );
 
 SamplerState SampleWrap
 {
+#ifdef TRILINEAR
     Filter = MIN_MAG_MIP_LINEAR;
+#else
+	Filter = ANISOTROPIC;
+    MaxAnisotropy = MAXANISOTROPY;
+#endif
     AddressU = Wrap;
     AddressV = Wrap;
 };
