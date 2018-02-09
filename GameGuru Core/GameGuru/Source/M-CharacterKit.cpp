@@ -1212,7 +1212,11 @@ void characterkit_save_entity ( void )
 		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
 		if (  cstr(Lower(Left(t.ts_s.Get(),9)))  ==  "hasweapon" ) 
 		{
-			t.ts_s = cstr("hasweapon     = modern\\") + t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s;
+			t.ts_s = "";
+			if ( strlen( t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s.Get()) > 1 )
+			{
+				t.ts_s = cstr("hasweapon     = modern\\") + t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s;
+			}
 			if (  t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s  ==  "None"  )  t.ts_s  =  "";
 		}
 

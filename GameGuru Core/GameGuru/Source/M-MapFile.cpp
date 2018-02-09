@@ -620,10 +620,6 @@ void mapfile_savestandalone ( void )
 	Dim (  t.filecollection_s,500  );
 
 	//  Stage 1 - specify all common files
-	addtocollection("avcodec-57.dll");
-	addtocollection("avformat-57.dll");
-	addtocollection("avutil-55.dll");
-	addtocollection("swresample-2.dll");
 	addtocollection("editors\\gfx\\guru-forexe.ico");
 	addtocollection( cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-wordcount.ini").Get() );
 	addtocollection(cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-words.txt").Get() );
@@ -1173,11 +1169,30 @@ void mapfile_savestandalone ( void )
 	if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
 	CopyAFile (  "Guru-MapEditor.exe",t.dest_s.Get() );
 
-	//  Copy steam files
-	t.dest_s=t.exepath_s+t.exename_s+"\\steam_api.dll";
-	if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
-	CopyAFile (  "steam_api.dll",t.dest_s.Get() );
-
+	// Copy critical DLLs
+	for ( int iCritDLLs = 1; iCritDLLs <= 6; iCritDLLs++ )
+	{
+		LPSTR pCritDLLFilename = "";
+		switch ( iCritDLLs )
+		{
+			case 1 : pCritDLLFilename = "steam_api.dll"; break;
+			case 2 : pCritDLLFilename = "sdkencryptedappticket.dll"; break;
+			case 3 : pCritDLLFilename = "avcodec-57.dll"; break;
+			case 4 : pCritDLLFilename = "avformat-57.dll"; break;
+			case 5 : pCritDLLFilename = "avutil-55.dll"; break;
+			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
+		}
+		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
+		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
+		CopyAFile ( pCritDLLFilename, t.dest_s.Get() );
+	}
+	// Copy steam files (see above)
+	//t.dest_s=t.exepath_s+t.exename_s+"\\steam_api.dll";
+	//if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
+	//CopyAFile (  "steam_api.dll",t.dest_s.Get() );
+	//t.dest_s=t.exepath_s+t.exename_s+"\\sdkencryptedappticket.dll";
+	//if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
+	//CopyAFile (  "sdkencryptedappticket.dll",t.dest_s.Get() );
 	t.dest_s=t.exepath_s+t.exename_s+"\\steam_appid.txt";
 	if ( FileExist(t.dest_s.Get()) == 1  ) DeleteAFile (  t.dest_s.Get() );
 	if ( FileExist("steam_appid.txt") == 1  ) CopyAFile ( "steam_appid.txt",t.dest_s.Get() );
@@ -1186,10 +1201,6 @@ void mapfile_savestandalone ( void )
 	//t.dest_s=t.exepath_s+t.exename_s+"\\parentalcontrolmode.ini";
 	//if ( FileExist(t.dest_s.Get()) == 1  ) DeleteAFile (  t.dest_s.Get() );
 	//if ( FileExist("parentalcontrolmode.ini") == 1  ) CopyAFile ( "parentalcontrolmode.ini",t.dest_s.Get() );
-
-	t.dest_s=t.exepath_s+t.exename_s+"\\sdkencryptedappticket.dll";
-	if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
-	CopyAFile (  "sdkencryptedappticket.dll",t.dest_s.Get() );
 
 	//  Copy visuals settings file
 	t.visuals=t.gamevisuals ; visuals_save ( );
