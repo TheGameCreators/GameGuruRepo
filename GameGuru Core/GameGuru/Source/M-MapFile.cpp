@@ -1416,16 +1416,35 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 	{
 		LoadArray (  tfile_s,t.scriptpage_s );
 		lookfor_s=Lower("Include(") ; lookforlen=Len(lookfor_s.Get());
-		for ( l = 0 ; l<=  9999; l++ )
+		for ( l = 0 ; l < t.scriptpage_s.size() ; l++ )
 		{
 			tline_s=Lower(t.scriptpage_s[l].Get());
+
 			for ( c = 0 ; c<=  Len(tline_s.Get())-lookforlen-1; c++ )
 			{
 				tlinethis_s=Right(tline_s.Get(),Len(tline_s.Get())-c);
-				if (  cstr(Left(tlinethis_s.Get(),lookforlen)) == lookfor_s.Get() ) 
+
+				// ignore commented out lines
+				if ( cstr( Left( tlinethis_s.Get(), 2 )) == "--" ) break;
+
+				if (  cstr( Left( tlinethis_s.Get(), lookforlen )) == lookfor_s.Get() ) 
 				{
 					//  found script has included ANOTHER script
-					tscriptname_s=Right(tline_s.Get(),Len(tline_s.Get())-c-lookforlen-1);
+					// skip spaces and quotes 
+					int i = lookforlen + 1;
+
+					while ( i < Len( tlinethis_s.Get() ) &&
+						   ( cstr( Mid( tlinethis_s.Get(), i )) == " " ||
+						     cstr( Mid( tlinethis_s.Get(), i )) == "\"" ) ) 
+					{
+						i++;
+					};
+			
+					// if couldn't find the script name skip this line
+					if (i == Len(tlinethis_s.Get())) break;
+
+					tscriptname_s=Right(tline_s.Get(),Len(tline_s.Get())-c-i+1);
+				
 					for ( tt = Len(tscriptname_s.Get()) ; tt>= 4 ; tt+= -1 )
 					{
 						if (  cstr(Mid(tscriptname_s.Get(),tt-0)) == "a" && cstr(Mid(tscriptname_s.Get(),tt-1)) == "u" && cstr(Mid(tscriptname_s.Get(),tt-2)) == "l" && cstr(Mid(tscriptname_s.Get(),tt-3)) == "." ) 
