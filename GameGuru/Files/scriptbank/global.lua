@@ -1736,8 +1736,8 @@ ScaleObject : ScaleObject( obj, x, y, z ) -- Scales object in all axis (Note: us
 GetObjectPosAng : x, y, z, Ax, Ay, Az = GetObjectPosAng( obj ) -- returns position and Euler angles of object
 GetEntityPosAng : x, y, z, Ax, Ay, Az = GetEntityPosAng( e )   -- returns position and Euler angles of entity
 
-GetObjectCollBox : xmin, ymin, zmin, xmax, ymax, zmax = GetObjectCollBox( obj ) -- returns collision cube of object
-GetEntityCollBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityCollBox( e )   -- returns collision cube of entity
+GetObjectColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox( obj ) -- returns collision cube of object
+GetEntityColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityColBox( e )   -- returns collision cube of entity
         Collision box is defined by coordinates of two opposing corners, from these it is easy to 
 		calculate the size of the object
 

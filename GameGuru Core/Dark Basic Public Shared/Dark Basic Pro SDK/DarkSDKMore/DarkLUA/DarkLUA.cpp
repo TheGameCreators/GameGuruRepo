@@ -2726,7 +2726,6 @@ int GetObjectAngleZ ( lua_State *L )
 	lua_pushnumber ( L, ObjectAngleZ(lua_tonumber(L, 1)) );
 	return 1;
 }
-
 int GetObjectPosAng(lua_State *L)
 {
 	int n = lua_gettop( L );
@@ -2734,9 +2733,7 @@ int GetObjectPosAng(lua_State *L)
 	int iID = lua_tonumber( L, 1 );
 	if (!ConfirmObjectInstance(iID))
 		return 0;
-	// object information
 	sObject* pObject = g_ObjectList[iID];
-
 	lua_pushnumber ( L, pObject->position.vecPosition.x );
 	lua_pushnumber ( L, pObject->position.vecPosition.y );
 	lua_pushnumber ( L, pObject->position.vecPosition.z );
@@ -2745,17 +2742,14 @@ int GetObjectPosAng(lua_State *L)
 	lua_pushnumber ( L, pObject->position.vecRotate.z );
 	return 6;
 }
-
-int GetObjectCollBox(lua_State *L)
+int GetObjectColBox(lua_State *L)
 {
 	int n = lua_gettop(L);
 	if (n < 1) return 0;
 	int iID = lua_tonumber( L, 1 );
 	if (!ConfirmObjectInstance( iID ) )
 		return 0;
-	// object information
 	sObject* pObject = g_ObjectList[iID];
-
 	lua_pushnumber( L, pObject->collision.vecMin.x );
 	lua_pushnumber( L, pObject->collision.vecMin.y );
 	lua_pushnumber( L, pObject->collision.vecMin.z );
@@ -2764,7 +2758,6 @@ int GetObjectCollBox(lua_State *L)
 	lua_pushnumber( L, pObject->collision.vecMax.z );
 	return 6;
 }
-
 int RunCharLoop ( lua_State *L )
 {
 	// run character animation system
@@ -4501,7 +4494,7 @@ void addFunctions()
 	lua_register(lua, "GetObjectAngleY" , GetObjectAngleY );
 	lua_register(lua, "GetObjectAngleZ" , GetObjectAngleZ );
 	lua_register(lua, "GetObjectPosAng",  GetObjectPosAng );
-	lua_register(lua, "GetObjectCollBox", GetObjectCollBox );
+	lua_register(lua, "GetObjectColBox", GetObjectColBox );
 	lua_register(lua, "ScaleObject", ScaleObjectXYZ );
 	lua_register(lua, "RunCharLoop" , RunCharLoop );
 	lua_register(lua, "TriggerWaterRipple" , TriggerWaterRipple );
