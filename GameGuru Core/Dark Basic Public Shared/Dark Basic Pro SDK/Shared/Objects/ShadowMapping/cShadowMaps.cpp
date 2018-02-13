@@ -923,6 +923,10 @@ HRESULT CascadedShadowsManager::RenderShadowsForAllCascades ( LPGGEFFECT pEffect
 				// render one cascade
 				DWORD dwStoredRenderCamera = g_pGlob->dwRenderCameraID;
 				g_pGlob->dwRenderCameraID = 31+currentCascade; // ensure shadow cameras (internal marked with camera index 31 for occlusion arrays)
+
+				//PE: Think we can use  m_RenderStates.bOverrideAllTexturesAndEffects=true to prevent all those stage changes here.
+				//PE: This need testing. but looks like cascades is also doing texture changes etc..
+
 				m_ObjectManager.UpdateLayer ( 0 ); // solid objects
 				m_ObjectManager.UpdateLayer ( 3 ); // transparent objects
 				g_pGlob->dwRenderCameraID = dwStoredRenderCamera;

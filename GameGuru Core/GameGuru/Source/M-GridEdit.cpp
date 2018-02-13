@@ -305,6 +305,7 @@ void mapeditorexecutable ( void )
 						}
 					}
 				}
+
 				editor_overallfunctionality ( );
 				terrain_detectendofterraintexturesystempainter ( );
 
@@ -6417,6 +6418,7 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 			{
 				HideObject (  t.editor.objectstartindex+5 );
 			}
+
 			editor_refreshentitycursor ( );
 
 			//  prompt when over locked entity
@@ -8415,6 +8417,7 @@ void gridedit_moveentityrubberband ( void )
 
 void gridedit_updateentityobj ( void )
 {
+
 	//  moved to m-entity
 	entity_updateentityobj ( );
 }
@@ -8528,7 +8531,8 @@ void gridedit_recreateentitycursor ( void )
 			MakeObjectCube (  t.obj,25 );
 		}
 		//  ensure new object ONLY interacts with main camera and shadow camera
-		if (  t.entityprofile[t.gridentity].ismarker != 0 ) 
+		//PE: 130217 added t.entityprofile[t.gridentity].zdepth == 0 to prevent decals from calling technique11 DepthMap
+		if (  t.entityprofile[t.gridentity].ismarker != 0 || t.entityprofile[t.gridentity].zdepth == 0 )
 		{
 			SetObjectMask (  t.obj, 1 );
 		}

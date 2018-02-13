@@ -461,27 +461,44 @@ void CSpriteManager::RenderDrawList ( tagSpriteData** pList, int iListSize, int 
 			}
 
 			// Fill vertex buffer with this sprites data
-			if ( g_pSpriteVertexBuffer == NULL )
+			if (g_pSpriteVertexBuffer == NULL)
 			{
 				// create vertex buffer
 				D3D11_BUFFER_DESC bufferDesc;
-				bufferDesc.Usage           = D3D11_USAGE_DYNAMIC;
-				bufferDesc.ByteWidth       = 6*sizeof(SpriteVertex);
-				bufferDesc.BindFlags       = D3D11_BIND_VERTEX_BUFFER;
-				bufferDesc.CPUAccessFlags  = D3D11_CPU_ACCESS_WRITE;
-				bufferDesc.MiscFlags       = 0;
-				m_pD3D->CreateBuffer( &bufferDesc, NULL, &g_pSpriteVertexBuffer );
+				bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+				//bufferDesc.ByteWidth       = 6*sizeof(SpriteVertex);
+				//PE: Looks like we only have 4*VERTEX2D
+				bufferDesc.ByteWidth = 4 * sizeof(VERTEX2D); //PE: fix for issue 50 and 22
+
+				bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+				bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+				bufferDesc.MiscFlags = 0;
+				m_pD3D->CreateBuffer(&bufferDesc, NULL, &g_pSpriteVertexBuffer);
 			}
-			if ( g_pSpriteVertexBuffer != NULL )
+
+			//sprintf(debugmsg, "(%d),", iTemp);
+			//OutputDebugString(debugmsg);
+			//OutputDebugString("5,"); //PE: crash after this line.
+			if (g_pSpriteVertexBuffer != NULL)
 			{
-				// lock and write to vertex buffer
-				D3D11_MAPPED_SUBRESOURCE resource;
-				std::memset ( &resource, 0, sizeof ( resource ) );
-				m_pImmediateContext->Map ( g_pSpriteVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource );
-				SpriteVertex* LockedVertex = (SpriteVertex*)resource.pData;
-				std::memcpy(LockedVertex,pCurrent->lpVertices,6*sizeof(SpriteVertex));
-				m_pImmediateContext->Unmap ( g_pSpriteVertexBuffer, 0 );
+				try {
+					// lock and write to vertex buffer
+					D3D11_MAPPED_SUBRESOURCE resource;
+					std::memset(&resource, 0, sizeof(resource));
+					m_pImmediateContext->Map(g_pSpriteVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+					SpriteVertex* LockedVertex = (SpriteVertex*)resource.pData;
+					//std::memcpy(LockedVertex, pCurrent->lpVertices, 6 * sizeof(SpriteVertex)); // read exception so check all lpVertices
+					//PE: 100218 - Looks like we only have 4*VERTEX2D , so reading 6* could generate a read exception.
+					std::memcpy(LockedVertex, pCurrent->lpVertices, 4 * sizeof(VERTEX2D)); //PE: fix for issue 50 and 22
+
+					m_pImmediateContext->Unmap(g_pSpriteVertexBuffer, 0);
+				}
+				catch (...) {
+					//PE: Seams we cant catch this read exception ? should be possible.
+					OutputDebugString("RenderDrawList Exception:");
+				}
 			}
+			//OutputDebugString("6,"); //PE: crash before this line.
 
 			// Vertex buffers
 			unsigned int stride;
@@ -772,6 +789,8 @@ void CSpriteManager::GetDisplaySize()
     // Build display size from the viewport rather than the resolution...
 	#ifdef DX11
 	D3D11_TEXTURE2D_DESC ddsd;
+	//PE: Got a g_pBackBuffer=NULL here and "D3D11: Removing Device." caused by decals. Nothing we can do if g_pBackBuffer=0.
+	//PE: Seams like g_pBackBuffer=0 if "D3D11: Removing Device.", so if a future device restore is attempted this could be checked.
 	g_pBackBuffer->GetDesc ( &ddsd );
     vecDisplayMin = GGVECTOR3 ( (float)0, (float)0, 0 );
     vecDisplayMax = GGVECTOR3 ( (float)ddsd.Width, (float)ddsd.Height, 1);
