@@ -22,7 +22,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	char folderToCheck[MAX_PATH];
 	//sprintf ( folderToCheck , "%s\\Files" , originalLocation );
-	strcpy ( folderToCheck , "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content" );
+	//strcpy ( folderToCheck , "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content" );
+	strcpy ( folderToCheck , "F:\\Dropbox\\Dropbox\\GameGuru Builds\\Steam\\Steamworks SDK\\tools\\ContentBuilder\\content" );
 
 	// add first directory into the listing
 	directoryListStack.push ( folderToCheck );
@@ -94,10 +95,13 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	for ( unsigned int c = 0 ; c < fileList.size(); c++ )
 	{
-		dest = strstr ( fileList[c] , "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content" );
+		//dest = strstr ( fileList[c] , "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content" );
+		LPSTR pDestFolder = "F:\\Dropbox\\Dropbox\\GameGuru Builds\\Steam\\Steamworks SDK\\tools\\ContentBuilder\\content";
+		dest = strstr ( fileList[c], pDestFolder );
 		if ( dest )
 		{
-			sprintf ( source , "F:\\TGCSHARED\\GameGuru\\GameGuru%s" , dest+80 );
+			//sprintf ( source , "F:\\TGCSHARED\\GameGuru\\GameGuru%s" , dest+80 );
+			sprintf ( source , "F:\\GameGuruRepo\\GameGuru%s" , dest+strlen(pDestFolder) );
 			printf ( "Copying %d of %d\n", c, fileList.size() );
 
 			CopyFile( source, dest , false );

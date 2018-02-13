@@ -53,3 +53,5 @@ GameGuru Core/Lib/
 *.map
 GameGuru Core/Guru-MapEditor/showonstartup.ini
 GameGuru/Files/mapbank/_A_TEST_MAP.fpm
+GameGuru/Media List Builder.iobj
+GameGuru/Media List Builder.ipdb
