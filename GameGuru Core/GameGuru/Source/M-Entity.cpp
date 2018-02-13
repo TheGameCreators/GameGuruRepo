@@ -22,6 +22,7 @@ void LoadFBX ( LPSTR szFilename, int iID );
 
 void entity_addtoselection_core ( void )
 {
+
 	//  ensure ENT$ does not contain duplicate \ symbols
 	t.tnewent_s="";
 	for ( t.n = 1 ; t.n<=  Len(t.ent_s.Get()); t.n++ )
@@ -86,16 +87,19 @@ void entity_addtoselection_core ( void )
 			t.entid=t.tfoundid;
 		}
 	}
+
 }
 
 void entity_addtoselection ( void )
 {
+
 	//  Load entity from file requester
 	SetDir (  g.currententitydir_s.Get() );
 	t.ent_s=browseropen_s(9);
 	g.currententitydir_s=GetDir();
 	SetDir (  g.rootdir_s.Get() );
 	entity_addtoselection_core ( );
+
 }
 
 void entity_adduniqueentity ( bool bAllowDuplicates )
@@ -660,7 +664,7 @@ void entity_load ( void )
 
 void entity_loaddata ( void )
 {
-	//  Protect BIN file if no FPE backup (standalone run)
+    //  Protect BIN file if no FPE backup (standalone run)
 	t.tprotectBINfile=0;
 	t.tFPEName_s=t.entdir_s+t.ent_s;
 	if (  FileExist(t.tFPEName_s.Get()) == 0 ) 
