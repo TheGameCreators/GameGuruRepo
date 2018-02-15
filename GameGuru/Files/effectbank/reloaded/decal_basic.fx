@@ -106,9 +106,20 @@ float4 mainPS(vertexOutput IN) : COLOR
     // and Finally add in any Water Fog   
     float4 waterfogresult = lerp(hudfogresult,FogColor,IN.WaterFog);   
     finalcolor=float4(waterfogresult.xyz,alpha);  
-	
     return finalcolor;
 }
+
+BlendState DecalAlpha
+{
+	BlendEnable[0] = TRUE;
+	SrcBlend = SRC_ALPHA;
+	DestBlend = INV_SRC_ALPHA;
+	BlendOp = ADD;
+	SrcBlendAlpha = ZERO;
+	DestBlendAlpha = INV_SRC_ALPHA;
+	BlendOpAlpha = ADD;
+	RenderTargetWriteMask[0] = 0x0F; // color write enable all.
+};
 
 technique11 Highest
 {
@@ -117,6 +128,7 @@ technique11 Highest
         SetVertexShader(CompileShader(vs_5_0, mainVS()));
         SetPixelShader(CompileShader(ps_5_0, mainPS()));
         SetGeometryShader(NULL);
+        SetBlendState(DecalAlpha, float4( 0.0f, 0.0f, 0.0f, 0.0f ), 0xFFFFFFFF);
     }
 }
 
@@ -127,6 +139,7 @@ technique11 Medium
         SetVertexShader(CompileShader(vs_5_0, mainVS()));
         SetPixelShader(CompileShader(ps_5_0, mainPS()));
         SetGeometryShader(NULL);
+        SetBlendState(DecalAlpha, float4( 0.0f, 0.0f, 0.0f, 0.0f ), 0xFFFFFFFF);
     }
 }
 
@@ -137,26 +150,7 @@ technique11 Lowest
         SetVertexShader(CompileShader(vs_5_0, mainVS()));
         SetPixelShader(CompileShader(ps_5_0, mainPS()));
         SetGeometryShader(NULL);
+        SetBlendState(DecalAlpha, float4( 0.0f, 0.0f, 0.0f, 0.0f ), 0xFFFFFFFF);
     }
 }
-//PE: GameGuru Editor crash ? When DepthMap is in the decal shaders ?
-//Not sure what the real reason for this crash is.(thanks cybernescence)
-//technique11 DepthMap
-//{
-//    pass MainPass
-//    {
-//        SetVertexShader(NULL);
-//        SetPixelShader(NULL);
-//        SetGeometryShader(NULL);
-//    }
-//}
-//
-//technique11 DepthMapNoAnim
-//{
-//    pass MainPass
-//    {
-//        SetVertexShader(NULL);
-//        SetPixelShader(NULL);
-//        SetGeometryShader(NULL);
-//    }
-//}
+//PE: technique11 DepthMap removed this has been fixed in c code.
