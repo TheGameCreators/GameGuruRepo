@@ -2177,6 +2177,10 @@ void input_getfilemapcontrols ( void )
 			{
 				// When click non-Builder tab, should leave builder mode
 				ebe_hide();
+
+				//PE: If first entity, shader have not yet had constant set , so update shaders.
+				//PE: Prevent new created ebe from disappering when clicking away from "builder".
+				visuals_justshaderupdate();
 			}
 			SetFileMapDWORD (  1, 546, 0 );
 		}
