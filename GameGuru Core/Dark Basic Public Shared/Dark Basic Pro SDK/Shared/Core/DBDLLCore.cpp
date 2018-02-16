@@ -16,6 +16,7 @@
 #include "..\..\..\..\Guru-MapEditor\Encryptor.h"
 #include ".\..\Core\SteamCheckForWorkshop.h"
 #include "SteamCommands.h"
+#include "DarkLUA.h"
 
 // Internal Includes
 #include "DBDLLCore.h"
@@ -1206,6 +1207,9 @@ DARKSDK void EncryptAllFiles(char* dwStringAddress)
 	// add first directory into the listing
 	directoryListStack.push ( folderToCheck );
 
+	// Added Code to pre-compile Lua scripts
+	LoadLua("ggprecompile.lua");
+
 	// keep going until we have emptied the directory stack
 	while ( !directoryListStack.empty ( ) )
 	{
@@ -1244,7 +1248,14 @@ DARKSDK void EncryptAllFiles(char* dwStringAddress)
 				}
 				else
 				{
-					if ( strstr(data.cFileName, ".fpe") != NULL || strstr(data.cFileName, ".dds") != NULL ||  strstr(data.cFileName, ".png") != NULL ||  strstr(data.cFileName, ".jpg") != NULL || strstr(data.cFileName, ".x") != NULL || strstr(data.cFileName, ".dbo") != NULL ||  strstr(data.cFileName, ".wav") != NULL ||  strstr(data.cFileName, ".mp3") != NULL )
+					if ( strstr(data.cFileName, ".fpe") != NULL || 
+						 strstr(data.cFileName, ".dds") != NULL ||  
+						 strstr(data.cFileName, ".png") != NULL || 
+						 strstr(data.cFileName, ".jpg") != NULL ||
+						 strstr(data.cFileName, ".x")   != NULL ||
+						 strstr(data.cFileName, ".dbo") != NULL ||
+						 strstr(data.cFileName, ".wav") != NULL ||
+						 strstr(data.cFileName, ".mp3") != NULL )
 					{
 						// dont encrypt a file if it already is
 						if ( strstr ( data.cFileName, "_e_" )  !=  data.cFileName )
@@ -1264,6 +1275,22 @@ DARKSDK void EncryptAllFiles(char* dwStringAddress)
 							UpdateWindow ( NULL );
 							sprintf ( p, "%s\\%s", szCurrentDirectory , f );
 							if ( bEncryptedOkay==true ) DeleteFile ( p );
+						}
+					}
+					else 
+					{
+						if ( strstr(data.cFileName, ".lua") != NULL &&
+							 strstr(data.cFileName, "multiplayer") == NULL )
+						{
+							// Precompile lua script, note: overwrites file, in theory if the call
+							// fails for any reason the file should remain uncompiled.
+							char p[MAX_PATH];
+
+							sprintf(p, "%s\\%s", szCurrentDirectory, data.cFileName);
+
+							LuaSetFunction("ggprecompile", 1, 0);
+							LuaPushString(p);
+							LuaCall();
 						}
 					}
 				}
