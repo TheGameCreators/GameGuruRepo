@@ -102,6 +102,8 @@ function gameplayercontrol.jetpack()
 end
 
 function gameplayercontrol.weaponfire()
+	-- carrying an entity (pickuppable.lua script) then return
+	if PU_GetEntityCarried ~= nil and PU_GetEntityCarried() ~= nil then return end
 
 	-- Mouse based control
 	SetGamePlayerStateFiringMode(0)
