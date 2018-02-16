@@ -2882,7 +2882,7 @@ int GetObjectPosAng(lua_State *L)
 	return 6;
 }
 
-int GetObjectCollBox(lua_State *L)
+int GetObjectColBox(lua_State *L)
 {
 	int n = lua_gettop(L);
 	if (n < 1) return 0;
@@ -4653,7 +4653,7 @@ void addFunctions()
 	lua_register(lua, "GetObjectAngleY" , GetObjectAngleY );
 	lua_register(lua, "GetObjectAngleZ" , GetObjectAngleZ );
 	lua_register(lua, "GetObjectPosAng",  GetObjectPosAng );
-	lua_register(lua, "GetObjectCollBox", GetObjectCollBox );
+	lua_register(lua, "GetObjectColBox",  GetObjectColBox );
 	lua_register(lua, "GetObjectScales",  GetObjectScales );
 	lua_register(lua, "ScaleObject", ScaleObjectXYZ );
 
