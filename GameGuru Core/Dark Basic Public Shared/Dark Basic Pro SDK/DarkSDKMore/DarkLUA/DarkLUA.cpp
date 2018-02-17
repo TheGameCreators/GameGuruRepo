@@ -1079,6 +1079,7 @@ luaMessage** ppLuaMessages = NULL;
 	}
 	return 0;
  }
+
  int GetEntityData ( lua_State *L, int iDataMode )
  {
 	lua = L;
@@ -1115,6 +1116,29 @@ luaMessage** ppLuaMessages = NULL;
 							fReturnValue = sqrt ( fabs(fDX*fDX)+fabs(fDY*fDY)+fabs(fDZ*fDZ) );
 							break;
 						}
+						case 14 : 
+						{
+							// Return collision box coordiantes (6 values )
+							lua_pushnumber( L, pObject->collision.vecMin.x );
+							lua_pushnumber( L, pObject->collision.vecMin.y );
+							lua_pushnumber( L, pObject->collision.vecMin.x );
+							lua_pushnumber( L, pObject->collision.vecMax.x );
+							lua_pushnumber( L, pObject->collision.vecMax.y );
+							lua_pushnumber( L, pObject->collision.vecMax.z );
+							return 6;
+						}
+						case 15 :
+						{
+							// Position and Angle together (6 values )
+							lua_pushnumber( L, (float) pObject->position.vecPosition.x );
+							lua_pushnumber( L, (float) pObject->position.vecPosition.y );
+							lua_pushnumber( L, (float) pObject->position.vecPosition.z );
+							lua_pushnumber( L, (float)pObject->position.vecRotate.x );
+							lua_pushnumber( L, (float)pObject->position.vecRotate.y );
+							lua_pushnumber( L, (float)pObject->position.vecRotate.z );
+							return 6;
+						}
+						case 16 : fReturnValue = t.entityelement[iEntityIndex].eleprof.phyweight; break;
 					}
 				}
 			}
@@ -1136,6 +1160,7 @@ luaMessage** ppLuaMessages = NULL;
 	}
 	return 1;
  }
+
  int GetEntityPositionX(lua_State *L) { return GetEntityData ( L, 1 ); }
  int GetEntityPositionY(lua_State *L) { return GetEntityData ( L, 2 ); }
  int GetEntityPositionZ(lua_State *L) { return GetEntityData ( L, 3 ); }
@@ -1146,6 +1171,9 @@ luaMessage** ppLuaMessages = NULL;
  int SetAnimationSpeedModulation(lua_State *L) { return RawSetEntityData ( L, 12 ); }
  int GetAnimationSpeedModulation(lua_State *L) { return GetEntityData ( L, 12 ); }
  int GetMovementDelta(lua_State *L) { return GetEntityData ( L, 13 ); }
+ int GetEntityCollBox(lua_State *L) { return GetEntityData ( L, 14 ); }
+ int GetEntityPosAng(lua_State *L)  { return GetEntityData ( L, 15 ); }
+ int GetEntityWeight(lua_State *L)  { return GetEntityData ( L, 16 ); }
 
  // Entity Animation
  int GetEntityAnimationStart(lua_State *L)
@@ -2662,6 +2690,14 @@ int PositionObject ( lua_State *L )
 	PositionObject ( lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
 	return 0;
 }
+int ScaleObjectXYZ(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	ScaleObject(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+	return 0;
+}
+
 int RotateObject ( lua_State *L )
 {
 	int n = lua_gettop(L);
@@ -2689,6 +2725,38 @@ int GetObjectAngleZ ( lua_State *L )
 	if ( n < 1 ) return 0;
 	lua_pushnumber ( L, ObjectAngleZ(lua_tonumber(L, 1)) );
 	return 1;
+}
+int GetObjectPosAng(lua_State *L)
+{
+	int n = lua_gettop( L );
+	if (n < 1) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	sObject* pObject = g_ObjectList[iID];
+	lua_pushnumber ( L, pObject->position.vecPosition.x );
+	lua_pushnumber ( L, pObject->position.vecPosition.y );
+	lua_pushnumber ( L, pObject->position.vecPosition.z );
+	lua_pushnumber ( L, pObject->position.vecRotate.x );
+	lua_pushnumber ( L, pObject->position.vecRotate.y );
+	lua_pushnumber ( L, pObject->position.vecRotate.z );
+	return 6;
+}
+int GetObjectColBox(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if (!ConfirmObjectInstance( iID ) )
+		return 0;
+	sObject* pObject = g_ObjectList[iID];
+	lua_pushnumber( L, pObject->collision.vecMin.x );
+	lua_pushnumber( L, pObject->collision.vecMin.y );
+	lua_pushnumber( L, pObject->collision.vecMin.z );
+	lua_pushnumber( L, pObject->collision.vecMax.x );
+	lua_pushnumber( L, pObject->collision.vecMax.y );
+	lua_pushnumber( L, pObject->collision.vecMax.z );
+	return 6;
 }
 int RunCharLoop ( lua_State *L )
 {
@@ -4257,6 +4325,9 @@ void addFunctions()
 	lua_register(lua, "GetEntityPositionX", GetEntityPositionX);
 	lua_register(lua, "GetEntityPositionY", GetEntityPositionY);
 	lua_register(lua, "GetEntityPositionZ", GetEntityPositionZ);
+	lua_register(lua, "GetEntityCollBox", GetEntityCollBox);
+	lua_register(lua, "GetEntityPosAng", GetEntityPosAng);
+	lua_register(lua, "GetEntityWeight", GetEntityWeight);
 	lua_register(lua, "GetEntityAngleX", GetEntityAngleX);
 	lua_register(lua, "GetEntityAngleY", GetEntityAngleY);
 	lua_register(lua, "GetEntityAngleZ", GetEntityAngleZ);
@@ -4422,6 +4493,9 @@ void addFunctions()
 	lua_register(lua, "GetObjectAngleX" , GetObjectAngleX );
 	lua_register(lua, "GetObjectAngleY" , GetObjectAngleY );
 	lua_register(lua, "GetObjectAngleZ" , GetObjectAngleZ );
+	lua_register(lua, "GetObjectPosAng",  GetObjectPosAng );
+	lua_register(lua, "GetObjectColBox", GetObjectColBox );
+	lua_register(lua, "ScaleObject", ScaleObjectXYZ );
 	lua_register(lua, "RunCharLoop" , RunCharLoop );
 	lua_register(lua, "TriggerWaterRipple" , TriggerWaterRipple );
 	lua_register(lua, "PlayFootfallSound" , PlayFootfallSound );

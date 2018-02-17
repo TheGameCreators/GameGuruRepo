@@ -44,10 +44,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>Include;D:\Apps\Microsoft SDKs\Windows\v7.0\Include;D:\Dev\TGC Projects 2013\DarkLUA\DarkLUA\lua;D:\Apps\Dark GDK\Include;D:\Apps\Large Engine\Library;$(IncludePath)</IncludePath>
+    <OutDir>F:\Dropbox\Dropbox\GameGuru Builds\Steam\Steamworks SDK\tools\ContentBuilder</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>F:\TGCSHARED\GameGuru\GameGuru Steam\Steamworks SDK\tools\ContentBuilder</OutDir>
+    <OutDir>F:\Dropbox\Dropbox\GameGuru Builds\Steam\Steamworks SDK\tools\ContentBuilder</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

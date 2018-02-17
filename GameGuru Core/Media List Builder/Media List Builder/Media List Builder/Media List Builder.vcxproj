@@ -43,11 +43,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>Include;D:\Apps\Microsoft SDKs\Windows\v7.0\Include;D:\Dev\TGC Projects 2013\DarkLUA\DarkLUA\lua;D:\Apps\Dark GDK\Include;D:\Apps\Large Engine\Library;$(IncludePath)</IncludePath>
+    <OutDir>F:\GameGuruRepo\GameGuru</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>Include;D:\Apps\Microsoft SDKs\Windows\v7.0\Include;D:\Dev\TGC Projects 2013\DarkLUA\DarkLUA\lua;D:\Apps\Dark GDK\Include;D:\Apps\Large Engine\Library;$(IncludePath)</IncludePath>
-    <OutDir>F:\TGCSHARED\GameGuru\GameGuru</OutDir>
+    <OutDir>F:\GameGuruRepo\GameGuru\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

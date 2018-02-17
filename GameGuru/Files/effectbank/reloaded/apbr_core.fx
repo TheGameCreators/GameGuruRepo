@@ -287,15 +287,27 @@ SamplerState AnisoClamp
 };
 SamplerState SampleWrap
 {
+#ifdef TRILINEAR
     Filter = MIN_MAG_MIP_LINEAR;
+#else
+	Filter = ANISOTROPIC;
+    MaxAnisotropy = MAXANISOTROPY;
+#endif
     AddressU = Wrap;
     AddressV = Wrap;
 };
+
 SamplerState SampleAniso
 {
+#ifdef TRILINEAR
+    Filter = MIN_MAG_MIP_LINEAR;
+#else
     Filter = ANISOTROPIC;
+    MaxAnisotropy = MAXANISOTROPYTERRAIN;
+#endif
     AddressU = Wrap;
     AddressV = Wrap;
+    MAXLOD = 6; // prevent "brown" lines in the distance.
 };
 SamplerState SampleClamp
 {
@@ -1226,15 +1238,12 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
     light += addillum;
 #endif
 
-
 	// work out environmental fresnel
 	float3 envFresnel = lerp(0.02f, texColor.rgb, gMaterial.Properties.g);
 
 	// work out contributions
 	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity;
-
 	float3 lightContrib = max(float3(0,0,0),light) * lightIntensity * SurfColor.xyz * visibility;
-
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
 #ifdef PBRTERRAIN

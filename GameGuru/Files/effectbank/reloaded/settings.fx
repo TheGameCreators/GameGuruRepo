@@ -44,6 +44,13 @@
 
 #define BETTERSHADOWS
 
+#ifdef LAPTOP
+	#define TRILINEAR
+#else
+	#define MAXANISOTROPY 16
+	#define MAXANISOTROPYTERRAIN 6
+#endif
+
 // About LENSFLAREINTENSITY: 3.0 Normal intensity, 0.5 very low, 2.0 Low , 5.0 High intensity.
 #define LENSFLAREINTENSITY (3.0)
 
