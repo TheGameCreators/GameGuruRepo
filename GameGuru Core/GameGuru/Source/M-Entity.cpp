@@ -2491,6 +2491,30 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texsid = t.texuseid;
 					TextureObject(t.entobj, 3, t.entityprofile[t.entid].texsid);
 				}
+				//PE: iEffectProfile != 1 for this type of objects at this point in code.
+				if (t.entityprofile[t.entid].texiid == 0)
+				{
+					if (g.gpbroverride == 1) // iEffectProfile == 1
+					{
+						// if no local CUBE, see if the level has generated one (matches sky and terrain)
+						t.entityprofile[t.entid].texiid = t.terrain.imagestartindex + 31;
+					}
+				}
+				//Not set anywhere, so just use blank_o.
+				t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_O.dds", 1, t.tfullorhalfdivide);
+				t.entityprofiletexoid = t.texuseid; // must always be set.
+
+				//PE: PBR shader support for old media with no texture in fpe.
+				if (g.gpbroverride == 1) {
+					//None of the below will be in old media , so setup using fallback textures.
+					t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
+					t.entityprofile[t.entid].texgid = loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds", 1, t.tfullorhalfdivide);
+					t.entityprofile[t.entid].texhid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
+					TextureObject(t.entobj, 8, t.entityprofile[t.entid].texlid);
+					TextureObject(t.entobj, 4, t.entityprofile[t.entid].texgid);
+					TextureObject(t.entobj, 5, t.entityprofile[t.entid].texhid);
+					TextureObject(t.entobj, 7, t.entityprofiletexibrid);
+				}
 
 			}
 
