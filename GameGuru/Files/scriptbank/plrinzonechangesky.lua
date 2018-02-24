@@ -7,7 +7,7 @@ end
 function plrinzonechangesky_main(e)
  if g_Entity[e]['plrinzone']==1 then
   if test == 0 then
-    ChangeSkyTo("dark")
+    SetSkyTo("dark")
     test=1;
   end
  end
