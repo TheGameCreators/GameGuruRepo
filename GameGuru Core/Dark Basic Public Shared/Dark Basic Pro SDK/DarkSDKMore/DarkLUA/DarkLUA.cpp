@@ -1130,15 +1130,23 @@ luaMessage** ppLuaMessages = NULL;
 						case 15 :
 						{
 							// Position and Angle together (6 values )
-							lua_pushnumber( L, (float) pObject->position.vecPosition.x );
-							lua_pushnumber( L, (float) pObject->position.vecPosition.y );
-							lua_pushnumber( L, (float) pObject->position.vecPosition.z );
-							lua_pushnumber( L, (float)pObject->position.vecRotate.x );
-							lua_pushnumber( L, (float)pObject->position.vecRotate.y );
-							lua_pushnumber( L, (float)pObject->position.vecRotate.z );
+							lua_pushnumber( L, pObject->position.vecPosition.x );
+							lua_pushnumber( L, pObject->position.vecPosition.y );
+							lua_pushnumber( L, pObject->position.vecPosition.z );
+							lua_pushnumber( L, pObject->position.vecRotate.x );
+							lua_pushnumber( L, pObject->position.vecRotate.y );
+							lua_pushnumber( L, pObject->position.vecRotate.z );
 							return 6;
 						}
 						case 16 : fReturnValue = t.entityelement[iEntityIndex].eleprof.phyweight; break;
+						case 17 : 
+						{
+							// Scale factors 3 values
+							lua_pushnumber(L, pObject->position.vecScale.x);
+							lua_pushnumber(L, pObject->position.vecScale.y);
+							lua_pushnumber(L, pObject->position.vecScale.z);
+							return 3;
+						}
 					}
 				}
 			}
@@ -1174,6 +1182,7 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityCollBox(lua_State *L) { return GetEntityData ( L, 14 ); }
  int GetEntityPosAng(lua_State *L)  { return GetEntityData ( L, 15 ); }
  int GetEntityWeight(lua_State *L)  { return GetEntityData ( L, 16 ); }
+ int GetEntityScales(lua_State *L)  { return GetEntityData ( L, 17 ); }
 
  // Entity Animation
  int GetEntityAnimationStart(lua_State *L)
@@ -2697,7 +2706,134 @@ int ScaleObjectXYZ(lua_State *L)
 	ScaleObject(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
 	return 0;
 }
+// Add Fast Quaternion functions
+int QuatMultiply(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 8) return 0;
 
+	GGQUATERNION q1( lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	GGQUATERNION q2( lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8) );
+	
+	float A = ( q1.w + q1.x ) * ( q2.w + q2.x );
+	float B = ( q1.z - q1.y ) * ( q2.y - q2.z );
+	float C = ( q1.w - q1.x ) * ( q2.y + q2.z );
+	float D = ( q1.y + q1.z ) * ( q2.w - q2.x );
+	float E = ( q1.x + q1.z ) * ( q2.x + q2.y );
+	float F = ( q1.x - q1.z ) * ( q2.x - q2.y );
+	float G = ( q1.w + q1.y ) * ( q2.w - q2.z );
+	float H = ( q1.w - q1.y ) * ( q2.w + q2.z );
+
+	q1.w = B + (-E - F + G + H ) / 2;
+	q1.x = A - ( E + F + G + H ) / 2;
+	q1.y = C + ( E - F + G - H ) / 2;
+	q1.z = D + ( E - F - G + H ) / 2;
+
+	lua_pushnumber( L, q1.x );
+	lua_pushnumber( L, q1.y );
+	lua_pushnumber( L, q1.z );
+	lua_pushnumber( L, q1.w );
+	return 4;
+}
+int QuatToEuler(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+
+	GGQUATERNION q( lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+
+	float sqw = q.w * q.w;
+	float sqx = q.x * q.x;
+	float sqy = q.y * q.y;
+	float sqz = q.z * q.z;
+
+	float h = -2.0 * ( q.x * q.z - q.y * q.w );
+
+	float x, y, z;
+
+	x = -atan2( 2.0 * ( q.y * q.z + q.x * q.w ), ( -sqx - sqy + sqz + sqw ) );
+	z = -atan2( 2.0 * ( q.x * q.y + q.z * q.w ), (  sqx - sqy - sqz + sqw ) );
+
+	if ( abs( h ) < 0.99999 )
+	{		
+		y =  asin( -2.0 * ( q.x * q.z - q.y * q.w ) );
+	}
+	else
+	{
+		y = ( PI / 2 ) * h;
+	}
+
+	lua_pushnumber( L, x );
+	lua_pushnumber( L, y );
+	lua_pushnumber( L, z );
+	return 3;
+}
+int EulerToQuat(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	float pitch = lua_tonumber( L, 1 );
+	float yaw   = lua_tonumber( L, 2 );
+	float roll  = lua_tonumber( L, 3 );
+
+	float sr = sin( roll  / 2.0 );
+	float sp = sin( pitch / 2.0 );
+	float sy = sin( yaw   / 2.0 );
+	float cr = cos( roll  / 2.0 );
+	float cp = cos( pitch / 2.0 );
+	float cy = cos( yaw   / 2.0 );
+
+	float cycp = cy * cp;
+	float sysp = sy * sp;
+	float sycp = sy * cp;
+	float cysp = cy * sp;
+
+	lua_pushnumber( L, ( sr * sycp ) - ( cr * cysp ) );  // q.x
+	lua_pushnumber( L, ( sr * cysp ) + ( cr * sycp ) );  // q.y
+	lua_pushnumber( L, ( cr * sysp ) - ( sr * cycp ) );  // q.z
+	lua_pushnumber( L, ( sr * sysp ) + ( cr * cycp ) );  // q.w
+	return 4;
+}
+int QuatSLERP(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 9) return 0;
+	const GGQUATERNION qa(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+	const GGQUATERNION qb(lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+
+	GGQUATERNION qOut;
+
+	QuaternionSlerp( &qOut, &qa, &qb, lua_tonumber(L, 9) );
+
+	lua_pushnumber(L, qOut.x);
+	lua_pushnumber(L, qOut.y);
+	lua_pushnumber(L, qOut.z);
+	lua_pushnumber(L, qOut.w);
+	return 4;
+}
+int QuatLERP(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 9) return 0;
+
+	const GGQUATERNION qa(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+	const GGQUATERNION qb(lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+	float t = lua_tonumber(L, 9);
+
+	float at = 1.0 - t;
+	float bt = t;
+	if (qa.x * qb.x + qa.y * qb.y + qa.z * qb.z + qa.w * qb.w < 0) 
+	{
+		bt = -t;
+	}
+
+	lua_pushnumber(L, qa.x * at + qb.x * bt );
+	lua_pushnumber(L, qa.y * at + qb.y * bt );
+	lua_pushnumber(L, qa.z * at + qb.z * bt );
+	lua_pushnumber(L, qa.w * at + qb.w * bt );
+	return 4;
+}
+// end of Fast Quaternion functions
 int RotateObject ( lua_State *L )
 {
 	int n = lua_gettop(L);
@@ -2726,6 +2862,7 @@ int GetObjectAngleZ ( lua_State *L )
 	lua_pushnumber ( L, ObjectAngleZ(lua_tonumber(L, 1)) );
 	return 1;
 }
+
 int GetObjectPosAng(lua_State *L)
 {
 	int n = lua_gettop( L );
@@ -2733,7 +2870,9 @@ int GetObjectPosAng(lua_State *L)
 	int iID = lua_tonumber( L, 1 );
 	if (!ConfirmObjectInstance(iID))
 		return 0;
+	// object information
 	sObject* pObject = g_ObjectList[iID];
+
 	lua_pushnumber ( L, pObject->position.vecPosition.x );
 	lua_pushnumber ( L, pObject->position.vecPosition.y );
 	lua_pushnumber ( L, pObject->position.vecPosition.z );
@@ -2742,6 +2881,7 @@ int GetObjectPosAng(lua_State *L)
 	lua_pushnumber ( L, pObject->position.vecRotate.z );
 	return 6;
 }
+
 int GetObjectColBox(lua_State *L)
 {
 	int n = lua_gettop(L);
@@ -2749,7 +2889,9 @@ int GetObjectColBox(lua_State *L)
 	int iID = lua_tonumber( L, 1 );
 	if (!ConfirmObjectInstance( iID ) )
 		return 0;
+	// object information
 	sObject* pObject = g_ObjectList[iID];
+
 	lua_pushnumber( L, pObject->collision.vecMin.x );
 	lua_pushnumber( L, pObject->collision.vecMin.y );
 	lua_pushnumber( L, pObject->collision.vecMin.z );
@@ -2757,6 +2899,22 @@ int GetObjectColBox(lua_State *L)
 	lua_pushnumber( L, pObject->collision.vecMax.y );
 	lua_pushnumber( L, pObject->collision.vecMax.z );
 	return 6;
+}
+
+int GetObjectScales(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	// object information
+	sObject* pObject = g_ObjectList[iID];
+
+	lua_pushnumber(L, pObject->position.vecScale.x);
+	lua_pushnumber(L, pObject->position.vecScale.y);
+	lua_pushnumber(L, pObject->position.vecScale.z);
+	return 3;
 }
 int RunCharLoop ( lua_State *L )
 {
@@ -4328,6 +4486,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityCollBox", GetEntityCollBox);
 	lua_register(lua, "GetEntityPosAng", GetEntityPosAng);
 	lua_register(lua, "GetEntityWeight", GetEntityWeight);
+	lua_register(lua, "GetEntityScales", GetEntityScales);
 	lua_register(lua, "GetEntityAngleX", GetEntityAngleX);
 	lua_register(lua, "GetEntityAngleY", GetEntityAngleY);
 	lua_register(lua, "GetEntityAngleZ", GetEntityAngleZ);
@@ -4494,8 +4653,17 @@ void addFunctions()
 	lua_register(lua, "GetObjectAngleY" , GetObjectAngleY );
 	lua_register(lua, "GetObjectAngleZ" , GetObjectAngleZ );
 	lua_register(lua, "GetObjectPosAng",  GetObjectPosAng );
-	lua_register(lua, "GetObjectColBox", GetObjectColBox );
+	lua_register(lua, "GetObjectColBox",  GetObjectColBox );
+	lua_register(lua, "GetObjectScales",  GetObjectScales );
 	lua_register(lua, "ScaleObject", ScaleObjectXYZ );
+
+	// quaternion library functions
+	lua_register(lua, "QuatToEuler", QuatToEuler );
+	lua_register(lua, "EulerToQuat", EulerToQuat );
+	lua_register(lua, "QuatMultiply", QuatMultiply );
+	lua_register(lua, "QuatSLERP", QuatSLERP );
+	lua_register(lua, "QuatLERP", QuatLERP );
+
 	lua_register(lua, "RunCharLoop" , RunCharLoop );
 	lua_register(lua, "TriggerWaterRipple" , TriggerWaterRipple );
 	lua_register(lua, "PlayFootfallSound" , PlayFootfallSound );
@@ -5217,6 +5385,7 @@ char szLuaReturnString[1024];
  DARKLUA_API int LoadLua( LPSTR pString )
  {
 	int id = defaultState;
+
 
 	if ( checkScriptAlreadyLoaded ( id , pString ) ) return 0;
 

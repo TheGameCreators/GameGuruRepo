@@ -1730,7 +1730,7 @@ PositionPrompt3D : PositionPrompt3D(x,y,z,angle) -- repositions 3D text panel to
 
 ScaleObject : ScaleObject( obj, x, y, z ) -- Scales object in all axis (Note: uses object id not entity!)
 
-***** The following four functions return multiple values, if you do not need them all just replace 
+***** The following five functions return multiple values, if you do not need them all just replace 
 ***** the ones you don't need with '_' for example : _, _, _, Ax, Ay, Az = GetEntityPosAng( e ) would
 ***** just give you last three of the 6 values returned
 GetObjectPosAng : x, y, z, Ax, Ay, Az = GetObjectPosAng( obj ) -- returns position and Euler angles of object
@@ -1741,6 +1741,8 @@ GetEntityColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityColBox( e )   --
         Collision box is defined by coordinates of two opposing corners, from these it is easy to 
 		calculate the size of the object
 
+GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of object in all axis (Note: uses object id not entity!)
+
 GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
-  
+
 --]]
