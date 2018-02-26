@@ -2476,8 +2476,8 @@ void entity_loadtexturesandeffect ( void )
 				// and already loaded D N and S into 0, 2 and 3
 				t.entityprofile[t.entid].texiid = 0;
 
-				//PE 240118: not always if missing texture= in fpe , normal/spec is not always in the objects texture lists. ( we must have normal maps on all objects ).
-				//Fix: https://github.com/LeeBamberTGC/GameGuruRepo/issues/10
+				// PE 240118: not always if missing texture= in fpe , normal/spec is not always in the objects texture lists. ( we must have normal maps on all objects ).
+				// Fix: https://github.com/LeeBamberTGC/GameGuruRepo/issues/10
 
 				if (t.entityprofile[t.entid].texnid == 0)
 				{
@@ -2491,7 +2491,7 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texsid = t.texuseid;
 					TextureObject(t.entobj, 3, t.entityprofile[t.entid].texsid);
 				}
-				//PE: iEffectProfile != 1 for this type of objects at this point in code.
+				// PE: iEffectProfile != 1 for this type of objects at this point in code.
 				if (t.entityprofile[t.entid].texiid == 0)
 				{
 					if (g.gpbroverride == 1) // iEffectProfile == 1
@@ -2500,13 +2500,15 @@ void entity_loadtexturesandeffect ( void )
 						t.entityprofile[t.entid].texiid = t.terrain.imagestartindex + 31;
 					}
 				}
-				//Not set anywhere, so just use blank_o.
+
+				// Not set anywhere, so just use blank_o.
 				t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_O.dds", 1, t.tfullorhalfdivide);
 				t.entityprofiletexoid = t.texuseid; // must always be set.
 
-				//PE: PBR shader support for old media with no texture in fpe.
-				if (g.gpbroverride == 1) {
-					//None of the below will be in old media , so setup using fallback textures.
+				// PE: PBR shader support for old media with no texture in fpe.
+				if (g.gpbroverride == 1) 
+				{
+					// None of the below will be in old media , so setup using fallback textures.
 					t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texgid = loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texhid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
@@ -2515,10 +2517,9 @@ void entity_loadtexturesandeffect ( void )
 					TextureObject(t.entobj, 5, t.entityprofile[t.entid].texhid);
 					TextureObject(t.entobj, 7, t.entityprofiletexibrid);
 				}
-
 			}
 
-			//  Apply all textures to REMAINING entity parent object (V C I)
+			// Apply all textures to REMAINING entity parent object (V C I)
 			TextureObject ( t.entobj, 1, t.entityprofiletexoid );
 			TextureObject ( t.entobj, 6, t.entityprofile[t.entid].texiid );
 
