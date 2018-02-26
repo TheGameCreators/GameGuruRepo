@@ -1,0 +1,43 @@
+;header
+desc          = Medical Cross
+
+;visualinfo
+textured      = medical_cross_D.dds
+effect        = effectbank\reloaded\character_basic.fx
+castshadow    = 0
+
+;orientation
+model         = medical_cross.X
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 3
+collisionmode = 11
+isimmobile    = 1
+
+;statistics
+strength      = 25
+explodable    = 0
+debrisshape   = 1
+
+;ai
+aimain	  = health.lua
+quantity  = 50
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+;Sound
+soundset      = audiobank\misc\ping.wav
+
+
+;anim
+animmax       = 1
+anim0         = 0,9
+playanimineditor = 1
