@@ -1148,13 +1148,16 @@ void lua_setloadingresource ( void )
 void lua_set_sky(void)
 {
 	int index = -1;
-	for (int i = 0; i < ArrayCount(t.skybank_s); i++) {
-		if (t.skybank_s[i].Lower()==t.s_s.Lower()) {
+	for (int i = 0; i < ArrayCount(t.skybank_s); i++) 
+	{
+		if (t.skybank_s[i].Lower()==t.s_s.Lower()) 
+		{
 			index = i;
 			break;
 		}
 	}
-	if (index != -1) {
+	if (index != -1) 
+	{
 		t.visuals.skyindex = index;
 		t.visuals.refreshskysettings = 1;
 		t.visuals.refreshshaders = 1;
