@@ -268,8 +268,8 @@ function pickuppable_init_name( e, name )
 	
 	-- load sprites if not already loaded
 	if Sprites[ 'hand1' ] == nil then 
-		Sprites[ 'hand1' ] = CreateSprite(LoadImage ( "scriptbank\\images\\Pickuppable\\hand1.png" ) )
-		Sprites[ 'hand2' ] = CreateSprite(LoadImage ( "scriptbank\\images\\Pickuppable\\hand2.png" ) )
+		Sprites[ 'hand1' ] = CreateSprite(LoadImage ( "scriptbank\\pickuppable\\hand1.png" ) )
+		Sprites[ 'hand2' ] = CreateSprite(LoadImage ( "scriptbank\\pickuppable\\hand2.png" ) )
 	
 		local s = Sprites[ 'hand1' ]
 		SetSpriteOffset( s, -1 , handSize / 2 )
