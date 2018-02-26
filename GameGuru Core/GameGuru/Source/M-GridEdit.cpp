@@ -2177,6 +2177,10 @@ void input_getfilemapcontrols ( void )
 			{
 				// When click non-Builder tab, should leave builder mode
 				ebe_hide();
+
+				//PE: If first entity, shader have not yet had constant set , so update shaders.
+				//PE: Prevent new created ebe from disappering when clicking away from "builder".
+				visuals_justshaderupdate();
 			}
 			SetFileMapDWORD (  1, 546, 0 );
 		}
@@ -3290,7 +3294,7 @@ void editor_init ( void )
 	SetObjectTransparency (  t.editor.objectstartindex+5,2 );
 	modifyplaneimagestrip(5,8,1);
 	SetObjectCollisionOff (  t.editor.objectstartindex+5 );
-	DisableObjectZDepth (  t.editor.objectstartindex+5 );
+	//DisableObjectZDepth (  t.editor.objectstartindex+5 ); //PE: UpdateLayerInner layer 4 do not render bNewZLayerObject in pass 0 so is clipped.
 	SetObjectLight (  t.editor.objectstartindex+5,0 );
 	HideObject (  t.editor.objectstartindex+5 );
 	OffsetLimb (  t.editor.objectstartindex+5,0,0,0,-1 );

@@ -65,6 +65,7 @@
 #define MAXFLASHLIGHT (0.975) // PE: max intensity of flashlight 1.0 = 100% , 0.5 = 50%.
 //#define PEROJECTLIGHT // Change per object specular to per object light.
 //#define BOOSTILLUM // Add more light from the illumination texture.
+//#define ENABLEDECALALPHACLIP // Enable old alpha clip on decals , do not look as good as real blending. but are faster.
 
 //Settings used by FXAA-CV-LS
 #define COLORVIBRANCE (0.40)
