@@ -982,6 +982,7 @@ void lua_loop_finish ( void )
  
 		else if ( strcmp ( t.luaaction_s.Get() , "mp_aimovetox" ) == 0 ) { t.e  =  LuaMessageIndex() ; t.tSteamX_f  =  LuaMessageFloat() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "mp_aimovetoz" ) == 0 ) { t.e=LuaMessageIndex() ; t.tSteamZ_f=LuaMessageFloat() ; steam_COOP_aiMoveTo() ; }
+		else if (strcmp(t.luaaction_s.Get(), "setskyto") == 0) { t.s_s = LuaMessageString(); lua_set_sky(); }
 
 		// 020216 - TITLE/MENU/PAGE LUA COMMANDS
 		if ( strcmp ( t.luaaction_s.Get() , "startgame" ) == 0 ) { lua_startgame(); }

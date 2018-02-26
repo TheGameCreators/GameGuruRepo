@@ -128,3 +128,4 @@ void lua_setplayerfov ( void );
 void lua_setgamesoundvolume ( void );
 void lua_setgamemusicvolume ( void );
 void lua_setloadingresource ( void );
+void lua_set_sky(void);

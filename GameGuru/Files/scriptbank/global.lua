@@ -237,7 +237,6 @@ function GetPlayerDistance( e )
 end
 
 -- Common Action Functions (called by LUA)
-
 function Prompt(str)
  SendMessageS("prompt",str);
 end
@@ -837,6 +836,9 @@ function Panel(x,y,x2,y2)
  SendMessageF("panely",y);
  SendMessageF("panelx2",x2);
  SendMessageF("panely2",y2);
+end
+function SetSkyTo(str)
+ SendMessageS("setskyto",str);
 end
 
 -- Common Multiplayer
@@ -1746,3 +1748,5 @@ GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of
 GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
 
 --]]
+
+--SetSkyTo(str) : str=foldername of the sky you want to change to (i.e. ChangeSkyTo("dark"))
