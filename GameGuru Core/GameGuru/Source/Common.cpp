@@ -2902,6 +2902,9 @@ void FPSC_Setup ( void )
 		//  Generic asset loading common to editor and game
 		common_loadfonts();
 		common_loadcommonassets ( 1 );
+
+		// This used by 3D prompts in standalone
+		g.guishadereffectindex = loadinternaleffect("effectbank\\reloaded\\gui_basic.fx");
 	
 		//  Load terrain from terrain temp save file
 		terrain_createactualterrain();
