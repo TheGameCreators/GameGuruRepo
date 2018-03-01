@@ -6966,13 +6966,22 @@ DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, flo
 				transformedray.direction[1] /= fDistanceBetweenPoints;
 				transformedray.direction[2] /= fDistanceBetweenPoints;
 
+				// get half height size of object bounds to create larger bounbox detection area in the Y
+				float fHeightSize = pObject->collision.vecMax.y - pObject->collision.vecMin.y;
+				if ( fHeightSize < 0 ) fHeightSize = -fHeightSize;
+				fHeightSize *= 0.5f;
+
 				// check if ray intersects object bound box (ray vs box) [using object space]
 				IntersectBox box;
 				box.min[0] = pObject->collision.vecMin.x;
-				box.min[1] = pObject->collision.vecMin.y * 2; // 240817 - object global bounds for some characters can be off, so increase to compensate
+				// 010318 - seems my code to expand the boundbox does not work if min is 30 and max is 52!
+				//box.min[1] = pObject->collision.vecMin.y * 2; // 240817 - object global bounds for some characters can be off, so increase to compensate
+				box.min[1] = pObject->collision.vecMin.y-fHeightSize; // 240817 - object global bounds for some characters can be off, so increase to compensate
 				box.min[2] = pObject->collision.vecMin.z;
 				box.max[0] = pObject->collision.vecMax.x;
-				box.max[1] = pObject->collision.vecMax.y * 2; // 240817 - object global bounds for some characters can be off, so increase to compensate
+				// 010318 - seems my code to expand the boundbox does not work if min is 30 and max is 52!
+				//box.max[1] = pObject->collision.vecMax.y * 2; // 240817 - object global bounds for some characters can be off, so increase to compensate
+				box.max[1] = pObject->collision.vecMax.y+fHeightSize; // 240817 - object global bounds for some characters can be off, so increase to compensate
 				box.max[2] = pObject->collision.vecMax.z;
 				int tnear, tfar;
 				if ( intersectRayAABox2(transformedray, box, tnear, tfar)==true )
