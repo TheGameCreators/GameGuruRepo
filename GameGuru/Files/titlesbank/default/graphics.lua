@@ -18,7 +18,10 @@ g_posButton = {}
 g_sprSlider = 0
 g_imgCursor = 0
 g_sprCursor = 0
-g_iGraphicChoice = 3
+g_iGraphicChoice = 2
+g_sprCursorPtrX = 50
+g_sprCursorPtrY = 90
+g_sprCursorPtrClick = 0
 
 function graphics_init()
  -- determine style folder we are in
@@ -34,8 +37,6 @@ function graphics_init()
   io.input(file)
   g_iGraphicChoice = tonumber(io.read())
   io.close(file)
- else
-  g_iGraphicChoice = 3
  end
  SetGameQuality(g_iGraphicChoice)
  SetPlayerFOV(g_PlayerFOV)
@@ -94,12 +95,14 @@ end
 
 function graphics_main()
  -- control menus
- SetSpritePosition ( g_sprCursor, g_MouseX, g_MouseY )
+ cursorControl = require "titlesbank\\cursorcontrol"
+ g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick = cursorControl.getinput(g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick)
+ SetSpritePosition ( g_sprCursor, g_sprCursorPtrX, g_sprCursorPtrY )
  iHighlightButton = 0
- if g_MouseX > 50-(GetImageWidth(g_imgButton[1])/2) and g_MouseX <= 50+(GetImageWidth(g_imgButton[1])/2) then
+ if g_sprCursorPtrX > 50-(GetImageWidth(g_imgButton[1])/2) and g_sprCursorPtrX <= 50+(GetImageWidth(g_imgButton[1])/2) then
   for i = 1, GRAPHICS_BACK, 1
   do
-   if g_MouseY > g_posButton[i] and g_MouseY <= g_posButton[i]+GetImageHeight(g_imgButton[i]) then
+   if g_sprCursorPtrY > g_posButton[i] and g_sprCursorPtrY <= g_posButton[i]+GetImageHeight(g_imgButton[i]) then
     iHighlightButton = i
    end
   end
@@ -121,7 +124,7 @@ function graphics_main()
   end
  end
  iPercentageWidth = GetImageWidth(g_imgButton[1])
- if g_MouseClick == 1 then
+ if g_sprCursorPtrClick == 1 then
   if iHighlightButton==GRAPHICS_LOW then
    g_iGraphicChoice = 1
    SetGameQuality(g_iGraphicChoice)
@@ -135,7 +138,7 @@ function graphics_main()
    SetGameQuality(g_iGraphicChoice)
   end
   if iHighlightButton==GRAPHICS_FOVSLIDER then
-   g_PlayerFOV = ((g_MouseX - (50-(iPercentageWidth/2)))/iPercentageWidth)*100
+   g_PlayerFOV = ((g_sprCursorPtrX - (50-(iPercentageWidth/2)))/iPercentageWidth)*100
    if g_PlayerFOV < 0 then 
     g_PlayerFOV = 0
    end

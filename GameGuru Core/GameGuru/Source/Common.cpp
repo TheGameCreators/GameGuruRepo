@@ -11,6 +11,7 @@
 // core externs to globals
 extern LPSTR gRefCommandLineString;
 extern bool gbAlwaysIgnoreShaderBlobFile;
+extern bool g_VR920RenderStereoNow;
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
@@ -2924,6 +2925,9 @@ void FPSC_Setup ( void )
 	
 		//  Main loop
 		timestampactivity(0,"Main Game Executable Loop Starts");
+
+		// after initial steroscopic fake load, switch to true stereo if used
+		g_VR920RenderStereoNow = true;
 	
 		//  One-off variable settings
 		t.game.set.resolution=0;

@@ -9,7 +9,7 @@
 extern int g_iTriggerReloadOfImportModel;
 extern int g_iFBXGeometryToggleMode;
 extern int g_iFBXGeometryCenterMesh;
-extern bool g_VR920RenderStereoNow;
+//extern bool g_VR920RenderStereoNow;
 extern UINT g_StereoEyeToggle;
 
 // 
@@ -1587,7 +1587,6 @@ void sliders_draw ( void )
 		//  draw slider menus
 		for ( t.slidersmenuindex = 1 ; t.slidersmenuindex<=  g.slidersmenumax; t.slidersmenuindex++ )
 		{
-
 			t.tabviewflag=0;
 			if (  t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
 			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0 && g.tabmode<3  )  t.tabviewflag = 1;

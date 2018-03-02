@@ -19,6 +19,9 @@ g_imgCursor = 0
 g_sprCursor = 0
 g_iSoundChoice = 100
 g_iMusicChoice = 100
+g_sprCursorPtrX = 50
+g_sprCursorPtrY = 90
+g_sprCursorPtrClick = 0
 
 function sounds_init()
  -- determine style folder we are in
@@ -86,13 +89,15 @@ end
 
 function sounds_main()
  -- control cursor pos
- SetSpritePosition ( g_sprCursor, g_MouseX, g_MouseY )
+ cursorControl = require "titlesbank\\cursorcontrol"
+ g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick = cursorControl.getinput(g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick)
+ SetSpritePosition ( g_sprCursor, g_sprCursorPtrX, g_sprCursorPtrY )
  -- find highlighted button
  iHighlightButton = 0
- if g_MouseX > 50-(GetImageWidth(g_imgButton[1])/2) and g_MouseX <= 50+(GetImageWidth(g_imgButton[1])/2) then
+ if g_sprCursorPtrX > 50-(GetImageWidth(g_imgButton[1])/2) and g_sprCursorPtrX <= 50+(GetImageWidth(g_imgButton[1])/2) then
   for i = 1, SOUNDS_BACK, 1
   do
-   if g_MouseY > g_posButton[i] and g_MouseY <= g_posButton[i]+GetImageHeight(g_imgButton[i]) then
+   if g_sprCursorPtrY > g_posButton[i] and g_sprCursorPtrY <= g_posButton[i]+GetImageHeight(g_imgButton[i]) then
     iHighlightButton = i
    end
   end
@@ -105,9 +110,9 @@ function sounds_main()
  end
  -- control slider button
  iPercentageWidth = GetImageWidth(g_imgButton[1])
- if g_MouseClick == 1 then
+ if g_sprCursorPtrClick == 1 then
   if iHighlightButton==SOUNDS_SOUND then
-   g_iSoundChoice = ((g_MouseX - (50-(iPercentageWidth/2)))/iPercentageWidth)*100
+   g_iSoundChoice = ((g_sprCursorPtrX - (50-(iPercentageWidth/2)))/iPercentageWidth)*100
    if g_iSoundChoice < 0 then 
     g_iSoundChoice = 0
    end
@@ -117,7 +122,7 @@ function sounds_main()
    SetGameSoundVolume ( g_iSoundChoice )
   end
   if iHighlightButton==SOUNDS_MUSIC then
-   g_iMusicChoice = ((g_MouseX - (50-(iPercentageWidth/2)))/iPercentageWidth)*100
+   g_iMusicChoice = ((g_sprCursorPtrX - (50-(iPercentageWidth/2)))/iPercentageWidth)*100
    if g_iMusicChoice < 0 then 
     g_iMusicChoice = 0
    end

@@ -1443,9 +1443,9 @@ SetGamePlayerStateRightMouseHold: SetGamePlayerStateRightMouseHold() -- command 
 GetGamePlayerStateRightMouseHold: GetGamePlayerStateRightMouseHold() -- command used by the default player control mechanism
 SetGamePlayerStateXBOX: SetGamePlayerStateXBOX() -- command used by the default player control mechanism
 GetGamePlayerStateXBOX: GetGamePlayerStateXBOX() -- command used by the default player control mechanism
-JoystickX: JoystickY() -- command used by the default player control mechanism
-JoystickY: JoystickX() -- command used by the default player control mechanism
-JoystickZ: JoystickZ() -- command used by the default player control mechanism
+JoystickX: JoystickX() -- returns a value between -1000 and +1000 representing X axis of controller
+JoystickY: JoystickY() -- returns a value between -1000 and +1000 representing Y axis of controller
+JoystickZ: JoystickZ() -- returns a value between -1000 and +1000 representing Trigger of controller
 SetGamePlayerStateGunZoomMode: SetGamePlayerStateGunZoomMode() -- command used by the default player control mechanism
 GetGamePlayerStateGunZoomMode: GetGamePlayerStateGunZoomMode() -- command used by the default player control mechanism
 SetGamePlayerStateGunZoomMag: SetGamePlayerStateGunZoomMag() -- command used by the default player control mechanism

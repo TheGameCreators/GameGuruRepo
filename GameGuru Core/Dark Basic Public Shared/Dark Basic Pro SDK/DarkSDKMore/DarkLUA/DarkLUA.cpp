@@ -5684,12 +5684,10 @@ DARKLUA_API void LuaCall()
 	functionStateID = 0;
 	if ( failedResults > 0 )
 		lua_pop(lua, failedResults);
-
 }
 
 DARKLUA_API void LuaCallSilent()
 {
-
 	for ( int c = 0 ; c < FunctionsWithErrors.size() ; c++ )
 	{
 		if ( strcmp ( functionName , FunctionsWithErrors[c].fileName ) == 0 )

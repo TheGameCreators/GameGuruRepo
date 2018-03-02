@@ -12,6 +12,7 @@
 // extern/protos
 GGFORMAT GetValidStencilBufferFormat ( GGFORMAT Format );
 extern UINT	g_StereoEyeToggle;
+extern DWORD g_dwSyncMaskOverride;
 
 // weapon shader effect indexes
 extern int g_weaponbasicshadereffectindex;
@@ -5100,6 +5101,9 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 	int iObject = 0;
 	bool bUseStencilWrite=false;
 	GGVECTOR3 vecShadowPos;
+
+	// if sync mask override active, reject any drawing activity
+	if ( g_dwSyncMaskOverride == 0 ) return true;
 
     // Get camera information for LOD and distance calculation
 	// ensure rendercamera of 31-34 selects mask for camera 31 (shadow camera)

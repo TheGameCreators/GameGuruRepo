@@ -801,7 +801,7 @@ DARKSDK void CameraInternalUpdate ( int iID )
 		GGVec3TransformCoord ( &m_ptr->vecUp,		&m_ptr->vecUp,		&matRot );
 		GGVec3TransformCoord ( &m_ptr->vecLook,	&m_ptr->vecLook,	&matRot );
 
-		// dsadsadsa
+		// Get tracking data
 		GGVECTOR3 vecPos = m_ptr->vecPosition;
 		if ( g_VR920AdapterAvailable == true && g_VR920RenderStereoNow == true )
 		{

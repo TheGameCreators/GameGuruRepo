@@ -651,6 +651,7 @@ void mapfile_savestandalone ( void )
 	addfoldertocollection("databank");
 	addfoldertocollection("savegames");
 	addfoldertocollection("titlesbank\\default\\");
+	addtocollection("titlesbank\\cursorcontrol.lua");
 	addtocollection("titlesbank\\resolutions.lua");
 	addtocollection("titlesbank\\fillgameslots.lua");
 	addtocollection("titlesbank\\gamedata.lua");
