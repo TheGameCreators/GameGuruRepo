@@ -12,6 +12,7 @@
 extern LPSTR gRefCommandLineString;
 extern bool gbAlwaysIgnoreShaderBlobFile;
 extern bool g_VR920RenderStereoNow;
+extern float g_fVR920Sensitivity;
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
@@ -2701,6 +2702,9 @@ void FPSC_Setup ( void )
 				}
 			}
 		}
+
+		// transfer SETUP.INI VRMODEMAG sensitivity setting to main engine
+		g_fVR920Sensitivity = g.gvrmodemag / 100.0f;
 	
 		//  option use use correct aspect ratio?
 		if (  g.gaspectratio == 1 ) 

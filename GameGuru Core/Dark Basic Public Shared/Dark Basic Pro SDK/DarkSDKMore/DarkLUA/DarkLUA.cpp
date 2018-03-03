@@ -1765,7 +1765,7 @@ int GetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	if ( SetupGetTracking(NULL,NULL,NULL) == true ) id = 1;
+	if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
 	lua_pushinteger ( L , id );
 	return 1;
 }

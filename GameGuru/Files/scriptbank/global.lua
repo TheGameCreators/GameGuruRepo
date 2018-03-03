@@ -249,7 +249,8 @@ end
 function PromptLocal(e,str)
  SendMessageS("promptlocal",e,str);
 end
-function PromptLocalForVR(e,str)
+function PromptLocalForVR(e,str,vrmode)
+ SendMessageF("promptlocalforvrmode",vrmode);
  SendMessageS("promptlocalforvr",e,str);
 end
 

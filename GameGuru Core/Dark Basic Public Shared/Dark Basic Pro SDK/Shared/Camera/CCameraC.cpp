@@ -37,6 +37,7 @@ extern bool	g_VR920RenderStereoNow;
 extern float g_fVR920TrackingYaw;
 extern float g_fVR920TrackingPitch;
 extern float g_fVR920TrackingRoll;
+extern float g_fVR920Sensitivity;
 extern float g_fDriverCompensationYaw;
 extern float g_fDriverCompensationPitch;
 extern float g_fDriverCompensationRoll;
@@ -811,7 +812,7 @@ DARKSDK void CameraInternalUpdate ( int iID )
 				float fYaw = GGToRadian(g_fVR920TrackingYaw);
 				float fPitch = GGToRadian(g_fVR920TrackingPitch);
 				float fRoll = GGToRadian(g_fVR920TrackingRoll);
-				bool bTracking = SetupGetTracking ( &fYaw, &fPitch, &fRoll );
+				bool bTracking = SetupGetTracking ( &fYaw, &fPitch, &fRoll, g_fVR920Sensitivity );
 				g_fVR920TrackingYaw = GGToDegree(fYaw);
 				g_fVR920TrackingPitch = GGToDegree(fPitch);
 				g_fVR920TrackingRoll = GGToDegree(fRoll);

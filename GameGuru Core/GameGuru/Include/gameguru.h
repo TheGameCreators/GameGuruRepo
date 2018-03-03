@@ -4585,6 +4585,7 @@ struct Stemps
 	int L_Thigh;
 	int leaping;
 	int leftArm;
+	int promptlocalforvrmode;
 	luatexttype luaText;
 	int mytimer;
 	float newx1_f;

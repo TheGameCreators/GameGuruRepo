@@ -13,7 +13,7 @@ g_posAboutButton = {}
 g_imgAboutCursor = 0
 g_sprAboutCursor = 0
 g_sprCursorPtrX = 50
-g_sprCursorPtrY = 90
+g_sprCursorPtrY = 33
 g_sprCursorPtrClick = 0
 
 function about_init()

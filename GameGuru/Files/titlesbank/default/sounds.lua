@@ -20,7 +20,7 @@ g_sprCursor = 0
 g_iSoundChoice = 100
 g_iMusicChoice = 100
 g_sprCursorPtrX = 50
-g_sprCursorPtrY = 90
+g_sprCursorPtrY = 33
 g_sprCursorPtrClick = 0
 
 function sounds_init()

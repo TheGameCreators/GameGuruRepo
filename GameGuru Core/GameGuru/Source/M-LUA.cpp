@@ -741,6 +741,7 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "promptduration" ) == 0 ) {  t.v=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_promptduration() ;}
 		else if ( strcmp ( t.luaaction_s.Get() , "prompttextsize" ) == 0 ) {  t.v=LuaMessageInt() ; lua_prompttextsize() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "promptlocal" ) == 0 ) {  t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_promptlocal() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "promptlocalforvrmode" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_promptlocalforvrmode() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "promptlocalforvr" ) == 0 ) {  t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_promptlocalforvr() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setfognearest" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setfognearest() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setfogdistance" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setfogdistance() ; }
