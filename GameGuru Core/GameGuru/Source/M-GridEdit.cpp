@@ -7795,7 +7795,7 @@ void gridedit_new_map ( void )
 	timestampactivity(0,"NEWMAP: Finish t.terrain generation");
 
 	//  Generate heightmap texture for cheap shadows (if required)
-	t.terrain.terraintriggercheapshadowrefresh=2;
+	//t.terrain.terraintriggercheapshadowrefresh=2;
 
 	//  Set standard start height for camera
 	t.gridzoom_f=3.0 ; t.clipheight_f=655 ; t.updatezoom=1;
@@ -8019,7 +8019,7 @@ void gridedit_load_map ( void )
 	visuals_justshaderupdate ( );
 
 	//  Generate heightmap texture for cheap shadows (if required)
-	t.terrain.terraintriggercheapshadowrefresh=2;
+	//t.terrain.terraintriggercheapshadowrefresh=2;
 
 	//  Ensure editor zoom refreshes
 	t.updatezoom=1;

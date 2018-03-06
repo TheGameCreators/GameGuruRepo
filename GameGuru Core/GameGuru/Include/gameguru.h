@@ -168,7 +168,7 @@ struct Sglobals
 	int startbuildingleveloverride;
 	int staticlightmapeffectoffset;
 	int thirdpersoncharactereffect;
-	float cheapshadowhistorypacer_f;
+	//float cheapshadowhistorypacer_f;
 	int csi_unarmedimpactbackANIM;
 	int csi_unarmedimpactforeANIM;
 	int csi_unarmedimpactleftANIM;
@@ -1990,7 +1990,7 @@ struct Sglobals
 		 csi_unarmedimpactleftANIM = 0;
 		 csi_unarmedimpactforeANIM = 0;
 		 csi_unarmedimpactbackANIM = 0;
-		 cheapshadowhistorypacer_f = 0.0f;
+		 //cheapshadowhistorypacer_f = 0.0f;
 		 thirdpersoncharactereffect = 0;
 		 staticlightmapeffectoffset = 0;
 		 startbuildingleveloverride = 0;
@@ -2069,7 +2069,7 @@ struct Stemps
 	int gamememactuallyusedstarttriggercount;
 	std::vector <inventorytype> saveloadgamepositionplayerinventory;
 	std::vector <int> saveloadgamepositionplayerobjective;
-	int gdynamicterrainshadowcameragenerate;
+	//int gdynamicterrainshadowcameragenerate;
 	cstr tsteamlostconnectioncustommessage_s;
 	int gdynamicterrainshadowcameratrigger;
 	int tempsteamingameinitialwaitingdelay;
@@ -2080,7 +2080,7 @@ struct Stemps
 	int tempsteamhaveaskedtosubscribeflag;
 	cstr tempSteamworksLobbyNameFromList_s;
 	std::vector <int> steamworks_playerAttachmentIndex;
-	int gdynamicterrainshadowcameratimer;
+	//int gdynamicterrainshadowcameratimer;
 	float liftshadowstositontopofterrain_f;
 	int tconsolidatelocallightmapobjects;
 	int tmaxcharacterstateengineentities;
@@ -2105,7 +2105,7 @@ struct Stemps
 	std::vector <int> csi_stoodincoverthrowleftANIM;
 	std::vector <int> interactivesequencemaxhistory;
 	int entityorsegmententrieschanged;
-	int gdynamicterrainshadowcameraid;
+	//int gdynamicterrainshadowcameraid;
 	int geditorhighlightingtentityobj;
 	int scanforentitiescharactersonly;
 	int tdeathamounttotakeoffdistance;
@@ -2199,7 +2199,7 @@ struct Stemps
 	cstr tempsteamworkshopidfile_s;
 	int thideprojectileinhudmodel;
 	int tischaracterholdingweapon;
-	int tonlyusingcheapestcascade;
+	//int tonlyusingcheapestcascade;
 	int tsteamdisplaymessagetimer;
 	int tsteamlastdamageincounter;
 	int tsteamwaitedforlobbytimer;
@@ -8395,7 +8395,7 @@ struct Stemps
 		 tsteamwaitedforlobbytimer = 0;
 		 tsteamlastdamageincounter = 0;
 		 tsteamdisplaymessagetimer = 0;
-		 tonlyusingcheapestcascade = 0;
+		 //tonlyusingcheapestcascade = 0;
 		 tischaracterholdingweapon = 0;
 		 thideprojectileinhudmodel = 0;
 		 tempsteamworkshopidfile_s = "";
@@ -8459,7 +8459,7 @@ struct Stemps
 		 tdeathamounttotakeoffdistance = 0;
 		 scanforentitiescharactersonly = 0;
 		 geditorhighlightingtentityobj = 0;
-		 gdynamicterrainshadowcameraid = 0;
+		 //gdynamicterrainshadowcameraid = 0;
 		 entityorsegmententrieschanged = 0;
 		 tsteamworkshopTheVersionNumber = 0;
 		 tforwardoffsettohideshoulder_f = 0.0f;
@@ -8474,7 +8474,7 @@ struct Stemps
 		 tmaxcharacterstateengineentities = 0;
 		 tconsolidatelocallightmapobjects = 0;
 		 liftshadowstositontopofterrain_f = 0.0f;
-		 gdynamicterrainshadowcameratimer = 0;
+		 //gdynamicterrainshadowcameratimer = 0;
 		 tempSteamworksLobbyNameFromList_s = "";
 		 tempsteamhaveaskedtosubscribeflag = 0;
 		 tsteamiseveryoneloadedandreadytime = 0;
@@ -8483,7 +8483,7 @@ struct Stemps
 		 tempsteamingameinitialwaitingdelay = 0;
 		 gdynamicterrainshadowcameratrigger = 0;
 		 tsteamlostconnectioncustommessage_s = "";
-		 gdynamicterrainshadowcameragenerate = 0;
+		 //gdynamicterrainshadowcameragenerate = 0;
 		 gamememactuallyusedstarttriggercount = 0;
 		 tmaskforcamerasnoreflectionlightrayflag = 0;
 		 tconsolidatelocallightmapobjectspolylimit = 0;

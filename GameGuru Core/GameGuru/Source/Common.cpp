@@ -609,7 +609,7 @@ void common_init_globals ( void )
 	//  2 - reflection camera
 	//  3 - post process camera
 	//  4 - light ray camera
-	//  5 - dynamic terrain shadow texture cam (cheap shadow)
+	//  5 - NOT USED FROM MAR2018 dynamic terrain shadow texture cam (cheap shadow)
 	//  6 - left eye camera [rift]
 	//  7 - right eye camera [rift]
 	//  9 - map editor
@@ -837,7 +837,7 @@ void common_init_globals ( void )
 	g.titlessavefile_s = "settings.ini";
 	
 	//  Visual settings
-	g.cheapshadowhistorypacer_f = 0;
+	//g.cheapshadowhistorypacer_f = 0;
 
 	//t.visuals as visualstype;
 	//t.editorvisuals as visualstype;
@@ -3132,12 +3132,12 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	terrain_setupedit ( );
 	terrain_make ( );
 
-	//  Create cheap shadow shader and apply
+	//  Create post process shader and apply
 	t.tsplashstatusprogress_s="INIT POST PROCESSING";
 	timestampactivity(0,t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate ( );
 	postprocess_general_init ( );
-	postprocess_forcheapshadows ( );
+	//postprocess_forcheapshadows ( );
 
 	//  Initialise ragdoll resources
 	t.tsplashstatusprogress_s="INIT RAGDOLL SYSTEM";

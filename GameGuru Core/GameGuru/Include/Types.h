@@ -8363,7 +8363,7 @@ struct terraintype
 	int terrainregionx2;
 	int terrainregionz1;
 	int terrainregionz2;
-	int terraintriggercheapshadowrefresh;
+	//int terraintriggercheapshadowrefresh;
 	int terrainquickupdate;
 	int terrainquickx1;
 	int terrainquickx2;
@@ -8542,7 +8542,7 @@ struct terraintype
 		 terrainquickx2 = 0;
 		 terrainquickx1 = 0;
 		 terrainquickupdate = 0;
-		 terraintriggercheapshadowrefresh = 0;
+		 //terraintriggercheapshadowrefresh = 0;
 		 terrainregionz2 = 0;
 		 terrainregionz1 = 0;
 		 terrainregionx2 = 0;

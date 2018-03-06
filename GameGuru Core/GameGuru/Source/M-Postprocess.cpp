@@ -177,6 +177,7 @@ void postprocess_init ( void )
 		postprocess_reset_fade();
 
 		//  generate terrain heightmap image to feed into this shader EVERY RUN
+		/* completely remove old dynamic cheap shadow
 		if (  t.gdynamicterrainshadowcameraid>0 ) 
 		{
 			t.terrain.terrainregionupdate=0;
@@ -184,6 +185,7 @@ void postprocess_init ( void )
 			terrain_createheightmapfromheightdata ( );
 			postprocess_applycheapshadow ( );
 		}
+		*/
 	}
 
 	//  restore cam id when done
@@ -221,8 +223,9 @@ void postprocess_general_init ( void )
 
 void postprocess_forcheapshadows ( void )
 {
-	//  Called ahead of IDE editor usage (cheap shadows)
-	if (  1 ) 
+	// Called ahead of IDE editor usage (cheap shadows)
+	/* completely remove old dynamic cheap shadow
+	if ( 1 ) 
 	{
 		//  Dynamic terrain shadow camera shader setup
 		t.gdynamicterrainshadowcameraid=5;
@@ -260,10 +263,12 @@ void postprocess_forcheapshadows ( void )
 			t.gdynamicterrainshadowcameratimer=0;
 		}
 	}
+	*/
 }
 
 void postprocess_applycheapshadow ( void )
 {
+	/* completely remove old dynamic cheap shadow
 	//  Select technique based on superflat terrain mode
 	if (  t.terrain.TerrainID == 0 ) 
 	{
@@ -326,6 +331,7 @@ void postprocess_applycheapshadow ( void )
 			}
 		}
 	}
+	*/
 }
 
 void postprocess_free ( void )
