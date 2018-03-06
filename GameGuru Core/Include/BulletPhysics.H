@@ -48,7 +48,10 @@ DARKSDK void		ODEStartStaticObject					( int iObjectNumber );
 DARKSDK void		ODEEndStaticObject						( int iObjectNumber, int iTerrainCollider );
 DARKSDK void		ODEAddStaticObjectBox					( int iObjectNumber, int iStaticBoxObject, int iMaterialRefIndex );
 DARKSDK void        ODECreateDynamicBoxManual              ( int iObjectNumber, float fX, float fY, float fZ, float fXSize, float fYSize, float fZSize, float fXAngl, float fYAng, float fZAng);
-DARKSDK int         ODECreateSwingDoorHinge                ( int iObjectNumber , float fX, float fY, float fZ, float fAng);
+DARKSDK void        ODECreateHingeSingle                    ( int iObjectNumber , float fX, float fY, float fZ, int iType, float fAngMin, float fAngMax );
+DARKSDK void        ODECreateHingeDouble                    ( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, float fXb, float fYb, float fZb, int iTypeA, int iTypeB );
+DARKSDK void        ODECreateJointSingle                    ( int iObjectNumber, float fX, float fY, float fZ );
+DARKSDK void        ODECreateJointDouble                    ( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, float fXb, float fYb, float fZb );
 
 // Character Controller commands
 DARKSDK void		ODECreateDynamicCharacterController	( int iObjectNumber, float fA, float fB, float fC );
@@ -88,6 +91,9 @@ DARKSDK void		ODESetLinearVelocity					( int iObjectNumber, float fX, float fY, 
 DARKSDK void		ODESetLinearVelocityXZWithGravity		( int iObjectNumber, float fX, float fZ, float fGravityForce );
 DARKSDK void		ODEAddBodyForce							( int iObjectNumber, float fX, float fY, float fZ, float fPX, float fPY, float fPZ );
 DARKSDK void		ODESetAngularVelocity					( int iObjectNumber, float fX, float fY, float fZ );
+DARKSDK void		ODEConstrainBodyMotion                  ( int iObjectNumber, float fX, float fY, float fZ );
+DARKSDK void		ODEConstrainBodyRotation                ( int iObjectNumber, float fX, float fY, float fZ );
+DARKSDK void		ODERemoveBodyConstraints                ( int iObjectNumber );
 
 // Ray commands
 DARKSDK int			ODERayTerrainEx						( float fX, float fY, float fZ, float fToX, float fToY, float fToZ, int iCollisionType );
@@ -120,3 +126,12 @@ DARKSDK DWORD		ODEGetBodyLinearVelocityX				( int iObjectNumber );
 DARKSDK DWORD		ODEGetBodyLinearVelocityY				( int iObjectNumber );
 DARKSDK DWORD		ODEGetBodyLinearVelocityZ				( int iObjectNumber );
 DARKSDK int			ODEGetBodyAttribValue					( int iObjectNumber );
+DARKSDK bool        ODEGetBodyIsDynamic                     ( int iObjectNumber );
+
+// Lua Collision support
+DARKSDK int			ODEGetBodyNumCollisions                 ( int iObjectNumber );
+DARKSDK void		ODEGetBodyCollisionDetails              ( int iObjectNumber, int iColNumber, int &iColObj, float &fX, float &fY, float &fZ, float &fImpulse );
+DARKSDK int			ODEGetTerrainNumCollisions              ( int iObjectNumber );
+DARKSDK void		ODEGetTerrainCollisionDetails           ( int iObjectNumber, int iColNumber, int &iLatest, float &fX, float &fY, float &fZ );
+DARKSDK void		ODEAddBodyCollisionCheck                ( int iObjectNumber );
+DARKSDK void		ODERemoveBodyCollisionCheck             ( int iObjectNumber );

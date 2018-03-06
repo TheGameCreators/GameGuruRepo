@@ -205,8 +205,306 @@ sObjectList* ODEFindID ( int iID )
 	return NULL;
 }
 
+int ODEFindID( btRigidBody* body)
+{
+	for (int i = 0; i < (int)g_PhyObjectList.size(); i++)
+	{
+		if ( g_PhyObjectList[i].body == body )
+			return g_PhyObjectList[i].iID;
+	}
+	return -1;
+}
+
+const int maxCollisions = 5;
+
+struct LuaCollisionInfoDEF
+{   int ObjectId;
+	int numObjCollisions;
+	int CollisionObjects[ maxCollisions ];
+	float fX[ maxCollisions ], fY[ maxCollisions ], fZ[ maxCollisions ], fF[ maxCollisions ];
+	int numTerCollisions;
+	int latestTerCollision;
+	float ftX[ maxCollisions ], ftY[ maxCollisions ], ftZ[ maxCollisions ];
+};
+
+std::vector< LuaCollisionInfoDEF > luaCollisionList;
+
+void AddCollisionToList( const int A, const int B, float fX, float fY, float fZ, float fF )
+{
+	std::vector< LuaCollisionInfoDEF >::iterator loc = luaCollisionList.begin();
+	while ( loc != luaCollisionList.end() )
+	{
+		if ( loc->ObjectId == A )
+		{
+			if ( B > 70000 )    // object on object collision  
+				                // ( g.entityviewstartobj buit how do I access it? )
+			{
+				if ( loc->numObjCollisions >= maxCollisions ) return;
+				for ( int i = 0; i < loc->numObjCollisions; i++ )
+				{
+					// check if we've already got an entry for this pairing
+					// (we only record the first contact between the pair)
+					if ( loc->CollisionObjects[i] == B ) return;
+				}
+				loc->CollisionObjects[ loc->numObjCollisions ] = B;
+				loc->fX[ loc->numObjCollisions ] = fX;
+				loc->fY[ loc->numObjCollisions ] = fY;
+				loc->fZ[ loc->numObjCollisions ] = fZ;
+				loc->fF[ loc->numObjCollisions ] = fF;
+				loc->numObjCollisions++;
+				return;
+			}
+			else if ( B >= 7000 ) // Assume it's a terrain collision
+				                  // ( t.tphysicsterrainobjstart but how do I access it ? )
+			{
+				// just store cyclically and let caller sort out the order
+				loc->ftX[ loc->latestTerCollision ] = fX;
+				loc->ftY[ loc->latestTerCollision ] = fY;
+				loc->ftZ[ loc->latestTerCollision ] = fZ;
+
+				loc->latestTerCollision++;
+				if ( loc->latestTerCollision >= maxCollisions )
+				{
+					loc->latestTerCollision = 0;
+					loc->numTerCollisions = maxCollisions;
+				}
+				else if ( loc->numTerCollisions <  maxCollisions )
+				{
+					loc->numTerCollisions = loc->latestTerCollision;
+				}
+				return;
+			}
+		}
+		loc++;
+	}
+}
+
+void AddObjectCollisionCheck( const int iObjectNumber )
+{
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if ( pPhyObject == NULL ) return;
+
+	std::vector< LuaCollisionInfoDEF >::iterator loc = luaCollisionList.begin();
+	while ( loc != luaCollisionList.end() )
+	{
+		if ( loc->ObjectId == iObjectNumber )
+		{
+			// still in the list from previous request so simply set
+			// index to start recording again
+			loc->numObjCollisions = 0;
+			loc->numTerCollisions = 0;
+			loc->latestTerCollision = 0;
+			return;   // already in list
+		}
+		loc++;
+	}
+	LuaCollisionInfoDEF luaCol;
+	luaCol.ObjectId = iObjectNumber;
+	luaCol.numObjCollisions = 0;
+	luaCol.numTerCollisions = 0; 
+	luaCol.latestTerCollision = 0;
+	luaCollisionList.push_back( luaCol );
+}
+
+void RemoveObjectCollisionCheck(const int iObjectNumber)
+{
+	sObjectList* pPhyObject = ODEFindID(iObjectNumber);
+	if (pPhyObject == NULL) return;
+
+	std::vector< LuaCollisionInfoDEF >::iterator loc = luaCollisionList.begin();
+	while (loc != luaCollisionList.end())
+	{
+		if (loc->ObjectId == iObjectNumber)
+		{
+			luaCollisionList.erase(loc);
+			break;
+		}
+		loc++;
+	}
+}
+
+void GetObjectCollisionDetails( const int iObjectNumber, const int iColNumber, int &iColObj, 
+	                            float &fX, float &fY, float &fZ, float &fImpulse )
+{
+	iColObj = 0;
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if (pPhyObject == NULL) return;
+	std::vector< LuaCollisionInfoDEF >::iterator loc = luaCollisionList.begin();
+	while ( loc != luaCollisionList.end() )
+	{
+		if ( loc->ObjectId == iObjectNumber )
+		{
+			if ( iColNumber > 0 && iColNumber <= loc->numObjCollisions )
+			{
+				// if last collision requested reset count for next time
+				if ( iColNumber == loc->numObjCollisions ) loc->numObjCollisions = 0;
+				iColObj = loc->CollisionObjects[ iColNumber - 1 ];
+				fX = loc->fX[ iColNumber - 1 ];
+				fY = loc->fY[ iColNumber - 1 ];
+				fZ = loc->fZ[ iColNumber - 1 ];
+				fImpulse = loc->fF[ iColNumber - 1 ];
+
+				return;
+			}
+			else if ( loc->numObjCollisions > 0 )
+			{
+				// if specified collision out of range return first 
+				// contact in list
+				iColObj = loc->CollisionObjects[ 0 ];
+				fX = loc->fX[ 0 ];
+				fY = loc->fY[ 0 ];
+				fZ = loc->fZ[ 0 ];
+				fImpulse = loc->fF[ iColNumber - 1 ];
+
+				return;
+			}
+			else
+			{
+				return;
+			}
+		}
+		loc++;
+	}
+}
+
+void GetTerrainCollisionDetails( const int iObjectNumber, const int iColNumber, int &iLatest,
+	                             float &fX, float &fY, float &fZ)
+{
+	iLatest = 0;
+	sObjectList* pPhyObject = ODEFindID(iObjectNumber);
+	if (pPhyObject == NULL) return;
+	std::vector< LuaCollisionInfoDEF >::iterator loc = luaCollisionList.begin();
+	while (loc != luaCollisionList.end())
+	{
+		if (loc->ObjectId == iObjectNumber)
+		{
+			if ( iColNumber > 0 && iColNumber <= loc->numTerCollisions )
+			{
+				iLatest = loc->latestTerCollision;
+				// if last collision requested reset count for next time
+				if ( iColNumber == loc->numTerCollisions )
+				{
+					loc->numTerCollisions = 0;
+					loc->latestTerCollision = 0;
+				}
+				fX = loc->ftX[iColNumber - 1];
+				fY = loc->ftY[iColNumber - 1];
+				fZ = loc->ftZ[iColNumber - 1];
+
+				return;
+			}
+			else if (loc->numTerCollisions > 0)
+			{
+				// if specified collision out of range return first 
+				// contact in list
+				iLatest = 1;
+				fX = loc->ftX[ 0 ];
+				fY = loc->ftY[ 0 ];
+				fZ = loc->ftZ[ 0 ];
+
+				return;
+			}
+			else
+			{
+				return;
+			}
+		}
+		loc++;
+	}
+}
+
+int GetObjectNumCollisions( const int iObjectNumber )
+{
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if ( pPhyObject == NULL ) return 0;
+	std::vector< LuaCollisionInfoDEF >::iterator loc = luaCollisionList.begin();
+	while ( loc != luaCollisionList.end() )
+	{
+		if ( loc->ObjectId == iObjectNumber )
+		{
+			return loc->numObjCollisions;
+		}
+		loc++;
+	}
+	// object not in list
+	return 0;
+}
+
+int GetTerrainNumCollisions( const int iObjectNumber )
+{
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if ( pPhyObject == NULL ) return 0;
+	std::vector< LuaCollisionInfoDEF >::iterator loc = luaCollisionList.begin();
+	while ( loc != luaCollisionList.end() )
+	{
+		if ( loc->ObjectId == iObjectNumber )
+		{
+			return loc->numTerCollisions;
+		}
+		loc++;
+	}
+	// object not in list
+	return 0;
+}
+
+
+void UpdateCollisionsForLua()
+{
+	if ( luaCollisionList.empty()) { return; };
+
+	const float scalefactor = 40.0;
+
+    int numManifolds = g_dynamicsWorld->getDispatcher()->getNumManifolds();
+	for (int i = 0; i < numManifolds; i++)
+	{
+		btPersistentManifold* contactManifold = g_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+		const btCollisionObject* obA = contactManifold->getBody0();
+		const btCollisionObject* obB = contactManifold->getBody1();
+
+		const int objIdA = ODEFindID( (btRigidBody*)obA );
+		const int objIdB = ODEFindID( (btRigidBody*)obB );
+
+		float fXb = 0.0; float fYb = 0.0; float fZb = 0.0; float fF = 0.0;
+
+		int numContacts = contactManifold->getNumContacts();
+		if ( numContacts > 0 )
+		for ( int j = 0; j < numContacts; j++ )
+		{
+			btManifoldPoint& pt = contactManifold->getContactPoint( j );
+
+			if ( pt.getDistance() < 0.f )
+			{
+				const btVector3& ptB = pt.getPositionWorldOnB() * scalefactor;
+				fXb = ptB.getX(); fYb = ptB.getY(); fZb = ptB.getZ();
+				fF = -pt.getDistance();
+			}
+		}
+
+		if ( fXb != 0.0 )  // only add real contacts to list
+		{
+
+			std::vector< LuaCollisionInfoDEF >::iterator loc = luaCollisionList.begin();
+			while ( loc != luaCollisionList.end() )
+			{
+				if ( objIdA == loc->ObjectId )
+				{
+					AddCollisionToList( objIdA, objIdB, fXb, fYb, fZb, fF );
+				}
+				else if ( objIdB == loc->ObjectId )
+				{
+					AddCollisionToList( objIdB, objIdA, fXb, fYb, fZb, fF );
+				}
+				loc++;
+			}
+		}
+	}
+}
+
+
 void PostTickCallback(btDynamicsWorld *world, btScalar timeStep)
 {
+	UpdateCollisionsForLua();
+
 	for (int j=g_PhyObjectList.size()-1; j>=0 ;j--)
 	{
 		btRigidBody* body = g_PhyObjectList[j].body;
@@ -948,16 +1246,78 @@ void EndStaticObject ( int iObjectNumber, int iTerrainCollider )
 	ODEAddObject ( iObjectNumber, pObject, body, 0, myMotionState, false, bBouyant, NULL, NULL, 1, 1, 100.0f, mass );
 }
 
-int CreateSwingDoorHinge(int iObjectNumber, float fX, float fY, float fZ, float fAng)
+void CreateHingeSingle( int iObjectNumber, float fX, float fY, float fZ, int iType, float fAngMin, float fAngMax )
 {
-	sObjectList* pPhyObject = ODEFindID ( iObjectNumber );
-	if ( pPhyObject==NULL ) return 0;
-	btHingeConstraint *hingeC = new btHingeConstraint(*(pPhyObject->body), 
-												      btVector3(fX/gSc,fY/gSc,fZ/gSc),
-													  btVector3(0,1,0),
-													  true);
-	g_dynamicsWorld->addConstraint(hingeC, true);
-	return 1;
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if ( pPhyObject == NULL ) return; 
+	if ( pPhyObject->body == NULL ) return;
+	if ( iType <= 0 || iType > 3 ) return;
+	btVector3 vType;
+	if (iType == 1) vType = btVector3(1, 0, 0);  // hinge on objects X axis
+	if (iType == 2) vType = btVector3(0, 1, 0);  // hinge on objects Y axis
+	if (iType == 3) vType = btVector3(0, 0, 1);  // hinge on objects Z axis
+
+	btHingeConstraint *hingeC = new btHingeConstraint( *(pPhyObject->body),
+		                                               btVector3(fX / gSc, fY / gSc, fZ / gSc),
+		                                               vType,
+		                                               true );
+	if ( fAngMin != 0.0 || fAngMax != 0.0 )
+	{
+		hingeC->setLimit( btScalar( fAngMin ), btScalar( fAngMax ) );
+	}
+	g_dynamicsWorld->addConstraint( hingeC );
+}
+
+void CreateHingeDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa,
+	                                                      float fXb, float fYb, float fZb, int iTypeA, int iTypeB )
+{
+	sObjectList* pPhyObjectA = ODEFindID( iObjectNumA );
+	sObjectList* pPhyObjectB = ODEFindID( iObjectNumB );
+	if ( pPhyObjectA == NULL || pPhyObjectB == NULL ) return;
+	if ( pPhyObjectA->body == NULL || pPhyObjectB->body == NULL ) return;
+
+	if ( iTypeA <= 0 || iTypeA > 3 ) return;
+	if ( iTypeB <= 0 || iTypeB > 3 ) return;
+
+	btVector3 vTypeA, vTypeB;
+	if ( iTypeA == 1 ) vTypeA = btVector3( 1, 0, 0 );  // hinge on X axis
+	if ( iTypeA == 2 ) vTypeA = btVector3( 0, 1, 0 );  // hinge on Y axis
+	if ( iTypeA == 3 ) vTypeA = btVector3( 0, 0, 1 );  // hinge on Z axis
+	if ( iTypeB == 1 ) vTypeB = btVector3( 1, 0, 0 );  // hinge on X axis
+	if ( iTypeB == 2 ) vTypeB = btVector3( 0, 1, 0 );  // hinge on Y axis
+	if ( iTypeB == 3 ) vTypeB = btVector3( 0, 0, 1 );  // hinge on Z axis
+
+	btHingeConstraint *hingeC = new btHingeConstraint( *( pPhyObjectA->body ), 
+		                                               *( pPhyObjectB->body ),
+		                                               btVector3( fXa / gSc, fYa / gSc, fZa / gSc ),
+		                                               btVector3( fXb / gSc, fYb / gSc, fZb / gSc ),
+		                                               vTypeA, vTypeB,
+		                                               true );
+	g_dynamicsWorld->addConstraint( hingeC, true );
+}
+
+void CreateJointSingle( int iObjectNumber, float fX, float fY, float fZ )
+{
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if ( pPhyObject == NULL ) return;
+	if ( pPhyObject->body == NULL ) return;
+	btPoint2PointConstraint *jointC = new btPoint2PointConstraint( *( pPhyObject->body ),
+		                                                           btVector3( fX / gSc, fY / gSc, fZ / gSc ));
+	g_dynamicsWorld->addConstraint( jointC, true );
+}
+
+void CreateJointDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, float fXb, float fYb, float fZb )
+{
+	sObjectList* pPhyObjectA = ODEFindID( iObjectNumA );
+	sObjectList* pPhyObjectB = ODEFindID( iObjectNumB );
+	if ( pPhyObjectA == NULL || pPhyObjectB == NULL ) return;
+	if ( pPhyObjectA->body == NULL || pPhyObjectB->body == NULL ) return;
+
+	btPoint2PointConstraint *jointC = new btPoint2PointConstraint( *( pPhyObjectA->body ),
+		                                                           *( pPhyObjectB->body ),
+		                                                           btVector3( fXa / gSc, fYa / gSc, fZa / gSc ),
+		                                                           btVector3( fXb / gSc, fYb / gSc, fZb / gSc ) );
+	g_dynamicsWorld->addConstraint( jointC, true );
 }
 
 void AddStaticObjectBox ( int iObjectNumber , int iStaticBoxObject, int iMaterialRefIndex )
@@ -2159,8 +2519,22 @@ void ODEAddStaticObjectBox ( int iObjectNumber , int iStaticBoxObject, int iMate
 {
 	AddStaticObjectBox ( iObjectNumber , iStaticBoxObject, iMaterialRefIndex );
 }
-int ODECreateSwingDoorHinge(int iObjectNumber, float fX, float fY, float fZ, float fAng){
-	return CreateSwingDoorHinge(iObjectNumber, fX, fY, fZ, fAng);
+void ODECreateHingeSingle( int iObjectNumber, float fX, float fY, float fZ, int iType, float fAngMin, float fAngMax )
+{
+	CreateHingeSingle( iObjectNumber, fX, fY, fZ, iType, fAngMin, fAngMax );
+}
+void ODECreateHingeDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, 
+	                                                         float fXb, float fYb, float fZb, int iTypeA, int iTypeB )
+{
+    CreateHingeDouble( iObjectNumA, iObjectNumB, fXa, fYa, fZa, fXb, fYb, fZb, iTypeA, iTypeB );
+}
+void ODECreateJointSingle( int iObjectNumber, float fX, float fY, float fZ )
+{
+	CreateJointSingle( iObjectNumber, fX, fY, fZ );
+}
+void ODECreateJointDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, float fXb, float fYb, float fZb )
+{
+	CreateJointDouble( iObjectNumA, iObjectNumB, fXa, fYa, fZa, fXb, fYb, fZb );
 }
 void ODEDestroyObject ( int iObjectNumber )
 {
@@ -2489,6 +2863,46 @@ void ODESetAngularVelocity ( int iObject, float fX, float fY, float fZ )
 	pPhyObject->body->setAngularVelocity(btVector3(fX/gSc,fY/gSc,fZ/gSc));
 }
 
+void ODEConstrainBodyMotion( int iObjectNumber, float fX, float fY, float fZ )
+{
+	// get reference object
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if ( pPhyObject == NULL ) return;
+	if ( pPhyObject->body == NULL ) return;
+
+	pPhyObject->body->activate();
+	pPhyObject->body->setLinearFactor( btVector3( fX, fY, fZ ) );
+}
+
+void ODEConstrainBodyRotation( int iObjectNumber, float fX, float fY, float fZ )
+{
+	// get reference object
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if ( pPhyObject == NULL ) return;
+	if ( pPhyObject->body == NULL ) return;
+
+	pPhyObject->body->activate();
+	pPhyObject->body->setAngularFactor( btVector3( fX, fY, fZ ) );
+}
+
+void ODERemoveBodyConstraints( int iObjectNumber )
+{
+	// get reference object
+	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
+	if ( pPhyObject == NULL ) return;
+	if ( pPhyObject->body == NULL ) return;
+
+	for ( int i = 0; i < g_dynamicsWorld->getNumConstraints(); i++ )
+	{
+		btTypedConstraint *tC = g_dynamicsWorld->getConstraint(i);
+		if ( pPhyObject->body == &( tC->getRigidBodyA() ) ||
+			 pPhyObject->body == &( tC->getRigidBodyB() ) )
+		{
+			g_dynamicsWorld->removeConstraint( tC );
+		}
+	}
+}
+
 int ODERayTerrainEx ( float fX, float fY, float fZ, float fToX, float fToY, float fToZ, int iCollisionType )
 {
 	// Cast a ray against the terrain object and see if hit
@@ -2770,6 +3184,50 @@ int ODEGetBodyAttribValue ( int iObjectNumber )
 	if ( pPhyObject==NULL ) return 0;
 	int iValue = (int)pPhyObject->body->getUserPointer();
 	return iValue;
+}
+
+bool ODEGetBodyIsDynamic(int iObjectNumber)
+{
+	for (int i = 0; i < (int)g_PhyObjectList.size(); i++)
+	{
+		if ( g_PhyObjectList[i].iID == iObjectNumber )
+		{
+			return g_PhyObjectList[i].bDynamicUpdate;
+		}
+	}
+	return false;
+}
+
+int	ODEGetBodyNumCollisions( int iObjectNumber )
+{
+	return GetObjectNumCollisions( iObjectNumber );
+}
+
+void ODEGetBodyCollisionDetails( int iObjectNumber, int iColNumber, int &iColObj,
+	                             float &fX, float &fY, float &fZ, float &fImpulse )
+{
+	GetObjectCollisionDetails( iObjectNumber, iColNumber, iColObj, fX, fY, fZ, fImpulse );
+}
+
+int	ODEGetTerrainNumCollisions( int iObjectNumber )
+{
+	return GetTerrainNumCollisions( iObjectNumber );
+}
+
+void ODEGetTerrainCollisionDetails( int iObjectNumber, int iColNumber, int &iLatest,
+	                               float &fX, float &fY, float &fZ )
+{
+	GetTerrainCollisionDetails( iObjectNumber, iColNumber, iLatest, fX, fY, fZ );
+}
+
+void ODEAddBodyCollisionCheck(int iObjectNumber)
+{
+	AddObjectCollisionCheck( iObjectNumber );
+}
+
+void ODERemoveBodyCollisionCheck(int iObjectNumber)
+{
+	RemoveObjectCollisionCheck(iObjectNumber);
 }
 
 void ODESetWorldGravity ( float fX, float fY, float fZ )

@@ -1118,7 +1118,7 @@ luaMessage** ppLuaMessages = NULL;
 						}
 						case 14 : 
 						{
-							// Return collision box coordiantes (6 values )
+							// Return collision box coordinates (6 values )
 							lua_pushnumber( L, pObject->collision.vecMin.x );
 							lua_pushnumber( L, pObject->collision.vecMin.y );
 							lua_pushnumber( L, pObject->collision.vecMin.x );
@@ -1142,11 +1142,17 @@ luaMessage** ppLuaMessages = NULL;
 						case 17 : 
 						{
 							// Scale factors 3 values
-							lua_pushnumber(L, pObject->position.vecScale.x);
-							lua_pushnumber(L, pObject->position.vecScale.y);
-							lua_pushnumber(L, pObject->position.vecScale.z);
+							lua_pushnumber( L, pObject->position.vecScale.x );
+							lua_pushnumber( L, pObject->position.vecScale.y );
+							lua_pushnumber( L, pObject->position.vecScale.z );
 							return 3;
 						}
+						case 18 : 
+						{
+							lua_pushstring( L, t.entityelement[iEntityIndex].eleprof.name_s.Get() );
+							return 1;
+						}
+
 					}
 				}
 			}
@@ -1183,6 +1189,7 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityPosAng(lua_State *L)  { return GetEntityData ( L, 15 ); }
  int GetEntityWeight(lua_State *L)  { return GetEntityData ( L, 16 ); }
  int GetEntityScales(lua_State *L)  { return GetEntityData ( L, 17 ); }
+ int GetEntityName(lua_State *L)    { return GetEntityData ( L, 18 ); }
 
  // Entity Animation
  int GetEntityAnimationStart(lua_State *L)
@@ -2901,6 +2908,22 @@ int GetObjectColBox(lua_State *L)
 	return 6;
 }
 
+int GetObjectCentre( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	// object information
+	sObject* pObject = g_ObjectList[iID];
+
+	lua_pushnumber(L, pObject->collision.vecCentre.x);
+	lua_pushnumber(L, pObject->collision.vecCentre.y);
+	lua_pushnumber(L, pObject->collision.vecCentre.z);
+	return 3;
+}
+
 int GetObjectScales(lua_State *L)
 {
 	int n = lua_gettop(L);
@@ -2916,6 +2939,225 @@ int GetObjectScales(lua_State *L)
 	lua_pushnumber(L, pObject->position.vecScale.z);
 	return 3;
 }
+
+// Physics manipulation
+
+int PushObject( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	if (n == 7)
+	{
+		ODEAddBodyForce( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+						 	  lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7));
+	}
+	else if (n == 4)
+	{
+		ODEAddBodyForce( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4), 0, 0, 0 );
+	}
+	return 0;
+}
+
+int ConstrainObjMotion( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0; 
+	ODEConstrainBodyMotion( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	return 0;
+}
+
+int ConstrainObjRotation( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if ( n < 4 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance(iID) )
+		return 0;
+	ODEConstrainBodyRotation( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	return 0;
+}
+
+int CreateSingleHinge( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if ( n < 7 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance(iID) )
+		return 0;
+	ODECreateHingeSingle( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		                       lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7) );
+	return 0;
+}
+
+int CreateDoubleHinge( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 10 ) return 0;
+	int iIDa = lua_tonumber(L, 1);
+	int iIDb = lua_tonumber(L, 2);
+	if (!ConfirmObjectInstance(iIDa) || !ConfirmObjectInstance(iIDb))
+		return 0;
+	ODECreateHingeDouble( iIDa, iIDb, lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5),
+		                              lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8),
+		                              lua_tonumber(L, 9), lua_tonumber(L, 10) );
+	return 0;
+}
+
+int CreateSingleJoint( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 4 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	ODECreateJointSingle( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	return 0;
+}
+
+int CreateDoubleJoint( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 8 ) return 0;
+	int iIDa = lua_tonumber( L, 1 );
+	int iIDb = lua_tonumber( L, 2 );
+	if ( !ConfirmObjectInstance( iIDa ) || !ConfirmObjectInstance( iIDb ) )
+		return 0;
+	ODECreateJointDouble( iIDa, iIDb, lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5),
+		                              lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8) );
+	return 0;
+}
+
+int RemoveObjectConstraints( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance(iID) )
+		return 0;
+
+	ODERemoveBodyConstraints( iID );
+	return 0;
+}
+
+int PhysicsRayCast( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 7 ) return 0;
+	float fFromX = lua_tonumber( L, 1 );
+	float fFromY = lua_tonumber( L, 2 );
+	float fFromZ = lua_tonumber( L, 3 );
+	float fToX   = lua_tonumber( L, 4 );
+	float fToY   = lua_tonumber( L, 5 );
+	float fToZ   = lua_tonumber( L, 6 );
+	float fForce = lua_tonumber( L, 7 );
+	if ( ODERayForce( fFromX, fFromY, fFromZ, fToX, fToY, fToZ, fForce ) == 1 )
+	{
+		int iObjHit = ODEGetRayObjectHit();
+		// only return dynamic objects
+		if ( ODEGetBodyIsDynamic( iObjHit ) )
+		{
+			lua_pushnumber( L, iObjHit );
+			lua_pushnumber( L, ODEGetRayCollisionX() );
+			lua_pushnumber( L, ODEGetRayCollisionY() );
+			lua_pushnumber( L, ODEGetRayCollisionZ() );
+			return 4;
+		}
+	}
+	lua_pushnumber( L, 0 );
+	return 1;
+}
+
+int GetObjectNumCollisions(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	lua_pushnumber(L, ODEGetBodyNumCollisions(iID));
+	return 1;
+}
+
+int GetObjectCollisionDetails( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	int colNum = 0;
+	int iColObj = 0;
+	float fX, fY, fZ, fF;
+	if (n == 2) colNum = lua_tonumber(L, 2);
+	ODEGetBodyCollisionDetails( iID, colNum, iColObj, fX, fY, fZ, fF );
+	lua_pushnumber( L, iColObj );
+	lua_pushnumber( L, fX );
+	lua_pushnumber( L, fY );
+	lua_pushnumber( L, fZ );
+	lua_pushnumber( L, fF );
+
+	return 5;
+}
+
+int GetTerrainNumCollisions( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	lua_pushnumber( L, ODEGetTerrainNumCollisions( iID ) );
+	return 1;
+}
+
+int GetTerrainCollisionDetails( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	int colNum = 0;
+	int iLatest = 0;
+	float fX, fY, fZ;
+	if (n == 2) colNum = lua_tonumber( L, 2 );
+	ODEGetTerrainCollisionDetails( iID, colNum, iLatest, fX, fY, fZ );
+	lua_pushnumber( L, iLatest );
+	lua_pushnumber( L, fX );
+	lua_pushnumber( L, fY );
+	lua_pushnumber( L, fZ );
+
+	return 4;
+}
+
+int AddObjectCollisionCheck( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if (n < 1) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	ODEAddBodyCollisionCheck( iID );
+	return 0;
+}
+
+int RemoveObjectCollisionCheck(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	ODERemoveBodyCollisionCheck(iID);
+	return 0;
+}
+
 int RunCharLoop ( lua_State *L )
 {
 	// run character animation system
@@ -4487,6 +4729,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityPosAng", GetEntityPosAng);
 	lua_register(lua, "GetEntityWeight", GetEntityWeight);
 	lua_register(lua, "GetEntityScales", GetEntityScales);
+	lua_register(lua, "GetEntityName",   GetEntityName);
 	lua_register(lua, "GetEntityAngleX", GetEntityAngleX);
 	lua_register(lua, "GetEntityAngleY", GetEntityAngleY);
 	lua_register(lua, "GetEntityAngleZ", GetEntityAngleZ);
@@ -4654,8 +4897,28 @@ void addFunctions()
 	lua_register(lua, "GetObjectAngleZ" , GetObjectAngleZ );
 	lua_register(lua, "GetObjectPosAng",  GetObjectPosAng );
 	lua_register(lua, "GetObjectColBox",  GetObjectColBox );
+	lua_register(lua, "GetObjectCentre",  GetObjectCentre );
 	lua_register(lua, "GetObjectScales",  GetObjectScales );
 	lua_register(lua, "ScaleObject", ScaleObjectXYZ );
+
+	// Physics related functions
+	lua_register(lua, "PushObject",    PushObject );
+	lua_register(lua, "ConstrainObjMotion",      ConstrainObjMotion );
+	lua_register(lua, "ConstrainObjRotation",    ConstrainObjRotation );
+	lua_register(lua, "CreateSingleHinge",       CreateSingleHinge );
+	lua_register(lua, "CreateSingleJoint",       CreateSingleJoint );
+	lua_register(lua, "CreateDoubleHinge",       CreateDoubleHinge );
+	lua_register(lua, "CreateDoubleJoint",       CreateDoubleJoint );
+	lua_register(lua, "RemoveObjectConstraints", RemoveObjectConstraints );
+	lua_register(lua, "PhysicsRayCast",          PhysicsRayCast );
+
+	// Collision detection functions 
+	lua_register(lua, "GetObjectNumCollisions",     GetObjectNumCollisions );
+	lua_register(lua, "GetObjectCollisionDetails",  GetObjectCollisionDetails );
+	lua_register(lua, "GetTerrainNumCollisions",    GetTerrainNumCollisions );
+	lua_register(lua, "GetTerrainCollisionDetails", GetTerrainCollisionDetails );
+	lua_register(lua, "AddObjectCollisionCheck",    AddObjectCollisionCheck );
+	lua_register(lua, "RemoveObjectCollisionCheck", RemoveObjectCollisionCheck );
 
 	// quaternion library functions
 	lua_register(lua, "QuatToEuler", QuatToEuler );
