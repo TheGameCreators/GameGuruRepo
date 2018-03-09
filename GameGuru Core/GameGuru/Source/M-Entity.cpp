@@ -957,7 +957,8 @@ void entity_loaddata ( void )
 					//  58 ; generate obstacle and cylinder from 2/16th up from base of model
 					//  59 ; generate obstacle and cylinder from 1/16th up from base of model
 					//  1000-2000 ; only one limb has collision Box Shape (1000=limb zero,1001=limb one,etc)
-					//  2000-3000 ; only one limb has collision Polygons Shape (2000=limb zero,2001=limb one,etc)					t.tryfield_s="collisionmode";
+					//  2000-3000 ; only one limb has collision Polygons Shape (2000=limb zero,2001=limb one,etc)					
+					t.tryfield_s="collisionmode";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].collisionmode = t.value1;
 					t.tryfield_s="collisionscaling";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].collisionscaling = t.value1;
