@@ -935,23 +935,29 @@ void entity_loaddata ( void )
 					t.tryfield_s="autoflatten";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].autoflatten = t.value1;
 
-					//  collisionmode
-					//  0 ; default Box (  )
-					//  1 ; polygon shape
-					//  2 ; sphere??legacy
-					//  3 ; cylinder??legacy
-					//  9 ; convex hull reduction
+					//  collisionmode (see GameGuru\Docs\collisionmodevalues.txt)
+					//  0  ; box shape (default)
+					//  1  ; polygon shape
+					//  2  ; [sphere not implemented]
+					//  3  ; [cylinder not implemented]
+					//  9  ; convex hull reduction shape
 					//  11 ; no physics
-					//  12 ; no physics but can still be shot with intersectall check
-					//  21 ; player repell feature (for characters and other beasts/zombies)
-					//  40 ; collision boxes
-					//  41-49 ; reserved (collision poly list, spehere list, cylinder list)
-					//  50 
-					//  51 
-					//  52-59 
-					//  1000-2000 ; only one limb has collision Box (1000=limb zero)
-					//  2000-3000 ; only one limb has collision polygons (2000=limb zero)
-					t.tryfield_s="collisionmode";
+					//  12 ; no physics but can still be detected with IntersectAll command
+					//  21 ; player repel feature (for characters and other beasts/zombies)
+					//  40 ; collision boxes (defined in Import Model feature)
+					//  41-49 ; reserved (collision polylist, sphere list, cylinder list)
+					//  50 ; generate obstacle and cylinder from 1/64th up from base of model
+					//  51 ; generate obstacle and cylinder from 1/32th down from base of model
+					//  52 ; generate obstacle and cylinder from 8/16th up from base of model
+					//  53 ; generate obstacle and cylinder from 7/16th up from base of model
+					//  54 ; generate obstacle and cylinder from 6/16th up from base of model
+					//  55 ; generate obstacle and cylinder from 5/16th up from base of model
+					//  56 ; generate obstacle and cylinder from 4/16th up from base of model
+					//  57 ; generate obstacle and cylinder from 3/16th up from base of model
+					//  58 ; generate obstacle and cylinder from 2/16th up from base of model
+					//  59 ; generate obstacle and cylinder from 1/16th up from base of model
+					//  1000-2000 ; only one limb has collision Box Shape (1000=limb zero,1001=limb one,etc)
+					//  2000-3000 ; only one limb has collision Polygons Shape (2000=limb zero,2001=limb one,etc)					t.tryfield_s="collisionmode";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].collisionmode = t.value1;
 					t.tryfield_s="collisionscaling";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].collisionscaling = t.value1;

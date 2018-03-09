@@ -681,6 +681,11 @@ void entity_lua_loopsound ( void )
 		{
 			loopinternal3dsound(t.tsnd,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z);
 		}
+		else
+		{
+			// keep calling LoopSound to update entity position during game
+			posinternal3dsound(t.tsnd,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z);
+		}
 	}
 	t.luaglobal.lastsoundnumber=t.tsnd;
 }

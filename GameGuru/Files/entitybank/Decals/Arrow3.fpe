@@ -17,6 +17,7 @@ scale         = 300
 materialindex = 0
 cullmode      = 1
 collisionmode = 11
+isimmobile    = 1
 
 ;statistics
 strength      = 0
