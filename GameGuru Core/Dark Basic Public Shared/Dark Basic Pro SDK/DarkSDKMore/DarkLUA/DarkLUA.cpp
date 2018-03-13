@@ -1149,10 +1149,9 @@ luaMessage** ppLuaMessages = NULL;
 						}
 						case 18 : 
 						{
-							lua_pushstring( L, t.entityelement[iEntityIndex].eleprof.name_s.Get() );
+							lua_pushstring(L, t.entityelement[iEntityIndex].eleprof.name_s.Get() );
 							return 1;
 						}
-
 					}
 				}
 			}
@@ -2869,8 +2868,7 @@ int GetObjectAngleZ ( lua_State *L )
 	lua_pushnumber ( L, ObjectAngleZ(lua_tonumber(L, 1)) );
 	return 1;
 }
-
-int GetObjectPosAng(lua_State *L)
+int GetObjectPosAng( lua_State *L )
 {
 	int n = lua_gettop( L );
 	if (n < 1) return 0;
@@ -2888,8 +2886,7 @@ int GetObjectPosAng(lua_State *L)
 	lua_pushnumber ( L, pObject->position.vecRotate.z );
 	return 6;
 }
-
-int GetObjectColBox(lua_State *L)
+int GetObjectColBox( lua_State *L )
 {
 	int n = lua_gettop(L);
 	if (n < 1) return 0;
@@ -2907,7 +2904,6 @@ int GetObjectColBox(lua_State *L)
 	lua_pushnumber( L, pObject->collision.vecMax.z );
 	return 6;
 }
-
 int GetObjectCentre( lua_State *L )
 {
 	int n = lua_gettop(L);
@@ -2923,8 +2919,7 @@ int GetObjectCentre( lua_State *L )
 	lua_pushnumber(L, pObject->collision.vecCentre.z);
 	return 3;
 }
-
-int GetObjectScales(lua_State *L)
+int GetObjectScales( lua_State *L )
 {
 	int n = lua_gettop(L);
 	if (n < 1) return 0;
@@ -2939,9 +2934,6 @@ int GetObjectScales(lua_State *L)
 	lua_pushnumber(L, pObject->position.vecScale.z);
 	return 3;
 }
-
-// Physics manipulation
-
 int PushObject( lua_State *L )
 {
 	int n = lua_gettop(L);
@@ -2960,7 +2952,6 @@ int PushObject( lua_State *L )
 	}
 	return 0;
 }
-
 int ConstrainObjMotion( lua_State *L )
 {
 	int n = lua_gettop(L);
@@ -2971,7 +2962,6 @@ int ConstrainObjMotion( lua_State *L )
 	ODEConstrainBodyMotion( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
 	return 0;
 }
-
 int ConstrainObjRotation( lua_State *L )
 {
 	int n = lua_gettop(L);
@@ -2982,7 +2972,6 @@ int ConstrainObjRotation( lua_State *L )
 	ODEConstrainBodyRotation( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
 	return 0;
 }
-
 int CreateSingleHinge( lua_State *L )
 {
 	int n = lua_gettop(L);
@@ -2990,25 +2979,26 @@ int CreateSingleHinge( lua_State *L )
 	int iID = lua_tonumber( L, 1 );
 	if ( !ConfirmObjectInstance(iID) )
 		return 0;
-	ODECreateHingeSingle( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
-		                       lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7) );
-	return 0;
+	int iC = ODECreateHingeSingle( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		                                lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7) );
+	lua_pushnumber( L, iC );
+	return 1;
 }
-
 int CreateDoubleHinge( lua_State *L )
 {
 	int n = lua_gettop( L );
-	if ( n < 10 ) return 0;
+	if ( n < 11 ) return 0;
 	int iIDa = lua_tonumber(L, 1);
 	int iIDb = lua_tonumber(L, 2);
 	if (!ConfirmObjectInstance(iIDa) || !ConfirmObjectInstance(iIDb))
 		return 0;
-	ODECreateHingeDouble( iIDa, iIDb, lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5),
-		                              lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8),
-		                              lua_tonumber(L, 9), lua_tonumber(L, 10) );
-	return 0;
-}
 
+	int iC = ODECreateHingeDouble( iIDa, iIDb, lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5),
+		                                       lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8),
+		                                       lua_tonumber(L, 9), lua_tonumber(L, 10), lua_tonumber(L, 11) );
+	lua_pushnumber( L, iC );
+	return 1;
+}
 int CreateSingleJoint( lua_State *L )
 {
 	int n = lua_gettop( L );
@@ -3016,35 +3006,58 @@ int CreateSingleJoint( lua_State *L )
 	int iID = lua_tonumber( L, 1 );
 	if ( !ConfirmObjectInstance( iID ) )
 		return 0;
-	ODECreateJointSingle( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
-	return 0;
-}
 
+	int iC = ODECreateJointSingle( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	lua_pushnumber( L, iC );
+	return 1;
+}
 int CreateDoubleJoint( lua_State *L )
 {
 	int n = lua_gettop( L );
-	if ( n < 8 ) return 0;
+	if ( n < 9 ) return 0;
 	int iIDa = lua_tonumber( L, 1 );
 	int iIDb = lua_tonumber( L, 2 );
 	if ( !ConfirmObjectInstance( iIDa ) || !ConfirmObjectInstance( iIDb ) )
 		return 0;
-	ODECreateJointDouble( iIDa, iIDb, lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5),
-		                              lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8) );
-	return 0;
-}
 
+	int iC = ODECreateJointDouble( iIDa, iIDb, lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5),
+		                                       lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8),
+		                                       lua_tonumber(L, 9) );
+	lua_pushnumber( L, iC );
+	return 1;
+}
 int RemoveObjectConstraints( lua_State *L )
 {
 	int n = lua_gettop( L );
 	if ( n < 1 ) return 0;
 	int iID = lua_tonumber( L, 1 );
-	if ( !ConfirmObjectInstance(iID) )
+	if ( !ConfirmObjectInstance( iID ) )
 		return 0;
 
 	ODERemoveBodyConstraints( iID );
 	return 0;
 }
+int RemoveConstraint( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iC = lua_tonumber( L, 1 );
 
+	ODERemoveConstraint( iC );
+	return 0;
+}
+int SetObjectDamping( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+
+	ODESetBodyDamping( iID, lua_tonumber( L, 2 ), lua_tonumber( L, 3 ) );
+
+	return 0;
+}
 int PhysicsRayCast( lua_State *L )
 {
 	int n = lua_gettop( L );
@@ -3072,7 +3085,6 @@ int PhysicsRayCast( lua_State *L )
 	lua_pushnumber( L, 0 );
 	return 1;
 }
-
 int GetObjectNumCollisions(lua_State *L)
 {
 	int n = lua_gettop(L);
@@ -3083,7 +3095,6 @@ int GetObjectNumCollisions(lua_State *L)
 	lua_pushnumber(L, ODEGetBodyNumCollisions(iID));
 	return 1;
 }
-
 int GetObjectCollisionDetails( lua_State *L )
 {
 	int n = lua_gettop( L );
@@ -3104,7 +3115,6 @@ int GetObjectCollisionDetails( lua_State *L )
 
 	return 5;
 }
-
 int GetTerrainNumCollisions( lua_State *L )
 {
 	int n = lua_gettop( L );
@@ -3115,7 +3125,6 @@ int GetTerrainNumCollisions( lua_State *L )
 	lua_pushnumber( L, ODEGetTerrainNumCollisions( iID ) );
 	return 1;
 }
-
 int GetTerrainCollisionDetails( lua_State *L )
 {
 	int n = lua_gettop( L );
@@ -3135,7 +3144,6 @@ int GetTerrainCollisionDetails( lua_State *L )
 
 	return 4;
 }
-
 int AddObjectCollisionCheck( lua_State *L )
 {
 	int n = lua_gettop( L );
@@ -3146,7 +3154,6 @@ int AddObjectCollisionCheck( lua_State *L )
 	ODEAddBodyCollisionCheck( iID );
 	return 0;
 }
-
 int RemoveObjectCollisionCheck(lua_State *L)
 {
 	int n = lua_gettop(L);
@@ -3157,7 +3164,6 @@ int RemoveObjectCollisionCheck(lua_State *L)
 	ODERemoveBodyCollisionCheck(iID);
 	return 0;
 }
-
 int RunCharLoop ( lua_State *L )
 {
 	// run character animation system
@@ -4729,7 +4735,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityPosAng", GetEntityPosAng);
 	lua_register(lua, "GetEntityWeight", GetEntityWeight);
 	lua_register(lua, "GetEntityScales", GetEntityScales);
-	lua_register(lua, "GetEntityName",   GetEntityName);
+	lua_register(lua, "GetEntityName", GetEntityName);
 	lua_register(lua, "GetEntityAngleX", GetEntityAngleX);
 	lua_register(lua, "GetEntityAngleY", GetEntityAngleY);
 	lua_register(lua, "GetEntityAngleZ", GetEntityAngleZ);
@@ -4899,10 +4905,10 @@ void addFunctions()
 	lua_register(lua, "GetObjectColBox",  GetObjectColBox );
 	lua_register(lua, "GetObjectCentre",  GetObjectCentre );
 	lua_register(lua, "GetObjectScales",  GetObjectScales );
-	lua_register(lua, "ScaleObject", ScaleObjectXYZ );
+	lua_register(lua, "ScaleObject",   ScaleObjectXYZ );
 
 	// Physics related functions
-	lua_register(lua, "PushObject",    PushObject );
+	lua_register(lua, "PushObject",              PushObject );
 	lua_register(lua, "ConstrainObjMotion",      ConstrainObjMotion );
 	lua_register(lua, "ConstrainObjRotation",    ConstrainObjRotation );
 	lua_register(lua, "CreateSingleHinge",       CreateSingleHinge );
@@ -4910,7 +4916,9 @@ void addFunctions()
 	lua_register(lua, "CreateDoubleHinge",       CreateDoubleHinge );
 	lua_register(lua, "CreateDoubleJoint",       CreateDoubleJoint );
 	lua_register(lua, "RemoveObjectConstraints", RemoveObjectConstraints );
+	lua_register(lua, "RemoveConstraint",        RemoveConstraint );
 	lua_register(lua, "PhysicsRayCast",          PhysicsRayCast );
+	lua_register(lua, "SetObjectDamping",        SetObjectDamping );
 
 	// Collision detection functions 
 	lua_register(lua, "GetObjectNumCollisions",     GetObjectNumCollisions );

@@ -57,11 +57,12 @@ enum collisiontypes {
 float gSc = 40.0f;
 
 // Mass Scaling (to produce a mass value from the volume dimensions of the object)
-float gfVolumeReducer = 100000.0f;
-float gMs = 50.0f;
+// float gfVolumeReducer = 100000.0f; // not used
+const float maxDynamicVolume = 20000.0f;
+const float gMs = 50.0f;
 
 // Capsule default height
-float g_fCapsuleHeight = 45.0f;
+const float g_fCapsuleHeight = 45.0f;
 
 // Global gravity values
 float fCharacterGravity = 900.0f;
@@ -163,7 +164,7 @@ void ODEAddObject ( int iID, sObject* pObject, btRigidBody* body, int iIsDynamic
 		// set physics friction
 		fRealFriction = fFriction/100.0f;
 		body->setFriction ( fRealFriction );
-		body->setDamping ( 0.001f, 0.005f );
+		body->setDamping ( 0.01f, 0.05f );
 
 		// submitted by Frank Boyle (stab in the dark software)
 		if(body->getInvMass() > 0.0)
@@ -711,6 +712,8 @@ float BULLETCosineInterpolate ( float y1, float y2, float mu )
  return ( y1 * ( 1 - mu2 ) + y2 * mu2 );
 }
 
+
+
 void Update ( float fTimeStep )
 {
 	// step physics simulation
@@ -843,6 +846,7 @@ void Update ( float fTimeStep )
 				BULLETAnglesFromMatrix ( &matWorld, &vecRotate );
 				pObject->position.vecRotate = vecRotate;
 				pObject->collision.bColCenterUpdated = true;
+				body->applyDamping( 0.1f );
 			}
 		}
 
@@ -964,6 +968,35 @@ void ODEUpdate ( float fManualStep )
 
 // Creation commands
 
+void GetSizePositionRotation( sObject* pObject, float &fXSize, float &fYSize, float &fZSize,
+	                                            float &fXPos,  float &fYPos,  float &fZPos,
+	                                            float &fXRot,  float &fYRot,  float &fZRot )
+{
+	fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x) * pObject->position.vecScale.x;
+	fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y) * pObject->position.vecScale.y;
+	fZSize = ( pObject->collision.vecMax.z - pObject->collision.vecMin.z) * pObject->position.vecScale.z;
+	fXPos = pObject->position.vecPosition.x;
+	fYPos = pObject->position.vecPosition.y;
+	fZPos = pObject->position.vecPosition.z;
+	fXRot = GGToRadian( pObject->position.vecRotate.x );
+	fYRot = GGToRadian( pObject->position.vecRotate.y );
+	fZRot = GGToRadian( pObject->position.vecRotate.z );
+
+	// adjust for center of object as all physics objects coords are at center
+	// SK: Existing collision.vecColCenter appears buggy and does not correctly report collision centre in all cases	
+	float fXOffset = ( pObject->collision.vecMin.x * pObject->position.vecScale.x ) + ( fXSize / 2.0f );
+	float fYOffset = ( pObject->collision.vecMin.y * pObject->position.vecScale.y ) + ( fYSize / 2.0f );
+	float fZOffset = ( pObject->collision.vecMin.z * pObject->position.vecScale.z ) + ( fZSize / 2.0f );
+	GGVECTOR3 vColOffset = GGVECTOR3( fXOffset, fYOffset, fZOffset );
+	GGMATRIX matRot;
+	GGMatrixRotationX( &matRot, fXRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
+	GGMatrixRotationY( &matRot, fYRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
+	GGMatrixRotationZ( &matRot, fZRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
+	fXPos += vColOffset.x;
+	fYPos += vColOffset.y;
+	fZPos += vColOffset.z;
+}
+
 void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOverMode, float fWeight, float fFriction, float fRestitution,
 				 bool blnManual, float fXIN, float fYIN, float fZIN, float fXSizeIN, float fYSizeIN, float fZSizeIN, float fXAngIN, float fYAngIN, float fZAngIN)
 {
@@ -978,6 +1011,7 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 
 	// obtain sizes, position and rotation
 	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
+
 	if (blnManual)
 	{
 		fXPos = fXIN;
@@ -992,28 +1026,7 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 	}
 	else
 	{
-		fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x ) * pObject->position.vecScale.x;
-		fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y ) * pObject->position.vecScale.y;
-		fZSize = ( pObject->collision.vecMax.z - pObject->collision.vecMin.z ) * pObject->position.vecScale.z;
-		fXPos	 = pObject->position.vecPosition.x;
-		fYPos	 = pObject->position.vecPosition.y;
-		fZPos	 = pObject->position.vecPosition.z;
-		fXRot	 = GGToRadian ( pObject->position.vecRotate.x );
-		fYRot	 = GGToRadian ( pObject->position.vecRotate.y );
-		fZRot	 = GGToRadian ( pObject->position.vecRotate.z );
-
-		// adjust for center of object as all physics objects coords are at center	
-		float fXOffset = (pObject->collision.vecMin.x * pObject->position.vecScale.x) + (fXSize/2.0f);
-		float fYOffset = (pObject->collision.vecMin.y * pObject->position.vecScale.y) + (fYSize/2.0f);
-		float fZOffset = (pObject->collision.vecMin.z * pObject->position.vecScale.z) + (fZSize/2.0f); 
-		GGVECTOR3 vColOffset = GGVECTOR3(fXOffset,fYOffset,fZOffset);
-		GGMATRIX matRot;
-		GGMatrixRotationX(&matRot,fXRot);	GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
-		GGMatrixRotationY(&matRot,fYRot);	GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
-		GGMatrixRotationZ(&matRot,fZRot); GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
-		fXPos += vColOffset.x;
-		fYPos += vColOffset.y;
-		fZPos += vColOffset.z;
+		GetSizePositionRotation( pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
 	}
 	
 	// real object
@@ -1047,8 +1060,8 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 
 	// ensure very small objects are not allowed below this size
 	if ( fXSize < 3 ) fXSize = 3;
-	if ( fYSize < 6 ) fYSize = 6;
-	if ( fZSize < 6 ) fZSize = 6;
+	if ( fYSize < 4 ) fYSize = 4;
+	if ( fZSize < 3 ) fZSize = 3;
 
 	// just before shape creation, reduce scale of size and position
 	fXSize /= gSc;
@@ -1065,7 +1078,7 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 	// modify with weight modifier
 	fVolume *= (fWeight/100.0f);
 
-	// can specify speciaal collision type through iTipOverMode
+	// can specify special collision type through iTipOverMode
 	bool bDoNotMoveAnyOtherObjects = false;
 	if ( iTipOverMode==11 ) { bDoNotMoveAnyOtherObjects=true; iTipOverMode = 0; }
 
@@ -1099,7 +1112,14 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 	g_collisionShapes.push_back(boxShape);
 
 	// mass calculation
-	if ( isDynamic==0 ) fVolume = 0;
+	if (isDynamic == 0)
+	{
+		fVolume = 0;
+	}
+	else
+	{
+		if (fVolume > maxDynamicVolume) fVolume = maxDynamicVolume;
+	}
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);
 	if ( isDynamic==1 ) boxShape->calculateLocalInertia(mass,localInertia);
@@ -1164,26 +1184,26 @@ void EndStaticObject ( int iObjectNumber, int iTerrainCollider )
 	if ( pObject==NULL ) return;
 
 	// obtain sizes, position and rotation
-	float fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x ) * pObject->position.vecScale.x;
-	float fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y ) * pObject->position.vecScale.y;
-	float fZSize = ( pObject->collision.vecMax.z - pObject->collision.vecMin.z ) * pObject->position.vecScale.z;
-	float fXPos	 = pObject->position.vecPosition.x;
-	float fYPos	 = pObject->position.vecPosition.y;
-	float fZPos	 = pObject->position.vecPosition.z;
-	float fXRot	 = GGToRadian ( pObject->position.vecRotate.x );
-	float fYRot	 = GGToRadian ( pObject->position.vecRotate.y );
-	float fZRot	 = GGToRadian ( pObject->position.vecRotate.z );
+	float fXSize = (pObject->collision.vecMax.x - pObject->collision.vecMin.x) * pObject->position.vecScale.x;
+	float fYSize = (pObject->collision.vecMax.y - pObject->collision.vecMin.y) * pObject->position.vecScale.y;
+	float fZSize = (pObject->collision.vecMax.z - pObject->collision.vecMin.z) * pObject->position.vecScale.z;
+	float fXPos = pObject->position.vecPosition.x;
+	float fYPos = pObject->position.vecPosition.y;
+	float fZPos = pObject->position.vecPosition.z;
+	float fXRot = GGToRadian(pObject->position.vecRotate.x);
+	float fYRot = GGToRadian(pObject->position.vecRotate.y);
+	float fZRot = GGToRadian(pObject->position.vecRotate.z);
 
 	// adjust for center of object as all physics objects coords are at center
-	GGVECTOR3 vColOffset = GGVECTOR3(0,0,0);
+	GGVECTOR3 vColOffset = GGVECTOR3(0, 0, 0);
 	GGMATRIX matRot;
-	GGMatrixRotationX(&matRot,fXRot);	GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
-	GGMatrixRotationY(&matRot,fYRot);	GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
-	GGMatrixRotationZ(&matRot,fZRot); GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
+	GGMatrixRotationX(&matRot, fXRot);	GGVec3TransformCoord(&vColOffset, &vColOffset, &matRot);
+	GGMatrixRotationY(&matRot, fYRot);	GGVec3TransformCoord(&vColOffset, &vColOffset, &matRot);
+	GGMatrixRotationZ(&matRot, fZRot); GGVec3TransformCoord(&vColOffset, &vColOffset, &matRot);
 	fXPos += vColOffset.x;
 	fYPos += vColOffset.y;
 	fZPos += vColOffset.z;
-	
+
 	// real object
 	sObject* pRealObject = pObject;
 	if ( pObject->pInstanceOfObject ) pRealObject = pObject->pInstanceOfObject;
@@ -1246,12 +1266,12 @@ void EndStaticObject ( int iObjectNumber, int iTerrainCollider )
 	ODEAddObject ( iObjectNumber, pObject, body, 0, myMotionState, false, bBouyant, NULL, NULL, 1, 1, 100.0f, mass );
 }
 
-void CreateHingeSingle( int iObjectNumber, float fX, float fY, float fZ, int iType, float fAngMin, float fAngMax )
+int CreateHingeSingle( int iObjectNumber, float fX, float fY, float fZ, int iType, float fAngMin, float fAngMax )
 {
 	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
-	if ( pPhyObject == NULL ) return; 
-	if ( pPhyObject->body == NULL ) return;
-	if ( iType <= 0 || iType > 3 ) return;
+	if ( pPhyObject == NULL ) return -1; 
+	if ( pPhyObject->body == NULL ) return -1;
+	if ( iType <= 0 || iType > 3 ) return -1;
 	btVector3 vType;
 	if (iType == 1) vType = btVector3(1, 0, 0);  // hinge on objects X axis
 	if (iType == 2) vType = btVector3(0, 1, 0);  // hinge on objects Y axis
@@ -1266,18 +1286,27 @@ void CreateHingeSingle( int iObjectNumber, float fX, float fY, float fZ, int iTy
 		hingeC->setLimit( btScalar( fAngMin ), btScalar( fAngMax ) );
 	}
 	g_dynamicsWorld->addConstraint( hingeC );
+
+	// need to find constraint inedx and return it to caller (this is really naff!)
+	for (int i = 0; i < g_dynamicsWorld->getNumConstraints(); i++)
+	{
+		btTypedConstraint *tC = g_dynamicsWorld->getConstraint(i);
+		if ( tC == hingeC ) return i;
+	}
+	return -1;
 }
 
-void CreateHingeDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa,
-	                                                      float fXb, float fYb, float fZb, int iTypeA, int iTypeB )
+int CreateHingeDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa,
+	                                                     float fXb, float fYb, float fZb, 
+	                                                     int iTypeA, int iTypeB, int noCollision )
 {
 	sObjectList* pPhyObjectA = ODEFindID( iObjectNumA );
 	sObjectList* pPhyObjectB = ODEFindID( iObjectNumB );
-	if ( pPhyObjectA == NULL || pPhyObjectB == NULL ) return;
-	if ( pPhyObjectA->body == NULL || pPhyObjectB->body == NULL ) return;
+	if ( pPhyObjectA == NULL || pPhyObjectB == NULL ) return -1;
+	if ( pPhyObjectA->body == NULL || pPhyObjectB->body == NULL ) return -1;
 
-	if ( iTypeA <= 0 || iTypeA > 3 ) return;
-	if ( iTypeB <= 0 || iTypeB > 3 ) return;
+	if ( iTypeA <= 0 || iTypeA > 3 ) return -1;
+	if ( iTypeB <= 0 || iTypeB > 3 ) return -1;
 
 	btVector3 vTypeA, vTypeB;
 	if ( iTypeA == 1 ) vTypeA = btVector3( 1, 0, 0 );  // hinge on X axis
@@ -1293,31 +1322,55 @@ void CreateHingeDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, 
 		                                               btVector3( fXb / gSc, fYb / gSc, fZb / gSc ),
 		                                               vTypeA, vTypeB,
 		                                               true );
-	g_dynamicsWorld->addConstraint( hingeC, true );
+	g_dynamicsWorld->addConstraint( hingeC, noCollision == 1 );
+
+	// need to find constraint index and return it to caller
+	for (int i = 0; i < g_dynamicsWorld->getNumConstraints(); i++)
+	{
+		btTypedConstraint *tC = g_dynamicsWorld->getConstraint(i);
+		if ( tC == hingeC ) return i;
+	}
+	return -1;
 }
 
-void CreateJointSingle( int iObjectNumber, float fX, float fY, float fZ )
+int CreateJointSingle( int iObjectNumber, float fX, float fY, float fZ )
 {
 	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
-	if ( pPhyObject == NULL ) return;
-	if ( pPhyObject->body == NULL ) return;
+	if ( pPhyObject == NULL ) return -1;
+	if ( pPhyObject->body == NULL ) return -1;
 	btPoint2PointConstraint *jointC = new btPoint2PointConstraint( *( pPhyObject->body ),
 		                                                           btVector3( fX / gSc, fY / gSc, fZ / gSc ));
-	g_dynamicsWorld->addConstraint( jointC, true );
+	g_dynamicsWorld->addConstraint( jointC );
+
+	// need to find constraint index and return it to caller
+	for (int i = 0; i < g_dynamicsWorld->getNumConstraints(); i++)
+	{
+		btTypedConstraint *tC = g_dynamicsWorld->getConstraint(i);
+		if (tC == jointC) return i;
+	}
+	return -1;
 }
 
-void CreateJointDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, float fXb, float fYb, float fZb )
+int CreateJointDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, float fXb, float fYb, float fZb, int noCollision )
 {
 	sObjectList* pPhyObjectA = ODEFindID( iObjectNumA );
 	sObjectList* pPhyObjectB = ODEFindID( iObjectNumB );
-	if ( pPhyObjectA == NULL || pPhyObjectB == NULL ) return;
-	if ( pPhyObjectA->body == NULL || pPhyObjectB->body == NULL ) return;
+	if ( pPhyObjectA == NULL || pPhyObjectB == NULL ) return -1;
+	if ( pPhyObjectA->body == NULL || pPhyObjectB->body == NULL ) return -1;
 
 	btPoint2PointConstraint *jointC = new btPoint2PointConstraint( *( pPhyObjectA->body ),
 		                                                           *( pPhyObjectB->body ),
 		                                                           btVector3( fXa / gSc, fYa / gSc, fZa / gSc ),
 		                                                           btVector3( fXb / gSc, fYb / gSc, fZb / gSc ) );
-	g_dynamicsWorld->addConstraint( jointC, true );
+	g_dynamicsWorld->addConstraint( jointC, noCollision == 1 );
+
+	// need to find constraint index and return it to caller
+	for (int i = 0; i < g_dynamicsWorld->getNumConstraints(); i++)
+	{
+		btTypedConstraint *tC = g_dynamicsWorld->getConstraint(i);
+		if ( tC == jointC ) return i;
+	}
+	return -1;
 }
 
 void AddStaticObjectBox ( int iObjectNumber , int iStaticBoxObject, int iMaterialRefIndex )
@@ -1326,30 +1379,8 @@ void AddStaticObjectBox ( int iObjectNumber , int iStaticBoxObject, int iMateria
 	sObject* pObject = GetObjectData ( iStaticBoxObject );
 	if ( pObject==NULL ) return;
 
-	// obtain sizes, position and rotation
-	float fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x ) * pObject->position.vecScale.x;
-	float fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y ) * pObject->position.vecScale.y;
-	float fZSize = ( pObject->collision.vecMax.z - pObject->collision.vecMin.z ) * pObject->position.vecScale.z;
-	float fXPos	 = pObject->position.vecPosition.x;
-	float fYPos	 = pObject->position.vecPosition.y;
-	float fZPos	 = pObject->position.vecPosition.z;
-	float fXRot	 = GGToRadian ( pObject->position.vecRotate.x );
-	float fYRot	 = GGToRadian ( pObject->position.vecRotate.y );
-	float fZRot	 = GGToRadian ( pObject->position.vecRotate.z );
-
-	// adjust for center of object as all physics objects coords are at center
-	// SK: Existing collision.vecColCenter appears buggy and does not correctly report collision centre in all cases	
-	float fXOffset = (pObject->collision.vecMin.x * pObject->position.vecScale.x) + (fXSize/2.0f);
-	float fYOffset = (pObject->collision.vecMin.y * pObject->position.vecScale.y) + (fYSize/2.0f);
-	float fZOffset = (pObject->collision.vecMin.z * pObject->position.vecScale.z) + (fZSize/2.0f); 
-	GGVECTOR3 vColOffset = GGVECTOR3(fXOffset,fYOffset,fZOffset);
-	GGMATRIX matRot;
-	GGMatrixRotationX(&matRot,fXRot);	GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
-	GGMatrixRotationY(&matRot,fYRot);	GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
-	GGMatrixRotationZ(&matRot,fZRot); GGVec3TransformCoord ( &vColOffset, &vColOffset, &matRot);
-	fXPos += vColOffset.x;
-	fYPos += vColOffset.y;
-	fZPos += vColOffset.z;
+	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
 	
 	// real object
 	sObject* pRealObject = pObject;
@@ -1405,18 +1436,10 @@ void CreateSphere ( int iObjectNumber, int isDynamic, float fWeight, float fFric
 
 	// obtain sizes, position and rotation
 	float fRadius = pObject->collision.fRadius * pObject->position.vecScale.x;
-	float fXPos	 = pObject->position.vecPosition.x;
-	float fYPos	 = pObject->position.vecPosition.y;
-	float fZPos	 = pObject->position.vecPosition.z;
-	float fXRot	 = GGToRadian ( pObject->position.vecRotate.x );
-	float fYRot	 = GGToRadian ( pObject->position.vecRotate.y );
-	float fZRot	 = GGToRadian ( pObject->position.vecRotate.z );
 
-	// adjust for center of object as all physics objects coords are at center
-	fXPos += pObject->collision.vecColCenter.x;
-	fYPos += pObject->collision.vecColCenter.y;
-	fZPos += pObject->collision.vecColCenter.z;
-
+	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
+	
 	// just before shape creation, reduce scale of size and position
 	fRadius /= gSc;
 	fXPos /= gSc;
@@ -1435,7 +1458,14 @@ void CreateSphere ( int iObjectNumber, int isDynamic, float fWeight, float fFric
 	g_collisionShapes.push_back(colShape);
 
 	// mass/volume calculation
-	if ( isDynamic==0 ) fVolume = 0;
+	if ( isDynamic==0 )
+	{ 
+		fVolume = 0;
+	}
+	else
+	{
+		if (fVolume > maxDynamicVolume) fVolume = maxDynamicVolume;
+	}
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);
 	if ( isDynamic==1 ) colShape->calculateLocalInertia(mass,localInertia);
@@ -1513,7 +1543,14 @@ void CreateCylinder ( int iObjectNumber, int isDynamic, float fXPos, float fYPos
 	g_collisionShapes.push_back(cylinderShape);
 
 	// mass/volume calculation
-	if ( isDynamic==0 ) fVolume = 0;
+	if ( isDynamic==0 ) 
+	{
+		fVolume = 0;
+	}
+	else
+	{
+		if (fVolume > maxDynamicVolume) fVolume = maxDynamicVolume;
+	}
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);
 	if ( isDynamic==1 ) cylinderShape->calculateLocalInertia(mass,localInertia);
@@ -1567,21 +1604,8 @@ void CreateCylinder ( int iObjectNumber, int isDynamic, float fWeight, float fFr
 	if ( pObject==NULL ) return;
 
 	// obtain sizes, position and rotation
-	float fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x ) * pObject->position.vecScale.x;
-	float fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y ) * pObject->position.vecScale.y;
-	float fZSize = ( pObject->collision.vecMax.z - pObject->collision.vecMin.z ) * pObject->position.vecScale.z;
-	float fXPos	 = pObject->position.vecPosition.x;
-	float fYPos	 = pObject->position.vecPosition.y;
-	float fZPos	 = pObject->position.vecPosition.z;
-	float fXRot	 = GGToRadian ( pObject->position.vecRotate.x );
-	float fYRot	 = GGToRadian ( pObject->position.vecRotate.y );
-	float fZRot	 = GGToRadian ( pObject->position.vecRotate.z );
-
-	// adjust for center of object as all physics objects coords are at center
-	// SK: Existing collision.vecColCenter appears buggy and does not correctly report collision centre in all cases
-	fXPos += pObject->collision.vecMin.x * pObject->position.vecScale.x + fXSize/2.0f;
-	fYPos += pObject->collision.vecMin.y * pObject->position.vecScale.y + fYSize/2.0f;
-	fZPos += pObject->collision.vecMin.z * pObject->position.vecScale.z + fZSize/2.0f;
+	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
 
 	CreateCylinder(iObjectNumber, isDynamic, fXPos, fYPos, fZPos, fXSize, fYSize, fZSize, fXRot, fYRot, fZRot, fWeight, fFriction, fRestitution);
 }
@@ -2066,15 +2090,8 @@ void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, flo
 	if ( pObject==NULL ) return;
 
 	// obtain sizes, position and rotation
-	float fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x ) * pObject->position.vecScale.x;
-	float fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y ) * pObject->position.vecScale.y;
-	float fZSize = ( pObject->collision.vecMax.z - pObject->collision.vecMin.z ) * pObject->position.vecScale.z;
-	float fXPos	 = pObject->position.vecPosition.x;
-	float fYPos	 = pObject->position.vecPosition.y;
-	float fZPos	 = pObject->position.vecPosition.z;
-	float fXRot	 = GGToRadian ( pObject->position.vecRotate.x );
-	float fYRot	 = GGToRadian ( pObject->position.vecRotate.y );
-	float fZRot	 = GGToRadian ( pObject->position.vecRotate.z );
+	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
 
 	// just before shape creation, reduce scale of size and position
 	fXSize /= gSc;
@@ -2115,7 +2132,14 @@ void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, flo
 	g_collisionShapes.push_back(capsuleShape);
 
 	// mass/volume calculation
-	if ( isDynamic==0 ) fVolume = 0;
+	if ( isDynamic==0 )
+	{
+		fVolume = 0;
+	}
+	else
+	{
+		if (fVolume > maxDynamicVolume) fVolume = maxDynamicVolume;
+	}
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);
 	if ( isDynamic==1 ) capsuleShape->calculateLocalInertia(mass,localInertia);
@@ -2172,15 +2196,8 @@ void ODECreateDynamicCharacterController ( int iObjectNumber, float fGravity, fl
 	if ( pObject==NULL ) return;
 
 	// obtain sizes, position and rotation
-	float fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x ) * pObject->position.vecScale.x;
-	float fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y ) * pObject->position.vecScale.y;
-	float fZSize = ( pObject->collision.vecMax.z - pObject->collision.vecMin.z ) * pObject->position.vecScale.z;
-	float fXPos	 = pObject->position.vecPosition.x;
-	float fYPos	 = pObject->position.vecPosition.y;
-	float fZPos	 = pObject->position.vecPosition.z;
-	float fXRot	 = GGToRadian ( pObject->position.vecRotate.x );
-	float fYRot	 = GGToRadian ( pObject->position.vecRotate.y );
-	float fZRot	 = GGToRadian ( pObject->position.vecRotate.z );
+	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
 
 	// just before shape creation, reduce scale of size and position
 	fXSize /= gSc;
@@ -2519,22 +2536,23 @@ void ODEAddStaticObjectBox ( int iObjectNumber , int iStaticBoxObject, int iMate
 {
 	AddStaticObjectBox ( iObjectNumber , iStaticBoxObject, iMaterialRefIndex );
 }
-void ODECreateHingeSingle( int iObjectNumber, float fX, float fY, float fZ, int iType, float fAngMin, float fAngMax )
+int ODECreateHingeSingle( int iObjectNumber, float fX, float fY, float fZ, int iType, float fAngMin, float fAngMax )
 {
-	CreateHingeSingle( iObjectNumber, fX, fY, fZ, iType, fAngMin, fAngMax );
+	return CreateHingeSingle( iObjectNumber, fX, fY, fZ, iType, fAngMin, fAngMax );
 }
-void ODECreateHingeDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, 
-	                                                         float fXb, float fYb, float fZb, int iTypeA, int iTypeB )
+int ODECreateHingeDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, 
+	                                                        float fXb, float fYb, float fZb, 
+	                                                        int iTypeA, int iTypeB, int noCollision )
 {
-    CreateHingeDouble( iObjectNumA, iObjectNumB, fXa, fYa, fZa, fXb, fYb, fZb, iTypeA, iTypeB );
+    return CreateHingeDouble( iObjectNumA, iObjectNumB, fXa, fYa, fZa, fXb, fYb, fZb, iTypeA, iTypeB, noCollision );
 }
-void ODECreateJointSingle( int iObjectNumber, float fX, float fY, float fZ )
+int ODECreateJointSingle( int iObjectNumber, float fX, float fY, float fZ )
 {
-	CreateJointSingle( iObjectNumber, fX, fY, fZ );
+	return CreateJointSingle( iObjectNumber, fX, fY, fZ );
 }
-void ODECreateJointDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, float fXb, float fYb, float fZb )
+int ODECreateJointDouble( int iObjectNumA, int iObjectNumB, float fXa, float fYa, float fZa, float fXb, float fYb, float fZb, int noCollision)
 {
-	CreateJointDouble( iObjectNumA, iObjectNumB, fXa, fYa, fZa, fXb, fYb, fZb );
+	return CreateJointDouble( iObjectNumA, iObjectNumB, fXa, fYa, fZa, fXb, fYb, fZb, noCollision );
 }
 void ODEDestroyObject ( int iObjectNumber )
 {
@@ -2867,8 +2885,8 @@ void ODEConstrainBodyMotion( int iObjectNumber, float fX, float fY, float fZ )
 {
 	// get reference object
 	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
-	if ( pPhyObject == NULL ) return;
-	if ( pPhyObject->body == NULL ) return;
+	if (pPhyObject == NULL) return;
+	if (pPhyObject->body == NULL) return;
 
 	pPhyObject->body->activate();
 	pPhyObject->body->setLinearFactor( btVector3( fX, fY, fZ ) );
@@ -2878,29 +2896,35 @@ void ODEConstrainBodyRotation( int iObjectNumber, float fX, float fY, float fZ )
 {
 	// get reference object
 	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
-	if ( pPhyObject == NULL ) return;
-	if ( pPhyObject->body == NULL ) return;
+	if (pPhyObject == NULL) return;
+	if (pPhyObject->body == NULL) return;
 
 	pPhyObject->body->activate();
 	pPhyObject->body->setAngularFactor( btVector3( fX, fY, fZ ) );
 }
 
-void ODERemoveBodyConstraints( int iObjectNumber )
+void ODERemoveBodyConstraints(int iObjectNumber)
 {
 	// get reference object
 	sObjectList* pPhyObject = ODEFindID( iObjectNumber );
-	if ( pPhyObject == NULL ) return;
-	if ( pPhyObject->body == NULL ) return;
+	if (pPhyObject == NULL) return;
+	if (pPhyObject->body == NULL) return;
 
 	for ( int i = 0; i < g_dynamicsWorld->getNumConstraints(); i++ )
-	{
-		btTypedConstraint *tC = g_dynamicsWorld->getConstraint(i);
+	{ 
+		btTypedConstraint *tC = g_dynamicsWorld->getConstraint( i );
 		if ( pPhyObject->body == &( tC->getRigidBodyA() ) ||
 			 pPhyObject->body == &( tC->getRigidBodyB() ) )
 		{
 			g_dynamicsWorld->removeConstraint( tC );
 		}
 	}
+}
+
+void ODERemoveConstraint(int iConstraintId)
+{
+	btTypedConstraint *tC = g_dynamicsWorld->getConstraint( iConstraintId );
+	if ( tC != NULL ) g_dynamicsWorld->removeConstraint( tC );
 }
 
 int ODERayTerrainEx ( float fX, float fY, float fZ, float fToX, float fToY, float fToZ, int iCollisionType )
