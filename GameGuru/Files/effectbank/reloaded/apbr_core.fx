@@ -900,7 +900,7 @@ float3 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, fl
     return output;
 }
 
-float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
+float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 {  
    // clipplane can remove pixels   
    clip(input.clip);
@@ -1326,6 +1326,17 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    return float4(finalColor, litColor.a);
 }
 
+float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
+{
+	float4 final = PSMainCore(input,fullshadowsoreditor); 
+	return final;
+}
+
+float4 PSMainBaked(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
+{
+	float4 final = PSMainCore(input,fullshadowsoreditor); 
+	return final;
+}
 
 DepthStencilState YesDepthRead
 {
@@ -1417,7 +1428,6 @@ technique11 Lowest
     }
 }
 
-
 technique11 LowestWithCutOutDepth
 {
     pass CutOutPass
@@ -1443,7 +1453,7 @@ technique11 Highest_Prebake
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(1)));
+        SetPixelShader(CompileShader(ps_5_0, PSMainBaked(1)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1457,7 +1467,7 @@ technique11 High_Prebake
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(1)));
+        SetPixelShader(CompileShader(ps_5_0, PSMainBaked(1)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1471,7 +1481,7 @@ technique11 Medium_Prebake
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(0)));
+        SetPixelShader(CompileShader(ps_5_0, PSMainBaked(0)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1485,7 +1495,7 @@ technique11 Lowest_Prebake
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(-1)));
+        SetPixelShader(CompileShader(ps_5_0, PSMainBaked(-1)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1507,7 +1517,6 @@ technique11 DepthMap
         #endif
     }
 }
-
 
 technique11 DepthMapNoAnim
 {
