@@ -754,10 +754,12 @@ void visuals_justshaderupdate ( void )
 				SetEffectConstantV (  t.effectid,"HudFogDist",g.terrainvectorindex );
 				SetVector4 (  g.terrainvectorindex,t.visuals.FogR_f/255.0,t.visuals.FogG_f/255.0,t.visuals.FogB_f/255.0,t.visuals.FogA_f/255.0 );
 				SetEffectConstantV (  t.effectid,"HudFogColor",g.terrainvectorindex );
+
 				SetVector4 (  g.terrainvectorindex,t.visuals.AmbienceIntensity_f/255.0,t.visuals.AmbienceIntensity_f/255.0,t.visuals.AmbienceIntensity_f/255.0,t.visuals.AmbienceIntensity_f/255.0 );
 				SetEffectConstantV (  t.effectid,"AmbiColorOverride",g.terrainvectorindex );
 				SetVector4 (  g.terrainvectorindex,t.visuals.AmbienceRed_f/255.0,t.visuals.AmbienceGeen_f/255.0,t.visuals.AmbienceBlue_f/255.0,0 );
 				SetEffectConstantV (  t.effectid,"AmbiColor",g.terrainvectorindex );
+
 				SetVector4 (  g.terrainvectorindex,t.visuals.SurfaceRed_f/255.0,t.visuals.SurfaceGreen_f/255.0,t.visuals.SurfaceBlue_f/255.0, 0.0f );
 				SetEffectConstantV (  t.effectid,"SurfColor",g.terrainvectorindex );
 				SetVector4 (  g.terrainvectorindex,t.terrain.suncolorr_f/255.0,t.terrain.suncolorg_f/255.0,t.terrain.suncolorb_f/255.0,0 );
@@ -773,6 +775,36 @@ void visuals_justshaderupdate ( void )
 				SetEffectConstantF (  t.effectid,"GlobalSurfaceIntensity",t.visuals.SurfaceIntensity_f );
 			}
 		}
+
+		//PE: HUD. did not get any visuals, shader variables.
+		if(GetEffectExist(g.jetpackeffectoffset) )  {
+			t.effectid = g.jetpackeffectoffset;
+			SetEffectConstantF(t.effectid, "ShadowStrength", t.visuals.shadowmode / 100.0);
+			SetVector4(g.terrainvectorindex, t.visuals.FogNearest_f, t.visuals.FogDistance_f, 0, 0);
+			SetEffectConstantV(t.effectid, "HudFogDist", g.terrainvectorindex);
+			SetVector4(g.terrainvectorindex, t.visuals.FogR_f / 255.0, t.visuals.FogG_f / 255.0, t.visuals.FogB_f / 255.0, t.visuals.FogA_f / 255.0);
+			SetEffectConstantV(t.effectid, "HudFogColor", g.terrainvectorindex);
+
+			SetVector4(g.terrainvectorindex, t.visuals.AmbienceIntensity_f / 255.0, t.visuals.AmbienceIntensity_f / 255.0, t.visuals.AmbienceIntensity_f / 255.0, t.visuals.AmbienceIntensity_f / 255.0);
+			SetEffectConstantV(t.effectid, "AmbiColorOverride", g.terrainvectorindex);
+			SetVector4(g.terrainvectorindex, t.visuals.AmbienceRed_f / 255.0, t.visuals.AmbienceGeen_f / 255.0, t.visuals.AmbienceBlue_f / 255.0, 0);
+			SetEffectConstantV(t.effectid, "AmbiColor", g.terrainvectorindex);
+
+			SetVector4(g.terrainvectorindex, t.visuals.SurfaceRed_f / 255.0, t.visuals.SurfaceGreen_f / 255.0, t.visuals.SurfaceBlue_f / 255.0, 0.0f);
+			SetEffectConstantV(t.effectid, "SurfColor", g.terrainvectorindex);
+			SetVector4(g.terrainvectorindex, t.terrain.suncolorr_f / 255.0, t.terrain.suncolorg_f / 255.0, t.terrain.suncolorb_f / 255.0, 0);
+			SetEffectConstantV(t.effectid, "SkyColor", g.terrainvectorindex);
+			SetVector4(g.terrainvectorindex, t.terrain.floorcolorr_f / 255.0, t.terrain.floorcolorg_f / 255.0, t.terrain.floorcolorb_f / 255.0, 0);
+			SetEffectConstantV(t.effectid, "FloorColor", g.terrainvectorindex);
+			SetVector4(g.terrainvectorindex, t.terrain.sundirectionx_f, t.terrain.sundirectiony_f, t.terrain.sundirectionz_f, 0.0);
+			SetEffectConstantV(t.effectid, "LightSource", g.terrainvectorindex);
+			SetVector4(g.terrainvectorindex, 500000, 0, 0, 0);
+			SetEffectConstantV(t.effectid, "EntityEffectControl", g.terrainvectorindex);
+			SetEffectConstantF(t.effectid, "SurfaceSunFactor", t.visuals.SurfaceSunFactor_f);
+			SetEffectConstantF(t.effectid, "GlobalSpecular", t.visuals.Specular_f);
+			SetEffectConstantF(t.effectid, "GlobalSurfaceIntensity", t.visuals.SurfaceIntensity_f);
+		}
+
 
 		//  update lightray shader
 		if (  GetEffectExist(g.postprocesseffectoffset+1) == 1 ) 
