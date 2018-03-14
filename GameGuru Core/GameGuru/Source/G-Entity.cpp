@@ -1972,7 +1972,6 @@ void entity_triggerdecalatimpact ( float fX, float fY, float fZ )
 
 void entity_createattachment ( void )
 {
-
 	//  Single player character must HOLD the weapon before attaching it
 	t.tischaracterholdingweapon=0;
 	if (  t.entityprofile[t.entid].ischaracter == 1 && t.entityelement[t.e].eleprof.hasweapon>0 ) 
@@ -2051,6 +2050,7 @@ void entity_createattachment ( void )
 								SetObjectTransparency (  t.ttobj,1 );
 								SetObjectCollisionOff (  t.ttobj );
 								SetObjectMask (  t.ttobj, 1 );
+								EnableObjectZDepth(t.ttobj); // PE:
 
 								//  VWEAP is NOT part of collision universe (prevents rocket hitting launcher)
 								SetObjectCollisionProperty (  t.ttobj,1 );
@@ -2071,14 +2071,26 @@ void entity_createattachment ( void )
 								{
 									sprintf ( t.szwork , "gamecore\\guns\\%s\\%s_D.dds" , t.tweaponname_s.Get() , t.tvweaptex_s.Get() );
 									t.texuseid=loadinternaltexture(t.szwork);
+									if (t.texuseid == 0) {
+										sprintf(t.szwork, "gamecore\\guns\\%s\\%s_color.dds", t.tweaponname_s.Get(), t.tvweaptex_s.Get());
+										t.texuseid = loadinternaltexture(t.szwork);
+									}
 								}
 								TextureObject (  t.ttobj,0,t.texuseid );
 								TextureObject (  t.ttobj,1,loadinternaltexture("effectbank\\reloaded\\media\\blank_O.dds") );
 								sprintf ( t.szwork , "gamecore\\guns\\%s\\%s_N.dds" ,t.tweaponname_s.Get() , t.tvweaptex_s.Get() );
 								t.texuseid=loadinternaltexture(t.szwork);
+								if (t.texuseid == 0) {
+									sprintf(t.szwork, "gamecore\\guns\\%s\\%s_normal.dds", t.tweaponname_s.Get(), t.tvweaptex_s.Get());
+									t.texuseid = loadinternaltexture(t.szwork);
+								}
 								TextureObject (  t.ttobj,2,t.texuseid );
 								sprintf ( t.szwork ,  "gamecore\\guns\\%s\\%s_S.dds" ,t.tweaponname_s.Get() , t.tvweaptex_s.Get()  );
 								t.texuseid=loadinternaltexture(t.szwork);
+								if (t.texuseid == 0) {
+									t.texuseid = loadinternaltexture("effectbank\\reloaded\\media\\white_D.dds");
+								}			
+
 								TextureObject (  t.ttobj,3,t.texuseid );
 								TextureObject (  t.ttobj,4,t.terrain.imagestartindex );
 								TextureObject (  t.ttobj,5,g.postprocessimageoffset+5 );
@@ -2169,6 +2181,7 @@ void entity_controlattachments ( void )
 				}
 				PositionObject (  t.tobj,t.limbpx_f,t.limbpy_f,t.limbpz_f );
 				ShowObject (  t.tobj );
+				EnableObjectZDepth(t.obj); // PE:
 			}
 		}
 	}
