@@ -2284,6 +2284,12 @@ bool CObjectManager::PreDrawSettings ( void )
 	// Set default FOV from camera (zero does not change camera FOV!)
 	if ( g_pGlob->dwRenderCameraID == 0 )
 	{
+		if ( m_RenderStates.fObjectFOV != 0.0f )
+		{
+			// sometimes, objectfov renderstate is not reset, and needed before we start again
+			SetCameraFOV ( m_RenderStates.fStoreCameraFOV );
+			m_RenderStates.fObjectFOV = 0.0f;
+		}
 		tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( 0 );
 		m_RenderStates.fStoreCameraFOV = m_Camera_Ptr->fFOV;
 		m_RenderStates.fObjectFOV = 0.0f;

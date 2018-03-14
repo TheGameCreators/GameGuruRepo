@@ -1681,20 +1681,26 @@ void entity_hasbulletrayhit(void)
 		}
 		else
 		{
-			//  shorten ray to reflect hit coordinate
+			// shorten ray to reflect hit coordinate
 			t.brayx2_f=ChecklistFValueA(6);
 			t.brayy2_f=ChecklistFValueB(6);
 			t.brayz2_f=ChecklistFValueC(6);
-			//  get limb we hit (for flinch effect when we hit enemy limb)
+
+			// get limb we hit (for flinch effect when we hit enemy limb)
 			t.tlimbhit=ChecklistValueB(1);
 
-			//Check if we hit character creator head and adjust limbhit to the head of the character
+			// return material index and use to trigger decal
+			t.tmaterialvalue=ChecklistValueA(9);
+
+			// check if we hit character creator head and adjust limbhit to the head of the character
 			if ( t.ccLimbHitOverride )
 			{
 				t.tlimbhit = t.ccLimbHitOverrideLimb;
 				t.ccLimbHitOverride = false;
+				t.tmaterialvalue = t.entityprofile[t.tentid].materialindex;
 			}
 
+			// reset and assign detectedlimbhit flag for script
 			if ( t.tfoundentityindexhit != -1 ) 
 			{
 				t.entityelement[t.tfoundentityindexhit].detectedlimbhit = 0;
@@ -1718,8 +1724,6 @@ void entity_hasbulletrayhit(void)
 					}
 				}
 			}
-			//  return material index and use to trigger decal
-			t.tmaterialvalue=ChecklistValueA(9);
 		}
 		if (  t.tmaterialvalue>0  )  t.tttriggerdecalimpact = 10+t.tmaterialvalue;
 	}

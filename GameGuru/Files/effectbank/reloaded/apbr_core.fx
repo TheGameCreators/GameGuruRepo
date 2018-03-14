@@ -842,6 +842,8 @@ float3 CalcSpotFlash( float3 worldNormal, float3 worldPos )
     output += SpotFlashColor.xyz * fAtten * (fSpotFlashPosW) * max(0,dot(worldNormal,lightDir));
     return output;
 }
+
+/*
 float CalcFlashLight( float3 worldPos)
 {
     // flash light system (flash light control carried in SpotFlashColor.w )
@@ -854,6 +856,7 @@ float CalcFlashLight( float3 worldPos)
     float3 lightdir = float3(View._m02,View._m12,View._m22);
     return pow(max(dot(-lightvector, lightdir),0),conewidth) * intensity * SpotFlashColor.w;   
 }
+*/
 
 float3 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap)
 {
@@ -904,6 +907,9 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 {  
    // clipplane can remove pixels   
    clip(input.clip);
+   
+   // inverse of camera view holds true camera position
+   float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
 
    // put input data into attributes structure
    Attributes attributes;
@@ -1053,7 +1059,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    #endif
 
    // eye vector
-   float3 eyeraw = input.cameraPosition - attributes.position;
+   float3 eyeraw = trueCameraPosition - attributes.position;
     
    // apply a detail map when get too close to surface
    #ifdef PBRVEGETATION
@@ -1150,7 +1156,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    gMaterial.Properties.b = 1.0f-rawglossmap.r; //b = roughness
 
    float3 inputnormalW = attributes.normal;
-   float3 toEye = input.cameraPosition - attributes.position;
+   float3 toEye = trueCameraPosition - attributes.position;
    float distToEye = length(toEye);
    toEye /= distToEye;
    float3 refVec = reflect(-toEye, inputnormalW);
@@ -1208,11 +1214,13 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     // flash light system (flash light control carried in SpotFlashColor.w )
     //PE: eyePos ? cameraPosition ? wrong ?
     //PE: float4 eyePos : CameraPosition;
+	//LEE: corrected camera position (now using ViewInv and stored in trueCameraPosition)
     //PE: Looks like when water reflection is active this is set wrong , also ruin PBR light.
 	float4 viewspacePos = mul(float4(attributes.position.xyz,1), View);
     float conewidth = 24;
     float intensity = max(0, 1.5f - (viewspacePos.z/500.0f));
     float3 lightdir = float3(View._m02,View._m12,View._m22);
+	
 #ifndef REFLECTIVEFLASHLIGHT
     float flashlight = pow(max( dot(-eye, lightdir)  ,0),conewidth) * intensity * SpotFlashColor.w * MAXFLASHLIGHT; 
 #else
@@ -1224,7 +1232,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #endif
 
 	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
-	light += (rawdiffusemap.xyz * flashlight);
+	//light += (rawdiffusemap.xyz) * flashlight);
 #ifdef ILLUMINATIONMAP
     light += addillum;
 #endif
@@ -1233,8 +1241,9 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	float3 envFresnel = lerp(0.02f, texColor.rgb, gMaterial.Properties.g);
 
 	// work out contributions
+	float3 flashlightContrib = rawdiffusemap.xyz * flashlight;
 	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity;
-	float3 lightContrib = max(float3(0,0,0),light) * lightIntensity * SurfColor.xyz * visibility;
+	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
 #ifdef PBRTERRAIN
@@ -1247,7 +1256,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #if K_MODEL_PE
 
 	//TODO: add more to glass: - (1.0 -(gMaterial.Diffuse.a * texColor.a))
-    float env_ref_fresnel = pow( max( 1.0-dot( normalize(input.cameraPosition - attributes.position) , inputnormalW), 0.0f) , 2.0 ) * 0.85 + 0.65; //
+    float env_ref_fresnel = pow( max( 1.0-dot( normalize(trueCameraPosition - attributes.position) , inputnormalW), 0.0f) , 2.0 ) * 0.85 + 0.65; //
 	env_ref_fresnel = clamp(env_ref_fresnel+gMaterial.Properties.g,0.0,1.0);
 	reflectiveContrib.rgb = reflectiveContrib.rgb * env_ref_fresnel;
 	

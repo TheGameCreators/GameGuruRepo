@@ -1474,6 +1474,7 @@ GetGamePlayerStateGunBurst: GetGamePlayerStateGunBurst() -- command used by the 
 JoystickHatAngle: JoystickHatAngle() -- command used by the default player control mechanism
 JoystickFireXL: JoystickFireXL() -- command used by the default player control mechanism
 JoystickTwistX: JoystickTwistX() -- command used by the default player control mechanism
+JoystickTwistY: JoystickTwistY() -- command used by the default player control mechanism
 JoystickTwistZ: JoystickTwistZ() -- command used by the default player control mechanism
 SetGamePlayerStatePlrZoomInChange: SetGamePlayerStatePlrZoomInChange() -- command used by the default player control mechanism
 GetGamePlayerStatePlrZoomInChange: GetGamePlayerStatePlrZoomInChange() -- command used by the default player control mechanism
