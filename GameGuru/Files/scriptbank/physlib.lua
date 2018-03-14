@@ -35,9 +35,11 @@ local createHingeS = CreateSingleHinge
 local createHingeD = CreateDoubleHinge
 local createJointS = CreateSingleJoint
 local createJointD = CreateDoubleJoint
+local remObjConsts = RemoveObjectConstraints
 local getObjPosAng = GetObjectPosAng
 local ducked       = GetGamePlayerStatePlayerDucking
 local physRayCast  = PhysicsRayCast
+local setDamping   = SetObjectDamping
 
 -- include these for debugging
 local Prompt  = Prompt
@@ -80,6 +82,9 @@ end
 -- l = length ('z' dimension of collision box) --
 -- m = physics mass of object                  --
 -- cx, cy, cz = offsets of origin from centre  --
+-- (unscaled for repositioning)                --
+-- cxs, cys, czs = offsets from centre scaled  --
+-- (use for calculating physics shape position --
 -------------------------------------------------
 function P.GetObjectDimensions( obj )
 	if not objExists( obj ) then return end
@@ -92,7 +97,7 @@ function P.GetObjectDimensions( obj )
 	-- now work out width, height, length and mass
 	local w, h, l = (xmax - xmin) * sx, (ymax - ymin) * sy, (zmax - zmin) * sz
 	
-	-- and offsets from centre
+	-- and get offsets from centre (note these are not scaled)
 	local cx, cy, cz = getCentre( obj )
 	
 	-- get entity 'weight' (actually a mass modifier value!)
@@ -101,9 +106,11 @@ function P.GetObjectDimensions( obj )
 	return { w = w, h = h, l = l, 
 			 -- mass calculation based on GG internal calculation
 			 -- if Physics re-write changes that then this will need 
-			 -- to be altered to match
+			 -- to be altered to match (assumes collision box)
+			 -- (note: actual mass capped at 400)
 			 m = ( w * h * l ) / 50 * massmod,
-			 cx = cx * sx, cy = cy * sy, cz = cz * sz }		
+			 cx = cx, cy = cy, cz = cz,
+			 cxs = cx * sx, cys = cy * sy, czs = cz * sz }		
 end
 
 ----------------------------------------------------------
@@ -264,7 +271,6 @@ local function getHingeValues( dims, hingeName, spacing )
  		   ( dims.l + spacing.l ) * hv.l, hv.t
 end
 
-
 local function getRealWorldYangle( xa, ya, za )  -- Euler in degrees, returns radians 
 	-- Tricky to explain but basically g_PlayerAngY is the real-world
 	-- angle, i.e. 0-359 degrees, whereas the Euler angle for an entity
@@ -277,6 +283,7 @@ local function getRealWorldYangle( xa, ya, za )  -- Euler in degrees, returns ra
 	-- now work out the angle from the x and z components of the result
 	return atan( xv, zv )
 end	
+
 ----------------------------------------------------------
 -- Function to add a named hinge to an object           --
 -- e.g. P.AddSingleHinge( Ent.obj, "LeftCentre" )       --
@@ -286,6 +293,9 @@ end
 -- offset is the % offset of the start point of the     --
 -- swing, default is to start in the centre (swing door --
 -- style)                                               --
+-- returns -1 if joint cannot be created                --
+-- otherwise returns the index of the constraint        --
+-- (note C++ value so counts from 0!                    --
 ----------------------------------------------------------
 function P.AddObjectSingleHinge( obj, hingeName, swingAng, offset, spacing )
 	swingAng = swingAng or 180  -- default to swing door style
@@ -317,7 +327,11 @@ function P.AddObjectSingleHinge( obj, hingeName, swingAng, offset, spacing )
 			maxAng = -( midAng - swingAng * ( 1 - offset / 100 ) )
 		end
 
-		createHingeS( obj, x, y, z, hingeType, rad( minAng ), rad( maxAng ) )
+		-- TBD work out what angles mean for X,Z axis rotations!
+		-- (currently the 0 defaults will mean that no angular values will
+		--  be set in the engine for this hinge )
+		
+		return createHingeS( obj, x, y, z, hingeType, rad( minAng ), rad( maxAng ) )
 	end
 end
 
@@ -325,19 +339,26 @@ end
 -- Function to add a named hinge to an entity           --
 -- e.g. P.AddObjectSingleHinge( e, "LeftCentre" )       --
 -- would probably be good for a standard door hinge.    --
+-- returns -1 if joint cannot be created                --
+-- otherwise returns the index of the constraint        --
+-- (note C++ value so counts from 0!                    --
 ----------------------------------------------------------
-function P.AddEntitySingleHinge( e, hingeName, swingAng, offset)
+function P.AddEntitySingleHinge( e, hingeName, swingAng, offset )
 	if e == nil then return end
-	AddObjectSingleHinge( gEnt[ e ].obj, hingeName, swingAng, offset )
+	return AddObjectSingleHinge( gEnt[ e ].obj, hingeName, swingAng, offset )
 end
 
 ----------------------------------------------------------
 -- Function to add a named hinge connecting two objects --
 -- e.g. P.AddObjectDoubleHinge( A, B, hingeA, hingeB )  --
+-- returns -1 if joint cannot be created                --
+-- otherwise returns the index of the constraint        --
+-- (note C++ value so counts from 0!                    --
 ----------------------------------------------------------
-function P.AddObjectDoubleHinge( objA, objB, hingeNameA, hingeNameB, spacing )
+function P.AddObjectDoubleHinge( objA, objB, hingeNameA, hingeNameB, spacing, noCols )
 	if objA == nil or not objExists( objA ) then return end
 	if objB == nil or not objExists( objB ) then return end
+	coCols = noCols or 0
 	
 	local dimsA = GetObjectDimensions( objA )
 	local dimsB = GetObjectDimensions( objB )
@@ -348,19 +369,126 @@ function P.AddObjectDoubleHinge( objA, objB, hingeNameA, hingeNameB, spacing )
 		local xb, yb, zb, hingeTypeB = getHingeValues( dimsB, hingeNameB, spacing )
 		if xb == nil then return end
 		
-		createHingeD( objA, objB, xa, ya, za, xb, yb, zb, hingeTypeA, hingeTypeB )
+		return createHingeD( objA, objB, xa, ya, za, xb, yb, zb, hingeTypeA, hingeTypeB, noCols )
 	end
 end
 	
 ----------------------------------------------------------
 -- Function to add a named hinge connecting 2 entities  --
+-- returns -1 if joint cannot be created                --
+-- otherwise returns the index of the constraint        --
+-- (note C++ value so counts from 0!                    --
 ----------------------------------------------------------
-function P.AddEntityDoubleHinge( e1, e2, hingeName1, hingeName2, spacing )
+function P.AddEntityDoubleHinge( e1, e2, hingeName1, hingeName2, spacing, noCols )
 	if e1 == nil or e2 == nil then return end
 	
-	AddObjectDoubleHinge( gEnt[ e1 ].obj, gEnt[ e2 ].obj, hingeName1, hingeName2, spacing )
+	return AddObjectDoubleHinge( gEnt[ e1 ].obj, gEnt[ e2 ].obj, 
+	                             hingeName1, hingeName2, spacing, noCols )
 end
 
+----------------------------------------------------------
+-- Function to add a named joint to an object           --
+-- e.g. P.AddObjectSingleJoint( Ent.obj, "TopCentreW" ) --                                            --
+-- returns -1 if joint cannot be created                --
+-- otherwise returns the index of the constraint        --
+-- (note C++ value so counts from 0!)                   --
+----------------------------------------------------------
+function P.AddObjectSingleJoint( obj, jointName, spacing )
+	
+	if obj == nil or not objExists( obj ) then return end
+	
+	local dims = GetObjectDimensions( obj )
+	
+	if dims ~= nil then
+		local x, y, z = getHingeValues( dims, jointName, spacing )
+		
+		if x == nil then return end
+
+		return createJointS( obj, x, y, z )
+	end
+end
+----------------------------------------------------------
+-- Function to add a named joint to an entity           --
+-- e.g. P.AddObjectSingleJoint( e, "TopCentreW" )       --
+-- returns -1 if joint cannot be created                --
+-- otherwise returns the index of the constraint        --
+-- (note C++ value so counts from 0!                    --
+----------------------------------------------------------
+function P.AddEntitySingleJoint( e, jointName, spacing )
+	if e == nil then return end
+	return AddObjectSingleJoint( gEnt[ e ].obj, jointName, spacing )
+end
+
+----------------------------------------------------------
+-- Function to add a named joint connecting two objects --
+-- e.g. P.AddObjectDoubleJoint( A, B, jointA, jointB )  --
+-- returns nil if either object doesn't exist           --
+-- returns -1 if joint cannot be created                --
+-- otherwise returns the index of the constraint        --
+-- (note C++ value so counts from 0!                    --
+----------------------------------------------------------
+function P.AddObjectDoubleJoint( objA, objB, jointNameA, jointNameB, spacing, noCols )
+	if objA == nil or not objExists( objA ) then return end
+	if objB == nil or not objExists( objB ) then return end
+	coCols = noCols or 0
+	
+	local dimsA = GetObjectDimensions( objA )
+	local dimsB = GetObjectDimensions( objB )
+	
+	if dimsA ~= nil and dimsB ~= nil then
+		local xa, ya, za = getHingeValues( dimsA, jointNameA, spacing )
+		if xa == nil then return end
+		local xb, yb, zb = getHingeValues( dimsB, jointNameB, spacing )
+		if xb == nil then return end
+		
+		return createJointD( objA, objB, xa, ya, za, xb, yb, zb, noCols )
+	end
+end
+	
+----------------------------------------------------------
+-- Function to add a named Joint connecting 2 entities  --
+-- returns -1 if joint cannot be created                --
+-- otherwise returns the index of the constraint        --
+-- (note C++ value so counts from 0!                    --
+----------------------------------------------------------
+function P.AddEntityDoubleJoint( e1, e2, jointNameA, jointNameB, spacing, noCols )
+	if e1 == nil or e2 == nil then return end
+	
+	return AddObjectDoubleJoint( gEnt[ e1 ].obj, gEnt[ e2 ].obj, 
+	                             jointNameA, jointNameB, spacing, noCols )
+end
+
+---------------------------------------------
+-- Function to remove all constraints from --
+-- an entity                               --
+---------------------------------------------
+function P.RemoveEntityConstraints( e )
+	if e == nil then return end
+	
+	remObjConsts( gEnt[ e ].obj )
+end
+
+---------------------------------------------
+-- Function to remove all constraints from --
+-- an entity if dead ( health <= 0 )       --
+---------------------------------------------
+function P.RemoveEntityConstraintsIfDead( e )
+	if e == nil then return end
+	
+	if gEnt[ e ].health <= 0 then
+		remObjConsts( gEnt[ e ].obj )
+	end
+end
+
+---------------------------------------------
+-- Function to set entity damping factors --
+---------------------------------------------
+function P.SetEntityDamping( e, damping, angle )
+	if e == nil then return end
+
+	setDamping( gEnt[ e ].obj, damping, angle )
+end
+	
 --------------------------------------------------
 -- Function to return Physics Object in players --
 -- eye-line, differs from utillib version in    --
@@ -370,7 +498,7 @@ end
 --      dist : (optional) length of ray in game --
 --                        units                 --
 --      force : (optional) force to apply to    --
---              object                          --
+--              object hit                      --
 -- returns object id or 0 if none found         --
 -- if found also returns coordinates of ray     --
 -- 'hit' point                                  --                         
