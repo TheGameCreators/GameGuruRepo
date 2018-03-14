@@ -2307,6 +2307,8 @@ void entity_loadtexturesandeffect ( void )
 				char pNoExtFilename[1024];
 				strcpy ( pNoExtFilename, t.texdir_s.Get() );
 				pNoExtFilename[strlen(pNoExtFilename)-4] = 0;
+				//PE: Some textures do not have _d,_color,_albedo , so always reset.
+				t.texdirnoext_s = "";
 				if ( strnicmp ( pNoExtFilename+strlen(pNoExtFilename)-2, "_d", 2 ) == NULL )
 				{
 					t.texdirnoext_s=Left(pNoExtFilename,Len(pNoExtFilename)-Len("_d"));
