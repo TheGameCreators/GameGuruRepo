@@ -1263,8 +1263,18 @@ void game_preparelevel_forplayer ( void )
 void game_setup_character_shader_entities ( bool bMode )
 {
 	//store the ID's of entity and character shaders
-	t.entityBasicShaderID=loadinternaleffectunique("effectbank\\reloaded\\character_static.fx",1);
+	t.entityBasicShaderID=loadinternaleffectunique("effectbank\\reloaded\\character_static.fx", 1); //PE: old effect never deleted. why ?
+	//t.entityBasicShaderID = loadinternaleffect("effectbank\\reloaded\\character_static.fx"); //PE: Need to test this more. why would it need to be unique ?.
 	t.characterBasicShaderID=loadinternaleffect("effectbank\\reloaded\\character_basic.fx");
+
+
+	//PE: Bug. reset effect clip , so visible.
+	t.tnothing = MakeVector4(g.characterkitvector);
+	SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+	SetEffectConstantV(t.entityBasicShaderID, "EntityEffectControl", g.characterkitvector);
+	SetEffectConstantV(t.characterBasicShaderID, "EntityEffectControl", g.characterkitvector);
+	t.tnothing = DeleteVector4(g.characterkitvector);
+
 
 	t.characterBasicEntityList.clear();
 	t.characterBasicEntityListIsSetToCharacter.clear();
@@ -1273,12 +1283,31 @@ void game_setup_character_shader_entities ( bool bMode )
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
+		t.entobj = g.entitybankoffset + t.entid;
 		if ( t.entid > 0 )
 		{
 			// Dont add CPUANIMS=1 characters
 			if ( t.entityprofile[t.entid].cpuanims==0 )
 			{
 				// Dont add cc characters to this
+
+				//PE: need apbr_basic.fx , apbr_anim.fx
+				//PE: pbr restored later so...
+				if (strcmp(Lower(Right(t.entityprofile[t.entid].effect_s.Get(), 13)), "apbr_basic.fx") == 0 && t.entityprofile[t.entid].ischaracter == 1 && t.entityprofile[t.entid].ischaractercreator == 0)
+				{
+					t.characterBasicEntityList.push_back(t.e);
+					if (t.entityelement[t.e].active == 1)
+						t.characterBasicEntityListIsSetToCharacter.push_back(true);
+					else
+						t.characterBasicEntityListIsSetToCharacter.push_back(false);
+
+					// set the bank object to freeze also for when they switch to instances
+					if (bMode)
+						SetObjectEffect(g.entitybankoffset + t.entityelement[t.e].bankindex, t.entityBasicShaderID);
+					else
+						SetObjectEffect(g.entitybankoffset + t.entityelement[t.e].bankindex, t.characterBasicShaderID);
+					SetObjectEffect(t.entityelement[t.e].obj, t.characterBasicShaderID);
+				}
 				if ( strcmp ( Lower(Right(t.entityprofile[t.entid].effect_s.Get(),18)) , "character_basic.fx" ) == 0 && t.entityprofile[t.entid].ischaracter == 1 && t.entityprofile[t.entid].ischaractercreator == 0 )
 				{
 					t.characterBasicEntityList.push_back(t.e);
