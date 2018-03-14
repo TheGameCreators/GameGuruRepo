@@ -194,6 +194,12 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
       output.binormal = normalize(cross(output.normal, output.tangent)); 
     #else
      output.uv = float2(ScrollScaleUV.x+(input.uv.x*ScrollScaleUV.z),ScrollScaleUV.y+(input.uv.y*ScrollScaleUV.w));
+     
+     //PE: tangent has problems, calculate.
+     if ( abs(inputNormal.y) > 0.999 ) inputTangent = float3( inputNormal.y,0.0,0.0 );
+     else inputTangent = normalize( float3(-inputNormal.z, 0.0, inputNormal.x) );
+     inputBinormal = normalize( float3(inputNormal.y*inputTangent.z, inputNormal.z*inputTangent.x-inputNormal.x*inputTangent.z, -inputNormal.y*inputTangent.x) );
+
      output.tangent = mul(inputTangent, wsTransform);
      output.binormal = mul(inputBinormal, wsTransform);
     #endif
@@ -1306,6 +1312,7 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    // final render pixel or show PBR debug layer views
    if ( ShaderVariables.x > 0 )
    {
+
       if ( ShaderVariables.x == 1 ) { finalColor = rawdiffusemap.rgb; }
       if ( ShaderVariables.x == 2 ) { finalColor = attributes.normal; }
       if ( ShaderVariables.x == 3 ) { finalColor = rawmetalmap; }
