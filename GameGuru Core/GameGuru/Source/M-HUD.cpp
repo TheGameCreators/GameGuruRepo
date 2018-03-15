@@ -73,8 +73,16 @@ void hud_scanforhudlayers ( void )
 				if ( GetEffectExist(g.jetpackeffectoffset) == 0 ) 
 				{
 					t.playercontrol.jetpackeffect=g.jetpackeffectoffset;
+					//character_basic.fx
 					LoadEffect ( "effectbank\\reloaded\\weapon_bone.fx", t.playercontrol.jetpackeffect, 0 );
 					SetEffectTechnique ( t.playercontrol.jetpackeffect, "Highest" );
+
+					//PE: HUD is getting clipped.
+					t.tnothing = MakeVector4(g.characterkitvector);
+					SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+					SetEffectConstantV(t.playercontrol.jetpackeffect, "EntityEffectControl", g.characterkitvector);
+					t.tnothing = DeleteVector4(g.characterkitvector);
+
 					if ( g_jetpackboneshadereffectindex == 0 ) g_jetpackboneshadereffectindex = t.playercontrol.jetpackeffect;
 				}
 				if ( ObjectExist(t.hudlayersbankoffsetindex) == 0 ) 
@@ -88,8 +96,14 @@ void hud_scanforhudlayers ( void )
 						LoadImage ( t.strwork.Get() ,t.hudlayersimageoffsetindex+0 );
 						t.strwork = ""; t.strwork = t.strwork + "gamecore\\hudlayers\\"+t.entityprofile[t.entid].ishudlayer_s+"_N.dds";
 						LoadImage ( t.strwork.Get() ,t.hudlayersimageoffsetindex+1 );
-						t.strwork = ""; t.strwork = t.strwork + "gamecore\\hudlayers\\"+t.entityprofile[t.entid].ishudlayer_s+"_S.dds";
+
+						//PE: _S look wrong using PBR.
+						//t.strwork = ""; t.strwork = t.strwork + "gamecore\\hudlayers\\"+t.entityprofile[t.entid].ishudlayer_s+"_S.dds";
+						//PE: Use material 0.
+						t.strwork = "effectbank\\reloaded\\media\\materials\\0_Metalness.dds";
 						LoadImage ( t.strwork.Get() ,t.hudlayersimageoffsetindex+2 );
+						int gloosstex = loadinternaltextureex("effectbank\\reloaded\\media\\materials\\0_Gloss.dds", 1, t.tfullorhalfdivide);
+
 						//t.strwork = ""; t.strwork = t.strwork + "gamecore\\hudlayers\\"+t.entityprofile[t.entid].ishudlayer_s+"_cube.dds";
 						//LoadImage ( t.strwork.Get() ,t.hudlayersimageoffsetindex+3 );
 						t.strwork = ""; t.strwork = t.strwork + "effectbank\\reloaded\\media\\white_D.dds";
@@ -98,8 +112,8 @@ void hud_scanforhudlayers ( void )
 						TextureObject ( t.hudlayersbankoffsetindex, 0, t.hudlayersimageoffsetindex+0 );
 						TextureObject ( t.hudlayersbankoffsetindex, 1, t.hudlayersimageoffsetindex+3 );
 						TextureObject ( t.hudlayersbankoffsetindex, 2, t.hudlayersimageoffsetindex+1 );
-						TextureObject ( t.hudlayersbankoffsetindex, 3, t.hudlayersimageoffsetindex+2 );
-						TextureObject ( t.hudlayersbankoffsetindex, 4, t.hudlayersimageoffsetindex+2 );
+						TextureObject ( t.hudlayersbankoffsetindex, 3, t.hudlayersimageoffsetindex+2 ); // Metal
+						TextureObject ( t.hudlayersbankoffsetindex, 4, gloosstex); // Gloss
 						TextureObject ( t.hudlayersbankoffsetindex, 5, t.hudlayersimageoffsetindex+3 );
 						int iPBRCubeImg = t.terrain.imagestartindex+31;
 						TextureObject ( t.hudlayersbankoffsetindex, 6, iPBRCubeImg );
@@ -127,6 +141,9 @@ void hud_scanforhudlayers ( void )
 						YRotateObject (  t.hudlayersbankoffsetindex,180 );
 						FixObjectPivot (  t.hudlayersbankoffsetindex );
 						SetObjectMask (  t.hudlayersbankoffsetindex, 1 );
+						//PE: Should be set so camera near dont clip hud.
+						DisableObjectZDepth(t.hudlayersbankoffsetindex);
+
 						//if (  g.globals.riftmode == 0 ) 
 						//{
 						//	DisableObjectZDepth (  t.hudlayersbankoffsetindex );

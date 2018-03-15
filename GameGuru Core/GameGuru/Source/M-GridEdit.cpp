@@ -1934,6 +1934,12 @@ void editor_previewmapormultiplayer ( void )
 					PositionObject (  t.obj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );
 					RotateObject (  t.obj,t.entityelement[t.e].rx,t.entityelement[t.e].ry,t.entityelement[t.e].rz );
 					ShowObject (  t.obj );
+
+					//PE: Still problems with bNewZLayerObject , this will hide clip objects.
+					//PE: Not sure what changed from DX9 version to DX11 with bNewZLayerObject , you remember Lee ?
+					//PE: Anyway we need pObject->bNewZLayerObject = false;
+
+					EnableObjectZDepth(t.obj);
 				}
 				if (  t.entityprofile[t.entid].addhandlelimb>0 ) 
 				{
@@ -2034,6 +2040,11 @@ void editor_previewmapormultiplayer ( void )
 	g.projectmodified = t.storeprojectmodified ; if ( g.projectmodified == 1 ) gridedit_changemodifiedflag ( );
 	g.projectmodifiedstatic = tstoreprojectmodifiedstatic; 
 	t.tignoreinvalidateobstacles=0;
+
+	//PE: Something is clipping objects when returning to editor.
+	editor_loadcfg();
+	editor_refreshcamerarange();
+
 }
 
 void editor_multiplayermode ( void )

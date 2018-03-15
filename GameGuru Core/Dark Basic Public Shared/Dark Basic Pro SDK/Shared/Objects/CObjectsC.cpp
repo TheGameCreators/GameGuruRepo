@@ -211,12 +211,16 @@ void* GetObjectsInternalData ( int iID )
 
 DARKSDK_DLL void ConvertToFVF ( sMesh* pMesh, DWORD dwFVF )
 {
-	// when mesh changes FVF, really need to erase old orig data
-	// simply because it will attempt to 'copy' when asked to reset, and it will copy the wrong FVF pattern
-	SAFE_DELETE_ARRAY ( pMesh->pOriginalVertexData );
+	//PE: Only if we are actually going to change FVF.
+	if (pMesh->dwFVF != dwFVF)
+	{
+		// when mesh changes FVF, really need to erase old orig data
+		// simply because it will attempt to 'copy' when asked to reset, and it will copy the wrong FVF pattern
+		SAFE_DELETE_ARRAY(pMesh->pOriginalVertexData);
 
-	// Use main FVF converter function
-	ConvertLocalMeshToFVF ( pMesh, dwFVF );
+		// Use main FVF converter function
+		ConvertLocalMeshToFVF(pMesh, dwFVF);
+	}
 }
 
 DARKSDK_DLL void SmoothNormals ( sMesh* pMesh, float fPercentage )

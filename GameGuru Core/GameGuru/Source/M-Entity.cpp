@@ -172,6 +172,233 @@ void entity_validatearraysize ( void )
 	}
 }
 
+
+//PE: GenerateD3D9ForMesh - make sure semantic is stored in old D3D9 format.
+//PE: Without get fvf offset can fail , and original skin weight is not used but generated , this can give animation problems.
+//PE: This is not a problem when using the importer, as it will save everything in the old D3D9 format into the dbo.
+void GenerateD3D9ForMesh(sMesh* pMesh, BOOL bNormals, BOOL bTangents, BOOL bBinormals, BOOL bDiffuse, BOOL bBones)
+{
+	// get FVF details
+	sOffsetMap offsetMap;
+	GetFVFValueOffsetMap(pMesh->dwFVF, &offsetMap);
+
+	// deactivate bone flag if no bones in source mesh
+	if (pMesh->dwBoneCount == 0) bBones = FALSE;
+
+	// valid mesh (no longer using DXMESH)
+	if (pMesh->dwFVF > 0)
+	{
+		// extract vertex size from mesh
+		WORD wNumBytesPerVertex = (WORD)pMesh->dwFVFSize;
+
+		// Starting declaration
+		int iDeclarationIndex = 0;
+		D3D11_INPUT_ELEMENT_DESC pDeclaration[12];
+
+		// check if mesh already has a component (and build declaration)
+		BOOL bHasNormals = FALSE;
+		BOOL bHasDiffuse = FALSE;
+		BOOL bHasTangents = FALSE;
+		BOOL bHasBinormals = FALSE;
+		BOOL bHasBlendWeights = FALSE;
+		BOOL bHasBlendIndices = FALSE;
+		BOOL bHasSecondaryUVs = FALSE;
+		if (pMesh->dwFVF & GGFVF_XYZ)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "POSITION";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = 0;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+		}
+		if (pMesh->dwFVF & GGFVF_NORMAL)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "NORMAL";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			bHasNormals = TRUE;
+		}
+		if (pMesh->dwFVF & GGFVF_TEX1)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			bHasDiffuse = TRUE;
+		}
+		if (pMesh->dwFVF & GGFVF_DIFFUSE)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "COLOR";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			bHasDiffuse = TRUE;
+		}
+		if (pMesh->dwFVF & offsetMap.dwTU[1] > 0)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 1;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			bHasSecondaryUVs = TRUE;
+		}
+
+		if (!bHasNormals && bNormals)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "NORMAL";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 12;
+		}
+		if (!bHasDiffuse && bDiffuse)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "COLOR";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 4;
+		}
+		if (!bHasTangents && bTangents)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TANGENT";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 12;
+		}
+		if (!bHasBinormals && bBinormals)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "BINORMAL";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 12;
+		}
+		DWORD dwOffsetToWeights = wNumBytesPerVertex;
+		if (!bHasBlendWeights && bBones)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 1;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 16;
+		}
+		DWORD dwOffsetToIndices = wNumBytesPerVertex;
+		if (!bHasBlendIndices && bBones)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 2;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 16;
+		}
+
+		// copy declaration into old D3D9 format (as DBO relies on this data in the binary!)
+		int iDecIndex = 0;
+		int iByteOffset = 0;
+		for (; iDecIndex < iDeclarationIndex; iDecIndex++)
+		{
+			int iEntryByteSize = 0;
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "POSITION") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_POSITION;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT3;
+				iEntryByteSize = 12;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "NORMAL") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_NORMAL;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT3;
+				iEntryByteSize = 12;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "COLOR") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_COLOR;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT2;
+				iEntryByteSize = 4;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "TANGENT") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_TANGENT;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT3;
+				iEntryByteSize = 12;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "BINORMAL") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_BINORMAL;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT3;
+				iEntryByteSize = 12;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "TEXCOORD") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_TEXCOORD;
+				if (pDeclaration[iDecIndex].Format == DXGI_FORMAT_R32G32B32A32_FLOAT)
+				{
+					pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT4;
+					iEntryByteSize = 16;
+				}
+				else
+				{
+					pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT2;
+					iEntryByteSize = 8;
+				}
+			}
+			pMesh->pVertexDeclaration[iDecIndex].Stream = 0;
+			pMesh->pVertexDeclaration[iDecIndex].Method = GGDECLMETHOD_DEFAULT;
+			pMesh->pVertexDeclaration[iDecIndex].UsageIndex = pDeclaration[iDecIndex].SemanticIndex;
+			pMesh->pVertexDeclaration[iDecIndex].Offset = iByteOffset;
+			iByteOffset += iEntryByteSize;
+		}
+		pMesh->pVertexDeclaration[iDecIndex].Stream = 255;
+	}
+}
+
+
 void entity_load ( void )
 {
 	//  Activate auto generation of mipmaps for ALL entities
@@ -345,8 +572,11 @@ void entity_load ( void )
 				if (  Len(t.tdbofile_s.Get())>1 ) 
 				{
 					// ensure legacy compatibility (avoids new mapedito crashing build process)
+
 					if ( FileExist(t.tdbofile_s.Get()) == 1 )  DeleteFile ( t.tdbofile_s.Get() );
+
 					SaveObject ( t.tdbofile_s.Get(), t.entobj );
+
 					if (  FileExist(t.tdbofile_s.Get()) == 1 ) 
 					{
 						DeleteObject (  t.entobj );
@@ -355,7 +585,8 @@ void entity_load ( void )
 						SetObjectCollisionOff (  t.entobj );
 					}
 				}
-				
+
+		
 				// 300817 - if an EBE object with no .EBE file, remove handle from entity
 				if ( t.entityprofile[t.entid].isebe == 2 )
 					if ( ObjectExist ( t.entobj ) == 1 )
@@ -368,8 +599,33 @@ void entity_load ( void )
 				//  XYZ=0x002 and NORMAL=0x010 and 1UV=0x100
 				if (  t.entityprofile[t.entid].skipfvfconvert == 0 ) 
 				{
-					//  lee - 300714 - seems to screw up Zombie models somehow, does it screw up rest of engine commenting it out?
-					CloneMeshToNewFormat (  t.entobj,0x002+0x010+0x100 );
+					// lee - 300714 - seems to screw up Zombie models somehow, does it screw up rest of engine commenting it out?
+					// PE: zombie problems could be the missing skin weight like below, did not test this.
+					// PE: perhaps we can streamline this now , so skipfvfconvert is not needed :)
+
+					CloneMeshToNewFormat(t.entobj, 0x002 + 0x010 + 0x100);
+				}
+				else {
+					//PE: make sure we use the correct FVF. even when using skipfvfconvert=1
+					DWORD dwRequiredFVF = 0x002 + 0x010 + 0x100;
+					sObject* pObject = g_ObjectList[t.entobj];
+					for (int iMeshIndex = 0; iMeshIndex<pObject->iMeshCount; iMeshIndex++)
+					{
+						sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+						if (pMesh->dwFVF != dwRequiredFVF)
+						{
+							ConvertToFVF(pMesh, dwRequiredFVF);
+						}
+					}
+				}
+
+				//PE: We are missing skin weight/others in old DX9 DBO setup. needed for some functions.
+				//PE: prevent generation of vertex weight that screw up some animations.
+				sObject* pObject = g_ObjectList[t.entobj];
+				for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+				{
+					sMesh* pMesh = pObject->ppMeshList[iMesh];
+					GenerateD3D9ForMesh(pMesh, true, true, true, true, true);
 				}
 
 				// 131115 - fixes issue of some models not being able to detect with intersectall
@@ -2314,6 +2570,8 @@ void entity_loadtexturesandeffect ( void )
 				char pNoExtFilename[1024];
 				strcpy ( pNoExtFilename, t.texdir_s.Get() );
 				pNoExtFilename[strlen(pNoExtFilename)-4] = 0;
+				//PE: Some textures do not have _d,_color,_albedo , so always reset.
+				t.texdirnoext_s = "";
 				if ( strnicmp ( pNoExtFilename+strlen(pNoExtFilename)-2, "_d", 2 ) == NULL )
 				{
 					t.texdirnoext_s=Left(pNoExtFilename,Len(pNoExtFilename)-Len("_d"));

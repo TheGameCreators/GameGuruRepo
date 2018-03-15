@@ -180,19 +180,29 @@ vertexOutput mainVS_highest(appdata IN)
    
    float4 worldSpacePos = mul(float4(netPosition,1), World);
    OUT.WPos =   worldSpacePos; 
-      
+
+
+   //PE: better tangent / binormal calculation.
+   if ( abs(netNormal.y) > 0.999 ) netTangent = float3( netNormal.y,0.0,0.0 );
+   else netTangent = normalize( float3(-netNormal.z, 0.0, netNormal.x) );
+   netBinormal = normalize( float3(netNormal.y*netTangent.z, netNormal.z*netTangent.x-netNormal.x*netTangent.z, -netNormal.y*netTangent.x) );
+
    OUT.WorldNormal = normalize(mul(float4(netNormal,1), WorldIT).xyz);
-   //OUT.WorldTangent = normalize(mul(float4(netTangent,1), WorldIT).xyz); //?Wrong
-   float3 c1 = cross(OUT.WorldNormal, float3(0.0, 0.0, 1.0)); 
-   float3 c2 = cross(OUT.WorldNormal, float3(0.0, 1.0, 0.0)); 
-   if (length(c1) > length(c2)) {
-     OUT.WorldTangent = c1;   
-   } else {
-     OUT.WorldTangent = c2;   
-   }
-   OUT.WorldTangent = normalize(OUT.WorldTangent); 
-   OUT.WorldBinorm = cross(OUT.WorldNormal,OUT.WorldTangent); 
-   //OUT.WorldBinorm = normalize(mul(float4(netBinormal,1), WorldIT).xyz);
+   OUT.WorldTangent = normalize(mul(float4(netTangent,1), WorldIT).xyz);
+   OUT.WorldBinorm = normalize(mul(float4(netBinormal,1), WorldIT).xyz);
+
+//   OUT.WorldNormal = normalize(mul(float4(netNormal,1), WorldIT).xyz);
+//   //OUT.WorldTangent = normalize(mul(float4(netTangent,1), WorldIT).xyz); //?Wrong
+//   float3 c1 = cross(OUT.WorldNormal, float3(0.0, 0.0, 1.0)); 
+//   float3 c2 = cross(OUT.WorldNormal, float3(0.0, 1.0, 0.0)); 
+//   if (length(c1) > length(c2)) {
+//     OUT.WorldTangent = c1;   
+//   } else {
+//     OUT.WorldTangent = c2;   
+//   }
+//   OUT.WorldTangent = normalize(OUT.WorldTangent); 
+//    OUT.WorldBinorm = cross(OUT.WorldNormal,OUT.WorldTangent); 
+//   //OUT.WorldBinorm = normalize(mul(float4(netBinormal,1), WorldIT).xyz);
       
    OUT.LightVec = normalize(LightSource.xyz);
    OUT.Position = mul(float4(netPosition,1), WorldViewProjection);

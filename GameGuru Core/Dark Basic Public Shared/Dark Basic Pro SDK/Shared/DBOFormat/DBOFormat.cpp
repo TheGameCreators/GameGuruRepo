@@ -2805,6 +2805,7 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 	outputAtts.push_back(tangentAtt); ++n;
 	outputAtts.push_back(binormalAtt); ++n;
 
+	//PE: (note) tangent is sometimes calculated wrong ? perhaps for missing fixtangent, that we are not able to use.
 	// Uses MeshMenderD3DX from NVIDIA
 	NVMeshMender mender;
 	if (!mender.MungeD3DX(
@@ -3781,6 +3782,11 @@ DARKSDK_DLL void GenerateExtraDataForMeshEx ( sMesh* pMesh, BOOL bNormals, BOOL 
 		if ( bGiveMeNormals || bGiveMeTangents || bGiveMeBinormals )
 		{
 			// cannot use FixTangents on bone based model, it adds verts to mess up bone skin (and does not work well)
+			//PE: Tangent is not calculated correct, this calculation will be moved.
+			//PE: Tangent calculation added to vertex shaders.
+			//PE: Lee: We can consider to remove tangent,binormal all together should give a nice boost as we do not need to sent it to the GPU.
+			//PE: in the dx9 version i was also calculating it in the shaders , so this is an old bug.
+			//PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/85
 			ComputeTangentBasisEx ( pMesh, bGiveMeNormals, bGiveMeTangents, bGiveMeBinormals, false, false, true );
 		}
 
