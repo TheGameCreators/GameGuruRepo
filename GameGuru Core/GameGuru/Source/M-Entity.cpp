@@ -2547,6 +2547,7 @@ void entity_loadtexturesandeffect ( void )
 	// Texture and apply effect
 	if ( t.entobj>0 ) 
 	{
+		int use_illumination = false;
 		if ( t.entityprofile[t.entid].usingeffect == 0 ) 
 		{
 			//  No effect
@@ -2701,12 +2702,33 @@ void entity_loadtexturesandeffect ( void )
 					// IBR texture
 					t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
 
-					// Detail texture
-					cstr pDetailtex_s = t.texdirnoext_s+"_detail.dds";
-					t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(),1,t.tfullorhalfdivide);
-					if ( t.entityprofile[t.entid].texlid == 0 ) 
+					//PE: Use illumination instead of detail if found.
+					//PE: Illumination overwrite detail.
+					use_illumination = true;
+					cstr pDetailtex_s = t.texdirnoext_s + "_illumination.dds";
+					t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
+					if (t.entityprofile[t.entid].texlid == 0)
 					{
-						t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds",1,t.tfullorhalfdivide);
+						cstr pDetailtex_s = t.texdirnoext_s + "_emissive.dds"; // _emissive
+						t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
+						if (t.entityprofile[t.entid].texlid == 0)
+						{
+							if (g.gpbroverride == 1) {
+								//PE: Also support _i when using gpbroverride == 1.
+								t.texdirI_s = t.texdirnoext_s + "_i.dds";
+								t.entityprofile[t.entid].texlid = loadinternaltextureex(t.texdirI_s.Get(), 1, t.tfullorhalfdivide);
+							}
+							if (t.entityprofile[t.entid].texlid == 0) {
+								use_illumination = false;
+								// Detail texture
+								cstr pDetailtex_s = t.texdirnoext_s + "_detail.dds";
+								t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
+								if (t.entityprofile[t.entid].texlid == 0)
+								{
+									t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
+								}
+							}
+						}
 					}
 				}
 
@@ -2785,6 +2807,10 @@ void entity_loadtexturesandeffect ( void )
 			LPSTR pEntityBasic = "effectbank\\reloaded\\entity_basic.fx";
 			LPSTR pEntityAnim = "effectbank\\reloaded\\entity_anim.fx";
 			LPSTR pCharacterBasic = "effectbank\\reloaded\\character_basic.fx";
+
+			LPSTR pEntityBasicIllum = "effectbank\\reloaded\\apbr_illum.fx";
+			LPSTR pCharacterBasicIllum = "effectbank\\reloaded\\apbr_illum_anim.fx";
+
 			if ( g.gpbroverride == 1 )
 			{
 				pEntityBasic = "effectbank\\reloaded\\apbr_basic.fx";
@@ -2792,10 +2818,16 @@ void entity_loadtexturesandeffect ( void )
 				pCharacterBasic = "effectbank\\reloaded\\apbr_anim.fx";
 			}
 			
+			//PE: Illum we only change usingeffect , so the compares for effect_s should still be fine.
+
 			// Special case for character_basic shader, when has meshes with no bones, use entity_basic instead
 			t.teffectid2=0;
-			if ( stricmp ( EffectFile_s.Get(), pCharacterBasic)==NULL ) 
-				t.teffectid2=loadinternaleffect(pEntityBasic);
+			if (stricmp(EffectFile_s.Get(), pCharacterBasic) == NULL) {
+				if(g.gpbroverride == 1 && use_illumination)
+					t.teffectid2 = loadinternaleffect(pEntityBasicIllum);
+				else
+					t.teffectid2 = loadinternaleffect(pEntityBasic);
+			}
 
 			// 010917 - or if using entity_basic shader, and HAS anim meshes with bones, use entity_anim instead
 			if ( stricmp ( EffectFile_s.Get(), pEntityBasic)==NULL ) 
@@ -2803,7 +2835,22 @@ void entity_loadtexturesandeffect ( void )
 				if ( t.entityprofile[t.entid].animmax > 0 )
 				{
 					t.teffectid2 = t.entityprofile[t.entid].usingeffect;
-					t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityAnim);
+					if (g.gpbroverride == 1 && use_illumination)
+						t.entityprofile[t.entid].usingeffect = loadinternaleffect(pCharacterBasicIllum);
+					else
+						t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityAnim);
+				}
+				else {
+					//PE: Change basic effect to use illumination
+					if (g.gpbroverride == 1 && use_illumination)
+						t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityBasicIllum);
+				}
+			}
+
+			if (stricmp(EffectFile_s.Get(), pCharacterBasic) == NULL) {
+				//PE: Change character effect to use illumination
+				if (g.gpbroverride == 1 && use_illumination) {
+					t.entityprofile[t.entid].usingeffect = loadinternaleffect(pCharacterBasicIllum);
 				}
 			}
 

@@ -1078,10 +1078,10 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 #ifdef BOOSTILLUM
        //Illumination kind of get lost in the PBR, so also add illum to light and add this boostillum.
        float3 addillum = (IlluminationMap.Sample(SampleWrap,attributes.uv).rgb*1.5);
-       rawdiffusemap.xyz += addillum;
+//       rawdiffusemap.xyz += addillum;
 #else
        float3 addillum = IlluminationMap.Sample(SampleWrap,attributes.uv).rgb;
-       rawdiffusemap.xyz += addillum;
+//       rawdiffusemap.xyz += addillum;
 #endif
 
      #else
@@ -1240,9 +1240,6 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 
 	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
 	light += (rawdiffusemap.xyz * flashlight);
-#ifdef ILLUMINATIONMAP
-    light += addillum;
-#endif
 
 	// work out environmental fresnel
 	float3 envFresnel = lerp(0.02f, texColor.rgb, gMaterial.Properties.g);
@@ -1258,6 +1255,14 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 #ifdef PBRVEGETATION
    litColor.rgb = albedoContrib + lightContrib + reflectiveContrib;
 #else
+
+
+#ifdef ILLUMINATIONMAP
+	//PE: i use * here to prepare for baking textures like illum.
+    albedoContrib += (texColor.rgb*(addillum));
+    //PE: Illum kind of lost in PBR , so boost a bit.
+    lightContrib += (texColor.rgb*(addillum));
+#endif     
 
 #if K_MODEL_PE
 
@@ -1277,9 +1282,11 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 	//litColor.rgb = ComputeLight(gMaterial, gDirLight, inputnormalW, toEye, albedo.rgb);
 	//litColor.rgb = float3(gMaterial.Properties.g,gMaterial.Properties.g,gMaterial.Properties.g);
 	//litColor.rgb = envMap;
+	
 #else
    litColor.rgb = albedoContrib + lightContrib + reflectiveContrib;
 #endif
+
 
 #endif
 #endif   
@@ -1302,7 +1309,7 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
      float highlightalpha = (highlighttex.a*0.5f);
      litColor.xyz = litColor.xyz + (HighlightParams.x*float3(highlightalpha*HighlightParams.z,highlightalpha*HighlightParams.a,0));
    #endif
-      
+ 
    // combine for final color
    float3 finalColor = litColor.xyz;
     #ifdef DEBUGSHADOW
@@ -1321,7 +1328,11 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
       if ( ShaderVariables.x == 6 ) { finalColor = albedoContrib; }
       if ( ShaderVariables.x == 7 ) { finalColor = lightContrib; }
       if ( ShaderVariables.x == 8 ) { finalColor = reflectiveContrib; }
+#ifdef ILLUMINATIONMAP
+      if ( ShaderVariables.x == 9 ) { finalColor = addillum; }
+#else
       if ( ShaderVariables.x == 9 ) { finalColor = float3(fShadow,fShadow,fShadow); }
+#endif
 
       litColor.a = 1;
    }
