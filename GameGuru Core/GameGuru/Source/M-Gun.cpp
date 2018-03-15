@@ -606,53 +606,43 @@ void gun_findweaponindexbyname_core ( void )
 
 void gun_scaninall_findnewlyaddedgun ( void )
 {
-//  if find gun that is not in list, if find, flag is 'found'
-t.storegunid=t.gunid;
+	//  if find gun that is not in list, if find, flag is 'found'
+	t.storegunid=t.gunid;
 
-//  gather files
-SetDir (  "gamecore" );
-UnDim ( t.filelist_s );
-buildfilelist(g.fpgchuds_s.Get(),"");
-SetDir (  ".." );
+	//  gather files
+	SetDir (  "gamecore" );
+	UnDim ( t.filelist_s );
+	buildfilelist(g.fpgchuds_s.Get(),"");
+	SetDir (  ".." );
 
-//  go through file list of latest guns
-if (  ArrayCount(t.filelist_s)>0 ) 
-{
-	for ( t.chkfile = 0 ; t.chkfile<=  ArrayCount(t.filelist_s); t.chkfile++ )
+	//  go through file list of latest guns
+	if (  ArrayCount(t.filelist_s)>0 ) 
 	{
-		t.file_s=t.filelist_s[t.chkfile];
-		if (  t.file_s != "." && t.file_s != ".." ) 
+		for ( t.chkfile = 0 ; t.chkfile<=  ArrayCount(t.filelist_s); t.chkfile++ )
 		{
-			t.findgun_s="";
-			if ( cstr( Lower(Right(t.file_s.Get(),11))) == "gunspec.txt" ) 
+			t.file_s=t.filelist_s[t.chkfile];
+			if (  t.file_s != "." && t.file_s != ".." ) 
 			{
-				t.findgun_s=Left(t.file_s.Get(),Len(t.file_s.Get())-12);
-			}
-//    `if Lower(Right(file$,5))="hud.x"
-
-			//findgun$=Left(file$,Len(file$)-6)
-//    `else
-
-			//if Lower(Right(file$,7))="hud.dbo"
-			// findgun$=Left(file$,Len(file$)-8)
-			//endif
-//    `endif
-
-			if (  t.findgun_s != "" ) 
-			{
-				gun_findweaponindexbyname_core ( );
-				if (  t.foundgunid == 0 ) 
+				t.findgun_s="";
+				if ( cstr( Lower(Right(t.file_s.Get(),11))) == "gunspec.txt" ) 
 				{
-					++g.gunmax;
-					if (  g.gunmax>g.maxgunsinengine  )  g.gunmax = g.maxgunsinengine;
-					t.gun[g.gunmax].name_s=t.findgun_s;
-					t.gunid=g.gunmax ; t.gun_s=t.findgun_s ; gun_loaddata ( );
+					t.findgun_s=Left(t.file_s.Get(),Len(t.file_s.Get())-12);
+				}
+				if (  t.findgun_s != "" ) 
+				{
+					gun_findweaponindexbyname_core ( );
+					if (  t.foundgunid == 0 ) 
+					{
+						++g.gunmax;
+						if (  g.gunmax>g.maxgunsinengine  )  g.gunmax = g.maxgunsinengine;
+						t.gun[g.gunmax].name_s=t.findgun_s;
+						t.gunid=g.gunmax ; t.gun_s=t.findgun_s ; gun_loaddata ( );
+					}
 				}
 			}
 		}
 	}
-}
-t.gunid=t.storegunid;
+	t.gunid=t.storegunid;
 }
 
 void gun_findweaponindexbyname ( void )

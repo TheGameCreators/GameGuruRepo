@@ -2207,6 +2207,7 @@ struct Stemps
 	float tusecurrentgroundheight_f;
 	std::vector <cstr> characterkitavatarbank_s;
 	std::vector <cstr> characterkitweaponbank_s;
+	std::vector <cstr> characterkitprofilebank_s;
 	std::vector <int> csi_crouchdownrocketANIM;
 	std::vector <int> csi_crouchfirerocketANIM;
 	std::vector <int> csi_crouchidlerocketANIM;
@@ -2354,6 +2355,7 @@ struct Stemps
 	int charactergunposeindex;
 	int characterkitavatarmax;
 	int characterkitweaponmax;
+	int characterkitprofilemax;
 	int completelyfillvegarea;
 	float currentgunanimspeed_f;
 	cstr dynterrshadowshader_s;

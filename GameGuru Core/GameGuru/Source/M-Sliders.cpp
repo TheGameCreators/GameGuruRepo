@@ -997,10 +997,11 @@ void sliders_loop ( void )
 								//  can scroll contents of drop down
 								if (  t.tgamemousey_f != 0 ) 
 								{
-									if (  t.tgamemousey_f >= GetDisplayHeight()-20 || t.tgamemousey_f<0 ) 
+									int iBottomOfScreenInUI = GetChildWindowHeight();
+									if (  t.tgamemousey_f >= iBottomOfScreenInUI-40 || t.tgamemousey_f<0 ) 
 									{
 										g.slidersmenudropdownscroll_f += 0.4f;
-										t.tlastchunkcanseemax=2+(t.slidersdropdownmax-((GetDisplayHeight()-t.slidersdropdowntop)/16));
+										t.tlastchunkcanseemax=2+(t.slidersdropdownmax-((iBottomOfScreenInUI-t.slidersdropdowntop)/16));
 										if (  g.slidersmenudropdownscroll_f>t.tlastchunkcanseemax ) 
 										{
 											g.slidersmenudropdownscroll_f=t.tlastchunkcanseemax;
@@ -1868,7 +1869,7 @@ void sliders_draw ( void )
 			//t.col=192<<24;
 
 			//  Ensure drop downs dont go off screen in the importer and create a drop down list
-			if (  t.importer.importerActive  ==  1 ) 
+			if ( t.importer.importerActive == 1 )
 			{
 				t.tcol = t.col;
 				t.tlistmax  =  t.slidersdropdownmax ; if (  t.tlistmax > 10  )  t.tlistmax  =  10;
@@ -1985,6 +1986,7 @@ void sliders_getchoice ( void )
 		if (  t.characterkitcontrol.isMale  ==  1  )  t.sliderschoicemax = t.characterkithatmax; else t.sliderschoicemax = t.characterkitfemalehatmax;
 	}
 	if (  t.slidersmenuvaluechoice == 55  )  t.sliderschoicemax = t.characterkitweaponmax;
+	if (  t.slidersmenuvaluechoice == 56  )  t.sliderschoicemax = t.characterkitprofilemax;
 
 	//  (Dave) If we are in the importer then we can run this code
 	if (  t.importer.importerActive  ==  1 ) 
@@ -2102,6 +2104,13 @@ void sliders_getnamefromvalue ( void )
 		if (  t.slidersmenuvalueindex <= ArrayCount(t.characterkitweaponbank_s) ) 
 		{
 			t.slidervaluename_s=t.characterkitweaponbank_s[t.slidersmenuvalueindex];
+		}
+	}
+	if (  t.slidersmenuvaluechoice == 56 ) 
+	{
+		if (  t.slidersmenuvalueindex <= ArrayCount(t.characterkitprofilebank_s) ) 
+		{
+			t.slidervaluename_s=t.characterkitprofilebank_s[t.slidersmenuvalueindex];
 		}
 	}
 
