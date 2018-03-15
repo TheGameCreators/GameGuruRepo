@@ -3,6 +3,7 @@
 -- anim1 : Move
 -- anim2 : Punch/Kick/Bite 
 -- anim3 : Hurt
+-- anim4 : Reload
 -- sound0 : Start moving A
 -- sound1 : Start strike
 -- sound2 : Start moving B

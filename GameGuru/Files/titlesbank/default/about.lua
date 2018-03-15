@@ -12,6 +12,9 @@ g_sprAboutButton = {}
 g_posAboutButton = {}
 g_imgAboutCursor = 0
 g_sprAboutCursor = 0
+g_sprCursorPtrX = 50
+g_sprCursorPtrY = 33
+g_sprCursorPtrClick = 0
 
 function about_init()
  -- determine style folder we are in
@@ -46,10 +49,12 @@ end
 
 function about_main()
  -- control menus
- SetSpritePosition ( g_sprAboutCursor, g_MouseX, g_MouseY )
+ cursorControl = require "titlesbank\\cursorcontrol"
+ g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick = cursorControl.getinput(g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick)
+ SetSpritePosition ( g_sprAboutCursor, g_sprCursorPtrX, g_sprCursorPtrY )
  iHighlightButton = 0
- if g_MouseX > 50-(GetImageWidth(g_imgAboutButton[ABOUT_BACK])/2) and g_MouseX <= 50+(GetImageWidth(g_imgAboutButton[ABOUT_BACK])/2) then
-  if g_MouseY > g_posAboutButton[ABOUT_BACK] and g_MouseY <= g_posAboutButton[ABOUT_BACK]+GetImageHeight(g_imgAboutButton[ABOUT_BACK]) then
+ if g_sprCursorPtrX > 50-(GetImageWidth(g_imgAboutButton[ABOUT_BACK])/2) and g_sprCursorPtrX <= 50+(GetImageWidth(g_imgAboutButton[ABOUT_BACK])/2) then
+  if g_sprCursorPtrY > g_posAboutButton[ABOUT_BACK] and g_sprCursorPtrY <= g_posAboutButton[ABOUT_BACK]+GetImageHeight(g_imgAboutButton[ABOUT_BACK]) then
    iHighlightButton = ABOUT_BACK
   end
  end
@@ -58,7 +63,7 @@ function about_main()
  else
   SetSpriteImage ( g_sprAboutButton[ABOUT_BACK], g_imgAboutButton[ABOUT_BACK] )
  end
- if g_MouseClick == 1 then
+ if g_sprCursorPtrClick == 1 then
   if iHighlightButton==ABOUT_BACK then
    SwitchPageBack()
   end

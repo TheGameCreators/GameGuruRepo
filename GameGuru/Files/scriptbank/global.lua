@@ -249,7 +249,8 @@ end
 function PromptLocal(e,str)
  SendMessageS("promptlocal",e,str);
 end
-function PromptLocalForVR(e,str)
+function PromptLocalForVR(e,str,vrmode)
+ SendMessageF("promptlocalforvrmode",vrmode);
  SendMessageS("promptlocalforvr",e,str);
 end
 
@@ -1443,9 +1444,9 @@ SetGamePlayerStateRightMouseHold: SetGamePlayerStateRightMouseHold() -- command 
 GetGamePlayerStateRightMouseHold: GetGamePlayerStateRightMouseHold() -- command used by the default player control mechanism
 SetGamePlayerStateXBOX: SetGamePlayerStateXBOX() -- command used by the default player control mechanism
 GetGamePlayerStateXBOX: GetGamePlayerStateXBOX() -- command used by the default player control mechanism
-JoystickX: JoystickY() -- command used by the default player control mechanism
-JoystickY: JoystickX() -- command used by the default player control mechanism
-JoystickZ: JoystickZ() -- command used by the default player control mechanism
+JoystickX: JoystickX() -- returns a value between -1000 and +1000 representing X axis of controller
+JoystickY: JoystickY() -- returns a value between -1000 and +1000 representing Y axis of controller
+JoystickZ: JoystickZ() -- returns a value between -1000 and +1000 representing Trigger of controller
 SetGamePlayerStateGunZoomMode: SetGamePlayerStateGunZoomMode() -- command used by the default player control mechanism
 GetGamePlayerStateGunZoomMode: GetGamePlayerStateGunZoomMode() -- command used by the default player control mechanism
 SetGamePlayerStateGunZoomMag: SetGamePlayerStateGunZoomMag() -- command used by the default player control mechanism
@@ -1473,6 +1474,7 @@ GetGamePlayerStateGunBurst: GetGamePlayerStateGunBurst() -- command used by the 
 JoystickHatAngle: JoystickHatAngle() -- command used by the default player control mechanism
 JoystickFireXL: JoystickFireXL() -- command used by the default player control mechanism
 JoystickTwistX: JoystickTwistX() -- command used by the default player control mechanism
+JoystickTwistY: JoystickTwistY() -- command used by the default player control mechanism
 JoystickTwistZ: JoystickTwistZ() -- command used by the default player control mechanism
 SetGamePlayerStatePlrZoomInChange: SetGamePlayerStatePlrZoomInChange() -- command used by the default player control mechanism
 GetGamePlayerStatePlrZoomInChange: GetGamePlayerStatePlrZoomInChange() -- command used by the default player control mechanism

@@ -716,37 +716,21 @@ function pickuppable_main(e)
 		if handShowing ~= 'none' then 
 			HideHand( handShowing )
 		end
-		if promptsOn then Prompt( "Left Mouse Button to throw " .. names[ e ] .. ", Right Mouse Button to drop") end
+		if promptsOn then Prompt( "LMB to drop " .. names[ e ] .. ", Hold RMB to rotate") end
 		if g_MouseClick == 1 or GetPlayerWeaponID() ~= 0 then
 			if not mouse1Clicked then
 				dropObject( p, e )
-				PlayerDist = GetPlayerDistance(e)
-				fDetectionRange = 300
-				if PlayerDist < fDetectionRange then
-				 tDistX = g_PlayerPosX - g_Entity[e]['x']
-				 tDistZ = g_PlayerPosZ - g_Entity[e]['z']
-				 tDistD = math.abs(tDistX) + math.abs(tDistZ)
-				 tDistX = (tDistX / tDistD) * 10.0
-				 tDistZ = (tDistZ / tDistD) * 10.0
-				 g_Entity[e]['x'] = g_Entity[e]['x'] - tDistX
-				 g_Entity[e]['z'] = g_Entity[e]['z'] - tDistZ
-				 fFinalY = GetGroundHeight(g_Entity[e]['x'],g_Entity[e]['z'])
-				 SetPosition(e,g_Entity[e]['x'],fFinalY,g_Entity[e]['z'])
-				end
-				return	
-			end		
-		elseif g_MouseClick == 2 or GetPlayerWeaponID() ~= 0 then
-			if not mouse2Clicked then
-				dropObject( p, e )
+				
 				return
 			end
 
-		--elseif g_MouseClick == 2 then
-		--	if not mouse2Clicked then
-		--		mouse2Clicked = true
-		--		ActivateMouse()
-		--	end
-		--	processRotation( e, p, plQ )
+		elseif g_MouseClick == 2 then
+			if not mouse2Clicked then
+				mouse2Clicked = true
+				ActivateMouse()
+			end
+			
+			processRotation( e, p, plQ )
 			
 		elseif mouse2Clicked or (mouse1Clicked and g_Time > mouseTimer) then
 			DeactivateMouse()
@@ -848,7 +832,7 @@ function pickuppable_main(e)
 			return
 		end
 		
-		if promptsOn then Prompt( "Left Mouse Button to pick up " .. names[ e ] ) end
+		if promptsOn then Prompt( "LMB to pick up " .. names[ e ] ) end
 		
 		if g_MouseClick == 1 then
 		

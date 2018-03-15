@@ -24,7 +24,7 @@ float				g_fOccluderLastCamX = 0.0f;
 float				g_fOccluderLastCamZ = 0.0f;
 
 // externals
-extern bool g_VR920RenderStereoNow;
+//extern bool g_VR920RenderStereoNow;
 
 void game_masterroot ( void )
 {
@@ -36,6 +36,9 @@ void game_masterroot ( void )
 	t.game.masterloop=1;
 	while ( t.game.masterloop == 1 ) 
 	{
+		// first hide rendering of 3D while we set up
+		SyncMaskOverride ( 0 );
+
 		//  Optionally set resolution for game and setup for dependencies
 		timestampactivity(0,"_game_setresolution");
 		if (  t.game.set.resolution == 1 ) 
@@ -133,6 +136,9 @@ void game_masterroot ( void )
 		//  Level loop will run while level progression is in progress
 		while (  t.game.levelloop == 1 ) 
 		{
+			// also hide rendering of 3D while we set up a new level
+			SyncMaskOverride ( 0 );
+
 			//  Loading page
 			timestampactivity(0,"_titles_loadingpageupdate");
 			if (  t.game.gameisexe == 1 ) 
@@ -691,22 +697,12 @@ void game_masterroot ( void )
 			//  check for character creator characters just before game starts
 			characterkit_checkForCharacters ( );
 
-			//  Game loop will run while single level is in play
-			t.huddamage.immunity=1000;
-			t.game.gameloop=1;
-			g.timeelapsed_f=0;
-			t.luaglobal.scriptprompt_s="";
-			t.luaglobal.scriptprompttime=0;
-			t.luaglobal.scriptprompttextsize=0;
-			t.luaglobal.scriptprompt3dtime=0;
-			strcpy ( t.luaglobal.scriptprompt3dtext, "" );
-
-			// if VR, activate at this point
-			g_VR920RenderStereoNow = true;
-
 			//  Clear screen of any artifacts
 			titles_loadingpagefree();
 			CLS (  Rgb(0,0,0) );
+
+			// In EXE running, override cameras with no mask until title/loading done
+			SyncMaskOverride ( 0xFFFFFFFF );
 
 			// resort texture list to ignore objects set to be ignored
 			DoTextureListSort ( );
@@ -718,9 +714,18 @@ void game_masterroot ( void )
 			t.tMousemove_f = MouseMoveX() + MouseMoveY() + MouseZ(); t.tMousemove_f  = 0;
 
 			//  Tab mode LOW FPS Warning
-			//g.globals.hidelowfpswarning = 1; // this overrides the SETUP.INI setting
 			g.tabmode=0 ; g.lowfpstarttimer=Timer();
 
+			//  Game loop will run while single level is in play
+			t.huddamage.immunity=1000;
+			t.game.gameloop=1;
+			g.timeelapsed_f=0;
+			t.luaglobal.scriptprompt_s="";
+			t.luaglobal.scriptprompttime=0;
+			t.luaglobal.scriptprompttextsize=0;
+			t.luaglobal.scriptprompt3dtime=0;
+			strcpy ( t.luaglobal.scriptprompt3dtext, "" );
+			
 			//  Game cycle loop
 			timestampactivity(0,"main game loop begins");
 			while ( t.game.gameloop == 1 ) 
@@ -735,8 +740,21 @@ void game_masterroot ( void )
 						t.plrhasfocus = 1;
 				}
 
+				// if controller active, also detect for START button press (same as ESCAPE)
+				/*
+				char pScan[40];
+				strcpy ( pScan, "012345678901234567890123456789012345" );
+				if ( g.gxbox > 0 )
+				{
+					for ( int iA = 0; iA <= 31; iA++ ) pScan[iA] = 48+JoystickFireXL(iA);
+					pScan[iA]=0;
+				}
+				*/
+				bool bControllerEscape = false;
+				if ( g.gxbox > 0 && JoystickFireXL(9) == 1 ) bControllerEscape = true;
+
 				//  trigger options page or exit test level
-				if (  EscapeKey() == 1 ) 
+				if ( EscapeKey() == 1 || bControllerEscape == true ) 
 				{
 					t.tremembertimer=Timer();
 					game_main_snapshotsoundloopcheckpoint ( );
@@ -762,11 +780,8 @@ void game_masterroot ( void )
 					{
 						g.titlesettings.updateshadowsaswell=1;
 						timestampactivity(0,"entering options page");
-
-						//titles_optionspage ( );
 						titleslua_init ( );
 						titleslua_main ( "gamemenu" );
-
 						timestampactivity(0,"leaving options page");
 						g.titlesettings.updateshadowsaswell=0;
 					}
@@ -875,7 +890,7 @@ void game_masterroot ( void )
 			steam_freefadesprite ( );
 
 			// if VR, deactivate at this point
-			g_VR920RenderStereoNow = false;
+			//g_VR920RenderStereoNow = false;
 
 			//  Advance level to 'next one' or 'win game'
 			timestampactivity(0,"end of level stage");
@@ -1931,20 +1946,11 @@ void game_timeelapsed_init ( void )
 
 void game_timeelapsed ( void )
 {
-	//  Timer ( based movement )
-	//if ( g.globals.locktorefreshrate==1 && g.gvsync==1 )
-	//{
-	//	// fixed rate based entirely on refresh rate used by VSYNC
-	//	g.timeelapsed_f = (1.0f / (float)atoi(GetDirectRefreshRate())) * 20.0f;
-	//}
-	//else
-	//{
-	// old system looks spongy and very inaccurate for timeelapsed!
+	// Calculate time between cycles
 	float fThisTimeCount = timeGetSecond();
 	t.ElapsedTime_f = fThisTimeCount - t.LastTimeStamp_f;
 	g.timeelapsed_f = t.ElapsedTime_f * 20.0;
 	t.LastTimeStamp_f = fThisTimeCount;
-	//}
 
 	//  Cap to around 25fps so that leaps in movement/speed not to severe!
 	if (  g.timeelapsed_f>0.75f  )  g.timeelapsed_f = 0.75f;

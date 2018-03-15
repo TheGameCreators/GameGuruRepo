@@ -14,9 +14,13 @@ extern char g_strErrorClue[512];
 
 void titles_init ( void )
 {
-	//  determine export specific settings
+	// determine where 'titles' LUA files will be loaded from
 	titles_getstyle ( );
 
+	// safe write folder
+	if ( PathExist(g.myownrootdir_s.Get()) == 0 ) file_createmydocsfolder ( );
+
+	/* redundant now LUA in control of titles system
 	//  determine the resolution we should use
 	t.tclosest=9999999;
 	t.tclosestreswidth=0 ; t.tclosestresheight=0;
@@ -148,14 +152,12 @@ void titles_init ( void )
 	t.gamesounds.music=100;
 	t.gamesounds.titlemusicvolume = 0;
 
-	//  safe write folder
-	if ( PathExist(g.myownrootdir_s.Get()) == 0 ) file_createmydocsfolder ( );
-
 	//  Load any settings if present
 	titles_load ( );
 
 	//  flags for titles system
 	t.game.quitflag=0;
+	*/
 }
 
 void titles_getstyle ( void )
@@ -1958,6 +1960,9 @@ void titleslua_init ( void )
 
 void titleslua_main ( LPSTR pPageName )
 {
+	// Machine independent speed
+	game_timeelapsed_init ( );
+
 	// keep doing pages until we exit with no page
 	char pCurrentPage[256];
 	strcpy ( pCurrentPage, pPageName );
@@ -1978,13 +1983,13 @@ void titleslua_main ( LPSTR pPageName )
 		t.game.titleloop = 1;
 		while ( t.game.titleloop==1 )
 		{
+			// Machine independent speed update (makes g_TimeElapsed available)
+			game_timeelapsed();
+
 			// run LUA logic
 			lua_loop_begin();
 			LuaSetFunction ( pLUAMain, 0, 0 ); LuaCall (  );
 			lua_loop_finish();
-
-			// act on logic
-			sliders_draw ( );
 
 			// if in game, extra update refreshes
 			if ( t.game.gameloop == 1 ) 
@@ -1995,6 +2000,9 @@ void titleslua_main ( LPSTR pPageName )
 				t.tmastersyncmask=0;
 				SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
 			}
+
+			// draw all sprites required
+			sliders_draw ( );
 
 			// update screen
 			Sync();

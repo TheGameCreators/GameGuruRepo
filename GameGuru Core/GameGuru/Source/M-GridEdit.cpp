@@ -4611,7 +4611,7 @@ if (  t.grideditselect == 5 )
 
 //  Load and Save
 if ( t.inputsys.doload == 1 ) gridedit_load_map ( );
-if (  t.inputsys.dosave == 1 ) 
+if ( t.inputsys.dosave == 1 ) 
 {
 	if (  g.galwaysconfirmsave == 1 ) 
 	{
@@ -7806,7 +7806,7 @@ void gridedit_new_map ( void )
 	timestampactivity(0,"NEWMAP: Finish t.terrain generation");
 
 	//  Generate heightmap texture for cheap shadows (if required)
-	t.terrain.terraintriggercheapshadowrefresh=2;
+	//t.terrain.terraintriggercheapshadowrefresh=2;
 
 	//  Set standard start height for camera
 	t.gridzoom_f=3.0 ; t.clipheight_f=655 ; t.updatezoom=1;
@@ -8030,7 +8030,7 @@ void gridedit_load_map ( void )
 	visuals_justshaderupdate ( );
 
 	//  Generate heightmap texture for cheap shadows (if required)
-	t.terrain.terraintriggercheapshadowrefresh=2;
+	//t.terrain.terraintriggercheapshadowrefresh=2;
 
 	//  Ensure editor zoom refreshes
 	t.updatezoom=1;
@@ -10441,7 +10441,8 @@ void popup_text ( char* statusbar_s )
 			SetFileMapString (  2, 1000, statusbar_s );
 			SetFileMapDWORD (  2, 4, 1 );
 			SetEventAndWait (  2 );
-			while (  GetFileMapDWORD( 2, 4 )  ==  1 ) 
+			DWORD dwNow = timeGetTime();
+			while (  GetFileMapDWORD( 2, 4 )  ==  1 && timeGetTime() > dwNow + 3000 ) 
 			{
 				SetEventAndWait (  2 );
 			}
@@ -10460,16 +10461,15 @@ void popup_text_change ( char* statusbar_s )
 		SetFileMapString (  2, 1000, statusbar_s );
 		SetFileMapDWORD (  2, 4, 1 );
 		SetEventAndWait (  2 );
-		while (  GetFileMapDWORD( 2, 4 )  ==  1 ) 
+		DWORD dwNow = timeGetTime();
+		while (  GetFileMapDWORD( 2, 4 )  ==  1 && timeGetTime() > dwNow + 3000 ) 
 		{
-			SetEventAndWait (  2 );
+			SetEventAndWait ( 2 );
 		}
 	}
 }
 
-
 //Memory check behaviour for MAP EDITOR / TEST GAME
-
 
 void checkmemoryforgracefulexit ( void )
 {

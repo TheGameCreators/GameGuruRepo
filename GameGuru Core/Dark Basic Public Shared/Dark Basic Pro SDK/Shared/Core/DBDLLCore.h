@@ -75,6 +75,7 @@ DARKSDK void SyncOn ( void );
 DARKSDK void SyncOff ( void );
 DARKSDK void SyncRate(int iRate);
 DARKSDK void SyncMask(DWORD dwMask);
+DARKSDK void SyncMaskOverride ( DWORD dwMask );
 DARKSDK void FastSync ( void );
 DARKSDK void FastSync ( int iNonDisplayUpdates );
 DARKSDK void FastSyncInputOnly ( void );

@@ -801,6 +801,7 @@ function gameplayercontrol.control()
 			if ( GetGamePlayerStateNoWater() ~= 0 or GetCameraPositionY(0) > GetGamePlayerStateWaterlineY() + 20 ) then 
 				ttsnd = GetGamePlayerControlSoundStartIndex()+6
 				if ( RawSoundExist(ttsnd) == 1 ) then
+   				    -- leelee
 					PlayRawSound(ttsnd)
 				end
 				tplayerjumpnow=GetGamePlayerControlJumpmax()*ttjumpmodifier
@@ -1554,7 +1555,9 @@ function gameplayercontrol.control()
 			if ( GetGamePlayerControlInWaterState() == 0 ) then 
 				ttsnd = GetGamePlayerControlSoundStartIndex()+13
 				if ( RawSoundExist ( ttsnd ) == 1 ) then
-					PlayRawSound ( ttsnd )
+					if ( g_PlayerHealth > 0 ) then
+						PlayRawSound ( ttsnd )
+					end
 				end
 				SetGamePlayerControlInWaterState(1)
 			end

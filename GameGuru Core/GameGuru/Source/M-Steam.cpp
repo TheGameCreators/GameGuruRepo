@@ -6674,11 +6674,11 @@ void steam_save_workshop_files_needed ( void )
 	//  Work out how many lines there are so we can Dim (  the right amount )
 	t.thowmanyfpefiles = 0;
 	OpenToRead (  1,"editors\\baseList.dat" );
-		while (  FileEnd(1) == 0 ) 
-		{
-			t.tthrowawaystring_s = ReadString ( 1 );
-			++t.thowmanyfpefiles;
-		}
+	while (  FileEnd(1) == 0 ) 
+	{
+		t.tthrowawaystring_s = ReadString ( 1 );
+		++t.thowmanyfpefiles;
+	}
 	CloseFile (  1 );
 
 	//  Store the count in our global steamworks type
@@ -6687,17 +6687,12 @@ void steam_save_workshop_files_needed ( void )
 	Dim (  t.tallfpefiles_s,t.thowmanyfpefiles  );
 	t.thowmanyfpefiles = 0;
 	OpenToRead (  1,"editors\\baseList.dat" );
-		while (  FileEnd(1) == 0 ) 
-		{
-			t.tallfpefiles_s[t.thowmanyfpefiles] = ReadString ( 1 );
-			++t.thowmanyfpefiles;
-		}
+	while (  FileEnd(1) == 0 ) 
+	{
+		t.tallfpefiles_s[t.thowmanyfpefiles] = ReadString ( 1 );
+		++t.thowmanyfpefiles;
+	}
 	CloseFile (  1 );
-
-	//  work out what files used in this level do not come with the base install
-
-	//  Name without EXE
-//  `potato - use ttempprojfilename$ but it may contain full path
 
 	t.exename_s=t.tsteamsavefilename_s;
 	if (  cstr(Lower(Right(t.exename_s.Get(),4))) == ".fpm" ) 
@@ -6933,8 +6928,8 @@ void steam_save_workshop_files_needed ( void )
 					if (  Len(t.tlevelfile_s.Get())>1 ) 
 					{
 						t.tlevelfile_s=cstr("mapbank\\")+t.tlevelfile_s+".fpm";
-						++t.levelmax;
-						t.levellist_s[t.levelmax]=t.tlevelfile_s;
+						//++t.levelmax; // 130318 - not used for steam_save_workshop_files_needed function
+						//t.levellist_s[t.levelmax]=t.tlevelfile_s;
 						addtocollection(t.tlevelfile_s.Get());
 					}
 				}

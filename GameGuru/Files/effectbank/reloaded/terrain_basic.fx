@@ -114,7 +114,7 @@ float4 ShaderVariables : ShaderVariables
 /***************TEXTURES AND SAMPLERS***************************************************/
 
 Texture2D VegShadowSampler : register( t0 );
-Texture2D DynTerShaSampler : register( t1 );
+Texture2D Reserved0Map : register( t1 );
 Texture2D DiffuseSampler : register( t2 );
 Texture2D HighlighterSampler : register( t3 );
 Texture2D NormalMapSampler : register( t4 );
@@ -866,8 +866,9 @@ float4 mainlightPS_medium(vertexOutput_low IN) : COLOR
       lighting.z = lighting.z * max(1.0f-(viewspacePos.z/1000.0f),0); 
 
       // cheap terrain shadow floor texture read
-	  //return float4(DynTerShaSampler.Sample(SampleClamp,(IN.TexCoord/500.0f)-float2(0.0005f,0.0005f)).xyz,1);
-      float fShadow = float4(DynTerShaSampler.Sample(SampleClamp,(IN.TexCoord/500.0f)-float2(0.0005f,0.0005f)).xyz,1).r;
+	  
+ 	  // Shadows
+      float fShadow = GetShadowCascade ( 7, IN.WPos, IN.WorldNormal, normalize(LightSource.xyz) );
       fShadow = fShadow * 0.675f * ShadowStrength;
 
 	  // ensure cheap shadows fade out if camera too high (editor view)
@@ -1018,8 +1019,8 @@ float4 mainlightPS_lowest(vertexOutput_low IN) : COLOR
       // some falloff to blend away as distance increases
       lighting.z = lighting.z * max(1.0f-(viewspacePos.z/1000.0f),0);
 
-      // cheap terrain shadow floor texture read
-      float fShadow = float4(DynTerShaSampler.Sample(SampleClamp,(IN.TexCoord/500.0f)-float2(0.0005f,0.0005f)).xyz,1).r;
+      // cheap terrain shadow
+      float fShadow = GetShadowCascade ( 7, IN.WPos, IN.WorldNormal, normalize(LightSource.xyz) );
       fShadow = fShadow * 0.675f * ShadowStrength;
    
       // CHEAPEST flash light system (flash light control carried in SpotFlashColor.w )

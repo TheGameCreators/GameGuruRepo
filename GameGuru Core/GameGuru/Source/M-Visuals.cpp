@@ -1207,7 +1207,7 @@ void visuals_loop ( void )
 			}
 
 			//  Clear dynamic cheap shadow camera
-			t.gdynamicterrainshadowcameragenerate=2;
+			//t.gdynamicterrainshadowcameragenerate=2;
 
 			// However, ensure reflection sky remains (even if game objects culled away)
 			t.tskymaskforcamerasnoshadow = t.tmaskforcameras & 1073741823;
@@ -1567,6 +1567,7 @@ void visuals_shaderlevels_terrain_update ( void )
 			BT_ForceTerrainTechnique (  0 );
 		}
 	}
+	/* completely removed old chap shadow trick
 	//  deactivate cheap shadow trick if pre-bakes being used
 	if (  ObjectExist(g.postprocessobjectoffset+5) == 1 ) 
 	{
@@ -1581,6 +1582,7 @@ void visuals_shaderlevels_terrain_update ( void )
 			ShowObject (  g.postprocessobjectoffset+5 );
 		}
 	}
+	*/
 }
 
 void visuals_shaderlevels_entities_update ( void )

@@ -397,7 +397,6 @@ void CSpriteManager::RenderDrawList ( tagSpriteData** pList, int iListSize, int 
     vp.Height = (FLOAT)pvp->Height;
     vp.MinDepth = pvp->MinZ;
     vp.MaxDepth = pvp->MaxZ;
-    //m_pImmediateContext->RSSetViewports( 1, &vp );
 	SetupSetViewport ( 3, &vp, NULL ); // fool system into thinking this is post process and applicable to stereo rendering
 
 	// Vertex Declaration

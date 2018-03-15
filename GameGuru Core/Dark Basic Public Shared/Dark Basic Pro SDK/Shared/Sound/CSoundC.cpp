@@ -433,7 +433,7 @@ DARKSDK void LoadRawSoundCore ( LPSTR szFilename, int iID, bool b3DSound, int iS
 	}
 	if ( strlen ( szFilename ) < 1 || !szFilename )
 	{
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED);
+		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED,szFilename);
 		return;
 	}
 
@@ -448,7 +448,7 @@ DARKSDK void LoadRawSoundCore ( LPSTR szFilename, int iID, bool b3DSound, int iS
 	if ( !UpdateSoundPtr ( iID ) )
 	{
 		m_SDKSoundManager.Delete ( iID );
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED);
+		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED,szFilename);
 		return;
 	}
 
@@ -463,7 +463,7 @@ DARKSDK void LoadRawSoundCore ( LPSTR szFilename, int iID, bool b3DSound, int iS
 		if ( m_ptr->pDSBuffer3D==NULL && m_ptr->pSound->m_apDSBuffer==NULL )
 		{
 			m_SDKSoundManager.Delete ( iID );
-			if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED);
+			if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED,szFilename);
 			return;
 		}
 		return;
@@ -490,7 +490,7 @@ DARKSDK void LoadRawSoundCore ( LPSTR szFilename, int iID, bool b3DSound, int iS
     {
 		// Invalid WAV format
 		m_SDKSoundManager.Delete ( iID );
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED);
+		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED,szFilename);
         return;
     }
 
@@ -499,7 +499,7 @@ DARKSDK void LoadRawSoundCore ( LPSTR szFilename, int iID, bool b3DSound, int iS
     {
         // Too many channels in wave.  Sound must be mono when using DSBCAPS_CTRL3D
 		m_SDKSoundManager.Delete ( iID );
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED);
+		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED,szFilename);
         return;
     }
 	DWORD dwFlags=DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY;
@@ -521,7 +521,7 @@ DARKSDK void LoadRawSoundCore ( LPSTR szFilename, int iID, bool b3DSound, int iS
     {
 		// no sound buffer
 		m_SDKSoundManager.Delete ( iID );
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED);
+		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED,szFilename);
         return; 
     }
 
@@ -1781,7 +1781,7 @@ DARKSDK void SetSoundData( int iID, DWORD dwBitsPerSecond, DWORD Frequency, DWOR
 	{
 		// no sound buffer
 		m_SDKSoundManager.Delete ( iID );
-		RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED);
+		RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED,szFilename);
         return;
 	}
 

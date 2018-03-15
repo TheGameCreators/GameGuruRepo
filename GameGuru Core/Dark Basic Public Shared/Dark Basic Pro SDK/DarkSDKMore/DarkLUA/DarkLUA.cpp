@@ -1765,7 +1765,7 @@ int GetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	if ( SetupGetTracking(NULL,NULL,NULL) == true ) id = 1;
+	if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
 	lua_pushinteger ( L , id );
 	return 1;
 }
@@ -5684,12 +5684,10 @@ DARKLUA_API void LuaCall()
 	functionStateID = 0;
 	if ( failedResults > 0 )
 		lua_pop(lua, failedResults);
-
 }
 
 DARKLUA_API void LuaCallSilent()
 {
-
 	for ( int c = 0 ; c < FunctionsWithErrors.size() ; c++ )
 	{
 		if ( strcmp ( functionName , FunctionsWithErrors[c].fileName ) == 0 )

@@ -11,6 +11,8 @@
 // core externs to globals
 extern LPSTR gRefCommandLineString;
 extern bool gbAlwaysIgnoreShaderBlobFile;
+extern bool g_VR920RenderStereoNow;
+extern float g_fVR920Sensitivity;
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
@@ -607,7 +609,7 @@ void common_init_globals ( void )
 	//  2 - reflection camera
 	//  3 - post process camera
 	//  4 - light ray camera
-	//  5 - dynamic terrain shadow texture cam (cheap shadow)
+	//  5 - NOT USED FROM MAR2018 dynamic terrain shadow texture cam (cheap shadow)
 	//  6 - left eye camera [rift]
 	//  7 - right eye camera [rift]
 	//  9 - map editor
@@ -835,7 +837,7 @@ void common_init_globals ( void )
 	g.titlessavefile_s = "settings.ini";
 	
 	//  Visual settings
-	g.cheapshadowhistorypacer_f = 0;
+	//g.cheapshadowhistorypacer_f = 0;
 
 	//t.visuals as visualstype;
 	//t.editorvisuals as visualstype;
@@ -2700,6 +2702,9 @@ void FPSC_Setup ( void )
 				}
 			}
 		}
+
+		// transfer SETUP.INI VRMODEMAG sensitivity setting to main engine
+		g_fVR920Sensitivity = g.gvrmodemag / 100.0f;
 	
 		//  option use use correct aspect ratio?
 		if (  g.gaspectratio == 1 ) 
@@ -2902,6 +2907,9 @@ void FPSC_Setup ( void )
 		//  Generic asset loading common to editor and game
 		common_loadfonts();
 		common_loadcommonassets ( 1 );
+
+		// This used by 3D prompts in standalone
+		g.guishadereffectindex = loadinternaleffect("effectbank\\reloaded\\gui_basic.fx");
 	
 		//  Load terrain from terrain temp save file
 		terrain_createactualterrain();
@@ -2921,6 +2929,9 @@ void FPSC_Setup ( void )
 	
 		//  Main loop
 		timestampactivity(0,"Main Game Executable Loop Starts");
+
+		// after initial steroscopic fake load, switch to true stereo if used
+		g_VR920RenderStereoNow = true;
 	
 		//  One-off variable settings
 		t.game.set.resolution=0;
@@ -3121,12 +3132,12 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	terrain_setupedit ( );
 	terrain_make ( );
 
-	//  Create cheap shadow shader and apply
+	//  Create post process shader and apply
 	t.tsplashstatusprogress_s="INIT POST PROCESSING";
 	timestampactivity(0,t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate ( );
 	postprocess_general_init ( );
-	postprocess_forcheapshadows ( );
+	//postprocess_forcheapshadows ( );
 
 	//  Initialise ragdoll resources
 	t.tsplashstatusprogress_s="INIT RAGDOLL SYSTEM";

@@ -25,8 +25,20 @@ struct CBChangePerTerrsainChunk
 	KMaths::Matrix mWorld;
 	KMaths::Matrix mView;
 	KMaths::Matrix mProjection;
-};				
+};
+struct CBChangePerTerrsainChunkPS
+{
+	GGCOLOR vMaterialEmissive;
+	float fAlphaOverride;
+	float fRes1;
+	float fRes2;
+	float fRes3;
+	KMaths::Matrix mViewInv;
+	KMaths::Matrix mViewProj;
+	KMaths::Matrix mPrevViewProj;
+};
 ID3D11Buffer* m_pCBChangePerTerrsainChunk = NULL;
+ID3D11Buffer* m_pCBChangePerTerrsainChunkPS	= NULL;
 #else
 #endif
 
@@ -2320,6 +2332,17 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 		if ( FAILED ( m_pD3D->CreateBuffer ( &bdChangePerTerrsainChunkBuffer, NULL, &m_pCBChangePerTerrsainChunk ) ) )
 			return;
 	}
+	if ( m_pCBChangePerTerrsainChunkPS == NULL )
+	{
+		D3D11_BUFFER_DESC bdChangePerTerrsainChunkBuffer;
+		std::memset ( &bdChangePerTerrsainChunkBuffer, 0, sizeof ( bdChangePerTerrsainChunkBuffer ) );
+		bdChangePerTerrsainChunkBuffer.Usage          = D3D11_USAGE_DEFAULT;
+		bdChangePerTerrsainChunkBuffer.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+		bdChangePerTerrsainChunkBuffer.CPUAccessFlags = 0;
+		bdChangePerTerrsainChunkBuffer.ByteWidth      = sizeof ( CBChangePerTerrsainChunkPS );
+		if ( FAILED ( m_pD3D->CreateBuffer ( &bdChangePerTerrsainChunkBuffer, NULL, &m_pCBChangePerTerrsainChunkPS ) ) )
+			return;
+	}
 
 	// Transforms
 	GGSetTransform(GGTS_PROJECTION,&Camera->matProjection);
@@ -3101,6 +3124,29 @@ static void BT_Intern_RenderSector(s_BT_Sector* Sector)
 				m_pImmediateContext->UpdateSubresource( m_pCBChangePerTerrsainChunk, 0, NULL, &cb, 0, 0 );
 				m_pImmediateContext->VSSetConstantBuffers ( 0, 1, &m_pCBChangePerTerrsainChunk );
 				m_pImmediateContext->PSSetConstantBuffers ( 0, 1, &m_pCBChangePerTerrsainChunk );
+			}
+			if ( m_pCBChangePerTerrsainChunkPS )
+			{
+				CBChangePerTerrsainChunkPS cbps;
+				//cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r,pMesh->mMaterial.Emissive.g,pMesh->mMaterial.Emissive.b,pMesh->mMaterial.Emissive.a);
+				//if ( pMesh->bAlphaOverride == true )
+				//	cbps.fAlphaOverride = (pMesh->dwAlphaOverride>>24)/255.0f;
+				//else
+				//	cbps.fAlphaOverride = 1.0f;
+				cbps.vMaterialEmissive = GGCOLOR(0,0,0,0);
+				cbps.fAlphaOverride = 1.0f;
+
+				// feed camera zero matrices into pixel shader constant buffer
+				tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData ( 0 );
+				float fDet = 0.0f;
+				GGMatrixInverse ( &cbps.mViewInv, &fDet, &m_Camera_Ptr->matView );
+				GGMatrixTranspose(&cbps.mViewInv,&cbps.mViewInv);
+				//cbps.mViewProj = g_matThisViewProj;
+				//GGMatrixTranspose(&cbps.mViewProj,&cbps.mViewProj);
+				//cbps.mPrevViewProj = g_matPreviousViewProj;
+				//GGMatrixTranspose(&cbps.mPrevViewProj,&cbps.mPrevViewProj);
+				m_pImmediateContext->UpdateSubresource( m_pCBChangePerTerrsainChunkPS, 0, NULL, &cbps, 0, 0 );
+				m_pImmediateContext->PSSetConstantBuffers ( 1, 1, &m_pCBChangePerTerrsainChunkPS );
 			}
 
 			// Index buffers
