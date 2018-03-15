@@ -141,6 +141,9 @@ void hud_scanforhudlayers ( void )
 						YRotateObject (  t.hudlayersbankoffsetindex,180 );
 						FixObjectPivot (  t.hudlayersbankoffsetindex );
 						SetObjectMask (  t.hudlayersbankoffsetindex, 1 );
+						//PE: Should be set so camera near dont clip hud.
+						DisableObjectZDepth(t.hudlayersbankoffsetindex);
+
 						//if (  g.globals.riftmode == 0 ) 
 						//{
 						//	DisableObjectZDepth (  t.hudlayersbankoffsetindex );
