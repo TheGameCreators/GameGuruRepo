@@ -1360,6 +1360,9 @@ void importer_loadmodel ( void )
 	int iEffectID = loadinternaleffect("effectbank\\reloaded\\entity_basic.fx");
 	SetObjectEffect ( t.importer.objectnumber, iEffectID );
 
+	//PE: make sure it is changed. fix for: https://github.com/TheGameCreators/GameGuruRepo/issues/123
+	importer_changeshader("entity_basic.fx");
+
 	//PE: Bug. make sure we dont get clipped, model was only half visible.
 	//reuse g.characterkitvector = 46
 	t.tnothing = MakeVector4(g.characterkitvector);
