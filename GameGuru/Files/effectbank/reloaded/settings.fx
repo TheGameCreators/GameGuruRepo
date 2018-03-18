@@ -58,7 +58,7 @@
 #define CARTOONIMPACT (4.2)
 
 //#define ADDSKYBOXFOG // Add some fog to the skybox. keep fog colors below 94 if you use lens flare.
-
+#define ROUNDEDSKYBOXFOG // Make the fog round , to hide edges from skybox.
 //#define DEBUGSHADOW // Use this to see the levels of cascade on shadow mapping
 #define SKIPIFNODYNAMICLIGHTS // Skip dynamic lights calc if no lights
 //#define REFLECTIVEFLASHLIGHT // PE: Show reflection of flashlight on metallic objects, wip.
