@@ -886,6 +886,9 @@ void game_masterroot ( void )
 			titleslua_free ( );
 			LuaReset (  );
 
+			//PE: restore waterline.
+			t.terrain.waterliney_f = g.gdefaultwaterheight;
+
 			// 240316 - additional cleanup
 			steam_freefadesprite ( );
 
