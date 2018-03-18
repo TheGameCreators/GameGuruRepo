@@ -1,3 +1,4 @@
+string Description = "Water Entity Shader";
 #define USEWATERMAPPING
    float2 WaterScale = { 155.0f , 155.0f}; // PE: wave size higher = smaller waves default 155.0,155.0
    float distortion = 0.0055f; // PE: water distortion reflection default 0.0055f
@@ -15,5 +16,5 @@
    float genericwaveIntensity = 0.75; // PE: Generic wave , default 0.75 , values 0.0-1.0       
 #define USEREFLECTIONSPARKLE // PE: Use reflection colors in sparkle.
    float reflectionSparkleIntensity = 1.80; // PE: Sparkle Intensity , higher = more bright
-
-#include "entity_basic.fx"
+#define PRESERVETRANSPARENCY
+#include "entity_core.fx"
