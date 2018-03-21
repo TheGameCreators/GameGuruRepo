@@ -9,7 +9,6 @@
 #include "CGfxC.h"
 #include <algorithm>
 
-
 // extern/protos
 GGFORMAT GetValidStencilBufferFormat ( GGFORMAT Format );
 extern UINT	g_StereoEyeToggle;
@@ -3694,10 +3693,6 @@ bool CObjectManager::ShaderFinish ( sMesh* pMesh, LPGGRENDERTARGETVIEW pCurrentR
 
 inline DWORD FtoDW( FLOAT f ) { return *((DWORD*)&f); }
 
-//PE: for debug info.
-//#include <DxErr.h>
-//#pragma comment(lib, "dxerr.lib")
-
 bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sObject* pObject )
 {
 	// get pointer to drawbuffers
@@ -3825,7 +3820,7 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 				pLayoutPtr = &layoutFVFZero;
 				dwLayoutSize = sizeof(layoutFVFZero);
 			}
-			//LPGGVERTEXLAYOUT pNewVertexDec;	
+			LPGGVERTEXLAYOUT pNewVertexDec;	
 			D3D11_INPUT_ELEMENT_DESC* pLayout = new D3D11_INPUT_ELEMENT_DESC [ iLayoutSize ];
 			std::memcpy ( pLayout, pLayoutPtr, dwLayoutSize );
 			ID3DBlob* pBlob = g_sShaders[iMeshEffectID].pBlob;
@@ -3837,58 +3832,6 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			D3DX11_EFFECT_SHADER_DESC s_desc;
 			vs_desc.pShaderVariable->GetShaderDesc(0, &s_desc);
 			HRESULT hr = m_pD3D->CreateInputLayout ( pLayout, iLayoutSize, s_desc.pBytecode, s_desc.BytecodeLength, &g_sShaders[iMeshEffectID].pInputLayout );
-
-			//PE: superflatterrain=1
-			//PE: generate : Exception thrown at 0x776508F2 in Guru-MapEditor.exe: Microsoft C++ exception: _com_error at memory location 0x0019DDB0.
-			if (hr != NOERROR) {
-				//PE: Failed , terrain use - tindex  1, pass 1
-				if ( iMeshEffectID == 1 ) { // 1==terrain. same as t.terrain.terrainshaderindex == iMeshEffectID , but we dont have t or g.
-
-					SAFE_DELETE_ARRAY(pLayout);
-					int iLayoutSize = 4;
-					pLayout = new D3D11_INPUT_ELEMENT_DESC[iLayoutSize];
-					D3D11_INPUT_ELEMENT_DESC layout[] =
-					{
-						{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,		0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-						{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,		0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-						{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,			0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-						{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT,			0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-					};
-					pLayoutPtr = &layout;
-					std::memcpy(pLayout, layout, sizeof(layout));
-
-					DWORD tIndex = 0;
-					ID3DX11EffectTechnique* tech = NULL;
-					while ((tech = g_sShaders[iMeshEffectID].pEffect->GetTechniqueByIndex(tIndex++))->IsValid())
-					{
-						DWORD pIndex = 0;
-						ID3DX11EffectPass* pass = NULL;
-						while ((pass = tech->GetPassByIndex(pIndex++))->IsValid())
-						{
-							D3DX11_PASS_SHADER_DESC vs_desc;
-							pass->GetVertexShaderDesc(&vs_desc);
-							D3DX11_EFFECT_SHADER_DESC s_desc;
-							vs_desc.pShaderVariable->GetShaderDesc(0, &s_desc);
-							hr = m_pD3D->CreateInputLayout(pLayout, iLayoutSize, s_desc.pBytecode, s_desc.BytecodeLength, &g_sShaders[iMeshEffectID].pInputLayout);
-							break;
-						}
-						if (g_sShaders[iMeshEffectID].pInputLayout != NULL) {
-							break;
-						}
-					}
-
-//					if (hr != NOERROR) {
-//						//PE: debug.
-//						char tmpdebug[2048];
-//						sprintf(tmpdebug, "Error: %s error description: %s\n",
-//							DXGetErrorString(hr), DXGetErrorDescription(hr));
-//						OutputDebugString(tmpdebug);
-//						//PE: Error returned:
-//						//PE: Error: E_INVALIDARG error description: An invalid parameter was passed to the returning function.
-//					}
-				}
-			}
-
 			SAFE_DELETE_ARRAY(pLayout);
 		}
 		pMesh->pVertexDec = g_sShaders[iMeshEffectID].pInputLayout;
