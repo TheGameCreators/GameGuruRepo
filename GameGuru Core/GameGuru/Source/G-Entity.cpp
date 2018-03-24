@@ -2092,6 +2092,8 @@ void entity_createattachment ( void )
 								sprintf ( t.szwork ,  "gamecore\\guns\\%s\\%s_S.dds" ,t.tweaponname_s.Get() , t.tvweaptex_s.Get()  );
 								t.texuseid=loadinternaltexture(t.szwork);
 								if (t.texuseid == 0) {
+									//PE: we need a gray_d for a little less specular on guns.
+									//PE: blank_medium_S.DDS dont work yet.
 									t.texuseid = loadinternaltexture("effectbank\\reloaded\\media\\white_D.dds");
 								}			
 
@@ -2145,6 +2147,7 @@ void entity_freeattachment ( void )
 void entity_controlattachments ( void )
 {
 	// ensure attachments are updated and visible
+
 	t.tcharacterobj=t.entityelement[t.e].obj;
 	t.tobj=t.entityelement[t.e].attachmentobj;
 	if ( t.tobj>0 && t.tcharacterobj>0 ) 
@@ -2183,9 +2186,12 @@ void entity_controlattachments ( void )
 						}
 					}
 				}
+
 				PositionObject (  t.tobj,t.limbpx_f,t.limbpy_f,t.limbpz_f );
 				ShowObject (  t.tobj );
-				EnableObjectZDepth(t.obj); // PE:
+				//PE: fix t.entityelement[t.e].attachmentobj;
+				//PE: https://forum.game-guru.com/thread/219491.
+				EnableObjectZDepth(t.tobj);
 			}
 		}
 	}
@@ -2557,6 +2563,7 @@ void entity_prepareobj ( void )
 			SetObjectSpecularPower ( t.tobj, t.entityelement[t.tte].eleprof.specularperc / 100.0f );
 		}
 
+
 		// apply the scrolls cale uv data values for the shader use later on
 		if ( t.entityprofile[t.tentid].uvscrollu != 0.0f 
 		||   t.entityprofile[t.tentid].uvscrollv != 0.0f 
@@ -2565,6 +2572,7 @@ void entity_prepareobj ( void )
 		{
 			SetObjectScrollScaleUV ( t.tobj, t.entityprofile[t.tentid].uvscrollu, t.entityprofile[t.tentid].uvscrollv, t.entityprofile[t.tentid].uvscaleu, t.entityprofile[t.tentid].uvscalev );
 		}
+
 	}
 }
 
