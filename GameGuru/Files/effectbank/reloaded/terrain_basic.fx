@@ -15,7 +15,18 @@ cbuffer cbChangeEachTerrainChunk : register( b0 )
 	float4x4 View;
 	float4x4 Projection;
 };
-
+//PE: lee without this, all the other shader variables are overwritten.
+cbuffer cbPerMeshPS : register( b1 )
+{
+	float4 MaterialEmissive;
+	float fAlphaOverride;
+	float fRes1;
+	float fRes2;
+	float fRes3;
+	float4x4 ViewInv;
+	float4x4 ViewProjectionMatrix;
+	float4x4 PreviousViewProjectionMatrix;
+};
 // regular shader constants   
 float4 eyePos : CameraPosition;
 
