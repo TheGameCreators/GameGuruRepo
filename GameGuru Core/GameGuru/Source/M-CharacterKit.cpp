@@ -59,13 +59,16 @@ void characterkit_init ( void )
 	{
 		// determine if gun has VWEAP (for character use)
 		SetDir ( "gamecore\\guns" );
-		SetDir ( t.gun[ti].name_s.Get() );
-		if ( FileExist ( "VWEAP.X" ) == 1 )
+		if ( PathExist ( t.gun[ti].name_s.Get() ) )
 		{
-			if ( iCharKitWeapIndex < 99 )
+			SetDir ( t.gun[ti].name_s.Get() );
+			if ( FileExist ( "VWEAP.X" ) == 1 )
 			{
-				iCharKitWeapIndex++;
-				t.characterkitweaponbank_s[iCharKitWeapIndex] = Lower(t.gun[ti].name_s.Get());
+				if ( iCharKitWeapIndex < 99 )
+				{
+					iCharKitWeapIndex++;
+					t.characterkitweaponbank_s[iCharKitWeapIndex] = Lower(t.gun[ti].name_s.Get());
+				}
 			}
 		}
 		SetDir ( t.tolddir_s.Get() );
