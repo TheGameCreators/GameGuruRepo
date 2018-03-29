@@ -102,6 +102,8 @@ function gameplayercontrol.jetpack()
 end
 
 function gameplayercontrol.weaponfire()
+	-- carrying an entity (pickuppable.lua script) then return
+	if PU_GetEntityCarried ~= nil and PU_GetEntityCarried() ~= nil then return end
 
 	-- Mouse based control
 	SetGamePlayerStateFiringMode(0)
@@ -799,6 +801,7 @@ function gameplayercontrol.control()
 			if ( GetGamePlayerStateNoWater() ~= 0 or GetCameraPositionY(0) > GetGamePlayerStateWaterlineY() + 20 ) then 
 				ttsnd = GetGamePlayerControlSoundStartIndex()+6
 				if ( RawSoundExist(ttsnd) == 1 ) then
+				    -- leelee
 					PlayRawSound(ttsnd)
 				end
 				tplayerjumpnow=GetGamePlayerControlJumpmax()*ttjumpmodifier
@@ -1017,6 +1020,7 @@ function gameplayercontrol.control()
 		SetGamePlayerStatePlayerY(GetPlrObjectPositionY())
 		if ( GetGamePlayerStatePlayerY()<GetGamePlayerStateWaterlineY()+20 and GetGamePlayerStateNoWater() == 0 ) then 
 			SetGamePlayerControlUnderwater(1)
+			ChangePlayerWeaponID(0)
 		else
 			SetGamePlayerControlUnderwater(0)
 		end
@@ -1027,7 +1031,7 @@ function gameplayercontrol.control()
 			SetGamePlayerControlPlrHitFloorMaterial(ttplrhitfloormaterial)
 			ttplrfell=GetCharacterFallDistance()
 			if ( GetGamePlayerStateImmunity() == 0 ) then 
-				if ( ttplrfell>0 ) then 
+				if ( ttplrfell>0 and GetGamePlayerStatePlayerY()>GetGamePlayerStateWaterlineY() ) then 
 					-- for a small landing, make a sound
 					if ( ttplrfell>75 ) then 
 						ttsnd=GetGamePlayerControlSoundStartIndex()+5
@@ -1552,7 +1556,9 @@ function gameplayercontrol.control()
 			if ( GetGamePlayerControlInWaterState() == 0 ) then 
 				ttsnd = GetGamePlayerControlSoundStartIndex()+13
 				if ( RawSoundExist ( ttsnd ) == 1 ) then
+					if ( g_PlayerHealth > 0 ) then
 					PlayRawSound ( ttsnd )
+					end
 				end
 				SetGamePlayerControlInWaterState(1)
 			end
@@ -1562,12 +1568,14 @@ function gameplayercontrol.control()
 				if ( GetGamePlayerControlInWaterState() < 2 ) then 
 					SetGamePlayerControlInWaterState(2)
 					SetUnderwaterOn()
+					-- added delay before drowning damage starts
+					SetGamePlayerControlDrownTimestamp(Timer()+15000)
 				end
 				-- check for drowning
 				if ( GetGamePlayerControlDrownTimestamp() == 0 ) then 
-					SetGamePlayerControlDrownTimestamp(Timer()+500)
+					SetGamePlayerControlDrownTimestamp(Timer()+5000)
 				else
-					-- lose 50 health per second until dead
+					-- lose 1 health per second until dead
 					if ( Timer() > GetGamePlayerControlDrownTimestamp() ) then 
 						-- if there was no start marker, reset player (cannot kill, as no start marker) then. Indicated by crazy health and no lives
 						if ( g_PlayerLives == 0 and g_PlayerHealth == 99999 ) then 
@@ -1576,8 +1584,8 @@ function gameplayercontrol.control()
 							g_PlayerHealth=0
 						else
 							-- Gulp in water for plr damage
-							SetGamePlayerControlDrownTimestamp(Timer()+500)
-							DrownPlayer(-1,200)
+							SetGamePlayerControlDrownTimestamp(Timer()+5000)
+							DrownPlayer(-1,5)
 						end
 						-- if player died
 						if ( g_PlayerHealth == 0 ) then 
@@ -1641,7 +1649,7 @@ function gameplayercontrol.control()
 	end
 
 	-- Screen REDNESS effect, and heartbeat, player is healthy, so fade away from redness
-	if ( g_PlayerHealth >= 100 ) then 
+	if ( g_PlayerHealth >= (g_gameloop_StartHealth / 1.5) ) then 
 		if ( GetGamePlayerControlRedDeathFog() > 0 ) then 
 			SetGamePlayerControlRedDeathFog(GetGamePlayerControlRedDeathFog() - GetElapsedTime())
 			if ( GetGamePlayerControlRedDeathFog() < 0 ) then SetGamePlayerControlRedDeathFog(0) end
@@ -1659,7 +1667,7 @@ function gameplayercontrol.control()
 				end
 			else
 				-- player is in injured state, so play low health heart beat and fade screen proportional to health
-				if ( GetGamePlayerControlHeartbeatTimeStamp() < Timer() ) then 
+				if ( GetGamePlayerControlHeartbeatTimeStamp() < Timer() and g_PlayerHealth <= (g_gameloop_StartHealth / 1.5) ) then 
 					ttsnd = GetGamePlayerControlSoundStartIndex()+17
 					if ( RawSoundExist ( ttsnd ) == 1 ) then
 						PlayRawSound ( ttsnd )
