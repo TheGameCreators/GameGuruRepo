@@ -2375,7 +2375,7 @@ void FPSC_Setup ( void )
 		CloseFile ( 1 );
 
 		// if VRQ, ensure serial code has not expired, otherwise ask for new serial code
-		if ( strlen(g.vrqcontrolmodeserialcode.Get()) > 0 )
+		if ( strlen(g.vrqcontrolmodeserialcode.Get()) > 1 )
 		{
 			// determine FROM and TO dates from serial code
 			if ( common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get()) == 0 )
@@ -2383,6 +2383,7 @@ void FPSC_Setup ( void )
 				// serial code expired
 				MessageBox ( NULL, "Your VRQUEST serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
 				g.vrqTriggerSerialCodeEntrySystem = 1;
+				g.vrqTriggerSoftwareToQuit = 1;
 			}
 			else
 			{
@@ -2394,6 +2395,7 @@ void FPSC_Setup ( void )
 		{
 			// no serial code found, ask for one
 			g.vrqTriggerSerialCodeEntrySystem = 1;
+			g.vrqTriggerSoftwareToQuit = 1;
 		}
 
 		// all VRQ is restricted content mode

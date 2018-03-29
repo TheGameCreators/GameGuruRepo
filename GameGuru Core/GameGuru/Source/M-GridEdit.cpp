@@ -3737,14 +3737,19 @@ void editor_clearlibrary ( void )
 	t.markerentitybank_s[11]="_markers\\cyan light.fpe";
 	t.markerentitybank_s[12]="_markers\\win zone.fpe";
 	t.markerentitybank_s[13]="_markers\\trigger zone.fpe";
-	t.markerentitybank_s[14]="_markers\\sound zone.fpe";
-	t.markerentitybank_s[15] = "_markers\\story zone.fpe";
 	t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
 	if ( g.vrqcontrolmode != 0 )
 	{
+		t.markerentitybank_s[14] = "_markers\\audio zone.fpe";
+		t.markerentitybank_s[15] = "_markers\\video zone.fpe";
 		t.markerentitybank_s[17] = "_markers\\image zone.fpe";
 		t.markerentitybank_s[18] = "_markers\\text zone.fpe";
 		t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
+	}
+	else
+	{
+		t.markerentitybank_s[14] = "_markers\\sound zone.fpe";
+		t.markerentitybank_s[15] = "_markers\\story zone.fpe";
 	}
 
 	// only if EBE enabled
@@ -8807,15 +8812,18 @@ void interface_openpropertywindow ( void )
 					if (  t.entityprofile[t.gridentity].ismarker == 4 ) { t.tflagtdecal = 1  ; t.tflagdecalparticle = 1; }
 					if (  t.entityprofile[t.gridentity].ismarker == 3 ) 
 					{
-						if (  t.entityprofile[t.gridentity].markerindex == 1 ) 
+						if (  t.entityprofile[t.gridentity].markerindex <= 1 ) 
 						{
-							//  video
-							t.tflagvideo=1;
-						}
-						else
-						{
-							//  sound
-							t.tflagsound=1;
+							if (  t.entityprofile[t.gridentity].markerindex == 1 ) 
+							{
+								// video
+								t.tflagvideo=1;
+							}
+							else
+							{
+								// sound
+								t.tflagsound=1;
+							}
 						}
 					}
 					if (  t.entityprofile[t.gridentity].ismarker == 7 ) 
