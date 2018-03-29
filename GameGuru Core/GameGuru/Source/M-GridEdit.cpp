@@ -3673,13 +3673,16 @@ void editor_clearlibrary ( void )
 	// MARKERS TAB
 	t.tadd=2;
 
-	//  Determine if STORY ZONE / FLOOR ZONE included
-	t.tstoryzoneincluded=13;
-	if (  FileExist("entitybank\\_markers\\story zone.bmp") == 1 ) 
-		t.tstoryzoneincluded=15;
+	//  Determine if extra ZONES included
+	t.tstoryzoneincluded=15;
+	if ( g.vrqcontrolmode != 0 )
+	{
+		// if VRQ, also add extra zones
+		t.tstoryzoneincluded=18;
+	}
 
 	//  Default markers
-	for ( t.tt = 0 ; t.tt<=  t.tstoryzoneincluded; t.tt++ )
+	for ( t.tt = 0 ; t.tt <= t.tstoryzoneincluded; t.tt++ )
 	{
 		if (  t.tt == 0 ) { t.t1_s = t.strarr_s[349]  ; t.t2_s = "files\\entitybank\\_markers\\player start.bmp"; }
 		if (  t.tt == 1 ) { t.t1_s = t.strarr_s[350]  ; t.t2_s = "files\\entitybank\\_markers\\player checkpoint.bmp"; }
@@ -3694,9 +3697,20 @@ void editor_clearlibrary ( void )
 		if (  t.tt == 10 ) { t.t1_s = t.strarr_s[357]  ; t.t2_s = "files\\entitybank\\_markers\\cyan light.bmp"; }
 		if (  t.tt == 11 ) { t.t1_s = t.strarr_s[360]  ; t.t2_s = "files\\entitybank\\_markers\\win zone.bmp"; }
 		if (  t.tt == 12 ) { t.t1_s = t.strarr_s[361]  ; t.t2_s = "files\\entitybank\\_markers\\trigger zone.bmp"; }
-		if (  t.tt == 13 ) { t.t1_s = t.strarr_s[362]  ; t.t2_s = "files\\entitybank\\_markers\\sound zone.bmp"; }
-		if (  t.tt == 14 ) { t.t1_s = t.strarr_s[607]  ; t.t2_s = "files\\entitybank\\_markers\\story zone.bmp"; }
+		if ( g.vrqcontrolmode != 0 )
+		{
+			if (  t.tt == 13 ) { t.t1_s = "Audio Zone"  ; t.t2_s = "files\\entitybank\\_markers\\audio zone.bmp"; }
+			if (  t.tt == 14 ) { t.t1_s = "Video Zone"  ; t.t2_s = "files\\entitybank\\_markers\\video zone.bmp"; }
+		}
+		else
+		{
+			if (  t.tt == 13 ) { t.t1_s = t.strarr_s[362]  ; t.t2_s = "files\\entitybank\\_markers\\sound zone.bmp"; }
+			if (  t.tt == 14 ) { t.t1_s = t.strarr_s[607]  ; t.t2_s = "files\\entitybank\\_markers\\story zone.bmp"; }
+		}
 		if (  t.tt == 15 ) { t.t1_s = "Floor Zone"; t.t2_s = "files\\entitybank\\_markers\\floor zone.bmp"; }
+		if (  t.tt == 16 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
+		if (  t.tt == 17 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
+		if (  t.tt == 18 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
 		SetFileMapDWORD (  1, 508, t.tadd );
 		SetFileMapString (  1, 1000, t.t2_s.Get() );
 		SetFileMapString (  1, 1256, t.t1_s.Get() );
@@ -3709,7 +3723,7 @@ void editor_clearlibrary ( void )
 	}
 
 	//  actual entity names of the markers
-	Dim ( t.markerentitybank_s, 17 );
+	Dim ( t.markerentitybank_s, 20 );
 	t.markerentitybank_s[1]="_markers\\player start.fpe";
 	t.markerentitybank_s[2]="_markers\\player checkpoint.fpe";
 	t.markerentitybank_s[3]="_markers\\cover zone.fpe";
@@ -3724,10 +3738,13 @@ void editor_clearlibrary ( void )
 	t.markerentitybank_s[12]="_markers\\win zone.fpe";
 	t.markerentitybank_s[13]="_markers\\trigger zone.fpe";
 	t.markerentitybank_s[14]="_markers\\sound zone.fpe";
-	if ( t.tstoryzoneincluded >= 14  )  
+	t.markerentitybank_s[15] = "_markers\\story zone.fpe";
+	t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
+	if ( g.vrqcontrolmode != 0 )
 	{
-		t.markerentitybank_s[15] = "_markers\\story zone.fpe";
-		t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
+		t.markerentitybank_s[17] = "_markers\\image zone.fpe";
+		t.markerentitybank_s[18] = "_markers\\text zone.fpe";
+		t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
 	}
 
 	// only if EBE enabled
