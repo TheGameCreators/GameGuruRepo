@@ -4354,15 +4354,33 @@ void physics_player_thirdpersonreset ( void )
 		PositionCamera (  t.terrain.gameplaycamera,t.terrain.playerx_f,t.terrain.playery_f,t.terrain.playerz_f );
 	}
 
-	//  ensure depth is not written so no motion blur
-	//  apply special character shader so can uniquely change shader constants
-	//  without affecting other NPCs and trees, etc
-	if (  t.obj>0 ) 
+	// ensure depth is not written so no motion blur
+	// apply special character shader so can uniquely change shader constants
+	// without affecting other NPCs and trees, etc
+	if ( t.obj>0 ) 
 	{
-		if (  ObjectExist(t.obj) == 1 ) 
+		if ( ObjectExist(t.obj) == 1 ) 
 		{
-			SetObjectEffect (  t.obj,g.thirdpersoncharactereffect );
-			SetEffectConstantF (  g.thirdpersoncharactereffect,"DepthWriteMode",0.0f );
+			int tttentid = t.entityelement[t.e].bankindex;
+			int ttsourceobj = g.entitybankoffset + tttentid;
+			if ( ttsourceobj > 0 )
+			{
+				if ( ObjectExist ( ttsourceobj ) == 1 )
+				{
+					if ( GetNumberOfFrames ( ttsourceobj ) > 0 )
+					{
+						// third person is animating
+						SetObjectEffect ( t.obj, g.thirdpersoncharactereffect );
+						SetEffectConstantF (  g.thirdpersoncharactereffect,"DepthWriteMode",0.0f );			
+					}
+					else
+					{
+						// third person is non-animating
+						SetObjectEffect ( t.obj, g.thirdpersonentityeffect );
+						SetEffectConstantF ( g.thirdpersonentityeffect, "DepthWriteMode", 0.0f );
+					}
+				}
+			}
 		}
 	}
 	//  and also treat the vweap attachment too
