@@ -2062,11 +2062,12 @@ void game_main_loop ( void )
 			if (  g.globals.ideinputmode == 1 ) 
 			{
 				g.lmlightmapnowmode=0;
-				if (  KeyState(g.keymap[59]) == 1  )  g.lmlightmapnowmode = 1;
-				if (  KeyState(g.keymap[60]) == 1  )  g.lmlightmapnowmode = 2;
-				if (  KeyState(g.keymap[61]) == 1  )  g.lmlightmapnowmode = 3;
-				if (  KeyState(g.keymap[62]) == 1  )  g.lmlightmapnowmode = 4;
-				if (  g.lmlightmapnowmode>0 ) 
+				/* added code to detect SHIFT key pressed - to prevent accidental pressing of F1, F2 etc (BOTR) */
+				if (KeyState(g.keymap[42]) == 1 && KeyState(g.keymap[59]) == 1)  g.lmlightmapnowmode = 1;
+				if (KeyState(g.keymap[42]) == 1 && KeyState(g.keymap[60]) == 1)  g.lmlightmapnowmode = 2;
+				if (KeyState(g.keymap[42]) == 1 && KeyState(g.keymap[61]) == 1)  g.lmlightmapnowmode = 3;
+				if (KeyState(g.keymap[42]) == 1 && KeyState(g.keymap[62]) == 1)  g.lmlightmapnowmode = 4;
+				if (  g.lmlightmapnowmode>0 )
 				{
 					//  User prompt
 					t.strwork = ""; t.strwork = t.strwork + "Select Lightmapping Mode "+Str(g.lmlightmapnowmode);
