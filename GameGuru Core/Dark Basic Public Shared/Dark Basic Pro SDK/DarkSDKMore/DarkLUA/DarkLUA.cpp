@@ -1184,6 +1184,46 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityWeight(lua_State *L)  { return GetEntityData ( L, 16 ); }
  int GetEntityScales(lua_State *L)  { return GetEntityData ( L, 17 ); }
 
+ int SetEntityString(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 3 ) return 0;
+	int iReturnValue = 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iSlotIndex = lua_tonumber(L, 2);
+	const char* pString = lua_tostring(L, 3);
+	if ( iEntityIndex > 0 )
+	{
+		if ( iSlotIndex == 0 ) t.entityelement[iEntityIndex].eleprof.soundset_s = pString;
+		if ( iSlotIndex == 1 ) t.entityelement[iEntityIndex].eleprof.soundset1_s = pString;
+		if ( iSlotIndex == 2 ) t.entityelement[iEntityIndex].eleprof.soundset2_s = pString;
+		if ( iSlotIndex == 3 ) t.entityelement[iEntityIndex].eleprof.soundset3_s = pString;
+		if ( iSlotIndex == 4 ) t.entityelement[iEntityIndex].eleprof.soundset4_s = pString;
+	}
+	return 1;
+ }
+ int GetEntityString(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 2 ) return 0;
+	int iReturnValue = 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iSlotIndex = lua_tonumber(L, 2);
+	LPSTR pString = "";
+	if ( iEntityIndex > 0 )
+	{
+		if ( iSlotIndex == 0 ) pString = t.entityelement[iEntityIndex].eleprof.soundset_s.Get();
+		if ( iSlotIndex == 1 ) pString = t.entityelement[iEntityIndex].eleprof.soundset1_s.Get();
+		if ( iSlotIndex == 2 ) pString = t.entityelement[iEntityIndex].eleprof.soundset2_s.Get();
+		if ( iSlotIndex == 3 ) pString = t.entityelement[iEntityIndex].eleprof.soundset3_s.Get();
+		if ( iSlotIndex == 4 ) pString = t.entityelement[iEntityIndex].eleprof.soundset4_s.Get();
+	}
+	lua_pushstring ( L, pString );
+	return 1;
+ }
+
  // Entity Animation
  int GetEntityAnimationStart(lua_State *L)
  {
@@ -4494,6 +4534,9 @@ void addFunctions()
 	lua_register(lua, "SetAnimationSpeedModulation", SetAnimationSpeedModulation);
 	lua_register(lua, "GetAnimationSpeedModulation", GetAnimationSpeedModulation);
 	lua_register(lua, "GetMovementDelta", GetMovementDelta);
+
+	lua_register(lua, "SetEntityString", SetEntityString);
+	lua_register(lua, "GetEntityString", GetEntityString);
 
 	lua_register(lua, "SetEntitySpawnAtStart", SetEntitySpawnAtStart);
 	lua_register(lua, "GetEntitySpawnAtStart", GetEntitySpawnAtStart);

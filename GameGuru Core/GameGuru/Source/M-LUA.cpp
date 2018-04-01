@@ -929,6 +929,7 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "playsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playsound() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "playsoundifsilent" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playsoundifsilent() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "playnon3dsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playnon3Dsound() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "loopnon3dsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_loopnon3Dsound() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setsound() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "loopsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_loopsound() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "stopsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_stopsound() ; }

@@ -592,7 +592,7 @@
 598=Audio
 599=Specify the sound file you would like to trigger when the player enters the zone
 600=Visual
-601=Specify WMV movie file you would like to play when the player enters the zone
+601=Specify movie file you would like to play when the player enters the zone
 602=
 603=
 604=

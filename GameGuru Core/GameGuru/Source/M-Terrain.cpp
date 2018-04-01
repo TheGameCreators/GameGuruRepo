@@ -500,7 +500,8 @@ int terrain_loadcustomtexture ( LPSTR pDestPathAndFile, int iTextureSlot )
 	}
 
 	// Use large prompt
-	t.statusbar_s = "Generating New Terrain Texture"; popup_text(t.statusbar_s.Get());
+	t.statusbar_s = "Generating New Terrain Texture"; 
+	popup_text(t.statusbar_s.Get());
 
 	// strip file from path
 	char pPathOnly[512];

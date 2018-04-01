@@ -644,7 +644,7 @@ void entity_lua_playsoundifsilent ( void )
 	}
 }
 
-void entity_lua_playnon3Dsound ( void )
+void entity_lua_playnon3Dsound_core ( int iLoopMode )
 {
 	//  since sounds that call this will normally be 3D sounds, positioning the sound is still required. This will mean
 	//  the sound playback will not be "non 3d", especially as the player moves. When process entities, if this sound
@@ -661,11 +661,24 @@ void entity_lua_playnon3Dsound ( void )
 		{
 			PositionSound (  t.tsnd,CameraPositionX(0),CameraPositionY(0),CameraPositionZ(0) );
 			SetSoundVolume (  t.tsnd,soundtruevolume(100.0) );
-			PlaySound (  t.tsnd );
+			if ( iLoopMode == 0 )
+				PlaySound (  t.tsnd );
+			else
+				LoopSound (  t.tsnd );
 			t.entityelement[t.e].soundisnonthreedee=1;
 		}
 	}
 	t.luaglobal.lastsoundnumber=t.tsnd;
+}
+
+void entity_lua_playnon3Dsound ( void )
+{
+	entity_lua_playnon3Dsound_core ( 0 );
+}
+
+void entity_lua_loopnon3Dsound ( void )
+{
+	entity_lua_playnon3Dsound_core ( 1 );
 }
 
 void entity_lua_loopsound ( void )

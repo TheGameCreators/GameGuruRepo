@@ -28,6 +28,7 @@ void entity_lua_checkpoint ( void );
 void entity_lua_playsound ( void );
 void entity_lua_playsoundifsilent ( void );
 void entity_lua_playnon3Dsound ( void );
+void entity_lua_loopnon3Dsound ( void );
 void entity_lua_setsound ( void );
 void entity_lua_loopsound ( void );
 void entity_lua_stopsound ( void );

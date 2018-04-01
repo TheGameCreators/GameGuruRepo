@@ -727,6 +727,9 @@ end
 function PlayNon3DSound(e,v)
  SendMessageI("playnon3dsound",e,v);
 end
+function LoopNon3DSound(e,v)
+ SendMessageI("loopnon3dsound",e,v);
+end
 function LoopSound(e,v)
  SendMessageI("loopsound",e,v);
 end
@@ -1064,6 +1067,9 @@ GetAnimationSpeed : speed = GetAnimationSpeed ( e ) -- where e is the entity num
 SetAnimationSpeedModulation : SetAnimationSpeedModulation ( e, speed ) -- where e is the entity number and speed is animation speed modulator
 GetAnimationSpeedModulation : speed = GetAnimationSpeedModulation ( e ) -- where e is the entity number and speed is the animation speed modulator
 GetMovementDelta : delta = GetMovementDelta ( e ) -- where e is the entity number and delta is the movement distance since the last cycle
+
+SetEntityString : SetEntityString ( e, slot, string ) -- where e is the entity number and slot (0-4) to write the string into
+GetEntityString : GetEntityString ( e, slot ) -- where e is the entity number and slot (0-4) is the sound slot index
 
 GetEntitySpawnAtStart : state = GetEntitySpawnAtStart ( e ) -- returns the state of the spawn (0-dont spawn at start, 1-spawn at start, 2-spawned during game)
 GetEntityFilePath : string = GetEntityFilePath ( e ) -- returns the entity file path to be used for helping inventory image systems

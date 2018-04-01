@@ -14,6 +14,9 @@ extern bool gbAlwaysIgnoreShaderBlobFile;
 extern bool g_VR920RenderStereoNow;
 extern float g_fVR920Sensitivity;
 
+// Globals
+int g_PopupControlMode = 0;
+
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
 
@@ -3876,6 +3879,60 @@ void popup_text_close ( void )
 	OpenFileMap (  2, "FPSPOPUP" );
 	SetFileMapDWORD (  2, 8, 1 );
 	SetEventAndWait (  2 );
+	g_PopupControlMode = 0;
+	Sleep(100);
+}
+
+void popup_text_change ( char* statusbar_s )
+{
+	OpenFileMap (  2, "FPSPOPUP" );
+	SetEventAndWait (  2 );
+	if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
+	{
+		SetFileMapString ( 2, 1000, statusbar_s );
+		SetFileMapDWORD ( 2, 4, 1 );
+		SetEventAndWait ( 2 );
+		//DWORD dwNow = timeGetTime();
+		//while (  GetFileMapDWORD( 2, 4 )  ==  1 && timeGetTime() > dwNow + 3000 ) 
+		//{
+		//	SetEventAndWait ( 2 );
+		//}
+	}
+}
+
+void popup_text ( char* statusbar_s )
+{
+	if ( g_PopupControlMode == 0 )
+	{
+		t.strwork = "" ; t.strwork = t.strwork + "1:popup_text "+statusbar_s;
+		timestampactivity(0, t.strwork.Get() );
+		OpenFileMap (  1,"FPSEXCHANGE" );
+		SetFileMapDWORD (  1, 750, 1 );
+		SetEventAndWait (  1 );
+		while (  1 ) 
+		{
+			OpenFileMap (  2, "FPSPOPUP" );
+			SetEventAndWait (  2 );
+			if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
+			{
+				SetFileMapString (  2, 1000, statusbar_s );
+				SetFileMapDWORD (  2, 4, 1 );
+				SetEventAndWait (  2 );
+				//DWORD dwNow = timeGetTime();
+				//while (  GetFileMapDWORD( 2, 4 )  ==  1 && timeGetTime() > dwNow + 3000 ) 
+				//{
+				//	SetEventAndWait (  2 );
+				//}
+				return;
+			}
+			Sync (  );
+		}
+		g_PopupControlMode = 1;
+	}
+	else
+	{
+		popup_text_change ( statusbar_s );
+	}
 }
 
 void loadresource ( void )
