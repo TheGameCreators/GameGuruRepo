@@ -30,6 +30,7 @@ void gun_loaddata ( void )
 
 		//  Default Run Accuracy (No diff)
 		g.firemodes[t.gunid][t.i].settings.runaccuracy = -1;
+		g.firemodes[t.gunid][t.i].settings.runanimdelay = 250;
 
 		//  Default Sound Strength
 		g.firemodes[t.gunid][t.i].settings.soundstrength=100;
@@ -198,6 +199,7 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"runx"  )  g.firemodes[t.gunid][t.x].settings.runx_f = t.value1;
 						if (  t.field_s == t.alt_s+"runy"  )  g.firemodes[t.gunid][t.x].settings.runy_f = t.value1;
 						if (  t.field_s == t.alt_s+"runacc"  )  g.firemodes[t.gunid][t.x].settings.runaccuracy = t.value1;
+						if (  t.field_s == t.alt_s+"runanimdelay"  )  g.firemodes[t.gunid][t.x].settings.runanimdelay = t.value1;
 						if (  t.field_s == t.alt_s+"noscorch"  )  g.firemodes[t.gunid][t.x].settings.noscorch = t.value1;
 						if (  t.field_s == t.alt_s+"melee noscorch"  )  g.firemodes[t.gunid][t.x].settings.meleenoscorch = t.value1;
 						if (  t.field_s == t.alt_s+"simplezoom"  )  g.firemodes[t.gunid][t.x].settings.simplezoom = t.value1;

@@ -2367,7 +2367,6 @@ void entity_updatetextureandeffectfromgrideleprof ( void )
 
 void entity_getgunidandflakid ( void )
 {
-
 	//  Use Weapon Name to get GUNID and FLAKID
 	if (  t.tgunid_s != "" ) 
 	{
@@ -2375,18 +2374,8 @@ void entity_getgunidandflakid ( void )
 		t.findgun_s=Lower(t.tgunid_s.Get());
 		gun_findweaponindexbyname ( );
 		t.tgunid=t.foundgunid;
-		//  get flak
-//   `tflakid$=firemode(tgunid,0).settings.flakname$
-
-//   `if tflakid$<>""
-
-		//t.flak_s=Lower_s(t.tflakid_s.Get()) ; flak_findindex ( );
-		//tflakid=tindex
-//   `else
-
-			t.tflakid=0;
-//   `endif
-
+		//  no flak - old system
+		t.tflakid=0;
 	}
 	else
 	{

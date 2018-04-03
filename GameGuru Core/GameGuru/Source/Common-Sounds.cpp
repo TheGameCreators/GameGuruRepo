@@ -625,6 +625,6 @@ void sound_footfallsound ( int footfalltype, float fX, float fY, float fZ, int* 
 		t.tsx_f = fX;
 		t.tsy_f = fY;
 		t.tsz_f = fZ;
-		material_triggersound ( );
+		material_triggersound ( 0 );
 	}
 }

@@ -1541,21 +1541,28 @@ void addfoldertocollection ( char* path_s )
 	cstr tfile_s =  "";
 	cstr told_s =  "";
 	int c = 0;
-	told_s=GetDir();
-	SetDir (  path_s );
-	ChecklistForFiles (  );
-	for ( c = 1 ; c<=  ChecklistQuantity(); c++ )
+	told_s = GetDir();
+	if ( PathExist ( path_s ) )
 	{
-		if (  ChecklistValueA(c) == 0 ) 
+		SetDir ( path_s );
+		ChecklistForFiles (  );
+		for ( c = 1 ; c<=  ChecklistQuantity(); c++ )
 		{
-			tfile_s=ChecklistString(c);
-			if (  tfile_s != "." && tfile_s != ".." ) 
+			if (  ChecklistValueA(c) == 0 ) 
 			{
-				addtocollection( cstr(cstr(path_s)+"\\"+tfile_s).Get() );
+				tfile_s=ChecklistString(c);
+				if (  tfile_s != "." && tfile_s != ".." ) 
+				{
+					addtocollection( cstr(cstr(path_s)+"\\"+tfile_s).Get() );
+				}
 			}
 		}
+		SetDir (  told_s.Get() );
 	}
-	SetDir (  told_s.Get() );
+	else
+	{
+		timestampactivity(0, cstr(cstr("Tried adding path that does not exist: ")+path_s).Get() );
+	}
 }
 
 void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s )

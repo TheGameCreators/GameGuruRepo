@@ -5391,6 +5391,43 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				}
 			}
 
+			// prefer to render objects that are marked as 'not' transparent, not locked and bNewZLayerObject as true
+			// this will allow muzzle flashes to render 'before' the weapon (and smoke to render AFTER as smoke transparency set to 6)
+			for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectNoZDepth.size(); ++iIndex )
+			{
+				sObject* pObject = m_vVisibleObjectNoZDepth [ iIndex ];
+				if ( !pObject ) continue;
+
+				// ignore objects whose masks reject the current camera
+				if ( (pObject->dwCameraMaskBits & dwCurrentCameraBit)==0 )
+					continue;
+
+				// only render not-transparent, not locked and bNewZLayerObject true objects
+				bool bRenderObject = false;
+				if ( pObject->bTransparentObject==false && pObject->bLockedObject==false && pObject->bNewZLayerObject==true )
+					bRenderObject=true;
+
+				// only if object should be rendered
+				if ( !bRenderObject )
+					continue;
+
+				// skip if IS weapon/jetpack
+				bool bIsWeaponOrJetPack = false;
+				sObject* pActualObject = pObject;
+				if ( pObject->pInstanceOfObject ) pActualObject = pObject->pInstanceOfObject;
+				if ( pActualObject->ppMeshList )
+				{
+					if ( pWeaponBasic && pWeaponBasic->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pWeaponBasic->pEffectObj ) bIsWeaponOrJetPack = true;
+					if ( pWeaponBone && pWeaponBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pWeaponBone->pEffectObj ) bIsWeaponOrJetPack = true;
+					if ( pJetpackBone && pJetpackBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pJetpackBone->pEffectObj ) bIsWeaponOrJetPack = true;
+				}
+				if ( bIsWeaponOrJetPack == true )
+					continue;
+
+				// draw
+				DrawObject ( pObject, false );
+			}
+
 			// WEAPON RENDERING
 			// for NoZDepth pass, two cycles one for depthcutout and regular
 			// and hard find weapon shaders that have cutoutdepth techniques
@@ -5493,6 +5530,10 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 						if ( pJetpackBone && pJetpackBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pJetpackBone->pEffectObj ) bIsWeaponOrJetPack = true;
 					}
 					if ( bIsWeaponOrJetPack == true )
+						continue;
+
+					// do not render not-transparent, not locked and bNewZLayerObject true objects (did this earlier before weapon renders)
+					if ( pObject->bTransparentObject==false && pObject->bLockedObject==false && pObject->bNewZLayerObject==true )
 						continue;
 
 					// locked objects

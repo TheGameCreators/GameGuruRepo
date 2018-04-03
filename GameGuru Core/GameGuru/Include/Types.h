@@ -40,7 +40,7 @@
 //  These will be initial maximums for the data structures, but we can dynamically grow the arrays when required
 #define WEAPON_MAXWEAPONS      20
 #define WEAPON_MAXANIMATIONS   30
-#define WEAPON_PROJECTILETYPES 10
+#define WEAPON_PROJECTILETYPES 100
 #define WEAPON_MAXPROJECTILES  100
 #define WEAPON_MAXSOUNDS       100
 
@@ -1361,6 +1361,7 @@ struct weaponProjectileBaseType
 	int textureN;
 	int textureS;
 	int effectid;
+	int noZWrite;
 	float baseObjScaleMinX_f;
 	float baseObjScaleMaxX_f;
 	float baseObjScaleMinY_f;
@@ -6457,6 +6458,7 @@ struct gunsettingstype
 	float runy_f;
 	float runx_f;
 	int runaccuracy;
+	int runanimdelay;
 	unsigned char noautoreload;
 	unsigned char nofullreload;
 	unsigned char chamberedround;
@@ -6510,6 +6512,7 @@ struct gunsettingstype
 		 nofullreload = 0;
 		 noautoreload = 0;
 		 runaccuracy = 0;
+		 runanimdelay = 0;
 		 runx_f = 0.0f;
 		 runy_f = 0.0f;
 		 ammomax = 0;
@@ -9122,6 +9125,7 @@ struct playercontroltype
 	float ripplecount_f;
 	int lastfootfallsound;
 	int isrunning;
+	DWORD isrunningtime;
 	int usingrun;
 	int gravityactive;
 	int gravityactivepress;

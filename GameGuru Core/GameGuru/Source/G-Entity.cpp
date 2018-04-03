@@ -1758,7 +1758,7 @@ void entity_hasbulletrayhit(void)
 				t.tmatindex=17 ; t.tsoundtrigger=t.material[t.tmatindex].impactid;
 				t.tspd_f=(t.material[t.tmatindex].freq*1.5)+Rnd(t.material[t.tmatindex].freq)*0.5;
 				t.tsx_f=g.decalx ; t.tsy_f=g.decaly ; t.tsz_f=g.decalz;
-				t.tvol_f = 6 ;  material_triggersound ( );
+				t.tvol_f = 6 ;  material_triggersound ( 0 );
 				t.tsoundtrigger=0;
 			}
 		}
@@ -1969,7 +1969,7 @@ void entity_triggerdecalatimpact ( float fX, float fY, float fZ )
 		t.tsoundtrigger=t.material[t.tmatindex].impactid;
 		t.tspd_f=t.material[t.tmatindex].freq;
 		t.tsx_f=g.decalx ; t.tsy_f=g.decaly ; t.tsz_f=g.decalz;
-		t.tvol_f = 100.0f ; material_triggersound ( );
+		t.tvol_f = 100.0f ; material_triggersound ( 0 );
 		t.tsoundtrigger=0;
 	}
 }

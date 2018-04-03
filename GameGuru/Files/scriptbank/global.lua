@@ -1302,6 +1302,7 @@ GetGamePlayerControlWobbleHeight: GetGamePlayerControlWobbleHeight() -- command 
 GetGamePlayerControlJumpmax: GetGamePlayerControlJumpmax() -- command used by the default player control mechanism
 GetGamePlayerControlPushangle: GetGamePlayerControlPushangle() -- command used by the default player control mechanism
 GetGamePlayerControlPushforce: GetGamePlayerControlPushforce() -- command used by the default player control mechanism
+GetGamePlayerControlFootfallPace : GetGamePlayerControlFootfallPace() -- command used by the default player control mechanism
 GetGamePlayerControlFinalCameraAngley: GetGamePlayerControlFinalCameraAngley() -- command used by the default player control mechanism
 GetGamePlayerControlLockAtHeight: GetGamePlayerControlLockAtHeight() -- command used by the default player control mechanism
 GetGamePlayerControlControlHeight: GetGamePlayerControlControlHeight() -- command used by the default player control mechanism
@@ -1386,6 +1387,7 @@ SetGamePlayerControlWobbleHeight: SetGamePlayerControlWobbleHeight() -- command 
 SetGamePlayerControlJumpmax: SetGamePlayerControlJumpmax() -- command used by the default player control mechanism
 SetGamePlayerControlPushangle: SetGamePlayerControlPushangle() -- command used by the default player control mechanism
 SetGamePlayerControlPushforce: SetGamePlayerControlPushforce() -- command used by the default player control mechanism
+SetGamePlayerControlFootfallPace: SetGamePlayerControlFootfallPace() -- command used by the default player control mechanism
 SetGamePlayerControlFinalCameraAngley: SetGamePlayerControlFinalCameraAngley() -- command used by the default player control mechanism
 SetGamePlayerControlLockAtHeight: SetGamePlayerControlLockAtHeight() -- command used by the default player control mechanism
 SetGamePlayerControlControlHeight: SetGamePlayerControlControlHeight() -- command used by the default player control mechanism

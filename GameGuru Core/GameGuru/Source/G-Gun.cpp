@@ -188,10 +188,11 @@ void gun_manager ( void )
 
 	// new freeze mode (PLRDISABLE) which stops player attacking
 	t.gunclick=t.player[1].state.firingmode;
-	if ( t.gunclick == 0  )  t.gunandmelee.pressedtrigger = 0;
+	if ( t.gunclick == 0 && t.gunmode >= 7 ) t.gunandmelee.pressedtrigger = 0;
 	if ( g.mefrozen>0 && g.mefrozentype == 2  )  t.gunclick = 0;
 	if ( t.gunclick == 1 && g.firemodes[t.gunid][g.firemode].settings.disablerunandshoot == 1 && t.playercontrol.isrunning == 1 && t.player[1].state.moving == 1  )  t.gunclick = 0;
 	if ( t.gunclick == 1 && (g.lowfpswarning == 1 || g.lowfpswarning == 2)  )  t.gunclick = 0;
+
 
 	// Melee control (for TPP)
 	bool bGunshotOverridden = false;
@@ -229,12 +230,13 @@ void gun_manager ( void )
 		if (  t.gunclick != 0 ) 
 		{
 			bool bGunshotOverridden = false;
-			if ( t.gunclick == 1 && t.gunmustreleasefirst == 0 )
+			if ( t.gunclick == 1 && t.gunmustreleasefirst == 0 && t.gunandmelee.pressedtrigger == 0 )
 			{
-				// if gun ready, trigger a shot
+				// if gun ready, trigger a shot (only if t.gunandmelee.pressedtrigger is zero so dry fire anim does not freeze)
 				if ( t.gunmode >= 5 && t.gunmode <= 26 ) 
 				{
-					t.gunmode=101;
+					t.gunmodelast = t.gunmode;
+					t.gunmode = 101;
 					if ( t.game.runasmultiplayer == 1 ) steam_shoot ( );
 				}
 			}
@@ -689,46 +691,49 @@ void gun_picksndvariant ( void )
 	}
 }
 
-void gun_getstartandfinish ( void )
+bool gun_getstartandfinish ( void )
 {
 	//  get start and finish fire animation
-	//t.gstart as gunanimtype;
-	//t.gfinish as gunanimtype;
-	t.gstart=g.firemodes[t.gunid][g.firemode].action.start;
-	t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish;
+	t.gstart = g.firemodes[t.gunid][g.firemode].action.start;
+	t.gfinish = g.firemodes[t.gunid][g.firemode].action.finish;
+
 	//  if last bullet though, use alternative if available
-	if (  g.firemodes[t.gunid][g.firemode].action.laststart.s>0 ) 
+	if ( g.firemodes[t.gunid][g.firemode].action.laststart.s>0 ) 
 	{
-		if (  t.gunmode<104 || t.gunmode>106 ) 
+		if ( t.gunmode<104 || t.gunmode>106 ) 
 		{
-			//  ensure start/finish not change WHILST performing last fire animation
-			if (  t.weaponammo[g.weaponammoindex+g.ammooffset] == 1 ) 
+			// ensure start/finish not change WHILST performing last fire animation
+			if ( t.weaponammo[g.weaponammoindex+g.ammooffset] == 1 ) 
 			{
-				t.gstart=g.firemodes[t.gunid][g.firemode].action.laststart;
-				t.gfinish=g.firemodes[t.gunid][g.firemode].action.lastfinish;
+				t.gstart = g.firemodes[t.gunid][g.firemode].action.laststart;
+				t.gfinish = g.firemodes[t.gunid][g.firemode].action.lastfinish;
+				return false;
 			}
 		}
 	}
-return;
 
+	// normal
+	return true;
 }
 
-void gun_getzoomstartandfinish ( void )
+bool gun_getzoomstartandfinish ( void )
 {
-	t.gstart=g.firemodes[t.gunid][g.firemode].zoomaction.start;
-	t.gfinish=g.firemodes[t.gunid][g.firemode].zoomaction.finish;
-	if (  g.firemodes[t.gunid][g.firemode].zoomaction.laststart.s>0 ) 
+	t.gstart = g.firemodes[t.gunid][g.firemode].zoomaction.start;
+	t.gfinish = g.firemodes[t.gunid][g.firemode].zoomaction.finish;
+	if ( g.firemodes[t.gunid][g.firemode].zoomaction.laststart.s>0 ) 
 	{
-		//  if last bullet though, use alternative if available
-		if (  t.gunmode<104 || t.gunmode>106 ) 
+		// if last bullet though, use alternative if available
+		if ( t.gunmode<104 || t.gunmode>106 ) 
 		{
-			if (  t.weaponammo[g.weaponammoindex+g.ammooffset] == 1 ) 
+			if ( t.weaponammo[g.weaponammoindex+g.ammooffset] == 1 ) 
 			{
-				t.gstart=g.firemodes[t.gunid][g.firemode].zoomaction.laststart;
-				t.gfinish=g.firemodes[t.gunid][g.firemode].zoomaction.lastfinish;
+				t.gstart = g.firemodes[t.gunid][g.firemode].zoomaction.laststart;
+				t.gfinish = g.firemodes[t.gunid][g.firemode].zoomaction.lastfinish;
+				return false;
 			}
 		}
 	}
+	return true;
 }
 
 void gun_control ( void )
@@ -900,21 +905,32 @@ void gun_control ( void )
 		t.lastcamax_f=CameraAngleX();
 		t.lastcamay_f=CameraAngleY();
 		t.lastcamaz_f=CameraAngleZ();
-		t.wox_f=t.wox_f+(t.wax_f/10.0);
-		t.woy_f=t.woy_f+(t.way_f/10.0);
-		t.woz_f=t.woz_f+(t.waz_f/10.0);
+		float fGunLagSpeed = 20.0f-(t.gunlagspeed_f/5.0f);
+		if ( fGunLagSpeed < 1.0f ) fGunLagSpeed = 1.0f;
+		if ( fGunLagSpeed > 20.0f ) fGunLagSpeed = 20.0f;
+		t.wox_f=t.wox_f+(t.wax_f/fGunLagSpeed);
+		t.woy_f=t.woy_f+(t.way_f/fGunLagSpeed);
+		t.woz_f=t.woz_f+(t.waz_f/fGunLagSpeed);
 		t.wox_f=t.wox_f*0.9;
 		t.woy_f=t.woy_f*0.9;
 		t.woz_f=t.woz_f*0.9;
 		t.sway_f=30.0 ; t.swayn_f=t.sway_f*-1;
-		if (  t.wox_f<t.swayn_f  )  t.wox_f = t.swayn_f;
-		if (  t.wox_f>t.sway_f  )  t.wox_f = t.sway_f;
-		if (  t.woy_f<t.swayn_f  )  t.woy_f = t.swayn_f;
-		if (  t.woy_f>t.sway_f  )  t.woy_f = t.sway_f;
 		if (  t.woz_f<t.swayn_f  )  t.woz_f = t.swayn_f;
 		if (  t.woz_f>t.sway_f  )  t.woz_f = t.sway_f;
+		//if (  t.wox_f<t.swayn_f  )  t.wox_f = t.swayn_f;
+		//if (  t.wox_f>t.sway_f  )  t.wox_f = t.sway_f;
+		//if (  t.woy_f<t.swayn_f  )  t.woy_f = t.swayn_f;
+		//if (  t.woy_f>t.sway_f  )  t.woy_f = t.sway_f;
+		float fSwayX = t.gunlagxmax_f;
+		float fSwayXN = -t.gunlagxmax_f;
+		float fSwayY = t.gunlagymax_f;
+		float fSwayYN = -t.gunlagymax_f;
+		if ( t.wox_f < fSwayXN ) t.wox_f = fSwayXN;
+		if ( t.wox_f > fSwayX ) t.wox_f = fSwayX;
+		if ( t.woy_f < fSwayYN ) t.woy_f = fSwayYN;
+		if ( t.woy_f > fSwayY ) t.woy_f = fSwayY;
 	}
-	RotateObject (  t.currentgunobj,t.wox_f,180-t.woy_f,t.woz_f );
+	RotateObject ( t.currentgunobj, t.wox_f, 180-t.woy_f, t.woz_f );
 
 	//  hide the object if weapon-ammo and no qty left
 	//  OR a grenade with no ammo and not throwing at the time
@@ -977,12 +993,6 @@ void gun_control ( void )
 	}
 
 	//  Zoom To/From Animations (show/hide)
-	//t.tzoomactionshow as gunanimtype;
-	//t.tzoomactionhide as gunanimtype;
-	//t.tzoomactionidle as gunanimtype;
-	//t.tzoomactionmove as gunanimtype;
-	//t.taltactionto as gunanimtype;
-	//t.taltactionfrom as gunanimtype;
 	t.tzoomactionshow=g.firemodes[t.gunid][g.firemode].zoomaction.show;
 	t.tzoomactionhide=g.firemodes[t.gunid][g.firemode].zoomaction.hide;
 	t.tzoomactionidle=g.firemodes[t.gunid][g.firemode].zoomaction.idle;
@@ -1074,18 +1084,20 @@ void gun_control ( void )
 	{
 		if (  GetFrame(t.currentgunobj) >= t.taltactionfrom.e  )  t.gunmode = 5;
 	}
-	/*
-	//  temp gunanim states
-	t.gshow as gunanimtype;
-	t.gidle as gunanimtype;
-	t.gmove as gunanimtype;
-	t.gautomatic as gunanimtype;
-	t.gstartreload as gunanimtype;
-	t.greloadloop as gunanimtype;
-	t.gendreload as gunanimtype;
-	t.gcock as gunanimtype;
-	t.ghide as gunanimtype;
-	t.gblock as gunanimtype;*/
+	
+	// player must be at top speed before transitioning to run animation
+	// when fire weapon, t.playercontrol.isrunningtime is updated with timer so does not trigger immediate run after firing
+	bool bReallyRunning = false;
+	if ( t.playercontrol.isrunning == 1 ) 
+	{
+		if ( t.playercontrol.isrunningtime == 0 ) 
+			t.playercontrol.isrunningtime = Timer();
+		else
+			if ( Timer() > t.playercontrol.isrunningtime + g.firemodes[t.gunid][g.firemode].settings.runanimdelay )
+				bReallyRunning = true;
+	}
+	else
+		t.playercontrol.isrunningtime = 0;
 
 	if (  g.firemodes[t.gunid][g.firemode].settings.hasempty == 1 && g.firemodes[t.gunid][g.firemode].settings.isempty == 1 ) 
 	{
@@ -1112,20 +1124,20 @@ void gun_control ( void )
 		}
 		t.gshow=g.firemodes[t.gunid][g.firemode].emptyaction.show;
 		t.gidle=g.firemodes[t.gunid][g.firemode].emptyaction.idle;
-		if (  t.playercontrol.isrunning == 0 && t.playercontrol.usingrun != -1 ) 
+		if ( bReallyRunning==false && t.playercontrol.usingrun != -1 ) 
 		{
 			t.gmove=g.firemodes[t.gunid][g.firemode].emptyaction.move;
 			t.playercontrol.usingrun=-1;
 			if (  t.gunmode >= 21 && t.gunmode <= 26  )  t.gunmode = 21;
 		}
-		if (  t.playercontrol.isrunning == 1 && t.playercontrol.usingrun != 1 ) 
+		if ( bReallyRunning == true && t.playercontrol.usingrun != 1 ) 
 		{
 			t.gmove=g.firemodes[t.gunid][g.firemode].emptyaction.run;
 			t.playercontrol.usingrun=1;
 			if (  t.gunmode >= 21 && t.gunmode <= 26  )  t.gunmode = 21;
 		}
-		if (  t.playercontrol.usingrun == -1  )  t.gmove = g.firemodes[t.gunid][g.firemode].emptyaction.move;
-		if (  t.playercontrol.usingrun == 1  )  t.gmove = g.firemodes[t.gunid][g.firemode].emptyaction.run;
+		if ( t.playercontrol.usingrun == -1 ) t.gmove = g.firemodes[t.gunid][g.firemode].emptyaction.move;
+		if ( t.playercontrol.usingrun == 1 ) t.gmove = g.firemodes[t.gunid][g.firemode].emptyaction.run;
 		t.gstartreload=g.firemodes[t.gunid][g.firemode].emptyaction.startreload;
 		t.greloadloop=g.firemodes[t.gunid][g.firemode].emptyaction.reloadloop;
 		t.gendreload=g.firemodes[t.gunid][g.firemode].emptyaction.endreload;
@@ -1136,13 +1148,13 @@ void gun_control ( void )
 	{
 		t.gshow=g.firemodes[t.gunid][g.firemode].action.show;
 		t.gidle=g.firemodes[t.gunid][g.firemode].action.idle;
-		if (  t.playercontrol.isrunning == 0 && t.playercontrol.usingrun != -1 ) 
+		if ( bReallyRunning == false && t.playercontrol.usingrun != -1 ) 
 		{
 			t.gmove=g.firemodes[t.gunid][g.firemode].action.move;
 			t.playercontrol.usingrun=-1;
 			if (  t.gunmode >= 21 && t.gunmode <= 26  )  t.gunmode = 21;
 		}
-		if (  t.playercontrol.isrunning == 1 && t.playercontrol.usingrun != 1 ) 
+		if ( bReallyRunning == true && t.playercontrol.usingrun != 1 ) 
 		{
 			t.gmove=g.firemodes[t.gunid][g.firemode].action.run;
 			t.playercontrol.usingrun=1;
@@ -1156,21 +1168,33 @@ void gun_control ( void )
 		t.gendreload=g.firemodes[t.gunid][g.firemode].action.endreload;
 		t.gcock=g.firemodes[t.gunid][g.firemode].action.cock;
 		t.ghide=g.firemodes[t.gunid][g.firemode].action.hide;
-		if (  t.tfireanim == 0 ) 
+		if ( t.tfireanim == 0 ) 
 		{
-			gun_getstartandfinish ( );
-			t.tempani=1;
-			if (  g.firemodes[t.gunid][g.firemode].action.start2.s > 0 && Rnd(2) == 0 ) 
+			if ( gun_getstartandfinish ( ) == true )
 			{
-				t.gstart=g.firemodes[t.gunid][g.firemode].action.start2;
-				t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish2;
-				t.tempani=2;
-			}
-			if (  g.firemodes[t.gunid][g.firemode].action.start3.s > 0 && Rnd(2) == 0 ) 
-			{
-				t.gstart=g.firemodes[t.gunid][g.firemode].action.start3;
-				t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish3;
-				t.tempani=3;
+				// new true random selection of fire
+				t.tempani = 1 + Rnd(2);
+				if ( t.tempani == 2 && g.firemodes[t.gunid][g.firemode].action.start2.s == 0 ) t.tempani = 1;
+				if ( t.tempani == 3 && g.firemodes[t.gunid][g.firemode].action.start3.s == 0 ) t.tempani = 1;
+				if ( t.tempani == t.templastani ) 
+				{
+					t.tempani = t.templastani + 1;
+					if ( t.tempani > 3 ) t.tempani = 1;
+				}
+				if ( t.tempani == 2 && g.firemodes[t.gunid][g.firemode].action.start2.s == 0 ) t.tempani = 1;
+				if ( t.tempani == 3 && g.firemodes[t.gunid][g.firemode].action.start3.s == 0 ) t.tempani = 1;
+				t.templastani = t.tempani;
+				if ( t.tempani == 2 )
+				{
+					t.gstart=g.firemodes[t.gunid][g.firemode].action.start2;
+					t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish2;
+				}
+				if ( t.tempani == 3 )
+				{
+					t.gstart=g.firemodes[t.gunid][g.firemode].action.start3;
+					t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish3;
+				}
+				t.tfireanim = t.tempani;
 			}
 		}
 		else
@@ -1190,8 +1214,8 @@ void gun_control ( void )
 				t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish3;
 			}
 		}
-
 	}
+
 	if (  t.gunzoommode != 0 && g.firemodes[t.gunid][g.firemode].settings.simplezoom  !=  0 && g.firemodes[t.gunid][g.firemode].settings.simplezoomanim != 0 ) 
 	{
 		t.gidle=t.tzoomactionidle;
@@ -1211,20 +1235,32 @@ void gun_control ( void )
 		{
 			if (  t.tmeleeanim == 0 ) 
 			{
-				t.gstart=g.firemodes[t.gunid][g.firemode].meleeaction.start;
-				t.gfinish=g.firemodes[t.gunid][g.firemode].meleeaction.finish;
-				t.tempmeani=1;
-				if (  g.firemodes[t.gunid][g.firemode].meleeaction.start2.s > 0 && Rnd(2) == 0 ) 
+				// new true random selection of melee
+				t.tempmeani = 1 + Rnd(2);
+				if ( t.tempmeani == 2 && g.firemodes[t.gunid][g.firemode].meleeaction.start2.s == 0 ) t.tempmeani = 1;
+				if ( t.tempmeani == 3 && g.firemodes[t.gunid][g.firemode].meleeaction.start3.s == 0 ) t.tempmeani = 1;
+				if ( t.tempmeani == t.tlastmeleeanim ) 
+				{
+					t.tempmeani = t.tlastmeleeanim + 1;
+					if ( t.tempmeani > 3 ) t.tempmeani = 1;
+				}
+				if ( t.tempmeani == 2 && g.firemodes[t.gunid][g.firemode].meleeaction.start2.s == 0 ) t.tempmeani = 1;
+				if ( t.tempmeani == 3 && g.firemodes[t.gunid][g.firemode].meleeaction.start3.s == 0 ) t.tempmeani = 1;
+				t.tlastmeleeanim = t.tempmeani;
+				if ( t.tempmeani == 1 )
+				{
+					t.gstart=g.firemodes[t.gunid][g.firemode].meleeaction.start;
+					t.gfinish=g.firemodes[t.gunid][g.firemode].meleeaction.finish;
+				}
+				if ( t.tempmeani == 2 )
 				{
 					t.gstart=g.firemodes[t.gunid][g.firemode].meleeaction.start2;
 					t.gfinish=g.firemodes[t.gunid][g.firemode].meleeaction.finish2;
-					t.tempmeani=2;
 				}
-				if (  g.firemodes[t.gunid][g.firemode].meleeaction.start3.s > 0 && Rnd(2) == 0 ) 
+				if ( t.tempmeani == 3 )
 				{
 					t.gstart=g.firemodes[t.gunid][g.firemode].meleeaction.start3;
 					t.gfinish=g.firemodes[t.gunid][g.firemode].meleeaction.finish3;
-					t.tempmeani=3;
 				}
 			}
 			else
@@ -1252,20 +1288,32 @@ void gun_control ( void )
 			{
 				if (  t.tmeleeanim == 0 ) 
 				{
-					t.gstart=g.firemodes[t.gunid][g.firemode].emptyaction.start;
-					t.gfinish=g.firemodes[t.gunid][g.firemode].emptyaction.finish;
-					t.tempmeani=1;
-					if (  g.firemodes[t.gunid][g.firemode].emptyaction.start2.s > 0 && Rnd(2) == 0 ) 
+					// new true random selection of melee
+					t.tempmeani = 1 + Rnd(2);
+					if ( t.tempmeani == 2 && g.firemodes[t.gunid][g.firemode].emptyaction.start2.s == 0 ) t.tempmeani = 1;
+					if ( t.tempmeani == 3 && g.firemodes[t.gunid][g.firemode].emptyaction.start3.s == 0 ) t.tempmeani = 1;
+					if ( t.tempmeani == t.tlastmeleeanim ) 
+					{
+						t.tempmeani = t.tlastmeleeanim + 1;
+						if ( t.tempmeani > 3 ) t.tempmeani = 1;
+					}
+					if ( t.tempmeani == 2 && g.firemodes[t.gunid][g.firemode].emptyaction.start2.s == 0 ) t.tempmeani = 1;
+					if ( t.tempmeani == 3 && g.firemodes[t.gunid][g.firemode].emptyaction.start3.s == 0 ) t.tempmeani = 1;
+					t.tlastmeleeanim = t.tempmeani;
+					if ( t.tempmeani == 1 )
+					{
+						t.gstart=g.firemodes[t.gunid][g.firemode].emptyaction.start;
+						t.gfinish=g.firemodes[t.gunid][g.firemode].emptyaction.finish;
+					}
+					if ( t.tempmeani == 2 )
 					{
 						t.gstart=g.firemodes[t.gunid][g.firemode].emptyaction.start2;
 						t.gfinish=g.firemodes[t.gunid][g.firemode].emptyaction.finish2;
-						t.tempmeani=2;
 					}
-					if (  g.firemodes[t.gunid][g.firemode].emptyaction.start3.s > 0 && Rnd(2) == 0 ) 
+					if ( t.tempmeani == 3 )
 					{
 						t.gstart=g.firemodes[t.gunid][g.firemode].emptyaction.start3;
 						t.gfinish=g.firemodes[t.gunid][g.firemode].emptyaction.finish3;
-						t.tempmeani=3;
 					}
 				}
 				else
@@ -1605,10 +1653,11 @@ void gun_control ( void )
 			}
 			t.gunmode=102;
 			SetObjectInterpolation (  t.currentgunobj,100 );
-			t.tfireanim=t.tempani;
+			//t.tfireanim=t.tempani;
 			PlayObject (  t.currentgunobj,t.gstart.s,t.gstart.e );
 			t.currentgunanimspeed_f=g.timeelapsed_f*t.genericgunanimspeed_f;
 			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+
 			//  eject brass immediately
 			if (  t.gun[t.gunid].settings.brasslimb != -1 ) {  t.gunbrass = 1  ; g.gunbrasscount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
 		}
@@ -1616,7 +1665,9 @@ void gun_control ( void )
 		{
 			if (  t.gunandmelee.pressedtrigger == 0 ) 
 			{
+				// ensure cannot click again until dryfire finished and mouse released
 				t.gunandmelee.pressedtrigger=1;
+
 				//  dryfire sound
 				if (  t.gun[t.gunid].settings.alternate == 0  )  t.sndid = t.gunsound[t.gunid][3].soundid1; else t.sndid = t.gunsound[t.gunid][3].altsoundid;
 				if (  t.sndid>0 ) 
@@ -1632,24 +1683,35 @@ void gun_control ( void )
 						}
 					}
 				}
-				//  dryfire animation
-				//t.gdryfire as gunanimtype;
-				if (  t.gunzoommode == 0 ) 
+
+				// dryfire animation (only if was not moving)
+				if ( t.gunmodelast < 21 || t.gunmodelast > 26 )
 				{
-					t.gdryfire=g.firemodes[t.gunid][g.firemode].emptyaction.dryfire;
+					if (  t.gunzoommode == 0 ) 
+					{
+						t.gdryfire=g.firemodes[t.gunid][g.firemode].emptyaction.dryfire;
+					}
+					else
+					{
+						t.gdryfire=g.firemodes[t.gunid][g.firemode].emptyzoomactiondryfire;
+					}
+					if (  t.gdryfire.s>0 ) 
+					{
+						StopObject ( t.currentgunobj );
+						SetObjectInterpolation ( t.currentgunobj, 100 );
+						SetObjectFrame ( t.currentgunobj, t.gdryfire.s );
+						PlayObject ( t.currentgunobj, t.gdryfire.s, t.gdryfire.e );
+						t.gunmode=109;
+					}
+					else
+					{
+						t.gunmode=107;
+					}
 				}
 				else
 				{
-					t.gdryfire=g.firemodes[t.gunid][g.firemode].emptyzoomactiondryfire;
-				}
-				if (  t.gdryfire.s>0 ) 
-				{
-					PlayObject (  t.currentgunobj,t.gdryfire.s,t.gdryfire.e );
-					t.gunmode=109;
-				}
-				else
-				{
-					t.gunmode=107;
+					// return gunmode state right back to when before '101' fire was triggered (seamless animation with no dryfire interuption)
+					t.gunmode = t.gunmodelast;
 				}
 			}
 			else
@@ -1692,12 +1754,11 @@ void gun_control ( void )
 			}
 		}
 		t.weaponammo[g.weaponammoindex+g.ammooffset]=t.weaponammo[g.weaponammoindex+g.ammooffset]-1 ; --t.gunburst;
-		if (  t.gun[t.gunid].settings.smokelimb != -1 ) {  t.gunsmoke = 1 ; g.gunsmokecount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
-		if (  g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
+		if ( t.gun[t.gunid].settings.smokelimb != -1 ) {  t.gunsmoke = 1 ; g.gunsmokecount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
+		if ( g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
 		{
-			//  trigger sound
-			t.fireloopend=g.firemodes[t.gunid][g.firemode].sound.fireloopend;
-			if (  t.gun[t.gunid].settings.alternate == 0 ) 
+			// trigger sound
+			if ( t.gun[t.gunid].settings.alternate == 0 ) 
 			{
 				t.tgunsoundindex=1  ; gun_picksndvariant ( );
 			}
@@ -1718,21 +1779,32 @@ void gun_control ( void )
 						{
 							if (  SoundExist(t.gunmodeloopsnd) == 1  )  StopSound (  t.gunmodeloopsnd );
 						}
-						//C++ISSUE
-						PlaySoundOffset (  t.sndid,t.fireloopend  ); LoopSound (  t.sndid,0,t.fireloopend );
-						t.gunmodeloopsnd=t.sndid ; t.gunmodeloopstarted=Timer();
+						t.fireloopend = g.firemodes[t.gunid][g.firemode].sound.fireloopend;
+						if ( t.fireloopend >= 0 )
+						{
+							// fireloop for automatic weapons
+							PlaySoundOffset ( t.sndid, t.fireloopend  ); 
+							LoopSound ( t.sndid, 0, t.fireloopend );
+							t.gunmodeloopsnd=t.sndid ; t.gunmodeloopstarted=Timer();
+						}
+						else
+						{
+							// when fireloop is negative, we use 'single instance' shots
+							// and use negative value as MS time between instance plays
+							PlaySound ( t.sndid );
+							t.gunmodeloopsnd=0; t.gunmodeloopstarted=Timer();
+						}
 						t.tvolume_f = 95.0;
 						t.tvolume_f = t.tvolume_f * t.audioVolume.soundFloat;
-						SetSoundVolume (  t.gunmodeloopsnd,t.tvolume_f );
+						SetSoundVolume ( t.sndid, t.tvolume_f );
 					}
 				}
 			}
 		}
 	}
-	if (  t.gunmode == 104 ) 
+	if ( t.gunmode == 104 ) 
 	{
-		//  create decal particles
-		//C++ISSUE
+		// create decal particles
 		if (  g.firemodes[t.gunid][g.firemode].particle.decal_s != "" ) 
 		{
 			if (  g.firemodes[t.gunid][g.firemode].settings.simplezoom  !=  0 && t.gunzoommode  !=  0 && g.firemodes[t.gunid][g.firemode].settings.simplezoomflash  ==  1 ) 
@@ -1758,10 +1830,11 @@ void gun_control ( void )
 		if (  t.weaponammo[g.weaponammoindex+g.ammooffset]>0 ) 
 		{
 			//  Timer (  based deductions )
+			bool bBrassEjected = false;
 			g.gunbrasscount -= g.timeelapsed_f;
 			g.gunsmokecount -= g.timeelapsed_f;
 			g.guntimercount -= g.timeelapsed_f;
-			if (  g.gunbrasscount <= 0 && t.gun[t.gunid].settings.brasslimb != -1 ) {  t.gunbrass = 1  ; g.gunbrasscount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
+			if (  g.gunbrasscount <= 0 && t.gun[t.gunid].settings.brasslimb != -1 ) { bBrassEjected = true; t.gunbrass = 1  ; g.gunbrasscount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
 			if (  g.gunsmokecount <= 0 && t.gun[t.gunid].settings.smokelimb != -1 ) { t.gunsmoke = 1  ; g.gunsmokecount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
 			if (  g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
 			{
@@ -1784,8 +1857,24 @@ void gun_control ( void )
 				{
 					t.sndid=t.gunsound[t.gunid][1].altsoundid;
 				}
+				t.fireloopend = g.firemodes[t.gunid][g.firemode].sound.fireloopend;
+				if ( t.fireloopend >= 0 )
+				{
+					// regular fireloop handles loop timing
+					if (  t.gunmodeloopsnd>0  )  t.gunmodeloopstarted = Timer();
+				}
+				else
+				{
+					// negative fireloop causes single instance plays
+					if ( bBrassEjected == true )
+					{
+						PlaySound ( t.sndid );
+						t.tvolume_f = 95.0;
+						t.tvolume_f = t.tvolume_f * t.audioVolume.soundFloat;
+						SetSoundVolume ( t.sndid, t.tvolume_f );
+					}
+				}
 				posinternal3dsound(t.sndid,CameraPositionX(),CameraPositionY(),CameraPositionZ());
-				if (  t.gunmodeloopsnd>0  )  t.gunmodeloopstarted = Timer();
 			}
 		}
 		else
@@ -1798,40 +1887,43 @@ void gun_control ( void )
 	}
 	if (  t.gunmode == 105 ) 
 	{
-		if (  t.gautomatic.s>0 && g.firemodes[t.gunid][g.firemode].settings.burst<1 ) 
+		if ( t.gautomatic.s>0 && g.firemodes[t.gunid][g.firemode].settings.burst<1 ) 
 		{
-			//  automatic weapons cannot resume firing right away
+			// automatic weapons cannot resume firing right away
 		}
 		else
 		{
 			t.gunmustreleasefirst=1;
 		}
-		if (  t.gfinish.s>0 ) 
+		if ( t.gfinish.s>0 ) 
 		{
 			t.gunmode=106;
 			PlayObject (  t.currentgunobj,t.gfinish.s,t.gfinish.e );
 			t.currentgunanimspeed_f=g.timeelapsed_f*t.genericgunanimspeed_f;
 			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-			if (  g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
+			if ( g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
 			{
 				t.fireloopend=g.firemodes[t.gunid][g.firemode].sound.fireloopend;
-				if (  t.gun[t.gunid].settings.alternate == 0 ) 
+				if ( t.fireloopend >= 0 )
 				{
-					t.tgunsoundindex=1 ; gun_picksndvariant ( );
-				}
-				else
-				{
-					t.sndid=t.gunsound[t.gunid][1].altsoundid;
-				}
-				if (  t.sndid>0 ) 
-				{
-					if (  SoundExist(t.sndid) == 1 ) 
+					if (  t.gun[t.gunid].settings.alternate == 0 ) 
 					{
-						PositionSound (  t.sndid,CameraPositionX()/10.0,CameraPositionY()/3.0,CameraPositionZ()/10.0 );
-						PlaySoundOffset (  t.sndid,t.fireloopend );
+						t.tgunsoundindex=1 ; gun_picksndvariant ( );
 					}
+					else
+					{
+						t.sndid=t.gunsound[t.gunid][1].altsoundid;
+					}
+					if (  t.sndid>0 ) 
+					{
+						if (  SoundExist(t.sndid) == 1 ) 
+						{
+							PositionSound ( t.sndid,CameraPositionX()/10.0,CameraPositionY()/3.0,CameraPositionZ()/10.0 );
+							PlaySoundOffset ( t.sndid,t.fireloopend );
+						}
+					}
+					posinternal3dsound(t.sndid,CameraPositionX(),CameraPositionY(),CameraPositionZ());
 				}
-				posinternal3dsound(t.sndid,CameraPositionX(),CameraPositionY(),CameraPositionZ());
 			}
 		}
 		else
@@ -1844,8 +1936,7 @@ void gun_control ( void )
 		t.currentgunanimspeed_f=g.timeelapsed_f*t.genericgunanimspeed_f;
 		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gfinish.e  )  t.gunmode = 107;
-		//  if a delayed flak, check when frame triggers it
-		//  NOTE; Only one grenade, not SIX!!!
+		//  if a delayed flak, check when frame triggers it; Only one grenade, not SIX!!!
 		if (  t.gun[t.gunid].projectileframe>0 ) 
 		{
 			if (  GetFrame(t.currentgunobj) >= t.gun[t.gunid].projectileframe ) 
@@ -1886,19 +1977,24 @@ void gun_control ( void )
 		}
 	}
 
-	if (  t.gunmode == 107 ) 
+	if ( t.gunmode == 107 ) 
 	{
-		//  reset to normal
-		if (  1 ) 
+		// reset to normal
+		if ( 1 ) 
 		{
+			// restore to idle
 			t.gunmode=5;
 			t.tfireanim=0;
-			//  auto-reload if no bullets
+
+			// ensure run anim does not kick in right away, leave for Xms until 
+			t.playercontrol.isrunningtime = Timer();
+
+			// auto-reload if no bullets
 			t.tpool=g.firemodes[t.gunid][g.firemode].settings.poolindex;
-			if (  t.tpool == 0  )  t.ammo = t.weaponclipammo[g.weaponammoindex+g.ammooffset]; else t.ammo = t.ammopool[t.tpool].ammo;
-			if (  t.weaponammo[g.weaponammoindex+g.ammooffset] == 0 ) 
+			if ( t.tpool == 0 ) t.ammo = t.weaponclipammo[g.weaponammoindex+g.ammooffset]; else t.ammo = t.ammopool[t.tpool].ammo;
+			if ( t.weaponammo[g.weaponammoindex+g.ammooffset] == 0 ) 
 			{
-				if (  t.ammo>0 ) 
+				if ( t.ammo>0 ) 
 				{
 					//  AirMod - No Auto Reload Feature
 					if (  g.firemodes[t.gunid][g.firemode].settings.noautoreload == 0 ) 
@@ -1907,8 +2003,9 @@ void gun_control ( void )
 					}
 				}
 			}
-			//  if equipment, reset freeze if any
-			if (  g.firemodes[t.gunid][g.firemode].settings.equipment != 0 && g.firemodes[t.gunid][g.firemode].settings.lockcamera == 1 ) 
+
+			// if equipment, reset freeze if any
+			if ( g.firemodes[t.gunid][g.firemode].settings.equipment != 0 && g.firemodes[t.gunid][g.firemode].settings.lockcamera == 1 ) 
 			{
 				g.mefrozentype=0;
 			}
@@ -2337,7 +2434,47 @@ void gun_brass ( void )
 	if (  g.firemodes[t.gunid][g.firemode].settings.brass == 0  )  return;
 
 	//  Twin gun second brass feature
-	t.gunbrass2 = 0 ; if (  t.gunbrass == 1 && t.gun[t.gunid].settings.flashlimb2 != -1  )  t.gunbrass2 = 1;
+	t.gunbrass2 = 0 ; if ( t.gunbrass == 1 && t.gun[t.gunid].settings.flashlimb2 != -1  ) t.gunbrass2 = 1;
+
+	// count available brass, and if two are not available, free the oldest
+	if ( t.gunbrass > 0 ||  t.gunbrass2 > 0 )
+	{
+		int iCountBrass = 0;
+		int iCountBrassVisible = 0;
+		for ( t.o = 6 ; t.o <= 20; t.o++ )
+		{
+			iCountBrass++;
+			t.obj=g.hudbankoffset+t.o;
+			if ( GetVisible(t.obj) == 1 ) 
+				iCountBrassVisible++;
+		}
+		int iBrassNeeded = iCountBrassVisible - (iCountBrass-2);
+		if ( iBrassNeeded > 0 )
+		{
+			// need to free up oldest (i.e lowest) brass
+			while ( iBrassNeeded > 0 )
+			{
+				int iLowestObj = 0;
+				float fLowestY = 999999.0f;
+				for ( t.o = 6 ; t.o <= 20; t.o++ )
+				{
+					t.obj = g.hudbankoffset+t.o;
+					float fThisY = ObjectPositionY(t.obj);
+					if ( fThisY < fLowestY )
+					{
+						iLowestObj = t.obj;
+						fLowestY = fThisY;
+					}
+				}
+				if ( iLowestObj > 0 ) 
+				{
+					ODEDestroyObject ( iLowestObj );
+					HideObject ( iLowestObj );
+				}
+				iBrassNeeded--;
+			}
+		}
+	}
 
 	//  find free shell and expell
 	for ( t.o = 6 ; t.o<=  20; t.o++ )
@@ -2445,22 +2582,6 @@ void gun_smoke ( void )
 				t.ty=t.smokeframe/4;
 				t.tx=t.smokeframe-(t.ty*4);
 				t.q_f=1.0/4.0 ; t.tx_f=t.tx*t.q_f ; t.ty_f=t.ty*t.q_f;
-	//    `lock vertexdata for limb obj,0,1
-
-	//    `set vertexdata uv 0,tx#+q#,ty#
-
-	//    `set vertexdata uv 1,tx#,ty#
-
-	//    `set vertexdata uv 2,tx#+q#,ty#+q#
-
-	//    `set vertexdata uv 3,tx#,ty#
-
-	//    `set vertexdata uv 4,tx#,ty#+q#
-
-	//    `set vertexdata uv 5,tx#+q#,ty#+q#
-
-	//    `unlock vertexdata
-
 				ScaleObjectTexture (  t.obj,t.tx_f,t.ty_f );
 			}
 			else
@@ -2469,14 +2590,10 @@ void gun_smoke ( void )
 			}
 		}
 	}
-
-	return;
-
 }
 
 void gun_updatebulletvisibility ( void )
 {
-
 	if (  g.firemode == 0 ) 
 	{
 		if (  t.gun[t.gunid].settings.bulletmod == 1 ) 
@@ -2512,9 +2629,6 @@ void gun_updatebulletvisibility ( void )
 			}
 		}
 	}
-
-return;
-
 }
 
 void gun_shoot ( void )
@@ -2583,7 +2697,7 @@ void gun_shoot ( void )
 		if ( g.firemodes[t.gunid][g.firemode].settings.flakindex == 0  )  t.tokay = 1;
 		if ( t.gun[t.gunid].settings.alternateisflak == 1 && t.gun[t.gunid].settings.alternate == 0  )  t.tokay = 1;
 		if ( t.gun[t.gunid].settings.alternateisray == 1 && t.gun[t.gunid].settings.alternate == 1  )  t.tokay = 1;
-		if ( t.gun[t.gunid].settings.ismelee == 2  )  t.tokay = 1;
+		if ( t.gun[t.gunid].settings.ismelee == 2 )  t.tokay = 1;
 		if ( t.tokay == 1 ) 
 		{
 			//  BULLET
@@ -2619,14 +2733,31 @@ void gun_shoot ( void )
 			//  Bullet Limbs code
 			gun_updatebulletvisibility ( );
 
-			if (  t.trayiter>1 ) 
+			// set iteration for ray shots
+			if ( t.gun[t.gunid].settings.ismelee == 2 )
 			{
-				t.gunshootspread=t.trayiter;
+				// melee attacks only ever have one iteration
+				t.gunshootspread=1;
 			}
 			else
 			{
-				t.gunshootspread=1;
+				if (  t.trayiter>1 ) 
+				{
+					t.gunshootspread=t.trayiter;
+				}
+				else
+				{
+					t.gunshootspread=1;
+				}
 			}
+
+			// store camera position and angle so all rays originate from same location
+			t.gunshootspreadposx = CameraPositionX(0);
+			t.gunshootspreadposy = CameraPositionY(0);
+			t.gunshootspreadposz = CameraPositionZ(0);
+			t.gunshootspreadanglex = CameraAngleX(0);
+			t.gunshootspreadangley = CameraAngleY(0);
+			t.gunshootspreadanglez = CameraAngleZ(0);
 
 			//  shot over
 			t.gunshoot=0;
@@ -2702,6 +2833,7 @@ void gun_shoot ( void )
 	//  spread to one per cycle to reduce a 'freeze' effect
 	if ( t.gunshootspread>0 ) 
 	{
+		// trigger another ray in iteration sequence (using stored camera values at time of shot)
 		gun_shoot_oneray ( );
 		--t.gunshootspread;
 	}
@@ -2726,17 +2858,17 @@ void gun_shoot_oneray ( void )
 	if ( t.playercontrol.thirdperson.enabled == 1 )
 	{
 		// special TPP shooting (from camera for accurate impact coordinate)
-		t.x1_f = CameraPositionX();
-		t.y1_f = CameraPositionY();
-		t.z1_f = CameraPositionZ();
+		t.x1_f = t.gunshootspreadposx;
+		t.y1_f = t.gunshootspreadposy;
+		t.z1_f = t.gunshootspreadposz;
 
 		// work out cross-hair position on screen to distant 3D coordinate
 		int iDisplayWidth = GetDisplayWidth();
 		int iDisplayHeight = GetDisplayHeight();
 		PickScreen2D23D ( iDisplayWidth * 0.5f, iDisplayHeight * 0.25f, 7000.0f );
-		t.x2_f = CameraPositionX() + GetPickVectorX();
-		t.y2_f = CameraPositionY() + GetPickVectorY();
-		t.z2_f = CameraPositionZ() + GetPickVectorZ();
+		t.x2_f = t.gunshootspreadposx + GetPickVectorX();
+		t.y2_f = t.gunshootspreadposy + GetPickVectorY();
+		t.z2_f = t.gunshootspreadposz + GetPickVectorZ();
 
 		// adjust destination vector with bullet inaccuacies
 		PositionObject ( g.hudbankoffset+3, t.x1_f, t.y1_f, t.z1_f );
@@ -2747,16 +2879,16 @@ void gun_shoot_oneray ( void )
 	else
 	{
 		// regular FPS shooting from camera center
-		t.x1_f=CameraPositionX();
-		t.y1_f=CameraPositionY();
-		t.z1_f=CameraPositionZ();
+		t.x1_f=t.gunshootspreadposx;
+		t.y1_f=t.gunshootspreadposy;
+		t.z1_f=t.gunshootspreadposz;
 		PositionObject (  g.hudbankoffset+3,t.x1_f,t.y1_f,t.z1_f );
 		t.tca_f=Rnd(360000.0)/1000.0;
 		t.tcx_f=Cos(t.tca_f) ; t.tcy_f=Sin(t.tca_f);
 		t.tcm_f=Rnd(t.trayaccuracy_f*1000.0)/100000.0;
 		if (  t.gunshootspread>1 && t.tcm_f<2.0  )  t.tcm_f = 2.0;
 		t.tcx_f=t.tcx_f*t.tcm_f ; t.tcy_f=t.tcy_f*t.tcm_f;
-		RotateObject (  g.hudbankoffset+3, CameraAngleX()+t.tcy_f,CameraAngleY()+t.tcx_f,CameraAngleZ() );
+		RotateObject (  g.hudbankoffset+3, t.gunshootspreadanglex+t.tcy_f,t.gunshootspreadangley+t.tcx_f,t.gunshootspreadanglez );
 		MoveObject (  g.hudbankoffset+3,t.range_f );
 	}
 
@@ -2834,9 +2966,9 @@ void gun_create_hud ( void )
 			if (  t.t == 1  )  t.tobj = g.hudbankoffset+32;
 			MakeObjectPlane (  t.tobj,25,25 );
 			SetObjectCollisionOff (  t.tobj );
-			SetObjectTransparency (  t.tobj,1 );
-			//DisableObjectZDepthEx (  t.tobj, 1 );
 			DisableObjectZDepth ( t.tobj );
+			DisableObjectZRead (  t.tobj );
+			SetObjectTransparency ( t.tobj,1 );
 			SetObjectAmbient (  t.tobj,0 );
 			SetObjectLight (  t.tobj,0 );
 			SetObjectFOV (  t.tobj,37 );
@@ -2845,13 +2977,13 @@ void gun_create_hud ( void )
 		}
 
 		// Brass
-		for ( t.o = 6 ; t.o<=  20; t.o++ )
+		for ( t.o = 6 ; t.o <= 20; t.o++ )
 		{
 			t.obj=g.hudbankoffset+t.o;
-			MakeObjectCube (  t.obj,10 );
-			SetObjectCollisionOff (  t.obj );
-			DisableObjectZDepth (  t.obj );
-			HideObject (  t.obj );
+			MakeObjectCube ( t.obj,10 );
+			SetObjectCollisionOff ( t.obj );
+			DisableObjectZDepthEx ( t.obj, 1 );
+			HideObject ( t.obj );
 		}
 
 		// Smoke
@@ -2860,11 +2992,10 @@ void gun_create_hud ( void )
 			t.obj=g.hudbankoffset+t.o;
 			MakeObjectPlane (  t.obj,50,50 );
 			SetObjectCollisionOff (  t.obj );
-			DisableObjectZDepthEx (  t.tobj, 1 );
-			//DisableObjectZDepth (  t.obj );
+			SetObjectTransparency ( t.obj, 6 );
+			DisableObjectZDepth ( t.obj );
 			DisableObjectZWrite (  t.obj );
 			DisableObjectZRead (  t.obj );
-			SetObjectTransparency (  t.obj,1 );
 			SetObjectAmbient (  t.obj,0 );
 			SetObjectLight (  t.obj,0 );
 			SetObjectFOV (  t.obj,37 );
@@ -2995,6 +3126,7 @@ void gun_selectandorload ( void )
 			//  apply decal shader
 			SetObjectEffect ( t.obj, g.decaleffectoffset );
 			SetObjectCull ( t.obj, 0 );
+			SetObjectTransparency ( t.obj, 6 );
 			DisableObjectZWrite ( t.obj );
 			SetObjectMask ( t.obj, 1 );
 			//  prep UV for shader anim
@@ -3332,11 +3464,6 @@ void gun_load ( void )
 		int imgAOid=loadinternaltexture(timgAO_s.Get());
 		int imgHeightid=loadinternaltexture(timgHeight_s.Get());
 
-		// Last Texture Image is CUBE (not used any more, PBR has its own)
-		//t.img_s = "";
-		//t.img_s=t.img_s+"gamecore\\"+g.fpgchuds_s+"\\"+t.gun_s+"\\"+t.tguntexture_s+"_cube.dds" ; t.imgCUBEid=loadinternaltexture(t.img_s.Get());
-		//if (  FileExist(t.img_s.Get()) == 1  )  LoadImage (  t.img_s.Get(),t.imgCUBEid,2 );
-
 		// Bump Quality
 		TextureObject ( t.currentgunobj, 8, t.imgIid );
 		if ( t.tguntextureoverride == 1 ) TextureObject ( t.currentgunobj, 0, t.imgDid );
@@ -3447,7 +3574,7 @@ void gun_load ( void )
 	LoopObject (  t.currentgunobj );
 
 	//  Setup gun with muzzle flash image
-	for ( t.i = 0 ; t.i<=  1; t.i++ )
+	for ( t.i = 0 ; t.i <= 1; t.i++ )
 	{
 		//  Mussle flash
 		t.num = g.firemodes[t.gunid][t.i].settings.muzzleflash ; if (  t.num == 0  )  t.num = 1;
@@ -3915,9 +4042,7 @@ void gun_removempgunsfromlist ( void )
 		sprintf ( t.szwork , "removing MP guns, reducing t.gun list from %i to %i" , t.twasgunmax , g.gunmax );
 		timestampactivity(0, t.szwork );
 	}
-
-return;
-
+	return;
 }
 
 void gun_playerdead ( void )
@@ -3942,12 +4067,7 @@ void gun_playerdead ( void )
 			StopObject (  t.currentgunobj );
 		}
 	}
-return;
-
-
-//Gun Functions
-
-
+	return;
 }
 
 int loadgun ( int gunid, char* tfile_s )
@@ -4092,7 +4212,6 @@ int loadbrass ( char* tfile_s )
 			++g.brassbankmax;
 			index=g.brassbankoffset+g.brassbankmax;
 			t.brassbank_s[g.brassbankmax]=tfile_s;
-			// replaced X file load with optional DBO convert/load for HUD.X
 			if ( FileExist(tdbofile_s.Get()) == 1 ) 
 			{
 				strcpy ( tfile_s, tdbofile_s.Get() );
@@ -4118,20 +4237,62 @@ int loadbrass ( char* tfile_s )
 				}
 			}
 
-			sprintf ( t.szwork , "%s_D.dds" , ttexdiff_s.Get() );
-			tbrassDimg=loadinternalimage(t.szwork);
-			sprintf ( t.szwork , "%s_N.dds" , ttexdiff_s.Get() );
-			tbrassNimg=loadinternalimage(t.szwork);
-			sprintf ( t.szwork , "%s_S.dds" , ttexdiff_s.Get() );
-			tbrassSimg=loadinternalimage(t.szwork);
-			TextureObject (  index,0,tbrassDimg );
-			TextureObject (  index,1,loadinternalimagecompressquality("effectbank\\reloaded\\media\\blank_O.dds",1,0) );
-			TextureObject (  index,2,tbrassNimg );
-			TextureObject (  index,3,tbrassSimg );
-			TextureObject (  index,4,t.terrain.imagestartindex );
-			TextureObject (  index,5,g.postprocessimageoffset+5 );
-			TextureObject (  index,6,loadinternalimagecompressquality("effectbank\\reloaded\\media\\blank_I.dds",1,0) );
-			teffectid=loadinternaleffect("effectbank\\reloaded\\entity_basic.fx");
+			// Determine if PBR or non-PBR
+			bool bHavePBRTextures = false;
+			sprintf ( t.szwork, "%s_color.dds", ttexdiff_s.Get() ); if ( FileExist (t.szwork) ) bHavePBRTextures = true;
+			sprintf ( t.szwork, "%s_color.png", ttexdiff_s.Get() ); if ( FileExist (t.szwork) ) bHavePBRTextures = true;
+			if ( g.gpbroverride == 1 && bHavePBRTextures == true )
+			{
+				// PBR texturing
+				sprintf ( t.szwork , "%s_color.png" , ttexdiff_s.Get() );
+				int tbrassCOLORimg = loadinternalimage(t.szwork);
+				sprintf ( t.szwork , "%s_normal.png" , ttexdiff_s.Get() );
+				int tbrassNORMALimg = loadinternalimage(t.szwork);
+				sprintf ( t.szwork , "%s_metalness.png" , ttexdiff_s.Get() );
+				int tbrassMETALNESSimg = loadinternalimage(t.szwork);
+				if ( tbrassMETALNESSimg == 0 ) tbrassMETALNESSimg = loadinternalimage("effectbank\\reloaded\\media\\white_D.dds");
+				sprintf ( t.szwork , "%s_gloss.png" , ttexdiff_s.Get() );
+				int tbrassGLOSSimg = loadinternalimage(t.szwork);
+				if ( tbrassGLOSSimg == 0 ) tbrassGLOSSimg = loadinternalimage("effectbank\\reloaded\\media\\white_D.dds");
+				sprintf ( t.szwork , "%s_ao.png" , ttexdiff_s.Get() );
+				int tbrassAOimg = loadinternalimage(t.szwork);
+				if ( tbrassAOimg == 0 ) tbrassAOimg = loadinternalimage("effectbank\\reloaded\\media\\white_D.dds");
+				sprintf ( t.szwork , "%s_illumination.png" , ttexdiff_s.Get() );
+				int tbrassILLUMimg = loadinternalimage(t.szwork);
+				if ( tbrassILLUMimg == 0 ) tbrassILLUMimg = loadinternalimage("effectbank\\reloaded\\media\\blank_black.dds");
+				int tbrassHEIGHTimg = loadinternalimage("effectbank\\reloaded\\media\\blank_black.dds");
+				// and texture the object
+				TextureObject ( index, 8, tbrassILLUMimg );
+				TextureObject ( index, 1, tbrassAOimg );
+				TextureObject ( index, 2, tbrassNORMALimg );
+				TextureObject ( index, 3, tbrassMETALNESSimg );
+				TextureObject ( index, 4, tbrassGLOSSimg );
+				TextureObject ( index, 5, tbrassHEIGHTimg );
+				int iPBRCubeImg = t.terrain.imagestartindex+31;
+				TextureObject ( index, 6, iPBRCubeImg );
+				int iPBRIBRImg = t.terrain.imagestartindex + 32;
+				TextureObject ( index, 7, iPBRIBRImg );
+				teffectid=loadinternaleffect("effectbank\\reloaded\\apbr_basic.fx");
+			}
+			else
+			{
+				// DNS texturing (non-PBR)
+				sprintf ( t.szwork , "%s_D.dds" , ttexdiff_s.Get() );
+				tbrassDimg=loadinternalimage(t.szwork);
+				sprintf ( t.szwork , "%s_N.dds" , ttexdiff_s.Get() );
+				tbrassNimg=loadinternalimage(t.szwork);
+				sprintf ( t.szwork , "%s_S.dds" , ttexdiff_s.Get() );
+				tbrassSimg=loadinternalimage(t.szwork);
+				// and texture the object
+				TextureObject (  index,0,tbrassDimg );
+				TextureObject (  index,1,loadinternalimagecompressquality("effectbank\\reloaded\\media\\blank_O.dds",1,0) );
+				TextureObject (  index,2,tbrassNimg );
+				TextureObject (  index,3,tbrassSimg );
+				TextureObject (  index,4,t.terrain.imagestartindex );
+				TextureObject (  index,5,g.postprocessimageoffset+5 );
+				TextureObject (  index,6,loadinternalimagecompressquality("effectbank\\reloaded\\media\\blank_I.dds",1,0) );
+				teffectid=loadinternaleffect("effectbank\\reloaded\\entity_basic.fx");
+			}
 			SetObjectEffect (  index,teffectid );
 			RotateObject (  index,0,180,0  ); FixObjectPivot (  index );
 			SetObjectCollisionOff (  index );
@@ -4165,9 +4326,7 @@ int loadmuzzle ( char* tfile_s )
 		index=g.muzzlebankoffset+g.muzzlebankmax;
 		loadinternalimageexcompress(tfile_s,index,5);
 	}
-//endfunction index
-	return index
-;
+	return index;
 }
 
 int loadsmoke ( char* tfile_s )
@@ -4193,7 +4352,6 @@ int loadsmoke ( char* tfile_s )
 		index=g.smokebankoffset+g.smokebankmax;
 		loadinternalimageexcompress(tfile_s,index,5);
 	}
-//endfunction index
 	return index;
 }
 

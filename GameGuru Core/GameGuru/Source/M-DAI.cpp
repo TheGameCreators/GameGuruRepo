@@ -1333,9 +1333,6 @@ void darkai_shooteffect ( void )
 	{
 		SteamSendLua (  Steam_LUA_FireWeaponEffectOnly,t.te,0 );
 	}
-
-return;
-
 }
 
 void darkai_killai ( void )
