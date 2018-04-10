@@ -3081,26 +3081,26 @@ void input_calculatelocalcursor ( void )
 		t.tz_f=t.tz_f/t.tt_f;
 		t.tstep=10000;
 		t.tdiststep_f=t.gridzoom_f;
-		while (  t.tstep>0 ) 
+		while ( t.tstep>0 ) 
 		{
 			t.fx_f=t.fx_f+(t.tx_f*t.tdiststep_f);
 			t.fy_f=t.fy_f+(t.ty_f*t.tdiststep_f);
 			t.fz_f=t.fz_f+(t.tz_f*t.tdiststep_f);
-			//  hit ground at
-			if (  t.terrain.TerrainID>0 ) 
+			// hit ground at
+			if ( t.terrain.TerrainID>0 ) 
 			{
-				if (  BT_GetGroundHeight(t.terrain.TerrainID,t.fx_f,t.fz_f)>t.fy_f  )  break;
+				if ( BT_GetGroundHeight(t.terrain.TerrainID,t.fx_f,t.fz_f) > t.fy_f )  break;
 			}
 			else
 			{
-				if (  1000.0>t.fy_f  )  break;
+				if ( 1000.0 > t.fy_f )  break;
 			}
 			--t.tstep;
 		}
-		if (  t.tstep == 0 ) 
+		if ( t.tstep == 0 ) 
 		{
-			//  no floor to target, have to get coordinate from pick system
-			PickScreen2D23D (  t.inputsys.xmouse,t.inputsys.ymouse,500 );
+			// no floor to target, have to get coordinate from pick system
+			PickScreen2D23D ( t.inputsys.xmouse, t.inputsys.ymouse, 500 );
 			t.fx_f=GetPickVectorX();
 			t.fy_f=GetPickVectorY();
 			t.fz_f=GetPickVectorZ();

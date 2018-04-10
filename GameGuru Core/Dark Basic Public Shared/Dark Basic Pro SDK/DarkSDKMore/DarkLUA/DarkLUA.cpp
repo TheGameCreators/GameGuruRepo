@@ -2496,6 +2496,13 @@ int PositionMouse ( lua_State *L )
 	g.LUAMouseY = fScreenY;
 	return 0;
 }
+
+int GetDynamicCharacterControllerDidJump ( lua_State *L )
+{
+	lua = L;
+	lua_pushnumber ( L, ODEGetDynamicCharacterControllerDidJump() );
+	return 1;
+}
 int GetCharacterControllerDucking ( lua_State *L )
 {
 	lua = L;
@@ -4659,6 +4666,7 @@ void addFunctions()
 	lua_register(lua, "CurveValue" , CurveValue );
 	lua_register(lua, "CurveAngle" , CurveAngle );
 	lua_register(lua, "PositionMouse" , PositionMouse );
+	lua_register(lua, "GetDynamicCharacterControllerDidJump" , GetDynamicCharacterControllerDidJump );
 	lua_register(lua, "GetCharacterControllerDucking" , GetCharacterControllerDucking );
 	lua_register(lua, "WrapValue" , WrapValue );
 	lua_register(lua, "GetElapsedTime" , GetElapsedTime );

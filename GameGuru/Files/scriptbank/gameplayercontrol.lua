@@ -812,11 +812,6 @@ function gameplayercontrol.control()
 		if ( ttokay == 1 ) then 
 			-- player can only jump if a certain height above the waterline (i.e wading in shallows, not swimming) then
 			if ( GetGamePlayerStateNoWater() ~= 0 or GetCameraPositionY(0) > GetGamePlayerStateWaterlineY() + 20 ) then 
-				ttsnd = GetGamePlayerControlSoundStartIndex()+6
-				if ( RawSoundExist(ttsnd) == 1 ) then
-   				    -- leelee
-					PlayRawSound(ttsnd)
-				end
 				tplayerjumpnow=GetGamePlayerControlJumpmax()*ttjumpmodifier
 				if ( GetGamePlayerStateGunID()>0 ) then tplayerjumpnow = tplayerjumpnow*GetFireModeSettingsPlrJumpSpeedMod() end
 				SetGamePlayerControlJumpMode(1)
@@ -1023,6 +1018,12 @@ function gameplayercontrol.control()
 		if ( ttvrheadtrackermode == 1 ) then ttfinalplrmovey = ttfinalplrmovey - GetHeadTrackerYaw() end
 		if ( GetGamePlayerControlIsRunning() == 1 ) then SetGamePlayerStateJetpackVerticalMove(0) end
 		ControlDynamicCharacterController ( ttfinalplrmovey,GetGamePlayerStateJetpackVerticalMove(),ttfinalplrspeed,tplayerjumpnow,GetGamePlayerStatePlayerDucking(),GetGamePlayerControlPushangle(),GetGamePlayerControlPushforce(),GetGamePlayerControlJetpackThrust() )
+		if GetDynamicCharacterControllerDidJump() == 1 then
+			ttsnd = GetGamePlayerControlSoundStartIndex()+6
+			if ( RawSoundExist(ttsnd) == 1 ) then
+				PlayRawSound(ttsnd)
+			end
+		end
 		if ( GetGamePlayerControlGravityActive() == 0 ) then 
 			if ( GetGamePlayerControlControlHeight()>0 ) then 
 				SetGamePlayerControlMovey(GetGamePlayerControlStoreMovey())

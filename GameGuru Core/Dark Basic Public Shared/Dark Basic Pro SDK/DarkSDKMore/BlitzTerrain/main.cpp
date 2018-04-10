@@ -2130,6 +2130,19 @@ void BT_Intern_Render()
 		return;
 	}
 
+	// 100418 - seems when skip terrain render (.superflat), viewport is not set (and needs to be)
+	// look further into this to determine if 1920 or 1772 width viewport is correct for terrain
+	tagCameraData* Camera = (tagCameraData*)GetCameraInternalData(0);
+    D3D11_VIEWPORT vp;
+	GGVIEWPORT* pvp = &Camera->viewPort3D;
+    vp.TopLeftX = pvp->X;
+    vp.TopLeftY = pvp->Y;
+    vp.Width = (FLOAT)pvp->Width;
+    vp.Height = (FLOAT)pvp->Height;
+    vp.MinDepth = pvp->MinZ;
+    vp.MaxDepth = pvp->MaxZ;
+	SetupSetViewport ( g_pGlob->dwRenderCameraID, &vp, NULL );
+
 	try
 	{
 		//Clear statistics

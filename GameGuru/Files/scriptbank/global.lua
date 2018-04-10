@@ -1184,6 +1184,7 @@ GetDesktopHeight: GetDesktopHeight() -- returns the current desktop height
 CurveValue: x=CurveValue(dest,current,smooth) -- returns the smoothed value based on the smooth factor
 CurveAngle: a=CurveAngle(dest,current,smooth) -- as CurveValue but handles angles from 0-360 degrees
 PositionMouse: PositionMouse(x,y) -- repositions the hardware mouse pointer in real-time (screen size coords)
+GetDynamicCharacterControllerDidJump: x=GetDynamicCharacterControllerDidJump() -- returns 1 if controller jumped
 GetCharacterControllerDucking: x=GetCharacterControllerDucking() -- returns 1 if the player has been forced to duck
 WrapValue: x=WrapValue(y) -- takes the value y and wraps it to an angle between 0-360 degrees
 GetElapsedTime: x=GetElapsedTime() -- returns the elapsed delta time since the last game cycle
