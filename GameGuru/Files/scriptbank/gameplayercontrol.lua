@@ -766,7 +766,7 @@ function gameplayercontrol.control()
 		end
 		if ( GetGamePlayerControlGravityActive() == 1 and GetGamePlayerControlJumpMode() ~= 1 ) then 
 			-- on ground
-				ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
+			ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
 			if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
 			SetGamePlayerControlWobble(WrapValue(GetGamePlayerControlWobble()+(GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttWeaponMoveSpeedMod)))
 		else
@@ -812,11 +812,7 @@ function gameplayercontrol.control()
 		if ( ttokay == 1 ) then 
 			-- player can only jump if a certain height above the waterline (i.e wading in shallows, not swimming) then
 			if ( GetGamePlayerStateNoWater() ~= 0 or GetCameraPositionY(0) > GetGamePlayerStateWaterlineY() + 20 ) then 
-				ttsnd = GetGamePlayerControlSoundStartIndex()+6
-				if ( RawSoundExist(ttsnd) == 1 ) then
-				    -- leelee
-					PlayRawSound(ttsnd)
-				end
+
 				tplayerjumpnow=GetGamePlayerControlJumpmax()*ttjumpmodifier
 				if ( GetGamePlayerStateGunID()>0 ) then tplayerjumpnow = tplayerjumpnow*GetFireModeSettingsPlrJumpSpeedMod() end
 				SetGamePlayerControlJumpMode(1)
@@ -1023,6 +1019,12 @@ function gameplayercontrol.control()
 		if ( ttvrheadtrackermode == 1 ) then ttfinalplrmovey = ttfinalplrmovey - GetHeadTrackerYaw() end
 		if ( GetGamePlayerControlIsRunning() == 1 ) then SetGamePlayerStateJetpackVerticalMove(0) end
 		ControlDynamicCharacterController ( ttfinalplrmovey,GetGamePlayerStateJetpackVerticalMove(),ttfinalplrspeed,tplayerjumpnow,GetGamePlayerStatePlayerDucking(),GetGamePlayerControlPushangle(),GetGamePlayerControlPushforce(),GetGamePlayerControlJetpackThrust() )
+		if GetDynamicCharacterControllerDidJump() == 1 then
+			ttsnd = GetGamePlayerControlSoundStartIndex()+6
+			if ( RawSoundExist(ttsnd) == 1 ) then
+				PlayRawSound(ttsnd)
+			end
+		end
 		if ( GetGamePlayerControlGravityActive() == 0 ) then 
 			if ( GetGamePlayerControlControlHeight()>0 ) then 
 				SetGamePlayerControlMovey(GetGamePlayerControlStoreMovey())
@@ -1538,7 +1540,7 @@ function gameplayercontrol.control()
 					end
 				end
 			else
-							-- FPS triggers footfall based on wobble progress
+				-- FPS triggers footfall based on wobble progress
 				if ( GetGamePlayerControlPlrHitFloorMaterial() ~= 0 ) then 
 					if GetGamePlayerControlWobble() > 0.0 then 
 						ttFootfallPaceMultiplier = 1.0/(GetGamePlayerControlFootfallPace()/3.0)
@@ -1581,7 +1583,7 @@ function gameplayercontrol.control()
 				ttsnd = GetGamePlayerControlSoundStartIndex()+13
 				if ( RawSoundExist ( ttsnd ) == 1 ) then
 					if ( g_PlayerHealth > 0 ) then
-					PlayRawSound ( ttsnd )
+						PlayRawSound ( ttsnd )
 					end
 				end
 				SetGamePlayerControlInWaterState(1)
@@ -1599,7 +1601,7 @@ function gameplayercontrol.control()
 				if ( GetGamePlayerControlDrownTimestamp() == 0 ) then 
 					SetGamePlayerControlDrownTimestamp(Timer()+5000)
 				else
-					-- lose 1 health per second until dead
+					-- lose 5 health per second until dead
 					if ( Timer() > GetGamePlayerControlDrownTimestamp() ) then 
 						-- if there was no start marker, reset player (cannot kill, as no start marker) then. Indicated by crazy health and no lives
 						if ( g_PlayerLives == 0 and g_PlayerHealth == 99999 ) then 
