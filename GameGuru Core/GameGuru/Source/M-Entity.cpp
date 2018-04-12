@@ -1994,6 +1994,91 @@ void entity_loaddata ( void )
 				if ( iReplaceMode == 4 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\apbr_treea.fx";
 			}
 		}
+		else
+		{
+			// 120418 - conversely, if PBR override not active, and have new PBR asset entities that still 
+			// have old DNS textures, switch them back to classic non-PBR (this allows new PBR assets to 
+			// replace older legacy assets but still allow backwards compatibility for users who want the
+			// old shaders and old textures to remain in effect using PBR override of zero)
+			char pEntityItemPath[1024];
+			strcpy ( pEntityItemPath, t.ent_s.Get() );
+			int n = 0;
+			for ( n = strlen(pEntityItemPath)-1; n > 0; n-- )
+			{
+				if ( pEntityItemPath[n] == '\\' || pEntityItemPath[n] == '/' )
+				{
+					pEntityItemPath[n+1] = 0;
+					break;
+				}
+			}
+			if ( n <= 0 ) strcpy ( pEntityItemPath, "" );
+			char pJustTextureName[1024];
+			strcpy ( pJustTextureName, t.entityprofile[t.entid].texd_s.Get() );
+			pJustTextureName[strlen(pJustTextureName)-4]=0;
+			if ( stricmp ( pJustTextureName+strlen(pJustTextureName)-6, "_color" ) == NULL )
+			{
+				pJustTextureName[strlen(pJustTextureName)-6]=0;
+				strcat ( pJustTextureName, "_D" );
+			}
+			strcat ( pJustTextureName, ".png" );
+			char pReplaceWithDNS[1024];
+			strcpy ( pReplaceWithDNS, pEntityItemPath );
+			strcat ( pReplaceWithDNS, pJustTextureName );
+			bool bReplacePBRWithNonPBRDNS = false;
+			LPSTR pPBREffectMatch = "effectbank\\reloaded\\apbr";
+			if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pPBREffectMatch, strlen(pPBREffectMatch) ) == NULL ) 
+			{
+				// entity effect specifies PBR, do we have the DNS files available
+				cstr pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+				if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+				{
+					pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
+					strcat ( pReplaceWithDNS, ".dds" );
+					pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+					if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+					{
+						pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
+						strcat ( pReplaceWithDNS, ".jpg" );
+						pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+						if ( FileExist ( pFindDNSFile.Get() ) == 1 )
+						{
+							bReplacePBRWithNonPBRDNS = true;
+						}
+					}
+					else
+					{
+						bReplacePBRWithNonPBRDNS = true;
+					}
+				}
+				else
+				{
+					bReplacePBRWithNonPBRDNS = true;
+				}
+			}
+			if ( bReplacePBRWithNonPBRDNS == true )
+			{
+				// replace the shader used
+				int iReplaceMode = 0;
+				LPSTR pTryMatch = "effectbank\\reloaded\\apbr_basic.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 1;
+				pTryMatch = "effectbank\\reloaded\\apbr_anim.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 2;
+				pTryMatch = "effectbank\\reloaded\\apbr_tree.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 3;
+				pTryMatch = "effectbank\\reloaded\\apbr_treea.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 4;
+				if ( iReplaceMode > 0 )
+				{
+					if ( iReplaceMode == 1 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\entity_basic.fx";
+					if ( iReplaceMode == 2 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\character_basic.fx";
+					if ( iReplaceMode == 3 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\tree_basic.fx";
+					if ( iReplaceMode == 4 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\treea_basic.fx";
+				}
+
+				// replace the texture specified (from _color to _D)
+				t.entityprofile[t.entid].texd_s = pJustTextureName;
+			}
+		}
 
 		// if effect shader starts with APBR, auto shift effectprofile from zero to one
 		LPSTR pPBREffectMatch = "effectbank\\reloaded\\apbr";

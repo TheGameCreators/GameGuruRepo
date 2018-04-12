@@ -1108,15 +1108,16 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #ifdef CALLEDFROMOLDTERRAIN
 #ifdef PBRTERRAIN
 	if ( fullshadowsoreditor == 0 ) {
-	  // DynTerShaSampler = AGEDMap , dont work.
-	  // Looks like only cascade 3 is working when called from old terrain , terrain_basic.fx
-	  fShadow = GetShadowCascade ( 3, input.position, originalNormal, normalize(LightSource.xyz) );
+	  // Looks like only cascade 7 is working when called from old terrain , terrain_basic.fx
+	  fShadow = GetShadowCascade ( 7, input.position, originalNormal, normalize(LightSource.xyz) );
 	  float fBlendBetweenCascadesAmount = 1.0f;
 	  float fCurrentPixelsBlendBandLocation = 1.0f;
-      CalculateBlendAmountForInterval ( 3, input.viewDepth,fCurrentPixelsBlendBandLocation, fBlendBetweenCascadesAmount );
+      CalculateBlendAmountForInterval ( 7, input.viewDepth,fCurrentPixelsBlendBandLocation, fBlendBetweenCascadesAmount );
   	  fShadow = lerp( 0.0, fShadow, clamp(fBlendBetweenCascadesAmount,0.0,1.0) );
 	}
 #endif
+#else
+	if ( fullshadowsoreditor == 0 ) fShadow = GetShadowCascade ( 7, input.position, originalNormal, normalize(LightSource.xyz) );
 #endif
 
    float visibility =  max ( 1.0f - fShadow, 0 );
@@ -1430,11 +1431,7 @@ technique11 Medium
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-#ifdef CALLEDFROMOLDTERRAIN
-        SetPixelShader(CompileShader(ps_5_0, PSMain(0))); // 0 for in editor. (DynTerShaSampler not set so must be 1 for now. )
-#else
-        SetPixelShader(CompileShader(ps_5_0, PSMain(1))); // 0 for in editor. (DynTerShaSampler not set so must be 1 for now. )
-#endif
+        SetPixelShader(CompileShader(ps_5_0, PSMain(0)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
