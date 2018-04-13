@@ -231,6 +231,45 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Weapon Horizontal FOV";
 	t.slidersmenuvalue[g.slidersmenumax][4].value=(((t.visuals.WeaponFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
 
+	//  Water panel
+	++g.slidersmenumax;
+	t.slidersmenunames.water = g.slidersmenumax;
+	t.slidersmenu[g.slidersmenumax].tabpage = 2;
+	t.slidersmenu[g.slidersmenumax].title_s = "WATER SETTINGS";
+	t.slidersmenu[g.slidersmenumax].thighlight = -1;
+	t.slidersmenu[g.slidersmenumax].ttop = 5;
+	t.slidersmenu[g.slidersmenumax].tleft = GetDisplayWidth() - 256 - 16 - 5 - 260 - 260 - 260 -260;
+	t.slidersmenu[g.slidersmenumax].titlemargin = 63;
+	t.slidersmenu[g.slidersmenumax].leftmargin = 25;
+	t.slidersmenu[g.slidersmenumax].itemcount = 13;
+	t.slidersmenu[g.slidersmenumax].panelheight = 30 + (t.slidersmenu[g.slidersmenumax].itemcount * 38);
+	t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Water Height";
+	t.slidersmenuvalue[g.slidersmenumax][1].value = g.gdefaultwaterheight/10;
+	t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Water Red";
+	t.slidersmenuvalue[g.slidersmenumax][2].value = t.visuals.WaterRed_f/2.55;
+	t.slidersmenuvalue[g.slidersmenumax][3].name_s = "Water Green";
+	t.slidersmenuvalue[g.slidersmenumax][3].value = t.visuals.WaterGreen_f/2.55;
+	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "Water Blue";
+	t.slidersmenuvalue[g.slidersmenumax][4].value = t.visuals.WaterBlue_f/2.55;
+	t.slidersmenuvalue[g.slidersmenumax][5].name_s = "Wave Intensity";
+	t.slidersmenuvalue[g.slidersmenumax][5].value = t.visuals.WaterWaveIntensity_f/2;
+	t.slidersmenuvalue[g.slidersmenumax][6].name_s = "Water Transparancy";
+	t.slidersmenuvalue[g.slidersmenumax][6].value = t.visuals.WaterTransparancy_f*100.0;
+	t.slidersmenuvalue[g.slidersmenumax][7].name_s = "Water Reflection";
+	t.slidersmenuvalue[g.slidersmenumax][7].value = t.visuals.WaterReflection_f*100.0;
+	t.slidersmenuvalue[g.slidersmenumax][8].name_s = "Reflection Sparkle Intensity";
+	t.slidersmenuvalue[g.slidersmenumax][8].value = t.visuals.WaterReflectionSparkleIntensity *5.0;
+	t.slidersmenuvalue[g.slidersmenumax][9].name_s = "Flow Direction X";
+	t.slidersmenuvalue[g.slidersmenumax][9].value = t.visuals.WaterFlowDirectionX * 10 + 50;
+	t.slidersmenuvalue[g.slidersmenumax][10].name_s = "Flow Direction Y";
+	t.slidersmenuvalue[g.slidersmenumax][10].value = t.visuals.WaterFlowDirectionY * 10 + 50;
+	t.slidersmenuvalue[g.slidersmenumax][11].name_s = "Water Distortion Waves";
+	t.slidersmenuvalue[g.slidersmenumax][11].value = t.visuals.WaterDistortionWaves*1000;
+	t.slidersmenuvalue[g.slidersmenumax][12].name_s = "Water Ripple Speed";
+	t.slidersmenuvalue[g.slidersmenumax][12].value = 100-t.visuals.WaterSpeed1;
+	t.slidersmenuvalue[g.slidersmenumax][13].name_s = "Water Speed";
+	t.slidersmenuvalue[g.slidersmenumax][13].value = t.visuals.WaterFlowSpeed*10.0;
+
 	//  Post Effects panel
 	++g.slidersmenumax;
 	t.slidersmenunames.posteffects=g.slidersmenumax;
@@ -2279,6 +2318,25 @@ void sliders_write ( void )
 		t.visuals.PostContrast_f=t.slidersmenuvalue[t.slidersmenuindex][18].value/30.0;
 		t.visuals.refreshshaders=1;
 	}
+	if (t.slidersmenuindex == t.slidersmenunames.water) {
+		//Water
+		g.gdefaultwaterheight = t.slidersmenuvalue[t.slidersmenuindex][1].value*10.0;
+		t.visuals.WaterRed_f = t.slidersmenuvalue[t.slidersmenuindex][2].value*2.55;
+		t.visuals.WaterGreen_f = t.slidersmenuvalue[t.slidersmenuindex][3].value*2.55;
+		t.visuals.WaterBlue_f = t.slidersmenuvalue[t.slidersmenuindex][4].value*2.55;
+		t.visuals.WaterWaveIntensity_f = t.slidersmenuvalue[t.slidersmenuindex][5].value*2.0;
+		t.visuals.WaterTransparancy_f = t.slidersmenuvalue[t.slidersmenuindex][6].value/100.0 ;
+		t.visuals.WaterReflection_f = t.slidersmenuvalue[t.slidersmenuindex][7].value/100.0 ;
+		t.visuals.WaterReflectionSparkleIntensity = t.slidersmenuvalue[t.slidersmenuindex][8].value /5.0;
+		t.visuals.WaterFlowDirectionX = (t.slidersmenuvalue[t.slidersmenuindex][9].value-50)/10;
+		t.visuals.WaterFlowDirectionY = (t.slidersmenuvalue[t.slidersmenuindex][10].value - 50) / 10;
+		t.visuals.WaterDistortionWaves = t.slidersmenuvalue[t.slidersmenuindex][11].value/1000.0;
+		t.visuals.WaterSpeed1 = (t.slidersmenuvalue[t.slidersmenuindex][12].value-100)*-1;
+		t.visuals.WaterFlowSpeed = t.slidersmenuvalue[t.slidersmenuindex][13].value/10.0;
+		t.visuals.refreshshaders = 1;
+		//set the waterheight(fix for lua water height command to cover stuff in map editor)
+		t.terrain.waterliney_f = g.gdefaultwaterheight;
+		}
 	if (  t.slidersmenuindex == t.slidersmenunames.camera ) 
 	{
 		//  Camera settings

@@ -138,6 +138,8 @@ void visuals_resetvalues ( void )
 	timestampactivity(0,t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork +"visuals.vegetation$="+t.visuals.vegetation_s;
 	timestampactivity(0,t.strwork.Get());
+
+	visuals_water_reset();
 }
 
 void visuals_editordefaults ( void )
@@ -178,11 +180,29 @@ void visuals_editordefaults ( void )
 	t.editorvisuals=t.visuals;
 }
 
+void visuals_water_reset(void)
+{
+	//Water Shader Settings
+	g.gdefaultwaterheight = 500.0;
+	t.terrain.waterliney_f = g.gdefaultwaterheight;
+	t.visuals.WaterRed_f = 158.0f;
+	t.visuals.WaterGreen_f = 168.0f;
+	t.visuals.WaterBlue_f = 198.0f;
+	t.visuals.WaterWaveIntensity_f = 155.0f;
+	t.visuals.WaterTransparancy_f = 0.75f;
+	t.visuals.WaterReflection_f = 0.50f;
+	t.visuals.WaterReflectionSparkleIntensity = 1.90f;
+	t.visuals.WaterFlowDirectionX = 1;
+	t.visuals.WaterFlowDirectionY = 1;
+	t.visuals.WaterDistortionWaves = 0.030f;
+	t.visuals.WaterSpeed1 = 35.0f;
+	t.visuals.WaterFlowSpeed = 1.0f;
+}
+
 void visuals_newlevel ( void )
 {
 	// 310117 - Game gets its visuals from the visuals.ini file
 	visuals_load ( );
-
 	// 090517 - leaves leftover things like old FOG setting on a !!NEW LEVEL!!
 	//t.gamevisuals = t.visuals;
 
@@ -399,6 +419,33 @@ void visuals_save ( void )
 	WriteString (  1, t.strwork.Get() );
 	t.strwork = ""; t.strwork = t.strwork +"visuals.LensFlare="+Str(t.visuals.LensFlare_f);
 	WriteString (  1, t.strwork.Get() );
+	//New Water Settings
+	t.strwork = ""; t.strwork = t.strwork + "visuals.Waterheight=" + Str(g.gdefaultwaterheight);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.Waterred=" + Str(t.visuals.WaterRed_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.Waterblue=" + Str(t.visuals.WaterBlue_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.Watergreen=" + Str(t.visuals.WaterGreen_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterWaveIntensity=" + Str(t.visuals.WaterWaveIntensity_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterTransparancy=" + Str(t.visuals.WaterTransparancy_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterSparkleCol=" + Str(t.visuals.WaterReflectionSparkleIntensity);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterReflection=" + Str(t.visuals.WaterReflection_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterFlowDirectionX=" + Str(t.visuals.WaterFlowDirectionX);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterFlowDirectionY=" + Str(t.visuals.WaterFlowDirectionY);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterDistortionWaves=" + Str(t.visuals.WaterDistortionWaves);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterSpeed1=" + Str(t.visuals.WaterSpeed1);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.WaterFlowSpeed=" + Str(t.visuals.WaterFlowSpeed);
+	WriteString(1, t.strwork.Get());
 	WriteString (  1, "" );
 	CloseFile (  1 );
 
@@ -425,6 +472,8 @@ void visuals_load ( void )
 	t.visuals.SAOIntensity_f=0.5f;
 	t.visuals.SAOQuality_f=1.0f;
 	t.visuals.LensFlare_f=0.5f;
+	//water settings
+	visuals_water_reset();
 
 	//  load all visual settings
 	if (  g.fpscrootdir_s == "" ) 
@@ -516,9 +565,24 @@ void visuals_load ( void )
 		t.try_s = "visuals.SAOIntensity" ; if (  t.tfield_s == t.try_s  )  t.visuals.SAOIntensity_f = ValF(t.tvalue_s.Get());
 		t.try_s = "visuals.SAOQuality" ; if (  t.tfield_s == t.try_s  )  t.visuals.SAOQuality_f = ValF(t.tvalue_s.Get());
 		t.try_s = "visuals.LensFlare" ; if (  t.tfield_s == t.try_s  )  t.visuals.LensFlare_f = ValF(t.tvalue_s.Get());
+		//new water settings
+		t.try_s = "visuals.Waterheight"; if (t.tfield_s == t.try_s)  g.gdefaultwaterheight = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.Waterred"; if (t.tfield_s == t.try_s)  t.visuals.WaterRed_f = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.Waterblue"; if (t.tfield_s == t.try_s)  t.visuals.WaterBlue_f = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.Watergreen"; if (t.tfield_s == t.try_s)  t.visuals.WaterGreen_f = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterWaveIntensity"; if (t.tfield_s == t.try_s)  t.visuals.WaterWaveIntensity_f = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterTransparancy"; if (t.tfield_s == t.try_s)  t.visuals.WaterTransparancy_f = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterSparkleCol"; if (t.tfield_s == t.try_s)  t.visuals.WaterReflectionSparkleIntensity = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterReflection"; if (t.tfield_s == t.try_s)  t.visuals.WaterReflection_f = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterFlowDirectionX"; if (t.tfield_s == t.try_s)  t.visuals.WaterFlowDirectionX = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterFlowDirectionY"; if (t.tfield_s == t.try_s)  t.visuals.WaterFlowDirectionY = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterDistortionWaves"; if (t.tfield_s == t.try_s)  t.visuals.WaterDistortionWaves = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterSpeed1"; if (t.tfield_s == t.try_s)  t.visuals.WaterSpeed1 = ValF(t.tvalue_s.Get());
+		t.try_s = "visuals.WaterFlowSpeed"; if (t.tfield_s == t.try_s)  t.visuals.WaterFlowSpeed = ValF(t.tvalue_s.Get());
 
 	} while ( !(  Len(t.tline_s.Get())<2 ) );
 	CloseFile (  1 );
+	t.terrain.waterliney_f = g.gdefaultwaterheight;
 	}
 
 	//  Right away we cap 'VERTICAL' CameraFOV# for legacy levels which could set it VERY high
@@ -736,6 +800,23 @@ void visuals_justshaderupdate ( void )
 				SetEffectConstantF (  t.terrain.vegetationshaderindex,"GlobalSurfaceIntensity",t.visuals.SurfaceIntensity_f );
 			}
 		}
+		//update water shader
+		if (GetEffectExist(t.terrain.effectstartindex + 1))
+		{
+			SetVector4(g.terrainvectorindex, t.visuals.WaterRed_f / 256, t.visuals.WaterGreen_f / 256, t.visuals.WaterBlue_f / 256, 0);
+			SetEffectConstantV(t.terrain.effectstartindex + 1, "WaterCol", g.terrainvectorindex);
+			//nWaterscale 0 let strange lightning artifacts appear
+			SetVector4(g.terrainvectorindex, t.visuals.WaterWaveIntensity_f+1, t.visuals.WaterWaveIntensity_f+1, 0, 0);
+			SetEffectConstantV(t.terrain.effectstartindex + 1, "nWaterScale", g.terrainvectorindex);
+			SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterTransparancy", t.visuals.WaterTransparancy_f);
+			SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterReflection", t.visuals.WaterReflection_f);
+			SetEffectConstantF(t.terrain.effectstartindex + 1, "reflectionSparkleIntensity", t.visuals.WaterReflectionSparkleIntensity);
+			SetVector4(g.terrainvectorindex, t.visuals.WaterFlowDirectionX * t.visuals.WaterFlowSpeed, t.visuals.WaterFlowDirectionY * t.visuals.WaterFlowSpeed, 0, 0);
+			SetEffectConstantV(t.terrain.effectstartindex + 1, "flowdirection", g.terrainvectorindex);
+			SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterSpeed1", t.visuals.WaterSpeed1);
+			SetEffectConstantF(t.terrain.effectstartindex + 1, "distortion2", t.visuals.WaterDistortionWaves);
+		}
+
 		//  update fog shader
 		t.tFogNear_f=t.visuals.FogNearest_f ; t.tFogFar_f=t.visuals.FogDistance_f;
 		t.tFogR_f=t.visuals.FogR_f ; t.tFogG_f=t.visuals.FogG_f ; t.tFogB_f=t.visuals.FogB_f ; ; t.tFogA_f=t.visuals.FogA_f;

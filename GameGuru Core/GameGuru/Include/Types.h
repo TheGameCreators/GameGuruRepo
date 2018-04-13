@@ -3668,6 +3668,18 @@ struct visualstype
 	float SAOIntensity_f;
 	float SAOQuality_f;
 	float LensFlare_f;
+	float WaterRed_f;
+	float WaterBlue_f;
+	float WaterGreen_f;
+	float WaterWaveIntensity_f;
+	float WaterTransparancy_f;
+	float WaterReflection_f;
+	float WaterReflectionSparkleIntensity;
+	float WaterFlowDirectionX;
+	float WaterFlowDirectionY;
+	float WaterDistortionWaves;
+	float WaterSpeed1;
+	float WaterFlowSpeed;
 
 	// Constructor
 	visualstype ( )
@@ -3754,6 +3766,19 @@ struct visualstype
 		 pressed = 0;
 		 value_f = 0.0f;
 		 mode = 0;
+		 //New Water Vars
+		 WaterRed_f= 0.0f;
+		 WaterBlue_f = 0.0f;
+		 WaterGreen_f = 0.0f;
+		 WaterWaveIntensity_f = 0.0f;
+		 WaterTransparancy_f = 0.0f;
+		 WaterReflectionSparkleIntensity = 0.0f;
+		 WaterReflection_f = 0.0f;
+		 WaterFlowDirectionX = 0.0f;
+		 WaterFlowDirectionY = 0.0f;
+		 WaterDistortionWaves=0.0f;
+		 WaterSpeed1 = 0.0f;
+		 WaterFlowSpeed=0.0f;
 	}
 	// End of Constructor
 
@@ -7195,6 +7220,7 @@ struct slidersmenunamestype
 	int worldpanel;
 	int yesnopanel;
 	int posteffects;
+	int water;
 
 	// Constructor
 	slidersmenunamestype ( )
@@ -7212,6 +7238,7 @@ struct slidersmenunamestype
 		 visuals = 0;
 		 performance = 0;
 		 aidrilldown = 0;
+		 water = 0;
 	}
 	// End of Constructor
 

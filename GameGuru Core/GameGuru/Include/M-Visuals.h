@@ -25,4 +25,5 @@ void visuals_shaderlevels_vegetation_update ( void );
 void visuals_shaderlevels_lighting_update ( void );
 void visuals_underwater_on ( void );
 void visuals_underwater_off ( void );
+void visuals_water_reset(void);
 

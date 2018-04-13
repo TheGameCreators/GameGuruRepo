@@ -1758,6 +1758,32 @@ GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of
 
 GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
 
+***Water Shader Settings*** Look into the shader for informations about these values(open effectbank/reloaded/water_basic.fx with i.e. notepad)
+***Setter***
+SetWaterHeight(value)
+SetWaterColor(red,green,blue)
+SetWaterWaveIntensity(value)
+SetWaterTransparancy(value)
+SetWaterReflection(value)
+SetWaterReflectionSparkleIntensity(value)
+SetWaterFlowDirection(x,y,speed) small tip: -1 =east/north; 1=west/south - speed is a multiplier of the flowdirection(higher => fast flow)
+SetWaterDistortionWaves(value)
+SetRippleWaterSpeed(value)
+***Getter***
+GetWaterHeight()
+GetWaterWaveIntensity()
+GetWaterShaderColorRed()
+GetWaterShaderColorGreen()
+GetWaterShaderColorBlue()
+GetWaterTransparancy()
+GetWaterReflection()
+GetWaterReflectionSparkleIntensity()
+GetWaterFlowDirectionX()
+GetWaterFlowDirectionY()
+GetWaterFlowSpeed()
+GetWaterDistortionWaves()
+GetRippleWaterSpeed()
+
 --]]
 
---SetSkyTo(str) : str=foldername of the sky you want to change to (i.e. ChangeSkyTo("dark"))
+--SetSkyTo(str) : str=foldername of the sky you want to change to (i.e. SetSkyTo("dark"))
