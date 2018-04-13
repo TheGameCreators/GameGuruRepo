@@ -434,8 +434,18 @@ void gun_loaddata ( void )
 		UnDim (  t.data_s );
 	}
 
-	//  Correct any legacy fall-out
-	if (  cstr(Lower(t.gun[t.gunid].texd_s.Get())) == "gun_d2.dds"  )  t.gun[t.gunid].texd_s = "gun_d.dds";
+	// Correct any legacy fall-out
+	if ( cstr(Lower(t.gun[t.gunid].texd_s.Get())) == "gun_d2.dds"  )  t.gun[t.gunid].texd_s = "gun_d.dds";
+
+	// 130418 - also replace any old TGA references
+	char pTexFileName[1024];
+	strcpy ( pTexFileName, t.gun[t.gunid].texd_s.Get() );
+	if ( stricmp ( pTexFileName+strlen(pTexFileName)-4, ".tga") == NULL )
+	{
+		pTexFileName[strlen(pTexFileName)-4] = 0;
+		strcat ( pTexFileName, ".png" );
+		t.gun[t.gunid].texd_s = pTexFileName;
+	}
 
 	//  Go through gun settings and populate with defaults
 	for ( t.i = 0 ; t.i<=  1; t.i++ )

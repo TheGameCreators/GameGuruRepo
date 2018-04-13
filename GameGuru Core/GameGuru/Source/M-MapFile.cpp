@@ -675,6 +675,7 @@ void mapfile_savestandalone ( void )
 	addfoldertocollection("gamecore\\decals\\splash_misty");
 	addfoldertocollection("gamecore\\decals\\splash_ripple");
 	addfoldertocollection("gamecore\\decals\\splash_small");
+	addfoldertocollection("gamecore\\projectiletypes");
 
 	// add any material decals that are active
 	for ( t.m = 0; t.m <= g.gmaterialmax; t.m++ )

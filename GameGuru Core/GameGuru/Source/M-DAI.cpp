@@ -1286,10 +1286,15 @@ void darkai_shooteffect ( void )
 			//  create and launch projectile
 			if (  t.game.runasmultiplayer == 0 || t.tsteamismpchar  ==  0 ) 
 			{
-				t.tProjectileType=1 ; t.tSourceEntity=t.te ; t.tTracerFlag=0;
+				//t.tProjectileType=1; characters can shoot ANY projectile type now
+				int iStoreGunID = t.gunid;
+				t.gunid = t.tgunid;
+				t.tProjectileType_s=t.gun[t.gunid].projectile_s; weapon_getprojectileid ( );
+				t.tSourceEntity=t.te ; t.tTracerFlag=0;
 				t.tStartX_f=t.flakx_f ; t.tStartY_f=t.flaky_f ; t.tStartZ_f=t.flakz_f;
 				t.tAngX_f=t.flakpitch_f ; t.tAngY_f=t.flakangle_f ; t.tAngZ_f=0;
 				weapon_projectile_make ( );
+				t.gunid = iStoreGunID;
 			}
 		}
 		t.tolde = t.e;

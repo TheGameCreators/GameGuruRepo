@@ -2,8 +2,8 @@
 desc          = Metal Case Small
 
 ;visualinfo
-textured      = MetalCrate_V2_D.dds
-effect        = effectbank\reloaded\entity_basic.fx
+textured      = MetalCrate_V2_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
 castshadow    = 0
 
 ;orientation

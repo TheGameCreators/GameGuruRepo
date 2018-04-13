@@ -2,8 +2,8 @@
 desc          = Metal Crate Large
 
 ;visualinfo
-textured      = MetalCrate_V1_D.dds
-effect        = effectbank\reloaded\entity_basic.fx
+textured      = MetalCrate_V1_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
 castshadow    = 0
 
 ;orientation

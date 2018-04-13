@@ -3445,6 +3445,9 @@ void gun_load ( void )
 			t.imgN_s="effectbank\\reloaded\\media\\blank_N.dds";
 			t.imgS_s="effectbank\\reloaded\\media\\blank_black.dds";
 			t.imgI_s="effectbank\\reloaded\\media\\blank_I.dds";
+			timgGloss_s="effectbank\\reloaded\\media\\white_D.dds";
+			timgAO_s="effectbank\\reloaded\\media\\white_D.dds";
+			timgHeight_s="effectbank\\reloaded\\media\\blank_black.dds";
 		}
 		if ( t.gun[t.gunid].transparency > 2 ) 
 		{

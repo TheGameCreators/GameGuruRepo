@@ -67,10 +67,10 @@ struct appdata
 struct vertexOutput
 {
     float4 Position     : POSITION;
-    float2 atlasUV      : TEXCOORD1; 
-    float  WaterFog     : TEXCOORD2; 
-    float4 WPos         : TEXCOORD3;
-    float  clip         : TEXCOORD4;   
+    float2 atlasUV      : TEXCOORD0; 
+    float  WaterFog     : TEXCOORD1; 
+    float4 WPos         : TEXCOORD2;
+    float  clip         : TEXCOORD3;   
 };
 
 vertexOutput mainVS(appdata IN)   
@@ -91,7 +91,7 @@ float4 mainPS(vertexOutput IN) : COLOR
 {
     float4 finalcolor;
     clip(IN.clip);
-	    
+	
     float4 diffusemap = DiffuseMap.SampleLevel(SampleWrap,IN.atlasUV,0);	
     float alpha = diffusemap.a * alphaoverride;    
     float4 result =  diffusemap;

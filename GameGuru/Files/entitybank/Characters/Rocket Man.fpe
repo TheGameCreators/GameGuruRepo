@@ -1,0 +1,144 @@
+;header
+desc          = Rocket Man
+
+;visualinfo
+textured      = Rocket Man_D.dds
+effect        = effectbank\reloaded\character_basic.fx
+castshadow    = 0
+
+;ai
+aimain	      = ai_soldier_rpg.lua
+
+;orientation
+model         = Rocket Man.X
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 0
+
+;identity details
+ischaracter   = 1
+hasweapon     = modern\RPG
+isobjective   = 0
+cantakeweapon = 1
+fatness       = 100
+ragdoll       = 1
+endcollision  = 0
+speed         = 200
+
+;statistics
+strength      = 100
+explodable    = 0
+debrisshape   = 0
+
+;decal
+decalmax      = 0
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+;anim
+animmax       = 5
+playanimineditor = 1
+anim0            = 100,205   ;idle
+anim1            = 685,707   ;move
+anim2            = 5511,5553 ;kick
+anim3            = 4812,4850 ;hurt
+anim4            = 6235,6315 ;reload
+
+;character animation (reference only)
+csi_relaxed1 			= 900,999
+csi_relaxed2 			= 1000,1282
+csi_relaxedmovefore 		= 1290,1419
+csi_cautious 			= 900,999
+csi_cautiousmovefore 		= 1325,1419
+csi_unarmed1 			= 3000,3100
+csi_unarmed2 			= 3430,3697
+csi_unarmedconversation		= 3110,3420
+csi_unarmedexplain 		= 4260,4464
+csi_unarmedpointfore 		= 4470,4535
+csi_unarmedpointback 		= 4680,4745
+csi_unarmedpointleft 		= 4610,4675
+csi_unarmedpointright 		= 4540,4605
+csi_unarmedmovefore 		= 3870,3900
+csi_unarmedmoverun 		= 3905,3925
+csi_unarmedstairascend 		= 5600,5768
+csi_unarmedstairdecend 		= 5800,5965
+csi_unarmedladderascend1 	= 4148,4110
+csi_unarmedladderascend2 	= 4148,4255
+csi_unarmedladderascend3 	= 4225,4255
+csi_unarmedladderdecend1 	= 4255,4225
+csi_unarmedladderdecend2 	= 4225,4148
+csi_unarmeddeath 		= 4800,4958
+csi_unarmedimpactfore 		= 4971,5021
+csi_unarmedimpactback 		= 5031,5090
+csi_unarmedimpactleft 		= 5171,5229
+csi_unarmedimpactright 		= 5101,5160
+csi_inchair 			= 3744,3828
+csi_inchairsit 			= 3710,3744
+csi_inchairgetup 		= 3828,3862
+csi_swim 			= 3930,4015
+csi_swimmovefore 		= 4030,4072
+csi_stoodnormal			= 100,210
+csi_stoodrocket 		= 100,210
+csi_stoodfidget1 		= 100,210
+csi_stoodfidget2 		= 100,210
+csi_stoodfidget3 		= 100,210
+csi_stoodfidget4 		= 100,210
+csi_stoodstartled 		= 100,210
+csi_stoodpunch 			= 2340,2382
+csi_stoodkick 			= 5511,5553
+csi_stoodmovefore 		= 685,707
+csi_stoodmoveback 		= 710,735
+csi_stoodmoveleft 		= 740,762
+csi_stoodmoveright 		= 765,789
+csi_stoodstepleft 		= 610,640
+csi_stoodstepright 		= 645,676
+csi_stoodstrafeleft 		= 855,871
+csi_stoodstraferight 		= 875,892
+csi_stoodturnleft 		= 765,771
+csi_stoodsubtleturnleft 	= 765,766
+csi_stoodvault 			= 2281,2332
+csi_stoodmoverun 		= 795,811
+csi_stoodmoverunleft 		= 815,830
+csi_stoodmoverunright 		= 835,850
+csi_stoodreload 		= 515,605
+csi_stoodreloadrocket 		= 6235,6315
+csi_stoodwave 			= 1470,1520
+csi_stoodtoss 			= 2390,2444
+csi_stoodfirerocket 		= 6233,6233
+csi_stoodincoverleft 		= 1580,1580
+csi_stoodincoverpeekleft 	= 1581,1581
+csi_stoodincoverthrowleft 	= 2680,2680
+csi_stoodincoverright 		= 1525,1525
+csi_stoodincoverpeekright 	= 1526,1526
+csi_stoodincoverthrowright 	= 2570,2570
+csi_crouchidlenormal1 		= 1670,1819
+csi_crouchidlenormal2 		= 1825,1914
+csi_crouchidlerocket 		= 1670,1819
+csi_crouchdown 			= 1630,1646
+csi_crouchdownrocket 		= 1630,1646
+csi_crouchrolldown 		= 2160,2216
+csi_crouchrollup		= 2225,2281
+csi_crouchmovefore 		= 2075,2102
+csi_crouchmoveback 		= 2102,2131
+csi_crouchmoveleft 		= 2015,2043
+csi_crouchmoveright 		= 2043,2072
+csi_crouchmoverun 		= 2135,2153
+csi_crouchreload 		= 1920,2010
+csi_crouchreloadrocket 		= 6380,6471
+csi_crouchwave 			= 2460,2510
+csi_crouchtoss 			= 2520,2555
+csi_crouchfirerocket 		= 6357,6379
+csi_crouchimpactfore 		= 5240,5277
+csi_crouchimpactback 		= 5290,5339
+csi_crouchimpactleft 		= 5409,5466
+csi_crouchimpactright 		= 5350,5395
+csi_crouchgetup 		= 1646,1663
+csi_crouchgetuprocket 		= 1646,1663
