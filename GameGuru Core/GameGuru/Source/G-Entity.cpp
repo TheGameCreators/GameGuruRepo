@@ -1987,13 +1987,11 @@ void entity_createattachment ( void )
 	t.entid=t.entityelement[t.e].bankindex;
 	if (  (t.tischaracterholdingweapon == 1 || t.entityprofile[t.entid].ismultiplayercharacter == 1) && t.entityelement[t.e].obj>0 ) 
 	{
-
 		//  Make attachment if warranted
 		if (  ObjectExist(t.entityelement[t.e].obj) == 1 && t.entityelement[t.e].attachmentobj == 0 ) 
 		{
 			if (  t.entityprofile[t.entid].firespotlimb>-1 ) 
 			{
-
 				//  all vweaps (that are active)
 				for ( t.tgindex = 1 ; t.tgindex<=  g.gunmax; t.tgindex++ )
 				{
@@ -2002,13 +2000,11 @@ void entity_createattachment ( void )
 						t.tweaponname_s=t.gun[t.tgindex].name_s;
 						if (  t.tweaponname_s != "" ) 
 						{
-
 							//  entity has this gun in their hands
 							t.tthasweapon_s=Lower(t.entityprofile[t.entid].hasweapon_s.Get());
 							// Dave - added .Lower() as Uzi was being compared to uzi
 							if (  t.tthasweapon_s == t.tweaponname_s.Lower() ) 
 							{
-
 								//  go and load this gun (attached to calling entity instance)
 								++g.entityattachmentindex;
 								t.ttobj=g.entityattachmentsoffset+g.entityattachmentindex;
@@ -2310,7 +2306,7 @@ void entity_converttoclonetransparent ( void )
 	// used in IDE editor to show locked entities
 	entity_converttoclone ( );
 	SetAlphaMappingOn ( t.tobj, 110 ); // special semi-transparent mode with draw first rendering
-	//DisableObjectZWrite ( t.tobj );
+	DisableObjectZWrite ( t.tobj );
 }
 
 bool entity_isuniquespecularoruv ( int ee )

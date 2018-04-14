@@ -2,8 +2,8 @@
 desc          = AmmoBox
 
 ;visualinfo
-textured      = AmmoBox_D.dds
-effect        = effectbank\reloaded\entity_basic.fx
+textured      = AmmoBox_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
 castshadow    = 0
 
 ;orientation

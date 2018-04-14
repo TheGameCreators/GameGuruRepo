@@ -1348,7 +1348,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    // and also apply any alpha override
     #ifndef PBRTERRAIN
      #ifndef PBRVEGETATION
-     litColor.a *= AlphaOverride;
+     litColor.a *= AlphaOverride * fAlphaOverride; // fAlphaOverride from per-entity (lock entity)
     #endif
    #endif
    

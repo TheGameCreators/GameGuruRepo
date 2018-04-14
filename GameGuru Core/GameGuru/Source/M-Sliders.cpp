@@ -555,11 +555,8 @@ void sliders_init ( void )
 
 void sliders_free ( void )
 {
-
-	//  no need to free as will be returning to in-game test
-
-return;
-
+	// no need to free as will be returning to in-game test
+	g.slidersmenumax = 0;
 }
 
 void sliders_loop ( void )

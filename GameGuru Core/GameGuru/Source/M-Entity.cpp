@@ -2664,11 +2664,17 @@ void entity_loadtexturesandeffect ( void )
 				t.entityprofile[t.entid].texdid = t.texuseid;
 
 				// Assign NORMAL
-				t.texdirN_s = t.texdirnoext_s+"_n.dds";
+				if ( iEffectProfile == 1 )
+					t.texdirN_s = t.texdirnoext_s+"_normal.dds";
+				else
+					t.texdirN_s = t.texdirnoext_s+"_n.dds";
 				t.texuseid = loadinternaltextureex(t.texdirN_s.Get(),1,t.tfullorhalfdivide);
 				if ( t.texuseid == 0 ) 
 				{
-					t.texdirN_s = t.texdirnoext_s+"_normal.dds";
+					if ( iEffectProfile == 1 )
+						t.texdirN_s = t.texdirnoext_s+"_n.dds";
+					else
+						t.texdirN_s = t.texdirnoext_s+"_normal.dds";
 					t.texuseid = loadinternaltextureex(t.texdirN_s.Get(),1,t.tfullorhalfdivide);
 					if ( t.texuseid == 0 ) 
 					{

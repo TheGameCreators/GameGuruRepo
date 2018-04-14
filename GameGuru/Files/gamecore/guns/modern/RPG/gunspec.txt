@@ -1,0 +1,170 @@
+;// RPG7 Launcher
+;// Revision 1.0  4/15/15
+;// Right-Click to Aim Down Sights
+
+
+;// Ammunition
+
+poolammo		= rpg
+flak            = modern\rpg
+projectile      = rpggrenade
+reloadqty		= 1
+weaponisammo	= 0
+noautoreload	= 0
+nofullreload	= 1
+forcezoomout	= 1
+addtospare		= 1
+npcignorereload		= 0
+
+
+;// Range and damage
+
+damage			= 100
+force           	= 100
+scorchtype		= 4
+noscorch		= 0
+
+
+;// Accuracy
+
+simplezoom		= 1
+accuracy		= 1
+runacc			= 1
+simplezoomacc		= 1
+zoomaccuracy		= 70
+zoomaccuracybreath	= 5000
+zoomaccuracybreathhold  = 1
+zoomaccuracyheld	= 1
+zoomholdbreath		= 16
+
+
+;// HUD handling characteristics
+
+zoomwalkspeed                   = 0.4
+zoomturnspeed                   = 0.3
+plrmovespeedmod			= 0.5
+plremptyspeedmod        	= 0.6
+plrturnspeedmod			= 0.8
+plrjumpspeedmod			= 0.5
+plrreloadspeedmod		= 0.1
+
+recoily				= 60
+recoilyreturn			= 80
+recoilx				= 5
+recoilxreturn			= 80
+
+zoomrecoily			= 40
+zoomrecoilyreturn		= 80
+zoomrecoilx			= 2
+zoomrecoilxreturn		= 80
+
+zoomgunlagspeed			= 7
+zoomgunlagxmax			= 2
+zoomgunlagymax			= 0.75
+
+gunlagspeed			= 10
+gunlagxmax			= 10
+gunlagymax			= 5
+
+simplezoomspeed			= 10
+
+disablerunandshoot		= 1
+
+reloadspeed 			= 100
+
+
+;// Visuals
+
+textured		= gun_D.dds
+effect			= effectbank\reloaded\weapon_bone.fx
+transparency		= 4
+minpolytrim		= 32
+usespotlighting = 1
+
+;// GUN HUD (0-colt,1-magnum,2-uzi,3-shotgun,4-rifle,5-rpg)
+
+statuspanelcode		= 5
+
+;// WEAPON Style (1-pistol,2-rocket,3-shotgun,4-uzi,5-assault)
+
+weapontype		= 2
+
+;// NPC Decal 
+
+decal           	= muzzleflash4
+decalforward    	= 150
+
+
+;//Model positions
+
+horiz			= 0
+vert			= 0
+forward			= 2
+runy			= -1
+simplezoommod		= 2
+simplezoomx		= 0
+simplezoomy		= 0
+
+
+;// Muzzleflash
+
+muzzlecolorR		= 168
+muzzlecolorG		= 100
+muzzlecolorB		= 36
+
+muzzleflash		= 4
+simplezoomflash		= 1
+muzzlesize		= 200
+smoke			= 1
+smokedecal		= gunsmoke
+smokespeed		= 14
+
+alignx			= 35
+aligny			= 0
+alignz			= 140
+
+zoomalignx		= 0
+zoomaligny		= 0
+zoomalignz		= 50
+
+
+;// Brass System
+
+brass			= 0
+
+
+;// HUD ANIMATION (timeline 0-?)
+keyframe ratio		= 1
+keyframe speed      = 100
+simplezoomanim		= 1
+disablemovespeedmod	= 0
+
+select          	= 20,32
+Idle            	= 40,110
+Move            	= 120,170
+fire	        	= 200,213
+flakrearmframe  	= 207
+reload          	= 214,290
+putaway	        	= 180,190
+run	        	= 370,425
+zoomto			= 430,440
+zoomfrom		= 441,455
+zoom idle		= 505,565
+zoom move		= 569,629
+zoom start fire 	= 458,458
+zoom end fire		= 459,500
+
+
+;// GUN Sounds (0-zoom,1-fire,2-reload,3-dryfire,4-putaway)
+sound0			= zoom.wav
+sound1			= fire1.wav
+sound2			= reload.wav
+sound3			= dryfire.wav
+sound4			= putaway.wav
+sound5	        	= retrieve.wav
+fireloop		= 0
+
+;HUD sound frames list
+soundframes     	= 2
+sframe0         	= 215,2
+sframe1         	= 21,5
