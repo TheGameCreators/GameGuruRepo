@@ -2645,20 +2645,15 @@ void entity_loadtexturesandeffect ( void )
 				}
 				t.entityprofile[t.entid].texsid = t.texuseid;
 
-				// Assign ILLUMINATION or CUBE (or real-time 'ENVCUBE for PBR' later)
-				t.texdirI_s = t.texdirnoext_s+"_i.dds";
-				t.texuseid = loadinternaltextureex(t.texdirI_s.Get(),1,t.tfullorhalfdivide);
-				if ( t.texuseid == 0 )
+				// Assign CUBE (or real-time 'ENVCUBE for PBR' later)
+				t.texdirI_s = t.texdirnoext_s+"_cube.dds";
+				t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
+				if ( t.texuseid == 0 && iEffectProfile == 1 )
 				{
-					// if no _I file, try to find and load _CUBE file (load mode 2 = cube)
-					t.texdirI_s = t.texdirnoext_s+"_cube.dds";
-					t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
-					if ( t.texuseid == 0 && iEffectProfile == 1 )
-					{
-						// if no local CUBE, see if the level has generated one (matches sky and terrain)
-						t.texuseid = t.terrain.imagestartindex+31;
-					}
+					// if no local CUBE, see if the level has generated one (matches sky and terrain)
+					t.texuseid = t.terrain.imagestartindex+31;
 				}
+
 				t.entityprofiletexiid = t.texuseid;
 				t.entityprofile[t.entid].texiid = t.entityprofiletexiid;
 
