@@ -195,10 +195,21 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
     #else
      output.uv = float2(ScrollScaleUV.x+(input.uv.x*ScrollScaleUV.z),ScrollScaleUV.y+(input.uv.y*ScrollScaleUV.w));
      
-     //PE: tangent has problems, calculate.
-     if ( abs(inputNormal.y) > 0.999 ) inputTangent = float3( inputNormal.y,0.0,0.0 );
-     else inputTangent = normalize( float3(-inputNormal.z, 0.0, inputNormal.x) );
-     inputBinormal = normalize( float3(inputNormal.y*inputTangent.z, inputNormal.z*inputTangent.x-inputNormal.x*inputTangent.z, -inputNormal.y*inputTangent.x) );
+     // PE: tangent has problems, calculate.
+     //if ( abs(inputNormal.y) > 0.999 ) inputTangent = float3( inputNormal.y,0.0,0.0 );
+     //else inputTangent = normalize( float3(-inputNormal.z, 0.0, inputNormal.x) );
+     //inputBinormal = normalize( float3(inputNormal.y*inputTangent.z, inputNormal.z*inputTangent.x-inputNormal.x*inputTangent.z, //-inputNormal.y*inputTangent.x) );
+	 
+	 // LEE: Fixed above tangent/binormal calculation (see Concrete Girder)
+     float3 c1 = cross(output.normal, float3(0.0, 0.0, 1.0)); 
+     float3 c2 = cross(output.normal, float3(0.0, 1.0, 0.0)); 
+     if (length(c1) > length(c2)) {
+      output.tangent = c1;   
+     } else {
+      output.tangent = c2;   
+     }
+     output.tangent = normalize(output.tangent);
+     output.binormal = normalize(cross(output.tangent, output.normal)); 
 
      output.tangent = mul(inputTangent, wsTransform);
      output.binormal = mul(inputBinormal, wsTransform);
@@ -1108,16 +1119,15 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #ifdef CALLEDFROMOLDTERRAIN
 #ifdef PBRTERRAIN
 	if ( fullshadowsoreditor == 0 ) {
-	  // Looks like only cascade 7 is working when called from old terrain , terrain_basic.fx
-	  fShadow = GetShadowCascade ( 7, input.position, originalNormal, normalize(LightSource.xyz) );
+	  // DynTerShaSampler = AGEDMap , dont work.
+	  // Looks like only cascade 3 is working when called from old terrain , terrain_basic.fx
+	  fShadow = GetShadowCascade ( 3, input.position, originalNormal, normalize(LightSource.xyz) );
 	  float fBlendBetweenCascadesAmount = 1.0f;
 	  float fCurrentPixelsBlendBandLocation = 1.0f;
-      CalculateBlendAmountForInterval ( 7, input.viewDepth,fCurrentPixelsBlendBandLocation, fBlendBetweenCascadesAmount );
+      CalculateBlendAmountForInterval ( 3, input.viewDepth,fCurrentPixelsBlendBandLocation, fBlendBetweenCascadesAmount );
   	  fShadow = lerp( 0.0, fShadow, clamp(fBlendBetweenCascadesAmount,0.0,1.0) );
 	}
 #endif
-#else
-	if ( fullshadowsoreditor == 0 ) fShadow = GetShadowCascade ( 7, input.position, originalNormal, normalize(LightSource.xyz) );
 #endif
 
    float visibility =  max ( 1.0f - fShadow, 0 );
@@ -1348,7 +1358,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    // and also apply any alpha override
     #ifndef PBRTERRAIN
      #ifndef PBRVEGETATION
-     litColor.a *= AlphaOverride * fAlphaOverride; // fAlphaOverride from per-entity (lock entity)
+     litColor.a *= AlphaOverride;
     #endif
    #endif
    
@@ -1431,7 +1441,11 @@ technique11 Medium
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(0)));
+#ifdef CALLEDFROMOLDTERRAIN
+        SetPixelShader(CompileShader(ps_5_0, PSMain(0))); // 0 for in editor. (DynTerShaSampler not set so must be 1 for now. )
+#else
+        SetPixelShader(CompileShader(ps_5_0, PSMain(1))); // 0 for in editor. (DynTerShaSampler not set so must be 1 for now. )
+#endif
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
