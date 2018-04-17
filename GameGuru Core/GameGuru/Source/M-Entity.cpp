@@ -4367,18 +4367,18 @@ void entity_addentitytomap_core ( void )
 
 void entity_addentitytomap ( void )
 {
-	//  Entity To Add
+	// Entity To Add
 	t.entitymaintype=1;
 	t.entitybankindex=t.gridentity;
 	entity_addentitytomap_core ( );
 
-	//  update infinilight list with addition
-	if (  t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5 ) 
+	// update infinilight list with addition
+	if ( t.entityprofile[t.entitybankindex].ismarker == 2 || t.entityprofile[t.entitybankindex].ismarker == 5 ) 
 	{
 		lighting_refresh ( );
 	}
 
-	//  transfer waypoint zone index to entityelement
+	// transfer waypoint zone index to entityelement
 	t.waypointindex=t.grideleprof.trigger.waypointzoneindex;
 	t.entityelement[t.e].eleprof.trigger.waypointzoneindex=t.waypointindex;
 	t.waypoint[t.waypointindex].linkedtoentityindex=t.e;
@@ -4507,6 +4507,9 @@ void entity_deleteentityfrommap ( void )
 	//  Use entity coord to find tile
 	t.tupdatee=t.tentitytoselect;
 
+	// remember entity bank index for later light refresh
+	int iWasEntID = t.entityelement[t.tupdatee].bankindex;
+
 	//  cleanup character creator
 	t.ccobjToDelete = t.tupdatee;
 	characterkit_deleteEntity ( );
@@ -4539,14 +4542,14 @@ void entity_deleteentityfrommap ( void )
 	}
 	t.tDontDeleteWPFlag = 0;
 
-	//  update infinilight list with removal
-	if (  t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5 ) 
+	// update infinilight list with removal
+	if ( t.entityprofile[iWasEntID].ismarker == 2 || t.entityprofile[iWasEntID].ismarker == 5 ) 
 	{
 		//  refresh existing lights
 		lighting_refresh ( );
 	}
 
-	//  update real ent obj (.obj=0 inside)
+	// update real ent obj (.obj=0 inside)
 	entity_updateentityobj ( );
 }
 
