@@ -11,9 +11,9 @@ function lightswitch_main(e)
  if PlayerDist < 150 and g_PlayerHealth > 0 then
   if g_lightswitch[e]=="on" then
    if GetGamePlayerStateXBOX() == 1 then
-    PromptLocalForVR(e,"Press Y button to turn light off")
+    Prompt("Press Y button to turn light off")
    else
-    PromptLocalForVR(e,"Press E to turn light off" )
+    Prompt("Press E to turn light off" )
    end
    if g_KeyPressE == 1 then
     g_lightswitch[e] = "offing"
@@ -22,9 +22,9 @@ function lightswitch_main(e)
   end
   if g_lightswitch[e]=="off" then
    if GetGamePlayerStateXBOX() == 1 then
-    PromptLocalForVR(e,"Press Y button to turn light on")
+    Prompt("Press Y button to turn light on")
    else
-    PromptLocalForVR(e,"Press E to turn light on" )
+    Prompt("Press E to turn light on" )
    end
    if g_KeyPressE == 1 then
     g_lightswitch[e] = "oning"

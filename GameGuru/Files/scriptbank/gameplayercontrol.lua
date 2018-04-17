@@ -1543,6 +1543,7 @@ function gameplayercontrol.control()
 					if GetGamePlayerControlWobble() > 0.0 then 
 						ttFootfallPaceMultiplier = 1.0/(GetGamePlayerControlFootfallPace()/3.0)
 						ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
+						if ttWeaponMoveSpeedMod == 0.0 then ttWeaponMoveSpeedMod = 1.0 end
 						if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
 						ttAddWobbleStep = GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttFootfallPaceMultiplier*ttWeaponMoveSpeedMod
 						g_FootFallTimer = g_FootFallTimer + ttAddWobbleStep

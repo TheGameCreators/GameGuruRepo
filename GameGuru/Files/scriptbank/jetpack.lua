@@ -23,12 +23,12 @@ function jetpack_main(e)
 	end	
 	if Result < 20.0 then
 	    if GetGamePlayerStateXBOX() == 1 then
-         PromptLocalForVR(e,"Press Y button to pick up the jetpack")
+         Prompt("Press Y button to pick up the jetpack")
 	    else
-		 PromptLocalForVR(e,"Press E To pick up the jetpack")
+		 Prompt("Press E To pick up the jetpack")
 		end
 		if g_KeyPressE == 1 then
-		   PromptLocalForVR(e,"Collected the jetpack")
+		   Prompt("Collected the jetpack")
 		   PlaySound(e,0)
 		   AddPlayerJetPack(e,500)
 		   Destroy(e)

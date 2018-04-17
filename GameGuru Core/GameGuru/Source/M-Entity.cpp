@@ -2014,13 +2014,16 @@ void entity_loaddata ( void )
 			if ( n <= 0 ) strcpy ( pEntityItemPath, "" );
 			char pJustTextureName[1024];
 			strcpy ( pJustTextureName, t.entityprofile[t.entid].texd_s.Get() );
-			pJustTextureName[strlen(pJustTextureName)-4]=0;
-			if ( stricmp ( pJustTextureName+strlen(pJustTextureName)-6, "_color" ) == NULL )
+			if ( strlen ( pJustTextureName ) > 4 )
 			{
-				pJustTextureName[strlen(pJustTextureName)-6]=0;
-				strcat ( pJustTextureName, "_D" );
+				pJustTextureName[strlen(pJustTextureName)-4]=0;
+				if ( stricmp ( pJustTextureName+strlen(pJustTextureName)-6, "_color" ) == NULL )
+				{
+					pJustTextureName[strlen(pJustTextureName)-6]=0;
+					strcat ( pJustTextureName, "_D" );
+				}
+				strcat ( pJustTextureName, ".png" );
 			}
-			strcat ( pJustTextureName, ".png" );
 			char pReplaceWithDNS[1024];
 			strcpy ( pReplaceWithDNS, pEntityItemPath );
 			strcat ( pReplaceWithDNS, pJustTextureName );
@@ -2029,18 +2032,25 @@ void entity_loaddata ( void )
 			if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pPBREffectMatch, strlen(pPBREffectMatch) ) == NULL ) 
 			{
 				// entity effect specifies PBR, do we have the DNS files available
-				cstr pFindDNSFile = t.entdir_s + pReplaceWithDNS;
-				if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+				if ( strlen ( pJustTextureName ) > 4 )
 				{
-					pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
-					strcat ( pReplaceWithDNS, ".dds" );
-					pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+					cstr pFindDNSFile = t.entdir_s + pReplaceWithDNS;
 					if ( FileExist ( pFindDNSFile.Get() ) == 0 )
 					{
 						pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
-						strcat ( pReplaceWithDNS, ".jpg" );
+						strcat ( pReplaceWithDNS, ".dds" );
 						pFindDNSFile = t.entdir_s + pReplaceWithDNS;
-						if ( FileExist ( pFindDNSFile.Get() ) == 1 )
+						if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+						{
+							pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
+							strcat ( pReplaceWithDNS, ".jpg" );
+							pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+							if ( FileExist ( pFindDNSFile.Get() ) == 1 )
+							{
+								bReplacePBRWithNonPBRDNS = true;
+							}
+						}
+						else
 						{
 							bReplacePBRWithNonPBRDNS = true;
 						}
@@ -2052,6 +2062,7 @@ void entity_loaddata ( void )
 				}
 				else
 				{
+					// no texture specified, but can still switch to classic shaders (legacy behavior)
 					bReplacePBRWithNonPBRDNS = true;
 				}
 			}
