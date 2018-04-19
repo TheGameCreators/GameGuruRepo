@@ -14,3 +14,4 @@ void sliders_getnamefromvalue ( void );
 void sliders_write ( void );
 void sliders_scope_draw ( void );
 float SlidersAdjustValue ( float value_f, float minFrom_f, float maxFrom_f, float minTo_f, float maxTo_f );
+float SlidersCutExtendedValues(float value);
