@@ -1288,7 +1288,7 @@ void game_setup_character_shader_entities ( bool bMode )
 
 	//PE: Bug. reset effect clip , so visible.
 	t.tnothing = MakeVector4(g.characterkitvector);
-	SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+	SetVector4(g.characterkitvector, 500000, 1, 0, 0);
 	SetEffectConstantV(t.entityBasicShaderID, "EntityEffectControl", g.characterkitvector);
 	SetEffectConstantV(t.characterBasicShaderID, "EntityEffectControl", g.characterkitvector);
 	t.tnothing = DeleteVector4(g.characterkitvector);

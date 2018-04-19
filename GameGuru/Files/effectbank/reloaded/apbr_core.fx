@@ -23,7 +23,8 @@ float4 HighlightParams = {0.0f,0.0f,0.0f,1.0f};
 float4 GlowIntensity = float4(0,0,0,0);
 float AlphaOverride = 1.0f;
 float SpecularOverride = 1.0f;
-float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f};
+float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Alpha Slice Y=not used
+float4 ArtFlagControl1 = {1.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (on by default)
 float4 ShaderVariables = float4(0,0,0,0);
 float4 AmbiColorOverride = {1.0f, 1.0f, 1.0f, 1.0f};
 float4 clipPlane : ClipPlane;
@@ -1068,7 +1069,13 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     if (usingNormalMap > 0.0)
     {
       float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
-      rawnormalmap.y = 1.0f-rawnormalmap.y; // FBX normal maps have this reversed!
+
+	  // allow this to be toggled in the FPE for artist control (could be a way to do this with math, eliminate the IF)
+	  if ( ArtFlagControl1.x == 1 )
+	  {
+		rawnormalmap.y = 1.0f - rawnormalmap.y;
+	  }
+	  
       float3 norm = rawnormalmap * 2.0 - 1.0;
       norm = mul(norm.rgb, toWorld);
       attributes.normal = normalize(norm);

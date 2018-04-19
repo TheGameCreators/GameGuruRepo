@@ -1414,6 +1414,25 @@ DARKSDK_DLL void SetObjectScrollScaleUV ( int iID, float fScrU, float fScrV, flo
 	}
 }
 
+DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags )
+{
+	// check the object exists
+	if ( !ConfirmObjectInstance ( iID ) )
+		return;
+
+	// apply setting to all meshes (or parent if just instance)
+	sObject* pObject = g_ObjectList [ iID ];
+	if ( pObject->pInstanceOfObject ) pObject = pObject->pInstanceOfObject;
+	for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+	{
+		sMesh* pMesh = pObject->ppMeshList [ iMesh ];
+		if ( pMesh )
+		{
+			pMesh->dwArtFlags = dwArtFlags;
+		}
+	}
+}
+
 DARKSDK_DLL void SetObjectSpecular ( int iID, DWORD dwRGB, float fPower )
 {
 	// U73 - 230309 - helper extra function parameter

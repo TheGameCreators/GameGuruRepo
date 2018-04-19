@@ -496,7 +496,7 @@ struct sMeshExternalProperties
 	float							fScrollOffsetV;								// 
 	float							fScaleOffsetU;								//
 	float							fScaleOffsetV;								// 
-	DWORD							dwReservedMEP5;								// reserved
+	DWORD							dwArtFlags;									// art flags (invert normal green channel, etc)
 };
 
 struct sMesh : public sMeshFVF,

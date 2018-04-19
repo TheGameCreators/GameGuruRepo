@@ -3428,6 +3428,18 @@ bool CObjectManager::ShaderPass ( sMesh* pMesh, UINT uPass, UINT uPasses, bool b
 			}
 			#endif
 
+			// added per-object control for additional artist flags
+			#ifdef DX11
+			GGHANDLE pArtFlags = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+			if ( pArtFlags )
+			{
+				float fInvertNormal = 0.0f;
+				if ( pMesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+				GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, 0.0f, 0.0f, 0.0f );
+				pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+			}
+			#endif
+
 			// when flagged, we must update effect with changes we made
 			if ( bMustCommit==true )
 			{

@@ -2479,6 +2479,18 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 					Mesh->pVertexShaderEffect->m_VecClipPlaneEffectHandle->AsVector()->SetFloatVector ( (float*)&vec );
 				}
 
+				// Ensure normal invert in effect for terrain (NOTE: not liking duplicated of code)
+				#ifdef DX11
+				GGHANDLE pArtFlags = Mesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+				if ( pArtFlags )
+				{
+					float fInvertNormal = 0.0f;
+					if ( Mesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+					GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, 0.0f, 0.0f, 0.0f );
+					pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+				}
+				#endif
+
 				// apply effect ready for rendering
 				hTechniqueUsed->GetPassByIndex(0)->Apply(0,m_pImmediateContext);
 

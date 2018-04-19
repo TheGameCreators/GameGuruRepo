@@ -1095,7 +1095,7 @@ void importer_changeshader ( LPSTR pNewShaderFilename )
 			giRememberLastEffectIndexInImporter = iEffectID;
 			//PE: Bug. reset effect clip , so visible.
 			t.tnothing = MakeVector4(g.characterkitvector);
-			SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+			SetVector4(g.characterkitvector, 500000, 1, 0, 0);
 			SetEffectConstantV(iEffectID, "EntityEffectControl", g.characterkitvector);
 			t.tnothing = DeleteVector4(g.characterkitvector);
 		}
@@ -1371,7 +1371,7 @@ void importer_loadmodel ( void )
 	//PE: Bug. make sure we dont get clipped, model was only half visible.
 	//reuse g.characterkitvector = 46
 	t.tnothing = MakeVector4(g.characterkitvector);
-	SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+	SetVector4(g.characterkitvector, 500000, 1, 0, 0);
 	SetEffectConstantV(iEffectID, "EntityEffectControl", g.characterkitvector);
 	t.tnothing = DeleteVector4(g.characterkitvector);
 

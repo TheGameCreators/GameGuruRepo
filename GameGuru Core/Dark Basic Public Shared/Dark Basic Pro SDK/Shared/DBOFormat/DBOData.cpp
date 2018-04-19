@@ -104,6 +104,7 @@ sMesh::sMesh ( )
 	fScrollOffsetV			= 0.0f;
 	fScaleOffsetU			= 1.0f;
 	fScaleOffsetV			= 1.0f;
+	dwArtFlags				= 1;		// 00000000000000000000000000000001 (1:invert normal flag set by default)
 
 	bUsesMaterial			= false;	// default settings in case we use it (ie fade object)
 	mMaterial.Diffuse.r		= 1.0f;

@@ -4397,11 +4397,11 @@ if (  t.updatezoom == 1 )
 			{
 				if (  t.gridnearcameraclip == -1 ) 
 				{
-					SetVector4 (  g.terrainvectorindex,500000,0,0,0 );
+					SetVector4 ( g.terrainvectorindex, 500000, 1, 0, 0 );
 				}
 				else
 				{
-					SetVector4 (  g.terrainvectorindex,t.gridtrueslicey_f,0,0,0 );
+					SetVector4 ( g.terrainvectorindex, t.gridtrueslicey_f, 1, 0, 0 );
 				}
 				SetEffectConstantV (  t.effectid,"EntityEffectControl",g.terrainvectorindex );
 			}

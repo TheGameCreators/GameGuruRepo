@@ -413,7 +413,7 @@ void characterkit_loadEffects ( void )
 	SetEffectConstantV (  t.characterkit.effectforAttachments, "AmbiColor" , g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforBeard, "AmbiColor" , g.characterkitvector );
 
-	SetVector4 (  g.characterkitvector,500000,0,0,0 );
+	SetVector4 (  g.characterkitvector,500000, 1, 0, 0 );
 	SetEffectConstantV (  t.characterkit.effectforAttachments,"EntityEffectControl",g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforAttachmentsHighlight,"EntityEffectControl",g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforBeard,"EntityEffectControl",g.characterkitvector );

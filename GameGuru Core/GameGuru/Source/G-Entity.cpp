@@ -2569,6 +2569,10 @@ void entity_prepareobj ( void )
 			SetObjectScrollScaleUV ( t.tobj, t.entityprofile[t.tentid].uvscrollu, t.entityprofile[t.tentid].uvscrollv, t.entityprofile[t.tentid].uvscaleu, t.entityprofile[t.tentid].uvscalev );
 		}
 
+		// Set art flags for object (can use 32 bit flags here eventually)
+		DWORD dwArtFlags = 0;
+		if ( t.entityprofile[t.tentid].invertnormal == 1 ) dwArtFlags = 1;
+		SetObjectArtFlags ( t.tobj, dwArtFlags );
 	}
 }
 

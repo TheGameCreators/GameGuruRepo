@@ -4960,6 +4960,7 @@ struct entityprofiletype
 	float uvscrollv;
 	float uvscaleu;
 	float uvscalev;
+	int invertnormal;
 	int zdepth;
 	int cullmode;
 	int reducetexture;

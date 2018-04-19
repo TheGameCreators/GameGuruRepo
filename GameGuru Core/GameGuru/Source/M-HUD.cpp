@@ -79,7 +79,7 @@ void hud_scanforhudlayers ( void )
 
 					//PE: HUD is getting clipped.
 					t.tnothing = MakeVector4(g.characterkitvector);
-					SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+					SetVector4(g.characterkitvector, 500000, 1, 0, 0);
 					SetEffectConstantV(t.playercontrol.jetpackeffect, "EntityEffectControl", g.characterkitvector);
 					t.tnothing = DeleteVector4(g.characterkitvector);
 
