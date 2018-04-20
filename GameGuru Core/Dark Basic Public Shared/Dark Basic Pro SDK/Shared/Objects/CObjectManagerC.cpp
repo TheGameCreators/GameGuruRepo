@@ -3434,8 +3434,10 @@ bool CObjectManager::ShaderPass ( sMesh* pMesh, UINT uPass, UINT uPasses, bool b
 			if ( pArtFlags )
 			{
 				float fInvertNormal = 0.0f;
+				float fGenerateTangents = 0.0f;
 				if ( pMesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
-				GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, 0.0f, 0.0f, 0.0f );
+				if ( pMesh->dwArtFlags & 0x2 ) fGenerateTangents = 1.0f;
+				GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, fGenerateTangents, 0.0f, 0.0f );
 				pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
 			}
 			#endif

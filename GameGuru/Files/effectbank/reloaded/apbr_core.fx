@@ -24,7 +24,7 @@ float4 GlowIntensity = float4(0,0,0,0);
 float AlphaOverride = 1.0f;
 float SpecularOverride = 1.0f;
 float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Alpha Slice Y=not used
-float4 ArtFlagControl1 = {1.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (on by default)
+float4 ArtFlagControl1 = {1.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (on by default) Y=Preserve Tangents (off by default)
 float4 ShaderVariables = float4(0,0,0,0);
 float4 AmbiColorOverride = {1.0f, 1.0f, 1.0f, 1.0f};
 float4 clipPlane : ClipPlane;
@@ -202,18 +202,21 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
      //inputBinormal = normalize( float3(inputNormal.y*inputTangent.z, inputNormal.z*inputTangent.x-inputNormal.x*inputTangent.z, //-inputNormal.y*inputTangent.x) );
 	 
 	 // LEE: Fixed above tangent/binormal calculation (see Concrete Girder)
-     float3 c1 = cross(output.normal, float3(0.0, 0.0, 1.0)); 
-     float3 c2 = cross(output.normal, float3(0.0, 1.0, 0.0)); 
-     if (length(c1) > length(c2)) {
-      output.tangent = c1;   
-     } else {
-      output.tangent = c2;   
+	 if ( ArtFlagControl1.y == 0 )
+	 {
+		 float3 c1 = cross(output.normal, float3(0.0, 0.0, 1.0)); 
+		 float3 c2 = cross(output.normal, float3(0.0, 1.0, 0.0)); 
+		 if (length(c1) > length(c2)) {
+		  output.tangent = c1;   
+		 } else {
+		  output.tangent = c2;   
+		 }
+		 inputTangent = normalize(output.tangent);
+		 inputBinormal = normalize(cross(inputTangent, output.normal)); 
      }
-     output.tangent = normalize(output.tangent);
-     output.binormal = normalize(cross(output.tangent, output.normal)); 
-
      output.tangent = mul(inputTangent, wsTransform);
      output.binormal = mul(inputBinormal, wsTransform);
+	 
     #endif
     output.binormal = normalize(output.binormal);
     output.tangent = normalize(output.tangent);

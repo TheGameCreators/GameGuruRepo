@@ -1040,6 +1040,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].uvscaleu=1.0f;
 		t.entityprofile[t.entid].uvscalev=1.0f;
 		t.entityprofile[t.entid].invertnormal=1;
+		t.entityprofile[t.entid].preservetangents=0;		
 		t.entityprofile[t.entid].colondeath=1;
 		t.entityprofile[t.entid].parententityindex=0;
 		t.entityprofile[t.entid].parentlimbindex=0;
@@ -1406,6 +1407,10 @@ void entity_loaddata ( void )
 					t.tryfield_s="invertnormal";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].invertnormal = t.value1;
 
+					// can choose whether to generate tangent/binormal in the shader
+					t.tryfield_s="preservetangents";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].preservetangents = t.value1;
+					
 					t.tryfield_s="zdepth";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].zdepth = t.value1;
 

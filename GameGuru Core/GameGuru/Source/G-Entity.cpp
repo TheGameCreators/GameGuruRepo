@@ -2572,6 +2572,7 @@ void entity_prepareobj ( void )
 		// Set art flags for object (can use 32 bit flags here eventually)
 		DWORD dwArtFlags = 0;
 		if ( t.entityprofile[t.tentid].invertnormal == 1 ) dwArtFlags = 1;
+		if ( t.entityprofile[t.tentid].preservetangents == 1 ) dwArtFlags |= 1<<1;
 		SetObjectArtFlags ( t.tobj, dwArtFlags );
 	}
 }

@@ -4961,6 +4961,7 @@ struct entityprofiletype
 	float uvscaleu;
 	float uvscalev;
 	int invertnormal;
+	int preservetangents;
 	int zdepth;
 	int cullmode;
 	int reducetexture;
