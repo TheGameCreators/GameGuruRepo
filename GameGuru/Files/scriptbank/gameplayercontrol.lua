@@ -812,7 +812,6 @@ function gameplayercontrol.control()
 		if ( ttokay == 1 ) then 
 			-- player can only jump if a certain height above the waterline (i.e wading in shallows, not swimming) then
 			if ( GetGamePlayerStateNoWater() ~= 0 or GetCameraPositionY(0) > GetGamePlayerStateWaterlineY() + 20 ) then 
-
 				tplayerjumpnow=GetGamePlayerControlJumpmax()*ttjumpmodifier
 				if ( GetGamePlayerStateGunID()>0 ) then tplayerjumpnow = tplayerjumpnow*GetFireModeSettingsPlrJumpSpeedMod() end
 				SetGamePlayerControlJumpMode(1)
@@ -1545,6 +1544,7 @@ function gameplayercontrol.control()
 					if GetGamePlayerControlWobble() > 0.0 then 
 						ttFootfallPaceMultiplier = 1.0/(GetGamePlayerControlFootfallPace()/3.0)
 						ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
+						if ttWeaponMoveSpeedMod == 0.0 then ttWeaponMoveSpeedMod = 1.0 end
 						if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
 						ttAddWobbleStep = GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttFootfallPaceMultiplier*ttWeaponMoveSpeedMod
 						g_FootFallTimer = g_FootFallTimer + ttAddWobbleStep
@@ -1601,7 +1601,7 @@ function gameplayercontrol.control()
 				if ( GetGamePlayerControlDrownTimestamp() == 0 ) then 
 					SetGamePlayerControlDrownTimestamp(Timer()+5000)
 				else
-					-- lose 5 health per second until dead
+					-- lose 1 health per second until dead
 					if ( Timer() > GetGamePlayerControlDrownTimestamp() ) then 
 						-- if there was no start marker, reset player (cannot kill, as no start marker) then. Indicated by crazy health and no lives
 						if ( g_PlayerLives == 0 and g_PlayerHealth == 99999 ) then 
