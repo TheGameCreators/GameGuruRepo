@@ -874,11 +874,6 @@ DARKSDK void LoopSound ( int iID, int iStart, int iEnd, int iInitialPos )
 	m_ptr->pSound->Stop();
 	if(iInitialPos!=-1) m_ptr->pSound->GetBuffer(0)->SetCurrentPosition(iInitialPos);
 
-// leefix - 080805 - interferes with DBPro regular functionality
-//	// mike - 2320604 - update position
-//	if ( m_ptr->pDSBuffer3D )
-//		m_ptr->pDSBuffer3D->SetPosition ( m_ptr->vecPosition.x, m_ptr->vecPosition.y, m_ptr->vecPosition.z, DS3D_DEFERRED );
-
 	m_ptr->pSound->Play(0, DSBPLAY_LOOPING );
 }
 

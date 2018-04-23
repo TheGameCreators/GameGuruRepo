@@ -1879,6 +1879,7 @@ void ODECreateDynamicCharacterController ( int iObjectNumber, float fGravity, fl
 	m_character->setMaxSlope(GGToRadian(fCharacterMaxSlope));
 	m_character->warp (btVector3(fXPos,fYPos,fZPos));
 	m_character->m_bCurrentlyDucked = false;
+	m_character->m_bDidJump = false;
 
 	// add physics object details to pbject list
 	bool bBouyant = false;
@@ -1926,6 +1927,7 @@ void ODEControlDynamicCharacterController ( int iObjectNumber, float fAngleY, fl
 		btScalar walkSpeed = walkVelocity;
 
 		// control character controller jumping
+		m_character->m_bDidJump = false;
 		if ( m_character->canJump() )
 		{
 			if ( fJump > 0.0f )
@@ -2023,6 +2025,19 @@ void ODEControlDynamicCharacterController ( int iObjectNumber, float fAngleY, fl
 		// ensure object associated with controller is updated in ODEUPDATE
 		g_CharacterControlObject = iObjectNumber;
 	}
+}
+
+DWORD ODEGetDynamicCharacterControllerDidJump ( void )
+{
+	if ( m_character )
+	{
+		if ( m_character->m_bDidJump==true )
+			return 1;
+		else
+			return 0;
+	}
+	else
+		return 0;
 }
 
 DWORD ODEGetCharacterControllerDucking ( int iObjectNumber )

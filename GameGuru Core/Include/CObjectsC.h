@@ -131,6 +131,8 @@ DARKSDK void SetObjectAmbience		( int iID, DWORD dwRGB );
 DARKSDK void SetObjectSpecular		( int iID, DWORD dwRGB );
 DARKSDK void SetObjectSpecularPower	( int iID, float fPower );
 DARKSDK void SetObjectScrollScaleUV ( int iID, float fScrU, float fScrV, float fScaU, float fScaV );
+DARKSDK void SetObjectArtFlags		( int iID, DWORD dwArtFlags );
+
 DARKSDK void SetObjectSpecular		( int iID, DWORD dwRGB, float fPower );
 DARKSDK void SetObjectEmissive		( int iID, DWORD dwRGB );
 DARKSDK void SetObjectArbitaryValue			( int iID, DWORD dwArbValue );

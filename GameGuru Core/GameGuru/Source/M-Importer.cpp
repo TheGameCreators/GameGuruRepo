@@ -221,6 +221,11 @@ void importer_init ( void )
 		t.slidersmenuvalue[g.slidersmenumax][14].value=1+g_iFBXGeometryCenterMesh;
 		t.slidersmenuvalue[g.slidersmenumax][14].gadgettype=1;
 		t.slidersmenuvalue[g.slidersmenumax][14].gadgettypevalue=116;
+		for ( int n = 0; n < 15; n++ )
+		{
+			// prevent scale and rotate sliders being disabled for clickchange
+			t.slidersmenuvalue[g.slidersmenumax][n].expanddetect = 0;
+		}
 
 		++g.slidersmenumax;
 		t.importer.properties2Index = g.slidersmenumax;
@@ -1090,7 +1095,7 @@ void importer_changeshader ( LPSTR pNewShaderFilename )
 			giRememberLastEffectIndexInImporter = iEffectID;
 			//PE: Bug. reset effect clip , so visible.
 			t.tnothing = MakeVector4(g.characterkitvector);
-			SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+			SetVector4(g.characterkitvector, 500000, 1, 0, 0);
 			SetEffectConstantV(iEffectID, "EntityEffectControl", g.characterkitvector);
 			t.tnothing = DeleteVector4(g.characterkitvector);
 		}
@@ -1366,7 +1371,7 @@ void importer_loadmodel ( void )
 	//PE: Bug. make sure we dont get clipped, model was only half visible.
 	//reuse g.characterkitvector = 46
 	t.tnothing = MakeVector4(g.characterkitvector);
-	SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+	SetVector4(g.characterkitvector, 500000, 1, 0, 0);
 	SetEffectConstantV(iEffectID, "EntityEffectControl", g.characterkitvector);
 	t.tnothing = DeleteVector4(g.characterkitvector);
 

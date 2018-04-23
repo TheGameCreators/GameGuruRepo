@@ -920,6 +920,7 @@ void conkitedit_loop ( void )
 				//  F9 means we can modify level, so ensure this is flagged
 				g.projectmodified=1 ; gridedit_changemodifiedflag ( );
 				g.projectmodifiedstatic = 1;
+				t.storeprojectmodified = 1; // ensure if use F9, we save if immediately exit editor
 
 				//  prepare entity edit cursor
 				t.imgx_f=ImageWidth(g.editorimagesoffset+10);

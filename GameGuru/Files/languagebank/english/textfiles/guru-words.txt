@@ -252,7 +252,7 @@
 252=Specifies what decal animation the entity should use
 253=Specifies the sound string 0 for this entity
 254=Specifies the sound string 1 for this entity
-255=Specify a WAV from the soundset to be used
+255=Specify a WAV from a soundset, that folder will be selected
 256=
 257=
 258=

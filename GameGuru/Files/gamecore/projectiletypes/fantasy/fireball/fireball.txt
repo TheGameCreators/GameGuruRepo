@@ -1,4 +1,4 @@
-;Projectile Definition: RPG
+;Projectile Definition: FIREBALL
 
 ; mode [Default 0] (0 - Raycast (Fast simple projectiles), 1 - Dynamic (Grenades, Rockets), 2 - Static (Mines, C4))
 mode            = 1
@@ -7,18 +7,20 @@ mode            = 1
 cacheNumber     = 10
 
 ; object .X file and textures (diffuse,normal,specular) - Leave blank for projectiles with no object (bullets)
-object          = RPGGrenade.x
-textureD        = RPGGrenade_D.dds
-textureN        = RPGGrenade_N.dds
-textureS        = RPGGrenade_S.dds
+object          = fireball.x
+textureD        = fireball_D.dds
+textureN        = fireball_N.dds
+textureS        = fireball_S.dds
+effect          = decal_animate8.fx
+noZWrite        = 1
 
 ; scale values for randomness in projectile size (for variety in particle weapons)
-scaleMinX       = 100
-scaleMaxX       = 100
-scaleMinY       = 100
-scaleMaxY       = 100
-scaleMinZ       = 100
-scaleMaxZ       = 100
+scaleMinX       = 200
+scaleMaxX       = 200
+scaleMinY       = 200
+scaleMaxY       = 200
+scaleMinZ       = 200
+scaleMaxZ       = 200
 
 ; Move projectile forward on initial firing
 avoidPlayerPenetration = 0
@@ -34,17 +36,17 @@ life            = 5000
 range           = 10000
 
 ; minimum speed in units/second of projectile when fired
-speedMin        = 850
+speedMin        = 450
 ; maximum speed in units/second of projectile when fired
-speedMax        = 950
+speedMax        = 550
 
 damage          = 400
 ; final damage value is +/- this value
 damageRandom    = 100
 ; distance to travel before damage decreases, tending to 0 when as projectile approaches 'range'
-fullDamageRange = 5000
+fullDamageRange = 0
 ; radius of damage effect if explosive
-damageRadius    = 200
+damageRadius    = 0
 
 ; time in milliseconds for the projectile to thrust forwards
 thrustTime           = 2000  
@@ -70,9 +72,9 @@ speedTurnMaxZ        = 360
 ; whether projectile uses real physics
 usingRealPhysics       = 0	
 ; effect of gravity of projectile
-gravityModifier        = 0.1
+gravityModifier        = 0
 ; effect of wind resistance on projectile
-airFrictionModifier    = 0.1
+airFrictionModifier    = 0
 ; effect of making contact with the ground 
 groundFrictionModifier = 0
 ; power of thrust (acceleration/second as proportion of initial speed)
@@ -84,7 +86,7 @@ bounceFlag             = 0
 bounceModifier         = 0
  
 ; sound the projectile makes while alive (e.g. beeping C4, or whizzing rocket sound) Reference to .wav or .ogg file
-sound                  = rpggrenadefly.wav
+sound                  = fireballfly.wav
 ; If 1, sound is looped, otherwise played at 'soundInterval'
 soundLoopFlag          = 1
 ; If 1, calculate doppler effect and modify sound frequency accordingly (passing rocket effect)
@@ -94,7 +96,7 @@ soundDopplerBaseSpeed  = 22050
 ; How often, in milliseconds to trigger sound
 soundInterval          = 0
 ; The sound on death
-soundDeath             = rpgexplode.wav
+soundDeath             = fireballexplode.wav
 
 
 ; result (0 - Nothing, 1 - Damage hit object, 2 - Create explosion)
@@ -112,4 +114,7 @@ resultOnIntervalTime = 0
 resultBounce         = 2
 
 ; type of particle this projectile makes (0 - None, 1 - Smoke, 2 - Flare, 3 - Fire)
-particleType         = 1
+particleType         = 3
+
+; optional spot lighting override
+overridespotlighting = 1

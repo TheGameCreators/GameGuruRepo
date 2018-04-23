@@ -30,6 +30,7 @@ void gun_loaddata ( void )
 
 		//  Default Run Accuracy (No diff)
 		g.firemodes[t.gunid][t.i].settings.runaccuracy = -1;
+		g.firemodes[t.gunid][t.i].settings.runanimdelay = 250;
 
 		//  Default Sound Strength
 		g.firemodes[t.gunid][t.i].settings.soundstrength=100;
@@ -198,6 +199,7 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"runx"  )  g.firemodes[t.gunid][t.x].settings.runx_f = t.value1;
 						if (  t.field_s == t.alt_s+"runy"  )  g.firemodes[t.gunid][t.x].settings.runy_f = t.value1;
 						if (  t.field_s == t.alt_s+"runacc"  )  g.firemodes[t.gunid][t.x].settings.runaccuracy = t.value1;
+						if (  t.field_s == t.alt_s+"runanimdelay"  )  g.firemodes[t.gunid][t.x].settings.runanimdelay = t.value1;
 						if (  t.field_s == t.alt_s+"noscorch"  )  g.firemodes[t.gunid][t.x].settings.noscorch = t.value1;
 						if (  t.field_s == t.alt_s+"melee noscorch"  )  g.firemodes[t.gunid][t.x].settings.meleenoscorch = t.value1;
 						if (  t.field_s == t.alt_s+"simplezoom"  )  g.firemodes[t.gunid][t.x].settings.simplezoom = t.value1;
@@ -432,8 +434,18 @@ void gun_loaddata ( void )
 		UnDim (  t.data_s );
 	}
 
-	//  Correct any legacy fall-out
-	if (  cstr(Lower(t.gun[t.gunid].texd_s.Get())) == "gun_d2.dds"  )  t.gun[t.gunid].texd_s = "gun_d.dds";
+	// Correct any legacy fall-out
+	if ( cstr(Lower(t.gun[t.gunid].texd_s.Get())) == "gun_d2.dds"  )  t.gun[t.gunid].texd_s = "gun_d.dds";
+
+	// 130418 - also replace any old TGA references
+	char pTexFileName[1024];
+	strcpy ( pTexFileName, t.gun[t.gunid].texd_s.Get() );
+	if ( stricmp ( pTexFileName+strlen(pTexFileName)-4, ".tga") == NULL )
+	{
+		pTexFileName[strlen(pTexFileName)-4] = 0;
+		strcat ( pTexFileName, ".png" );
+		t.gun[t.gunid].texd_s = pTexFileName;
+	}
 
 	//  Go through gun settings and populate with defaults
 	for ( t.i = 0 ; t.i<=  1; t.i++ )

@@ -461,7 +461,7 @@
     <Link>
       <AdditionalOptions>/FIXED:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>iweardrv.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
-      <OutputFile>C:\Users\Lee\Documents\Game Guru Files\My Games\_test\_test.exe</OutputFile>
+      <OutputFile>F:\Steam\steamapps\common\Game Guru\Guru-MapEditor.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\Debug/DarkEXE.pdb</ProgramDatabaseFile>
@@ -630,7 +630,7 @@
     <Link>
       <AdditionalOptions>/FIXED:NO %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>D3dxof.lib;DXGI.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;GameFX.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;particles.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;Music.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Conv3DS.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
-      <OutputFile>C:\Users\Lee\Documents\Game Guru Files\My Games\The Big Escape\The Big Escape.exe</OutputFile>
+      <OutputFile>F:\Steam\steamapps\common\Game Guru\Guru-MapEditor.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\Debug/DarkEXE.pdb</ProgramDatabaseFile>

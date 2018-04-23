@@ -413,7 +413,7 @@ void characterkit_loadEffects ( void )
 	SetEffectConstantV (  t.characterkit.effectforAttachments, "AmbiColor" , g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforBeard, "AmbiColor" , g.characterkitvector );
 
-	SetVector4 (  g.characterkitvector,500000,0,0,0 );
+	SetVector4 (  g.characterkitvector,500000, 1, 0, 0 );
 	SetEffectConstantV (  t.characterkit.effectforAttachments,"EntityEffectControl",g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforAttachmentsHighlight,"EntityEffectControl",g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforBeard,"EntityEffectControl",g.characterkitvector );
@@ -2136,7 +2136,6 @@ return;
 
 void characterkit_loadCCI ( void )
 {
-
 	t.tccimesh_s = "";
 	t.tccidiffuse_s = "";
 	t.tccinormal_s = "";
@@ -2146,55 +2145,38 @@ void characterkit_loadCCI ( void )
 	if (  FileOpen(10)  )  CloseFile (  10 );
 
 	OpenToRead (  10, t.tcciloadname_s.Get() );
-
-		while (  FileEnd(10)  ==  0 ) 
-		{
-			t.tline_s = ReadString ( 10 );
-			t.tcciStat_s = Lower(FirstToken( t.tline_s.Get(), " "));
-			t.tcciValue_s = NextToken( " " );
-			if (  t.tcciValue_s  ==  "="  )  t.tcciValue_s  =  NextToken( " " );
-			if (  t.tcciStat_s  ==  "mesh"  )  t.tccimesh_s  =  t.tpath_s+t.tcciValue_s;
-			if (  t.tcciStat_s  ==  "diffuse"  )  t.tccidiffuse_s  =  t.tpath_s+t.tcciValue_s;
-			if (  t.tcciStat_s  ==  "normal"  )  t.tccinormal_s  =  t.tpath_s+t.tcciValue_s;
-			if (  t.tcciStat_s  ==  "mask"  )  t.tccimask_s  =  t.tpath_s+t.tcciValue_s;
-		}
-
+	while (  FileEnd(10)  ==  0 ) 
+	{
+		t.tline_s = ReadString ( 10 );
+		t.tcciStat_s = Lower(FirstToken( t.tline_s.Get(), " "));
+		t.tcciValue_s = NextToken( " " );
+		if (  t.tcciValue_s  ==  "="  )  t.tcciValue_s  =  NextToken( " " );
+		if (  t.tcciStat_s  ==  "mesh"  )  t.tccimesh_s  =  t.tpath_s+t.tcciValue_s;
+		if (  t.tcciStat_s  ==  "diffuse"  )  t.tccidiffuse_s  =  t.tpath_s+t.tcciValue_s;
+		if (  t.tcciStat_s  ==  "normal"  )  t.tccinormal_s  =  t.tpath_s+t.tcciValue_s;
+		if (  t.tcciStat_s  ==  "mask"  )  t.tccimask_s  =  t.tpath_s+t.tcciValue_s;
+	}
 	CloseFile (  10 );
 
-	if (  t.tccquick  ==  1 ) 
+	// if mesh does not exist (standalone), try DBP 
+	if ( FileExist ( t.tccimesh_s.Get() ) == 0 )
+	{
+		char pTryDBOVariant[1024];
+		strcpy ( pTryDBOVariant, t.tccimesh_s.Get() );
+		pTryDBOVariant[strlen(pTryDBOVariant)-2] = 0;
+		strcat ( pTryDBOVariant, ".dbo" );
+		if ( FileExist ( pTryDBOVariant ) == 1 )
+		{
+			// use DBO of mesh instead
+			t.tccimesh_s = pTryDBOVariant;
+		}
+	}
+
+	if ( t.tccquick  ==  1 ) 
 	{
 		t.tccquick = 0;
 		return;
 	}
-
-	//  Don't reset tones on changing parts
-	/*      
-	//  body
-	if (  t.assetsequence  ==  1 ) 
-	{
-		t.tnewred_f = -1;
-		t.tnewredshirt_f = -1;
-		t.tnewredtrousers_f = -1;
-		t.tnewredshoes_f = -1;
-	}
-	//  head
-	if (  t.assetsequence  ==  2 ) 
-	{
-		t.tnewred_f = -1;
-	}
-	//  beard
-	if (  t.assetsequence  ==  3 ) 
-	{
-		t.tnewredbeard_f = -1;
-	}
-	*/    
-	//  hat
-	if (  t.assetsequence  ==  4 ) 
-	{
-	}
-
-return;
-
 }
 
 void characterkit_pickSkinTone ( void )

@@ -280,6 +280,8 @@ float4 mainPS_highest(vertexOutput IN) : COLOR
     float4 specmap = SpecularMap.Sample(SampleWrap,IN.TexCoord.xy);
     float4 illummap = IlluminationMap.Sample(SampleWrap,IN.TexCoord.xy);
    
+   //return float4(IN.WorldNormal.xyz,1);
+   
    // work out normal from normmap/tangent/binormal
 #ifdef DISABLELIGHTMAPNORMALS
     float3 Ln = (float3(0,1,0)); // 011215 - baked lights are everywhere! (IN.LightVec);

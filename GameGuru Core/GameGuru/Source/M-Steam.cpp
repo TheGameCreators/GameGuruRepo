@@ -5314,21 +5314,6 @@ t.debugHowManyInUse = 0;
 					t.steamworks_bullets[t.tbulletloop].btype = SteamGetBulletType(t.tbulletloop);
 					if (  ObjectExist(t.tsteamBObj)  ==  0 ) 
 					{
-						t.tfindObj = 0;
-//       `tProj = -1
-
-//       `for tProjLoop = 1 to weaponSystem.numProjectiles
-
-							//if WeaponProjectile(tProjLoop).baseType = steamworks_bullets(tbulletloop).btype
-								//tfindObj = WeaponProjectile(tProjLoop).obj
-//          `tProj = tProjLoop
-
-//          `exit
-
-//         `endif
-
-//       `next tProj
-
 						t.tfindObj = t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].baseObj;
 						if (  t.tfindObj  !=  0 ) 
 						{

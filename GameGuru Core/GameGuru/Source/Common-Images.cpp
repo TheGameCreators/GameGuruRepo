@@ -655,7 +655,7 @@ void cubemap_buildviews ( int iImageID, int iCubeMapSize, float fX, float fY, fl
 			m_ObjectManager.Update ( );
 
 			// render the terrain (cheapest terrain render, camera 30 is temp camera)
-			if ( 1 )
+			if ( t.terrain.TerrainID > 0 )
 			{
 				BT_SetCurrentCamera ( iCubeRenderTempCamera );
 				BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,700.0 );
@@ -673,8 +673,11 @@ void cubemap_buildviews ( int iImageID, int iCubeMapSize, float fX, float fY, fl
 
 		// restore LOD to terrain render sequence
 		BT_SetCurrentCamera ( 0 );
-		BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
-		BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
+		if ( t.terrain.TerrainID > 0 )
+		{
+			BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
+			BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
+		}
 
 		// free resources no longer needed (rendertargetviews, depth buffer, etc)
 		for (int i = 0; i < 6; i++) 

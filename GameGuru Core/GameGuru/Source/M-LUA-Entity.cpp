@@ -1862,7 +1862,8 @@ void entity_lua_replaceplayerweapon ( void )
 	//  assign preference for new weapon
 	if (  t.tswapslot>0 ) 
 	{
-		t.weaponslot[t.tswapslot].pref=t.weaponindex;
+		t.weaponslot[t.tswapslot].pref = t.weaponindex;
+		t.weaponammo[t.tswapslot] = 0; // reset so new weapon can work out its new ammo
 	}
 	//  now collect weapon (will find freed up slot from above)
 	t.tqty=t.entityelement[t.e].eleprof.quantity;

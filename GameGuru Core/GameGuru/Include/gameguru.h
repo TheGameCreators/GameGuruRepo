@@ -3091,6 +3091,12 @@ struct Stemps
 	int gunmodeloopsnd;
 	int gunshootnoammo;
 	int gunshootspread;
+	float gunshootspreadposx;
+	float gunshootspreadposy;
+	float gunshootspreadposz;
+	float gunshootspreadanglex;
+	float gunshootspreadangley;
+	float gunshootspreadanglez;
 	cstr levelmapptah_s;
 	int mainstatistic1;
 	int mainstatistic5;
@@ -3922,6 +3928,7 @@ struct Stemps
 	float tmastery_f;
 	float tmasterz_f;
 	int tmeleeanim;
+	int tlastmeleeanim;
 	float tmempercdest_f;
 	float tmemperc_f;
 	float tMiddleX_f;
@@ -4577,6 +4584,7 @@ struct Stemps
 	float gunay_f;
 	int gunfull;
 	int gunmode;
+	int gunmodelast;
 	float ImpMaxX;
 	float ImpMaxY;
 	float ImpMaxZ;
@@ -4665,6 +4673,7 @@ struct Stemps
 	float tdist_f;
 	int tdouble;
 	int tempani;
+	int templastani;
 	terraintype terrain;
 	int tescale;
 	int testore;

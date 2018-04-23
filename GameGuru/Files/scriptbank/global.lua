@@ -12,7 +12,7 @@ g_EntityExtra = {}
 g_DebugStringPeek = ""
 
 -- New AI Globals
-ai_state_startidle, ai_state_idle, ai_state_findpatrolpath, ai_state_startpatrol, ai_state_patrol, ai_state_startmove, ai_state_move, ai_state_avoid, ai_state_hurt, ai_state_punch, ai_state_recoverstart, ai_state_recover, ai_state_startfireonspot, ai_state_fireonspot, ai_state_startreload, ai_state_reload, ai_state_disable = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+ai_state_startidle, ai_state_idle, ai_state_findpatrolpath, ai_state_startpatrol, ai_state_patrol, ai_state_startmove, ai_state_move, ai_state_avoid, ai_state_hurt, ai_state_punch, ai_state_recoverstart, ai_state_recover, ai_state_startfireonspot, ai_state_fireonspot, ai_state_startreload, ai_state_reload, ai_state_reloadsettle, ai_state_disable = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
 ai_state_debug = { "startidle", "idle", "findpatrolpath", "startpatrol", "patrol", "startmove", "move", "avoid", "hurt", "punch", "recoverstart", "recover", "startfireonspot", "fireonspot", "startreload", "reload", "disable" }
 ai_combattype_regular, ai_combattype_patrol, ai_combattype_guard, ai_combattype_freezermelee, ai_combattype_bashmelee = 0, 1, 2, 3, 4
 ai_movetype_usespeed, ai_movetype_useanim = 0, 1
@@ -1184,6 +1184,7 @@ GetDesktopHeight: GetDesktopHeight() -- returns the current desktop height
 CurveValue: x=CurveValue(dest,current,smooth) -- returns the smoothed value based on the smooth factor
 CurveAngle: a=CurveAngle(dest,current,smooth) -- as CurveValue but handles angles from 0-360 degrees
 PositionMouse: PositionMouse(x,y) -- repositions the hardware mouse pointer in real-time (screen size coords)
+GetDynamicCharacterControllerDidJump: x=GetDynamicCharacterControllerDidJump() -- returns 1 if controller jumped
 GetCharacterControllerDucking: x=GetCharacterControllerDucking() -- returns 1 if the player has been forced to duck
 WrapValue: x=WrapValue(y) -- takes the value y and wraps it to an angle between 0-360 degrees
 GetElapsedTime: x=GetElapsedTime() -- returns the elapsed delta time since the last game cycle
@@ -1302,6 +1303,7 @@ GetGamePlayerControlWobbleHeight: GetGamePlayerControlWobbleHeight() -- command 
 GetGamePlayerControlJumpmax: GetGamePlayerControlJumpmax() -- command used by the default player control mechanism
 GetGamePlayerControlPushangle: GetGamePlayerControlPushangle() -- command used by the default player control mechanism
 GetGamePlayerControlPushforce: GetGamePlayerControlPushforce() -- command used by the default player control mechanism
+GetGamePlayerControlFootfallPace : GetGamePlayerControlFootfallPace() -- command used by the default player control mechanism
 GetGamePlayerControlFinalCameraAngley: GetGamePlayerControlFinalCameraAngley() -- command used by the default player control mechanism
 GetGamePlayerControlLockAtHeight: GetGamePlayerControlLockAtHeight() -- command used by the default player control mechanism
 GetGamePlayerControlControlHeight: GetGamePlayerControlControlHeight() -- command used by the default player control mechanism
@@ -1386,6 +1388,7 @@ SetGamePlayerControlWobbleHeight: SetGamePlayerControlWobbleHeight() -- command 
 SetGamePlayerControlJumpmax: SetGamePlayerControlJumpmax() -- command used by the default player control mechanism
 SetGamePlayerControlPushangle: SetGamePlayerControlPushangle() -- command used by the default player control mechanism
 SetGamePlayerControlPushforce: SetGamePlayerControlPushforce() -- command used by the default player control mechanism
+SetGamePlayerControlFootfallPace: SetGamePlayerControlFootfallPace() -- command used by the default player control mechanism
 SetGamePlayerControlFinalCameraAngley: SetGamePlayerControlFinalCameraAngley() -- command used by the default player control mechanism
 SetGamePlayerControlLockAtHeight: SetGamePlayerControlLockAtHeight() -- command used by the default player control mechanism
 SetGamePlayerControlControlHeight: SetGamePlayerControlControlHeight() -- command used by the default player control mechanism

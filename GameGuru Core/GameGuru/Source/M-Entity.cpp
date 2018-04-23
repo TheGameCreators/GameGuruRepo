@@ -1039,6 +1039,8 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].uvscrollv=0;
 		t.entityprofile[t.entid].uvscaleu=1.0f;
 		t.entityprofile[t.entid].uvscalev=1.0f;
+		t.entityprofile[t.entid].invertnormal=0;
+		t.entityprofile[t.entid].preservetangents=0;		
 		t.entityprofile[t.entid].colondeath=1;
 		t.entityprofile[t.entid].parententityindex=0;
 		t.entityprofile[t.entid].parentlimbindex=0;
@@ -1401,6 +1403,14 @@ void entity_loaddata ( void )
 					t.tryfield_s="uvscale";
 					if (  t.field_s == t.tryfield_s  ) { t.entityprofile[t.entid].uvscaleu = t.value1/100.0f; t.entityprofile[t.entid].uvscalev = t.value2/100.0f; }
 
+					// can invert the normal, or set to zero to not invert (not inverted by default)
+					t.tryfield_s="invertnormal";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].invertnormal = t.value1;
+
+					// can choose whether to generate tangent/binormal in the shader
+					t.tryfield_s="preservetangents";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].preservetangents = t.value1;
+					
 					t.tryfield_s="zdepth";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].zdepth = t.value1;
 
@@ -1994,6 +2004,102 @@ void entity_loaddata ( void )
 				if ( iReplaceMode == 4 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\apbr_treea.fx";
 			}
 		}
+		else
+		{
+			// 120418 - conversely, if PBR override not active, and have new PBR asset entities that still 
+			// have old DNS textures, switch them back to classic non-PBR (this allows new PBR assets to 
+			// replace older legacy assets but still allow backwards compatibility for users who want the
+			// old shaders and old textures to remain in effect using PBR override of zero)
+			char pEntityItemPath[1024];
+			strcpy ( pEntityItemPath, t.ent_s.Get() );
+			int n = 0;
+			for ( n = strlen(pEntityItemPath)-1; n > 0; n-- )
+			{
+				if ( pEntityItemPath[n] == '\\' || pEntityItemPath[n] == '/' )
+				{
+					pEntityItemPath[n+1] = 0;
+					break;
+				}
+			}
+			if ( n <= 0 ) strcpy ( pEntityItemPath, "" );
+			char pJustTextureName[1024];
+			strcpy ( pJustTextureName, t.entityprofile[t.entid].texd_s.Get() );
+			if ( strlen ( pJustTextureName ) > 4 )
+			{
+				pJustTextureName[strlen(pJustTextureName)-4]=0;
+				if ( stricmp ( pJustTextureName+strlen(pJustTextureName)-6, "_color" ) == NULL )
+				{
+					pJustTextureName[strlen(pJustTextureName)-6]=0;
+					strcat ( pJustTextureName, "_D" );
+				}
+				strcat ( pJustTextureName, ".png" );
+			}
+			char pReplaceWithDNS[1024];
+			strcpy ( pReplaceWithDNS, pEntityItemPath );
+			strcat ( pReplaceWithDNS, pJustTextureName );
+			bool bReplacePBRWithNonPBRDNS = false;
+			LPSTR pPBREffectMatch = "effectbank\\reloaded\\apbr";
+			if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pPBREffectMatch, strlen(pPBREffectMatch) ) == NULL ) 
+			{
+				// entity effect specifies PBR, do we have the DNS files available
+				if ( strlen ( pJustTextureName ) > 4 )
+				{
+					cstr pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+					if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+					{
+						pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
+						strcat ( pReplaceWithDNS, ".dds" );
+						pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+						if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+						{
+							pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
+							strcat ( pReplaceWithDNS, ".jpg" );
+							pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+							if ( FileExist ( pFindDNSFile.Get() ) == 1 )
+							{
+								bReplacePBRWithNonPBRDNS = true;
+							}
+						}
+						else
+						{
+							bReplacePBRWithNonPBRDNS = true;
+						}
+					}
+					else
+					{
+						bReplacePBRWithNonPBRDNS = true;
+					}
+				}
+				else
+				{
+					// no texture specified, but can still switch to classic shaders (legacy behavior)
+					bReplacePBRWithNonPBRDNS = true;
+				}
+			}
+			if ( bReplacePBRWithNonPBRDNS == true )
+			{
+				// replace the shader used
+				int iReplaceMode = 0;
+				LPSTR pTryMatch = "effectbank\\reloaded\\apbr_basic.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 1;
+				pTryMatch = "effectbank\\reloaded\\apbr_anim.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 2;
+				pTryMatch = "effectbank\\reloaded\\apbr_tree.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 3;
+				pTryMatch = "effectbank\\reloaded\\apbr_treea.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 4;
+				if ( iReplaceMode > 0 )
+				{
+					if ( iReplaceMode == 1 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\entity_basic.fx";
+					if ( iReplaceMode == 2 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\character_basic.fx";
+					if ( iReplaceMode == 3 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\tree_basic.fx";
+					if ( iReplaceMode == 4 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\treea_basic.fx";
+				}
+
+				// replace the texture specified (from _color to _D)
+				t.entityprofile[t.entid].texd_s = pJustTextureName;
+			}
+		}
 
 		// if effect shader starts with APBR, auto shift effectprofile from zero to one
 		LPSTR pPBREffectMatch = "effectbank\\reloaded\\apbr";
@@ -2367,7 +2473,6 @@ void entity_updatetextureandeffectfromgrideleprof ( void )
 
 void entity_getgunidandflakid ( void )
 {
-
 	//  Use Weapon Name to get GUNID and FLAKID
 	if (  t.tgunid_s != "" ) 
 	{
@@ -2375,18 +2480,8 @@ void entity_getgunidandflakid ( void )
 		t.findgun_s=Lower(t.tgunid_s.Get());
 		gun_findweaponindexbyname ( );
 		t.tgunid=t.foundgunid;
-		//  get flak
-//   `tflakid$=firemode(tgunid,0).settings.flakname$
-
-//   `if tflakid$<>""
-
-		//t.flak_s=Lower_s(t.tflakid_s.Get()) ; flak_findindex ( );
-		//tflakid=tindex
-//   `else
-
-			t.tflakid=0;
-//   `endif
-
+		//  no flak - old system
+		t.tflakid=0;
 	}
 	else
 	{
@@ -2590,11 +2685,17 @@ void entity_loadtexturesandeffect ( void )
 				t.entityprofile[t.entid].texdid = t.texuseid;
 
 				// Assign NORMAL
-				t.texdirN_s = t.texdirnoext_s+"_n.dds";
+				if ( iEffectProfile == 1 )
+					t.texdirN_s = t.texdirnoext_s+"_normal.dds";
+				else
+					t.texdirN_s = t.texdirnoext_s+"_n.dds";
 				t.texuseid = loadinternaltextureex(t.texdirN_s.Get(),1,t.tfullorhalfdivide);
 				if ( t.texuseid == 0 ) 
 				{
-					t.texdirN_s = t.texdirnoext_s+"_normal.dds";
+					if ( iEffectProfile == 1 )
+						t.texdirN_s = t.texdirnoext_s+"_n.dds";
+					else
+						t.texdirN_s = t.texdirnoext_s+"_normal.dds";
 					t.texuseid = loadinternaltextureex(t.texdirN_s.Get(),1,t.tfullorhalfdivide);
 					if ( t.texuseid == 0 ) 
 					{
@@ -2645,16 +2746,37 @@ void entity_loadtexturesandeffect ( void )
 				}
 				t.entityprofile[t.entid].texsid = t.texuseid;
 
-				// Assign CUBE (or real-time 'ENVCUBE for PBR' later)
-				t.texdirI_s = t.texdirnoext_s+"_cube.dds";
-				t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
-				if ( t.texuseid == 0 && iEffectProfile == 1 )
+				// Assign ILLUMINATION or CUBE (or real-time 'ENVCUBE for PBR' later)
+				if ( iEffectProfile == 0 )
 				{
-					// if no local CUBE, see if the level has generated one (matches sky and terrain)
-					t.texuseid = t.terrain.imagestartindex+31;
+					// non-PBR legacy behaviour
+					t.texdirI_s = t.texdirnoext_s+"_i.dds";
+					t.texuseid = loadinternaltextureex(t.texdirI_s.Get(),1,t.tfullorhalfdivide);
+					if ( t.texuseid == 0 )
+					{
+						// if no _I file, try to find and load _CUBE file (load mode 2 = cube)
+						t.texdirI_s = t.texdirnoext_s+"_cube.dds";
+						t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
+						if ( t.texuseid == 0 )
+						{
+							// if no local CUBE, see if the level has generated one (matches sky and terrain)
+							t.texuseid = t.terrain.imagestartindex+31;
+						}
+					}
+					t.entityprofiletexiid = t.texuseid;
 				}
-
-				t.entityprofiletexiid = t.texuseid;
+				else
+				{
+					// PBR behaviour only allow _CUBE to override PBR reflection
+					t.texdirI_s = t.texdirnoext_s+"_cube.dds";
+					t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
+					if ( t.texuseid == 0 )
+					{
+						// if no local CUBE, see if the level has generated one (matches sky and terrain)
+						t.texuseid = t.terrain.imagestartindex+31;
+					}
+					t.entityprofiletexiid = t.texuseid;
+				}
 				t.entityprofile[t.entid].texiid = t.entityprofiletexiid;
 
 				// Assign AMBIENT OCCLUSION MAP
@@ -4282,18 +4404,18 @@ void entity_addentitytomap_core ( void )
 
 void entity_addentitytomap ( void )
 {
-	//  Entity To Add
+	// Entity To Add
 	t.entitymaintype=1;
 	t.entitybankindex=t.gridentity;
 	entity_addentitytomap_core ( );
 
-	//  update infinilight list with addition
-	if (  t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5 ) 
+	// update infinilight list with addition
+	if ( t.entityprofile[t.entitybankindex].ismarker == 2 || t.entityprofile[t.entitybankindex].ismarker == 5 ) 
 	{
 		lighting_refresh ( );
 	}
 
-	//  transfer waypoint zone index to entityelement
+	// transfer waypoint zone index to entityelement
 	t.waypointindex=t.grideleprof.trigger.waypointzoneindex;
 	t.entityelement[t.e].eleprof.trigger.waypointzoneindex=t.waypointindex;
 	t.waypoint[t.waypointindex].linkedtoentityindex=t.e;
@@ -4422,6 +4544,9 @@ void entity_deleteentityfrommap ( void )
 	//  Use entity coord to find tile
 	t.tupdatee=t.tentitytoselect;
 
+	// remember entity bank index for later light refresh
+	int iWasEntID = t.entityelement[t.tupdatee].bankindex;
+
 	//  cleanup character creator
 	t.ccobjToDelete = t.tupdatee;
 	characterkit_deleteEntity ( );
@@ -4454,14 +4579,14 @@ void entity_deleteentityfrommap ( void )
 	}
 	t.tDontDeleteWPFlag = 0;
 
-	//  update infinilight list with removal
-	if (  t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5 ) 
+	// update infinilight list with removal
+	if ( t.entityprofile[iWasEntID].ismarker == 2 || t.entityprofile[iWasEntID].ismarker == 5 ) 
 	{
 		//  refresh existing lights
 		lighting_refresh ( );
 	}
 
-	//  update real ent obj (.obj=0 inside)
+	// update real ent obj (.obj=0 inside)
 	entity_updateentityobj ( );
 }
 

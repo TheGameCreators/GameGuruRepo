@@ -675,6 +675,10 @@ void mapfile_savestandalone ( void )
 	addfoldertocollection("gamecore\\decals\\splash_misty");
 	addfoldertocollection("gamecore\\decals\\splash_ripple");
 	addfoldertocollection("gamecore\\decals\\splash_small");
+	addfoldertocollection("gamecore\\projectiletypes");
+	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\fireball");
+	addfoldertocollection("gamecore\\projectiletypes\\modern\\handgrenade");
+	addfoldertocollection("gamecore\\projectiletypes\\modern\\rpggrenade");
 
 	// add any material decals that are active
 	for ( t.m = 0; t.m <= g.gmaterialmax; t.m++ )
@@ -897,6 +901,7 @@ void mapfile_savestandalone ( void )
 						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_s."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
 						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_i."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
 						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_o."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
+						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_cube."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
 					}
 					int iNewPBRTextureMode = 0;
 					if ( cstr(Left(Lower(Right(t.tfile_s.Get(),10)),6)) == "_color" ) iNewPBRTextureMode = 6+4;
@@ -1541,21 +1546,28 @@ void addfoldertocollection ( char* path_s )
 	cstr tfile_s =  "";
 	cstr told_s =  "";
 	int c = 0;
-	told_s=GetDir();
-	SetDir (  path_s );
-	ChecklistForFiles (  );
-	for ( c = 1 ; c<=  ChecklistQuantity(); c++ )
+	told_s = GetDir();
+	if ( PathExist ( path_s ) )
 	{
-		if (  ChecklistValueA(c) == 0 ) 
+		SetDir ( path_s );
+		ChecklistForFiles (  );
+		for ( c = 1 ; c<=  ChecklistQuantity(); c++ )
 		{
-			tfile_s=ChecklistString(c);
-			if (  tfile_s != "." && tfile_s != ".." ) 
+			if (  ChecklistValueA(c) == 0 ) 
 			{
-				addtocollection( cstr(cstr(path_s)+"\\"+tfile_s).Get() );
+				tfile_s=ChecklistString(c);
+				if (  tfile_s != "." && tfile_s != ".." ) 
+				{
+					addtocollection( cstr(cstr(path_s)+"\\"+tfile_s).Get() );
+				}
 			}
 		}
+		SetDir (  told_s.Get() );
 	}
-	SetDir (  told_s.Get() );
+	else
+	{
+		timestampactivity(0, cstr(cstr("Tried adding path that does not exist: ")+path_s).Get() );
+	}
 }
 
 void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s )

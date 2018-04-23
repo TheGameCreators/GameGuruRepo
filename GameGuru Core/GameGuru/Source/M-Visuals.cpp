@@ -768,7 +768,7 @@ void visuals_justshaderupdate ( void )
 				SetEffectConstantV (  t.effectid,"FloorColor",g.terrainvectorindex );
 				SetVector4 (  g.terrainvectorindex,t.terrain.sundirectionx_f,t.terrain.sundirectiony_f,t.terrain.sundirectionz_f,0.0 );
 				SetEffectConstantV (  t.effectid,"LightSource",g.terrainvectorindex );
-				SetVector4 (  g.terrainvectorindex,500000,0,0,0 );
+				SetVector4 ( g.terrainvectorindex, 500000, 1, 0, 0 );
 				SetEffectConstantV (  t.effectid,"EntityEffectControl",g.terrainvectorindex );
 				SetEffectConstantF (  t.effectid,"SurfaceSunFactor",t.visuals.SurfaceSunFactor_f );
 				SetEffectConstantF (  t.effectid,"GlobalSpecular",t.visuals.Specular_f );
@@ -798,7 +798,7 @@ void visuals_justshaderupdate ( void )
 			SetEffectConstantV(t.effectid, "FloorColor", g.terrainvectorindex);
 			SetVector4(g.terrainvectorindex, t.terrain.sundirectionx_f, t.terrain.sundirectiony_f, t.terrain.sundirectionz_f, 0.0);
 			SetEffectConstantV(t.effectid, "LightSource", g.terrainvectorindex);
-			SetVector4(g.terrainvectorindex, 500000, 0, 0, 0);
+			SetVector4(g.terrainvectorindex, 500000, 1, 0, 0);
 			SetEffectConstantV(t.effectid, "EntityEffectControl", g.terrainvectorindex);
 			SetEffectConstantF(t.effectid, "SurfaceSunFactor", t.visuals.SurfaceSunFactor_f);
 			SetEffectConstantF(t.effectid, "GlobalSpecular", t.visuals.Specular_f);

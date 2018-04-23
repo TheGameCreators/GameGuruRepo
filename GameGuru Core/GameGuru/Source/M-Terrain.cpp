@@ -2724,7 +2724,7 @@ void terrain_shadowupdate ( void )
 						{
 							//  for LOW/LOWEST only DISTANT CASCADE is used
 							//SetEffectShadowMappingMode ( 8 ); //%00001000 //%1000
-							SetEffectShadowMappingMode ( 128 ); //%10000000 (changed terrain_basic to use cascade 7)
+							SetEffectShadowMappingMode ( 128 ); //%10000000 (changed terrain_basic to use cascade 7) //120418 - but keep cascade 4 for PBR shaders
 							/* complete remove old dynamic cheap shadow trick
 							if (  t.game.set.ismapeditormode == 1 ) 
 							{

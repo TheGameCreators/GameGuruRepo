@@ -6,7 +6,7 @@ end
 function magic_main(e)
  PlayerDist = GetPlayerDistance(e)
  if PlayerDist < 80 and g_PlayerHealth > 0 then
-   PromptLocalForVR(e,"Collected magic")
+   Prompt("Collected magic")
    PlaySound(e,0)
    AddPlayerPower(e,g_Entity[e]['health'])
    Destroy(e)
