@@ -2962,7 +2962,7 @@ bool PathFinderAdvanced::ShortestPath ( float fEX, float fEY, Path* pBuildPath, 
 						pNextWP->fDistF = pNextWP->fDistG + pNextWP->fDistH;
 						pNextWP->iVisited = 1;
 		                
-						if ( iCount < 2 )
+						if ( iCount < pWaypoint->iNumEdges )
 						{
 							pNewInfo [ iCount ].pThisWP = pNextWP;
 							pNewInfo [ iCount ].fCost = pNextWP->fDistF;
@@ -2982,7 +2982,7 @@ bool PathFinderAdvanced::ShortestPath ( float fEX, float fEY, Path* pBuildPath, 
 							pNextWP->fDistH = EstimateDistance ( pNextWP->fX, pNextWP->fY, fEX, fEY );
 							pNextWP->fDistF = pNextWP->fDistG + pNextWP->fDistH;
 		                    
-							if ( iCount < 2 )
+							if ( iCount < pWaypoint->iNumEdges )
 							{
 								pNewInfo [ iCount ].pThisWP = pNextWP;
 								pNewInfo [ iCount ].fCost = pNextWP->fDistF;
