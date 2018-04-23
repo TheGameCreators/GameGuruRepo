@@ -24,7 +24,7 @@ float4 GlowIntensity = float4(0,0,0,0);
 float AlphaOverride = 1.0f;
 float SpecularOverride = 1.0f;
 float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Alpha Slice Y=not used
-float4 ArtFlagControl1 = {1.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (on by default) Y=Preserve Tangents (off by default)
+float4 ArtFlagControl1 = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (off by default) Y=Preserve Tangents (off by default)
 float4 ShaderVariables = float4(0,0,0,0);
 float4 AmbiColorOverride = {1.0f, 1.0f, 1.0f, 1.0f};
 float4 clipPlane : ClipPlane;
@@ -256,7 +256,6 @@ struct Attributes
 };
 
 #ifdef PBRVEGETATION
- float usingNormalMap = 0;
  Texture2D AlbedoMap : register( t0 );
  Texture2D Unused1Map : register( t1 );
  Texture2D Unused2Map : register( t2 );
@@ -265,7 +264,6 @@ struct Attributes
  Texture2D Unused5Map : register( t5 );
  Texture2D Unused6Map : register( t8 );
 #else
- float usingNormalMap = 1;
  #ifdef PBRTERRAIN
   Texture2D VegShadowSampler : register( t0 );
   Texture2D AGEDMap : register( t1 );
@@ -1069,20 +1067,15 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    #ifdef PBRVEGETATION
     attributes.normal = float3(0,1,0);
    #else
-    if (usingNormalMap > 0.0)
-    {
-      float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
-
-	  // allow this to be toggled in the FPE for artist control (could be a way to do this with math, eliminate the IF)
-	  if ( ArtFlagControl1.x == 1 )
-	  {
-		rawnormalmap.y = 1.0f - rawnormalmap.y;
-	  }
-	  
-      float3 norm = rawnormalmap * 2.0 - 1.0;
-      norm = mul(norm.rgb, toWorld);
-      attributes.normal = normalize(norm);
-    }
+    float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
+	// allow this to be toggled in the FPE for artist control (could be a way to do this with math, eliminate the IF)
+	if ( ArtFlagControl1.x == 1 )
+	{
+	  rawnormalmap.y = 1.0f - rawnormalmap.y;
+	}  
+    float3 norm = rawnormalmap * 2.0 - 1.0;
+    norm = mul(norm.rgb, toWorld);
+    attributes.normal = normalize(norm);
    #endif
 
    // eye vector

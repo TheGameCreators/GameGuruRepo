@@ -1039,7 +1039,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].uvscrollv=0;
 		t.entityprofile[t.entid].uvscaleu=1.0f;
 		t.entityprofile[t.entid].uvscalev=1.0f;
-		t.entityprofile[t.entid].invertnormal=1;
+		t.entityprofile[t.entid].invertnormal=0;
 		t.entityprofile[t.entid].preservetangents=0;		
 		t.entityprofile[t.entid].colondeath=1;
 		t.entityprofile[t.entid].parententityindex=0;
@@ -1403,7 +1403,7 @@ void entity_loaddata ( void )
 					t.tryfield_s="uvscale";
 					if (  t.field_s == t.tryfield_s  ) { t.entityprofile[t.entid].uvscaleu = t.value1/100.0f; t.entityprofile[t.entid].uvscalev = t.value2/100.0f; }
 
-					// can invert the normal, or set to zero to not invert (inverted by default)
+					// can invert the normal, or set to zero to not invert (not inverted by default)
 					t.tryfield_s="invertnormal";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].invertnormal = t.value1;
 
@@ -2747,20 +2747,36 @@ void entity_loadtexturesandeffect ( void )
 				t.entityprofile[t.entid].texsid = t.texuseid;
 
 				// Assign ILLUMINATION or CUBE (or real-time 'ENVCUBE for PBR' later)
-				t.texdirI_s = t.texdirnoext_s+"_i.dds";
-				t.texuseid = loadinternaltextureex(t.texdirI_s.Get(),1,t.tfullorhalfdivide);
-				if ( t.texuseid == 0 )
+				if ( iEffectProfile == 0 )
 				{
-					// if no _I file, try to find and load _CUBE file (load mode 2 = cube)
+					// non-PBR legacy behaviour
+					t.texdirI_s = t.texdirnoext_s+"_i.dds";
+					t.texuseid = loadinternaltextureex(t.texdirI_s.Get(),1,t.tfullorhalfdivide);
+					if ( t.texuseid == 0 )
+					{
+						// if no _I file, try to find and load _CUBE file (load mode 2 = cube)
+						t.texdirI_s = t.texdirnoext_s+"_cube.dds";
+						t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
+						if ( t.texuseid == 0 )
+						{
+							// if no local CUBE, see if the level has generated one (matches sky and terrain)
+							t.texuseid = t.terrain.imagestartindex+31;
+						}
+					}
+					t.entityprofiletexiid = t.texuseid;
+				}
+				else
+				{
+					// PBR behaviour only allow _CUBE to override PBR reflection
 					t.texdirI_s = t.texdirnoext_s+"_cube.dds";
 					t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
-					if ( t.texuseid == 0 && iEffectProfile == 1 )
+					if ( t.texuseid == 0 )
 					{
 						// if no local CUBE, see if the level has generated one (matches sky and terrain)
 						t.texuseid = t.terrain.imagestartindex+31;
 					}
+					t.entityprofiletexiid = t.texuseid;
 				}
-				t.entityprofiletexiid = t.texuseid;
 				t.entityprofile[t.entid].texiid = t.entityprofiletexiid;
 
 				// Assign AMBIENT OCCLUSION MAP
