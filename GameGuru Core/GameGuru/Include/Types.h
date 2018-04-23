@@ -4920,6 +4920,7 @@ struct entityprofiletype
 	int forcesimpleobstacle;
 	float forceobstaclepolysize;
 	float forceobstaclesliceheight;
+	float forceobstaclesliceminsize;
 	int notanoccluder;
 	int materialindex;
 	int disablebatch;
@@ -5246,6 +5247,7 @@ struct entityprofiletype
 		 forcesimpleobstacle = 0;
 		 forceobstaclepolysize = 0.0f;
 		 forceobstaclesliceheight = 0.0f;
+		 forceobstaclesliceminsize = 0.0f;
 		 collisionoverride = 0;
 		 collisionscaling = 0;
 		 collisionmode = 0;

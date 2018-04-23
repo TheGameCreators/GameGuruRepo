@@ -1060,6 +1060,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].forcesimpleobstacle=0;
 		t.entityprofile[t.entid].forceobstaclepolysize=30.0f;
 		t.entityprofile[t.entid].forceobstaclesliceheight=14.0f;
+		t.entityprofile[t.entid].forceobstaclesliceminsize=5.0f;
 		t.entityprofile[t.entid].effectprofile=0;
 
 		//  Starter animation counts
@@ -1241,6 +1242,8 @@ void entity_loaddata ( void )
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclepolysize = t.value1;
 					t.tryfield_s="forceobstaclesliceheight";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclesliceheight = t.value1;
+					t.tryfield_s="forceobstaclesliceminsize";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclesliceminsize = t.value1;
 
 					t.tryfield_s="notanoccluder";
 					if (  t.field_s == t.tryfield_s  )  
