@@ -4,9 +4,6 @@
 #include "settings.fx"                                                  
 #include "cascadeshadows.fx"
 
-//Some should be moved to settings.fx
-#define RealisticVsCool (0.60)
-#define AmountExtractLight (0.50)
 #define mSunColor (float3(1.0,1.0,1.0))
 
 #define K_MODEL_SCHLICK 0
@@ -1022,7 +1019,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     #else
      float4 rawdiffusemap = AlbedoMap.Sample(SampleWrap, attributes.uv);
      float3 rawnormalmap = NormalMap.Sample(SampleWrap, attributes.uv).rgb;
-     float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1) + (SpecularOverride-1.0);;
+     float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1) + (SpecularOverride-1.0);
      float3 rawmetalmap = float3(SpecValue,SpecValue,SpecValue);
      #ifdef AOISAGED
       float GlossValue = (1.0f-min(AGEDMap.Sample(SampleWrap, attributes.uv).g, 1)) + (SpecularOverride-1.0);
@@ -1261,6 +1258,9 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 
 	// work out contributions
 	float3 flashlightContrib = rawdiffusemap.xyz * flashlight;
+#ifndef PBRTERRAIN
+	ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
+#endif
 	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity;
 	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
