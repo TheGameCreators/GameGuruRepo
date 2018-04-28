@@ -497,6 +497,7 @@ struct Sglobals
 	int gpretestsavemode;
 	int gproducelogfiles;
 	int gpbroverride;
+	int underwatermode;
 	int grawtextsizelast;
 	int grenadeexplosion;
 	DWORD guniquesignature;
@@ -2134,6 +2135,7 @@ struct Stemps
 	int tcoopyentityupdatetostartat;
 	int tdisablepickupdropthiscycle;
 	int tDrowning_OldReflectionMode;
+	int tDrowning_OldWobbleHeight;
 	cstr tempsteamworkshopfilename_s;
 	int tgeneratefreshwatermaskflag;
 	float toriginalTranslateClickX1_f;

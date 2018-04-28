@@ -4675,6 +4675,10 @@ void terrain_water_loop ( void )
 			{
 				//  no terrain in reflection render
 			}
+			if (t.visuals.reflectionmode == 1) {
+				//PE: Special mode that only clear the reflection image mainly for underwater.
+				SetCameraClip(2, 1, 0, t.terrain.waterliney_f - 100000.0, 0, 0, -1, 0);
+			}
 			SyncMask (  1<<2 );
 
 			//  simpler terrain for reflection render
