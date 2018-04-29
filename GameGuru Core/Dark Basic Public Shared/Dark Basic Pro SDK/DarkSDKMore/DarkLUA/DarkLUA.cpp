@@ -3164,6 +3164,156 @@ int RemoveObjectCollisionCheck(lua_State *L)
 	ODERemoveBodyCollisionCheck(iID);
 	return 0;
 }
+
+// Lua control of dynamic light
+// get the light number using entity e number 
+// then use that in the other light functions
+int GetEntityLightNumber( lua_State *L )
+{
+	lua = L;
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+
+	// get lightentity e number
+	int iID = lua_tonumber( L, 1 );
+	if ( iID <= 0 ) return 0;
+
+	for ( int i = 1; i <= g.infinilightmax; i++)
+	{
+		if ( t.infinilight[ i ].used == 1 && t.infinilight[ i ].e == iID )
+		{
+			lua_pushinteger( L, i );
+			return 1;
+		}
+	}
+	return 0;
+}
+int GetLightPosition( lua_State *L )
+{
+	lua = L;
+	int n = lua_gettop( L );
+	if ( n < 1 )
+		return 0;
+
+	// get light number
+	int i = lua_tointeger( L, 1 );
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[ i ].used == 1 )
+	{
+		lua_pushnumber( L, t.infinilight[i].x );
+		lua_pushnumber( L, t.infinilight[i].y );
+		lua_pushnumber( L, t.infinilight[i].z );
+		return 3;
+	}
+	return 0;
+}
+int GetLightRGB( lua_State *L )
+{
+	lua = L;
+	int n = lua_gettop( L );
+	if ( n < 1 )
+		return 0;
+
+	// get light number
+	int i = lua_tointeger( L, 1 );
+
+	if (i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1)
+	{
+		lua_pushnumber( L, t.infinilight[i].colrgb.r );
+		lua_pushnumber( L, t.infinilight[i].colrgb.g );
+		lua_pushnumber( L, t.infinilight[i].colrgb.b );
+		return 3;
+	}
+	return 0;
+}
+int GetLightRange(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop( L );
+	if ( n < 1 )
+		return 0;
+
+	// get light number
+	int i = lua_tointeger( L, 1 );
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[ i ].used == 1 )
+	{
+		lua_pushnumber( L, t.infinilight[ i ].range );
+		return 1;
+	}
+	return 0;
+}
+// uses light number from above
+int SetLightPosition( lua_State *L )
+{
+	lua = L;
+	// get number of arguments
+	int n = lua_gettop( L );
+	// Not enough params, return out
+	if ( n < 4 )
+		return 0;
+
+	// get light number
+	int i = lua_tonumber( L, 1 );
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[ i ].used == 1 )
+	{
+		t.infinilight[ i ].x = lua_tonumber( L, 2 );
+		t.infinilight[ i ].y = lua_tonumber( L, 3 );
+		t.infinilight[ i ].z = lua_tonumber( L, 4 );
+	}
+	return 0;
+}
+
+int SetLightRGB( lua_State *L ) 
+{
+	lua = L;
+	// get number of arguments
+	int n = lua_gettop( L );
+	// Not enough params, return out
+	if ( n < 4 )
+		return 0;
+
+	// get light number
+	int i = lua_tonumber( L, 1 );
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[ i ].used == 1 )
+	{
+		t.infinilight[ i ].colrgb.r = lua_tonumber( L, 2 );
+		t.infinilight[ i ].colrgb.g = lua_tonumber( L, 3 );
+		t.infinilight[ i ].colrgb.b = lua_tonumber( L, 4 );
+	}
+	return 0;
+}
+
+int SetLightRange( lua_State *L )
+{
+	lua = L;
+	// get number of arguments
+	int n = lua_gettop(L);
+	// Not enough params, return out
+	if (n < 2)
+		return 0;
+
+	// get light number
+	int i = lua_tointeger(L, 1);
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1 )
+	{
+		float rng = lua_tonumber(L, 2);
+		if ( rng < 1.0f )
+		{
+			rng = 1.0f;
+		}
+		else if ( rng > 10000.0f )
+		{
+			rng = 10000.0f;
+		}
+		t.infinilight[ i ].range = rng;
+	}
+	return 0;
+}
+
 int RunCharLoop ( lua_State *L )
 {
 	// run character animation system
@@ -4935,6 +5085,15 @@ void addFunctions()
 	lua_register(lua, "QuatSLERP", QuatSLERP );
 	lua_register(lua, "QuatLERP", QuatLERP );
 
+	// Lua control of dynamic light
+	lua_register(lua, "GetEntityLightNumber", GetEntityLightNumber );
+	lua_register(lua, "GetLightPosition",     GetLightPosition );
+	lua_register(lua, "GetLightRGB",          GetLightRGB );
+	lua_register(lua, "GetLightRange",        GetLightRange);
+	lua_register(lua, "SetLightPosition",     SetLightPosition );
+	lua_register(lua, "SetLightRGB",          SetLightRGB );
+	lua_register(lua, "SetLightRange",        SetLightRange );
+	
 	lua_register(lua, "RunCharLoop" , RunCharLoop );
 	lua_register(lua, "TriggerWaterRipple" , TriggerWaterRipple );
 	lua_register(lua, "PlayFootfallSound" , PlayFootfallSound );
