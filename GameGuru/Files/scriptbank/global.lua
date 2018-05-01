@@ -1743,33 +1743,28 @@ PositionPrompt3D : PositionPrompt3D(x,y,z,angle) -- repositions 3D text panel to
 
 ScaleObject : ScaleObject( obj, x, y, z ) -- Scales object in all axis (Note: uses object id not entity!)
 
+SetSkyTo : SetSkyTo ( str ) -- where str is the folder name of the sky you want to change to
+
 ***** The following five functions return multiple values, if you do not need them all just replace 
 ***** the ones you don't need with '_' for example : _, _, _, Ax, Ay, Az = GetEntityPosAng( e ) would
 ***** just give you last three of the 6 values returned
 GetObjectPosAng : x, y, z, Ax, Ay, Az = GetObjectPosAng( obj ) -- returns position and Euler angles of object
 GetEntityPosAng : x, y, z, Ax, Ay, Az = GetEntityPosAng( e )   -- returns position and Euler angles of entity
-
-GetObjectColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox( obj ) -- returns collision cube of object
-GetEntityColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityColBox( e )   -- returns collision cube of entity
-        Collision box is defined by coordinates of two opposing corners, from these it is easy to 
-		calculate the size of the object
-
 GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of object in all axis (Note: uses object id not entity!)
-
 GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
 
-SetSkyTo(str) : str=foldername of the sky you want to change to (i.e. ChangeSkyTo("dark"))
+***** Collision box is defined by coordinates of two opposing corners, from these it is easy to calculate the size of the object
+GetObjectColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox( obj ) -- returns collision cube of object
+GetEntityColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityColBox( e )   -- returns collision cube of entity
 
-// Lua control of dynamic light
-// get the light number using entity e number 
-// then use that in the other light functions
-lightNum = GetEntityLightNumber( e )
-x, y, z = GetLightPosition( lightNum )
-r, g, b = GetLightRGB( lightNum )
-range = GetLightRange( lightNum )
-// Set functions:
-SetLightPosition( lightNum, x, y, z )
-SetLightRGB( lightNum, r, g, b )
-SetLightRange( lightNum, range )   -- range is 1 .. 10000, values outide range are capped
+***** Lua control of dynamic light, you get the light number using entity e number then use that in the other light functions
+***** for example; lightNum = GetEntityLightNumber( e )  then  x, y, z = GetLightPosition( lightNum )
+GetEntityLightNumber : lightNum = GetEntityLightNumber( e ) -- returns the internal light number held by the entity
+GetLightPosition : x, y, z = GetLightPosition( lightNum ) -- returns the XYZ position of the dynamic light specified
+GetLightRGB : r, g, b = GetLightRGB( lightNum ) -- returns the RGB color of the dynamic light specified
+GetLightRange : range = GetLightRange ( lightNum ) -- returns the range value of the dynamic light specified
+SetLightPosition : SetLightPosition ( lightNum, x, y, z ) -- sets the new position of the specified dynamic light
+SetLightRGB : SetLightRGB ( lightNum, r, g, b ) -- sets the new color of the specified dynamic light
+SetLightRange : SetLightRange ( lightNum, range ) -- sets the new range (1 to 10000) of the specified light
 
 --]]
