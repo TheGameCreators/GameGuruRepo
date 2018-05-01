@@ -221,6 +221,11 @@ void importer_init ( void )
 		t.slidersmenuvalue[g.slidersmenumax][14].value=1+g_iFBXGeometryCenterMesh;
 		t.slidersmenuvalue[g.slidersmenumax][14].gadgettype=1;
 		t.slidersmenuvalue[g.slidersmenumax][14].gadgettypevalue=116;
+		for ( int n = 0; n < 15; n++ )
+		{
+			// prevent scale and rotate sliders being disabled for clickchange
+			t.slidersmenuvalue[g.slidersmenumax][n].expanddetect = 0;
+		}
 
 		++g.slidersmenumax;
 		t.importer.properties2Index = g.slidersmenumax;
@@ -622,7 +627,8 @@ void importer_init ( void )
 	t.timporterpickdepth_f = 1250;
 
 	// reposition camera in sky so no terrain depth clipping can occur
-	if ( g_bCameraInSkyForImporter = false )
+	//PE: bug , fix object clipping invisible import objects.
+	if ( g_bCameraInSkyForImporter == false )
 	{
 		PositionCamera ( 0, CameraPositionX(0), CameraPositionY(0)+100000, CameraPositionZ(0) );
 		SetCameraRange ( 0, 1.0f, 70000.0f );
@@ -1072,7 +1078,7 @@ void importer_changeshader ( LPSTR pNewShaderFilename )
 			strcpy ( pRelativeEffectPath, "effectbank\\reloaded\\" );
 			strcat ( pRelativeEffectPath, pNewShaderFilename );
 			if ( giRememberLastEffectIndexInImporter > 0 ) deleteinternaleffect ( giRememberLastEffectIndexInImporter );
-			int iEffectID = loadinternaleffectunique ( pRelativeEffectPath, 1 );
+			int iEffectID = loadinternaleffectunique ( pRelativeEffectPath, 1 ); //PE: old effect never deleted. ?
 			DeleteObject ( t.importer.objectnumber );
 			CloneObject ( t.importer.objectnumber, t.importer.objectnumberpreeffectcopy );
 			ReverseObjectFrames ( t.importer.objectnumber ); // hair rendered last
@@ -1087,6 +1093,11 @@ void importer_changeshader ( LPSTR pNewShaderFilename )
 			SetObjectTransparency ( t.importer.objectnumber, 6 );
 			GlueObjectToLimbEx ( t.importer.objectnumber, t.importerGridObject[8], 0 , 1 );
 			giRememberLastEffectIndexInImporter = iEffectID;
+			//PE: Bug. reset effect clip , so visible.
+			t.tnothing = MakeVector4(g.characterkitvector);
+			SetVector4(g.characterkitvector, 500000, 1, 0, 0);
+			SetEffectConstantV(iEffectID, "EntityEffectControl", g.characterkitvector);
+			t.tnothing = DeleteVector4(g.characterkitvector);
 		}
 	}
 }
@@ -1353,6 +1364,16 @@ void importer_loadmodel ( void )
 	// Once shader wiping tetxure applied, apply shader to imported object (changed later if prefer PBR shader - see below)
 	int iEffectID = loadinternaleffect("effectbank\\reloaded\\entity_basic.fx");
 	SetObjectEffect ( t.importer.objectnumber, iEffectID );
+
+	//PE: make sure it is changed. fix for: https://github.com/TheGameCreators/GameGuruRepo/issues/123
+	importer_changeshader("entity_basic.fx");
+
+	//PE: Bug. make sure we dont get clipped, model was only half visible.
+	//reuse g.characterkitvector = 46
+	t.tnothing = MakeVector4(g.characterkitvector);
+	SetVector4(g.characterkitvector, 500000, 1, 0, 0);
+	SetEffectConstantV(iEffectID, "EntityEffectControl", g.characterkitvector);
+	t.tnothing = DeleteVector4(g.characterkitvector);
 
 	// attach to gimble so can manipulate imported object
 	GlueObjectToLimbEx (  t.importer.objectnumber, t.importerGridObject[8], 0 , 1 );

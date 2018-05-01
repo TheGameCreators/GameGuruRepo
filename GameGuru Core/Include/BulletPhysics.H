@@ -58,6 +58,7 @@ DARKSDK int         ODECreateJointDouble                    ( int iObjectNumA, i
 DARKSDK void		ODECreateDynamicCharacterController	    ( int iObjectNumber, float fA, float fB, float fC );
 DARKSDK void		ODESetDynamicCharacterController		( int iObjectNumber, float fA, float fA2, float fB, float fC, float fD, float fE, float fF );
 DARKSDK void		ODEControlDynamicCharacterController	( int iObjectNumber, float fA, float fA2, float fB, float fC, float fDucking, float fPushAngle, float fPushForce, float fThrustUpwards );
+DARKSDK DWORD		ODEGetDynamicCharacterControllerDidJump ( void );
 DARKSDK DWORD		ODEGetCharacterControllerDucking		( int iObjectNumber );
 DARKSDK int			ODEGetCharacterHitFloor				( void );
 DARKSDK float		ODEGetCharacterFallDistance			( void );

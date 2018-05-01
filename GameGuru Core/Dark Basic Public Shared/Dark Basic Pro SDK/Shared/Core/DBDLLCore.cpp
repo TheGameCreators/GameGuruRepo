@@ -89,6 +89,7 @@ DBPRO_GLOBAL bool			g_bSyncOff					= true;
 DBPRO_GLOBAL bool			g_bSceneStarted				= false;
 DBPRO_GLOBAL bool			g_bCanRenderNow				= true;
 DBPRO_GLOBAL DWORD			g_dwSyncMask				= 0xFFFFFFFF;
+DBPRO_GLOBAL DWORD			g_dwSyncMaskOverride		= 0xFFFFFFFF;
 
 // Global Sync Settings
 DBPRO_GLOBAL DWORD			g_dwManualSuperStepSetting	= 0;
@@ -4360,6 +4361,12 @@ DARKSDK void SyncMask ( DWORD dwMask )
 {
 	// copy to master sync mask
 	g_dwSyncMask = dwMask;
+}
+
+DARKSDK void SyncMaskOverride ( DWORD dwMask )
+{
+	// used to override ALL camera rendering (for a loading sequence)
+	g_dwSyncMaskOverride = dwMask;
 }
 
 DARKSDK DWORD GetArrayType(DWORD dwArrayPtr)

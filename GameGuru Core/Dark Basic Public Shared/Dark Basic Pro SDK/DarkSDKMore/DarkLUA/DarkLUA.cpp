@@ -1190,6 +1190,46 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityScales(lua_State *L)  { return GetEntityData ( L, 17 ); }
  int GetEntityName(lua_State *L)    { return GetEntityData ( L, 18 ); }
 
+ int SetEntityString(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 3 ) return 0;
+	int iReturnValue = 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iSlotIndex = lua_tonumber(L, 2);
+	const char* pString = lua_tostring(L, 3);
+	if ( iEntityIndex > 0 )
+	{
+		if ( iSlotIndex == 0 ) t.entityelement[iEntityIndex].eleprof.soundset_s = pString;
+		if ( iSlotIndex == 1 ) t.entityelement[iEntityIndex].eleprof.soundset1_s = pString;
+		if ( iSlotIndex == 2 ) t.entityelement[iEntityIndex].eleprof.soundset2_s = pString;
+		if ( iSlotIndex == 3 ) t.entityelement[iEntityIndex].eleprof.soundset3_s = pString;
+		if ( iSlotIndex == 4 ) t.entityelement[iEntityIndex].eleprof.soundset4_s = pString;
+	}
+	return 1;
+ }
+ int GetEntityString(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 2 ) return 0;
+	int iReturnValue = 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iSlotIndex = lua_tonumber(L, 2);
+	LPSTR pString = "";
+	if ( iEntityIndex > 0 )
+	{
+		if ( iSlotIndex == 0 ) pString = t.entityelement[iEntityIndex].eleprof.soundset_s.Get();
+		if ( iSlotIndex == 1 ) pString = t.entityelement[iEntityIndex].eleprof.soundset1_s.Get();
+		if ( iSlotIndex == 2 ) pString = t.entityelement[iEntityIndex].eleprof.soundset2_s.Get();
+		if ( iSlotIndex == 3 ) pString = t.entityelement[iEntityIndex].eleprof.soundset3_s.Get();
+		if ( iSlotIndex == 4 ) pString = t.entityelement[iEntityIndex].eleprof.soundset4_s.Get();
+	}
+	lua_pushstring ( L, pString );
+	return 1;
+ }
+
  // Entity Animation
  int GetEntityAnimationStart(lua_State *L)
  {
@@ -1771,7 +1811,7 @@ int GetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	if ( SetupGetTracking(NULL,NULL,NULL) == true ) id = 1;
+	if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
 	lua_pushinteger ( L , id );
 	return 1;
 }
@@ -2461,6 +2501,13 @@ int PositionMouse ( lua_State *L )
 	g.LUAMouseX = fScreenX;
 	g.LUAMouseY = fScreenY;
 	return 0;
+}
+
+int GetDynamicCharacterControllerDidJump ( lua_State *L )
+{
+	lua = L;
+	lua_pushnumber ( L, ODEGetDynamicCharacterControllerDidJump() );
+	return 1;
 }
 int GetCharacterControllerDucking ( lua_State *L )
 {
@@ -3362,7 +3409,7 @@ int PlayFootfallSound ( lua_State *L )
 		t.tsx_f = fX;
 		t.tsy_f = fY;
 		t.tsz_f = fZ;
-		material_triggersound ( );
+		material_triggersound ( 1 );
 	}
 	lua_pushnumber ( L, lastfootfallsound );
 	return 1;
@@ -3469,7 +3516,7 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 34 : t.playercontrol.jumpmax_f = lua_tonumber(L, 1); break;
 		case 35 : t.playercontrol.pushangle_f = lua_tonumber(L, 1); break;
 		case 36 : t.playercontrol.pushforce_f = lua_tonumber(L, 1); break;
-		case 37 : break;
+		case 37 : t.playercontrol.footfallpace_f = lua_tonumber(L, 1); break;
 		case 38 : t.playercontrol.lockatheight = lua_tonumber(L, 1); break;
 		case 39 : t.playercontrol.controlheight = lua_tonumber(L, 1); break;
 		case 40 : t.playercontrol.controlheightcooldown = lua_tonumber(L, 1); break;
@@ -3748,7 +3795,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 34 : lua_pushnumber ( L, t.playercontrol.jumpmax_f ); break;
 		case 35 : lua_pushnumber ( L, t.playercontrol.pushangle_f ); break;
 		case 36 : lua_pushnumber ( L, t.playercontrol.pushforce_f ); break;
-		case 37 : break;
+		case 37 : lua_pushnumber ( L, t.playercontrol.footfallpace_f ); break;
 		case 38 : lua_pushnumber ( L, t.playercontrol.lockatheight ); break;
 		case 39 : lua_pushnumber ( L, t.playercontrol.controlheight ); break;
 		case 40 : lua_pushnumber ( L, t.playercontrol.controlheightcooldown ); break;
@@ -4011,7 +4058,7 @@ int GetGamePlayerControlWobbleHeight ( lua_State *L ) { return GetGamePlayerCont
 int GetGamePlayerControlJumpmax ( lua_State *L ) { return GetGamePlayerControlData ( L, 34 ); }
 int GetGamePlayerControlPushangle ( lua_State *L ) { return GetGamePlayerControlData ( L, 35 ); }
 int GetGamePlayerControlPushforce ( lua_State *L ) { return GetGamePlayerControlData ( L, 36 ); }
-int GetGamePlayerControlX2 ( lua_State *L ) { return GetGamePlayerControlData ( L, 37 ); }
+int GetGamePlayerControlFootfallPace ( lua_State *L ) { return GetGamePlayerControlData ( L, 37 ); }
 int GetGamePlayerControlLockAtHeight ( lua_State *L ) { return GetGamePlayerControlData ( L, 38 ); }
 int GetGamePlayerControlControlHeight ( lua_State *L ) { return GetGamePlayerControlData ( L, 39 ); }
 int GetGamePlayerControlControlHeightCooldown ( lua_State *L ) { return GetGamePlayerControlData ( L, 40 ); }
@@ -4095,7 +4142,7 @@ int SetGamePlayerControlWobbleHeight ( lua_State *L ) { return SetGamePlayerCont
 int SetGamePlayerControlJumpmax ( lua_State *L ) { return SetGamePlayerControlData ( L, 34 ); }
 int SetGamePlayerControlPushangle ( lua_State *L ) { return SetGamePlayerControlData ( L, 35 ); }
 int SetGamePlayerControlPushforce ( lua_State *L ) { return SetGamePlayerControlData ( L, 36 ); }
-int SetGamePlayerControlX2 ( lua_State *L ) { return SetGamePlayerControlData ( L, 37 ); }
+int SetGamePlayerControlFootfallPace ( lua_State *L ) { return SetGamePlayerControlData ( L, 37 ); }
 int SetGamePlayerControlLockAtHeight ( lua_State *L ) { return SetGamePlayerControlData ( L, 38 ); }
 int SetGamePlayerControlControlHeight ( lua_State *L ) { return SetGamePlayerControlData ( L, 39 ); }
 int SetGamePlayerControlControlHeightCooldown ( lua_State *L ) { return SetGamePlayerControlData ( L, 40 ); }
@@ -4894,6 +4941,9 @@ void addFunctions()
 	lua_register(lua, "GetAnimationSpeedModulation", GetAnimationSpeedModulation);
 	lua_register(lua, "GetMovementDelta", GetMovementDelta);
 
+	lua_register(lua, "SetEntityString", SetEntityString);
+	lua_register(lua, "GetEntityString", GetEntityString);
+
 	lua_register(lua, "SetEntitySpawnAtStart", SetEntitySpawnAtStart);
 	lua_register(lua, "GetEntitySpawnAtStart", GetEntitySpawnAtStart);
 	lua_register(lua, "GetEntityFilePath", GetEntityFilePath);
@@ -5015,6 +5065,7 @@ void addFunctions()
 	lua_register(lua, "CurveValue" , CurveValue );
 	lua_register(lua, "CurveAngle" , CurveAngle );
 	lua_register(lua, "PositionMouse" , PositionMouse );
+	lua_register(lua, "GetDynamicCharacterControllerDidJump" , GetDynamicCharacterControllerDidJump );
 	lua_register(lua, "GetCharacterControllerDucking" , GetCharacterControllerDucking );
 	lua_register(lua, "WrapValue" , WrapValue );
 	lua_register(lua, "GetElapsedTime" , GetElapsedTime );
@@ -5139,6 +5190,7 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerControlJumpmax" , GetGamePlayerControlJumpmax );
 	lua_register(lua, "GetGamePlayerControlPushangle" , GetGamePlayerControlPushangle );
 	lua_register(lua, "GetGamePlayerControlPushforce" , GetGamePlayerControlPushforce );
+	lua_register(lua, "GetGamePlayerControlFootfallPace" , GetGamePlayerControlFootfallPace );
 	lua_register(lua, "GetGamePlayerControlFinalCameraAngley" , GetGamePlayerControlFinalCameraAngley );
 	lua_register(lua, "GetGamePlayerControlLockAtHeight" , GetGamePlayerControlLockAtHeight );
 	lua_register(lua, "GetGamePlayerControlControlHeight" , GetGamePlayerControlControlHeight );
@@ -5223,6 +5275,7 @@ void addFunctions()
 	lua_register(lua, "SetGamePlayerControlJumpmax" , SetGamePlayerControlJumpmax );
 	lua_register(lua, "SetGamePlayerControlPushangle" , SetGamePlayerControlPushangle );
 	lua_register(lua, "SetGamePlayerControlPushforce" , SetGamePlayerControlPushforce );
+	lua_register(lua, "SetGamePlayerControlFootfallPace" , SetGamePlayerControlFootfallPace );
 	lua_register(lua, "SetGamePlayerControlFinalCameraAngley" , SetGamePlayerControlFinalCameraAngley );
 	lua_register(lua, "SetGamePlayerControlLockAtHeight" , SetGamePlayerControlLockAtHeight );
 	lua_register(lua, "SetGamePlayerControlControlHeight" , SetGamePlayerControlControlHeight );
@@ -6114,12 +6167,10 @@ DARKLUA_API void LuaCall()
 	functionStateID = 0;
 	if ( failedResults > 0 )
 		lua_pop(lua, failedResults);
-
 }
 
 DARKLUA_API void LuaCallSilent()
 {
-
 	for ( int c = 0 ; c < FunctionsWithErrors.size() ; c++ )
 	{
 		if ( strcmp ( functionName , FunctionsWithErrors[c].fileName ) == 0 )

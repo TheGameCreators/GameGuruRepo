@@ -55,6 +55,7 @@ bool						g_VR920RenderStereoNow = false;
 float						g_fVR920TrackingYaw	= 0;
 float						g_fVR920TrackingPitch = 0;
 float						g_fVR920TrackingRoll = 0;
+float						g_fVR920Sensitivity = 1.0f;
 float						g_fDriverCompensationPitch = 0;
 float						g_fDriverCompensationYaw = 0;
 float						g_fDriverCompensationRoll = 0;
@@ -615,7 +616,7 @@ HRESULT	IWRSyncronizeEye( int Eye )
 			return EXIT_STEREOSCOPIC_MODE;
 	return S_OK;
 }
-bool SetupGetTracking ( float* pfYaw, float* pfPitch, float* pfRoll )
+bool SetupGetTracking ( float* pfYaw, float* pfPitch, float* pfRoll, float fSensitivity )
 {
 	// tracking status
 	bool bTracking = true;
@@ -636,6 +637,16 @@ bool SetupGetTracking ( float* pfYaw, float* pfPitch, float* pfRoll )
 
 		// iWear tracker could be OFFLine: just inform user or wait until plugged in...
 		Yaw = Pitch = Roll = 0;
+	}
+
+	// See if we cannot add sensitivity controls to head tracking
+	if ( fSensitivity != 1.0f )
+	{
+		if ( fSensitivity < 0.75f ) fSensitivity = 0.75f;
+		if ( fSensitivity > 3.0f ) fSensitivity = 3.0f;
+		Yaw *= fSensitivity;
+		Pitch *= fSensitivity;
+		Roll *= fSensitivity;
 	}
 
 	// Always provide for a means to disable filtering;

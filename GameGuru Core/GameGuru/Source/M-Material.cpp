@@ -229,51 +229,85 @@ void material_loadplayersounds ( void )
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOutFast.wav").Get(),t.playercontrol.soundstartindex+33 );
 		//  reserved 34 to 99 for here!
 		//  load generic collect sound
-		LoadSound (  "audiobank\\misc\\ammo.wav",t.playercontrol.soundstartindex+16 );
+		LPSTR pAmmoSnd = "audiobank\\misc\\ammo.wav";
+		if ( FileExist ( pAmmoSnd ) == 1 ) LoadSound ( pAmmoSnd,t.playercontrol.soundstartindex+16 );
 		//  load generic character sounds
-		Load3DSound (  "audiobank\\voices\\characters\\die01.wav",t.playercontrol.soundstartindex+21 );
-		Load3DSound (  "audiobank\\voices\\characters\\die02.wav",t.playercontrol.soundstartindex+22 );
-		Load3DSound (  "audiobank\\voices\\characters\\die03.wav",t.playercontrol.soundstartindex+23 );
-		Load3DSound (  "audiobank\\voices\\characters\\die04.wav",t.playercontrol.soundstartindex+24 );
+		LPSTR pDie = "audiobank\\voices\\characters\\die01.wav";
+		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+21 );
+		pDie = "audiobank\\voices\\characters\\die02.wav";
+		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+22 );
+		pDie = "audiobank\\voices\\characters\\die03.wav";
+		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+23 );
+		pDie = "audiobank\\voices\\characters\\die04.wav";
+		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+24 );
 		//  load bullet whiz sounds
-		Load3DSound (  "audiobank\\misc\\Bullet_FlyBy_01.wav",t.playercontrol.soundstartindex+25 );
-		Load3DSound (  "audiobank\\misc\\Bullet_FlyBy_02.wav",t.playercontrol.soundstartindex+26 );
-		Load3DSound (  "audiobank\\misc\\Bullet_FlyBy_03.wav",t.playercontrol.soundstartindex+27 );
-		Load3DSound (  "audiobank\\misc\\Bullet_FlyBy_04.wav",t.playercontrol.soundstartindex+28 );
+		LPSTR pFlyBy = "audiobank\\misc\\Bullet_FlyBy_01.wav";
+		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+25 );
+		pFlyBy = "audiobank\\misc\\Bullet_FlyBy_02.wav";
+		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+26 );
+		pFlyBy = "audiobank\\misc\\Bullet_FlyBy_03.wav";
+		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+27 );
+		pFlyBy = "audiobank\\misc\\Bullet_FlyBy_04.wav";
+		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+28 );
 	}
-
-return;
-
 }
 
-void material_triggersound ( void )
+void material_triggersound_core ( int iSoundID )
 {
+	PlaySound ( iSoundID );
+	PositionSound ( iSoundID, t.tsx_f,t.tsy_f,t.tsz_f );
+	SetSoundVolume ( iSoundID, (80.0+(t.tvol_f*0.2)) * t.audioVolume.soundFloat );
+	t.tspd_f = t.tspd_f + g.soundfrequencymodifier;
+	if ( t.tspd_f > 66000 ) t.tspd_f = 66000;
+	if ( t.tspd_f > 2000 ) SetSoundSpeed ( iSoundID, t.tspd_f );
+}
 
-	//  when trigger, play a material sound
-	if (  t.tsoundtrigger>0 ) 
+void material_triggersound ( int iPlayEvenIfStillPlaying )
+{
+	// when trigger, play a material sound
+	if ( t.tsoundtrigger>0 ) 
 	{
+		bool bFoundOneToPlay = false;
 		t.sbase=t.tsoundtrigger;
-		for ( t.tchannels = 0 ; t.tchannels<=  4; t.tchannels++ )
+		for ( t.tchannels = 0 ; t.tchannels <= 4; t.tchannels++ )
 		{
 			t.ts=t.sbase+t.tchannels;
-			if (  SoundExist(t.ts) == 1 ) 
+			if ( SoundExist(t.ts) == 1 ) 
 			{
-				if (  SoundPlaying(t.ts) == 0 ) 
+				if ( SoundPlaying(t.ts) == 0 )
 				{
-					PlaySound (  t.ts );
-					PositionSound (  t.ts,t.tsx_f,t.tsy_f,t.tsz_f );
-					SetSoundVolume (  t.ts,(80.0+(t.tvol_f*0.2)) * t.audioVolume.soundFloat );
-					t.tspd_f=t.tspd_f+g.soundfrequencymodifier;
-					if (  t.tspd_f>66000  )  t.tspd_f = 66000;
-					if (  t.tspd_f>2000  )  SetSoundSpeed (  t.ts,t.tspd_f );
+					material_triggersound_core ( t.ts );
+					bFoundOneToPlay = true;
 					break;
 				}
 			}
 		}
+		if ( iPlayEvenIfStillPlaying == 1 && bFoundOneToPlay == false )
+		{
+			// find furthest sound, and use that one
+			float fFurthestDD = 999999.0f;;
+			int iFurthestSoundID = 0;
+			for ( t.tchannels = 0 ; t.tchannels <= 4; t.tchannels++ )
+			{
+				t.ts=t.sbase+t.tchannels;
+				if ( SoundExist(t.ts) == 1 ) 
+				{
+					float fDX = SoundPositionX(t.ts) - CameraPositionX(0);
+					float fDZ = SoundPositionZ(t.ts) - CameraPositionZ(0);
+					float fDD = sqrt(fabs(fDX*fDX)+fabs(fDZ*fDZ));
+					if ( fDD < fFurthestDD )
+					{
+						fFurthestDD = fDD;
+						iFurthestSoundID = t.ts;
+					}
+				}
+			}
+			if ( iFurthestSoundID > 0 )
+			{
+				material_triggersound_core ( iFurthestSoundID );
+			}
+		}
 	}
-
-return;
-
 }
 
 void material_activatedecals ( void )

@@ -30,6 +30,7 @@ void gun_loaddata ( void )
 
 		//  Default Run Accuracy (No diff)
 		g.firemodes[t.gunid][t.i].settings.runaccuracy = -1;
+		g.firemodes[t.gunid][t.i].settings.runanimdelay = 250;
 
 		//  Default Sound Strength
 		g.firemodes[t.gunid][t.i].settings.soundstrength=100;
@@ -198,6 +199,7 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"runx"  )  g.firemodes[t.gunid][t.x].settings.runx_f = t.value1;
 						if (  t.field_s == t.alt_s+"runy"  )  g.firemodes[t.gunid][t.x].settings.runy_f = t.value1;
 						if (  t.field_s == t.alt_s+"runacc"  )  g.firemodes[t.gunid][t.x].settings.runaccuracy = t.value1;
+						if (  t.field_s == t.alt_s+"runanimdelay"  )  g.firemodes[t.gunid][t.x].settings.runanimdelay = t.value1;
 						if (  t.field_s == t.alt_s+"noscorch"  )  g.firemodes[t.gunid][t.x].settings.noscorch = t.value1;
 						if (  t.field_s == t.alt_s+"melee noscorch"  )  g.firemodes[t.gunid][t.x].settings.meleenoscorch = t.value1;
 						if (  t.field_s == t.alt_s+"simplezoom"  )  g.firemodes[t.gunid][t.x].settings.simplezoom = t.value1;
@@ -432,8 +434,18 @@ void gun_loaddata ( void )
 		UnDim (  t.data_s );
 	}
 
-	//  Correct any legacy fall-out
-	if (  cstr(Lower(t.gun[t.gunid].texd_s.Get())) == "gun_d2.dds"  )  t.gun[t.gunid].texd_s = "gun_d.dds";
+	// Correct any legacy fall-out
+	if ( cstr(Lower(t.gun[t.gunid].texd_s.Get())) == "gun_d2.dds"  )  t.gun[t.gunid].texd_s = "gun_d.dds";
+
+	// 130418 - also replace any old TGA references
+	char pTexFileName[1024];
+	strcpy ( pTexFileName, t.gun[t.gunid].texd_s.Get() );
+	if ( stricmp ( pTexFileName+strlen(pTexFileName)-4, ".tga") == NULL )
+	{
+		pTexFileName[strlen(pTexFileName)-4] = 0;
+		strcat ( pTexFileName, ".png" );
+		t.gun[t.gunid].texd_s = pTexFileName;
+	}
 
 	//  Go through gun settings and populate with defaults
 	for ( t.i = 0 ; t.i<=  1; t.i++ )
@@ -606,53 +618,43 @@ void gun_findweaponindexbyname_core ( void )
 
 void gun_scaninall_findnewlyaddedgun ( void )
 {
-//  if find gun that is not in list, if find, flag is 'found'
-t.storegunid=t.gunid;
+	//  if find gun that is not in list, if find, flag is 'found'
+	t.storegunid=t.gunid;
 
-//  gather files
-SetDir (  "gamecore" );
-UnDim ( t.filelist_s );
-buildfilelist(g.fpgchuds_s.Get(),"");
-SetDir (  ".." );
+	//  gather files
+	SetDir (  "gamecore" );
+	UnDim ( t.filelist_s );
+	buildfilelist(g.fpgchuds_s.Get(),"");
+	SetDir (  ".." );
 
-//  go through file list of latest guns
-if (  ArrayCount(t.filelist_s)>0 ) 
-{
-	for ( t.chkfile = 0 ; t.chkfile<=  ArrayCount(t.filelist_s); t.chkfile++ )
+	//  go through file list of latest guns
+	if (  ArrayCount(t.filelist_s)>0 ) 
 	{
-		t.file_s=t.filelist_s[t.chkfile];
-		if (  t.file_s != "." && t.file_s != ".." ) 
+		for ( t.chkfile = 0 ; t.chkfile<=  ArrayCount(t.filelist_s); t.chkfile++ )
 		{
-			t.findgun_s="";
-			if ( cstr( Lower(Right(t.file_s.Get(),11))) == "gunspec.txt" ) 
+			t.file_s=t.filelist_s[t.chkfile];
+			if (  t.file_s != "." && t.file_s != ".." ) 
 			{
-				t.findgun_s=Left(t.file_s.Get(),Len(t.file_s.Get())-12);
-			}
-//    `if Lower(Right(file$,5))="hud.x"
-
-			//findgun$=Left(file$,Len(file$)-6)
-//    `else
-
-			//if Lower(Right(file$,7))="hud.dbo"
-			// findgun$=Left(file$,Len(file$)-8)
-			//endif
-//    `endif
-
-			if (  t.findgun_s != "" ) 
-			{
-				gun_findweaponindexbyname_core ( );
-				if (  t.foundgunid == 0 ) 
+				t.findgun_s="";
+				if ( cstr( Lower(Right(t.file_s.Get(),11))) == "gunspec.txt" ) 
 				{
-					++g.gunmax;
-					if (  g.gunmax>g.maxgunsinengine  )  g.gunmax = g.maxgunsinengine;
-					t.gun[g.gunmax].name_s=t.findgun_s;
-					t.gunid=g.gunmax ; t.gun_s=t.findgun_s ; gun_loaddata ( );
+					t.findgun_s=Left(t.file_s.Get(),Len(t.file_s.Get())-12);
+				}
+				if (  t.findgun_s != "" ) 
+				{
+					gun_findweaponindexbyname_core ( );
+					if (  t.foundgunid == 0 ) 
+					{
+						++g.gunmax;
+						if (  g.gunmax>g.maxgunsinengine  )  g.gunmax = g.maxgunsinengine;
+						t.gun[g.gunmax].name_s=t.findgun_s;
+						t.gunid=g.gunmax ; t.gun_s=t.findgun_s ; gun_loaddata ( );
+					}
 				}
 			}
 		}
 	}
-}
-t.gunid=t.storegunid;
+	t.gunid=t.storegunid;
 }
 
 void gun_findweaponindexbyname ( void )

@@ -2556,7 +2556,8 @@ int ebe_loadcustomtexture ( int iEntityProfileIndex, int iWhichTextureOver )
 	}
 
 	// Use large prompt
-	t.statusbar_s = "Generating Building Editor Texture Plate"; popup_text(t.statusbar_s.Get());
+	t.statusbar_s = "Generating Building Editor Texture Plate"; 
+	popup_text(t.statusbar_s.Get());
 
 	// preferred format
 	GGFORMAT d3dFormat;

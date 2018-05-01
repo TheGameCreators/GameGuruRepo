@@ -2,8 +2,8 @@
 desc          = Barrel (Acid)
 
 ;visualinfo
-textured      = barrell_acid_D.dds
-effect        = effectbank\reloaded\entity_basic.fx
+textured      = barrell_acid_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
 castshadow    = 0
 
 ;orientation

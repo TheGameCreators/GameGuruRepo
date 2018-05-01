@@ -500,7 +500,8 @@ int terrain_loadcustomtexture ( LPSTR pDestPathAndFile, int iTextureSlot )
 	}
 
 	// Use large prompt
-	t.statusbar_s = "Generating New Terrain Texture"; popup_text(t.statusbar_s.Get());
+	t.statusbar_s = "Generating New Terrain Texture"; 
+	popup_text(t.statusbar_s.Get());
 
 	// strip file from path
 	char pPathOnly[512];
@@ -2689,7 +2690,7 @@ void terrain_shadowupdate ( void )
 				if (  GetEffectExist(g.staticlightmapeffectoffset) == 1  )  SetEffectTechnique (  g.staticlightmapeffectoffset,"DepthMap" );
 
 				//  control how many cascade shadows to render based on shader levels for terrain shader
-				t.tonlyusingcheapestcascade=0;
+				//t.tonlyusingcheapestcascade=0;
 				t.game.set.shaderrequirecheapshadow=0;
 				SetEffectShadowMappingMode ( 0 );
 				if ( g.gpbroverride == 1 )
@@ -2722,7 +2723,9 @@ void terrain_shadowupdate ( void )
 						else
 						{
 							//  for LOW/LOWEST only DISTANT CASCADE is used
-							SetEffectShadowMappingMode ( 8 ); //%00001000 //%1000
+							//SetEffectShadowMappingMode ( 8 ); //%00001000 //%1000
+							SetEffectShadowMappingMode ( 128 ); //%10000000 (changed terrain_basic to use cascade 7) //120418 - but keep cascade 4 for PBR shaders
+							/* complete remove old dynamic cheap shadow trick
 							if (  t.game.set.ismapeditormode == 1 ) 
 							{
 								//  if in LOWEST MAP, constant update
@@ -2733,13 +2736,15 @@ void terrain_shadowupdate ( void )
 								//  if in LOWEST TEST/GAME, intermittent update
 								t.tonlyusingcheapestcascade=1;
 							}
+							*/
 						}
 					}
-					if (  t.visuals.shaderlevels.terrain>2 ) 
+					/* complete remove old dynamic cheap shadow trick
+					if ( t.visuals.shaderlevels.terrain>2 ) 
 					{
-						//  for LOWEST, only render lowest cascade every X second(s)
+						// for LOWEST, only render lowest cascade every X second(s)
 						t.game.set.shaderrequirecheapshadow=1;
-						if (  t.gdynamicterrainshadowcameragenerate == 0 ) 
+						if ( t.gdynamicterrainshadowcameragenerate == 0 ) 
 						{
 							if (  t.game.set.ismapeditormode == 1 ) 
 							{
@@ -2757,11 +2762,13 @@ void terrain_shadowupdate ( void )
 							}
 						}
 					}
+					*/
 				}
 
 				//  render primary cascade (terrainshaderindex)
 				if (  t.terrain.terrainshaderindex>0 ) 
 				{
+					/* completely removed old dynamic cheap shadows
 					//  expensive to render shadow objects from high orbit, so only do for new view
 					//  or if something moved this cycle catch it with Timer (  based refresh )
 					g.cheapshadowhistorypacer_f=g.cheapshadowhistorypacer_f+g.timeelapsed_f;
@@ -2796,10 +2803,11 @@ void terrain_shadowupdate ( void )
 						}
 					}
 					else
-					{
-						//  primary shader renders actual cascade shadow RTs
-						RenderEffectShadowMapping (  t.terrain.terrainshaderindex );
-					}
+					*/
+					//{
+					// primary shader renders actual cascade shadow RTs
+					RenderEffectShadowMapping ( t.terrain.terrainshaderindex );
+					//}
 				}
 
 				//  restore all scene shaders after render to cascade shadow textures
@@ -2833,6 +2841,7 @@ void terrain_shadowupdate ( void )
 					}
 				}
 
+				/* completely remove old dynamic cheap shadow
 				//  if dynamic shadows required with pre-bake, send shadow info to glass terrain shader
 				//  calculate and send shadow constants to dynamic terrain shadow shader
 				if (  t.gdynamicterrainshadowcameraid>0 ) 
@@ -2840,6 +2849,7 @@ void terrain_shadowupdate ( void )
 					//  cheapshadow - secondary shader simply conveys requ ired shadow constants to shader
 					RenderEffectShadowMapping (  g.postprocesseffectoffset+5 );
 				}
+				*/
 			}
 
 			//  show all vegetation, but only if in game (we don't show veg in grid edit mode)
@@ -2923,8 +2933,9 @@ void terrain_shadowupdate ( void )
 		}
 	}
 
-	//  Render dynamic terrain shadow camera
-	if (  t.gdynamicterrainshadowcameraid>0 ) 
+	/* completely removed old dynamic cheap shadow
+	// Render dynamic terrain shadow camera
+	if ( t.gdynamicterrainshadowcameraid>0 ) 
 	{
 		//  only if quad for rendering cheap shadow is visible (prebake can hide it)
 		if (  ObjectExist(g.postprocessobjectoffset+5) == 1 ) 
@@ -2970,7 +2981,9 @@ void terrain_shadowupdate ( void )
 			}
 		}
 	}
+	*/
 
+	/* completely removed old dynamic cheap shadow, so don't need this refresh
 	//  Generate heightmap texture for cheap shadows (triggered by loading new level)
 	if (  t.terrain.terraintriggercheapshadowrefresh>0 ) 
 	{
@@ -2985,6 +2998,7 @@ void terrain_shadowupdate ( void )
 			terrain_quickupdateheightmapfromheightdata ( );
 		}
 	}
+	*/
 }
 
 void terrain_updaterealheights ( void )

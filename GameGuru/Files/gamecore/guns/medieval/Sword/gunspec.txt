@@ -1,0 +1,68 @@
+;SWORD weapon spec
+;Model, textures and animations by Jonathan Fletcher
+;jonfletc@gmail.com
+
+
+;GUN Model File Requirements
+
+;GUN Settings
+
+muzzleflash    = 1
+muzzlesize     = 1
+brass          = 1
+smoke          = 1
+second         = 
+damagetype     = 1
+scorchtype     = 3
+reloadqty      = 0
+iterate        = 0
+accuracy       = 1
+range	       = 100
+melee range    = 95
+melee damage   = 100
+
+; GUN HUD (0-colt,1-magnum,2-uzi,3-shotgun,4-rifle,5-rpg,6-grenade,7-bow,8-mace,9-stone,10-sword)
+statuspanelcode = 10
+
+
+;GUN Visuals
+
+textured      =
+effect        = 
+transparency  = 1
+weapontype    = 51
+
+;GUN Sounds
+
+sound1	       = fire.wav
+sound2         = retrieve.wav
+sound3         = putaway.wav
+sound4         = idle.wav
+
+fireloop       = 9000
+
+;HUD muzzleflash position
+
+horiz          = 0
+vert           = 0
+forward        = 4
+alignx         = 0
+aligny         = 0
+alignz         = 13
+
+;HUD animation frames list
+
+keyframe ratio = 1
+select         = 1,35
+Idle           = 36,59
+Move           = 62,89
+start fire     = 91,104
+end fire       = 105,123
+putaway	       = 124,155
+
+;HUD sound frames list
+
+soundframes    = 3
+sframe0        = 102,1
+sframe1        = 6,2
+sframe2        = 130,3

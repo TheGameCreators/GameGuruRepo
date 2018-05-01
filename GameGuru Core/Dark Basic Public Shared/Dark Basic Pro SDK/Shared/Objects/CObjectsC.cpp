@@ -211,12 +211,16 @@ void* GetObjectsInternalData ( int iID )
 
 DARKSDK_DLL void ConvertToFVF ( sMesh* pMesh, DWORD dwFVF )
 {
-	// when mesh changes FVF, really need to erase old orig data
-	// simply because it will attempt to 'copy' when asked to reset, and it will copy the wrong FVF pattern
-	SAFE_DELETE_ARRAY ( pMesh->pOriginalVertexData );
+	//PE: Only if we are actually going to change FVF.
+	if (pMesh->dwFVF != dwFVF)
+	{
+		// when mesh changes FVF, really need to erase old orig data
+		// simply because it will attempt to 'copy' when asked to reset, and it will copy the wrong FVF pattern
+		SAFE_DELETE_ARRAY(pMesh->pOriginalVertexData);
 
-	// Use main FVF converter function
-	ConvertLocalMeshToFVF ( pMesh, dwFVF );
+		// Use main FVF converter function
+		ConvertLocalMeshToFVF(pMesh, dwFVF);
+	}
 }
 
 DARKSDK_DLL void SmoothNormals ( sMesh* pMesh, float fPercentage )
@@ -1406,6 +1410,25 @@ DARKSDK_DLL void SetObjectScrollScaleUV ( int iID, float fScrU, float fScrV, flo
 			pMesh->fScrollOffsetV = fScrV;
 			pMesh->fScaleOffsetU = fScaU;
 			pMesh->fScaleOffsetV = fScaV;
+		}
+	}
+}
+
+DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags )
+{
+	// check the object exists
+	if ( !ConfirmObjectInstance ( iID ) )
+		return;
+
+	// apply setting to all meshes (or parent if just instance)
+	sObject* pObject = g_ObjectList [ iID ];
+	if ( pObject->pInstanceOfObject ) pObject = pObject->pInstanceOfObject;
+	for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+	{
+		sMesh* pMesh = pObject->ppMeshList [ iMesh ];
+		if ( pMesh )
+		{
+			pMesh->dwArtFlags = dwArtFlags;
 		}
 	}
 }

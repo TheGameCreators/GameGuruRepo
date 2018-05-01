@@ -1,0 +1,20 @@
+//  materialindex:
+//  0    = - GenericSoft
+//  1    = S Stone
+//  2    = M Metal
+//  3    = W Wood
+//  4    = G Glass
+//  5    = L Liquid Splashy Wet
+//  6    = F Flesh (Bloody Organic)
+//  7    = H Hollow Drum Metal
+//  8    = T Small High Pitch Tin
+//  9    = V Small Low Pitch Tin
+//  10   = I Silly Material
+//  11   = A Marble
+//  12   = C Cobble
+//  13   = R Gravel
+//  14   = E Soft Metal
+//  15   = O Old Stone
+//  16   = D Old Wood
+//  17   = W Shallow Water
+//  18   = U Underwater

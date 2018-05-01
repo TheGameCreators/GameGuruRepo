@@ -3,6 +3,7 @@
 -- anim1 : Move
 -- anim2 : Punch/Kick/Bite 
 -- anim3 : Hurt
+-- anim4 : Reload
 -- sound0 : Start moving A
 -- sound1 : Start strike
 -- sound2 : Start moving B
@@ -555,7 +556,7 @@ function module_combatcore.fireonspot(e,AIObjNo)
 end
 
 function module_combatcore.fireweapon(e)
- if ai_bot_state[e] ~= ai_state_startreload and ai_bot_state[e] ~= ai_state_reload then
+ if ai_bot_state[e] ~= ai_state_startreload and ai_bot_state[e] ~= ai_state_reload and ai_bot_state[e] ~= ai_state_reloadsettle then
   if GetAmmoClip(e) > 0 then
    FireWeapon(e)
   else
@@ -573,18 +574,30 @@ function module_combatcore.reloadweapon(e)
   SetAnimation(4)
   PlayAnimation(e)
   SetAnimationSpeedModulation(e,1.0)
+  tStart = GetEntityAnimationStart(e,4)
+  SetAnimationFrame(e,tStart)
   StartTimer(e)
  else
   if ai_bot_state[e] == ai_state_reload then
    if GetTimer(e) > 500 then 
     tFrame = GetAnimationFrame(e)
+    tStart = GetEntityAnimationStart(e,4)
     tFinish = GetEntityAnimationFinish(e,4)
-    if tFrame >= tFinish or tFinish == 0 then
-     ai_bot_state[e] = ai_state_startidle
-     SetAmmoClip(e,GetAmmoClipMax(e))
+	tDiffHalf = (tFinish - tStart) / 3
+    if (tFrame >= tFinish - tDiffHalf and tFrame <= tFinish ) or tFinish == 0 then
+     ai_bot_state[e] = ai_state_reloadsettle
+     StartTimer(e)
     end 
    end
    module_combatcore.donotmove(e)
+  else
+   if ai_bot_state[e] == ai_state_reloadsettle then
+    if GetTimer(e) > 750 then 
+	 SetAmmoClip(e,GetAmmoClipMax(e))
+     ai_bot_state[e] = ai_state_startidle
+    end
+    module_combatcore.donotmove(e)
+   end
   end
  end
 end

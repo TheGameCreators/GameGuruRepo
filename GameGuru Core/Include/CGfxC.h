@@ -113,7 +113,7 @@ DARKSDK ID3DX11Effect*		SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iS
 #endif
 
 #ifdef VR920SUPPORT
-DARKSDK bool				SetupGetTracking					( float* pfYaw, float* pfPitch, float* pfRoll );
+DARKSDK bool				SetupGetTracking					( float* pfYaw, float* pfPitch, float* pfRoll, float fSensitivity );
 DARKSDK void				SetupResetTracking					( void );
 #endif
 

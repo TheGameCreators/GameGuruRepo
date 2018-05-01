@@ -285,17 +285,11 @@ void loopinternal3dsound ( int id, int x_f, int y_f, int z_f )
 	{
 		if (  SoundExist(id) == 1 ) 
 		{
-//    `position sound id,x#/10.0,y#/3.0,z#/10.0
-
-//    `sleep 10000
-
 			PositionSound (  id,x_f,y_f,z_f );
 			SetSoundVolume (  id,soundtruevolume(100.0) );
 			if (  SoundPlaying(id) == 0  )  LoopSound (  id );
 		}
 	}
-//endfunction
-
 }
 
 void posinternal3dsound ( int id, int x_f, int y_f, int z_f )
@@ -304,13 +298,9 @@ void posinternal3dsound ( int id, int x_f, int y_f, int z_f )
 	{
 		if (  SoundExist(id) == 1 ) 
 		{
-//    `position sound id,x#/10.0,y#/3.0,z#/10.0
-
 			PositionSound (  id,x_f,y_f,z_f );
 		}
 	}
-//endfunction
-
 }
 
 void playinternal3dsoundfactor ( int id, int x_f, int y_f, int z_f, int factor_f )
@@ -635,6 +625,6 @@ void sound_footfallsound ( int footfalltype, float fX, float fY, float fZ, int* 
 		t.tsx_f = fX;
 		t.tsy_f = fY;
 		t.tsz_f = fZ;
-		material_triggersound ( );
+		material_triggersound ( 0 );
 	}
 }

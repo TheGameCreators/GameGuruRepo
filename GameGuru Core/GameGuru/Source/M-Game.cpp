@@ -24,7 +24,7 @@ float				g_fOccluderLastCamX = 0.0f;
 float				g_fOccluderLastCamZ = 0.0f;
 
 // externals
-extern bool g_VR920RenderStereoNow;
+//extern bool g_VR920RenderStereoNow;
 
 void game_masterroot ( void )
 {
@@ -36,6 +36,9 @@ void game_masterroot ( void )
 	t.game.masterloop=1;
 	while ( t.game.masterloop == 1 ) 
 	{
+		// first hide rendering of 3D while we set up
+		SyncMaskOverride ( 0 );
+
 		//  Optionally set resolution for game and setup for dependencies
 		timestampactivity(0,"_game_setresolution");
 		if (  t.game.set.resolution == 1 ) 
@@ -133,6 +136,9 @@ void game_masterroot ( void )
 		//  Level loop will run while level progression is in progress
 		while (  t.game.levelloop == 1 ) 
 		{
+			// also hide rendering of 3D while we set up a new level
+			SyncMaskOverride ( 0 );
+
 			//  Loading page
 			timestampactivity(0,"_titles_loadingpageupdate");
 			if (  t.game.gameisexe == 1 ) 
@@ -691,22 +697,12 @@ void game_masterroot ( void )
 			//  check for character creator characters just before game starts
 			characterkit_checkForCharacters ( );
 
-			//  Game loop will run while single level is in play
-			t.huddamage.immunity=1000;
-			t.game.gameloop=1;
-			g.timeelapsed_f=0;
-			t.luaglobal.scriptprompt_s="";
-			t.luaglobal.scriptprompttime=0;
-			t.luaglobal.scriptprompttextsize=0;
-			t.luaglobal.scriptprompt3dtime=0;
-			strcpy ( t.luaglobal.scriptprompt3dtext, "" );
-
-			// if VR, activate at this point
-			g_VR920RenderStereoNow = true;
-
 			//  Clear screen of any artifacts
 			titles_loadingpagefree();
 			CLS (  Rgb(0,0,0) );
+
+			// In EXE running, override cameras with no mask until title/loading done
+			SyncMaskOverride ( 0xFFFFFFFF );
 
 			// resort texture list to ignore objects set to be ignored
 			DoTextureListSort ( );
@@ -718,9 +714,18 @@ void game_masterroot ( void )
 			t.tMousemove_f = MouseMoveX() + MouseMoveY() + MouseZ(); t.tMousemove_f  = 0;
 
 			//  Tab mode LOW FPS Warning
-			//g.globals.hidelowfpswarning = 1; // this overrides the SETUP.INI setting
 			g.tabmode=0 ; g.lowfpstarttimer=Timer();
 
+			//  Game loop will run while single level is in play
+			t.huddamage.immunity=1000;
+			t.game.gameloop=1;
+			g.timeelapsed_f=0;
+			t.luaglobal.scriptprompt_s="";
+			t.luaglobal.scriptprompttime=0;
+			t.luaglobal.scriptprompttextsize=0;
+			t.luaglobal.scriptprompt3dtime=0;
+			strcpy ( t.luaglobal.scriptprompt3dtext, "" );
+			
 			//  Game cycle loop
 			timestampactivity(0,"main game loop begins");
 			while ( t.game.gameloop == 1 ) 
@@ -735,8 +740,21 @@ void game_masterroot ( void )
 						t.plrhasfocus = 1;
 				}
 
+				// if controller active, also detect for START button press (same as ESCAPE)
+				/*
+				char pScan[40];
+				strcpy ( pScan, "012345678901234567890123456789012345" );
+				if ( g.gxbox > 0 )
+				{
+					for ( int iA = 0; iA <= 31; iA++ ) pScan[iA] = 48+JoystickFireXL(iA);
+					pScan[iA]=0;
+				}
+				*/
+				bool bControllerEscape = false;
+				if ( g.gxbox > 0 && JoystickFireXL(9) == 1 ) bControllerEscape = true;
+
 				//  trigger options page or exit test level
-				if (  EscapeKey() == 1 ) 
+				if ( EscapeKey() == 1 || bControllerEscape == true ) 
 				{
 					t.tremembertimer=Timer();
 					game_main_snapshotsoundloopcheckpoint ( );
@@ -762,11 +780,8 @@ void game_masterroot ( void )
 					{
 						g.titlesettings.updateshadowsaswell=1;
 						timestampactivity(0,"entering options page");
-
-						//titles_optionspage ( );
 						titleslua_init ( );
 						titleslua_main ( "gamemenu" );
-
 						timestampactivity(0,"leaving options page");
 						g.titlesettings.updateshadowsaswell=0;
 					}
@@ -871,11 +886,14 @@ void game_masterroot ( void )
 			titleslua_free ( );
 			LuaReset (  );
 
+			//PE: restore waterline.
+			t.terrain.waterliney_f = g.gdefaultwaterheight;
+
 			// 240316 - additional cleanup
 			steam_freefadesprite ( );
 
 			// if VR, deactivate at this point
-			g_VR920RenderStereoNow = false;
+			//g_VR920RenderStereoNow = false;
 
 			//  Advance level to 'next one' or 'win game'
 			timestampactivity(0,"end of level stage");
@@ -1263,8 +1281,18 @@ void game_preparelevel_forplayer ( void )
 void game_setup_character_shader_entities ( bool bMode )
 {
 	//store the ID's of entity and character shaders
-	t.entityBasicShaderID=loadinternaleffectunique("effectbank\\reloaded\\character_static.fx",1);
+	t.entityBasicShaderID=loadinternaleffectunique("effectbank\\reloaded\\character_static.fx", 1); //PE: old effect never deleted. why ?
+	//t.entityBasicShaderID = loadinternaleffect("effectbank\\reloaded\\character_static.fx"); //PE: Need to test this more. why would it need to be unique ?.
 	t.characterBasicShaderID=loadinternaleffect("effectbank\\reloaded\\character_basic.fx");
+
+
+	//PE: Bug. reset effect clip , so visible.
+	t.tnothing = MakeVector4(g.characterkitvector);
+	SetVector4(g.characterkitvector, 500000, 1, 0, 0);
+	SetEffectConstantV(t.entityBasicShaderID, "EntityEffectControl", g.characterkitvector);
+	SetEffectConstantV(t.characterBasicShaderID, "EntityEffectControl", g.characterkitvector);
+	t.tnothing = DeleteVector4(g.characterkitvector);
+
 
 	t.characterBasicEntityList.clear();
 	t.characterBasicEntityListIsSetToCharacter.clear();
@@ -1273,12 +1301,31 @@ void game_setup_character_shader_entities ( bool bMode )
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
+		t.entobj = g.entitybankoffset + t.entid;
 		if ( t.entid > 0 )
 		{
 			// Dont add CPUANIMS=1 characters
 			if ( t.entityprofile[t.entid].cpuanims==0 )
 			{
 				// Dont add cc characters to this
+
+				//PE: need apbr_basic.fx , apbr_anim.fx
+				//PE: pbr restored later so...
+				if (strcmp(Lower(Right(t.entityprofile[t.entid].effect_s.Get(), 13)), "apbr_basic.fx") == 0 && t.entityprofile[t.entid].ischaracter == 1 && t.entityprofile[t.entid].ischaractercreator == 0)
+				{
+					t.characterBasicEntityList.push_back(t.e);
+					if (t.entityelement[t.e].active == 1)
+						t.characterBasicEntityListIsSetToCharacter.push_back(true);
+					else
+						t.characterBasicEntityListIsSetToCharacter.push_back(false);
+
+					// set the bank object to freeze also for when they switch to instances
+					if (bMode)
+						SetObjectEffect(g.entitybankoffset + t.entityelement[t.e].bankindex, t.entityBasicShaderID);
+					else
+						SetObjectEffect(g.entitybankoffset + t.entityelement[t.e].bankindex, t.characterBasicShaderID);
+					SetObjectEffect(t.entityelement[t.e].obj, t.characterBasicShaderID);
+				}
 				if ( strcmp ( Lower(Right(t.entityprofile[t.entid].effect_s.Get(),18)) , "character_basic.fx" ) == 0 && t.entityprofile[t.entid].ischaracter == 1 && t.entityprofile[t.entid].ischaractercreator == 0 )
 				{
 					t.characterBasicEntityList.push_back(t.e);
@@ -1902,20 +1949,11 @@ void game_timeelapsed_init ( void )
 
 void game_timeelapsed ( void )
 {
-	//  Timer ( based movement )
-	//if ( g.globals.locktorefreshrate==1 && g.gvsync==1 )
-	//{
-	//	// fixed rate based entirely on refresh rate used by VSYNC
-	//	g.timeelapsed_f = (1.0f / (float)atoi(GetDirectRefreshRate())) * 20.0f;
-	//}
-	//else
-	//{
-	// old system looks spongy and very inaccurate for timeelapsed!
+	// Calculate time between cycles
 	float fThisTimeCount = timeGetSecond();
 	t.ElapsedTime_f = fThisTimeCount - t.LastTimeStamp_f;
 	g.timeelapsed_f = t.ElapsedTime_f * 20.0;
 	t.LastTimeStamp_f = fThisTimeCount;
-	//}
 
 	//  Cap to around 25fps so that leaps in movement/speed not to severe!
 	if (  g.timeelapsed_f>0.75f  )  g.timeelapsed_f = 0.75f;
@@ -2024,11 +2062,11 @@ void game_main_loop ( void )
 			if (  g.globals.ideinputmode == 1 ) 
 			{
 				g.lmlightmapnowmode=0;
-				if (  KeyState(g.keymap[59]) == 1  )  g.lmlightmapnowmode = 1;
-				if (  KeyState(g.keymap[60]) == 1  )  g.lmlightmapnowmode = 2;
-				if (  KeyState(g.keymap[61]) == 1  )  g.lmlightmapnowmode = 3;
-				if (  KeyState(g.keymap[62]) == 1  )  g.lmlightmapnowmode = 4;
-				if (  g.lmlightmapnowmode>0 ) 
+				if (KeyState(g.keymap[59]) && (KeyState(g.keymap[42]) | KeyState(g.keymap[54])))  g.lmlightmapnowmode = 1;
+				if (KeyState(g.keymap[60]) && (KeyState(g.keymap[42]) | KeyState(g.keymap[54])))  g.lmlightmapnowmode = 2;
+				if (KeyState(g.keymap[61]) && (KeyState(g.keymap[42]) | KeyState(g.keymap[54])))  g.lmlightmapnowmode = 3;
+				if (KeyState(g.keymap[62]) && (KeyState(g.keymap[42]) | KeyState(g.keymap[54])))  g.lmlightmapnowmode = 4;
+				if (  g.lmlightmapnowmode>0 )
 				{
 					//  User prompt
 					t.strwork = ""; t.strwork = t.strwork + "Select Lightmapping Mode "+Str(g.lmlightmapnowmode);

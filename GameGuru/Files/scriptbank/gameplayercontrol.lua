@@ -14,6 +14,7 @@ g_mousewheellast = 0
 g_suspendplayercontrols = 0
 g_playercontrolcooldownmode = 0
 g_specialPBRDebugView = 0
+g_FootFallTimer = 0
 
 function gameplayercontrol.main()
  gameplayercontrol.jetpack()
@@ -765,7 +766,9 @@ function gameplayercontrol.control()
 		end
 		if ( GetGamePlayerControlGravityActive() == 1 and GetGamePlayerControlJumpMode() ~= 1 ) then 
 			-- on ground
-			SetGamePlayerControlWobble(WrapValue(GetGamePlayerControlWobble()+(GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio())))
+			ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
+			if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+			SetGamePlayerControlWobble(WrapValue(GetGamePlayerControlWobble()+(GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttWeaponMoveSpeedMod)))
 		else
 			-- in air
 			SetGamePlayerControlWobble(CurveValue(0,GetGamePlayerControlWobble(),3.0))
@@ -774,6 +777,16 @@ function gameplayercontrol.control()
 		ttdeductspeed=(GetGamePlayerControlMaxspeed()*GetGamePlayerControlSpeedRatio())*GetTimeElapsed()*0.5
 		SetGamePlayerControlSpeed(GetGamePlayerControlSpeed()-ttdeductspeed)
 		if ( GetGamePlayerControlSpeed()<0.0 ) then SetGamePlayerControlSpeed(0.0) end
+		ttamounttostep = 25.0*GetTimeElapsed()
+		if ( GetGamePlayerControlWobble() < 180 ) then
+			ttnewtotal = GetGamePlayerControlWobble() - ttamounttostep
+			if ttnewtotal < 0 then ttnewtotal = 0 end
+			SetGamePlayerControlWobble(ttnewtotal)
+		else
+			ttnewtotal = GetGamePlayerControlWobble() + ttamounttostep
+			if ttnewtotal >= 360 then ttnewtotal = 0 end
+			SetGamePlayerControlWobble(ttnewtotal)
+		end
 	end
 
 	-- Handle player jumping
@@ -799,10 +812,6 @@ function gameplayercontrol.control()
 		if ( ttokay == 1 ) then 
 			-- player can only jump if a certain height above the waterline (i.e wading in shallows, not swimming) then
 			if ( GetGamePlayerStateNoWater() ~= 0 or GetCameraPositionY(0) > GetGamePlayerStateWaterlineY() + 20 ) then 
-				ttsnd = GetGamePlayerControlSoundStartIndex()+6
-				if ( RawSoundExist(ttsnd) == 1 ) then
-					PlayRawSound(ttsnd)
-				end
 				tplayerjumpnow=GetGamePlayerControlJumpmax()*ttjumpmodifier
 				if ( GetGamePlayerStateGunID()>0 ) then tplayerjumpnow = tplayerjumpnow*GetFireModeSettingsPlrJumpSpeedMod() end
 				SetGamePlayerControlJumpMode(1)
@@ -1009,6 +1018,12 @@ function gameplayercontrol.control()
 		if ( ttvrheadtrackermode == 1 ) then ttfinalplrmovey = ttfinalplrmovey - GetHeadTrackerYaw() end
 		if ( GetGamePlayerControlIsRunning() == 1 ) then SetGamePlayerStateJetpackVerticalMove(0) end
 		ControlDynamicCharacterController ( ttfinalplrmovey,GetGamePlayerStateJetpackVerticalMove(),ttfinalplrspeed,tplayerjumpnow,GetGamePlayerStatePlayerDucking(),GetGamePlayerControlPushangle(),GetGamePlayerControlPushforce(),GetGamePlayerControlJetpackThrust() )
+		if GetDynamicCharacterControllerDidJump() == 1 then
+			ttsnd = GetGamePlayerControlSoundStartIndex()+6
+			if ( RawSoundExist(ttsnd) == 1 ) then
+				PlayRawSound(ttsnd)
+			end
+		end
 		if ( GetGamePlayerControlGravityActive() == 0 ) then 
 			if ( GetGamePlayerControlControlHeight()>0 ) then 
 				SetGamePlayerControlMovey(GetGamePlayerControlStoreMovey())
@@ -1523,13 +1538,25 @@ function gameplayercontrol.control()
 					end
 				end
 			else
+				-- FPS triggers footfall based on wobble progress
 				if ( GetGamePlayerControlPlrHitFloorMaterial() ~= 0 ) then 
-					if ( GetGamePlayerControlWobble()>315 and GetGamePlayerControlFootfallCount() == 0 ) then 
-						SetGamePlayerControlFootfallCount(1)
-						tttriggerfootsound=1
-					end
-					if ( GetGamePlayerControlWobble()<315 and GetGamePlayerControlFootfallCount() == 1 ) then 
-						SetGamePlayerControlFootfallCount(0)
+					if GetGamePlayerControlWobble() > 0.0 then 
+						ttFootfallPaceMultiplier = 1.0/(GetGamePlayerControlFootfallPace()/3.0)
+						ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
+						if ttWeaponMoveSpeedMod == 0.0 then ttWeaponMoveSpeedMod = 1.0 end
+						if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+						ttAddWobbleStep = GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttFootfallPaceMultiplier*ttWeaponMoveSpeedMod
+						g_FootFallTimer = g_FootFallTimer + ttAddWobbleStep
+						if g_FootFallTimer > 315 and GetGamePlayerControlFootfallCount() == 0 then
+							SetGamePlayerControlFootfallCount(1)
+							tttriggerfootsound=1
+						end
+						if g_FootFallTimer < 315 and GetGamePlayerControlFootfallCount() == 1 then 
+							SetGamePlayerControlFootfallCount(0)
+						end
+						if g_FootFallTimer >= 360 then
+							g_FootFallTimer = g_FootFallTimer - 360
+						end
 					end
 				end
 			end
@@ -1554,7 +1581,9 @@ function gameplayercontrol.control()
 			if ( GetGamePlayerControlInWaterState() == 0 ) then 
 				ttsnd = GetGamePlayerControlSoundStartIndex()+13
 				if ( RawSoundExist ( ttsnd ) == 1 ) then
-					PlayRawSound ( ttsnd )
+					if ( g_PlayerHealth > 0 ) then
+						PlayRawSound ( ttsnd )
+					end
 				end
 				SetGamePlayerControlInWaterState(1)
 			end

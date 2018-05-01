@@ -730,13 +730,13 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 				if ( cOffsetMap.dwNX > 0 )
 				{
 					// 020117 - need original normals thanks!
-					if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
-					{
-						vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv1[0];
-						vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv1[1];
-						vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv1[2];
-					}
-					else
+					//if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
+					//{
+					//	vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv1[0];
+					//	vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv1[1];
+					//	vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv1[2];
+					//}
+					//else
 					{
 						vecNorm.x = pPolyPtr->normal[0]; 
 						vecNorm.y = pPolyPtr->normal[1];
@@ -767,13 +767,13 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 				if ( cOffsetMap.dwNX > 0 )
 				{
 					// 020117 - need original normals thanks!
-					if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
-					{
-						vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv2[0];
-						vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv2[1];
-						vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv2[2];
-					}
-					else
+					//if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
+					//{
+					//	vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv2[0];
+					//	vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv2[1];
+					//	vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv2[2];
+					//}
+					//else
 					{
 						vecNorm.x = pPolyPtr->normal[0];
 						vecNorm.y = pPolyPtr->normal[1];
@@ -804,13 +804,13 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 				if ( cOffsetMap.dwNX > 0 )
 				{
 					// 020117 - need original normals thanks!
-					if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
-					{
-						vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv3[0];
-						vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv3[1];
-						vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv3[2];
-					}
-					else
+					//if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
+					//{
+					//	vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv3[0];
+					//	vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv3[1];
+					//	vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv3[2];
+					//}
+					//else
 					{
 						vecNorm.x = pPolyPtr->normal[0];
 						vecNorm.y = pPolyPtr->normal[1];

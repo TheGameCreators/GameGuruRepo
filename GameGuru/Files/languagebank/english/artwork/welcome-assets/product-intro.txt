@@ -1,10 +1,10 @@
-Congratulations on discovering a new way to create your own 3D games!
+Congratulations on discovering a new way to create your own 3D games;
 
-Simple drag and drop editor with LUA scripting for logic
-Craft your own buildings and structures
-Sculpt and paint your terrain including vegetation
+Sculpt and texture your terrain, with vegetation
+Drag and drop game objects to populate your level 
+Craft your own simple buildings and structures
 Over 7GB of free game making assets
-Import your own FBX and OBJ models with PBR support
+Use LUA scripting to create your own game logic
+Supports DirectX 11 and Physically Based Rendering
 
-Now let's get you started as quickly as possible. We will run a performance
-check on your system to ensure you meet the minimum requirements.
+Now let's start your journey into the wonderful world of game making!

@@ -23,7 +23,8 @@ float4 HighlightParams = {0.0f,0.0f,0.0f,1.0f};
 float4 GlowIntensity = float4(0,0,0,0);
 float AlphaOverride = 1.0f;
 float SpecularOverride = 1.0f;
-float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f};
+float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Alpha Slice Y=not used
+float4 ArtFlagControl1 = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (off by default) Y=Preserve Tangents (off by default)
 float4 ShaderVariables = float4(0,0,0,0);
 float4 AmbiColorOverride = {1.0f, 1.0f, 1.0f, 1.0f};
 float4 clipPlane : ClipPlane;
@@ -194,8 +195,28 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
       output.binormal = normalize(cross(output.normal, output.tangent)); 
     #else
      output.uv = float2(ScrollScaleUV.x+(input.uv.x*ScrollScaleUV.z),ScrollScaleUV.y+(input.uv.y*ScrollScaleUV.w));
+     
+     // PE: tangent has problems, calculate.
+     //if ( abs(inputNormal.y) > 0.999 ) inputTangent = float3( inputNormal.y,0.0,0.0 );
+     //else inputTangent = normalize( float3(-inputNormal.z, 0.0, inputNormal.x) );
+     //inputBinormal = normalize( float3(inputNormal.y*inputTangent.z, inputNormal.z*inputTangent.x-inputNormal.x*inputTangent.z, //-inputNormal.y*inputTangent.x) );
+	 
+	 // LEE: Fixed above tangent/binormal calculation (see Concrete Girder)
+	 if ( ArtFlagControl1.y == 0 )
+	 {
+		 float3 c1 = cross(output.normal, float3(0.0, 0.0, 1.0)); 
+		 float3 c2 = cross(output.normal, float3(0.0, 1.0, 0.0)); 
+		 if (length(c1) > length(c2)) {
+		  output.tangent = c1;   
+		 } else {
+		  output.tangent = c2;   
+		 }
+		 inputTangent = normalize(output.tangent);
+		 inputBinormal = normalize(cross(inputTangent, output.normal)); 
+     }
      output.tangent = mul(inputTangent, wsTransform);
      output.binormal = mul(inputBinormal, wsTransform);
+	 
     #endif
     output.binormal = normalize(output.binormal);
     output.tangent = normalize(output.tangent);
@@ -235,7 +256,6 @@ struct Attributes
 };
 
 #ifdef PBRVEGETATION
- float usingNormalMap = 0;
  Texture2D AlbedoMap : register( t0 );
  Texture2D Unused1Map : register( t1 );
  Texture2D Unused2Map : register( t2 );
@@ -244,7 +264,6 @@ struct Attributes
  Texture2D Unused5Map : register( t5 );
  Texture2D Unused6Map : register( t8 );
 #else
- float usingNormalMap = 1;
  #ifdef PBRTERRAIN
   Texture2D VegShadowSampler : register( t0 );
   Texture2D AGEDMap : register( t1 );
@@ -842,6 +861,8 @@ float3 CalcSpotFlash( float3 worldNormal, float3 worldPos )
     output += SpotFlashColor.xyz * fAtten * (fSpotFlashPosW) * max(0,dot(worldNormal,lightDir));
     return output;
 }
+
+/*
 float CalcFlashLight( float3 worldPos)
 {
     // flash light system (flash light control carried in SpotFlashColor.w )
@@ -854,6 +875,7 @@ float CalcFlashLight( float3 worldPos)
     float3 lightdir = float3(View._m02,View._m12,View._m22);
     return pow(max(dot(-lightvector, lightdir),0),conewidth) * intensity * SpotFlashColor.w;   
 }
+*/
 
 float3 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap)
 {
@@ -900,10 +922,13 @@ float3 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, fl
     return output;
 }
 
-float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
+float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 {  
    // clipplane can remove pixels   
    clip(input.clip);
+   
+   // inverse of camera view holds true camera position
+   float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
 
    // put input data into attributes structure
    Attributes attributes;
@@ -911,8 +936,8 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    attributes.uv = input.uv;
    attributes.normal = input.normal;
    #ifndef PBRVEGETATION
-   attributes.binormal = input.binormal;
-   attributes.tangent = input.tangent;
+    attributes.binormal = input.binormal;
+    attributes.tangent = input.tangent;
    #endif
       
    // terrain or entity
@@ -924,42 +949,39 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    #else
     #ifdef PBRTERRAIN
      // terrain paint R=grass, G=path, B=texture choice
-      float4 VegShadowColor = VegShadowSampler.Sample(SampleWrap,attributes.uv/500.0f);
-
-      // atlas lookup for rock texture
-      float4 rockdiffusemap = float4(0,0,0,0);
-      float3 rocknormalmap = float3(0,0,0);
-#ifdef FASTROCKTEXTURE
+     float4 VegShadowColor = VegShadowSampler.Sample(SampleWrap,attributes.uv/500.0f);
+     // atlas lookup for rock texture
+     float4 rockdiffusemap = float4(0,0,0,0);
+     float3 rocknormalmap = float3(0,0,0);
+     #ifdef FASTROCKTEXTURE
       Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*15,0),attributes.uv,rockdiffusemap,rocknormalmap,input.viewDepth);   
-#else
-   float3 rockuv = float3(input.position.x,input.position.y,input.position.z)/100.0f;
-   float4 cXY = float4(0,0,0,0);
-   float4 cYZ = float4(0,0,0,0);
-   float4 cXZ = float4(0,0,0,0);
-   float3 nXY = float3(0,0,0);
-   float3 nXZ = float3(0,0,0);
-   float3 nYZ = float3(0,0,0);
-
-   Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*15,0),rockuv.xy,cXY,nXY.xyz,input.viewDepth);   
-   Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*15,0),rockuv.xz,cXZ,nXZ.xyz,input.viewDepth);   
-   Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*15,0),rockuv.yz,cYZ,nYZ.xyz,input.viewDepth);   
-
-   float mXY = pow(abs(attributes.normal.z),6);
-   float mXZ = pow(abs(attributes.normal.y),2);
-   float mYZ = pow(abs(attributes.normal.x),6);
-   float total = mXY + mXZ + mYZ;
-   mXY /= total;
-   mXZ /= total;
-   mYZ /= total;
-   rocknormalmap = nXY*mXY + nXZ *mXZ + nYZ*mYZ;
-   rockdiffusemap = cXY*mXY + cXZ * mXZ + cYZ*mYZ;
-#endif
+     #else
+      float3 rockuv = float3(input.position.x,input.position.y,input.position.z)/100.0f;
+      float4 cXY = float4(0,0,0,0);
+      float4 cYZ = float4(0,0,0,0);
+      float4 cXZ = float4(0,0,0,0);
+      float3 nXY = float3(0,0,0);
+      float3 nXZ = float3(0,0,0);
+      float3 nYZ = float3(0,0,0);
+      Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*15,0),rockuv.xy,cXY,nXY.xyz,input.viewDepth);   
+      Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*15,0),rockuv.xz,cXZ,nXZ.xyz,input.viewDepth);   
+      Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*15,0),rockuv.yz,cYZ,nYZ.xyz,input.viewDepth);   
+      float mXY = pow(abs(attributes.normal.z),6);
+      float mXZ = pow(abs(attributes.normal.y),2);
+      float mYZ = pow(abs(attributes.normal.x),6);
+      float total = mXY + mXZ + mYZ;
+      mXY /= total;
+      mXZ /= total;
+      mYZ /= total;
+      rocknormalmap = nXY*mXY + nXZ *mXZ + nYZ*mYZ;
+      rockdiffusemap = cXY*mXY + cXZ * mXZ + cYZ*mYZ;
+     #endif	 
+	 
      // collect all diffuse/normal contributions
      float4 rawdiffusemap = float4(0,0,0,0);
      float3 rawnormalmap = float3(0,0,0);
      float3 rawmetalmap = float3(0,0,0);
      float3 rawglossmap = float3(0,0,0);
-
      float4 grass_d = float4(0,0,0,0);
      float3 grass_n = float3(0,0,0);
      float4 sand_d = float4(0,0,0,0);
@@ -968,17 +990,17 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
      float3 mud_n = float3(0,0,0);
      float4 variation_d = float4(0,0,0,0);
      Atlas16DiffuseLookupCenter(float4(0,0,0.0625*14,0),attributes.uv/16.0,variation_d); // 14   
-
-#ifdef REMOVEGRASSNORMALS
+     #ifdef REMOVEGRASSNORMALS
       Atlas16DiffuseLookupCenterDist(float4(0,0,0.0625*4,0),attributes.uv,grass_d,input.viewDepth);
       grass_n = float4(0.5,0.5,1.0,1.0); // 126,128 , neutral normal.
-#else
-     Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*4,0),attributes.uv,grass_d,grass_n,input.viewDepth);
-#endif
+     #else
+      Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*4,0),attributes.uv,grass_d,grass_n,input.viewDepth);
+     #endif
      rawdiffusemap = grass_d;
      rawnormalmap = grass_n;
 
-     if( variation_d.a >= 0.98 ) {
+     if( variation_d.a >= 0.98 ) 
+	 {
          Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*1,0),attributes.uv,sand_d,sand_n,input.viewDepth); // 12
          Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*9,0),attributes.uv,mud_d,mud_n,input.viewDepth); // 11
          grass_d = lerp( mud_d ,grass_d, variation_d.r );                                             
@@ -989,7 +1011,7 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
          rawdiffusemap = lerp(sand_d, rawdiffusemap, clamp( ( (input.position.y-520.0f)/40.0f) , 0.0, 1.0) ); // sand
      }
 
-     //add last hand drawed textures if exist.
+     // add last hand drawed textures if exist.
      Atlas16DiffuseNormalLookup(VegShadowColor,attributes.uv,rawdiffusemap,rawnormalmap,input.viewDepth);
 
      // blend with rock slopes
@@ -997,21 +1019,19 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
      rawnormalmap = lerp(rocknormalmap, rawnormalmap, clamp((attributes.normal.y-TERRAINROCKSLOPE )*2.5, 0.0, 1.0) );
      rawmetalmap = float3(0,0,0);
      rawglossmap = float3(rawdiffusemap.w,rawdiffusemap.w,rawdiffusemap.w);
-
-
-     #else
+    #else
      float4 rawdiffusemap = AlbedoMap.Sample(SampleWrap, attributes.uv);
      float3 rawnormalmap = NormalMap.Sample(SampleWrap, attributes.uv).rgb;
-      float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r * SpecularOverride, 1);
+     float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1) + ((SpecularOverride-1.0)/10.0f);
      float3 rawmetalmap = float3(SpecValue,SpecValue,SpecValue);
-      #ifdef AOISAGED
-       float GlossValue = 1.0f-min(AGEDMap.Sample(SampleWrap, attributes.uv).g * SpecularOverride, 1);
+     #ifdef AOISAGED
+      float GlossValue = (1.0f-min(AGEDMap.Sample(SampleWrap, attributes.uv).g, 1)) + ((SpecularOverride-1.0)/10.0f);
       float3 rawglossmap = float3(GlossValue,GlossValue,GlossValue);
      #else
-       float GlossValue = 1.0f-min(GlossMap.Sample(SampleWrap, attributes.uv).r * SpecularOverride, 1);
+      float GlossValue = (1.0f-min(GlossMap.Sample(SampleWrap, attributes.uv).r, 1)) + ((SpecularOverride-1.0)/10.0f);
       float3 rawglossmap = float3(GlossValue,GlossValue,GlossValue);
      #endif
-     #endif
+    #endif
    #endif
 
    #ifdef ALPHADISABLED
@@ -1047,18 +1067,19 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    #ifdef PBRVEGETATION
     attributes.normal = float3(0,1,0);
    #else
-    if (usingNormalMap > 0.0)
-    {
-      float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
-      rawnormalmap.y = 1.0f-rawnormalmap.y; // FBX normal maps have this reversed!
-      float3 norm = rawnormalmap * 2.0 - 1.0;
-      norm = mul(norm.rgb, toWorld);
-      attributes.normal = normalize(norm);
-    }
+    float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
+	// allow this to be toggled in the FPE for artist control (could be a way to do this with math, eliminate the IF)
+	if ( ArtFlagControl1.x == 1 )
+	{
+	  rawnormalmap.y = 1.0f - rawnormalmap.y;
+	}  
+    float3 norm = rawnormalmap * 2.0 - 1.0;
+    norm = mul(norm.rgb, toWorld);
+    attributes.normal = normalize(norm);
    #endif
 
    // eye vector
-   float3 eyeraw = input.cameraPosition - attributes.position;
+   float3 eyeraw = trueCameraPosition - attributes.position;
     
    // apply a detail map when get too close to surface
    #ifdef PBRVEGETATION
@@ -1072,10 +1093,10 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 #ifdef BOOSTILLUM
        //Illumination kind of get lost in the PBR, so also add illum to light and add this boostillum.
        float3 addillum = (IlluminationMap.Sample(SampleWrap,attributes.uv).rgb*1.5);
-       rawdiffusemap.xyz += addillum;
+//       rawdiffusemap.xyz += addillum;
 #else
        float3 addillum = IlluminationMap.Sample(SampleWrap,attributes.uv).rgb;
-       rawdiffusemap.xyz += addillum;
+//       rawdiffusemap.xyz += addillum;
 #endif
 
      #else
@@ -1137,16 +1158,12 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
     #ifdef PBRTERRAIN
      float rawaovalue = 1.0f;
 	#else
-	#ifdef CALLEDFROMWEAPON // Missing default _ao when using weapons.
-     float rawaovalue = 1.0f;
-    #else 
-		 #ifdef AOISAGED
-		  float rawaovalue = AGEDMap.Sample(SampleWrap,attributes.uv).x;
-		 #else
-		  float rawaovalue = AOMap.Sample(SampleWrap,attributes.uv).x;
-		 #endif
-		  visibility -= ((1.0f-rawaovalue)*visibility);
-		#endif
+	 #ifdef AOISAGED
+	  float rawaovalue = AGEDMap.Sample(SampleWrap,attributes.uv).x;
+	 #else
+      float rawaovalue = AOMap.Sample(SampleWrap,attributes.uv).x;
+	 #endif
+	 visibility -= ((1.0f-rawaovalue)*visibility);
 	#endif
    #endif
 
@@ -1159,7 +1176,7 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    gMaterial.Properties.b = 1.0f-rawglossmap.r; //b = roughness
 
    float3 inputnormalW = attributes.normal;
-   float3 toEye = input.cameraPosition - attributes.position;
+   float3 toEye = trueCameraPosition - attributes.position;
    float distToEye = length(toEye);
    toEye /= distToEye;
    float3 refVec = reflect(-toEye, inputnormalW);
@@ -1217,11 +1234,13 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
     // flash light system (flash light control carried in SpotFlashColor.w )
     //PE: eyePos ? cameraPosition ? wrong ?
     //PE: float4 eyePos : CameraPosition;
+	//LEE: corrected camera position (now using ViewInv and stored in trueCameraPosition)
     //PE: Looks like when water reflection is active this is set wrong , also ruin PBR light.
 	float4 viewspacePos = mul(float4(attributes.position.xyz,1), View);
     float conewidth = 24;
     float intensity = max(0, 1.5f - (viewspacePos.z/500.0f));
     float3 lightdir = float3(View._m02,View._m12,View._m22);
+	
 #ifndef REFLECTIVEFLASHLIGHT
     float flashlight = pow(max( dot(-eye, lightdir)  ,0),conewidth) * intensity * SpotFlashColor.w * MAXFLASHLIGHT; 
 #else
@@ -1233,17 +1252,17 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 #endif
 
 	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
-	light += (rawdiffusemap.xyz * flashlight);
-#ifdef ILLUMINATIONMAP
-    light += addillum;
-#endif
+
+	//light += (rawdiffusemap.xyz) * flashlight);
+
 
 	// work out environmental fresnel
 	float3 envFresnel = lerp(0.02f, texColor.rgb, gMaterial.Properties.g);
 
 	// work out contributions
+	float3 flashlightContrib = rawdiffusemap.xyz * flashlight;
 	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity;
-	float3 lightContrib = max(float3(0,0,0),light) * lightIntensity * SurfColor.xyz * visibility;
+	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
 #ifdef PBRTERRAIN
@@ -1253,10 +1272,18 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    litColor.rgb = albedoContrib + lightContrib + reflectiveContrib;
 #else
 
+
+#ifdef ILLUMINATIONMAP
+	//PE: i use * here to prepare for baking textures like illum.
+    albedoContrib += (texColor.rgb*(addillum));
+    //PE: Illum kind of lost in PBR , so boost a bit.
+    lightContrib += (texColor.rgb*(addillum));
+#endif     
+
 #if K_MODEL_PE
 
 	//TODO: add more to glass: - (1.0 -(gMaterial.Diffuse.a * texColor.a))
-    float env_ref_fresnel = pow( max( 1.0-dot( normalize(input.cameraPosition - attributes.position) , inputnormalW), 0.0f) , 2.0 ) * 0.85 + 0.65; //
+    float env_ref_fresnel = pow( max( 1.0-dot( normalize(trueCameraPosition - attributes.position) , inputnormalW), 0.0f) , 2.0 ) * 0.85 + 0.65; //
 	env_ref_fresnel = clamp(env_ref_fresnel+gMaterial.Properties.g,0.0,1.0);
 	reflectiveContrib.rgb = reflectiveContrib.rgb * env_ref_fresnel;
 	
@@ -1271,9 +1298,11 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 	//litColor.rgb = ComputeLight(gMaterial, gDirLight, inputnormalW, toEye, albedo.rgb);
 	//litColor.rgb = float3(gMaterial.Properties.g,gMaterial.Properties.g,gMaterial.Properties.g);
 	//litColor.rgb = envMap;
+	
 #else
    litColor.rgb = albedoContrib + lightContrib + reflectiveContrib;
 #endif
+
 
 #endif
 #endif   
@@ -1296,7 +1325,7 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
      float highlightalpha = (highlighttex.a*0.5f);
      litColor.xyz = litColor.xyz + (HighlightParams.x*float3(highlightalpha*HighlightParams.z,highlightalpha*HighlightParams.a,0));
    #endif
-      
+ 
    // combine for final color
    float3 finalColor = litColor.xyz;
     #ifdef DEBUGSHADOW
@@ -1306,6 +1335,7 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    // final render pixel or show PBR debug layer views
    if ( ShaderVariables.x > 0 )
    {
+
       if ( ShaderVariables.x == 1 ) { finalColor = rawdiffusemap.rgb; }
       if ( ShaderVariables.x == 2 ) { finalColor = attributes.normal; }
       if ( ShaderVariables.x == 3 ) { finalColor = rawmetalmap; }
@@ -1314,7 +1344,11 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
       if ( ShaderVariables.x == 6 ) { finalColor = albedoContrib; }
       if ( ShaderVariables.x == 7 ) { finalColor = lightContrib; }
       if ( ShaderVariables.x == 8 ) { finalColor = reflectiveContrib; }
+#ifdef ILLUMINATIONMAP
+      if ( ShaderVariables.x == 9 ) { finalColor = addillum; }
+#else
       if ( ShaderVariables.x == 9 ) { finalColor = float3(fShadow,fShadow,fShadow); }
+#endif
 
       litColor.a = 1;
    }
@@ -1335,6 +1369,17 @@ float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
    return float4(finalColor, litColor.a);
 }
 
+float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
+{
+	float4 final = PSMainCore(input,fullshadowsoreditor); 
+	return final;
+}
+
+float4 PSMainBaked(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
+{
+	float4 final = PSMainCore(input,fullshadowsoreditor); 
+	return final;
+}
 
 DepthStencilState YesDepthRead
 {
@@ -1426,7 +1471,6 @@ technique11 Lowest
     }
 }
 
-
 technique11 LowestWithCutOutDepth
 {
     pass CutOutPass
@@ -1452,7 +1496,7 @@ technique11 Highest_Prebake
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(1)));
+        SetPixelShader(CompileShader(ps_5_0, PSMainBaked(1)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1466,7 +1510,7 @@ technique11 High_Prebake
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(1)));
+        SetPixelShader(CompileShader(ps_5_0, PSMainBaked(1)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1480,7 +1524,7 @@ technique11 Medium_Prebake
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(0)));
+        SetPixelShader(CompileShader(ps_5_0, PSMainBaked(0)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1494,7 +1538,7 @@ technique11 Lowest_Prebake
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(-1)));
+        SetPixelShader(CompileShader(ps_5_0, PSMainBaked(-1)));
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1516,7 +1560,6 @@ technique11 DepthMap
         #endif
     }
 }
-
 
 technique11 DepthMapNoAnim
 {

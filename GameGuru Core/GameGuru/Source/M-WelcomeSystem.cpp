@@ -452,6 +452,9 @@ void welcome_serialcode_page ( int iHighlightingButton )
 				// write correct serial code to VRQ file
 				common_writeserialcode(g_welcomeserialcode.pCode);
 
+				// and ensure we can pass to active app
+				g.vrqTriggerSoftwareToQuit = 0;
+
 				// and continue
 				t.tclosequick = 1;
 			}

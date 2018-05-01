@@ -547,7 +547,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Create output window
 	if (!m_wndOutput.Create (	GetLanguageData ( "Library", "Name" ) , this, CSize (150, 500),
-								TRUE , ID_VIEW_OUTPUT, WS_CHILD | CBRS_BOTTOM))
+								FALSE , ID_VIEW_OUTPUT, WS_CHILD | CBRS_BOTTOM))
 	{
 		TRACE0("Failed to create output window\n");
 		return -1;

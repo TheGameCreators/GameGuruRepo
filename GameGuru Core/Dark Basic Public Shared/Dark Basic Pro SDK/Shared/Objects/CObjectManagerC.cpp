@@ -9,9 +9,11 @@
 #include "CGfxC.h"
 #include <algorithm>
 
+
 // extern/protos
 GGFORMAT GetValidStencilBufferFormat ( GGFORMAT Format );
 extern UINT	g_StereoEyeToggle;
+extern DWORD g_dwSyncMaskOverride;
 
 // weapon shader effect indexes
 extern int g_weaponbasicshadereffectindex;
@@ -2283,6 +2285,12 @@ bool CObjectManager::PreDrawSettings ( void )
 	// Set default FOV from camera (zero does not change camera FOV!)
 	if ( g_pGlob->dwRenderCameraID == 0 )
 	{
+		if ( m_RenderStates.fObjectFOV != 0.0f )
+		{
+			// sometimes, objectfov renderstate is not reset, and needed before we start again
+			SetCameraFOV ( m_RenderStates.fStoreCameraFOV );
+			m_RenderStates.fObjectFOV = 0.0f;
+		}
 		tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( 0 );
 		m_RenderStates.fStoreCameraFOV = m_Camera_Ptr->fFOV;
 		m_RenderStates.fObjectFOV = 0.0f;
@@ -3420,6 +3428,20 @@ bool CObjectManager::ShaderPass ( sMesh* pMesh, UINT uPass, UINT uPasses, bool b
 			}
 			#endif
 
+			// added per-object control for additional artist flags
+			#ifdef DX11
+			GGHANDLE pArtFlags = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+			if ( pArtFlags )
+			{
+				float fInvertNormal = 0.0f;
+				float fGenerateTangents = 0.0f;
+				if ( pMesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+				if ( pMesh->dwArtFlags & 0x2 ) fGenerateTangents = 1.0f;
+				GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, fGenerateTangents, 0.0f, 0.0f );
+				pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+			}
+			#endif
+
 			// when flagged, we must update effect with changes we made
 			if ( bMustCommit==true )
 			{
@@ -3686,6 +3708,10 @@ bool CObjectManager::ShaderFinish ( sMesh* pMesh, LPGGRENDERTARGETVIEW pCurrentR
 
 inline DWORD FtoDW( FLOAT f ) { return *((DWORD*)&f); }
 
+//PE: for debug info.
+//#include <DxErr.h>
+//#pragma comment(lib, "dxerr.lib")
+
 bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sObject* pObject )
 {
 	// get pointer to drawbuffers
@@ -3813,7 +3839,7 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 				pLayoutPtr = &layoutFVFZero;
 				dwLayoutSize = sizeof(layoutFVFZero);
 			}
-			LPGGVERTEXLAYOUT pNewVertexDec;	
+			//LPGGVERTEXLAYOUT pNewVertexDec;	
 			D3D11_INPUT_ELEMENT_DESC* pLayout = new D3D11_INPUT_ELEMENT_DESC [ iLayoutSize ];
 			std::memcpy ( pLayout, pLayoutPtr, dwLayoutSize );
 			ID3DBlob* pBlob = g_sShaders[iMeshEffectID].pBlob;
@@ -3825,6 +3851,59 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			D3DX11_EFFECT_SHADER_DESC s_desc;
 			vs_desc.pShaderVariable->GetShaderDesc(0, &s_desc);
 			HRESULT hr = m_pD3D->CreateInputLayout ( pLayout, iLayoutSize, s_desc.pBytecode, s_desc.BytecodeLength, &g_sShaders[iMeshEffectID].pInputLayout );
+
+			
+			//PE: superflatterrain=1
+			//PE: generate : Exception thrown at 0x776508F2 in Guru-MapEditor.exe: Microsoft C++ exception: _com_error at memory location 0x0019DDB0.
+			if (hr != NOERROR) {
+				//PE: Failed , terrain use - tindex  1, pass 1
+				if ( iMeshEffectID == 1 ) { // 1==terrain. same as t.terrain.terrainshaderindex == iMeshEffectID , but we dont have t or g.
+
+					SAFE_DELETE_ARRAY(pLayout);
+					int iLayoutSize = 4;
+					pLayout = new D3D11_INPUT_ELEMENT_DESC[iLayoutSize];
+					D3D11_INPUT_ELEMENT_DESC layout[] =
+					{
+						{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,		0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,		0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,			0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT,			0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					};
+					pLayoutPtr = &layout;
+					std::memcpy(pLayout, layout, sizeof(layout));
+
+					DWORD tIndex = 0;
+					ID3DX11EffectTechnique* tech = NULL;
+					while ((tech = g_sShaders[iMeshEffectID].pEffect->GetTechniqueByIndex(tIndex++))->IsValid())
+					{
+						DWORD pIndex = 0;
+						ID3DX11EffectPass* pass = NULL;
+						while ((pass = tech->GetPassByIndex(pIndex++))->IsValid())
+						{
+							D3DX11_PASS_SHADER_DESC vs_desc;
+							pass->GetVertexShaderDesc(&vs_desc);
+							D3DX11_EFFECT_SHADER_DESC s_desc;
+							vs_desc.pShaderVariable->GetShaderDesc(0, &s_desc);
+							hr = m_pD3D->CreateInputLayout(pLayout, iLayoutSize, s_desc.pBytecode, s_desc.BytecodeLength, &g_sShaders[iMeshEffectID].pInputLayout);
+							break;
+						}
+						if (g_sShaders[iMeshEffectID].pInputLayout != NULL) {
+							break;
+						}
+					}
+
+//					if (hr != NOERROR) {
+//						//PE: debug.
+//						char tmpdebug[2048];
+//						sprintf(tmpdebug, "Error: %s error description: %s\n",
+//							DXGetErrorString(hr), DXGetErrorDescription(hr));
+//						OutputDebugString(tmpdebug);
+//						//PE: Error returned:
+//						//PE: Error: E_INVALIDARG error description: An invalid parameter was passed to the returning function.
+//					}
+				}
+			}
+
 			SAFE_DELETE_ARRAY(pLayout);
 		}
 		pMesh->pVertexDec = g_sShaders[iMeshEffectID].pInputLayout;
@@ -5101,6 +5180,9 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 	bool bUseStencilWrite=false;
 	GGVECTOR3 vecShadowPos;
 
+	// if sync mask override active, reject any drawing activity
+	if ( g_dwSyncMaskOverride == 0 ) return true;
+
     // Get camera information for LOD and distance calculation
 	// ensure rendercamera of 31-34 selects mask for camera 31 (shadow camera)
     DWORD dwCurrentCameraBit;
@@ -5323,6 +5405,43 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				}
 			}
 
+			// prefer to render objects that are marked as 'not' transparent, not locked and bNewZLayerObject as true
+			// this will allow muzzle flashes to render 'before' the weapon (and smoke to render AFTER as smoke transparency set to 6)
+			for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectNoZDepth.size(); ++iIndex )
+			{
+				sObject* pObject = m_vVisibleObjectNoZDepth [ iIndex ];
+				if ( !pObject ) continue;
+
+				// ignore objects whose masks reject the current camera
+				if ( (pObject->dwCameraMaskBits & dwCurrentCameraBit)==0 )
+					continue;
+
+				// only render not-transparent, not locked and bNewZLayerObject true objects
+				bool bRenderObject = false;
+				if ( pObject->bTransparentObject==false && pObject->bLockedObject==false && pObject->bNewZLayerObject==true )
+					bRenderObject=true;
+
+				// only if object should be rendered
+				if ( !bRenderObject )
+					continue;
+
+				// skip if IS weapon/jetpack
+				bool bIsWeaponOrJetPack = false;
+				sObject* pActualObject = pObject;
+				if ( pObject->pInstanceOfObject ) pActualObject = pObject->pInstanceOfObject;
+				if ( pActualObject->ppMeshList )
+				{
+					if ( pWeaponBasic && pWeaponBasic->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pWeaponBasic->pEffectObj ) bIsWeaponOrJetPack = true;
+					if ( pWeaponBone && pWeaponBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pWeaponBone->pEffectObj ) bIsWeaponOrJetPack = true;
+					if ( pJetpackBone && pJetpackBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pJetpackBone->pEffectObj ) bIsWeaponOrJetPack = true;
+				}
+				if ( bIsWeaponOrJetPack == true )
+					continue;
+
+				// draw
+				DrawObject ( pObject, false );
+			}
+
 			// WEAPON RENDERING
 			// for NoZDepth pass, two cycles one for depthcutout and regular
 			// and hard find weapon shaders that have cutoutdepth techniques
@@ -5425,6 +5544,10 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 						if ( pJetpackBone && pJetpackBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pJetpackBone->pEffectObj ) bIsWeaponOrJetPack = true;
 					}
 					if ( bIsWeaponOrJetPack == true )
+						continue;
+
+					// do not render not-transparent, not locked and bNewZLayerObject true objects (did this earlier before weapon renders)
+					if ( pObject->bTransparentObject==false && pObject->bLockedObject==false && pObject->bNewZLayerObject==true )
 						continue;
 
 					// locked objects

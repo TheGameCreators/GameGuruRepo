@@ -48,17 +48,56 @@ void characterkit_init ( void )
 	//  show loading message
 	t.tjustloadedcc=1;
 
-	//  setup weapon options
-	Dim (  t.characterkitweaponbank_s,7  );
-	t.characterkitweaponbank_s[1] = "colt1911";
-	t.characterkitweaponbank_s[2] = "Uzi";
-	t.characterkitweaponbank_s[3] = "SniperM700";
-	t.characterkitweaponbank_s[4] = "Shotgun";
-	t.characterkitweaponbank_s[5] = "RPG";
-	t.characterkitweaponbank_s[6] = "Magnum357";
-	t.characterkitweaponbank_s[7] = "None";
-	t.characterkitweaponmax = 7;
+	// store old directory
+	t.tolddir_s=GetDir();
 
+	//  setup weapon options (gun folder to populate)
+	Dim ( t.characterkitweaponbank_s, 100 );
+	t.characterkitweaponbank_s[1] = "None";
+	int iCharKitWeapIndex = 1;
+	for ( int ti = 1; ti <= g.gunmax; ti++ )
+	{
+		// determine if gun has VWEAP (for character use)
+		SetDir ( "gamecore\\guns" );
+		if ( PathExist ( t.gun[ti].name_s.Get() ) )
+		{
+			SetDir ( t.gun[ti].name_s.Get() );
+			if ( FileExist ( "VWEAP.X" ) == 1 )
+			{
+				if ( iCharKitWeapIndex < 99 )
+				{
+					iCharKitWeapIndex++;
+					t.characterkitweaponbank_s[iCharKitWeapIndex] = Lower(t.gun[ti].name_s.Get());
+				}
+			}
+		}
+		SetDir ( t.tolddir_s.Get() );
+	}
+	t.characterkitweaponmax = iCharKitWeapIndex;
+
+	// scan AnimProfiles folder for latest profiles
+	Dim ( t.characterkitprofilebank_s, 100 );
+	SetDir ( "characterkit\\AnimProfiles" );
+	ChecklistForFiles (  );
+	t.characterkitprofilemax = 0;
+	for ( int tc = 1 ; tc <= ChecklistQuantity(); tc++ )
+	{
+		cstr tfile_s = ChecklistString(tc);
+		if ( tfile_s != "." && tfile_s != ".." ) 
+		{
+			if ( stricmp ( Right ( tfile_s.Get(), 4 ), ".txt" ) == NULL ) 
+			{
+				if ( t.characterkitprofilemax < 99 )
+				{
+					t.characterkitprofilemax++;
+					t.characterkitprofilebank_s[t.characterkitprofilemax] = cstr(Left(tfile_s.Get(),strlen(tfile_s.Get())-4));
+				}
+			}		
+		}
+	}
+	SetDir ( t.tolddir_s.Get() );
+
+	// set initial gender of character to be created
 	t.characterkitcontrol.isMale = 1;
 
 	//  Scan for all body and head parts
@@ -70,7 +109,6 @@ void characterkit_init ( void )
 	t.characterkit.headindex=0;
 	t.characterkit.facialhairindex=0;
 	t.characterkit.hatindex=0;
-	t.tolddir_s=GetDir();
 	t.characterkitcontrol.originalDir_s = t.tolddir_s;
 	SetDir (  "characterkit\\bodyandhead" );
 	ChecklistForFiles (  );
@@ -179,10 +217,11 @@ void characterkit_init ( void )
 		t.slidersmenu[g.slidersmenumax].thighlight=-1;
 		t.slidersmenu[g.slidersmenumax].titlemargin=30;
 		t.slidersmenu[g.slidersmenumax].leftmargin=25;
-		t.slidersmenu[g.slidersmenumax].itemcount=12; // set below too
+		t.slidersmenu[g.slidersmenumax].itemcount=13; // set below too
 		t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-		t.slidersmenu[g.slidersmenumax].ttop= (GetChildWindowHeight() / 2 ) - 281 -3;
-		t.slidersmenu[g.slidersmenumax].tleft= (GetChildWindowWidth() ) - 265;
+		int iMovePanelUp = 32-((GetChildWindowHeight()/2)-281-3);
+		t.slidersmenu[g.slidersmenumax].ttop = ((GetChildWindowHeight()/2)-281-3)+iMovePanelUp; //also set in characterkit_alignUI
+		t.slidersmenu[g.slidersmenumax].tleft = (GetChildWindowWidth() ) - 265;
 		t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Character View Angle";
 		t.slidersmenuvalue[g.slidersmenumax][1].value = 180;
 		t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex = 0;
@@ -208,7 +247,7 @@ void characterkit_init ( void )
 		t.slidersmenuvalue[g.slidersmenumax][6].name_s = "";
 		t.slidersmenuvalue[g.slidersmenumax][6].gadgettype = -1;
 		t.slidersmenuvalue[g.slidersmenumax][6].gadgettypevalue = 54;
-		for ( t.c = 7 ; t.c<=  11; t.c++ )
+		for ( t.c = 7 ; t.c<=13; t.c++ )
 		{
 			t.slidersmenuvalue[g.slidersmenumax][t.c].name_s = "";
 			t.slidersmenuvalue[g.slidersmenumax][t.c].gadgettype = 99;
@@ -220,9 +259,14 @@ void characterkit_init ( void )
 		{
 			t.slidersmenuvalue[g.slidersmenumax][12].name_s = "Weapon";
 			t.slidersmenuvalue[g.slidersmenumax][12].value = 1;
-			t.slidersmenuvalue[g.slidersmenumax][12].value_s = "Colt1911";
+			t.slidersmenuvalue[g.slidersmenumax][12].value_s = "None";
 			t.slidersmenuvalue[g.slidersmenumax][12].gadgettype = 1;
 			t.slidersmenuvalue[g.slidersmenumax][12].gadgettypevalue = 55;
+			t.slidersmenuvalue[g.slidersmenumax][13].name_s = "Profile";
+			t.slidersmenuvalue[g.slidersmenumax][13].value = 1;
+			t.slidersmenuvalue[g.slidersmenumax][13].value_s = "Soldier Pistol";
+			t.slidersmenuvalue[g.slidersmenumax][13].gadgettype = 1;
+			t.slidersmenuvalue[g.slidersmenumax][13].gadgettypevalue = 56;
 		}
 		else
 		{
@@ -260,10 +304,7 @@ void characterkit_init ( void )
 	LoadImage (  "effectbank\\reloaded\\media\\blank_O.DDS",t.characterkit.imagestart+1 );
 	if (  ImageExist(t.characterkit.imagestart+2)  ==  1  )  DeleteImage (  t.characterkit.imagestart+2 );
 	LoadImage (  "effectbank\\reloaded\\media\\blank_I.DDS",t.characterkit.imagestart+2 );
-
-	//  Extra buttons (use importer buttons)
-//  `txpos = (GetChildWindowWidth() / 2) + 360
-
+	
 	t.txpos = (GetChildWindowWidth() ) - 230;
 	for ( t.t = 0 ; t.t <=  12 ; t.t++ ) t.importerTabs[t.t].label="" ;
 
@@ -357,10 +398,6 @@ void characterkit_loadEffects ( void )
 	{
 		t.characterkit.effectforcharacter = g.charactercreatoreffectbankoffset ; LoadEffect (  "effectbank\\reloaded\\character_editor.fx" , g.charactercreatoreffectbankoffset, 0 );
 		t.characterkit.effectforcharacterHighlight = g.charactercreatoreffectbankoffset+1 ; LoadEffect (  "effectbank\\reloaded\\character_editor.fx",g.charactercreatoreffectbankoffset+1,0 );
-		//t.characterkit.effectforAttachments = g.charactercreatoreffectbankoffset+2 ; LoadEffect (  "effectbank\\reloaded\\entity_basic.fx",g.charactercreatoreffectbankoffset+2,0 );
-		//t.characterkit.effectforAttachmentsHighlight = g.charactercreatoreffectbankoffset+3 ; LoadEffect (  "effectbank\\reloaded\\entity_basic.fx",g.charactercreatoreffectbankoffset+3,0 );
-		//t.characterkit.effectforBeard = g.charactercreatoreffectbankoffset+4 ; LoadEffect (  "effectbank\\reloaded\\entity_basic.fx",g.charactercreatoreffectbankoffset+4,0 );
-		//t.characterkit.effectforBeardHighlight = g.charactercreatoreffectbankoffset+5 ; LoadEffect (  "effectbank\\reloaded\\entity_basic.fx",g.charactercreatoreffectbankoffset+5,0 );
 		t.characterkit.effectforAttachments = g.charactercreatoreffectbankoffset+2 ; LoadEffect (  "effectbank\\reloaded\\character_static.fx",g.charactercreatoreffectbankoffset+2,0 );
 		t.characterkit.effectforAttachmentsHighlight = g.charactercreatoreffectbankoffset+3 ; LoadEffect (  "effectbank\\reloaded\\character_static.fx",g.charactercreatoreffectbankoffset+3,0 );
 		t.characterkit.effectforBeard = g.charactercreatoreffectbankoffset+4 ; LoadEffect (  "effectbank\\reloaded\\character_static.fx",g.charactercreatoreffectbankoffset+4,0 );
@@ -376,7 +413,7 @@ void characterkit_loadEffects ( void )
 	SetEffectConstantV (  t.characterkit.effectforAttachments, "AmbiColor" , g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforBeard, "AmbiColor" , g.characterkitvector );
 
-	SetVector4 (  g.characterkitvector,500000,0,0,0 );
+	SetVector4 (  g.characterkitvector,500000, 1, 0, 0 );
 	SetEffectConstantV (  t.characterkit.effectforAttachments,"EntityEffectControl",g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforAttachmentsHighlight,"EntityEffectControl",g.characterkitvector );
 	SetEffectConstantV (  t.characterkit.effectforBeard,"EntityEffectControl",g.characterkitvector );
@@ -472,6 +509,7 @@ void characterkit_free ( void )
 	UnDim (  t.characterkitheadbank_s );
 	UnDim (  t.characterkitbodybank_s );
 	UnDim (  t.characterkitweaponbank_s );
+	UnDim (  t.characterkitprofilebank_s );
 
 	t.characterkit.bodyindexloaded=-1;
 	t.characterkit.headindexloaded=-1;
@@ -724,31 +762,29 @@ void characterkit_loop ( void )
 
 void characterkit_alignUI ( void )
 {
-
-	t.slidersmenu[t.characterkit.properties1Index].ttop= (GetChildWindowHeight() / 2 ) - 281 -3;
-	t.slidersmenu[t.characterkit.properties1Index].tleft= (GetChildWindowWidth() ) - 265;
+	int iMovePanelUp = 32-((GetChildWindowHeight()/2)-281-3);
+	t.slidersmenu[t.characterkit.properties1Index].ttop = ((GetChildWindowHeight()/2)-281-3)+iMovePanelUp;
+	t.slidersmenu[t.characterkit.properties1Index].tleft = (GetChildWindowWidth() ) - 265;
 
 	if (  t.characterkitcontrol.customHeadMode  !=  0 ) 
 	{
 		t.slidersmenuvalue[t.characterkit.properties1Index][1].gadgettype = -1;
 		t.slidersmenuvalue[t.characterkit.properties1Index][2].gadgettype = -1;
 		t.slidersmenuvalue[t.characterkit.properties1Index][12].gadgettype = -1;
-
 		t.slidersmenuvalue[t.characterkit.properties1Index][1].name_s = "";
 		t.slidersmenuvalue[t.characterkit.properties1Index][2].name_s = "";
 		t.slidersmenuvalue[t.characterkit.properties1Index][12].name_s = "";
-
+		t.slidersmenuvalue[t.characterkit.properties1Index][13].name_s = "";
 	}
 	else
 	{
 		t.slidersmenuvalue[t.characterkit.properties1Index][1].gadgettype = 0;
 		t.slidersmenuvalue[t.characterkit.properties1Index][2].gadgettype = 0;
 		t.slidersmenuvalue[t.characterkit.properties1Index][12].gadgettype = 1;
-
 		t.slidersmenuvalue[t.characterkit.properties1Index][1].name_s = "Character View Angle";
 		t.slidersmenuvalue[t.characterkit.properties1Index][2].name_s = "Character View Height";
 		t.slidersmenuvalue[t.characterkit.properties1Index][12].name_s = "Weapon";
-
+		t.slidersmenuvalue[t.characterkit.properties1Index][13].name_s = "Profile";
 	}
 
 	t.txpos = (GetChildWindowWidth() ) - 230;
@@ -758,36 +794,47 @@ void characterkit_alignUI ( void )
 
 	t.importerTabs[3].x = t.txpos;
 	t.importerTabs[3].y = (GetChildWindowHeight() / 2) -180;
+	t.importerTabs[3].y += iMovePanelUp;
 
 	t.importerTabs[1].x = t.txpos;
 	t.importerTabs[1].y = (GetChildWindowHeight() / 2) -180 + 32;
+	t.importerTabs[1].y += iMovePanelUp;
 
 	t.importerTabs[4].x = t.txpos;
 	t.importerTabs[4].y = (GetChildWindowHeight() / 2) -180 + 64;
+	t.importerTabs[4].y += iMovePanelUp;
 
 	t.importerTabs[2].x = t.txpos;
 	t.importerTabs[2].y = (GetChildWindowHeight() / 2) -180 + 96;
+	t.importerTabs[2].y += iMovePanelUp;
 
 	t.importerTabs[7].x = t.txpos;
 	t.importerTabs[7].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 32 + t.toffset;
+	t.importerTabs[7].y += iMovePanelUp;
 
 	t.importerTabs[12].x = t.txpos;
 	t.importerTabs[12].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 64 + t.toffset;
+	t.importerTabs[12].y += iMovePanelUp;
 
 	t.importerTabs[9].x = t.txpos;
 	t.importerTabs[9].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 96 + t.toffset;
+	t.importerTabs[9].y += iMovePanelUp;
 
 	t.importerTabs[8].x = t.txpos;
 	t.importerTabs[8].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 128 + t.toffset;
+	t.importerTabs[8].y += iMovePanelUp;
 
 	t.importerTabs[10].x = t.txpos;
 	t.importerTabs[10].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 160 + t.toffset;
+	t.importerTabs[10].y += iMovePanelUp;
 
 	t.importerTabs[11].x = t.txpos;
 	t.importerTabs[11].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 + t.toffset;
+	t.importerTabs[11].y += iMovePanelUp;
 
 	t.importerTabs[5].x = t.txpos;
-	t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 +90;
+	t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 + 90 + 38;
+	t.importerTabs[5].y += iMovePanelUp;
 
 	t.importerTabs[6].x = 40;
 	t.importerTabs[6].y = 40;
@@ -853,9 +900,6 @@ void characterkit_draw ( void )
 		t.characterkit.inUse = 0;
 
 	}
-
-return;
-
 }
 
 void characterkit_draw_buttons ( void )
@@ -972,23 +1016,7 @@ void characterkit_update_object ( void )
 			t.tobj=t.characterkit.objectstart+t.assetsequence;
 			if (  FileExist(t.tccimesh_s.Get())  ==  0  )  ExitPrompt (  cstr( cstr("Can't find ")+t.tccimesh_s).Get(), "Character Creator Error" );
 			if (  ObjectExist(t.tobj) == 1  )  DeleteObject (  t.tobj );
-			/*      
-			while (  SpaceKey()  ==  0 ) 
-			{
-				SetCursor (  0,0 );
-				Cls (  );
-				Print (  t.tasset_s+t.xextra_s+".X" );
-				Sync (  );
-			}
-			}
-			*/    
 			LoadObject (  t.tccimesh_s.Get(),t.tobj );
-//    `for tcount = 0 to 3
-
-//     `set character creator tones tobj,tcount,-1,0,0,0.5
-
-//    `next tcount
-
 			if (  ImageExist(t.characterkit.imagestart+t.tassetimg+0) == 1  )  DeleteImage (  t.characterkit.imagestart+t.tassetimg+0 );
 			if (  ImageExist(t.characterkit.imagestart+t.tassetimg+1) == 1  )  DeleteImage (  t.characterkit.imagestart+t.tassetimg+1 );
 			if (  FileExist(t.tccidiffuse_s.Get())  ==  0  )  ExitPrompt (  cstr(cstr("Can't find ")+t.tccidiffuse_s).Get(), "Character Creator Error" );
@@ -1089,12 +1117,6 @@ void characterkit_update_object ( void )
 					if (  t.Bip01_Headgear  <=  0  )  t.Bip01_Headgear = getlimbbyname(t.characterkit.objectstart+2, "Bip01_FacialHair");
 					if (  ObjectExist(t.tobj)  ==  1 ) 
 					{
-//       `position object tobj,LimbPositionX(t.characterkit.objectstart+2,tBip01_FacialHair),LimbPositionY(t.characterkit.objectstart+2,tBip01_FacialHair),LimbPositionZ(t.characterkit.objectstart+2,tBip01_FacialHair)
-
-//       `offset limb t.characterkit.objectstart+2,Bip01_Headgear,0,0,-1
-
-//       `scale limb t.characterkit.objectstart+2,Bip01_Headgear,630,630,630
-
 						GlueObjectToLimbEx (  t.tobj,t.characterkit.objectstart+2,t.Bip01_Headgear,2 );
 					}
 				}
@@ -1146,7 +1168,6 @@ void characterkit_update_object ( void )
 
 void characterkit_save_entity ( void )
 {
-
 	//  Store old dir
 	t.tolddir_s=GetDir();
 
@@ -1184,9 +1205,6 @@ void characterkit_save_entity ( void )
 		}
 	}
 
-//  `tSaveFile$ = fpscrootdir$+"\\Files\\entitybank\\user\\charactercreator\\" + tname$+".fpe"
-
-
 	t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
 	t.tcopyto_s = t.tSaveFile_s;
 	if (  cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
@@ -1199,30 +1217,83 @@ void characterkit_save_entity ( void )
 	OpenToRead (  1, t.tcopyfrom_s.Get() );
 	OpenToWrite (  2,t.tcopyto_s.Get() );
 
+	// go through all source FPE
 	t.tcount = 0;
 	while (  FileEnd(1)  ==  0 ) 
 	{
+		// get line by line
 		t.ts_s = ReadString ( 1 );
-		//  adjust offset for male/female
+
+		// adjust offset for male/female
 		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "offy" ) 
 		{
 			t.ts_s = "offy          = -6";
 			if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale" || cstr(Lower(Left(t.ts_s.Get(),7)))  ==  "1_fmale"  )  t.ts_s  =  "offy           =  -4";
 		}
+
+		// update description
 		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
+
+		// update weapon carried by character if any
 		if (  cstr(Lower(Left(t.ts_s.Get(),9)))  ==  "hasweapon" ) 
 		{
 			t.ts_s = "";
 			if ( strlen( t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s.Get()) > 1 )
 			{
-				t.ts_s = cstr("hasweapon     = modern\\") + t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s;
+				t.ts_s = cstr("hasweapon     = ") + t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s;
 			}
 			if (  t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s  ==  "None"  )  t.ts_s  =  "";
 		}
 
-		WriteString (  2,t.ts_s.Get() );
+		// profile controls the animation sets exported
+		if ( cstr(Lower(Left(t.ts_s.Get(),7))) == "animmax" 
+		||   cstr(Lower(Left(t.ts_s.Get(),16))) == "playanimineditor" 
+		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "anim0" 
+		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "anim1" 
+		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "anim2" 
+		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "anim3" 
+		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "anim4" 
+		||   cstr(Lower(Left(t.ts_s.Get(),20))) == ";character animation" 
+		||   cstr(Lower(Left(t.ts_s.Get(),4))) == "csi_" 
+		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "speed" 
+		||   cstr(Lower(Left(t.ts_s.Get(),3))) == ";ai" 
+		||   cstr(Lower(Left(t.ts_s.Get(),6))) == "aimain" )
+		{
+			// first step is blank out old animation data from source FPE
+			continue;
+		}
+		if ( cstr(Lower(Left(t.ts_s.Get(),5))) == ";anim" )
+		{
+			// get anim profile name (references file of same name)
+			cstr tanimprofile_s = g.fpscrootdir_s+"\\Files\\characterkit\\AnimProfiles\\"+t.slidersmenuvalue[t.characterkit.properties1Index][13].value_s+".txt";
+
+			// copy contents of profile into dest FPE now
+			if ( FileExist ( tanimprofile_s.Get() ) == 1 )
+			{
+				if ( FileOpen(3) == 1 ) CloseFile ( 3 );
+				OpenToRead ( 3, tanimprofile_s.Get() );
+				while ( FileEnd(3) == 0 ) 
+				{
+					cstr tProfileLine_s = ReadString ( 3 );
+					WriteString ( 2, tProfileLine_s.Get() );
+				}
+				CloseFile(3);
+			}
+			else
+			{
+				WriteString ( 2, ";Animation Profile Not Found" );
+			}
+
+			// go to next line in source FPE
+			continue;
+		}
+
+		// write line (changed or not) to the destination FPE
+		WriteString ( 2, t.ts_s.Get() );
+
+		// on the second line write, add lines for character creator specific data
 		++t.tcount;
-		if (  t.tcount  ==  2 ) 
+		if ( t.tcount == 2 ) 
 		{
 			WriteString (  2,"" );
 			WriteString (  2,";character creator" );
@@ -1243,13 +1314,12 @@ void characterkit_save_entity ( void )
 		}
 	}
 	
+	// close file handling
 	CloseFile (  1 );
 	CloseFile (  2 );
 	
-
-	//  Save Thumbnail
+	// Save Thumbnail
 	CreateBitmap (  32,64,64 );
-//	CreateBitmap ( 32, 1600, 500 );
 	SetCurrentBitmap (  32 );
 	SetCameraAspect (  1.0 );
 	//  Make a white background Box (  )
@@ -1267,7 +1337,6 @@ void characterkit_save_entity ( void )
 			t.tfound = 1;
 		}
 	}
-	//MakeObjectSphere (  t.twhiteobj, 500 );
 	MakeObjectBox (  t.twhiteobj,200000,200000,1 );
 	SetObjectLight (  t.twhiteobj,0 );
 	LockObjectOn (  t.twhiteobj );
@@ -1314,7 +1383,6 @@ void characterkit_save_entity ( void )
 	t.tSaveThumb_s = cstr(Left(t.tcopyto_s.Get(),Len(t.tcopyto_s.Get())-4)) + ".bmp";
 	if (  FileExist ( t.tSaveThumb_s.Get())  ==  1  )  DeleteAFile (  t.tSaveThumb_s.Get() ) ;
 	GrabImage (  g.importermenuimageoffset+50,0,0,64,64,3 );
-	//GrabImage (  g.importermenuimageoffset+50,0,0,1600,500,3 );
 	t.tSprite = 100;
 	while ( SpriteExist (t.tSprite) == 1 ) 
 	{
@@ -1322,7 +1390,6 @@ void characterkit_save_entity ( void )
 	}
 	SaveImage (  t.tSaveThumb_s.Get(), g.importermenuimageoffset+50 );
 
-	///Sprite ( 43125, 50, 50, g.importermenuimageoffset+50 );
 	DeleteImage (  g.importermenuimageoffset+50 );
 
 	DeleteObject (  t.twhiteobj );
@@ -1955,12 +2022,6 @@ void characterkit_thumbgadget ( void )
 			t.tpickedthumbx_f = Floor(((t.inputsys.xmouse - t.ttopx) / 70.0) + 1.0);
 			t.tpickedthumby_f = Floor(((t.inputsys.ymouse - t.ttopy) / 70.0) + 1.0);
 		}
-//   `set cursor 0,0
-
-//   `print tpickedthumbx#
-
-//   `print tpickedthumby#
-
 		if (  t.characterkit.selected  !=  99 ) 
 		{
 			t.tpickedthumb_f = (4.0 * (t.tpickedthumby_f-1.0)) + t.tpickedthumbx_f;
@@ -1970,7 +2031,6 @@ void characterkit_thumbgadget ( void )
 			t.tpickedthumb_f = (8.0 * (t.tpickedthumby_f-1.0)) + t.tpickedthumbx_f;
 		}
 		t.tpickedthumb = t.tpickedthumb_f;
-//   `print tpickedthumb
 
 		//  highlight the selected one
 		if (  t.characterkit.selected  !=  99 ) 
@@ -2076,7 +2136,6 @@ return;
 
 void characterkit_loadCCI ( void )
 {
-
 	t.tccimesh_s = "";
 	t.tccidiffuse_s = "";
 	t.tccinormal_s = "";
@@ -2086,55 +2145,38 @@ void characterkit_loadCCI ( void )
 	if (  FileOpen(10)  )  CloseFile (  10 );
 
 	OpenToRead (  10, t.tcciloadname_s.Get() );
-
-		while (  FileEnd(10)  ==  0 ) 
-		{
-			t.tline_s = ReadString ( 10 );
-			t.tcciStat_s = Lower(FirstToken( t.tline_s.Get(), " "));
-			t.tcciValue_s = NextToken( " " );
-			if (  t.tcciValue_s  ==  "="  )  t.tcciValue_s  =  NextToken( " " );
-			if (  t.tcciStat_s  ==  "mesh"  )  t.tccimesh_s  =  t.tpath_s+t.tcciValue_s;
-			if (  t.tcciStat_s  ==  "diffuse"  )  t.tccidiffuse_s  =  t.tpath_s+t.tcciValue_s;
-			if (  t.tcciStat_s  ==  "normal"  )  t.tccinormal_s  =  t.tpath_s+t.tcciValue_s;
-			if (  t.tcciStat_s  ==  "mask"  )  t.tccimask_s  =  t.tpath_s+t.tcciValue_s;
-		}
-
+	while (  FileEnd(10)  ==  0 ) 
+	{
+		t.tline_s = ReadString ( 10 );
+		t.tcciStat_s = Lower(FirstToken( t.tline_s.Get(), " "));
+		t.tcciValue_s = NextToken( " " );
+		if (  t.tcciValue_s  ==  "="  )  t.tcciValue_s  =  NextToken( " " );
+		if (  t.tcciStat_s  ==  "mesh"  )  t.tccimesh_s  =  t.tpath_s+t.tcciValue_s;
+		if (  t.tcciStat_s  ==  "diffuse"  )  t.tccidiffuse_s  =  t.tpath_s+t.tcciValue_s;
+		if (  t.tcciStat_s  ==  "normal"  )  t.tccinormal_s  =  t.tpath_s+t.tcciValue_s;
+		if (  t.tcciStat_s  ==  "mask"  )  t.tccimask_s  =  t.tpath_s+t.tcciValue_s;
+	}
 	CloseFile (  10 );
 
-	if (  t.tccquick  ==  1 ) 
+	// if mesh does not exist (standalone), try DBP 
+	if ( FileExist ( t.tccimesh_s.Get() ) == 0 )
+	{
+		char pTryDBOVariant[1024];
+		strcpy ( pTryDBOVariant, t.tccimesh_s.Get() );
+		pTryDBOVariant[strlen(pTryDBOVariant)-2] = 0;
+		strcat ( pTryDBOVariant, ".dbo" );
+		if ( FileExist ( pTryDBOVariant ) == 1 )
+		{
+			// use DBO of mesh instead
+			t.tccimesh_s = pTryDBOVariant;
+		}
+	}
+
+	if ( t.tccquick  ==  1 ) 
 	{
 		t.tccquick = 0;
 		return;
 	}
-
-	//  Don't reset tones on changing parts
-	/*      
-	//  body
-	if (  t.assetsequence  ==  1 ) 
-	{
-		t.tnewred_f = -1;
-		t.tnewredshirt_f = -1;
-		t.tnewredtrousers_f = -1;
-		t.tnewredshoes_f = -1;
-	}
-	//  head
-	if (  t.assetsequence  ==  2 ) 
-	{
-		t.tnewred_f = -1;
-	}
-	//  beard
-	if (  t.assetsequence  ==  3 ) 
-	{
-		t.tnewredbeard_f = -1;
-	}
-	*/    
-	//  hat
-	if (  t.assetsequence  ==  4 ) 
-	{
-	}
-
-return;
-
 }
 
 void characterkit_pickSkinTone ( void )

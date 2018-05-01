@@ -19,15 +19,15 @@ function door_main(e)
 	 if g_Entity[e]['plrvisible'] == 1 then 
       if g_Entity[e]['haskey'] == 1 then 
 	   if GetGamePlayerStateXBOX() == 1 then
-        PromptLocalForVR(e,"The door is locked. Press Y button to unlock door")
+        Prompt("The door is locked. Press Y button to unlock door")
 	   else
-        PromptLocalForVR(e,"The door is locked. Press E key to unlock door")
+        Prompt("The door is locked. Press E key to unlock door")
 	   end
        if g_KeyPressE == 1 then 
         SetActivated(e,1)
        end
       else
-       PromptLocalForVR(e,"The door is locked. Find a key to unlock door")
+       Prompt("The door is locked. Find a key to unlock door")
       end
 	 end
     end
@@ -36,9 +36,9 @@ function door_main(e)
      -- door is unlocked and closed
      if g_Entity[e]['plrvisible'] == 1 then 
 	  if GetGamePlayerStateXBOX() == 1 then
-       PromptLocalForVR(e,"Press Y button to open door")
+       Prompt("Press Y button to open door")
 	  else
-       PromptLocalForVR(e,"Press E to open door")
+       Prompt("Press E to open door")
 	  end
       if g_KeyPressE == 1 and g_Entity[e]['animating'] == 0 and door_pressed == 0 then  
 	   SetAnimation(0)

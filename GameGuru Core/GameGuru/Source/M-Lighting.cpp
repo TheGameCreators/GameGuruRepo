@@ -4,34 +4,19 @@
 
 #include "gameguru.h"
 
-//  ***** Included Source File *****
-//  TMAPPER
-// 
-
 void lighting_refresh ( void )
 {
-
-	//  by default, no override
+	// by default, no override
 	t.lighting.override=0;
 
-	//  create infinilight list from all active entities
-	//t.t_s="";
+	// create infinilight list from all active entities
 	g.infinilightmax=0;
 	for ( t.tle = 1 ; t.tle<=  g.entityelementlist; t.tle++ )
 	{
-		//t.t_s += cstr("tle=");
-		//t.t_s += cstr(Str(t.tle));
-		//t.t_s += cstr(" ");
 		t.tlentid=t.entityelement[t.tle].bankindex;
-		//t.t_s += cstr("tlentid=");
-		//t.t_s += cstr(Str(t.tlentid));
-		//t.t_s += cstr(" ");
-		if (  t.tlentid>0 ) 
+		if ( t.tlentid>0 ) 
 		{
-			//t.t_s += cstr("ismarker=");
-			//t.t_s += cstr(Str(t.entityprofile[t.tlentid].ismarker));
-			//t.t_s += cstr(" ");
-			if (  t.entityprofile[t.tlentid].ismarker == 2 ) 
+			if ( t.entityprofile[t.tlentid].ismarker == 2 ) 
 			{
 				++g.infinilightmax;
 				Dim (  t.infinilight,g.infinilightmax  );
@@ -58,17 +43,11 @@ void lighting_refresh ( void )
 			t.entityelement[t.tle].eleprof.light.index=0;
 		}
 	}
-//  `exit prompt t$,""
 
-//  `end
-
-
-	//  clear old infini light history
+	// clear old infini light history
 	t.nearestlightindex[0]=0;
 	t.nearestlightindex[1]=0;
 	t.nearestlightindex[2]=0;
 	t.nearestlightindex[3]=0;
 	t.nearestlightindex[4]=0;
-
-return;
 }

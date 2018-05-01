@@ -194,23 +194,46 @@ void weapon_projectile_init ( void )
 		ExcludeOn (  t.tObjID );
 	}
 
-	//  default loading of default projectiles
-	for ( t.tdefaultload = 1 ; t.tdefaultload <= 3; t.tdefaultload++ )
+	// scan all projectiles in 'projectiletypes' folder
+	SetDir ( "gamecore" );
+	UnDim ( t.filelist_s );
+	buildfilelist("projectiletypes","");
+	SetDir ( ".." );
+	if ( ArrayCount(t.filelist_s) > 0 ) 
 	{
-		if ( t.tdefaultload == 1 ) { t.tProjectileName_s="rpggrenade" ; weapon_projectile_load ( ); }
-		if ( t.tdefaultload == 2 ) { t.tProjectileName_s="handgrenade" ; weapon_projectile_load ( ); }
-		if ( t.tdefaultload == 3 ) { t.tProjectileName_s="fireball" ; weapon_projectile_load ( );  }
-		if ( t.tResult ==  0  ) timestampactivity ( 0, "Failed to find projectile model when running weapon_projectile_init" );
+		for ( t.chkfile = 0 ; t.chkfile <= ArrayCount(t.filelist_s); t.chkfile++ )
+		{
+			t.file_s = t.filelist_s[t.chkfile];
+			if ( t.file_s != "." && t.file_s != ".." ) 
+			{
+				if ( cstr(Lower(Right(t.file_s.Get(),4))) == ".txt" ) 
+				{
+					// get folder name only
+					char pPathOnly[1024];
+					strcpy ( pPathOnly, t.file_s.Get() );
+					for ( int n = strlen(pPathOnly); n > 0; n-- )
+					{
+						if ( pPathOnly[n] == '\\' || pPathOnly[n] == '/' )
+						{
+							pPathOnly[n] = 0;
+							break;
+						}
+					}
+					t.tProjectileName_s = pPathOnly;
+					weapon_projectile_load ( );
+				}
+			}
+		}
 	}
 }
 
 void weapon_getprojectileid ( void )
 {
-	t.tProjectileType=0;
-	for ( t.tProj = 1 ; t.tProj<=  g.weaponSystem.numProjectiles; t.tProj++ )
+	t.tProjectileType = 0;
+	for ( t.tProj = 1 ; t.tProj <= g.weaponSystem.numProjectiles; t.tProj++ )
 	{
 		t.tProjType = t.WeaponProjectile[t.tProj].baseType;
-		if (  cstr(Lower(t.WeaponProjectileBase[t.tProjType].name_s.Get())) == t.tProjectileType_s ) 
+		if ( cstr(Lower(t.WeaponProjectileBase[t.tProjType].name_s.Get())) == t.tProjectileType_s ) 
 		{
 			t.tProjectileType=t.tProjType;
 		}
@@ -228,7 +251,7 @@ void NaughtNamedWeaponError ( char* error_s, int time )
 void weapon_projectile_free ( void )
 {
 	//  delete all projectiles (hide and reset them)
-	for ( t.tProj = 1 ; t.tProj<=  g.weaponSystem.numProjectiles; t.tProj++ )
+	for ( t.tProj = 1 ; t.tProj <= g.weaponSystem.numProjectiles; t.tProj++ )
 	{
 		if (  t.WeaponProjectile[t.tProj].activeFlag  ==  1 ) 
 		{
@@ -438,7 +461,7 @@ void weapon_projectile_loop ( void )
 							t.tmatindex=17 ; t.tsoundtrigger=t.material[t.tmatindex].impactid;
 							t.tspd_f=(t.material[t.tmatindex].freq*1.0)+Rnd(t.material[t.tmatindex].freq)*0.5;
 							t.tsx_f=t.tXNewPos_f ; t.tsy_f=t.terrain.waterliney_f ; t.tsz_f=t.tZNewPos_f;
-							t.tvol_f = 100.0f ; material_triggersound ( );
+							t.tvol_f = 100.0f ; material_triggersound ( 0 );
 							t.tthisprojectileexploded=1;
 
 							if (  t.game.runasmultiplayer == 1 ) 
@@ -655,11 +678,29 @@ void weapon_projectile_load ( void )
 	//  add a projectile type to the system. Takes; tProjectileName$
 	//  returns tResult, which is 0 (failed) or the index in WeaponProjectileBase() array
 
+	// three projectiles are considered defaults, so can pass in a short hand version 
+	cstr tProjectileFolder_s = t.tProjectileName_s + "\\";
+	if ( strcmp ( Lower(t.tProjectileName_s.Get()), "modern\\handgrenade" ) == NULL ) t.tProjectileName_s = "handgrenade";
+	if ( strcmp ( Lower(t.tProjectileName_s.Get()), "modern\\rpggrenade" ) == NULL ) t.tProjectileName_s = "rpggrenade";
+	if ( strcmp ( Lower(t.tProjectileName_s.Get()), "fantasy\\fireball" ) == NULL ) t.tProjectileName_s = "fireball";
+
+	// get name only
+	cstr tProjectileNameOnly_s = t.tProjectileName_s;
+	LPSTR pProjectileFolderName = t.tProjectileName_s.Get();
+	for ( int n = strlen(pProjectileFolderName)-1; n > 0; n-- )
+	{
+		if ( pProjectileFolderName[n] == '\\' )
+		{
+			tProjectileNameOnly_s = cstr(pProjectileFolderName+n+1);
+			break;
+		}
+	}
+
 	//  find a free slot to load this definition in, or quit if it already exists and return the ID
 	t.tNewProjBase = 0;
 	for ( t.tP = 1 ; t.tP <= g.weaponSystem.numProjectileBases; t.tP++ )
 	{
-		if (  t.WeaponProjectileBase[t.tP].name_s  ==  t.tProjectileName_s ) 
+		if (  t.WeaponProjectileBase[t.tP].name_s == t.tProjectileName_s ) 
 		{
 			t.tResult = t.tP ; return;
 		}
@@ -673,15 +714,15 @@ void weapon_projectile_load ( void )
 		}
 	}
 
-	//  if tNewProjBase is still zero, we didn't have enough slots. We'll need to grow the array and create new slots
-	//  TODO
-	if (  t.tNewProjBase  ==  0 ) 
+	//  if tNewProjBase is still zero, we didn't have enough slots
+	if ( t.tNewProjBase == 0 ) 
 	{
-		t.tResult = 0; return;
+		t.tResult = 0; 
+		return;
 	}
 
 	//  load in our Text (  file )
-	t.tTextFile_s=cstr("gamecore\\projectileTypes\\") + t.tProjectileName_s + ".txt";
+	t.tTextFile_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + tProjectileNameOnly_s + ".txt";
 	weapon_loadtextfile ( );
 	if (  t.tResult  ==  0 ) 
 	{
@@ -743,10 +784,11 @@ void weapon_projectile_load ( void )
 	t.tInField_s = "soundInterval" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].soundInterval = t.value1_f ;
 	t.tInField_s = "particleType" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].particleType = t.value1_f ;
 	t.tInField_s = "overridespotlighting" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].overridespotlighting = t.value1_f ;
-
+	t.tInField_s = "noZWrite" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].noZWrite = t.value1_f ;
+	
 	//  LoadObject (  )
 	t.tInField_s = "object" ; weapon_readfield ( );
-	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + t.value_s;
+	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
 
 	weapon_loadobject ( );
 	if (  t.tObjID  ==  0 ) 
@@ -757,7 +799,7 @@ void weapon_projectile_load ( void )
 
 	//  load diffuse texture
 	t.tInField_s = "textureD" ; weapon_readfield ( );
-	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + t.value_s;
+	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
 	weapon_loadtexture ( );
 	if (  t.tImgID  ==  0 ) 
 	{
@@ -767,7 +809,7 @@ void weapon_projectile_load ( void )
 
 	//  load normal texture
 	t.tInField_s = "textureN" ; weapon_readfield ( );
-	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + t.value_s;
+	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
 	weapon_loadtexture ( );
 	if (  t.tImgID  ==  0 ) 
 	{
@@ -777,7 +819,7 @@ void weapon_projectile_load ( void )
 
 	//  load specular texture
 	t.tInField_s = "textureS" ; weapon_readfield ( );
-	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + t.value_s;
+	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
 	weapon_loadtexture ( );
 	if (  t.tImgID  ==  0 ) 
 	{
@@ -790,9 +832,8 @@ void weapon_projectile_load ( void )
 	//  load shader if specified
 	t.teffectid=0;
 	t.tInField_s = "effect" ; weapon_readfield ( );
-	if (  Len(t.value_s.Get())<=2 ) 
+	if ( Len(t.value_s.Get())<=2 ) 
 	{
-		// DX11 use standard shader
 		SetObjectEffect ( t.tObjID, g.decaleffectoffset );
 	}
 	else
@@ -801,20 +842,26 @@ void weapon_projectile_load ( void )
 		t.teffectid=loadinternaleffect(t.tFileName_s.Get());
 		SetObjectEffect (  t.tObjID,t.teffectid );
 	}
-	SetObjectTransparency (  t.tObjID,6 );
 	t.WeaponProjectileBase[t.tNewProjBase].effectid = t.teffectid;
+
+	// apply no Zwrite if projectile flagged it
+	if ( t.WeaponProjectileBase[t.tNewProjBase].noZWrite == 1 )
+	{
+		DisableObjectZWrite ( t.tObjID );
+	}
+	SetObjectTransparency ( t.tObjID, 6 );
 
 	t.tInField_s = "sound" ; weapon_readfield(); t.sound_s = t.value_s;
 	if (  t.value_s  !=  "" ) 
 	{
-		t.tFileName_s = cstr("gamecore\\projectileTypes\\") + t.value_s ; weapon_loadsound ( );
+		t.tFileName_s = cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s ; weapon_loadsound ( );
 		t.WeaponProjectileBase[t.tNewProjBase].sound = t.tSndID;
 	}
 
 	t.tInField_s = "soundDeath" ; weapon_readfield(); t.sound_s = t.value_s;
 	if (  t.value_s  !=  "" ) 
 	{
-		t.tFileName_s = cstr("gamecore\\projectileTypes\\") + t.value_s ; weapon_loadsound ( );
+		t.tFileName_s = cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s ; weapon_loadsound ( );
 		t.WeaponProjectileBase[t.tNewProjBase].soundDeath = t.tSndID;
 	}
 

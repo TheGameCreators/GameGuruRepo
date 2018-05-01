@@ -25,8 +25,20 @@ struct CBChangePerTerrsainChunk
 	KMaths::Matrix mWorld;
 	KMaths::Matrix mView;
 	KMaths::Matrix mProjection;
-};				
+};
+struct CBChangePerTerrsainChunkPS
+{
+	GGCOLOR vMaterialEmissive;
+	float fAlphaOverride;
+	float fRes1;
+	float fRes2;
+	float fRes3;
+	KMaths::Matrix mViewInv;
+	KMaths::Matrix mViewProj;
+	KMaths::Matrix mPrevViewProj;
+};
 ID3D11Buffer* m_pCBChangePerTerrsainChunk = NULL;
+ID3D11Buffer* m_pCBChangePerTerrsainChunkPS	= NULL;
 #else
 #endif
 
@@ -2118,6 +2130,23 @@ void BT_Intern_Render()
 		return;
 	}
 
+	// 100418 - seems when skip terrain render (.superflat), viewport is not set (and needs to be)
+	// look FURTHER into this to determine if 1920 or 1772 width viewport is correct for terrain
+	// 160418 - ensure this fix does not interfere with 64x64 viewport setting for bitmap capture
+	if ( g_pGlob->iCurrentBitmapNumber < 32 )
+	{
+		tagCameraData* Camera = (tagCameraData*)GetCameraInternalData(0);
+		D3D11_VIEWPORT vp;
+		GGVIEWPORT* pvp = &Camera->viewPort3D;
+		vp.TopLeftX = pvp->X;
+		vp.TopLeftY = pvp->Y;
+		vp.Width = (FLOAT)pvp->Width;
+		vp.Height = (FLOAT)pvp->Height;
+		vp.MinDepth = pvp->MinZ;
+		vp.MaxDepth = pvp->MaxZ;
+		SetupSetViewport ( g_pGlob->dwRenderCameraID, &vp, NULL );
+	}
+
 	try
 	{
 		//Clear statistics
@@ -2320,6 +2349,17 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 		if ( FAILED ( m_pD3D->CreateBuffer ( &bdChangePerTerrsainChunkBuffer, NULL, &m_pCBChangePerTerrsainChunk ) ) )
 			return;
 	}
+	if ( m_pCBChangePerTerrsainChunkPS == NULL )
+	{
+		D3D11_BUFFER_DESC bdChangePerTerrsainChunkBuffer;
+		std::memset ( &bdChangePerTerrsainChunkBuffer, 0, sizeof ( bdChangePerTerrsainChunkBuffer ) );
+		bdChangePerTerrsainChunkBuffer.Usage          = D3D11_USAGE_DEFAULT;
+		bdChangePerTerrsainChunkBuffer.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+		bdChangePerTerrsainChunkBuffer.CPUAccessFlags = 0;
+		bdChangePerTerrsainChunkBuffer.ByteWidth      = sizeof ( CBChangePerTerrsainChunkPS );
+		if ( FAILED ( m_pD3D->CreateBuffer ( &bdChangePerTerrsainChunkBuffer, NULL, &m_pCBChangePerTerrsainChunkPS ) ) )
+			return;
+	}
 
 	// Transforms
 	GGSetTransform(GGTS_PROJECTION,&Camera->matProjection);
@@ -2438,6 +2478,18 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 					}
 					Mesh->pVertexShaderEffect->m_VecClipPlaneEffectHandle->AsVector()->SetFloatVector ( (float*)&vec );
 				}
+
+				// Ensure normal invert in effect for terrain (NOTE: not liking duplicated of code)
+				#ifdef DX11
+				GGHANDLE pArtFlags = Mesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+				if ( pArtFlags )
+				{
+					float fInvertNormal = 0.0f;
+					if ( Mesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+					GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, 0.0f, 0.0f, 0.0f );
+					pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+				}
+				#endif
 
 				// apply effect ready for rendering
 				hTechniqueUsed->GetPassByIndex(0)->Apply(0,m_pImmediateContext);
@@ -3101,6 +3153,29 @@ static void BT_Intern_RenderSector(s_BT_Sector* Sector)
 				m_pImmediateContext->UpdateSubresource( m_pCBChangePerTerrsainChunk, 0, NULL, &cb, 0, 0 );
 				m_pImmediateContext->VSSetConstantBuffers ( 0, 1, &m_pCBChangePerTerrsainChunk );
 				m_pImmediateContext->PSSetConstantBuffers ( 0, 1, &m_pCBChangePerTerrsainChunk );
+			}
+			if ( m_pCBChangePerTerrsainChunkPS )
+			{
+				CBChangePerTerrsainChunkPS cbps;
+				//cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r,pMesh->mMaterial.Emissive.g,pMesh->mMaterial.Emissive.b,pMesh->mMaterial.Emissive.a);
+				//if ( pMesh->bAlphaOverride == true )
+				//	cbps.fAlphaOverride = (pMesh->dwAlphaOverride>>24)/255.0f;
+				//else
+				//	cbps.fAlphaOverride = 1.0f;
+				cbps.vMaterialEmissive = GGCOLOR(0,0,0,0);
+				cbps.fAlphaOverride = 1.0f;
+
+				// feed camera zero matrices into pixel shader constant buffer
+				tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData ( 0 );
+				float fDet = 0.0f;
+				GGMatrixInverse ( &cbps.mViewInv, &fDet, &m_Camera_Ptr->matView );
+				GGMatrixTranspose(&cbps.mViewInv,&cbps.mViewInv);
+				//cbps.mViewProj = g_matThisViewProj;
+				//GGMatrixTranspose(&cbps.mViewProj,&cbps.mViewProj);
+				//cbps.mPrevViewProj = g_matPreviousViewProj;
+				//GGMatrixTranspose(&cbps.mPrevViewProj,&cbps.mPrevViewProj);
+				m_pImmediateContext->UpdateSubresource( m_pCBChangePerTerrsainChunkPS, 0, NULL, &cbps, 0, 0 );
+				m_pImmediateContext->PSSetConstantBuffers ( 1, 1, &m_pCBChangePerTerrsainChunkPS );
 			}
 
 			// Index buffers

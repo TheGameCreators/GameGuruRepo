@@ -11,6 +11,11 @@
 // core externs to globals
 extern LPSTR gRefCommandLineString;
 extern bool gbAlwaysIgnoreShaderBlobFile;
+extern bool g_VR920RenderStereoNow;
+extern float g_fVR920Sensitivity;
+
+// Globals
+int g_PopupControlMode = 0;
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
@@ -607,7 +612,7 @@ void common_init_globals ( void )
 	//  2 - reflection camera
 	//  3 - post process camera
 	//  4 - light ray camera
-	//  5 - dynamic terrain shadow texture cam (cheap shadow)
+	//  5 - NOT USED FROM MAR2018 dynamic terrain shadow texture cam (cheap shadow)
 	//  6 - left eye camera [rift]
 	//  7 - right eye camera [rift]
 	//  9 - map editor
@@ -835,7 +840,7 @@ void common_init_globals ( void )
 	g.titlessavefile_s = "settings.ini";
 	
 	//  Visual settings
-	g.cheapshadowhistorypacer_f = 0;
+	//g.cheapshadowhistorypacer_f = 0;
 
 	//t.visuals as visualstype;
 	//t.editorvisuals as visualstype;
@@ -2373,7 +2378,7 @@ void FPSC_Setup ( void )
 		CloseFile ( 1 );
 
 		// if VRQ, ensure serial code has not expired, otherwise ask for new serial code
-		if ( strlen(g.vrqcontrolmodeserialcode.Get()) > 0 )
+		if ( strlen(g.vrqcontrolmodeserialcode.Get()) > 1 )
 		{
 			// determine FROM and TO dates from serial code
 			if ( common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get()) == 0 )
@@ -2381,6 +2386,7 @@ void FPSC_Setup ( void )
 				// serial code expired
 				MessageBox ( NULL, "Your VRQUEST serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
 				g.vrqTriggerSerialCodeEntrySystem = 1;
+				g.vrqTriggerSoftwareToQuit = 1;
 			}
 			else
 			{
@@ -2392,6 +2398,7 @@ void FPSC_Setup ( void )
 		{
 			// no serial code found, ask for one
 			g.vrqTriggerSerialCodeEntrySystem = 1;
+			g.vrqTriggerSoftwareToQuit = 1;
 		}
 
 		// all VRQ is restricted content mode
@@ -2700,6 +2707,9 @@ void FPSC_Setup ( void )
 				}
 			}
 		}
+
+		// transfer SETUP.INI VRMODEMAG sensitivity setting to main engine
+		g_fVR920Sensitivity = g.gvrmodemag / 100.0f;
 	
 		//  option use use correct aspect ratio?
 		if (  g.gaspectratio == 1 ) 
@@ -2924,6 +2934,9 @@ void FPSC_Setup ( void )
 	
 		//  Main loop
 		timestampactivity(0,"Main Game Executable Loop Starts");
+
+		// after initial steroscopic fake load, switch to true stereo if used
+		g_VR920RenderStereoNow = true;
 	
 		//  One-off variable settings
 		t.game.set.resolution=0;
@@ -3124,12 +3137,12 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	terrain_setupedit ( );
 	terrain_make ( );
 
-	//  Create cheap shadow shader and apply
+	//  Create post process shader and apply
 	t.tsplashstatusprogress_s="INIT POST PROCESSING";
 	timestampactivity(0,t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate ( );
 	postprocess_general_init ( );
-	postprocess_forcheapshadows ( );
+	//postprocess_forcheapshadows ( );
 
 	//  Initialise ragdoll resources
 	t.tsplashstatusprogress_s="INIT RAGDOLL SYSTEM";
@@ -3866,6 +3879,60 @@ void popup_text_close ( void )
 	OpenFileMap (  2, "FPSPOPUP" );
 	SetFileMapDWORD (  2, 8, 1 );
 	SetEventAndWait (  2 );
+	g_PopupControlMode = 0;
+	Sleep(100);
+}
+
+void popup_text_change ( char* statusbar_s )
+{
+	OpenFileMap (  2, "FPSPOPUP" );
+	SetEventAndWait (  2 );
+	if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
+	{
+		SetFileMapString ( 2, 1000, statusbar_s );
+		SetFileMapDWORD ( 2, 4, 1 );
+		SetEventAndWait ( 2 );
+		//DWORD dwNow = timeGetTime();
+		//while (  GetFileMapDWORD( 2, 4 )  ==  1 && timeGetTime() > dwNow + 3000 ) 
+		//{
+		//	SetEventAndWait ( 2 );
+		//}
+	}
+}
+
+void popup_text ( char* statusbar_s )
+{
+	if ( g_PopupControlMode == 0 )
+	{
+		t.strwork = "" ; t.strwork = t.strwork + "1:popup_text "+statusbar_s;
+		timestampactivity(0, t.strwork.Get() );
+		OpenFileMap (  1,"FPSEXCHANGE" );
+		SetFileMapDWORD (  1, 750, 1 );
+		SetEventAndWait (  1 );
+		while (  1 ) 
+		{
+			OpenFileMap (  2, "FPSPOPUP" );
+			SetEventAndWait (  2 );
+			if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
+			{
+				SetFileMapString (  2, 1000, statusbar_s );
+				SetFileMapDWORD (  2, 4, 1 );
+				SetEventAndWait (  2 );
+				//DWORD dwNow = timeGetTime();
+				//while (  GetFileMapDWORD( 2, 4 )  ==  1 && timeGetTime() > dwNow + 3000 ) 
+				//{
+				//	SetEventAndWait (  2 );
+				//}
+				return;
+			}
+			Sync (  );
+		}
+		g_PopupControlMode = 1;
+	}
+	else
+	{
+		popup_text_change ( statusbar_s );
+	}
 }
 
 void loadresource ( void )
