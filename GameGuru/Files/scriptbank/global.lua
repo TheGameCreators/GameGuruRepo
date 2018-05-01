@@ -1758,6 +1758,18 @@ GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of
 
 GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
 
---]]
+SetSkyTo(str) : str=foldername of the sky you want to change to (i.e. ChangeSkyTo("dark"))
 
---SetSkyTo(str) : str=foldername of the sky you want to change to (i.e. ChangeSkyTo("dark"))
+// Lua control of dynamic light
+// get the light number using entity e number 
+// then use that in the other light functions
+lightNum = GetEntityLightNumber( e )
+x, y, z = GetLightPosition( lightNum )
+r, g, b = GetLightRGB( lightNum )
+range = GetLightRange( lightNum )
+// Set functions:
+SetLightPosition( lightNum, x, y, z )
+SetLightRGB( lightNum, r, g, b )
+SetLightRange( lightNum, range )   -- range is 1 .. 10000, values outide range are capped
+
+--]]
