@@ -1019,13 +1019,13 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     #else
      float4 rawdiffusemap = AlbedoMap.Sample(SampleWrap, attributes.uv);
      float3 rawnormalmap = NormalMap.Sample(SampleWrap, attributes.uv).rgb;
-     float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1) + (SpecularOverride-1.0);
+     float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1) + ((SpecularOverride-1.0)/10.0f);
      float3 rawmetalmap = float3(SpecValue,SpecValue,SpecValue);
      #ifdef AOISAGED
-      float GlossValue = (1.0f-min(AGEDMap.Sample(SampleWrap, attributes.uv).g, 1)) + (SpecularOverride-1.0);
+      float GlossValue = (1.0f-min(AGEDMap.Sample(SampleWrap, attributes.uv).g, 1)) + ((SpecularOverride-1.0)/10.0f);
       float3 rawglossmap = float3(GlossValue,GlossValue,GlossValue);
      #else
-      float GlossValue = (1.0f-min(GlossMap.Sample(SampleWrap, attributes.uv).r, 1)) + (SpecularOverride-1.0);
+      float GlossValue = (1.0f-min(GlossMap.Sample(SampleWrap, attributes.uv).r, 1)) + ((SpecularOverride-1.0)/10.0f);
       float3 rawglossmap = float3(GlossValue,GlossValue,GlossValue);
      #endif
     #endif
