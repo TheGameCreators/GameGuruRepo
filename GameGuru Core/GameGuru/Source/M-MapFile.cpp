@@ -799,6 +799,20 @@ void mapfile_savestandalone ( void )
 								}
 							}
 						}
+						if (strstr(tTempLine, "SetSkyTo(" )) {
+							char* pSkyFolder = strstr(tTempLine, "\"");
+							if (pSkyFolder)
+							{
+								pSkyFolder++;
+								char* pSkyFolderEnd = strstr(pSkyFolder, "\"");
+								if (pSkyFolderEnd)
+								{
+									*pSkyFolderEnd = '\0';
+									cstr tFolderToAdd = cstr(cstr("skybank\\") + cstr(pSkyFolder));
+									addfoldertocollection(tFolderToAdd.Get());
+								}
+							}
+						}
 					}
 					fclose ( tLuaScriptFile );
 				}
