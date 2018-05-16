@@ -2281,7 +2281,10 @@ void common_writeserialcode ( LPSTR pCode )
 {
 	char pAbsFilePath[1024];
 	strcpy ( pAbsFilePath, g.fpscrootdir_s.Get() );
-	strcat ( pAbsFilePath, "\\vrqcontrolmode.ini" );
+	if ( g.vrqoreducontrolmode == 2 )
+		strcat ( pAbsFilePath, "\\educontrolmode.ini" );
+	else
+		strcat ( pAbsFilePath, "\\vrqcontrolmode.ini" );
 	if ( FileExist(pAbsFilePath) == 1 ) DeleteFile ( pAbsFilePath );
 	if ( FileOpen(1) == 1 ) CloseFile (  1 );
 	OpenToWrite ( 1, pAbsFilePath );
@@ -2363,12 +2366,25 @@ void FPSC_Setup ( void )
 	}
 
 	// 050416 - get VRQUEST control flag and serial code
+	g.vrqoreducontrolmode = 0;
 	g.vrqcontrolmode = 0;
 	g.vrqcontrolmodeserialcode = "";
 	g.vrqTriggerSerialCodeEntrySystem = 0;
 	g.vrqTriggerSoftwareToQuit = 0;
 	t.tfile_s="vrqcontrolmode.ini";
 	if ( FileExist(t.tfile_s.Get()) == 1 ) 
+	{
+		g.vrqoreducontrolmode = 1;
+	}
+	else
+	{
+		t.tfile_s="educontrolmode.ini";
+		if ( FileExist(t.tfile_s.Get()) == 1 ) 
+		{
+			g.vrqoreducontrolmode = 2;
+		}
+	}
+	if ( g.vrqoreducontrolmode > 0 )
 	{
 		// read serial code from VRQ controlmode file
 		g.vrqcontrolmode = 1;
@@ -2384,7 +2400,7 @@ void FPSC_Setup ( void )
 			if ( common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get()) == 0 )
 			{
 				// serial code expired
-				MessageBox ( NULL, "Your VRQUEST serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
+				MessageBox ( NULL, "Your serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
 				g.vrqTriggerSerialCodeEntrySystem = 1;
 				g.vrqTriggerSoftwareToQuit = 1;
 			}

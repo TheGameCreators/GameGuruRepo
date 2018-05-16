@@ -627,6 +627,7 @@ struct Sglobals
 	int quickstartmenumode;
 	int quickparentalcontrolmode;
 	int quickparentalcontrolmodepassword[5];
+	int vrqoreducontrolmode;
 	int vrqcontrolmode;
 	cstr vrqcontrolmodeserialcode;
 	int vrqTriggerSerialCodeEntrySystem;
