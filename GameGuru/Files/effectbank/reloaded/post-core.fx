@@ -25,10 +25,15 @@ float gWeights[11] = { 0.015f, 0.035f, 0.25f, 0.4f, 0.8f, 1.0f, 0.8f, 0.4f, 0.25
 					  
 float2 ViewSize : ViewSize;
 float deltatime : deltatime;
+float time: Time;
 float4 ScrollScaleUV;
 float SpecularOverride;
 #ifdef CHROMATICABBERATIONLUA
 	float4 ChromaticAbberation = float4(0,0,0,0);
+#endif
+
+#ifdef UNDERWATERWAVE
+	float4 UnderWaterSettings = float4( 0.0 , 75.0, 0.015 , 0.0); // Active,SpeedX,Distortion
 #endif
 
 float4x4 g_ProjectionInv : ProjectionInverse;
@@ -186,6 +191,8 @@ float4 GaussFilter[9] =
 //   float2 ViewportRatio = {1.0,1.0 };
 //>;
 Texture2D frame : register( t0 );
+Texture2D underWaterWaveNormal : register( t1 );
+
 SamplerState SampleWrap
 {
     Filter = MIN_MAG_MIP_LINEAR;
@@ -895,8 +902,50 @@ float4 fxaa(uniform texture2D sampler0,float2 fcoords, float4 curcolor )
 float4 presentfxaa(output IN, uniform texture2D srcTex ) : COLOR
 {
     float2 texCoord = IN.uv;
+
+#ifdef PIXELLATEUV
+    int ir; 
+    ir = round(texCoord.x * PIXELLATEUVx );
+    texCoord.x = float(ir / PIXELLATEUVx );
+    ir = round(texCoord.y * PIXELLATEUVy);
+    texCoord.y = float(ir / PIXELLATEUVy);
+#endif
+
+#ifdef UNDERWATERWAVE
+	//PE: Underwater wave look.
+	if( UnderWaterSettings.x > 0 && texCoord.x >= 0.011 && texCoord.x <= 0.989 && texCoord.y >= 0.011 && texCoord.y <= 0.989 ) {
+		float2 waveuv = texCoord * UnderWaterSettings.w; // scale normalmap up.
+		waveuv.y += (time/UnderWaterSettings.y); // UnderWaterSettings.y
+		float4 normalmap = underWaterWaveNormal.Sample(SampleWrap, waveuv );
+		float3 dudv = ( normalmap.rgb * 2.0 - 1.0) * UnderWaterSettings.z;
+		texCoord =  clamp( texCoord + dudv.rg ,0.0,1.0 );
+	}
+#endif
+
     float4 ScreenMap = srcTex.Sample(SampleWrap, texCoord);
+
+#ifdef PIXELLATEUV
+	//PE: Instead of fxaa, blur image to stop flicker.
+
+	float4 fxaatex = ScreenMap;
+	float2 PixelOffsets [ 6 ];
+	//reduced to 5 samples for same quality as normal.
+	PixelOffsets[ 0 ] = float2( 1.3846153846, 0.0 );
+	PixelOffsets[ 1 ] = float2( 1.3846153846, 1.3846153846 );
+	PixelOffsets[ 2 ] = float2( 3.2307692308, 3.2307692308 );
+	PixelOffsets[ 3 ] = float2( -1.3846153846, -1.3846153846 );
+	PixelOffsets[ 4 ] = float2( -3.2307692308, -3.2307692308 );
+
+	float2 scale = float2( 1/ViewSize.x,1/ViewSize.y);
+	for (int i = 0; i < 5; i++) {
+		fxaatex +=  srcTex.Sample(SampleWrap, texCoord + PixelOffsets[i].xy*scale );
+	}
+	fxaatex /= 6.0;
+	
+#else
     float4 fxaatex = fxaa( srcTex , texCoord , ScreenMap );
+#endif
+
 
 #ifdef COLORVIBRANCE
 
@@ -919,6 +968,18 @@ float4 presentfxaa(output IN, uniform texture2D srcTex ) : COLOR
 #endif
 	
 #endif
+
+
+#ifdef PIXELLATEUV
+     // no dither on this effect.
+     ir = round(fxaatex.r * PIXELLATECOLOR );
+     fxaatex.r = float(ir / PIXELLATECOLOR );
+     ir = round(fxaatex.g * PIXELLATECOLOR );
+     fxaatex.g = float(ir / PIXELLATECOLOR );
+     ir = round(fxaatex.b * PIXELLATECOLOR );
+     fxaatex.b = float(ir / PIXELLATECOLOR );
+#endif
+
 
     return fxaatex;
 }
@@ -1034,9 +1095,8 @@ float3 bestcolorc64( float3 oldcolor )
    c64col[26] = float3(255.0,255.0,255.0);
    float3 match = float3(0.0,0.0,0.0);
    float best_dot = 999999.0;
-   // PE: Stupid way slow but works, need a vacation to make it faster :)
-   // cybernescence / lee : got a suggestion ?
-   // perhaps i generic postp color conversion texture ? could be used for all color changes.
+   // PE: Stupid way slow but works.
+   // perhaps i generic postp color conversion texture ? would be faster.
    for (int c=26;c>=0;c--) {
       float this_dot = distance((c64col[c]/255.0),oldcolor);
       if (this_dot<best_dot) {

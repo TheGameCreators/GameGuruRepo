@@ -84,6 +84,7 @@ g_MouseY = 0
 g_MouseWheel = 0
 g_MouseClick = 0
 g_EntityElementMax = 0
+g_PlayerUnderwaterMode = 0
 
 -- Mappable in-game keys
 g_PlrKeyW = 0

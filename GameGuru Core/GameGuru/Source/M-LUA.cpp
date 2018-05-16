@@ -305,6 +305,8 @@ void lua_loop_begin ( void )
 	// continuing settinf of LUA globals
 	LuaSetInt ( "g_EntityElementMax", g.entityelementlist );	
 
+	LuaSetInt("g_PlayerUnderwaterMode", g.underwatermode); // PE: underwater mode active.
+
 	// 020316 - call the global loop once per cycle (for things like loading game states)
 	if ( t.playercontrol.gameloopinitflag > 0 ) t.playercontrol.gameloopinitflag--;
 	if ( t.playercontrol.gameloopinitflag == 0 )

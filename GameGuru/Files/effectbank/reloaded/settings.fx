@@ -11,7 +11,7 @@
 //#define USEPBRTERRAIN // USE PBR terrain even if you have pbroverride=0 ( medium, only work with one cascade (3) using pbroverride=0 ).
 //#define USEPBRVEGETATION // USE PBR for vegetation even if you have pbroverride=0
 #define FASTROCKTEXTURE // disable tri-planar rock for faster terrain. 
-
+#define UNDERWATERWAVE // Wave screen when under water.
 #define IMPROVEDISTANCE // Improve distance terrain.
 #define MEDIUMIMPROVEDISTANCE // PE: missing in PBR, Improve medium distance terrain.
 #define WATERREFLECTIONMEDIUM // water reflection use medium.
@@ -25,12 +25,24 @@
 //#define RETRODITHER64 // make a retro C64 dither look.
 //#define CHROMATICABBERATION (7.0,9.0,3.0)
 //#define CHROMATICABBERATIONLUA // Define this if you want to use SetShaderVariable(0,"ChromaticAbberation", R split , G split, B split, 0=Disable,1=Enable) from lua.
+//#define PIXELLATEUV // PE: Anoher great Retro effect.
+
 #define DOF // enable / disable depth of field.
 #define MOTIONBLUR // enable / disable motion blur.
 //#define NOSAO
 
 //NOTE: Below settings can be used to finetune a level.
 //If you dont know what the delow settings is, there no need to change them.
+
+//Control how PBR is presented.
+#define RealisticVsCool (0.60)
+#define AmountExtractLight (0.50)
+#define AmbientPBRAdd (1.325) //PE: Some ambient is lost in PBR. make it look more like terrain.
+
+#define PIXELLATEUVx (250.0) // PE: used by PIXELLATEUV to define pixel size x.
+#define PIXELLATEUVy (200.0) // PE: used by PIXELLATEUV to define pixel size y.
+#define PIXELLATECOLOR (16.0) // PE: (16.0) Reduce palette used. Lower = Less colors.
+
 //#define SPECULARCAMERA
 //#define SPECULARCAMERAINTENSITY (0.4)
 
