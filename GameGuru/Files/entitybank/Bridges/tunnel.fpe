@@ -2,8 +2,8 @@
 desc          = Tunnel
 
 ;visualinfo
-textured      = Tunnel_D.dds
-effect        = effectbank\reloaded\entity_basic.fx
+textured      = Tunnel_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
 castshadow    = 0
 
 ;ai
