@@ -2062,10 +2062,10 @@ void game_main_loop ( void )
 			if (  g.globals.ideinputmode == 1 ) 
 			{
 				g.lmlightmapnowmode=0;
-				if (KeyState(g.keymap[59]) && (KeyState(g.keymap[42]) | KeyState(g.keymap[54])))  g.lmlightmapnowmode = 1;
-				if (KeyState(g.keymap[60]) && (KeyState(g.keymap[42]) | KeyState(g.keymap[54])))  g.lmlightmapnowmode = 2;
-				if (KeyState(g.keymap[61]) && (KeyState(g.keymap[42]) | KeyState(g.keymap[54])))  g.lmlightmapnowmode = 3;
-				if (KeyState(g.keymap[62]) && (KeyState(g.keymap[42]) | KeyState(g.keymap[54])))  g.lmlightmapnowmode = 4;
+				if (KeyState(g.keymap[59]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 1;
+				if (KeyState(g.keymap[60]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 2;
+				if (KeyState(g.keymap[61]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 3;
+				if (KeyState(g.keymap[62]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 4;
 				if (  g.lmlightmapnowmode>0 )
 				{
 					//  User prompt

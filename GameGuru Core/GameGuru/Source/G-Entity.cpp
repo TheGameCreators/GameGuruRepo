@@ -1571,6 +1571,7 @@ void entity_hasbulletrayhit(void)
 	t.brayx2_f = t.x2_f; t.brayy2_f = t.y2_f; t.brayz2_f = t.z2_f;
 	t.bulletrayhit = 0; t.bulletraylimbhit = -1; t.tttriggerdecalimpact = 0;
 	t.tfoundentityindexhit = -1;
+	t.tmaterialvalue = -1;
 	
 	// first cast a ray at any terrain
 	if (ODERayTerrain(t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f) == 1)
@@ -1725,8 +1726,11 @@ void entity_hasbulletrayhit(void)
 				}
 			}
 		}
-		if (  t.tmaterialvalue>0  )  t.tttriggerdecalimpact = 10+t.tmaterialvalue;
+		if (  t.tmaterialvalue >= 0  ) t.tttriggerdecalimpact = 10+t.tmaterialvalue;
 	}
+
+	// ensure material index never goes negative
+	if ( t.tmaterialvalue < 0 ) t.tmaterialvalue = 0;
 
 	//  calculate increment along ray
 	t.tbix_f=t.brayx2_f-t.brayx1_f;
