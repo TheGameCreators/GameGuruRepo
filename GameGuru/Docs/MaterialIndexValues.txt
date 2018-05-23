@@ -18,3 +18,5 @@
 //  16   = D Old Wood
 //  17   = W Shallow Water
 //  18   = U Underwater
+
+// NOTES: When you specify a materialindex value in the FPE file, and you are using PBR, and do not specify a _gloss, _metalness or _specular texture file, the engine will look up the above material gloss and metalness texture reference from "Files\effectbank\reloaded\media\materials".

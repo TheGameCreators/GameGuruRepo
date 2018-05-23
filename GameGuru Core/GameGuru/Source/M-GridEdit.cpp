@@ -179,7 +179,7 @@ void mapeditorexecutable ( void )
 	{
 		// Welcome quick start page
 		g.quickstartmenumode = 0;
-		if ( g.gshowonstartup == 1 ) 
+		if ( g.gshowonstartup == 1 || g.iTriggerSoftwareToQuit != 0 ) 
 			editor_showquickstart ( 0 );
 		else
 			welcome_free();
@@ -883,7 +883,7 @@ void editor_showquickstart ( int iForceMainOpen )
 	}
 
 	// can stay here forever if quit triggered
-	if ( g.vrqTriggerSoftwareToQuit == 1 ) welcome_show(WELCOME_EXITAPP);
+	if ( g.iTriggerSoftwareToQuit != 0 ) welcome_show(WELCOME_EXITAPP);
 
 	// if first time run
 	if ( g.gfirsttimerun == 1 ) welcome_show(WELCOME_WHATYOUGET);
@@ -2220,23 +2220,6 @@ void input_getfilemapcontrols ( void )
 				//CloseFileMap (  1 );
 			}
 		}
-
-		// VRQ can terminate app if no serial code
-		/* does not work
-		if ( g.vrqTriggerSoftwareToQuit == 1 ) 
-		{
-			// go ahead, confirmed, end interface program
-			OpenFileMap (  1,"FPSEXCHANGE" );
-			SetFileMapDWORD (  1, 912, 1 );
-			SetEventAndWait (  1 );
-			// close down Steam hook
-			steam_free ( );
-			// end editor program
-			timestampactivity(0,"Terminated because triggered a quit");
-			common_justbeforeend();
-			ExitProcess ( 0 );
-		}				
-		*/
 
 		//  EDIT MENU
 		if (  GetFileMapDWORD( 1, 446 ) == 1 ) {  t.inputsys.doundo = 1  ; SetFileMapDWORD (  1, 446, 0 ); }

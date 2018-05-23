@@ -2372,7 +2372,7 @@ void FPSC_Setup ( void )
 	g.vrqcontrolmode = 0;
 	g.vrqcontrolmodeserialcode = "";
 	g.vrqTriggerSerialCodeEntrySystem = 0;
-	g.vrqTriggerSoftwareToQuit = 0;
+	g.iTriggerSoftwareToQuit = 0;
 	t.tfile_s="vrqcontrolmode.ini";
 	if ( FileExist(t.tfile_s.Get()) == 1 ) 
 	{
@@ -2404,7 +2404,7 @@ void FPSC_Setup ( void )
 				// serial code expired
 				MessageBox ( NULL, "Your serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
 				g.vrqTriggerSerialCodeEntrySystem = 1;
-				g.vrqTriggerSoftwareToQuit = 1;
+				g.iTriggerSoftwareToQuit = 1;
 			}
 			else
 			{
@@ -2416,7 +2416,7 @@ void FPSC_Setup ( void )
 		{
 			// no serial code found, ask for one
 			g.vrqTriggerSerialCodeEntrySystem = 1;
-			g.vrqTriggerSoftwareToQuit = 1;
+			g.iTriggerSoftwareToQuit = 1;
 		}
 
 		// all VRQ is restricted content mode
@@ -2430,7 +2430,7 @@ void FPSC_Setup ( void )
 			if ( FileExist("steam_appid.txt") == 0 ) 
 			{
 				MessageBox ( NULL, "Root file missing from installation.", "System File Not Found", MB_OK );
-				g.vrqTriggerSoftwareToQuit = 1;
+				g.iTriggerSoftwareToQuit = 1;
 			}
 		}
 	}
@@ -2895,6 +2895,18 @@ void FPSC_Setup ( void )
 			ExitPrompt ( "Game Guru cannot write files to the Program Files area. Exit the software, right click on the Game Guru icon, and select 'Run As Administrator'", "Init Error" );
 		}
 	
+		//  New security requires Steam client to be running (for ownership check)
+		bool bSteamRunningAndGameGuruOwned = false;
+		if ( g.steamworks.isRunning == 1 )
+		{
+			if ( SteamOwned() == true ) 
+				bSteamRunningAndGameGuruOwned = true;
+		}
+		if ( bSteamRunningAndGameGuruOwned == false )
+		{
+			g.iTriggerSoftwareToQuit = 2;
+		}
+
 		//  Enter Map Editor specific code
 		SETUPLoadAllCoreShadersREST(g.gforceloadtestgameshaders,g.gpbroverride);
 		material_loadsounds ( );

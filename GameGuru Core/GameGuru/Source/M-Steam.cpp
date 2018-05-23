@@ -10,7 +10,6 @@ extern bool OnlineMultiplayerModeForSharingFiles;
 //  Startup Steam
 void steam_init ( void )
 {
-
 	timestampactivity(0,"_steam_init:");
 	t.steamworks_build = 1121;
 	g.steamworks.isRunning = SteamInit();
@@ -21,10 +20,6 @@ void steam_init ( void )
 
 	// If a custom character head is used but the image no longer exists, we need to get rid of the avatar file
 	characterkit_checkAvatarExists();
-
-return;
-
-//  Steam Main Loop
 }
 
 bool OccluderCheckingForMultiplayer ( void )
