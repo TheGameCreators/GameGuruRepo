@@ -20,6 +20,7 @@ void sliders_init ( void )
 {
 	//  load images for slider resources
 	t.timgbase=g.slidersmenuimageoffset;
+	SetMipmapNum(1); //PE: mipmaps not needed.
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\bar.png",t.timgbase+1,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\handle.png",t.timgbase+2,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\paneltop.png",t.timgbase+3,1 );
@@ -73,7 +74,7 @@ void sliders_init ( void )
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-staff.png",t.timgbase+82,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\health-icon.png",t.timgbase+91,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\lives-icon.png",t.timgbase+92,1 );
-
+	SetMipmapNum(-1);
 	//  Multiple panels allowed
 	g.slidersmenumax=0;
 
