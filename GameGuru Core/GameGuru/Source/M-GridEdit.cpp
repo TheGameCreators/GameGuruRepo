@@ -3232,6 +3232,7 @@ void editor_enableafterzoom ( void )
 void editor_init ( void )
 {
 	//  Load editor images
+	SetMipmapNum(1); //PE: mipmaps not needed.
 	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\quick-help.png";
 	LoadImage (  t.strwork.Get() ,g.editorimagesoffset+1 );
 	LoadImage (  "editors\\gfx\\memorymeter.png",g.editorimagesoffset+2 );
@@ -3284,7 +3285,7 @@ void editor_init ( void )
 	{
 		LoadImage (  "editors\\gfx\\resourcesworking.png",g.editordrawlastimagesoffset+4 );
 	}
-
+	SetMipmapNum(-1);
 	//  Work area entity cursor (placeholder for instance of target expanded by 1.05 to make shell highligher)
 	MakeObjectPlane (  t.editor.objectstartindex+5,150,150  ); 
 	XRotateObject (  t.editor.objectstartindex+5,90 );
