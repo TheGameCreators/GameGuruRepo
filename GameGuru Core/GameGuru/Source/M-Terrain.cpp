@@ -2209,7 +2209,7 @@ void terrain_applyshader ( void )
 			TextureObject ( t.terrain.terrainobjectindex, 4, t.terrain.imagestartindex+21 );//Normal
 			TextureObject ( t.terrain.terrainobjectindex, 5, t.terrain.imagestartindex+15 );//SpecularMap
 			TextureObject ( t.terrain.terrainobjectindex, 6, t.terrain.imagestartindex+31 );//EnvironmentMap
-			TextureObject ( t.terrain.terrainobjectindex, 7, t.terrain.imagestartindex+32 );//GlossCurveMap
+			if (g.memskipibr == 0) TextureObject ( t.terrain.terrainobjectindex, 8, t.terrain.imagestartindex+32 );//GlossCurveMap
 		}
 	}
 }
@@ -2231,11 +2231,15 @@ void terrain_createactualterrain ( void )
 		t.terrain.TerrainID=BT_MakeTerrain();
 		if (  FileExist(t.theightfile_s.Get()) == 1 ) 
 		{
+			SetMipmapNum(1); //PE: mipmaps not needed.
 			LoadImage (  t.theightfile_s.Get(),t.terrain.imagestartindex+3 );
+			SetMipmapNum(-1);
 		}
 		else
 		{
+			SetMipmapNum(1); //PE: mipmaps not needed.
 			LoadImage (  "effectbank\\reloaded\\media\\heightmap.dds",t.terrain.imagestartindex+3 );
+			SetMipmapNum(-1);
 		}
 		BT_SetTerrainHeightmap (  t.terrain.TerrainID,t.terrain.imagestartindex+3 );
 		BT_SetTerrainScale (  t.terrain.TerrainID,50 );
@@ -2299,8 +2303,10 @@ void terrain_make ( void )
 		terrain_assignnewshader();
 
 		// IBR curve loopup map as globals
-		cstr texIBRMap = "effectbank\\reloaded\\media\\IBR.png";
-		LoadImage ( texIBRMap.Get(), t.terrain.imagestartindex + 32 );
+		if (g.memskipibr == 0) {
+			cstr texIBRMap = "effectbank\\reloaded\\media\\IBR.png";
+			LoadImage(texIBRMap.Get(), t.terrain.imagestartindex + 32);
+		}
 
 		// Prepare shader as a shadow mapping primary effect (updated also in terrain_applyshader function if iTerrainPBRMode changes)
 		SetEffectShadowMappingMode ( 255 );
@@ -2350,8 +2356,10 @@ void terrain_make ( void )
 			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
 
 			// This texture acts as highlight graphic and also store for mega texture (distant terrain texture composite)
-			SetImageAutoMipMap (  0 );
+			SetImageAutoMipMap (  0 ); // PE: SetImageAutoMipMap Dont work anymore.
+			SetMipmapNum(1); //PE: mipmaps not needed.
 			LoadImage (  "effectbank\\reloaded\\media\\circle.dds",t.terrain.imagestartindex+17,10,0 );
+			SetMipmapNum(-1);
 			SetImageAutoMipMap (  1 );
 		}
 		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
@@ -2503,7 +2511,12 @@ void terrain_generateblanktextures ( void )
 	//  blank water mask
 	if (  FileExist(t.tfilewater_s.Get()) == 1  )  DeleteAFile (  t.tfilewater_s.Get() );
 	CLS (  Rgb(0,0,0) );
-	GrabImage (  t.terrain.imagestartindex+4,0,0,MAXTEXTURESIZE,MAXTEXTURESIZE );
+	if (g.memskipwatermask == 1) {
+		GrabImage(t.terrain.imagestartindex + 4, 0, 0, 1, 1);
+	}
+	else {
+		GrabImage(t.terrain.imagestartindex + 4, 0, 0, MAXTEXTURESIZE, MAXTEXTURESIZE);
+	}
 	SaveImage (  t.tfilewater_s.Get(),t.terrain.imagestartindex+4 );
 	SetCurrentBitmap (  0 );
 }
@@ -2532,16 +2545,16 @@ void terrain_loaddata ( void )
 			}
 
 			// Load water mask
-			if ( FileExist( cstr(t.levelmapptah_s+"watermask.dds").Get() ) == 1 ) 
+			if (g.memskipwatermask == 0 && FileExist( cstr(t.levelmapptah_s+"watermask.dds").Get() ) == 1 )
 			{
 				if ( ImageExist(t.terrain.imagestartindex+4) == 1  )  DeleteImage (  t.terrain.imagestartindex+4 );
 				SetMipmapNum(1);
 				LoadImage (  cstr(t.levelmapptah_s+"watermask.dds").Get(),t.terrain.imagestartindex+4,10,0,1 );
 				SetMipmapNum(-1);
-				if ( ImageExist(t.terrain.imagestartindex+4) == 0 ) 
-				{
-					GrabImage (  t.terrain.imagestartindex+4,0,0,1,1 );
-				}
+			}
+			if (ImageExist(t.terrain.imagestartindex + 4) == 0)
+			{
+				GrabImage(t.terrain.imagestartindex + 4, 0, 0, 1, 1);
 			}
 
 			// Load veg grass memblock
@@ -3149,6 +3162,9 @@ void terrain_updatewatermask ( void )
 {
 	//  takes tfilewater$
 	//  if VIDMEM reset, must leave silently
+
+	if (g.memskipwatermask == 1)  return; //PE: if watermask not used.
+
 	if (  BitmapExist(g.terrainworkbitmapindex) == 0  )  return;
 	//  if no water exposed, we can skip this
 	terrain_skipifnowaterexposed() ; if (  t.tokay == 1  )  return;
@@ -3253,6 +3269,8 @@ void terrain_updatewatermask ( void )
 
 void terrain_updatewatermask_new ( void )
 {
+//	if (g.memskipwatermask == 1)  return; //PE: if watermask not used.
+
 	SetCurrentBitmap ( g.terrainworkbitmapindex );
 	CLS ( 0 );
 	GrabImage ( t.terrain.imagestartindex+4, 0, 0, 1, 1 );
@@ -4499,11 +4517,24 @@ void terrain_water_init ( void )
 
 	//  Make Water plain
 	LoadImage (  "effectbank\\reloaded\\media\\waves2.dds",t.terrain.imagestartindex+7,0,0);//g.gdividetexturesize );
+	
 	if ( ImageExist(t.terrain.imagestartindex+4) == 0 ) 
 	{
-		SetMipmapNum(1);
-		LoadImage (  "levelbank\\testmap\\watermask.dds",t.terrain.imagestartindex+4,10,0 );
-		SetMipmapNum(-1);
+		//PE: Just create a 1x1 image for shader , if OLDWATER is used.
+		if (g.memskipwatermask == 1) {
+			//  blank water mask
+			SetCurrentBitmap(g.terrainworkbitmapindex);
+			if (FileExist(t.tfilewater_s.Get()) == 1)  DeleteAFile(t.tfilewater_s.Get());
+			CLS(Rgb(0, 0, 0));
+			GrabImage(t.terrain.imagestartindex + 4, 0, 0, 1, 1);
+			//SaveImage(t.tfilewater_s.Get(), t.terrain.imagestartindex + 4);
+			SetCurrentBitmap(0);
+		}
+		else {
+			SetMipmapNum(1);
+			LoadImage("levelbank\\testmap\\watermask.dds", t.terrain.imagestartindex + 4, 10, 0);
+			SetMipmapNum(-1);
+		}
 	}
 	MakeObjectPlane (  t.terrain.objectstartindex+5,1024*50,1024*50 );
 	PositionObject (  t.terrain.objectstartindex+5,1024*25,t.terrain.waterliney_f,1024*25 );
