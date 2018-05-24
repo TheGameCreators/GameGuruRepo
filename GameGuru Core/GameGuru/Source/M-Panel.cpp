@@ -7,7 +7,7 @@
 //  ***** Included Source File *****
 void panel_init ( void )
 {
-
+	SetMipmapNum(1); //PE: mipmaps not needed.
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\panels\\panel_tl.png",g.panelimageoffset );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\panels\\panel_tm.png",g.panelimageoffset+1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\panels\\panel_tr.png",g.panelimageoffset+2 );
@@ -17,7 +17,7 @@ void panel_init ( void )
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\panels\\panel_bl.png",g.panelimageoffset+6 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\panels\\panel_bm.png",g.panelimageoffset+7 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\panels\\panel_br.png",g.panelimageoffset+8 );
-
+	SetMipmapNum(-1);
 return;
 
 }
