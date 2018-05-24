@@ -2796,6 +2796,9 @@ void entity_loadtexturesandeffect ( void )
 				}
 				t.entityprofiletexoid = t.texuseid;
 
+				//PE: IBR old t7 is now t8 , detail/illum t8 is now t7. Done so we can skip t8, we still need the correct order of textures.
+				//PE: IBR was not large but generate tons of stage changes.
+
 				// Assign textures for PBR
 				if ( iEffectProfile == 1 )
 				{
@@ -2827,7 +2830,9 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texhid = t.texuseid;
 
 					// IBR texture
-					t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+					if (g.memskipibr == 0) {
+						t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+					}
 
 					//PE: Use illumination instead of detail if found.
 					//PE: Illumination overwrite detail.
@@ -2871,10 +2876,10 @@ void entity_loadtexturesandeffect ( void )
 				// Additional texture assignments required for PBR mode
 				if ( iEffectProfile == 1 )
 				{
-					TextureObject ( t.entobj, 8, t.entityprofile[t.entid].texlid );
+					TextureObject ( t.entobj, 7, t.entityprofile[t.entid].texlid );
 					TextureObject ( t.entobj, 4, t.entityprofile[t.entid].texgid );
 					TextureObject ( t.entobj, 5, t.entityprofile[t.entid].texhid );
-					TextureObject ( t.entobj, 7, t.entityprofiletexibrid );
+					if (g.memskipibr == 0) TextureObject ( t.entobj, 8, t.entityprofiletexibrid );
 				}
 			}
 			else
@@ -2919,10 +2924,10 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texgid = loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texhid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
-					TextureObject(t.entobj, 8, t.entityprofile[t.entid].texlid);
+					TextureObject(t.entobj, 7, t.entityprofile[t.entid].texlid);
 					TextureObject(t.entobj, 4, t.entityprofile[t.entid].texgid);
 					TextureObject(t.entobj, 5, t.entityprofile[t.entid].texhid);
-					TextureObject(t.entobj, 7, t.entityprofiletexibrid);
+					if (g.memskipibr == 0) TextureObject(t.entobj, 8, t.entityprofiletexibrid);
 				}
 			}
 

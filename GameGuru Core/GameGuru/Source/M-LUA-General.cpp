@@ -1036,7 +1036,9 @@ void lua_loadimages ( void )
 			t.tfile_s=cstr(Right(Str(1000+t.t),3))+".png";
 			if (  FileExist(t.tfile_s.Get()) == 1 ) 
 			{
+				SetMipmapNum(1); //PE: mipmaps not needed.
 				LoadImage (  t.tfile_s.Get(),g.promptimageimageoffset+t.v+t.t );
+				SetMipmapNum(-1); 
 			}
 			else
 			{

@@ -87,9 +87,9 @@ void timestampactivity ( int i, char* desc_s )
 		if ( i == 0 ) 
 		{
 			++g.timestampactivityindex;
-			if (  g.timestampactivityindex>4999 ) 
+			if (  g.timestampactivityindex>7999 ) //PE: Increase to 8000 lines.
 			{
-				g.timestampactivityindex=4999;
+				g.timestampactivityindex=7999;
 			}
 			i=g.timestampactivityindex;
 		}
@@ -127,10 +127,13 @@ void timestampactivity ( int i, char* desc_s )
 		if (  Len(g.trueappname_s.Get())>0 ) 
 		{
 			OpenToWrite (  13,file_s.Get() );
-				for ( t.t = 1 ; t.t<=  g.timestampactivitymax; t.t++ )
-				{
-					WriteString (  13,t.timestampactivity_s[t.t].Get() );
-				}
+			//PE: using t.t here can cause tons of problems as t.t is used in so many places.
+			//PE: So adding debug to functions can break everything. just use a local.
+			//PE: Sorry just spent 4 hours to find a bug , just to find out that the debug logging caused the bugs.
+			for ( int localt = 1 ; localt <=  g.timestampactivitymax; localt++ )
+			{
+				WriteString (  13,t.timestampactivity_s[localt].Get() );
+			}
 			CloseFile (  13 );
 		}
 	}

@@ -269,7 +269,7 @@ void mapfile_loadproject_fpm ( void )
 
 		//  If file still not present, extraction failed
 		SetDir (  cstr(t.tdirst_s+"\\levelbank\\testmap\\").Get() );
-		if (  FileExist("watermask.dds") == 0 ) 
+		if ( g.memskipwatermask == 0  && FileExist("watermask.dds") == 0 )
 		{
 			//  Only Reloaded Formats have this texture file, so fail load if not there (Classic FPM)
 			t.tloadsuccessfully=2;

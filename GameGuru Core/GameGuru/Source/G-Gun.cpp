@@ -3468,7 +3468,7 @@ void gun_load ( void )
 		int imgHeightid=loadinternaltexture(timgHeight_s.Get());
 
 		// Bump Quality
-		TextureObject ( t.currentgunobj, 8, t.imgIid );
+		TextureObject ( t.currentgunobj, 7, t.imgIid );
 		if ( t.tguntextureoverride == 1 ) TextureObject ( t.currentgunobj, 0, t.imgDid );
 		TextureObject ( t.currentgunobj, 1, imgAOid );
 		TextureObject ( t.currentgunobj, 2, t.imgNid );
@@ -3477,8 +3477,10 @@ void gun_load ( void )
 		TextureObject ( t.currentgunobj, 5, imgHeightid );
 		int iPBRCubeImg = t.terrain.imagestartindex+31;
 		TextureObject ( t.currentgunobj, 6, iPBRCubeImg );
-		t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
-		TextureObject ( t.currentgunobj, 7, t.entityprofiletexibrid );
+		if (g.memskipibr == 0) {
+			t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+			TextureObject(t.currentgunobj, 8, t.entityprofiletexibrid);
+		}
 		t.gun[t.gunid].texdid=t.imgDid;
 		t.gun[t.gunid].texnid=t.imgNid;
 		t.gun[t.gunid].texmid=t.imgSid;
@@ -4265,7 +4267,7 @@ int loadbrass ( char* tfile_s )
 				if ( tbrassILLUMimg == 0 ) tbrassILLUMimg = loadinternalimage("effectbank\\reloaded\\media\\blank_black.dds");
 				int tbrassHEIGHTimg = loadinternalimage("effectbank\\reloaded\\media\\blank_black.dds");
 				// and texture the object
-				TextureObject ( index, 8, tbrassILLUMimg );
+				TextureObject ( index, 7, tbrassILLUMimg );
 				TextureObject ( index, 1, tbrassAOimg );
 				TextureObject ( index, 2, tbrassNORMALimg );
 				TextureObject ( index, 3, tbrassMETALNESSimg );
@@ -4273,8 +4275,10 @@ int loadbrass ( char* tfile_s )
 				TextureObject ( index, 5, tbrassHEIGHTimg );
 				int iPBRCubeImg = t.terrain.imagestartindex+31;
 				TextureObject ( index, 6, iPBRCubeImg );
-				int iPBRIBRImg = t.terrain.imagestartindex + 32;
-				TextureObject ( index, 7, iPBRIBRImg );
+				if (g.memskipibr == 0) {
+					int iPBRIBRImg = t.terrain.imagestartindex + 32;
+					TextureObject(index, 8, iPBRIBRImg);
+				}
 				teffectid=loadinternaleffect("effectbank\\reloaded\\apbr_basic.fx");
 			}
 			else
