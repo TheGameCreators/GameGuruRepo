@@ -259,7 +259,7 @@ struct Attributes
  Texture2D Unused3Map : register( t3 );
  Texture2D Unused4Map : register( t4 );
  Texture2D Unused5Map : register( t5 );
- Texture2D Unused6Map : register( t8 );
+ Texture2D Unused6Map : register( t7 );
 #else
  #ifdef PBRTERRAIN
   Texture2D VegShadowSampler : register( t0 );
@@ -268,7 +268,7 @@ struct Attributes
   Texture2D HighlighterSampler : register( t3 );
   Texture2D NormalMap : register( t4 );
   Texture2D MetalnessMap : register( t5 );
-  Texture2D Unused1Map : register( t8 );
+  Texture2D Unused1Map : register( t7 );
  #else
   Texture2D AlbedoMap : register( t0 );
   #ifdef AOISAGED
@@ -277,7 +277,7 @@ struct Attributes
    Texture2D MetalnessMap : register( t3 );
    Texture2D Unused1Map : register( t4 );
    Texture2D Unused2Map : register( t5 );
-   Texture2D Unused3Map : register( t8 );
+   Texture2D Unused3Map : register( t7 );
   #else
    Texture2D AOMap : register( t1 );
    Texture2D NormalMap : register( t2 );
@@ -285,15 +285,16 @@ struct Attributes
    Texture2D GlossMap : register( t4 );
    Texture2D HeightMap : register( t5 );
    #ifdef ILLUMINATIONMAP
-    Texture2D IlluminationMap : register( t8 );
+    Texture2D IlluminationMap : register( t7 );
    #else
-    Texture2D DetailMap : register( t8 );
+    Texture2D DetailMap : register( t7 );
    #endif
   #endif
  #endif
 #endif
 TextureCube EnvironmentMap : register( t6 );
-Texture2D GlossCurveMap : register( t7 );
+//PE: changed register t7 to t8 so we can just skib it. ( old t8 changed to t7 )
+//Texture2D GlossCurveMap : register( t8 ); //PE: not really needed. i already do it in code below.
 
 SamplerState AnisoClamp
 {
