@@ -1631,6 +1631,8 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 	sprintf ( Path, "%s%s", TexturePath, pNoPath );
 	if ( strlen ( Path ) >= _MAX_PATH ) Path[_MAX_PATH]=0;
 
+	//PE:-MEM: Double load images sample "entitybank\\\\CityscapePBR\\Palm Tree_ao.dds"
+	//PE:-MEM: Origin , LoadObject -> LoadCore -> LoadInternalTextures . (FindInternalImage)
 	// texture load a : default file
 	iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
 	if ( iImageIndex==0 )
@@ -1656,48 +1658,66 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 				{
 					// lee - 231017 - prevent ABSOLUTE path to ORIGINAL texture being used by standalones
 					// (check local folder and fileonly before rest)
-					sprintf ( Path, "%s", pNoPath );
-					iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-					if ( iImageIndex==0 )
+
+					//PE: This generates doubble load. moved as last check.
+					//if (strstr(TexturePath, "lightmaps\\") != NULL) {
+					//sprintf(Path, "%s", pNoPath);
+					//iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+					//}
+					//if ( iImageIndex==0 )
+					//{
+
+					//PE: This combi works in standalone/test , so prefer this as it can be reused.
+					// texture load e : 031208 - U71 - absolute path with relative path in model file
+					sprintf(Path, "%s%s", TexturePath, pTextureName);
+					if (strlen(Path) >= _MAX_PATH) Path[_MAX_PATH] = 0;
+					iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+					if (iImageIndex == 0)
 					{
+
 						// okay, check if texture file alongside model as DDS)
-						Path[strlen(Path)-4]=0;
+						Path[strlen(Path) - 4] = 0;
 						strcat(Path, ".dds");
-						iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-						if ( iImageIndex==0 )
+						iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+						if (iImageIndex == 0)
 						{
 							// texture load c : original file
-							iImageIndex = LoadImageInternalEx ( pTextureName, iDivideTextureSize );
-							if ( iImageIndex==0 )
+							iImageIndex = LoadImageInternalEx(pTextureName, iDivideTextureSize);
+							if (iImageIndex == 0)
 							{
 								// texture load c2 : try as dds
-								strcpy ( Path, pTextureName );
-								Path[strlen(Path)-4]=0;
+								//PE: Create a doubble load in standalone , try .dds with relative path instead. ( can be reused ).
+								//strcpy ( Path, pTextureName );
+								sprintf(Path, "%s%s", TexturePath, pTextureName);
+								if (strlen(Path) >= _MAX_PATH) Path[_MAX_PATH] = 0;
+								Path[strlen(Path) - 4] = 0;
 								strcat(Path, ".dds");
-								iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-								if ( iImageIndex==0 )
+								iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+								if (iImageIndex == 0)
 								{
-									// texture load d : no path just file
-									iImageIndex = LoadImageInternalEx ( pNoPath, iDivideTextureSize );
-									if ( iImageIndex==0 )
+									// texture load e : 031208 - U71 - absolute path with relative path in model file
+									sprintf(Path, "%s%s", TexturePath, pTextureName);
+									if (strlen(Path) >= _MAX_PATH) Path[_MAX_PATH] = 0;
+									iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+									if (iImageIndex == 0)
 									{
-										// texture load e : 031208 - U71 - absolute path with relative path in model file
-										sprintf ( Path, "%s%s", TexturePath, pTextureName );
-										if ( strlen ( Path ) >= _MAX_PATH ) Path[_MAX_PATH]=0;
-										iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-										if ( iImageIndex==0 )
+										// texture load f : 031208 - U71 - as above, but as DDS
+										strcpy(pDDSFile, pTextureName);
+										DWORD dwLenDot = strlen(pDDSFile);
+										if (dwLenDot > 4)
 										{
-											// texture load f : 031208 - U71 - as above, but as DDS
-											strcpy(pDDSFile, pTextureName);
-											DWORD dwLenDot = strlen(pDDSFile);
-											if ( dwLenDot>4 )
-											{
-												pDDSFile[dwLenDot-4]=0;
-												strcat(pDDSFile, ".dds");
-												sprintf ( Path, "%s%s", TexturePath, pDDSFile );
-												iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-											}
+											pDDSFile[dwLenDot - 4] = 0;
+											strcat(pDDSFile, ".dds");
+											sprintf(Path, "%s%s", TexturePath, pDDSFile);
+											iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
 										}
+
+										if (iImageIndex == 0)
+										{
+											//PE: This can generates doubble loads. so this is the last combi to test.
+											iImageIndex = LoadImageInternalEx(pNoPath, iDivideTextureSize);
+										}
+
 									}
 								}
 							}
