@@ -36,6 +36,7 @@ void game_masterroot ( void )
 	t.game.masterloop=1;
 	while ( t.game.masterloop == 1 ) 
 	{
+
 		// first hide rendering of 3D while we set up
 		SyncMaskOverride ( 0 );
 
@@ -136,6 +137,7 @@ void game_masterroot ( void )
 		//  Level loop will run while level progression is in progress
 		while (  t.game.levelloop == 1 ) 
 		{
+
 			// also hide rendering of 3D while we set up a new level
 			SyncMaskOverride ( 0 );
 
@@ -873,7 +875,11 @@ void game_masterroot ( void )
 
 			} //  Game cycle loop end
 
-			//  Rest any internal game variables
+
+//			timestampactivity(0, "DumpImageList before freeing level data.");
+//			DumpImageList(); // PE: Dump image usage after level.
+
+			  //  Rest any internal game variables
 			game_main_stop ( );
 
 			//  Free any level resources
@@ -958,6 +964,11 @@ void game_masterroot ( void )
 				t.game.levelloop=0;
 			}
 
+			if (g.memgeneratedump == 1) {
+				timestampactivity(0, "DumpImageList after freeing level data.");
+				DumpImageList(); // PE: Dump image usage after level.
+			}
+
 		//  Level loop end
 		}
 
@@ -984,6 +995,7 @@ void game_masterroot ( void )
 		//  Master loop end
 		if ( t.game.allowfragmentation == 0 ) break;
 	}
+
 
 	//  End splash if EXE is advertising
 	if (  t.game.set.endsplash == 1 ) 
@@ -1759,6 +1771,13 @@ void game_freelevel ( void )
 	{
 		// only for standalone as test game needs entities for editor :)
 		entity_delete ( );
+		//PE: Free any lightmaps, next level might not use lightmaps.
+		lm_deleteall();
+		ClearAnyLightMapInternalTextures();
+
+		//PE: Delete all entitybank textures used.
+		if( g.standalonefreememorybetweenlevels == 1 )
+			ClearAnyEntitybankInternalTextures();
 	}
 }
 
