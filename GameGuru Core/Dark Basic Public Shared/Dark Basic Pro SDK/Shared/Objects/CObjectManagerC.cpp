@@ -4016,9 +4016,19 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			#ifdef DX11
 			for ( int i = 0; i < pMesh->dwTextureCount; i++ )
 			{
+				//PE: pMesh->pTextures[i].dwStage not used so stages must be in correct order in the shaders.
 				ID3D11ShaderResourceView* lpTexture = GetImagePointerView ( pMesh->pTextures[i].iImageID );
 				m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
 			}
+
+			//PE: Debug.
+			//GGHANDLE pSurfColor = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("SurfColor");
+			//if (pSurfColor)
+			//{
+			//	GGVECTOR4 vec4 = GGVECTOR4(1.0f, 0.0f, 0.0f, 1.0f);
+			//	pSurfColor->AsVector()->SetFloatVector((float*)&vec4);
+			//} 
+
 			#endif
 
 			// see if we have an index buffer
