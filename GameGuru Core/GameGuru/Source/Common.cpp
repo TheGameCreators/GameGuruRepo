@@ -437,6 +437,7 @@ void common_init_globals ( void )
 	g.particlesimageoffset = 1400;
 	g.ebeimageoffset = 1900;
 	g.texturebankoffset = 2000;
+	//PE: 50000+ to be used for internal images inside dbo's.
 	g.internalshadowdynamicterrain = 59950;
 	g.internalshadowdebugimagestart = 59951;
 	g.internalocclusiondebugimagestart = 59961;
@@ -1670,6 +1671,9 @@ void FPSC_SetDefaults ( void )
 	g.gexportassets = 0;
 	g.gproducelogfiles = 0;
 	g.gpbroverride = 0;
+	g.memskipwatermask = 0;
+	g.standalonefreememorybetweenlevels = 0;
+	g.memgeneratedump = 0;
 	g.underwatermode = 0;
 	g.gproducetruevidmemreading = 0;
 	g.gcharactercapsulescale_f = 1.0;
@@ -1906,6 +1910,12 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "producelogfiles" ; if (  t.field_s == t.tryfield_s  )  g.gproducelogfiles = t.value1;
 					t.tryfield_s = "pbroverride" ; if (  t.field_s == t.tryfield_s  )  g.gpbroverride = t.value1;
 					t.tryfield_s = "underwatermode"; if (t.field_s == t.tryfield_s)  g.underwatermode = t.value1;
+					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
+					t.tryfield_s = "standalonefreememorybetweenlevels"; if (t.field_s == t.tryfield_s)  g.standalonefreememorybetweenlevels = t.value1;
+
+					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
+					t.tryfield_s = "memgeneratedump"; if (t.field_s == t.tryfield_s)  g.memgeneratedump = t.value1;
+					
 					t.tryfield_s = "producetruevidmemreading" ; if (  t.field_s == t.tryfield_s  )  g.gproducetruevidmemreading = t.value1;
 					t.tryfield_s = "charactercapsulescale" ; if (  t.field_s == t.tryfield_s  )  g.gcharactercapsulescale_f = (t.value1+0.0)/100.0;
 					t.tryfield_s = "hsrmode" ; if (  t.field_s == t.tryfield_s  )  g.ghsrmode = t.value1;
@@ -5313,7 +5323,9 @@ void loadscreenpromptassets ( void )
 					// show splash initially
 					tfile_s = respart_s;
 					sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
+					SetMipmapNum(1); //PE: mipmaps not needed.
 					LoadImage ( t.szwork, g.testgamesplashimage );
+					SetMipmapNum(-1);
 				}
 				else
 				{
@@ -5342,7 +5354,9 @@ void loadscreenpromptassets ( void )
 					}
 					sprintf ( t.szwork , "languagebank\\%s\\artwork\\%s" , g.language_s.Get() , tfile_s.Get() );
 				}
+				SetMipmapNum(1); //PE: mipmaps not needed.
 				LoadImage (  t.szwork , g.testgamesplashimage );
+				SetMipmapNum(-1);
 			}
 		}
 	}
