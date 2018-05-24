@@ -498,6 +498,11 @@ struct Sglobals
 	int gproducelogfiles;
 	int gpbroverride;
 	int underwatermode;
+	int memskipwatermask;
+	int standalonefreememorybetweenlevels;
+	int memskipibr;
+	int memgeneratedump;
+
 	int grawtextsizelast;
 	int grenadeexplosion;
 	DWORD guniquesignature;
