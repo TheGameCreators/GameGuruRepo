@@ -2303,7 +2303,8 @@ void terrain_make ( void )
 		terrain_assignnewshader();
 
 		// IBR curve loopup map as globals
-		if (g.memskipibr == 0) {
+		if (g.memskipibr == 0) 
+		{
 			cstr texIBRMap = "effectbank\\reloaded\\media\\IBR.png";
 			LoadImage(texIBRMap.Get(), t.terrain.imagestartindex + 32);
 		}

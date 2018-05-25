@@ -108,6 +108,11 @@ void hud_scanforhudlayers ( void )
 						//LoadImage ( t.strwork.Get() ,t.hudlayersimageoffsetindex+3 );
 						t.strwork = ""; t.strwork = t.strwork + "effectbank\\reloaded\\media\\white_D.dds";
 						LoadImage ( t.strwork.Get() ,t.hudlayersimageoffsetindex+3 );
+						if (g.memskipibr == 0) 
+						{
+							t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+							TextureObject(t.hudlayersbankoffsetindex, 8, t.entityprofiletexibrid);
+						}
 						TextureObject ( t.hudlayersbankoffsetindex, 7, 0 );
 						TextureObject ( t.hudlayersbankoffsetindex, 0, t.hudlayersimageoffsetindex+0 );
 						TextureObject ( t.hudlayersbankoffsetindex, 1, t.hudlayersimageoffsetindex+3 );
@@ -117,10 +122,6 @@ void hud_scanforhudlayers ( void )
 						TextureObject ( t.hudlayersbankoffsetindex, 5, t.hudlayersimageoffsetindex+3 );
 						int iPBRCubeImg = t.terrain.imagestartindex+31;
 						TextureObject ( t.hudlayersbankoffsetindex, 6, iPBRCubeImg );
-						if (g.memskipibr == 0) {
-							t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
-							TextureObject(t.hudlayersbankoffsetindex, 8, t.entityprofiletexibrid);
-						}
 						/*
 						t.strwork = ""; t.strwork = t.strwork + "gamecore\\hudlayers\\"+t.entityprofile[t.entid].ishudlayer_s+".x";
 						LoadObject ( t.strwork.Get() ,t.hudlayersbankoffsetindex );

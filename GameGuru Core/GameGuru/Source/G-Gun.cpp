@@ -2386,13 +2386,18 @@ void gun_flash ( void )
 			RotateObject (  g.hudbankoffset+32,0,0,Rnd(360) );
 			ShowObject (  g.hudbankoffset+32 );
 		}
+
 		//  light flash init
 		if ( g.firemodes[t.gunid][g.firemode].settings.usespotlighting != 0 ) 
 		{
 			MoveCamera ( 10.0 );
+			TurnCameraLeft ( 90.0 );
+			MoveCamera ( 20.0 );
 			t.tx_f = CameraPositionX();
 			t.ty_f = CameraPositionY();
 			t.tz_f = CameraPositionZ();
+			MoveCamera ( -20.0 );
+			TurnCameraRight ( 90.0 );
 			MoveCamera ( -10.0 );
 			t.tcolr = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorr/2;
 			t.tcolg = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorg/2;
@@ -3468,6 +3473,11 @@ void gun_load ( void )
 		int imgHeightid=loadinternaltexture(timgHeight_s.Get());
 
 		// Bump Quality
+		if (g.memskipibr == 0) 
+		{
+			t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+			TextureObject(t.currentgunobj, 8, t.entityprofiletexibrid);
+		}
 		TextureObject ( t.currentgunobj, 7, t.imgIid );
 		if ( t.tguntextureoverride == 1 ) TextureObject ( t.currentgunobj, 0, t.imgDid );
 		TextureObject ( t.currentgunobj, 1, imgAOid );
@@ -3477,10 +3487,6 @@ void gun_load ( void )
 		TextureObject ( t.currentgunobj, 5, imgHeightid );
 		int iPBRCubeImg = t.terrain.imagestartindex+31;
 		TextureObject ( t.currentgunobj, 6, iPBRCubeImg );
-		if (g.memskipibr == 0) {
-			t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
-			TextureObject(t.currentgunobj, 8, t.entityprofiletexibrid);
-		}
 		t.gun[t.gunid].texdid=t.imgDid;
 		t.gun[t.gunid].texnid=t.imgNid;
 		t.gun[t.gunid].texmid=t.imgSid;
@@ -4267,7 +4273,13 @@ int loadbrass ( char* tfile_s )
 				if ( tbrassILLUMimg == 0 ) tbrassILLUMimg = loadinternalimage("effectbank\\reloaded\\media\\blank_black.dds");
 				int tbrassHEIGHTimg = loadinternalimage("effectbank\\reloaded\\media\\blank_black.dds");
 				// and texture the object
+				if (g.memskipibr == 0) 
+				{
+					int iPBRIBRImg = t.terrain.imagestartindex + 32;
+					TextureObject(index, 8, iPBRIBRImg);
+				}
 				TextureObject ( index, 7, tbrassILLUMimg );
+				TextureObject ( index, 0, tbrassCOLORimg );
 				TextureObject ( index, 1, tbrassAOimg );
 				TextureObject ( index, 2, tbrassNORMALimg );
 				TextureObject ( index, 3, tbrassMETALNESSimg );
@@ -4275,11 +4287,7 @@ int loadbrass ( char* tfile_s )
 				TextureObject ( index, 5, tbrassHEIGHTimg );
 				int iPBRCubeImg = t.terrain.imagestartindex+31;
 				TextureObject ( index, 6, iPBRCubeImg );
-				if (g.memskipibr == 0) {
-					int iPBRIBRImg = t.terrain.imagestartindex + 32;
-					TextureObject(index, 8, iPBRIBRImg);
-				}
-				teffectid=loadinternaleffect("effectbank\\reloaded\\apbr_basic.fx");
+				teffectid=loadinternaleffect("effectbank\\reloaded\\apbr_illum.fx");
 			}
 			else
 			{

@@ -140,9 +140,17 @@ function gameplayercontrol.weaponfire()
 		if ( (bit32.band(g_MouseClickControl,1)) == 1 ) then 
 			SetGamePlayerStateFiringMode(1)
 		end
+		
+		-- Hold down fire button value (can be interrupted when weapon runs out or is reloading)
+		holdDownMouseClickButton = (bit32.band(g_MouseClickControl,1))
+		holdDownMouseClickButton2 = (bit32.band(g_MouseClickControl,2))
+		if ( GetGamePlayerStateGunMode() <= 8 or GetGamePlayerStateGunMode() == 9999 ) then
+			holdDownMouseClickButton = 0
+			holdDownMouseClickButton2 = 0
+		end
 
 		-- Gun jamming Timer
-		if ( (bit32.band(g_MouseClickControl,1)) == 1 ) then 
+		if ( holdDownMouseClickButton == 1 ) then 
 			if ( g_lmbheld == 0 ) then 
 				if ( GetFireModeSettingsJammed() == 1 ) then 
 					-- if tried to fire, but jammed, dry fire
@@ -166,18 +174,18 @@ function gameplayercontrol.weaponfire()
 		end
 
 		-- Track mouse held times (for lmb/rmb and jam adjust control) then
-		if ( (bit32.band(g_MouseClickControl,2)) == 2 ) then 
+		if ( holdDownMouseClickButton2 == 2 ) then 
 			if ( g_rmbheld == 0 ) then 
 				g_rmbheld = 1
 				g_rmbheldtime = Timer()
 			end
 		end
-		if ( (bit32.band(g_MouseClickControl,1)) == 0 ) then 
+		if ( holdDownMouseClickButton == 0 ) then 
 			g_lmbheld = 0
 			g_lmbheldtime = 0
 			g_jamadjust = 0
 		end
-		if ( (bit32.band(g_MouseClickControl,2)) == 0 ) then 
+		if ( holdDownMouseClickButton2 == 0 ) then 
 			g_rmbheld = 0
 			g_rmbheldtime = 0
 		end

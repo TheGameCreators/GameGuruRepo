@@ -293,7 +293,7 @@ struct Attributes
  #endif
 #endif
 TextureCube EnvironmentMap : register( t6 );
-//PE: changed register t7 to t8 so we can just skib it. ( old t8 changed to t7 )
+//PE: changed register t7 to t8 so we can just skip it. ( old t8 changed to t7 )
 //Texture2D GlossCurveMap : register( t8 ); //PE: not really needed. i already do it in code below.
 
 SamplerState AnisoClamp
@@ -1018,6 +1018,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      rawmetalmap = float3(0,0,0);
      rawglossmap = float3(rawdiffusemap.w,rawdiffusemap.w,rawdiffusemap.w);
     #else
+	
+	
      float4 rawdiffusemap = AlbedoMap.Sample(SampleWrap, attributes.uv);
      float3 rawnormalmap = NormalMap.Sample(SampleWrap, attributes.uv).rgb;
      float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1) + ((SpecularOverride-1.0)/10.0f);
@@ -1106,11 +1108,11 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
        float3 DetailMapRGB = DetailMap.Sample(SampleWrap,attributes.uv*16.0f).rgb;
       #endif
       DetailMapRGB = lerp(1.0f,DetailMapRGB,detaildistance);
-       rawdiffusemap.xyz *= DetailMapRGB;
+      rawdiffusemap.xyz *= DetailMapRGB;
      #endif
     #endif
    #endif
-
+   
    // Shadows
    int iCurrentCascadeIndex = 0;
    float fShadow = 0.0f;

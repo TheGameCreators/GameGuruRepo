@@ -2830,7 +2830,8 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texhid = t.texuseid;
 
 					// IBR texture
-					if (g.memskipibr == 0) {
+					if (g.memskipibr == 0) 
+					{
 						t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
 					}
 
@@ -2876,10 +2877,10 @@ void entity_loadtexturesandeffect ( void )
 				// Additional texture assignments required for PBR mode
 				if ( iEffectProfile == 1 )
 				{
+					if (g.memskipibr == 0) TextureObject ( t.entobj, 8, t.entityprofiletexibrid );
 					TextureObject ( t.entobj, 7, t.entityprofile[t.entid].texlid );
 					TextureObject ( t.entobj, 4, t.entityprofile[t.entid].texgid );
 					TextureObject ( t.entobj, 5, t.entityprofile[t.entid].texhid );
-					if (g.memskipibr == 0) TextureObject ( t.entobj, 8, t.entityprofiletexibrid );
 				}
 			}
 			else
@@ -2924,10 +2925,10 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texgid = loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texhid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
+					if (g.memskipibr == 0) TextureObject(t.entobj, 8, t.entityprofiletexibrid);
 					TextureObject(t.entobj, 7, t.entityprofile[t.entid].texlid);
 					TextureObject(t.entobj, 4, t.entityprofile[t.entid].texgid);
 					TextureObject(t.entobj, 5, t.entityprofile[t.entid].texhid);
-					if (g.memskipibr == 0) TextureObject(t.entobj, 8, t.entityprofiletexibrid);
 				}
 			}
 
