@@ -2390,15 +2390,13 @@ void gun_flash ( void )
 		//  light flash init
 		if ( g.firemodes[t.gunid][g.firemode].settings.usespotlighting != 0 ) 
 		{
+			RotateCamera ( CameraAngleX(), CameraAngleY()-45.0f, CameraAngleZ() );
 			MoveCamera ( 10.0 );
-			TurnCameraLeft ( 90.0 );
-			MoveCamera ( 20.0 );
 			t.tx_f = CameraPositionX();
 			t.ty_f = CameraPositionY();
 			t.tz_f = CameraPositionZ();
-			MoveCamera ( -20.0 );
-			TurnCameraRight ( 90.0 );
 			MoveCamera ( -10.0 );
+			RotateCamera ( CameraAngleX(), CameraAngleY()+45.0f, CameraAngleZ() );
 			t.tcolr = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorr/2;
 			t.tcolg = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorg/2;
 			t.tcolb = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorb/2;
