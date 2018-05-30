@@ -1013,7 +1013,9 @@ Direct call LUA Commands:
 
 UpdateWeaponStats: UpdateWeaponStats() -- Call this to instantly update all g_Weapon* data
 ResetWeaponSystems: ResetWeaponSystems ( ) -- resets any projectiles currently active in game
-SetWeaponSlot: SetWeaponSlot ( index, got flag, preference flag ) -- Sets the weapon data directly, index is 1 through 10
+
+SetWeaponSlot: SetWeaponSlot ( index, got flag, preference flag ) -- Sets the weapon data directly, index is 1 through 10. The got flag value is the weapon ID of the weapon you have in that slot. By setting it, you can effectively grant the player that weapon without them having to pick it up, but you should ensure that weapon is placed somewhere in the level so it can load it the particulars.  The preference flag value also takes a Weapon ID and is used when you want to make sure when a weapon is collected, it will go to that slot, so  SetWeaponSlot ( 9, 0, 12 ) will make sure that when you collect Weapon ID 12 it will automatically be assigned to slot 9.
+
 GetWeaponAmmo: quantity = GetWeaponAmmo ( index ) -- Sets the weapon data directly, index is 1 through 10
 SetWeaponAmmo: SetWeaponAmmo ( index, ammo quantity ) -- Sets the weapon data directly, index is 1 through 10
 GetWeaponClipAmmo: quantity = GetWeaponClipAmmo ( index ) -- Sets the weapon data directly, index is 1 through 10
