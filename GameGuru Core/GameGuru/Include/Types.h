@@ -6820,6 +6820,9 @@ struct guntype
 	int ammoimg;
 	int iconimg;
 	float keyframespeed_f;
+	int invertnormal;
+	int preservetangents;
+	float boostintensity;
 
 	// Constructor
 	guntype ( )

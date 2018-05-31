@@ -2577,7 +2577,7 @@ void entity_prepareobj ( void )
 		DWORD dwArtFlags = 0;
 		if ( t.entityprofile[t.tentid].invertnormal == 1 ) dwArtFlags = 1;
 		if ( t.entityprofile[t.tentid].preservetangents == 1 ) dwArtFlags |= 1<<1;
-		SetObjectArtFlags ( t.tobj, dwArtFlags );
+		SetObjectArtFlags ( t.tobj, dwArtFlags, 0.0f );
 	}
 }
 

@@ -1441,7 +1441,7 @@ DARKSDK_DLL void SetObjectScrollScaleUV ( int iID, float fScrU, float fScrV, flo
 	}
 }
 
-DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags )
+DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags, float fBoostIntensity )
 {
 	// check the object exists
 	if ( !ConfirmObjectInstance ( iID ) )
@@ -1456,6 +1456,7 @@ DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags )
 		if ( pMesh )
 		{
 			pMesh->dwArtFlags = dwArtFlags;
+			pMesh->fBoostIntensity = fBoostIntensity;
 		}
 	}
 }

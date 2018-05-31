@@ -101,6 +101,11 @@ void gun_loaddata ( void )
 					if (  t.field_s == "transparency"  )  t.gun[t.gunid].transparency = t.value1;
 					if (  t.field_s == "vweaptex"  )  t.gun[t.gunid].vweaptex_s = t.value_s;
 
+					//  control weapon shader using art flags
+					if (  t.field_s == "invertnormal"  )  t.gun[t.gunid].invertnormal = t.value1;
+					if (  t.field_s == "preservetangents"  )  t.gun[t.gunid].preservetangents = t.value1;
+					if (  t.field_s == "boostintensity"  )  t.gun[t.gunid].boostintensity = t.value1 / 100.0f;
+
 					//  weapontype ; 0-grenade, 1-pistol, 2-rocket, 3-shotgun, 4-uzi, 5-assault, 51-melee(noammo)
 					if (  t.field_s == "weapontype"  )  t.gun[t.gunid].weapontype = t.value1;
 

@@ -2652,6 +2652,32 @@ void entity_loadtexturesandeffect ( void )
 	// Texture and apply effect
 	if ( t.entobj>0 ) 
 	{
+		// lee - 300518 - added extra code in LoadObject to detect DNS and PBR texture file sets and set the mesh, so 
+		// skip the override code below if the object has a good texture in place
+		bool bGotAO = false, bGotNormal = false, bGotMetalness = false, bGotGloss = false;
+		sObject* pObject = GetObjectData ( t.entobj );
+		if ( pObject )
+		{
+			for ( int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++ )
+			{
+				sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+				if ( pMesh )
+				{
+					for ( int iTextureIndex = 0; iTextureIndex < pMesh->dwTextureCount; iTextureIndex++ )
+					{
+						if ( pMesh->pTextures[iTextureIndex].iImageID > 0 )
+						{
+							if ( iTextureIndex == 1 ) bGotAO = true;
+							if ( iTextureIndex == 2 ) bGotNormal = true;
+							if ( iTextureIndex == 3 ) bGotMetalness = true;
+							if ( iTextureIndex == 4 ) bGotGloss = true;
+						}
+					}
+				}
+			}
+		}
+
+		// detect if using an effect or not
 		int use_illumination = false;
 		if ( t.entityprofile[t.entid].usingeffect == 0 ) 
 		{
@@ -2891,14 +2917,16 @@ void entity_loadtexturesandeffect ( void )
 
 				// PE 240118: not always if missing texture= in fpe , normal/spec is not always in the objects texture lists. ( we must have normal maps on all objects ).
 				// Fix: https://github.com/LeeBamberTGC/GameGuruRepo/issues/10
+				// lee - 300518 - added extra code in LoadObject to detect DNS and PBR texture file sets and set the mesh, so 
+				// skip the override code below if the object has a good texture in place
 
-				if (t.entityprofile[t.entid].texnid == 0)
+				if (t.entityprofile[t.entid].texnid == 0 && bGotNormal == false )
 				{
 					t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_N.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texnid = t.texuseid;
 					TextureObject(t.entobj, 2, t.entityprofile[t.entid].texnid);
 				}
-				if (t.entityprofile[t.entid].texsid == 0)
+				if (t.entityprofile[t.entid].texsid == 0 && bGotMetalness == false )
 				{
 					t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texsid = t.texuseid;
@@ -2927,13 +2955,13 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texhid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
 					if (g.memskipibr == 0) TextureObject(t.entobj, 8, t.entityprofiletexibrid);
 					TextureObject(t.entobj, 7, t.entityprofile[t.entid].texlid);
-					TextureObject(t.entobj, 4, t.entityprofile[t.entid].texgid);
+					if ( bGotGloss == false ) TextureObject(t.entobj, 4, t.entityprofile[t.entid].texgid);
 					TextureObject(t.entobj, 5, t.entityprofile[t.entid].texhid);
 				}
 			}
 
 			// Apply all textures to REMAINING entity parent object (V C I)
-			TextureObject ( t.entobj, 1, t.entityprofiletexoid );
+			if ( bGotAO == false ) TextureObject ( t.entobj, 1, t.entityprofiletexoid );
 			TextureObject ( t.entobj, 6, t.entityprofile[t.entid].texiid );
 
 			// PBR or non-PBR modes

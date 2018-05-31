@@ -21,7 +21,7 @@ float4 GlowIntensity = float4(0,0,0,0);
 float AlphaOverride = 1.0f;
 float SpecularOverride = 1.0f;
 float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Alpha Slice Y=not used
-float4 ArtFlagControl1 = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (off by default) Y=Preserve Tangents (off by default)
+float4 ArtFlagControl1 = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (off by default) Y=Preserve Tangents (off by default) Z=DiffuseBoost
 float4 ShaderVariables = float4(0,0,0,0);
 float4 AmbiColorOverride = {1.0f, 1.0f, 1.0f, 1.0f};
 float4 clipPlane : ClipPlane;
@@ -1258,6 +1258,12 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 
 	// work out environmental fresnel
 	float3 envFresnel = lerp(0.02f, texColor.rgb, gMaterial.Properties.g);
+	
+	// can boost 
+	#ifdef BOOSTINTENSITY
+	ambientIntensity *= (1.0f+ArtFlagControl1.z);
+	lightIntensity *= (1.0f+ArtFlagControl1.z);
+	#endif
 
 	// work out contributions
 	float3 flashlightContrib = rawdiffusemap.xyz * flashlight;

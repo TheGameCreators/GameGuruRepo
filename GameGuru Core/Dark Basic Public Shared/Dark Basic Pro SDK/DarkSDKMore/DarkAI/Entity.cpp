@@ -3593,6 +3593,10 @@ void Entity::ForceMove( float x, float y )
 
 void Entity::UpdateMovement ( float fTimeDelta )
 {
+	// skip entirely if object no longer exists
+	if ( CheckObjectExist ( dwObjectNumberRef ) == false )
+		return;
+
 	// cap time delta for any timeelapsed based calcs
 	if ( fTimeDelta > 1.0f ) fTimeDelta = 1.0f;
 

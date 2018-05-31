@@ -2,11 +2,9 @@
 ;Model, textures and animations by Jonathan Fletcher
 ;jonfletc@gmail.com
 
-
 ;GUN Model File Requirements
 
 ;GUN Settings
-
 muzzleflash    = 1
 muzzlesize     = 1
 brass          = 1
@@ -24,25 +22,23 @@ melee damage   = 100
 ; GUN HUD (0-colt,1-magnum,2-uzi,3-shotgun,4-rifle,5-rpg,6-grenade,7-bow,8-mace,9-stone,10-sword)
 statuspanelcode = 10
 
-
 ;GUN Visuals
-
-textured      =
-effect        = 
-transparency  = 1
-weapontype    = 51
+textured         =
+effect           = 
+transparency     = 1
+weapontype       = 51
+invertnormal     = 0
+preservetangents = 0
+boostintensity   = 200
 
 ;GUN Sounds
-
 sound1	       = fire.wav
 sound2         = retrieve.wav
 sound3         = putaway.wav
 sound4         = idle.wav
-
 fireloop       = 9000
 
 ;HUD muzzleflash position
-
 horiz          = 0
 vert           = 0
 forward        = 4
@@ -51,7 +47,6 @@ aligny         = 0
 alignz         = 13
 
 ;HUD animation frames list
-
 keyframe ratio = 1
 select         = 1,35
 Idle           = 36,59
@@ -61,7 +56,6 @@ end fire       = 105,123
 putaway	       = 124,155
 
 ;HUD sound frames list
-
 soundframes    = 3
 sframe0        = 102,1
 sframe1        = 6,2

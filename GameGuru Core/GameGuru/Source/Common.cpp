@@ -2,11 +2,15 @@
 //--- GAMEGURU - Common
 //----------------------------------------------------
 
+// Includes
 #include "gameguru.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "M-WelcomeSystem.h"
 #include "time.h"
+
+// Used for Free Weekend Promotion Build 
+//#define STEAMOWNERSHIPCHECKFREEWEEKEND
 
 // core externs to globals
 extern LPSTR gRefCommandLineString;
@@ -2884,6 +2888,7 @@ void FPSC_Setup ( void )
 	material_init ( );
 	material_startup ( );
 
+
 	// 
 	//  LEAP POINT (detect if running as Guru-Game.exe or Guru-MapEditor.exe)
 	// 
@@ -2906,6 +2911,7 @@ void FPSC_Setup ( void )
 		}
 	
 		//  New security requires Steam client to be running (for ownership check)
+		#ifdef STEAMOWNERSHIPCHECKFREEWEEKEND
 		bool bSteamRunningAndGameGuruOwned = false;
 		if ( g.steamworks.isRunning == 1 )
 		{
@@ -2916,6 +2922,7 @@ void FPSC_Setup ( void )
 		{
 			g.iTriggerSoftwareToQuit = 2;
 		}
+		#endif
 
 		//  Enter Map Editor specific code
 		SETUPLoadAllCoreShadersREST(g.gforceloadtestgameshaders,g.gpbroverride);
