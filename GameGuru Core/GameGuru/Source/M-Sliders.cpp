@@ -2471,8 +2471,8 @@ void sliders_scope_draw ( void )
 			t.timgwidth_f=ImageWidth(t.timgbase) ; t.timgheight_f=ImageHeight(t.timgbase);
 			t.timgratio_f=t.timgwidth_f/t.timgheight_f;
 			t.tsprwidth_f=GetDisplayHeight()*t.timgratio_f;
-			SizeSprite (  t.timgbase,t.tsprwidth_f,GetDisplayHeight() );
-			PasteSprite (  t.timgbase,(t.tsprwidth_f-GetDisplayWidth())/-2,0 );
+			SizeSprite ( t.timgbase, t.tsprwidth_f, GetDisplayHeight()+1 );
+			PasteSprite ( t.timgbase, (t.tsprwidth_f-GetDisplayWidth())/-2, 0 );
 		}
 	}
 }

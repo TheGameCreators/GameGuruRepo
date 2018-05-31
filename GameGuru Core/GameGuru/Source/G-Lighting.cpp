@@ -434,7 +434,7 @@ void lighting_loop ( void )
 void lighting_spotflash ( void )
 {
 	t.playerlight.mode=0;
-	t.playerlight.spotflash=100;
+	t.playerlight.spotflash=50; // 310518 - was 100
 	lighting_spotflash_control ( );
 }
 
@@ -540,17 +540,12 @@ void lighting_spotflash_control ( void )
 
 void lighting_applyflakcolor ( void )
 {
-return;
-
 }
 
 void lighting_applyflakstickcolor ( void )
 {
-return;
-
 }
 
 void lighting_applyplayerlighting ( void )
 {
-return;
 }

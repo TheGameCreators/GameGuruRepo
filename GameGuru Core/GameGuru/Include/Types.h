@@ -3241,6 +3241,7 @@ struct globalstype
 	int disablefreeflight;
 	int fulldebugview;
 	int enableplrspeedmods;
+	int disableweaponjams;
 	int showdebugcollisonboxes;
 	int hideebe;
 	int hidedistantshadows;
@@ -3264,6 +3265,7 @@ struct globalstype
 		 hidedistantshadows = 1;
 		 hideebe = 0;
 		 showdebugcollisonboxes = 0;
+		 disableweaponjams = 0;
 		 enableplrspeedmods = 0;
 		 fulldebugview = 0;
 		 disablefreeflight = 0;

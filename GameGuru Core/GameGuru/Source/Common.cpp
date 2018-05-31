@@ -1818,6 +1818,7 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "disablefreeflight" ; if (  t.field_s == t.tryfield_s  )  g.globals.disablefreeflight = t.value1;
 					t.tryfield_s = "fulldebugview" ; if (  t.field_s == t.tryfield_s  )  g.globals.fulldebugview = t.value1;
 					t.tryfield_s = "enableplrspeedmods" ; if (  t.field_s == t.tryfield_s  )  g.globals.enableplrspeedmods = t.value1;
+					t.tryfield_s = "disableweaponjams" ; if (  t.field_s == t.tryfield_s  )  g.globals.disableweaponjams = t.value1;
 
 					//  Control of display mode
 					t.tryfield_s = "adapterordinal" ; if (  t.field_s == t.tryfield_s  )  g.gadapterordinal = t.value1;

@@ -4593,6 +4593,8 @@ struct Stemps
 	int gunfull;
 	int gunmode;
 	int gunmodelast;
+	int gunmodetransitionoverride;
+	float gunmodewaitforframe;
 	float ImpMaxX;
 	float ImpMaxY;
 	float ImpMaxZ;
