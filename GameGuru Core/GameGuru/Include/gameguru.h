@@ -1116,10 +1116,26 @@ struct Sglobals
 	int guidiffuseshadereffectindex;
 	int guiwireframeshadereffectindex;
 	int guidepthshadereffectindex;
+	int projectileEventType_explosion;
+	cstr projectileEventType_name;
+	int projectileEventType_x;
+	int projectileEventType_y;
+	int projectileEventType_z;
+	int projectileEventType_radius;
+	int projectileEventType_damage;
+	int projectileEventType_entityhit;
 
 	// Constructor
 	Sglobals ( )
 	{
+		 projectileEventType_explosion = 0;
+		 projectileEventType_name = "";
+		 projectileEventType_x = 0;
+		 projectileEventType_y = 0;
+		 projectileEventType_z = 0;
+		 projectileEventType_radius = 0;
+		 projectileEventType_damage = 0;
+		 projectileEventType_entityhit = 0;
 		 guidepthshadereffectindex = 0;
 		 guiwireframeshadereffectindex = 0;
 		 guidiffuseshadereffectindex = 0;
@@ -2771,6 +2787,10 @@ struct Stemps
 	float tphysicsadvance_f;
 	cstr tProjectileName_s;
 	int tProjectileResult;
+	int tProjectileResultExplosionImageID;
+	int tProjectileResultLightFlag;
+	int tProjectileResultSmokeImageID;
+	int tProjectileResultSparksCount;
 	cstr tProjectileType_s;
 	int trecentfilechoice;
 	int trecolorAfterGame;
@@ -8016,6 +8036,10 @@ struct Stemps
 		 trecolorAfterGame = 0;
 		 trecentfilechoice = 0;
 		 tProjectileType_s = "";
+		 tProjectileResultLightFlag = 0;
+		 tProjectileResultSmokeImageID = 0;
+		 tProjectileResultSparksCount = 0;
+		 tProjectileResultExplosionImageID = 0;
 		 tProjectileResult = 0;
 		 tProjectileName_s = "";
 		 tphysicsadvance_f = 0.0f;

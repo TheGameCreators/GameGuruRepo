@@ -438,7 +438,8 @@ void common_init_globals ( void )
 	//  +1,2,3,4 = Jetpack textures (x8)
 	//  .. 32 (for all 8 jet pack textures)
 	g.weaponsimageoffset = 1000;
-	g.particlesimageoffset = 1400;
+	g.particlesimageoffset = 1400; 
+	// reserve 200 particles 1400-1599
 	g.ebeimageoffset = 1900;
 	g.texturebankoffset = 2000;
 	//PE: 50000+ to be used for internal images inside dbo's.

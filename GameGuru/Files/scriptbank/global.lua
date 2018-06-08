@@ -132,11 +132,20 @@ mp_coop = 0;
 mp_enemiesLeftToKill = 100;
 
 -- GameLoop Globals, Init and Loop
-
 g_gameloop_StartHealth = 0
 g_gameloop_RegenRate = 0
 g_gameloop_RegenSpeed = 0
 g_gameloop_RegenDelay = 0
+
+-- Globals to track projectile explosion event
+g_projectileevent_explosion = 0
+g_projectileevent_name = ""
+g_projectileevent_x = 0
+g_projectileevent_y = 0
+g_projectileevent_z = 0
+g_projectileevent_radius = 0
+g_projectileevent_damage = 0
+g_projectileevent_entityhit = 0
 
 function GameLoopInit(sth,rra,rsp,rde)
  g_gameloop_StartHealth = sth

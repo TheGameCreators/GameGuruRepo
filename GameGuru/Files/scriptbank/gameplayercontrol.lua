@@ -15,6 +15,7 @@ g_suspendplayercontrols = 0
 g_playercontrolcooldownmode = 0
 g_specialPBRDebugView = 0
 g_FootFallTimer = 0
+
 function gameplayercontrol.main()
  gameplayercontrol.jetpack()
  gameplayercontrol.weaponfire()

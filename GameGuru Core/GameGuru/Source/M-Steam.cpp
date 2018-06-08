@@ -5326,8 +5326,6 @@ t.debugHowManyInUse = 0;
 						if (  t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].particleType>0 && t.tokay == 1 ) 
 						{
 							ravey_particles_get_free_emitter ( );
-//        `WeaponProjectile(tNewProj).tempEmitter = tResult
-
 							if (  t.tResult>0 ) 
 							{
 								t.tobj = t.tsteamBObj;

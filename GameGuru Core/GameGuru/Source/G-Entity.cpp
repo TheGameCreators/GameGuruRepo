@@ -702,6 +702,7 @@ void entity_loop ( void )
 					t.ttte = t.ee ; entity_applydamage() ; t.ee=t.ttte;
 					// create a huge bang
 					t.entityelement[t.ee].destroyme=1;
+					t.tProjectileName_s = "";
 					t.tProjectileResult = WEAPON_PROJECTILERESULT_EXPLODE;
 					t.tx_f=t.entityelement[t.ee].x ; t.ty_f=t.entityelement[t.ee].y ; t.tz_f=t.entityelement[t.ee].z;
 					t.tDamage_f = t.entityelement[t.ee].eleprof.explodedamage; 
