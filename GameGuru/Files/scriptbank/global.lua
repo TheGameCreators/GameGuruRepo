@@ -479,6 +479,9 @@ end
 function SetEntityHealth(e,v)
  SendMessageI("setentityhealth",e,v)
 end
+function SetEntityHealthSilent(e,v)
+ SendMessageI("setentityhealthsilent",e,v)
+end
 function SetEntityRagdollForce(e,limb,x,y,z,v)
  SendMessageF("setforcex",x);
  SendMessageF("setforcey",y);

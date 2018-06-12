@@ -29,13 +29,13 @@ zoomaccuracyheld	= 1
 zoomholdbreath		= 16
 
 ;// HUD handling characteristics
-zoomwalkspeed       = 0.4
-zoomturnspeed       = 0.3
-plrmovespeedmod		= 0.5
-plremptyspeedmod    = 0.6
-plrturnspeedmod		= 0.8
-plrjumpspeedmod		= 0.5
-plrreloadspeedmod	= 0.1
+zoomwalkspeed       = 1.0
+zoomturnspeed       = 1.0
+plrmovespeedmod		= 1.0
+plremptyspeedmod    = 1.0
+plrturnspeedmod		= 1.0
+plrjumpspeedmod		= 1.0
+plrreloadspeedmod	= 1.0
 recoily				= 60
 recoilyreturn		= 80
 recoilx				= 5

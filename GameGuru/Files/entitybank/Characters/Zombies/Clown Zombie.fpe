@@ -34,7 +34,7 @@ ischaracter   = 1
 hasweapon     = 
 isobjective   = 0
 cantakeweapon = 0
-speed         = 100
+speed         = 50
 
 ;headlimbs
 headlimbs     = 30,33

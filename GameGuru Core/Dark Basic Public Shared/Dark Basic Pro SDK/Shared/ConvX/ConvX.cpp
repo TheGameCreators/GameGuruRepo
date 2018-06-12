@@ -1201,6 +1201,30 @@ DARKSDK bool XFILE_NEW_GetMaterialData ( IDirectXFileData* pSubDataMaterial, cha
 	// look for a name
 	XFILE_NEW_GetMaterialName ( pSubDataMaterial, &material );
 
+	// 090618 - ensure no TGA is converted over (default is PNG)
+	if ( material.szFilename != NULL )
+	{
+		if ( strnicmp ( material.szFilename + strlen(material.szFilename) - 4, ".tga", 4 ) == NULL )
+		{
+			// chop TGA
+			material.szFilename[strlen(material.szFilename)-4] = 0;
+
+			// check if _ALB used, instead use _COLOR
+			if ( strnicmp ( material.szFilename + strlen(material.szFilename) - 4, "_ALB", 4 ) == NULL )
+			{
+				LPSTR pNewMaterialFilename = new char[strlen(material.szFilename)+10];
+				strcpy ( pNewMaterialFilename, material.szFilename );
+				SAFE_DELETE ( material.szFilename );
+				material.szFilename = pNewMaterialFilename;
+				material.szFilename[strlen(material.szFilename)-4] = 0;
+				strcat ( material.szFilename, "_color" );
+			}
+
+			// add correct default image extension
+			strcat ( material.szFilename, ".png" );
+		}
+	}
+
 	// lee - 300518 - if texture is blank or NULL, pass in material name (can assemble texture name from this later)
 	if ( material.szFilename == NULL || strlen(material.szFilename) == 0 || stricmp ( material.szFilename, "null" ) == NULL )
 	{
@@ -1210,14 +1234,19 @@ DARKSDK bool XFILE_NEW_GetMaterialData ( IDirectXFileData* pSubDataMaterial, cha
 		strcpy ( material.szFilename, szNameMaterial );
 
 		// adjust material name to texture name (from known material names to known texture name conventions)
+		char pNewTextureName[1024];
 		if ( strnicmp ( material.szFilename, "M_", 2 ) == NULL )
 		{
 			// material name starts with M_, cut this and add PBR texture designation
-			char pNewTextureName[1024];
 			strcpy ( pNewTextureName, material.szFilename+2 );
-			strcat ( pNewTextureName, "_Color.png" );
-			strcpy ( material.szFilename, pNewTextureName );
 		}
+		else
+		{
+			// material name has no prefix, so treat material name as suggested texture name
+			strcpy ( pNewTextureName, material.szFilename );
+		}
+		strcat ( pNewTextureName, "_Color.png" );
+		strcpy ( material.szFilename, pNewTextureName );
 	}
 
 	// send data to back of list

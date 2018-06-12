@@ -41,16 +41,18 @@ speedMin               = 450
 
 ; maximum speed in units/second of projectile when fired
 speedMax               = 550
-damage                 = 400
+
+; final damage
+damage                 = 0
 
 ; final damage value is +/- this value
-damageRandom           = 100
+damageRandom           = 1
 
 ; distance to travel before damage decreases, tending to 0 when as projectile approaches 'range'
 fullDamageRange        = 0
 
 ; radius of damage effect if explosive
-damageRadius           = 0
+damageRadius           = 100
 
 ; time in milliseconds for the projectile to thrust forwards
 thrustTime             = 2000  
