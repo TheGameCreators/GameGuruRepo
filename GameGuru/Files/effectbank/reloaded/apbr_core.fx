@@ -166,7 +166,7 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
      }   
    #endif
    output.position = mul(float4(inputPosition,1), World);
-   output.positionCS = mul(output.position, mul(View, Projection));
+   output.positionCS = mul(output.position, mul(View, Projection)); // 
    output.normal = mul(inputNormal, wsTransform);   
    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
    output.viewDepth = mul(output.position, View).z;
@@ -220,6 +220,11 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
    #endif
    output.normal = normalize(output.normal);
    output.clip = dot(output.position, clipPlane);                                                                      
+
+
+	//PE: Experimental , http://www.mvps.org/directx/articles/linear_z/linearz.htm
+	//PE: z fighting. We need to extract the far plane somehow to test it.
+	//output.positionCS.z = output.positionCS.z * output.positionCS.w / 5000.0f;
 
 #ifdef PBRTERRAIN
     if(output.positionCS.z > 3400.0 && output.position.y < 460.0 && output.normal.y > 0.9985 ) {
@@ -1148,7 +1153,9 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #endif
 #if K_MODEL_PE
    // remove shadow artifacts on sun side , fade slowly into shadow.
-   visibility = lerp(1.0,visibility,clamp(dot(-gDirLight.Direction,attributes.normal)-0.10,0.0,1.0) ); // slowly fade away shadow on light side of objects.
+//   visibility = lerp(1.0,visibility,clamp(dot(-gDirLight.Direction,attributes.normal)-0.10,0.0,1.0) ); // slowly fade away shadow on light side of objects.
+   visibility = lerp(1.0,visibility,clamp(dot(-gDirLight.Direction,attributes.normal)+0.10,0.0,1.0) ); // slowly fade away shadow on light side of objects.
+
    //PE: todo - GetShadow remove shadow on dark side , but reflection objects dont always have "lowligt" on dark side , so...
 #endif
 
@@ -1251,7 +1258,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     float flashlight = pow(max(fspecular.r,0),conewidth) * intensity * SpotFlashColor.w * MAXFLASHLIGHT;
 #endif
 
-	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
+//	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
+	visibility = clamp( visibility+(flashlight*0.75) , 0.15 ,1.0 ); //PE: Set lowest dark shadow, to stop uneven shadow colors.
 
 	//light += (rawdiffusemap.xyz) * flashlight);
 
@@ -1264,7 +1272,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #ifndef PBRTERRAIN
 	ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
 #endif
-	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity;
+	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
 	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
@@ -1371,6 +1379,23 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    // final pixel color and alpha
    return float4(finalColor, litColor.a);
 }
+
+float4 depthPS(in VSOutput input) : SV_TARGET
+{
+   clip(input.clip);
+   float4 rawdiffusemap = AlbedoMap.Sample(SampleWrap, input.uv);
+#ifdef ALPHADISABLED
+    rawdiffusemap.a = 1;
+#else
+	if( rawdiffusemap.a < ALPHACLIP ) 
+	{
+		clip(-1);
+		return rawdiffusemap;
+	}
+#endif
+   return rawdiffusemap;
+}
+
 
 float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 {
@@ -1550,12 +1575,13 @@ technique11 Lowest_Prebake
     }
 }
 
+#ifdef PBRTERRAIN
 technique11 DepthMap
 {
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(0))); //causes RT warning when used to render depth(shadows) only!
+        SetPixelShader(NULL);
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1563,6 +1589,21 @@ technique11 DepthMap
         #endif
     }
 }
+#else
+technique11 DepthMap
+{
+    pass MainPass
+    {
+        SetVertexShader(CompileShader(vs_5_0, VSMain(1))); //PE: I dont see this RT warning, so made a depthPS() only using albedo ?.
+        SetPixelShader(CompileShader(ps_5_0, depthPS())); //causes RT warning when used to render depth(shadows) only! 
+        SetGeometryShader(NULL);
+        #ifdef CUTINTODEPTHBUFFER
+        SetDepthStencilState( YesDepthRead, 0 );
+        SetRasterizerState ( BackwardCull );
+        #endif
+    }
+}
+#endif
 
 technique11 DepthMapNoAnim
 {
