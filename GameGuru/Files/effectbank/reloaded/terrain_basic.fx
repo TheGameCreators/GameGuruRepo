@@ -876,11 +876,11 @@ float4 mainlightPS_medium(vertexOutput_low IN) : COLOR
       // some falloff to blend away as distance increases
       lighting.z = lighting.z * max(1.0f-(viewspacePos.z/1000.0f),0); 
 
-      // cheap terrain shadow floor texture read
-	  
  	  // Shadows
-      float fShadow = GetShadowCascade ( 7, IN.WPos, IN.WorldNormal, normalize(LightSource.xyz) );
+ 	  int iCurrentCascadeIndex = 0;
+	  float fShadow = GetShadow ( IN.vDepth, IN.WPos, IN.WorldNormal, normalize(LightSource.xyz), iCurrentCascadeIndex );
       fShadow = fShadow * 0.675f * ShadowStrength;
+
 
 	  // ensure cheap shadows fade out if camera too high (editor view)
 	  fShadow = fShadow * max(0,1.0f-((eyePos.y-1200.0f)/3000.0f));

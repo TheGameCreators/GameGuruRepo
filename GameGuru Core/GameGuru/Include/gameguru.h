@@ -500,6 +500,7 @@ struct Sglobals
 	int underwatermode;
 	int memskipwatermask;
 	int standalonefreememorybetweenlevels;
+	int lowestnearcamera;
 	int memskipibr;
 	int memgeneratedump;
 

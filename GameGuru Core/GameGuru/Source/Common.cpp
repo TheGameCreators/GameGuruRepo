@@ -1678,6 +1678,7 @@ void FPSC_SetDefaults ( void )
 	g.gpbroverride = 0;
 	g.memskipwatermask = 0;
 	g.standalonefreememorybetweenlevels = 0;
+	g.lowestnearcamera = 6; // default , use setup.ini lowestnearcamera to adjust.
 	g.memgeneratedump = 0;
 	g.underwatermode = 0;
 	g.gproducetruevidmemreading = 0;
@@ -1799,6 +1800,10 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "hidedistantshadows" ; if (  t.field_s == t.tryfield_s  ) g.globals.hidedistantshadows = t.value1;
 					t.tryfield_s = "realshadowresolution" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowresolution = t.value1;
 					t.tryfield_s = "realshadowcascadecount" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascadecount = t.value1;
+
+					if (g.globals.realshadowcascadecount < 2) g.globals.realshadowcascadecount = 2; //PE: Limit cascades.
+					if (g.globals.realshadowcascadecount > 8) g.globals.realshadowcascadecount = 8; //PE: Limit cascades.
+
 					t.tryfield_s = "realshadowcascade0" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[0] = t.value1;
 					t.tryfield_s = "realshadowcascade1" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[1] = t.value1;
 					t.tryfield_s = "realshadowcascade2" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[2] = t.value1;
@@ -1808,6 +1813,21 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "realshadowcascade6" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[6] = t.value1;
 					t.tryfield_s = "realshadowcascade7" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[7] = t.value1;
 
+					t.tryfield_s = "realshadowsize0"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[0] = t.value1;
+					t.tryfield_s = "realshadowsize1"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[1] = t.value1;
+					t.tryfield_s = "realshadowsize2"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[2] = t.value1;
+					t.tryfield_s = "realshadowsize3"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[3] = t.value1;
+					t.tryfield_s = "realshadowsize4"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[4] = t.value1;
+					t.tryfield_s = "realshadowsize5"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[5] = t.value1;
+					t.tryfield_s = "realshadowsize6"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[6] = t.value1;
+					t.tryfield_s = "realshadowsize7"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[7] = t.value1;
+
+					t.tryfield_s = "realshadowdistance"; if (t.field_s == t.tryfield_s) {
+						g.globals.realshadowdistance = t.value1;
+						g.globals.realshadowdistancehigh = t.value1;
+					}
+					t.tryfield_s = "editorusemediumshadows"; if (t.field_s == t.tryfield_s)  g.globals.editorusemediumshadows = t.value1;
+					
 					t.tryfield_s = "hidememorygauge" ; if (  t.field_s == t.tryfield_s  )  g.ghidememorygauge = t.value1;
 					t.tryfield_s = "hidelowfpswarning" ; if (  t.field_s == t.tryfield_s  )  g.globals.hidelowfpswarning = t.value1;
 					t.tryfield_s = "hardwareinfomode" ; if (  t.field_s == t.tryfield_s  )  g.ghardwareinfomode = t.value1;
@@ -1918,7 +1938,8 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "underwatermode"; if (t.field_s == t.tryfield_s)  g.underwatermode = t.value1;
 					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
 					t.tryfield_s = "standalonefreememorybetweenlevels"; if (t.field_s == t.tryfield_s)  g.standalonefreememorybetweenlevels = t.value1;
-
+					t.tryfield_s = "lowestnearcamera"; if (t.field_s == t.tryfield_s)  g.lowestnearcamera = t.value1;
+					
 					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
 					t.tryfield_s = "memgeneratedump"; if (t.field_s == t.tryfield_s)  g.memgeneratedump = t.value1;
 					

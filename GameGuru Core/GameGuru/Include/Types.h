@@ -3254,10 +3254,27 @@ struct globalstype
 	int realshadowresolution;
 	int realshadowcascadecount;
 	int realshadowcascade[8];
+	int realshadowsize[8];
+	float realshadowdistance;
+	float realshadowdistancehigh;
+	int editorusemediumshadows;
 
 	// Constructor
 	globalstype ( )
 	{
+		 realshadowdistance = 5000.0f;
+		 realshadowdistancehigh = 5000.0f;
+		 editorusemediumshadows = 1;
+
+		 realshadowsize[0] = 0;
+		 realshadowsize[1] = 0;
+		 realshadowsize[2] = 0;
+		 realshadowsize[3] = 0;
+		 realshadowsize[4] = 0;
+		 realshadowsize[5] = 0;
+		 realshadowsize[6] = 0;
+		 realshadowsize[7] = 0;
+
 		 realshadowcascade[0] = 2;
 		 realshadowcascade[1] = 8;
 		 realshadowcascade[2] = 16;
