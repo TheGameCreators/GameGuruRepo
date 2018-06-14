@@ -1276,7 +1276,11 @@ void visuals_loop ( void )
 			if (  CameraExist(t.tcamid) == 1 && t.tcamid != 3 ) 
 			{
 				// 311017 - solve Z clash issues by adjusting near depth based on far depth
-				float fFinalNearDepth = 2.0f + t.visuals.CameraNEAR_f + ((t.visuals.CameraFAR_f/70000.0f)*8.0f);
+				//PE: removes flickering on "old bridge" in TBE.
+				//PE: 8+ seams wo work without near geo disappering.
+				//PE: 14 seams to be the largest possible when directly up to a flat wall.
+				//PE: Default range 8-14 . use setup.ini lowestnearcamera to go lower then 8.
+				float fFinalNearDepth = g.lowestnearcamera + t.visuals.CameraNEAR_f + ((t.visuals.CameraFAR_f/70000.0f)*6.0f); // PE: range 8-14
 				SetCameraRange ( t.tcamid, fFinalNearDepth, t.visuals.CameraFAR_f );
 				SetCameraAspect ( t.tcamid,t.visuals.CameraASPECT_f );
 				SetCameraFOV ( t.tcamid,g.greasonableCameraFOV_f );
