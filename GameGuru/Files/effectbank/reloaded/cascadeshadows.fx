@@ -57,7 +57,54 @@ float PCF2x2(Texture2D depths, float2 uv, float compare, float projectionweight)
     return result/4.0;
 }
 
-void CalculatePCFPercentLit ( in int iCurrentCascadeIndex, in float sbias, in float fRemoveProjectionBias, in float4 vShadowTexCoord, in float2 mwpos, out float fPercentLit ) 
+// PE: better poisson disk spreading.
+const uint poissonDisknum = 23;
+static const float2 poissonDisk[23] =
+   {
+      float2(0.0f, 0.0f), // PCF
+      float2(0.55f, 0.55f), // PCF
+      float2(-0.55f, -0.55f), // PCF
+      float2(0.2770745f, 0.6951455f),
+      float2(0.1874257f, -0.02561589f),
+      float2(-0.3381929f, 0.8713168f),
+      float2(0.5867746f, 0.1087471f),
+      float2(-0.3078699f, 0.188545f),
+      float2(0.7993396f, 0.4595091f),
+      float2(-0.09242552f, 0.5260149f),
+      float2(0.3657553f, -0.5329605f),
+      float2(-0.3829718f, -0.2476171f),
+      float2(-0.01085108f, -0.6966301f),
+      float2(0.8404155f, -0.3543923f),
+      float2(-0.5186161f, -0.7624033f),
+      float2(-0.8135794f, 0.2328489f),
+      float2(-0.784665f, -0.2434929f),
+      float2(0.9920505f, 0.0855163f),
+      float2(-0.687256f, 0.6711345f),
+      float2(0.0f, 0.5f), // PCF
+      float2(0.5f, 0.0f), // PCF
+      float2(0.0f, -0.5f), // PCF
+      float2(-0.5f, 0.0f)
+   };
+
+float PCF(Texture2D depths, float2 uv, float compare, float2 mwpos, float fCurrentPixelDepth){
+    float result = 0.0;
+    float fTexelSize= 1.0/ 1100; //PE: larger texel for better spreading.
+    float totaldist = m_fCascadeFrustumsEyeSpaceDepths[m_nCascadeLevels-1] * 0.30; // PE: * 0.30 high samples only close up.
+    int sruns = clamp( SHADOWQUALITY-floor( fCurrentPixelDepth/(totaldist/SHADOWQUALITY) ) , 2, SHADOWQUALITY ); //PE: for now dont go lower then 2.
+    
+    //if( sruns == SHADOWQUALITY ) return(0.0); //PE: debug see where last samples is.
+    //if( sruns == 8 ) return(0.0); //PE: debug see where 8 samples is.
+    //if( sruns == 2 ) return(0.0); //PE: to see when we go to 2 samples.
+    
+	for( int runs = 0; runs < sruns ; runs++ ) {
+            float2 off = ( poissonDisk[ 4+runs ] ) * fTexelSize; //m_fTexelSize;
+            result += depths.SampleCmpLevelZero( cmpSampler, uv+off, compare );
+    }
+    return result/sruns;
+}
+
+
+void CalculatePCFPercentLit ( in float fCurrentPixelDepth , in int iCurrentCascadeIndex, in float sbias, in float fRemoveProjectionBias, in float4 vShadowTexCoord, in float2 mwpos, out float fPercentLit ) 
 {
    // offset z depth value with sbias to defeat distance rendering
    vShadowTexCoord.z -= sbias;
@@ -69,7 +116,8 @@ void CalculatePCFPercentLit ( in int iCurrentCascadeIndex, in float sbias, in fl
    {
 	  depthTexture = DepthMapTX1;
       #ifdef BETTERSHADOWS
-       fPercentLit = PCF2x2(depthTexture, vShadowTexCoord.xy, vShadowTexCoord.z, fRemoveProjectionBias );
+       //fPercentLit = PCF2x2(depthTexture, vShadowTexCoord.xy, vShadowTexCoord.z, fRemoveProjectionBias );
+       fPercentLit = PCF(depthTexture, float2(vShadowTexCoord.x,vShadowTexCoord.y) , vShadowTexCoord.z,mwpos , fCurrentPixelDepth );
       #else
        fPercentLit += depthTexture.SampleCmpLevelZero( cmpSampler, float2(vShadowTexCoord.x,vShadowTexCoord.y), vShadowTexCoord.z );
       #endif
@@ -78,7 +126,8 @@ void CalculatePCFPercentLit ( in int iCurrentCascadeIndex, in float sbias, in fl
    {
 	  depthTexture = DepthMapTX2;
       #ifdef BETTERSHADOWS
-       fPercentLit = PCF2x2(depthTexture, vShadowTexCoord.xy , vShadowTexCoord.z, fRemoveProjectionBias );
+       //fPercentLit = PCF2x2(depthTexture, vShadowTexCoord.xy , vShadowTexCoord.z, fRemoveProjectionBias );
+       fPercentLit = PCF(depthTexture, float2(vShadowTexCoord.x,vShadowTexCoord.y) , vShadowTexCoord.z,mwpos , fCurrentPixelDepth );
       #else
        fPercentLit += depthTexture.SampleCmpLevelZero( cmpSampler, float2(vShadowTexCoord.x,vShadowTexCoord.y), vShadowTexCoord.z );
       #endif
@@ -86,12 +135,22 @@ void CalculatePCFPercentLit ( in int iCurrentCascadeIndex, in float sbias, in fl
    else if ( iCurrentCascadeIndex==2 )
    {
 	  depthTexture = DepthMapTX3;
-      fPercentLit += depthTexture.SampleCmpLevelZero( cmpSampler, float2(vShadowTexCoord.x,vShadowTexCoord.y), vShadowTexCoord.z );
+      #ifdef BETTERSHADOWS
+       //fPercentLit = PCF2x2(depthTexture, vShadowTexCoord.xy , vShadowTexCoord.z, fRemoveProjectionBias );
+       fPercentLit = PCF(depthTexture, float2(vShadowTexCoord.x,vShadowTexCoord.y) , vShadowTexCoord.z,mwpos , fCurrentPixelDepth );
+      #else
+       fPercentLit += depthTexture.SampleCmpLevelZero( cmpSampler, float2(vShadowTexCoord.x,vShadowTexCoord.y), vShadowTexCoord.z );
+	  #endif
    }
    else if ( iCurrentCascadeIndex==3 )
    {
 	  depthTexture = DepthMapTX4;
-      fPercentLit += depthTexture.SampleCmpLevelZero( cmpSampler, float2(vShadowTexCoord.x,vShadowTexCoord.y), vShadowTexCoord.z );
+      #ifdef BETTERSHADOWS
+       //fPercentLit = PCF2x2(depthTexture, vShadowTexCoord.xy , vShadowTexCoord.z, fRemoveProjectionBias );
+       fPercentLit = PCF(depthTexture, float2(vShadowTexCoord.x,vShadowTexCoord.y) , vShadowTexCoord.z,mwpos , fCurrentPixelDepth );
+      #else
+       fPercentLit += depthTexture.SampleCmpLevelZero( cmpSampler, float2(vShadowTexCoord.x,vShadowTexCoord.y), vShadowTexCoord.z );
+	  #endif
    }
    else if ( iCurrentCascadeIndex==4 )
    {
@@ -157,7 +216,7 @@ float GetShadowCore ( int iCurrentCascadeIndex, float fCurrentPixelDepth, float4
 
       // repeat text coord calculations for the next cascade the next cascade index is used for blurring between maps
       int iNextCascadeIndex = 1;
-      iNextCascadeIndex = min ( 8 - 1, iCurrentCascadeIndex + 1 ); 
+      iNextCascadeIndex = min ( m_nCascadeLevels - 1, iCurrentCascadeIndex + 1 ); // PE: make sure we can adjust cascades in setup.ini
       float fBlendBetweenCascadesAmount = 1.0f;
       float fCurrentPixelsBlendBandLocation = 1.0f;
       CalculateBlendAmountForInterval ( iCurrentCascadeIndex, fCurrentPixelDepth, 
@@ -165,7 +224,8 @@ float GetShadowCore ( int iCurrentCascadeIndex, float fCurrentPixelDepth, float4
 
       // offset shadow pixel depth with surface bias and distance bias
 	  // now done by offsetting all geometry rendered to shadow map in light direction (DepthMap technique)
-      float sbias = 0.0001f + (fCurrentPixelDepth/4000000.0f);
+	  //float sbias = 0.0001f + (fCurrentPixelDepth/4000000.0f);
+      float sbias = 0.0001f + (fCurrentPixelDepth/12000000.0f); //PE: better when FAR away.
 	  
 	  // projection aliasing should reduce offsets of PCF 'and' adjust bias for depth compare
 	  float fRemoveProjectionBias = max(0,dot(WorldNormal,Ln)-0.4f)*1.666f;
@@ -175,7 +235,7 @@ float GetShadowCore ( int iCurrentCascadeIndex, float fCurrentPixelDepth, float4
       ComputeCoordinatesTransform( iCurrentCascadeIndex, finalwpos, vShadowMapTextureCoord );    
 
       // work out how much shadow
-      CalculatePCFPercentLit ( iCurrentCascadeIndex, sbias, fRemoveProjectionBias, vShadowMapTextureCoord, finalwpos.xz, fShadow );
+      CalculatePCFPercentLit ( fCurrentPixelDepth,iCurrentCascadeIndex, sbias, fRemoveProjectionBias, vShadowMapTextureCoord, finalwpos.xz, fShadow );
       if( fCurrentPixelsBlendBandLocation < m_fCascadeBlendArea && iBlendWithNext == 1 ) 
       {  
          // the current pixel is within the blend band.
@@ -186,7 +246,7 @@ float GetShadowCore ( int iCurrentCascadeIndex, float fCurrentPixelDepth, float4
       
          // the current pixel is within the blend band.
          float fPercentLit_blend = 0.0f;
-         CalculatePCFPercentLit ( iNextCascadeIndex, sbias, fRemoveProjectionBias, vShadowMapTextureCoord_blend, finalwpos.xz, fPercentLit_blend );
+         CalculatePCFPercentLit ( fCurrentPixelDepth,iNextCascadeIndex, sbias, fRemoveProjectionBias, vShadowMapTextureCoord_blend, finalwpos.xz, fPercentLit_blend );
                            
          // Blend the two calculated shadows by the blend amount.
          fShadow = lerp( fPercentLit_blend, fShadow, fBlendBetweenCascadesAmount ); 
@@ -204,8 +264,9 @@ float GetShadowCore ( int iCurrentCascadeIndex, float fCurrentPixelDepth, float4
 	fShadow = fShadow * fFinalFadeOut;
 	
     // finally modulate shadow with strength
-    fShadow = min ( (fShadow * 4.0f * ShadowStrength), 1.0f );
-	
+//    fShadow = min ( (fShadow * 4.0f * ShadowStrength), 1.0f );
+    fShadow = min ( (fShadow * 3.0f * ShadowStrength), 1.0f ); //PE: Shadow can now go darker , so extent the range.
+
 	// return final shadow value
 	return fShadow;
 }
@@ -243,13 +304,15 @@ float GetShadow ( float fCurrentPixelDepth, float4 finalwpos, float3 WorldNormal
 	}
 	else
 	{
-		iCurrentCascadeIndex = 7;
+		iCurrentCascadeIndex = m_nCascadeLevels-1; //7; PE: make sure we can adjust cascades in setup.ini
 	}
 	return GetShadowCore ( iCurrentCascadeIndex, fCurrentPixelDepth, finalwpos, WorldNormal, Ln, 1 );
 }
 
 float GetShadowCascade ( int iCurrentCascadeIndex, float4 finalwpos, float3 WorldNormal, float3 Ln )
 {
+	//PE: This is only used from old non PBR shaders , make sure they always works, and use the most distance cascade.
+	if( iCurrentCascadeIndex > (m_nCascadeLevels-1) ) iCurrentCascadeIndex = m_nCascadeLevels-1;
 	return GetShadowCore ( iCurrentCascadeIndex, m_fCascadeFrustumsEyeSpaceDepths[iCurrentCascadeIndex], finalwpos, WorldNormal, Ln, 0 );
 }
 
