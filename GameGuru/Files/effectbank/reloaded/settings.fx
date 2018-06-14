@@ -19,6 +19,7 @@
 #define LENSFLARE // enable / disable lens flare.
 #define DISABLELENSFLAREHALO // diable the lens flare halo.
 #define FXAA // enable / disable FXAA
+#define SHADOWQUALITY (10) // from 2 to 20 , Define the start number of samples for shadows , the higher the better shadow.
 
 //#define CARTOON // enable / disable cartoon (cel) shader.
 //#define RETRODITHER // make a retro dither look
