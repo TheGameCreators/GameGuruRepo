@@ -4638,6 +4638,12 @@ DARKSDK_DLL void SetEffectShadowMappingMode ( int iMode )
 	g_CascadedShadow.m_dwMask = iMode;
 }
 
+DARKSDK_DLL void SetShadowTexelSize(int isize)
+{
+	// Can set the size of the cascade textures use, to calculate the texel size.
+	g_CascadeConfig.m_iBufferSize = isize;
+}
+
 DARKSDK_DLL void RenderEffectShadowMapping ( int iEffectID )
 {
 	// renders shadow maps for effect
@@ -4697,7 +4703,6 @@ DARKSDK_DLL void RenderEffectShadowMapping ( int iEffectID )
 			pEffectPtr->SetTechnique(hOldTechnique);
 		#endif
 	}
-
 	// set shaodw mapping settings for final render (for all effects that call this command inc. primary)
     g_CascadedShadow.RenderScene( iEffectID, pEffectPtr, NULL, NULL, NULL, false );
 
