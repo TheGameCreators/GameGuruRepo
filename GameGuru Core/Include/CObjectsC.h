@@ -191,6 +191,7 @@ DARKSDK void DeleteEffectCore			( int iEffectID, bool bAlsoEraseObjReferences );
 DARKSDK void DeleteEffect				( int iEffectID );
 DARKSDK void ChangeShadowMappingPrimary ( int iEffectID );
 DARKSDK void SetEffectToShadowMappingEx	( int iEffectID, int iDebugObjStart, int iDebugEffectIndex, int iHideDistantShadows, int iRealShadowResolution, int iRealShadowCascadeCount, int iC0, int iC1, int iC2, int iC3, int iC4, int iC5, int iC6, int iC7 );
+DARKSDK void SetShadowTexelSize			( int isize );
 DARKSDK void SetEffectToShadowMapping	( int iEffectID );
 DARKSDK void SetEffectShadowMappingMode	( int iMode );
 DARKSDK void RenderEffectShadowMapping	( int iEffectID );
