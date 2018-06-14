@@ -753,7 +753,7 @@ void importer_free ( void )
 
 cstr importer_getfilenameonly ( LPSTR pFileAndPossiblePath )
 {
-	cstr pFileNameOnly = "";
+	cstr pFileNameOnly = pFileAndPossiblePath;
 	for ( int n = strlen(pFileAndPossiblePath); n > 0; n-- )
 	{
 		if ( pFileAndPossiblePath[n] == '\\' || pFileAndPossiblePath[n] == '/' )
@@ -810,7 +810,7 @@ int importer_addtexturefiletolist ( cstr fileName, cstr sourceName, int tCount )
 		t.tfound = 0;
 		for ( int tCount3 = 1 ; tCount3 <= IMPORTERTEXTURESMAX; tCount3++ )
 		{
-			if ( t.importerTextures[tCount3].imageID  ==  0 ) 
+			if ( strlen ( t.importerTextures[tCount3].fileName.Get() ) == 0 ) 
 			{
 				t.tfound = tCount3;
 				break;
@@ -923,24 +923,26 @@ void importer_findimagetypesfromlist ( cstr fileName, int* piImgColor, int* piIm
 
 void importer_applyimagelisttextures ( void )
 {
+	// 140618 - This is pre-empted now by the Importer Load Step (corrects textures, loads and assigns them internally)
+
 	// importerTextures holds all textures associated with model
-
 	// work out object texture stages (based on shader chosen)
-	int iColorStage = 0;
-	int iNormalStage = 1;
-	int iSpecularStage = 2;
-	int iGlossStage = 3;
-	int iAOStage = 4;
-	int iHeightStage = 5;
-	int iFGStage = 6;
-	int iEnvStage = 7;
-	if ( 1 ) 
-	{
-		// Fuse FBX Characters
-		//iAOStage = -1;
-		iHeightStage = -1;
-	}
+	//int iColorStage = 0;
+	//int iAOStage = 1;
+	//int iNormalStage = 2;
+	//int iSpecularStage = 3;
+	//int iGlossStage = 4;
+	//int iHeightStage = 5;
+	int iEnvStage = 6;
+	//int iFGStage = 8;
+	//if ( 1 ) 
+	//{
+	//	// Fuse FBX Characters
+	//	//iAOStage = -1;
+	//	iHeightStage = -1;
+	//}
 
+	/*
 	// work out if object is single or multi-texture
 	int iTextureCount = 0;
 	char pStoreTextureNames[50][512];
@@ -973,14 +975,45 @@ void importer_applyimagelisttextures ( void )
 			}
 		}
 	}
+	*/
 
 	// Load in texture globals
-	cstr pShaderFG = "effectbank\\reloaded\\media\\IBR.png";
-	int iImageIndexForFG = loadinternalimage(pShaderFG.Get());
+	//cstr pShaderFG = "effectbank\\reloaded\\media\\IBR.png";
+	//int iImageIndexForFG = loadinternalimage(pShaderFG.Get());
 	int iImageIndexForCUBE = 72543;
 	cstr pShaderCUBE = "effectbank\\reloaded\\media\\CUBE.dds";
 	LoadImage ( pShaderCUBE.Get(), iImageIndexForCUBE, 2 );
 
+	// Apply IBR and CUBE for importer view
+	PerformCheckListForLimbs ( t.importer.objectnumber );
+	for ( int tCount = 0 ; tCount <= ChecklistQuantity()-1; tCount++ )
+	{
+		cstr pLimbTextureName = importer_getfilenameonly ( LimbTextureName ( t.importer.objectnumber, tCount ) );
+		if ( strlen ( pLimbTextureName.Get() ) > 0 )
+		{
+			// new FPE field to specify limbs that are hair (i.e. no zwrite, no culling)
+			cstr pBaseFile = Left ( pLimbTextureName.Get(), strlen(pLimbTextureName.Get())-4 );
+			if ( strnicmp ( pBaseFile.Get() + strlen(pBaseFile.Get()) - 6, "_color", 6 ) == NULL )
+			{
+				pBaseFile = Left ( pBaseFile.Get(), strlen(pBaseFile.Get())-6 );
+				if ( strnicmp ( pBaseFile.Get() + strlen(pBaseFile.Get()) - 5, "_hair", 5 ) == NULL )
+				{
+					// switch off culling (leave zwrite as distant hair rendered over nearer hair)
+					//DisableLimbZWrite ( t.importer.objectnumber, tCount ); // can see 
+					SetLimbCull ( t.importer.objectnumber, tCount, false );
+				}
+			}
+
+			// detect FG
+			//TextureLimbStage ( t.importer.objectnumber, tCount, iFGStage, iImageIndexForFG );
+
+			// detect CUBE
+			TextureLimbStage ( t.importer.objectnumber, tCount, iEnvStage, iImageIndexForCUBE );
+		}
+	}
+
+
+	/*
 	// single or multi texture
 	if ( iTextureCount <= 1 )
 	{
@@ -1063,6 +1096,7 @@ void importer_applyimagelisttextures ( void )
 			}
 		}
 	}
+	*/
 }
 
 int giRememberLastEffectIndexInImporter = -1;
@@ -1328,36 +1362,69 @@ void importer_loadmodel ( void )
 	//  Load textures
 	importer_load_textures ( );
 
-	// if FBX import, override any DDS texture loaded with model with files associated by name alongside FBX model file
+	// if FBX import, add appropriate texture files to importerlist
 	if ( bHasFBXExtension == true )
 	{
-		// see if associate texture files exist
-		cstr pTextureBase = ""; pTextureBase = pTextureBase + t.importer.objectFileOriginalPath + t.importer.objectFilename;
-		cstr pColor = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_color.dds" );
-		if ( FileExist ( pColor.Get() ) ) 
+		// Clean importer Textures List
+		int tCount = 0;
+		for ( tCount = 1 ; tCount <= IMPORTERTEXTURESMAX; tCount++ )
 		{
-			// Clean importer Textures List
-			int tCount = 0;
-			for ( tCount = 1 ; tCount <= IMPORTERTEXTURESMAX; tCount++ )
-			{
-				t.importerTextures[tCount].imageID = 0;
-				t.importerTextures[tCount].fileName = "";
-			}
+			t.importerTextures[tCount].imageID = 0;
+			t.importerTextures[tCount].fileName = "";
+		}
 
-			// Texture set for PBR
+		// first check if importer has textures from FBX conversion
+		cstr sOldDir = GetDir();
+		SetDir(cstr(g.rootdir_s+"importer\\temp").Get());
+		bool bUseTexturesFromConversion = false;
+		sObject* pObject = GetObjectData ( t.importer.objectnumber );
+		if ( pObject )
+		{
 			tCount = 0;
-			tCount = importer_addtexturefiletolist ( pColor, pColor, tCount );
-			cstr pNormal = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_normal.dds" );
-			if ( FileExist ( pNormal.Get() ) ) tCount = importer_addtexturefiletolist ( pNormal, pNormal, tCount );
-			cstr pAO = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_ao.dds" );
-			if ( FileExist ( pAO.Get() ) ) tCount = importer_addtexturefiletolist ( pAO, pAO, tCount );
-			cstr pMetalness = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_metalness.dds" );
-			if ( FileExist ( pMetalness.Get() ) ) tCount = importer_addtexturefiletolist ( pMetalness, pMetalness, tCount );
-			cstr pGloss = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_gloss.dds" );
-			if ( FileExist ( pGloss.Get() ) ) tCount = importer_addtexturefiletolist ( pGloss, pGloss, tCount );
-			
-			// finalise images, load textures and sort texture button sprite
+			for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+			{
+				sMesh* pMesh = pObject->ppMeshList[iMesh];
+				for ( int iTexture = 0; iTexture < pMesh->dwTextureCount; iTexture++ )
+				{
+					cstr pTextureFile = pMesh->pTextures[iTexture].pName;
+					if ( FileExist ( pTextureFile.Get() ) == 0 )
+					{
+						pTextureFile = Left ( pTextureFile.Get(), strlen(pTextureFile.Get())-4 );
+						pTextureFile = pTextureFile + ".dds";
+					}
+					if ( FileExist ( pTextureFile.Get() ) == 1 )
+					{
+						cstr pAbsoluteFile = g.rootdir_s + "importer\\temp\\" + pTextureFile;
+						tCount = importer_addtexturefiletolist ( pAbsoluteFile.Get(), pAbsoluteFile.Get(), tCount );
+						bUseTexturesFromConversion = true;
+					}
+				}
+			}
+			SetDir(sOldDir.Get());
 			importer_load_textures_finish ( tCount );
+		}
+		if ( bUseTexturesFromConversion == false )
+		{
+			// see if associate texture files exist
+			cstr pTextureBase = ""; pTextureBase = pTextureBase + t.importer.objectFileOriginalPath + t.importer.objectFilename;
+			cstr pColor = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_color.dds" );
+			if ( FileExist ( pColor.Get() ) ) 
+			{
+				// Texture set for PBR
+				tCount = 0;
+				tCount = importer_addtexturefiletolist ( pColor, pColor, tCount );
+				cstr pNormal = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_normal.dds" );
+				if ( FileExist ( pNormal.Get() ) ) tCount = importer_addtexturefiletolist ( pNormal, pNormal, tCount );
+				cstr pAO = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_ao.dds" );
+				if ( FileExist ( pAO.Get() ) ) tCount = importer_addtexturefiletolist ( pAO, pAO, tCount );
+				cstr pMetalness = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_metalness.dds" );
+				if ( FileExist ( pMetalness.Get() ) ) tCount = importer_addtexturefiletolist ( pMetalness, pMetalness, tCount );
+				cstr pGloss = cstr ( cstr(Left ( pTextureBase.Get(), strlen(pTextureBase.Get())-strlen(".fbx") )) + "_gloss.dds" );
+				if ( FileExist ( pGloss.Get() ) ) tCount = importer_addtexturefiletolist ( pGloss, pGloss, tCount );
+			
+				// finalise images, load textures and sort texture button sprite
+				importer_load_textures_finish ( tCount );
+			}
 		}
 	}
 
@@ -4600,8 +4667,8 @@ void importer_save_entity ( void )
 	}
 	UnDim (  t.tArray );
 
-	Dim (  t.tArray2,20 );
-	for ( tCount = 1 ; tCount<=  10; tCount++ )
+	Dim (  t.tArray2,220 );
+	for ( tCount = 1 ; tCount<=  100; tCount++ )
 	{
 		if (  t.importerTextures[tCount].imageID  ==  0  )  break;
 		t.tSourceName_s = t.importerTextures[tCount].fileName;

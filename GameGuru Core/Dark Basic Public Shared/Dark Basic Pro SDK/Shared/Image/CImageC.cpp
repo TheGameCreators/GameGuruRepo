@@ -3970,3 +3970,30 @@ int GetImageFileExist ( LPSTR pFilename )
 	CloseHandle(hfile);
 	return 1;
 }
+
+bool LoadAndSaveUsingDirectXTex ( LPSTR pLoadFile, LPSTR pSaveFile )
+{
+	HRESULT hRes;
+
+	// load image
+	wchar_t wTexLoadFilename[512];
+	MultiByteToWideChar(CP_ACP, 0, pLoadFile, -1, wTexLoadFilename, sizeof(wTexLoadFilename));
+	DirectX::TexMetadata imageData;
+	DirectX::ScratchImage imageTexture;
+	if ( strnicmp ( pLoadFile + strlen(pLoadFile) - 4, ".tga", 4 ) == NULL )
+		hRes = DirectX::LoadFromTGAFile( wTexLoadFilename, &imageData, imageTexture );
+	else
+		hRes = DirectX::LoadFromWICFile( wTexLoadFilename, 0, &imageData, imageTexture );
+
+	// save DDS image
+	wchar_t wTexSaveFilename[512];
+	MultiByteToWideChar(CP_ACP, 0, pSaveFile, -1, wTexSaveFilename, sizeof(wTexSaveFilename));
+	const DirectX::Image* img = imageTexture.GetImages();
+	hRes = SaveToDDSFile( img, imageTexture.GetImageCount(), imageTexture.GetMetadata(), DirectX::DDS_FLAGS_NONE, wTexSaveFilename );
+
+	// result
+	if ( FileExist ( pSaveFile ) == 1 )
+		return 1;
+	else
+		return 0;
+}

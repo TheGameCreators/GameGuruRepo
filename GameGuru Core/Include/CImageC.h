@@ -143,4 +143,6 @@ DARKSDK void 				SetImageData				( int iID, DWORD dwWidth, DWORD dwHeight, DWORD
 
 DARKSDK void 				SetImageAutoMipMap			( int iGenerateMipMaps );
 
+DARKSDK bool				LoadAndSaveUsingDirectXTex  ( LPSTR pLoadFile, LPSTR pSaveFile );
+
 #endif _CIMAGE_H_

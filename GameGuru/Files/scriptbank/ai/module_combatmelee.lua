@@ -5,9 +5,9 @@ module_combatcore = require "scriptbank\\ai\\module_combatcore"
 local module_combatmelee = {}
 
 function module_combatmelee.init(e,combattype)
+ startingstate = ai_state_startidle
  if combattype == ai_combattype_regular then startingstate = ai_state_findpatrolpath end
  if combattype == ai_combattype_patrol then startingstate = ai_state_findpatrolpath end
- if combattype == ai_combattype_guard then startingstate = ai_state_startidle end
  module_combatcore.init(e,startingstate,-1)
 end
 
