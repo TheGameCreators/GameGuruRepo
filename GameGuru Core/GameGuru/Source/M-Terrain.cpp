@@ -2689,14 +2689,15 @@ void terrain_shadowupdate ( void )
 					if ( t.effectid>0 ) 
 					{
 						if ( GetEffectExist(t.effectid) == 1 )  SetEffectTechnique ( t.effectid,"DepthMap" );
-						if ( g.gpbroverride == 0 )
-						{
-							if ( t.visuals.shaderlevels.terrain >= 3 && t.visuals.shaderlevels.lighting != 1 ) 
-							{
-								// if this special technique does not exist in shaders, no new technique is used
-								if ( GetEffectExist(t.effectid) == 1 ) SetEffectTechnique ( t.effectid,"DepthMapNoAnim" );
-							}
-						}
+						//PE: This produce non transparent shadows on PBR objects in mode g.gpbroverride == 0
+						//if ( g.gpbroverride == 0 )
+						//{
+						//	if ( t.visuals.shaderlevels.terrain >= 3 && t.visuals.shaderlevels.lighting != 1 ) 
+						//	{
+						//		// if this special technique does not exist in shaders, no new technique is used
+						//		if ( GetEffectExist(t.effectid) == 1 ) SetEffectTechnique ( t.effectid,"DepthMapNoAnim" );
+						//	}
+						//}
 					}
 				}
 
@@ -2707,10 +2708,55 @@ void terrain_shadowupdate ( void )
 				//t.tonlyusingcheapestcascade=0;
 				t.game.set.shaderrequirecheapshadow=0;
 				SetEffectShadowMappingMode ( 0 );
-				if ( g.gpbroverride == 1 )
+
+				//PE: If we can set m_fCascadeFrustumsEyeSpaceDepths here (0) if not used,
+				//PE: then all shaders can use GetShadow highest/medium and we can control what cascades is available here.
+				//PE: current: old terrain medium/low = cascade 7 , veg high = cascade 3 , nonpbrentity medium = none , pbr entity medium = all.
+
+				if ( 1 ) // g.gpbroverride == 1
 				{
 					// PBR default mode is to render all shadows in editor mode
+
+					//PE: Set frustum percent so we can fake a medium.
+
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[0] = g.globals.realshadowcascade[0];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[1] = g.globals.realshadowcascade[1];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[2] = g.globals.realshadowcascade[2];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[3] = g.globals.realshadowcascade[3];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[4] = g.globals.realshadowcascade[4];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[5] = g.globals.realshadowcascade[5];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[6] = g.globals.realshadowcascade[6];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[7] = g.globals.realshadowcascade[7];
+					g.globals.realshadowdistance = g.globals.realshadowdistancehigh;
+					SetShadowTexelSize(g.globals.realshadowresolution);
 					SetEffectShadowMappingMode ( 255 );
+
+					//PE: PBR both terrain and entity must be set to low/medium before lowering cascades.
+					//PE: Editor always use highest.
+					if (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 3 && t.visuals.shaderlevels.entities >= 3) {
+						//PE: Lowest disable shadows.
+						SetEffectShadowMappingMode(0);
+					}
+					else if ( (g.globals.editorusemediumshadows == 1 && t.game.set.ismapeditormode == 1 ) || (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 2 && t.visuals.shaderlevels.entities >= 2 ) ) {
+						//PE: Medium.
+						//PE: Fake medium 2 cascades. using same shadercode , pixeldepth never < m_iCascadePartitionsZeroToOne[0] = 0 , so cascade 6-7 ( or last 2 cascades ) is always used.
+						//SetEffectToShadowMapingEx(t.terrain.terrainshaderindex, g.shadowdebugobjectoffset, g.guidepthshadereffectindex, g.globals.hidedistantshadows, g.globals.realshadowresolution, g.globals.realshadowcascadecount, g.globals.realshadowcascade[0], g.globals.realshadowcascade[1], g.globals.realshadowcascade[2], g.globals.realshadowcascade[3], g.globals.realshadowcascade[4], g.globals.realshadowcascade[5], g.globals.realshadowcascade[6], g.globals.realshadowcascade[7]);
+						//g.globals.realshadowcascadecount
+						//g.globals.realshadowresolution
+						//g_CascadeConfig.m_iBufferSize = g_RealShadowResolution;
+
+						for (int icl = 0; icl < g.globals.realshadowcascadecount; icl++)
+							g_CascadedShadow.m_iCascadePartitionsZeroToOne[icl] = 0;
+
+						SetEffectShadowMappingMode( (1<< g.globals.realshadowcascadecount-1) + (1<< (g.globals.realshadowcascadecount-2)) );
+						g.globals.realshadowdistance = g.globals.realshadowdistancehigh*0.65; //PE: Lower distance by 35%.
+						SetShadowTexelSize(2048); // Needed when we use so low a resolution.
+						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 2] = 24;
+						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 1] = 100;
+					}
+
+
+
 				}
 				else
 				{
