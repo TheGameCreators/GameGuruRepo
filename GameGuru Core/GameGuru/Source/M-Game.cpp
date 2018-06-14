@@ -826,11 +826,15 @@ void game_masterroot ( void )
 					{
 						if ( t.postprocessings.fadeinvalue_f <= 0 )
 						{
-							// only if in test game mode, standalone already set volume values (in title.lua)
+							// only if in test game mode, standalone already set volume values (in title.lua)						
 							if ( t.game.gameisexe == 0 )
 							{
 								// set music and sound global volumes
 								audio_volume_init ( );
+							}
+							else if (!FileExist("savegames\\sounds.dat")) {
+								//PE: This is not always in standalone ? , so:
+								audio_volume_init();
 							}
 							// and update internal volume values so music update can use volumes!
 							audio_volume_update ( );
@@ -876,8 +880,10 @@ void game_masterroot ( void )
 			} //  Game cycle loop end
 
 
-//			timestampactivity(0, "DumpImageList before freeing level data.");
-//			DumpImageList(); // PE: Dump image usage after level.
+//			if (g.memgeneratedump == 1) {
+//				timestampactivity(0, "DumpImageList before freeing level data.");
+//				DumpImageList(); // PE:
+//			}
 
 			  //  Rest any internal game variables
 			game_main_stop ( );
