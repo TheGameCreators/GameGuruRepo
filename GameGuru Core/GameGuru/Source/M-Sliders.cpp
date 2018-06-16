@@ -6,9 +6,9 @@
 #include "gameguru.h"
 
 // Externals
-extern int g_iTriggerReloadOfImportModel;
-extern int g_iFBXGeometryToggleMode;
-extern int g_iFBXGeometryCenterMesh;
+//extern int g_iTriggerReloadOfImportModel;
+//extern int g_iFBXGeometryToggleMode;
+//extern int g_iFBXGeometryCenterMesh;
 //extern bool g_VR920RenderStereoNow;
 extern UINT g_StereoEyeToggle;
 
@@ -2449,13 +2449,13 @@ void sliders_write ( void )
 			// changed shader while in model importer
 			importer_changeshader ( t.slidersmenuvalue[t.slidersmenuindex][2].value_s.Get() );
 		}
-		if ( t.whichmenuitem==13 || t.whichmenuitem==14 )
-		{
-			// selected options to force the imported model to reload
-			g_iFBXGeometryToggleMode = t.slidersmenuvalue[t.slidersmenuindex][13].value-1;
-			g_iFBXGeometryCenterMesh = t.slidersmenuvalue[t.slidersmenuindex][14].value-1;
-			g_iTriggerReloadOfImportModel = 1;
-		}
+		//if ( t.whichmenuitem==13 || t.whichmenuitem==14 )
+		//{
+		//	// selected options to force the imported model to reload
+		//	g_iFBXGeometryToggleMode = t.slidersmenuvalue[t.slidersmenuindex][13].value-1;
+		//	g_iFBXGeometryCenterMesh = t.slidersmenuvalue[t.slidersmenuindex][14].value-1;
+		//	g_iTriggerReloadOfImportModel = 1;
+		//}
 	}
 }
 

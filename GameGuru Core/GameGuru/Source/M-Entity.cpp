@@ -10,8 +10,8 @@ int g_iBlackListMax = 0;
 bool g_bBlackListRemovedSomeEntities = false;
 
 // Externs
-extern int g_iFBXGeometryToggleMode;
-extern int g_iFBXGeometryCenterMesh;
+//extern int g_iFBXGeometryToggleMode;
+//extern int g_iFBXGeometryCenterMesh;
 
 // prototypes
 void LoadFBX ( LPSTR szFilename, int iID );
@@ -511,13 +511,13 @@ void entity_load ( void )
 					if (  t.entityprofile[t.entid].fullbounds == 1  )  SetFastBoundsCalculation (  0 );
 					if ( strnicmp ( t.tfile_s.Get() + strlen(t.tfile_s.Get()) - 4, ".fbx", 4 )==NULL )
 					{
-						int iStoreFBXGeometryToggleMode = g_iFBXGeometryToggleMode;
-						int iStoreFBXGeometryCenterMesh = g_iFBXGeometryCenterMesh;
-						g_iFBXGeometryToggleMode = 0;
-						g_iFBXGeometryCenterMesh = 0;
+						//int iStoreFBXGeometryToggleMode = g_iFBXGeometryToggleMode;
+						//int iStoreFBXGeometryCenterMesh = g_iFBXGeometryCenterMesh;
+						//g_iFBXGeometryToggleMode = 0;
+						//g_iFBXGeometryCenterMesh = 0;
 						LoadFBX ( t.tfile_s.Get(), t.entobj );
-						g_iFBXGeometryToggleMode = iStoreFBXGeometryToggleMode;
-						g_iFBXGeometryCenterMesh = iStoreFBXGeometryCenterMesh;
+						//g_iFBXGeometryToggleMode = iStoreFBXGeometryToggleMode;
+						//g_iFBXGeometryCenterMesh = iStoreFBXGeometryCenterMesh;
 					}
 					else
 						LoadObject ( t.tfile_s.Get(), t.entobj );
@@ -2818,6 +2818,11 @@ void entity_loadtexturesandeffect ( void )
 					if ( t.texuseid == 0 ) 
 					{
 						t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_O.dds",1,t.tfullorhalfdivide);
+					}
+					else
+					{
+						// disable override to AO that exists can be used
+						bGotAO = false;
 					}
 				}
 				t.entityprofiletexoid = t.texuseid;

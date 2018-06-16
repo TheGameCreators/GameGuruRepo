@@ -1173,7 +1173,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	 visibility -= ((1.0f-rawaovalue)*visibility);
 	#endif
    #endif
-
+   
    Material gMaterial;
    gMaterial.Ambient = float4(1,1,1,1);
    gMaterial.Diffuse = rawdiffusemap;

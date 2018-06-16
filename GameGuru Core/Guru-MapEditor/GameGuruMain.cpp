@@ -64,7 +64,8 @@ void LoadFBX ( LPSTR szFilename, int iID )
 	SetDir ( sConverterFolder.Get() );
 
 	// 2b. Convert the copied FBX file to Version 6
-	ExecuteFile ( "vconv.exe", sTempFile.Get(), "", 1 );
+	cstr sConvertCall1 = cstr(Chr('"')) + sTempFile + cstr(Chr('"'));
+	ExecuteFile ( "vconv.exe", sConvertCall1.Get(), "", 1 );
 	cstr sConvertedFile = sTempFolder + "tempFBXVersion6.fbx";
 	if ( FileExist ( sConvertedFile.Get() ) == 0 )
 	{
@@ -77,7 +78,8 @@ void LoadFBX ( LPSTR szFilename, int iID )
 	if ( FileExist ( sTempFile.Get() ) == 1 ) DeleteFile ( sTempFile.Get() );
 
 	// 3a. Convert the Version 6 FBX file to an X file
-	ExecuteFile ( "Fbx2X.exe", sConvertedFile.Get(), "", 1 );
+	cstr sConvertCall2 = cstr(Chr('"')) + sConvertedFile + cstr(Chr('"'));
+	ExecuteFile ( "Fbx2X.exe", sConvertCall2.Get(), "", 1 );
 	cstr sNewXFile = sTempFolder + "tempFBXVersion6.x";
 
 	// 3b. Delete version 6 FBX file now we have the X file
@@ -169,71 +171,104 @@ void LoadFBX ( LPSTR szFilename, int iID )
 									// Copy file from subfolder
 									bDetectTextureShiftChanges = true;
 									CopyFile ( pSubFile.Get(), pNewTextureName, FALSE );
-									DeleteFile ( pSubFile.Get() );
+									//DeleteFile ( pSubFile.Get() );
 								}
 								else
 								{
 									// texture not alongside FBX, or in subfolder, so the FBX may
 									// have texture/material assignments that differ from the texture filenames
 									// so find closest match to texture in subfolder
-									cstr sStoreDir = GetDir();
-									SetDir ( pSubFolder.Get() );
-									ChecklistForFiles();
-									int iBestScore = 0;
-									cstr sBestFile = "";
-									for ( int n = 1; n <= ChecklistQuantity(); n++ )
+									if ( PathExist ( pSubFolder.Get() ) == 1 )
 									{
-										cstr sFile = ChecklistString(n);
-										if ( strlen ( sFile.Get() ) > 4 )
+										cstr sStoreDir = GetDir();
+										SetDir ( pSubFolder.Get() );
+										ChecklistForFiles();
+										int iBestScore = 0;
+										cstr sBestFile = "";
+										for ( int n = 1; n <= ChecklistQuantity(); n++ )
 										{
-											char pScanA[1024];
-											char pScanB[1024];
-											strcpy ( pScanA, pTexture->pName );
-											strcpy ( pScanB, sFile.Get() );
-											strlwr ( pScanA );
-											strlwr ( pScanB );
-											int iScanSize = strlen(pScanA);
-											if ( strlen(pScanB) < iScanSize ) iScanSize = strlen(pScanB);
-											iScanSize=iScanSize-4;
-											int iScore = 0;
-											for ( int scan = 0; scan < iScanSize; scan++ )
+											cstr sFile = ChecklistString(n);
+											if ( strlen ( sFile.Get() ) > 4 )
 											{
-												if ( pScanA[scan] == pScanB[scan] ) 
-													iScore++;
-												else
-													break;
-											}
-											if ( iScore > iBestScore )
-											{
-												iBestScore = iScore;
-												sBestFile = sFile;
+												char pScanA[1024];
+												char pScanB[1024];
+												strcpy ( pScanA, pTexture->pName );
+												strcpy ( pScanB, sFile.Get() );
+												strlwr ( pScanA );
+												strlwr ( pScanB );
+												int iScanSize = strlen(pScanA);
+												if ( strlen(pScanB) < iScanSize ) iScanSize = strlen(pScanB);
+												iScanSize=iScanSize-4;
+												int iScore = 0;
+												for ( int scan = 0; scan < iScanSize; scan++ )
+												{
+													if ( pScanA[scan] == pScanB[scan] ) 
+														iScore++;
+													else
+														break;
+												}
+												if ( iScore > iBestScore )
+												{
+													iBestScore = iScore;
+													sBestFile = sFile;
+												}
 											}
 										}
-									}
-									if ( strlen ( sBestFile.Get() ) > 0 )
-									{
-										// found the most likely match for this texture reference
-										// so make this file the one to use, and copy it over
-										strcpy ( pNewTextureName, sBestFile.Get() );
+										if ( strlen ( sBestFile.Get() ) > 0 )
+										{
+											// found the most likely match for this texture reference
+											// final test is to check the original file and the best scoring one are of the right 'type'
+											int iTextureTypeWanted[2];
+											char pTextureFileToCheck[1024];
+											iTextureTypeWanted[0] = 0;
+											iTextureTypeWanted[1] = 0;
+											for ( int i = 0; i < 2; i++ )
+											{
+												if ( i == 0 ) strcpy ( pTextureFileToCheck, pCheckTextureName ); 
+												if ( i == 1 ) { strcpy ( pTextureFileToCheck, sBestFile.Get() ); pTextureFileToCheck[strlen(pTextureFileToCheck)-4]=0; } 
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 2, "_d", 2 ) == NULL ) iTextureTypeWanted[i] = 1;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 6, "_color", 6 ) == NULL ) iTextureTypeWanted[i] = 1;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 8, "_diffuse", 8 ) == NULL ) iTextureTypeWanted[i] = 1;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 10, "_basecolor", 10 ) == NULL ) iTextureTypeWanted[i] = 1;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 11, "_base_color", 11 ) == NULL ) iTextureTypeWanted[i] = 1;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 7, "_normal", 7 ) == NULL ) iTextureTypeWanted[i] = 2;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 2, "_n", 2 ) == NULL ) iTextureTypeWanted[i] = 2;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 6, "_gloss", 6 ) == NULL ) iTextureTypeWanted[i] = 3;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 10, "_roughness", 10 ) == NULL ) iTextureTypeWanted[i] = 3;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 2, "_r", 2 ) == NULL ) iTextureTypeWanted[i] = 3;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 10, "_metalness", 10 ) == NULL ) iTextureTypeWanted[i] = 4;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 2, "_m", 2 ) == NULL ) iTextureTypeWanted[i] = 4;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 9, "_specular", 9 ) == NULL ) iTextureTypeWanted[i] = 4;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 2, "_s", 2 ) == NULL ) iTextureTypeWanted[i] = 4;
+												if ( strnicmp ( pTextureFileToCheck + strlen(pTextureFileToCheck) - 3, "_ao", 3 ) == NULL ) iTextureTypeWanted[i] = 5;
+											}
+											if ( iTextureTypeWanted[0] > 0 && iTextureTypeWanted[1] > 0 && iTextureTypeWanted[0] == iTextureTypeWanted[1] )
+											{
+												// best choice and original name from FBX have matching texture file types, 
+												strcpy ( pNewTextureName, sBestFile.Get() );
+
+												// so make this file the one to use, and copy it over
+												SetDir ( sStoreDir.Get() );
+												sBestFile = pSubFolder + sBestFile;
+												char pExt[1024];
+												strcpy ( pExt, pNewTextureName+strlen(pNewTextureName)-4);
+												pNewTextureName[strlen(pNewTextureName)-4]=0;
+												if ( strnicmp ( pNewTextureName + strlen(pNewTextureName) - 10, "_basecolor", 10 ) == NULL )
+												{
+													pNewTextureName[strlen(pNewTextureName)-10] = 0;
+													strcat ( pNewTextureName, "_color" );
+												}
+												if ( strnicmp ( pNewTextureName + strlen(pNewTextureName) - 11, "_base_color", 11 ) == NULL )
+												{
+													pNewTextureName[strlen(pNewTextureName)-11] = 0;
+													strcat ( pNewTextureName, "_color" );
+												}
+												strcat ( pNewTextureName, pExt );
+												CopyFile ( sBestFile.Get(), pNewTextureName, FALSE );
+											}
+										}
 										SetDir ( sStoreDir.Get() );
-										sBestFile = pSubFolder + sBestFile;
-										char pExt[1024];
-										strcpy ( pExt, pNewTextureName+strlen(pNewTextureName)-4);
-										pNewTextureName[strlen(pNewTextureName)-4]=0;
-										if ( strnicmp ( pNewTextureName + strlen(pNewTextureName) - 10, "_basecolor", 10 ) == NULL )
-										{
-											pNewTextureName[strlen(pNewTextureName)-10] = 0;
-											strcat ( pNewTextureName, "_color" );
-										}
-										if ( strnicmp ( pNewTextureName + strlen(pNewTextureName) - 11, "_base_color", 11 ) == NULL )
-										{
-											pNewTextureName[strlen(pNewTextureName)-11] = 0;
-											strcat ( pNewTextureName, "_color" );
-										}
-										strcat ( pNewTextureName, pExt );
-										CopyFile ( sBestFile.Get(), pNewTextureName, FALSE );
 									}
-									SetDir ( sStoreDir.Get() );
 								}
 							}
 						}
@@ -241,23 +276,27 @@ void LoadFBX ( LPSTR szFilename, int iID )
 						// retain original extension type
 						cstr sExt = Right ( pNewTextureName, 4 );
 
-						// Now convert the texture file to DDS
-						cstr pDDSFinalFile = Left ( pNewTextureName, strlen(pNewTextureName)-4 );
-						pDDSFinalFile = pDDSFinalFile + ".dds";
-						if ( FileExist ( pDDSFinalFile.Get() ) == 0 && FileExist ( pNewTextureName ) == 1 )
+						// Now convert the texture file to DDS if original file exists (to convert)
+						if ( FileExist ( pNewTextureName ) == 1 )
 						{
-							// create DDS using DirectX Tex functions
-							if ( LoadAndSaveUsingDirectXTex ( pNewTextureName, pDDSFinalFile.Get() ) == true )
+							cstr pDDSFinalFile = Left ( pNewTextureName, strlen(pNewTextureName)-4 );
+							pDDSFinalFile = pDDSFinalFile + ".dds";
+							if ( FileExist ( pDDSFinalFile.Get() ) == 0 )
 							{
-								// successful DDS saved
+								// create DDS using DirectX Tex functions
+								if ( LoadAndSaveUsingDirectXTex ( pNewTextureName, pDDSFinalFile.Get() ) == true )
+								{
+									// successful DDS saved
+								}
 							}
+							if ( FileExist ( pDDSFinalFile.Get() ) == 1 )
+							{
+								// successful DDS file exists, remove old file
+								DeleteFile ( pNewTextureName );
+							}
+							strcpy ( pNewTextureName, pDDSFinalFile.Get() );
+
 						}
-						if ( FileExist ( pDDSFinalFile.Get() ) == 1 && FileExist ( pNewTextureName ) == 1 )
-						{
-							// successful DDS file exists, remove old file
-							DeleteFile ( pNewTextureName );
-						}
-						strcpy ( pNewTextureName, pDDSFinalFile.Get() );
 
 						// Update object with new texture name
 						strcpy ( pTexture->pName, pNewTextureName );
