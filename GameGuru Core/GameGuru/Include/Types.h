@@ -2592,10 +2592,16 @@ struct importerTexture
 	int spriteID2;
 	cstr fileName;
 	cstr originalName;
+	int iExpandedThisSlot;
+	int iOptionalStage;
+	int iAssociatedBaseImage;
 
 	// Constructor
 	importerTexture ( )
 	{
+		 iAssociatedBaseImage = 0;
+		 iOptionalStage = 0;
+ 		 iExpandedThisSlot = 0;
 		 originalName = "";
 		 fileName = "";
 		 spriteID2 = 0;

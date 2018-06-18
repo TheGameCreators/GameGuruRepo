@@ -2822,7 +2822,11 @@ void entity_loadtexturesandeffect ( void )
 					else
 					{
 						// disable override to AO that exists can be used
-						bGotAO = false;
+						if ( strlen ( t.entityprofile[t.entid].texd_s.Get() ) > 0 )
+						{
+							// but only if texture was specified in FPE, not if we assume model based textures
+							bGotAO = false;
+						}
 					}
 				}
 				t.entityprofiletexoid = t.texuseid;
