@@ -1069,6 +1069,7 @@ void importer_applyimagelisttextures ( bool bCubeMapOnly, int iOptionalOnlyUpdat
 	// should map new texture choices to the original image slots
 	if ( g_piMapImageListIndexToLimbIndex == NULL )
 	{
+		bool bAbsolutelyNoTexturesReferencedAnywhere = true;
 		g_dwMapImageListIndexToLimbCount = ChecklistQuantity(); 
 		g_piMapImageListIndexToLimbIndex = new int[g_dwMapImageListIndexToLimbCount];
 		for ( int tLimbIndex = 0 ; tLimbIndex <= ChecklistQuantity()-1; tLimbIndex++ )
@@ -1078,16 +1079,39 @@ void importer_applyimagelisttextures ( bool bCubeMapOnly, int iOptionalOnlyUpdat
 			LPSTR pSearch = pLimbTextureName.Get();
 			if ( strlen ( pSearch ) > 0 )
 			{
+				iFindImageSlotIndex = 1; // 220618 - default to slot one if no specific match can be made (so model CAN be textured)
+				bAbsolutelyNoTexturesReferencedAnywhere = false;
 				for ( int tCount = 1; tCount <= t.tcounttextures; tCount++ )
 				{
 					LPSTR pThisImageItem = t.importerTextures[tCount].fileName.Get();
-					if ( strnicmp ( pThisImageItem + strlen(pThisImageItem) - strlen(pSearch), pSearch, strlen(pSearch) ) == NULL )
+					if ( strnicmp ( pThisImageItem + strlen(pThisImageItem) - strlen(pSearch), pSearch, strlen(pSearch)-4 ) == NULL )
 					{
 						iFindImageSlotIndex = tCount;
 					}
 				}
 			}
 			g_piMapImageListIndexToLimbIndex [ tLimbIndex ] = iFindImageSlotIndex;
+		}
+		if ( bAbsolutelyNoTexturesReferencedAnywhere == true )
+		{
+			// okay, so now we know that no meshes are particular about their texture, 
+			// we will use slot one for all textures on this model
+			int iFindImageSlotIndex = 1;
+			sObject* pObject = GetObjectData ( t.importer.objectnumber );
+			if ( pObject )
+			{
+				for ( int tLimbIndex = 0 ; tLimbIndex <= ChecklistQuantity()-1; tLimbIndex++ )
+				{
+					sFrame* pFrame = pObject->ppFrameList[tLimbIndex];
+					if ( pFrame )
+					{
+						if ( pFrame->pMesh )
+						{
+							g_piMapImageListIndexToLimbIndex [ tLimbIndex ] = iFindImageSlotIndex;
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -1162,6 +1186,7 @@ void importer_applyimagelisttextures ( bool bCubeMapOnly, int iOptionalOnlyUpdat
 			for ( int tLimbIndex = 0 ; tLimbIndex <= ChecklistQuantity()-1; tLimbIndex++ )
 			{
 				int iImageListIndex = g_piMapImageListIndexToLimbIndex [ tLimbIndex ];
+				if ( iImageListIndex > 0 && t.importerTextures[iImageListIndex].iAssociatedBaseImage > 0 ) iImageListIndex = t.importerTextures[iImageListIndex].iAssociatedBaseImage;
 				if ( iImageListIndex > 0 && iAssociatedBaseImage == iImageListIndex )
 				{
 					if ( iOptionalStage == 2 ) TextureLimbStage ( t.importer.objectnumber, tLimbIndex, iNormalStage, t.importerTextures[iOptionalOnlyUpdateImageListIndex].imageID );
@@ -1641,9 +1666,11 @@ void importer_loadmodel ( void )
 			for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
 			{
 				sMesh* pMesh = pObject->ppMeshList[iMesh];
-				for ( int iTexture = 0; iTexture < pMesh->dwTextureCount; iTexture++ )
+				int iStoreImageSlotIndexForBase = -1;
+				for ( int iTextureStage = 0; iTextureStage < pMesh->dwTextureCount; iTextureStage++ )
 				{
-					cstr pTextureFile = pMesh->pTextures[iTexture].pName;
+					int iSlotUsed = -1;
+					cstr pTextureFile = pMesh->pTextures[iTextureStage].pName;
 					if ( FileExist ( pTextureFile.Get() ) == 0 )
 					{
 						pTextureFile = Left ( pTextureFile.Get(), strlen(pTextureFile.Get())-4 );
@@ -1652,17 +1679,31 @@ void importer_loadmodel ( void )
 					if ( FileExist ( pTextureFile.Get() ) == 1 )
 					{
 						cstr pAbsoluteFile = g.rootdir_s + "importer\\temp\\" + pTextureFile;
-						importer_addtexturefiletolist ( pAbsoluteFile.Get(), pAbsoluteFile.Get(), &tCount );
+						iSlotUsed = importer_addtexturefiletolist ( pAbsoluteFile.Get(), pAbsoluteFile.Get(), &tCount );
 						bUseTexturesFromConversion = true;
 					}
 					else
 					{
 						// FBX conversion had no textures produced, so add texture filename directly to importer image list
 						// which we can then use later to find associate texture files
-						if ( strlen ( pMesh->pTextures[iTexture].pName ) > 0 )
+						if ( strlen ( pMesh->pTextures[iTextureStage].pName ) > 0 )
 						{
-							cstr pAbsoluteFile = t.importer.objectFileOriginalPath + pMesh->pTextures[iTexture].pName;
-							importer_addtexturefiletolist ( pAbsoluteFile.Get(), pAbsoluteFile.Get(), &tCount );
+							cstr pAbsoluteFile = t.importer.objectFileOriginalPath + pMesh->pTextures[iTextureStage].pName;
+							iSlotUsed = importer_addtexturefiletolist ( pAbsoluteFile.Get(), pAbsoluteFile.Get(), &tCount );
+						}
+					}
+					if ( iSlotUsed > -1 )
+					{
+						if ( iTextureStage == 0 ) 
+						{
+							// base texture (color)
+							iStoreImageSlotIndexForBase = iSlotUsed;
+						}
+						else
+						{
+							// associate other stages to above base stage
+							t.importerTextures[iSlotUsed].iOptionalStage = iTextureStage;
+							t.importerTextures[iSlotUsed].iAssociatedBaseImage = iStoreImageSlotIndexForBase;
 						}
 					}
 				}
@@ -2506,10 +2547,18 @@ void importer_check_for_physics_changes ( void )
 				importer_update_selection_markers ( );
 			}
 	}
-	float fMX = (GetDisplayWidth()+0.0) / 800.0f;
-	float fMY = (GetDisplayHeight()+0.0) / 600.0f;
-	t.tadjustedtoareax_f = t.inputsys.xmouse*fMX;
-	t.tadjustedtoareay_f = t.inputsys.ymouse*fMY;
+
+	// coordinate system for importer grabbing collision box corners
+	//float fMX = (GetDisplayWidth()+0.0) / 800.0f; 230618 - not working for collision box control
+	//float fMY = (GetDisplayHeight()+0.0) / 600.0f;
+	//t.tadjustedtoareax_f = t.inputsys.xmouse*fMX;
+	//t.tadjustedtoareay_f = t.inputsys.ymouse*fMY;
+	t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
+	t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
+	t.tadjustedtoareax_f=((t.inputsys.xmouse+0.0)/800.0)/t.tadjustedtoareax_f;
+	t.tadjustedtoareay_f=((t.inputsys.ymouse+0.0)/600.0)/t.tadjustedtoareay_f;
+	t.tadjustedtoareax_f=t.tadjustedtoareax_f*(GetDisplayWidth()+0.0);
+	t.tadjustedtoareay_f=t.tadjustedtoareay_f*(GetDisplayHeight()+0.0);
 
 	//  No marker selected yet
 	if (  t.importer.collisionObjectMode  ==  0 ) 
@@ -3855,23 +3904,30 @@ void importer_update_textures ( void )
 									// but only if its a base color texutre
 									char pIsItTexColor[2048];
 									strcpy ( pIsItTexColor, t.importerTextures[tCount].fileName.Get() );
-									pIsItTexColor[strlen(pIsItTexColor)-4]=0;
-									if ( strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 2, "_d", 2 ) == NULL
-									|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 6, "_color", 6 ) == NULL
-									|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 8, "_diffuse", 8 ) == NULL
-									|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 7, "_albedo", 7 ) == NULL )
+									if ( strlen ( pIsItTexColor ) > 1+8+4 )
 									{
-										// for both!
-										strcpy ( pIsItTexColor, t.tFileName_s.Get() );
 										pIsItTexColor[strlen(pIsItTexColor)-4]=0;
 										if ( strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 2, "_d", 2 ) == NULL
 										|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 6, "_color", 6 ) == NULL
 										|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 8, "_diffuse", 8 ) == NULL
-										|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 7, "_albedo", 7 ) == NULL )
+										|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 7, "_albedo", 7 ) == NULL
+										|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 8, "blankTex", 8 ) == NULL )
 										{
-											importer_removeentryandassociatesof ( tCount );
-											t.importerTextures[tCount].iExpandedThisSlot = 1;
-											bExpandOutPBRTextureSet = true;
+											// for both!
+											strcpy ( pIsItTexColor, t.tFileName_s.Get() );
+											if ( strlen ( pIsItTexColor ) > 1+8+4 )
+											{
+												pIsItTexColor[strlen(pIsItTexColor)-4]=0;
+												if ( strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 2, "_d", 2 ) == NULL
+												|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 6, "_color", 6 ) == NULL
+												|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 8, "_diffuse", 8 ) == NULL
+												|| strnicmp ( pIsItTexColor + strlen(pIsItTexColor) - 7, "_albedo", 7 ) == NULL )
+												{
+													importer_removeentryandassociatesof ( tCount );
+													t.importerTextures[tCount].iExpandedThisSlot = 1;
+													bExpandOutPBRTextureSet = true;
+												}
+											}
 										}
 									}
 								}
@@ -4228,7 +4284,7 @@ void importer_load_textures ( void )
 	if ( tCount == 0 ) 
 	{
 		SetObjectEffect (  t.importer.objectnumber,0 );
-		CloneMeshToNewFormat (  t.importer.objectnumber,530,1 );
+		//CloneMeshToNewFormat (  t.importer.objectnumber,530,1 ); // 220618 - for some reason importer adding second UV layer!
 		PerformCheckListForLimbs (  t.importer.objectnumber );
 		for ( t.tCount9 = 1 ; t.tCount9 <= ChecklistQuantity()-1; t.tCount9++ )
 		{

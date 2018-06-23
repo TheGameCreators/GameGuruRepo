@@ -10,7 +10,7 @@
 
 // FBX Importing
 #include <iostream>
-#include "FBXExporter\FBXExporter.h"
+//#include "FBXExporter\FBXExporter.h" - requires libfbxsdk-mt.lib
 
 void GuruMain ( void )
 {
@@ -98,10 +98,68 @@ void LoadFBX ( LPSTR szFilename, int iID )
 		if ( ObjectExist ( iID ) == 1 ) DeleteObject ( iID );
 		LoadObject ( sNewXFile.Get(), iID );
 
+		// 220618 - some FBX models are EXTREMELY small, so boost them by 100x if too small for GameGuru
+		// and some are actually upside down, so correct this until we add manual controls to this conversion process
+		sObject* pObject = GetObjectData ( iID );
+		if ( pObject )
+		{
+			if ( pObject->ppFrameList )
+			{
+				sFrame* pSceneRootOfModel = pObject->ppFrameList[0]->pChild;
+				if ( pSceneRootOfModel )
+				{
+					// handle upside down models
+					bool bTriggerRecalc = false;
+					float fWidth = pObject->collision.vecMax.x - pObject->collision.vecMin.x;
+					float fHeight = pObject->collision.vecMax.y - pObject->collision.vecMin.y;
+					float fDepth = pObject->collision.vecMax.z - pObject->collision.vecMin.z;
+					float fProportionAboveGround = pObject->collision.vecMax.y / fHeight;
+
+					// handle extremely small models
+					if ( fWidth < 5.0f && fHeight < 5.0f && fDepth < 5.0f )
+					{
+						// adjust core scene root of original model transform
+						pSceneRootOfModel->matOriginal._11 *= 10;
+						pSceneRootOfModel->matOriginal._22 *= 10;
+						pSceneRootOfModel->matOriginal._33 *= 10;
+						pSceneRootOfModel->matTransformed._11 *= 10;
+						pSceneRootOfModel->matTransformed._22 *= 10;
+						pSceneRootOfModel->matTransformed._33 *= 10;
+						pSceneRootOfModel->matCombined._11 *= 10;
+						pSceneRootOfModel->matCombined._22 *= 10;
+						pSceneRootOfModel->matCombined._33 *= 10;
+						pSceneRootOfModel->matAbsoluteWorld._11 *= 10;
+						pSceneRootOfModel->matAbsoluteWorld._22 *= 10;
+						pSceneRootOfModel->matAbsoluteWorld._33 *= 10;
+						bTriggerRecalc = true;
+					}
+					if ( fProportionAboveGround < 0.05f )
+					{
+						// less than 5 percent of this model is above the ground, highly likely to be upside down
+						pSceneRootOfModel->matOriginal._22 *= -1;
+						pSceneRootOfModel->matOriginal._33 *= -1;
+						pSceneRootOfModel->matTransformed._22 *= -1;
+						pSceneRootOfModel->matTransformed._33 *= -1;
+						pSceneRootOfModel->matCombined._22 *= -1;
+						pSceneRootOfModel->matCombined._33 *= -1;
+						pSceneRootOfModel->matAbsoluteWorld._22 *= -1;
+						pSceneRootOfModel->matAbsoluteWorld._33 *= -1;
+						bTriggerRecalc = true;
+					}
+
+					// has recalc triggered
+					if ( bTriggerRecalc == true )
+					{
+						// recalc all bounds for this object
+						CalculateObjectBounds ( iID );
+					}
+				}
+			}
+		}
+
 		// change textures inside DBO object to suit new PBR system
 		bool bDetectTextureShiftChanges = false;
 		SetDir ( sTempFolder.Get() );
-		sObject* pObject = GetObjectData ( iID );
 		if ( pObject )
 		{
 			int iMeshCount = pObject->iMeshCount;

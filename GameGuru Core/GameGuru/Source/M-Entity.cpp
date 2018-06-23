@@ -2654,7 +2654,8 @@ void entity_loadtexturesandeffect ( void )
 	{
 		// lee - 300518 - added extra code in LoadObject to detect DNS and PBR texture file sets and set the mesh, so 
 		// skip the override code below if the object has a good texture in place
-		bool bGotAO = false, bGotNormal = false, bGotMetalness = false, bGotGloss = false;
+		//bool bGotAO = false - replaced this with a later scan to add AO only when missing
+		bool bGotNormal = false, bGotMetalness = false, bGotGloss = false;
 		sObject* pObject = GetObjectData ( t.entobj );
 		if ( pObject )
 		{
@@ -2663,11 +2664,11 @@ void entity_loadtexturesandeffect ( void )
 				sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
 				if ( pMesh )
 				{
-					for ( int iTextureIndex = 0; iTextureIndex < pMesh->dwTextureCount; iTextureIndex++ )
+					for ( int iTextureIndex = 2; iTextureIndex < pMesh->dwTextureCount; iTextureIndex++ )
 					{
 						if ( pMesh->pTextures[iTextureIndex].iImageID > 0 )
 						{
-							if ( iTextureIndex == 1 ) bGotAO = true;
+							//if ( iTextureIndex == 1 ) bGotAO = true;
 							if ( iTextureIndex == 2 ) bGotNormal = true;
 							if ( iTextureIndex == 3 ) bGotMetalness = true;
 							if ( iTextureIndex == 4 ) bGotGloss = true;
@@ -2825,7 +2826,7 @@ void entity_loadtexturesandeffect ( void )
 						if ( strlen ( t.entityprofile[t.entid].texd_s.Get() ) > 0 )
 						{
 							// but only if texture was specified in FPE, not if we assume model based textures
-							bGotAO = false;
+							//bGotAO = false; // see replacement solution below
 						}
 					}
 				}
@@ -2969,8 +2970,32 @@ void entity_loadtexturesandeffect ( void )
 				}
 			}
 
+			// 230618 - apply AO texture ONLY when missing
+			// if ( bGotAO == false ) TextureObject ( t.entobj, 1, t.entityprofiletexoid );
+			sObject* pObject = GetObjectData ( t.entobj );
+			if ( pObject )
+			{
+				for ( int iFrameIndex = 0; iFrameIndex < pObject->iFrameCount; iFrameIndex++ )
+				{
+					sFrame* pFrame = pObject->ppFrameList[iFrameIndex];
+					if ( pFrame )
+					{
+						sMesh* pMesh = pFrame->pMesh;
+						if ( pMesh )
+						{
+							for ( int iTextureIndex = 1; iTextureIndex < pMesh->dwTextureCount; iTextureIndex++ )
+							{
+								if ( pMesh->pTextures[iTextureIndex].iImageID == 0 )
+								{
+									if ( iTextureIndex == 1 ) TextureLimbStage ( t.entobj, iFrameIndex, iTextureIndex, t.entityprofiletexoid );
+								}
+							}
+						}
+					}
+				}
+			}
+
 			// Apply all textures to REMAINING entity parent object (V C I)
-			if ( bGotAO == false ) TextureObject ( t.entobj, 1, t.entityprofiletexoid );
 			TextureObject ( t.entobj, 6, t.entityprofile[t.entid].texiid );
 
 			// PBR or non-PBR modes

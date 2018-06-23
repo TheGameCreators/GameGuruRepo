@@ -272,6 +272,7 @@ function gameplayercontrol.weaponfire()
 
 		-- Trigger Zoom (no Zoom in When Reloading or firing in simple zoom or with gun empty or when running) then
 		tttriggerironsight=0
+		if ( GetGamePlayerControlThirdpersonEnabled() == 0 ) then
 		if ( GetGamePlayerStateRightMouseHold()>0 ) then 
 			-- mode to allow toggle with RMB instead of holding it down
 			if ( (bit32.band(g_MouseClickControl,2)) == 2 and GetGamePlayerStateRightMouseHold() == 1 ) then SetGamePlayerStateRightMouseHold(2) end
@@ -281,6 +282,7 @@ function gameplayercontrol.weaponfire()
 			if ( GetGamePlayerStateRightMouseHold() >= 2 and GetGamePlayerStateRightMouseHold() <= 4 ) then tttriggerironsight = 1 end
 		else
 			if ( (bit32.band(g_MouseClickControl,2)) == 2  ) then tttriggerironsight = 1 end
+		end
 		end
 		if ( GetGamePlayerStateXBOX() == 1 ) then 
 			if ( GetGamePlayerStateXBOXControllerType() == 2 ) then 
@@ -774,8 +776,11 @@ function gameplayercontrol.control()
 		end
 		if ( GetGamePlayerControlGravityActive() == 1 and GetGamePlayerControlJumpMode() ~= 1 ) then 
 			-- on ground
-			ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
-			if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+			ttWeaponMoveSpeedMod = 1.0
+			if ( GetGamePlayerStateGunID() > 0 ) then
+			 ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
+			 if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+			end
 			SetGamePlayerControlWobble(WrapValue(GetGamePlayerControlWobble()+(GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttWeaponMoveSpeedMod)))
 		else
 			-- in air

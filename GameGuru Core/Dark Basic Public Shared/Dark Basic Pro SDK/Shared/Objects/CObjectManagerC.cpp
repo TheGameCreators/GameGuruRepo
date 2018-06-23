@@ -3749,7 +3749,8 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 	// do not render meshes with an effect and a single poly
 	bool bSkipDrawNow = false;
 	if ( pMesh->pVertexShaderEffect && pMesh->dwVertexCount<=3 )
-		bSkipDrawNow = true;
+		if ( pObject->dwObjectNumber < 70000 ) // 220618 - horrid hack (later find out why we need to hide single poly renders)
+			bSkipDrawNow = true;
 
 	#ifdef DX11
 	// set input layout
@@ -4841,8 +4842,9 @@ bool CObjectManager::DrawObject ( sObject* pObject, bool bFrustrumCullMeshes )
 							}
 
 							// draw old LOD mesh
-							if ( !DrawMesh ( pOldLOD ) )
-								return false;
+							DrawMesh ( pOldLOD );
+							//if ( !DrawMesh ( pOldLOD ) )
+							//	return false;
 
 							// restore projection matrix
 							if ( pObject->iUsingWhichLOD!=3 )
@@ -4856,7 +4858,12 @@ bool CObjectManager::DrawObject ( sObject* pObject, bool bFrustrumCullMeshes )
 
 					// draw the current mesh
 					if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject ) )
-						return false;
+					{
+						// mesh failed to draw - catch it here to investigate strangeness
+						int lee = 42;
+					}
+					//if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject ) )
+					//	return false;
 
 					// for linked objects
 					if ( pMesh->bLinked )

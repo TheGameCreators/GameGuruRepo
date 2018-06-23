@@ -1529,7 +1529,7 @@ void darkai_calcplrvisible ( void )
 						if (  g.gnumberofraycastslastoneused == t.tcharanimindex ) 
 						{
 							t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,t.brayx1_f,t.brayy1_f,t.brayz1_f,0,0,0,-123);
-							t.tintersectvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.brayx1_f,t.brayy1_f,t.brayz1_f,t.brayx2_f,t.brayy2_f,t.brayz2_f,t.charanimstate.obj)>0;
+							t.tintersectvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.brayx1_f,t.brayy1_f,t.brayz1_f,t.brayx2_f,t.brayy2_f,t.brayz2_f,t.charanimstate.obj);//220618 yuk >0;
 							if (  t.tintersectvalue>0 ) 
 							{
 								t.ttokay=0;

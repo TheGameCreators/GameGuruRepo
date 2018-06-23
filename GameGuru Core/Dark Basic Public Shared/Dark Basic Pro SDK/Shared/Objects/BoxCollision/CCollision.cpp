@@ -251,19 +251,23 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 								fThisDistance *= fDistanceModifier;
 
 								// record smallest distance of intersect
-								if ( fDistToIntersect==0.0f
-								|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
+								//if ( fDistToIntersect==0.0f
+								//|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
+								if ( fThisDistance > 0.0f )
 								{
-									fDistToIntersect = fThisDistance;
-									iFrameCollision = iFrame;
-									pMeshThatHasBeenHitRef = pMesh;
-									dwVertex0IndexOfHitPoly = v0;
-									dwVertex1IndexOfHitPoly = v1;
-									dwVertex2IndexOfHitPoly = v2;
-									vec0Hit = *pVec0;
-									vec1Hit = *pVec1;
-									vec2Hit = *pVec2;
-									dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+									if ( fDistToIntersect == 0.0f || fThisDistance < fDistToIntersect )
+									{
+										fDistToIntersect = fThisDistance;
+										iFrameCollision = iFrame;
+										pMeshThatHasBeenHitRef = pMesh;
+										dwVertex0IndexOfHitPoly = v0;
+										dwVertex1IndexOfHitPoly = v1;
+										dwVertex2IndexOfHitPoly = v2;
+										vec0Hit = *pVec0;
+										vec1Hit = *pVec1;
+										vec2Hit = *pVec2;
+										dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+									}
 								}
 							}
 						}
@@ -304,20 +308,24 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 								fThisDistance *= fDistanceModifier;
 
 								// record smallest distance of intersect
-								if ( fDistToIntersect==0.0f
-								|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
+								//if ( fDistToIntersect==0.0f
+								//|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
+								if ( fThisDistance > 0.0f )
 								{
-									// store useful info
-									fDistToIntersect = fThisDistance;
-									iFrameCollision = iFrame;
-									pMeshThatHasBeenHitRef = pMesh;
-									dwVertex0IndexOfHitPoly = v0;
-									dwVertex1IndexOfHitPoly = v1;
-									dwVertex2IndexOfHitPoly = v2;
-									vec0Hit = *pVec0;
-									vec1Hit = *pVec1;
-									vec2Hit = *pVec2;
-									dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+									if ( fDistToIntersect == 0.0f || fThisDistance < fDistToIntersect )
+									{
+										// store useful info
+										fDistToIntersect = fThisDistance;
+										iFrameCollision = iFrame;
+										pMeshThatHasBeenHitRef = pMesh;
+										dwVertex0IndexOfHitPoly = v0;
+										dwVertex1IndexOfHitPoly = v1;
+										dwVertex2IndexOfHitPoly = v2;
+										vec0Hit = *pVec0;
+										vec1Hit = *pVec1;
+										vec2Hit = *pVec2;
+										dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+									}
 								}
 							}
 						}
@@ -419,7 +427,14 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 
 				// Calculate inverse based on object world orientation (per frame handled by temp bone anim above)
 				GGMATRIX matInv;
-				GGMatrixInverse(&matInv, NULL, &pObject->position.matWorld );
+				GGMATRIX matWorldToUse = pObject->position.matWorld;
+				if ( pMesh->dwBoneCount == 0 )
+				{
+					// 220618 - using old pos/rot/scl anim system (i.e. door_c.x)
+					// uses the instanced world but needs to adjust by instance/ormaster anim frame combine matrix
+					GGMatrixMultiply(&matWorldToUse,&matWorldToUse,&pFrame->matCombined);
+				}
+				GGMatrixInverse(&matInv, NULL, &matWorldToUse );
 
 				// Calculate actual line vectors based on position of target object
 				GGVECTOR3 StartVector = GGVECTOR3( fX, fY, fZ );
@@ -466,20 +481,24 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 								fThisDistance *= fDistanceModifier;
 
 								// record smallest distance of intersect
-								if ( fDistToIntersect==0.0f
-								|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
+								//if ( fDistToIntersect==0.0f
+								//|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
+								if ( fThisDistance > 0.0f )
 								{
-									// store useful info
-									fDistToIntersect = fThisDistance;
-									iFrameCollision = iFrame;
-									pMeshThatHasBeenHitRef = pMesh;
-									dwVertex0IndexOfHitPoly = v0;
-									dwVertex1IndexOfHitPoly = v1;
-									dwVertex2IndexOfHitPoly = v2;
-									vec0Hit = *pVec0;
-									vec1Hit = *pVec1;
-									vec2Hit = *pVec2;
-									dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+									if ( fDistToIntersect == 0.0f || fThisDistance < fDistToIntersect )
+									{
+										// store useful info
+										fDistToIntersect = fThisDistance;
+										iFrameCollision = iFrame;
+										pMeshThatHasBeenHitRef = pMesh;
+										dwVertex0IndexOfHitPoly = v0;
+										dwVertex1IndexOfHitPoly = v1;
+										dwVertex2IndexOfHitPoly = v2;
+										vec0Hit = *pVec0;
+										vec1Hit = *pVec1;
+										vec2Hit = *pVec2;
+										dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+									}
 								}
 							}
 						}

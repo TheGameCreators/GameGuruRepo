@@ -402,7 +402,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>iweardrv.lib;iwrstdrv.lib;TrackerMath.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
+      <AdditionalDependencies>iweardrv.lib;iwrstdrv.lib;TrackerMath.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
       <OutputFile>$(ProjectDir)..\..\GameGuru\Guru-MapEditor.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -460,7 +460,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>iweardrv.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
+      <AdditionalDependencies>iweardrv.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
       <OutputFile>F:\Steam\steamapps\common\Game Guru\Guru-MapEditor.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -629,7 +629,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3dxof.lib;DXGI.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;GameFX.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;particles.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;Music.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Conv3DS.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
+      <AdditionalDependencies>D3dxof.lib;DXGI.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;GameFX.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;particles.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;Music.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Conv3DS.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
       <OutputFile>F:\Steam\steamapps\common\Game Guru\Guru-MapEditor.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -743,7 +743,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3dxof.lib;DXGI.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;GameFX.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;particles.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;Music.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Conv3DS.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
+      <AdditionalDependencies>D3dxof.lib;DXGI.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;GameFX.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;particles.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;Music.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Conv3DS.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
       <OutputFile>$(ProjectDir)..\..\GameGuru\Guru-MapEditor.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -852,7 +852,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO /STACK:1000000 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>iweardrv.lib;iwrstdrv.lib;TrackerMath.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>iweardrv.lib;iwrstdrv.lib;TrackerMath.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(ProjectDir)..\..\GameGuru\Guru-MapEditor.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>F:\TGCSHARED\GameGuru\GameGuru\Guru-MapEditor.pdb</ProgramDatabaseFile>
@@ -980,7 +980,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO /STACK:1000000 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;GameFX.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;particles.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;Music.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Conv3DS.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;GameFX.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;particles.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;Music.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Conv3DS.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(ProjectDir)..\..\GameGuru\Guru-MapEditor.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Release/DarkEXE.pdb</ProgramDatabaseFile>
@@ -1106,7 +1106,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO /STACK:1000000 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>iweardrv.lib;iwrstdrv.lib;TrackerMath.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;libfbxsdk-mt.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>iweardrv.lib;iwrstdrv.lib;TrackerMath.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>C:\Users\Lee\Documents\Game Guru Files\My Games\The Big Escape\The Big Escape.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Release/DarkEXE.pdb</ProgramDatabaseFile>
@@ -1291,9 +1291,6 @@
     </ClCompile>
     <ClCompile Include="Encryptor.cpp" />
     <ClCompile Include="EXEBlock.cpp" />
-    <ClCompile Include="FBXExporter\FBXExporter.cpp" />
-    <ClCompile Include="FBXExporter\MathHelper.cpp" />
-    <ClCompile Include="FBXExporter\Utilities.cpp" />
     <ClCompile Include="FileReader.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">Disabled</Optimization>
@@ -1392,11 +1389,6 @@
     <ClInclude Include="DarkEXE.h" />
     <ClInclude Include="Encryptor.h" />
     <ClInclude Include="EXEBlock.h" />
-    <ClInclude Include="FBXExporter\FBXExporter.h" />
-    <ClInclude Include="FBXExporter\Material.h" />
-    <ClInclude Include="FBXExporter\MathHelper.h" />
-    <ClInclude Include="FBXExporter\Utilities.h" />
-    <ClInclude Include="FBXExporter\Vertex.h" />
     <ClInclude Include="FileReader.h" />
     <ClInclude Include="GameGuruEngine.h" />
     <ClInclude Include="GameGuruMain.h" />

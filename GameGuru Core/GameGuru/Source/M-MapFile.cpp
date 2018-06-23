@@ -677,6 +677,7 @@ void mapfile_savestandalone ( void )
 	addfoldertocollection("gamecore\\decals\\splash_small");
 	addfoldertocollection("gamecore\\projectiletypes");
 	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\fireball");
+	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\magicbolt");
 	addfoldertocollection("gamecore\\projectiletypes\\modern\\handgrenade");
 	addfoldertocollection("gamecore\\projectiletypes\\modern\\rpggrenade");
 
