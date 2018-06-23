@@ -63,10 +63,13 @@ void ravey_particles_load_images ( void )
 {
 	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
 
+	//  Stock Particles (1400-1599 - most are custom loaded)
+	//  Used for flare trails
+	t.tImgID = RAVEY_PARTICLES_IMAGETYPE_FLARE + g.particlesimageoffset;
+	if (  ImageExist(t.tImgID)  ==  0  )  LoadImage (  "effectbank\\particles\\flare.dds",t.tImgID );
 	//  Used for rocket smoke trails
 	t.tImgID = RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
 	if (  ImageExist(t.tImgID)  ==  0  )  LoadImage (  "effectbank\\particles\\64smoke2.dds",t.tImgID );
-
 	//  Used for fireball projectile
 	t.tImgID = RAVEY_PARTICLES_IMAGETYPE_FLAME + g.particlesimageoffset;
 	if (  ImageExist(t.tImgID)  ==  0  )  LoadImage (  "effectbank\\particles\\flame.dds",t.tImgID );

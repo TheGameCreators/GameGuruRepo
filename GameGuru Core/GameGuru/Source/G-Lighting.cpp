@@ -540,17 +540,12 @@ void lighting_spotflash_control ( void )
 
 void lighting_applyflakcolor ( void )
 {
-return;
-
 }
 
 void lighting_applyflakstickcolor ( void )
 {
-return;
-
 }
 
 void lighting_applyplayerlighting ( void )
 {
-return;
 }

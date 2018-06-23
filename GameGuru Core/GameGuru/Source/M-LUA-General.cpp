@@ -1036,7 +1036,9 @@ void lua_loadimages ( void )
 			t.tfile_s=cstr(Right(Str(1000+t.t),3))+".png";
 			if (  FileExist(t.tfile_s.Get()) == 1 ) 
 			{
+				SetMipmapNum(1); //PE: mipmaps not needed.
 				LoadImage (  t.tfile_s.Get(),g.promptimageimageoffset+t.v+t.t );
+				SetMipmapNum(-1); 
 			}
 			else
 			{
@@ -1168,7 +1170,7 @@ void lua_setloadingresource ( void )
 void lua_set_sky(void)
 {
 	int index = -1;
-	for (int i = 0; i < ArrayCount(t.skybank_s); i++) 
+	for (int i = 0; i <= ArrayCount(t.skybank_s); i++) 
 	{
 		if (t.skybank_s[i].Lower()==t.s_s.Lower()) 
 		{

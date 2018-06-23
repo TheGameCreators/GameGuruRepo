@@ -702,6 +702,7 @@ void entity_loop ( void )
 					t.ttte = t.ee ; entity_applydamage() ; t.ee=t.ttte;
 					// create a huge bang
 					t.entityelement[t.ee].destroyme=1;
+					t.tProjectileName_s = "";
 					t.tProjectileResult = WEAPON_PROJECTILERESULT_EXPLODE;
 					t.tx_f=t.entityelement[t.ee].x ; t.ty_f=t.entityelement[t.ee].y ; t.tz_f=t.entityelement[t.ee].z;
 					t.tDamage_f = t.entityelement[t.ee].eleprof.explodedamage; 
@@ -1571,6 +1572,7 @@ void entity_hasbulletrayhit(void)
 	t.brayx2_f = t.x2_f; t.brayy2_f = t.y2_f; t.brayz2_f = t.z2_f;
 	t.bulletrayhit = 0; t.bulletraylimbhit = -1; t.tttriggerdecalimpact = 0;
 	t.tfoundentityindexhit = -1;
+	t.tmaterialvalue = -1;
 	
 	// first cast a ray at any terrain
 	if (ODERayTerrain(t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f) == 1)
@@ -1725,8 +1727,11 @@ void entity_hasbulletrayhit(void)
 				}
 			}
 		}
-		if (  t.tmaterialvalue>0  )  t.tttriggerdecalimpact = 10+t.tmaterialvalue;
+		if (  t.tmaterialvalue >= 0  ) t.tttriggerdecalimpact = 10+t.tmaterialvalue;
 	}
+
+	// ensure material index never goes negative
+	if ( t.tmaterialvalue < 0 ) t.tmaterialvalue = 0;
 
 	//  calculate increment along ray
 	t.tbix_f=t.brayx2_f-t.brayx1_f;
@@ -2569,6 +2574,11 @@ void entity_prepareobj ( void )
 			SetObjectScrollScaleUV ( t.tobj, t.entityprofile[t.tentid].uvscrollu, t.entityprofile[t.tentid].uvscrollv, t.entityprofile[t.tentid].uvscaleu, t.entityprofile[t.tentid].uvscalev );
 		}
 
+		// Set art flags for object (can use 32 bit flags here eventually)
+		DWORD dwArtFlags = 0;
+		if ( t.entityprofile[t.tentid].invertnormal == 1 ) dwArtFlags = 1;
+		if ( t.entityprofile[t.tentid].preservetangents == 1 ) dwArtFlags |= 1<<1;
+		SetObjectArtFlags ( t.tobj, dwArtFlags, 0.0f );
 	}
 }
 

@@ -84,6 +84,7 @@ g_MouseY = 0
 g_MouseWheel = 0
 g_MouseClick = 0
 g_EntityElementMax = 0
+g_PlayerUnderwaterMode = 0
 
 -- Mappable in-game keys
 g_PlrKeyW = 0
@@ -131,11 +132,20 @@ mp_coop = 0;
 mp_enemiesLeftToKill = 100;
 
 -- GameLoop Globals, Init and Loop
-
 g_gameloop_StartHealth = 0
 g_gameloop_RegenRate = 0
 g_gameloop_RegenSpeed = 0
 g_gameloop_RegenDelay = 0
+
+-- Globals to track projectile explosion event
+g_projectileevent_explosion = 0
+g_projectileevent_name = ""
+g_projectileevent_x = 0
+g_projectileevent_y = 0
+g_projectileevent_z = 0
+g_projectileevent_radius = 0
+g_projectileevent_damage = 0
+g_projectileevent_entityhit = 0
 
 function GameLoopInit(sth,rra,rsp,rde)
  g_gameloop_StartHealth = sth
@@ -468,6 +478,9 @@ function SetPlayerLives(v)
 end
 function SetEntityHealth(e,v)
  SendMessageI("setentityhealth",e,v)
+end
+function SetEntityHealthSilent(e,v)
+ SendMessageI("setentityhealthsilent",e,v)
 end
 function SetEntityRagdollForce(e,limb,x,y,z,v)
  SendMessageF("setforcex",x);
@@ -1012,7 +1025,9 @@ Direct call LUA Commands:
 
 UpdateWeaponStats: UpdateWeaponStats() -- Call this to instantly update all g_Weapon* data
 ResetWeaponSystems: ResetWeaponSystems ( ) -- resets any projectiles currently active in game
-SetWeaponSlot: SetWeaponSlot ( index, got flag, preference flag ) -- Sets the weapon data directly, index is 1 through 10
+
+SetWeaponSlot: SetWeaponSlot ( index, got flag, preference flag ) -- Sets the weapon data directly, index is 1 through 10. The got flag value is the weapon ID of the weapon you have in that slot. By setting it, you can effectively grant the player that weapon without them having to pick it up, but you should ensure that weapon is placed somewhere in the level so it can load it the particulars.  The preference flag value also takes a Weapon ID and is used when you want to make sure when a weapon is collected, it will go to that slot, so  SetWeaponSlot ( 9, 0, 12 ) will make sure that when you collect Weapon ID 12 it will automatically be assigned to slot 9.
+
 GetWeaponAmmo: quantity = GetWeaponAmmo ( index ) -- Sets the weapon data directly, index is 1 through 10
 SetWeaponAmmo: SetWeaponAmmo ( index, ammo quantity ) -- Sets the weapon data directly, index is 1 through 10
 GetWeaponClipAmmo: quantity = GetWeaponClipAmmo ( index ) -- Sets the weapon data directly, index is 1 through 10
@@ -1743,20 +1758,29 @@ PositionPrompt3D : PositionPrompt3D(x,y,z,angle) -- repositions 3D text panel to
 
 ScaleObject : ScaleObject( obj, x, y, z ) -- Scales object in all axis (Note: uses object id not entity!)
 
+SetSkyTo : SetSkyTo ( str ) -- where str is the folder name of the sky you want to change to
+
 ***** The following five functions return multiple values, if you do not need them all just replace 
 ***** the ones you don't need with '_' for example : _, _, _, Ax, Ay, Az = GetEntityPosAng( e ) would
 ***** just give you last three of the 6 values returned
 GetObjectPosAng : x, y, z, Ax, Ay, Az = GetObjectPosAng( obj ) -- returns position and Euler angles of object
 GetEntityPosAng : x, y, z, Ax, Ay, Az = GetEntityPosAng( e )   -- returns position and Euler angles of entity
+GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of object in all axis (Note: uses object id not entity!)
+GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
 
+***** Collision box is defined by coordinates of two opposing corners, from these it is easy to calculate the size of the object
 GetObjectColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox( obj ) -- returns collision cube of object
 GetEntityColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityColBox( e )   -- returns collision cube of entity
-        Collision box is defined by coordinates of two opposing corners, from these it is easy to 
-		calculate the size of the object
 
-GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of object in all axis (Note: uses object id not entity!)
-
-GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
+***** Lua control of dynamic light, you get the light number using entity e number then use that in the other light functions
+***** for example; lightNum = GetEntityLightNumber( e )  then  x, y, z = GetLightPosition( lightNum )
+GetEntityLightNumber : lightNum = GetEntityLightNumber( e ) -- returns the internal light number held by the entity
+GetLightPosition : x, y, z = GetLightPosition( lightNum ) -- returns the XYZ position of the dynamic light specified
+GetLightRGB : r, g, b = GetLightRGB( lightNum ) -- returns the RGB color of the dynamic light specified
+GetLightRange : range = GetLightRange ( lightNum ) -- returns the range value of the dynamic light specified
+SetLightPosition : SetLightPosition ( lightNum, x, y, z ) -- sets the new position of the specified dynamic light
+SetLightRGB : SetLightRGB ( lightNum, r, g, b ) -- sets the new color of the specified dynamic light
+SetLightRange : SetLightRange ( lightNum, range ) -- sets the new range (1 to 10000) of the specified light
 
 ***Water Shader Settings*** Look into the shader for informations about these values(open effectbank/reloaded/water_basic.fx with i.e. notepad)
 ***Setter***
@@ -1785,5 +1809,3 @@ GetWaterDistortionWaves()
 GetRippleWaterSpeed()
 
 --]]
-
---SetSkyTo(str) : str=foldername of the sky you want to change to (i.e. SetSkyTo("dark"))

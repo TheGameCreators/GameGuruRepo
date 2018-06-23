@@ -15,6 +15,7 @@ aspectRatio = 0
 waitForAllEntities = 1
 radarx=90
 radary=15
+radarMakeInvisible=0
 
 function radar_init(e)
 	radarImageBack		=	LoadImage ( "scriptbank\\radar\\radar-back.png" )
@@ -29,7 +30,11 @@ function radar_main(e)
 
 	SetSpriteSize 		( radarSprite , 15 , -1 )	
 	SetSpriteOffset 	( radarSprite , 7.5 , -1 )
-	SetSpritePosition 	( radarSprite , radarx , radary )	
+	if radarMakeInvisible == 0 then
+ 	 SetSpritePosition 	( radarSprite , radarx , radary )	
+	else
+ 	 SetSpritePosition 	( radarSprite , 200 , 200 )	
+	end
 	SetSpriteAngle		( radarSprite , -g_PlayerAngY )
 	
 	if waitForAllEntities == 1 then
@@ -71,7 +76,7 @@ function radar_main(e)
 	for c = 1 , enemyCount do
 	 e = radarEnemies[c]
 	 if g_Entity[e] ~= nil then
-		if g_Entity[e]['health'] > 0 and GetEntityVisibility(e) == 1 then
+		if g_Entity[e]['health'] > 0 and GetEntityVisibility(e) == 1 and radarMakeInvisible == 0 then
 			angle = pointAtPlayer(e) + math.rad(g_PlayerAngY)
 			dist = GetPlayerDistance(e)
 			if dist > 2576 then
@@ -88,7 +93,7 @@ function radar_main(e)
 	
 	for c = 1 , g_objectiveCount do
 	 e=radarObjectives[c]
-     if g_Entity[e]['health'] > 0 then
+     if g_Entity[e]['health'] > 0 and radarMakeInvisible == 0 then
 		angle = pointAtPlayer(radarObjectives[c]) + math.rad(g_PlayerAngY)
 		dist = GetPlayerDistance(radarObjectives[c])
 		if dist > 2576 then
@@ -102,6 +107,14 @@ function radar_main(e)
 	 end
 	end	
 
+end
+
+function radar_hideallsprites()
+ radarMakeInvisible = 1
+end
+
+function radar_showallsprites()
+ radarMakeInvisible = 0
 end
 
 function pointAtPlayer (i)
@@ -123,4 +136,4 @@ function addObjective (i)
 	SetSpriteOffset ( radarObjectiveSprites[g_objectiveCount] , 0.25 , -1 )
 	SetSpritePosition ( radarObjectiveSprites[g_objectiveCount] , 200 , 200 )
 
-	end
+end

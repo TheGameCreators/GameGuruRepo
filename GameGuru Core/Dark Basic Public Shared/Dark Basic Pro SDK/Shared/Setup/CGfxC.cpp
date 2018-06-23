@@ -2090,7 +2090,7 @@ DARKSDK bool GetBackBufferAndDepthBuffer ( void )
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
 	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
 	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;//DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;//DXGI_FORMAT_R24_UNORM_X8_TYPELESS; (DXGI_FORMAT_R32_FLOAT)
 	shaderResourceViewDesc.Texture2D.MipLevels = 1;
 	hr = m_pD3D->CreateShaderResourceView ( m_pDepthStencil, &shaderResourceViewDesc, &m_pDepthStencilResourceView );
 
@@ -2213,8 +2213,8 @@ DARKSDK bool SetupDX11 ( void )
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 	depthStencilDesc.DepthEnable = true;
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-	//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS; // when did this, terrain in cubemap stopped working (suggests no depth values being used!)
+	//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS; // when did this, terrain in cubemap stopped working (suggests no depth values being used!) // PE: works now.
 	depthStencilDesc.StencilEnable = false;//true;
 	depthStencilDesc.StencilReadMask = 0xFF;
 	depthStencilDesc.StencilWriteMask = 0xFF;

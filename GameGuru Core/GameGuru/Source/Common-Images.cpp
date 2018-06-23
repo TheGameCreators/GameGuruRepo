@@ -285,6 +285,71 @@ int loadinternaltexturemode ( char* tfile_s, int iImageLoaderMode )
 	return texid;
 }
 
+//PE: Check if file is in internal list.
+int findinternaltexture(char* tfile_s)
+{
+	int texid = 0;
+	int tt = 0;
+
+	//  Default return
+	texid = 0;
+
+	//  Scan for existing
+	if (g.texturebankmax>0)
+	{
+		for (tt = 1; tt <= g.texturebankmax; tt++)
+		{
+			if (strcmp(tfile_s, t.texturebank_s[tt].Get()) == 0) { texid = g.texturebankoffset + tt; break; }
+		}
+	}
+	return(texid);
+
+}
+//PE: Just add path to the list , so it can be reused.
+int addinternaltexture(char* tfile_s)
+{
+	int toldtexturebankmax = 0;
+	int tuseindex = 0;
+	int texid = 0;
+	int tt = 0;
+
+	//  Default return
+	texid = 0;
+
+	//  Scan for existing
+	if (g.texturebankmax>0)
+	{
+		for (tt = 1; tt <= g.texturebankmax; tt++)
+		{
+			if (strcmp(tfile_s, t.texturebank_s[tt].Get()) == 0) { texid = g.texturebankoffset + tt; break; }
+		}
+	}
+	else
+	{
+		tt = g.texturebankmax + 1;
+	}
+
+	//  Did not find, create new.
+	if (tt>g.texturebankmax)
+	{
+		toldtexturebankmax = g.texturebankmax;
+		tuseindex = -1;
+		for (tt = 1; tt <= g.texturebankmax; tt++)
+		{
+			if (t.texturebank_s[tt] == "") { tuseindex = tt; break; }
+		}
+		if (tuseindex == -1)
+		{
+			++g.texturebankmax;
+			Dim(t.texturebank_s, g.texturebankmax);
+			tuseindex = g.texturebankmax;
+		}
+		t.texturebank_s[tuseindex] = tfile_s;
+		texid = g.texturebankoffset + tuseindex;
+	}
+	return texid;
+}
+
 int loadinternaltexture ( char* tfile_s )
 {
 	return loadinternaltexturemode ( tfile_s, 0 );
@@ -302,6 +367,25 @@ void removeinternaltexture ( int teximg )
 		if (  tt >= 0 && tt <= ArrayCount( t.texturebank_s ) )
 		{
 			t.texturebank_s[tt]="";
+		}
+	}
+}
+
+void deleteinternaltexture(char* tfile_s)
+{
+	int texid = 0;
+	int tt = 0;
+
+	if (g.texturebankmax>0)
+	{
+		for (tt = 1; tt <= g.texturebankmax; tt++)
+		{
+			if (strcmp(tfile_s, t.texturebank_s[tt].Get()) == 0) { 
+				texid = g.texturebankoffset + tt;
+				if (ImageExist(texid) == 1)  DeleteImage(texid);
+				t.texturebank_s[tt] = "";
+				break;
+			}
 		}
 	}
 }
@@ -348,6 +432,10 @@ int loadinternaltextureex ( char* tfile_s, int compressmode, int quality )
 		//  Attempt to load
 		t.texturebank_s[tuseindex]=tfile_s;
 		texid=g.texturebankoffset+tuseindex;
+		//PE: Sometimes tfile_s is changed inside loadinternalimageexcompressquality
+		//PE: This means that t.texturebank_s[tuseindex] is not always the same as the actually loaded file.
+		//PE: Also means that sometimes we get a doubble load.
+		//PE: Keep it here for now , as this is rare. perhaps scan multiply extensions in findinternaltexture.
 		loadinternalimageexcompressquality(tfile_s,texid,compressmode,quality,0);
 		if (  ImageExist(texid) == 0 ) 
 		{
@@ -655,7 +743,7 @@ void cubemap_buildviews ( int iImageID, int iCubeMapSize, float fX, float fY, fl
 			m_ObjectManager.Update ( );
 
 			// render the terrain (cheapest terrain render, camera 30 is temp camera)
-			if ( 1 )
+			if ( t.terrain.TerrainID > 0 )
 			{
 				BT_SetCurrentCamera ( iCubeRenderTempCamera );
 				BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,700.0 );
@@ -673,8 +761,11 @@ void cubemap_buildviews ( int iImageID, int iCubeMapSize, float fX, float fY, fl
 
 		// restore LOD to terrain render sequence
 		BT_SetCurrentCamera ( 0 );
-		BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
-		BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
+		if ( t.terrain.TerrainID > 0 )
+		{
+			BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
+			BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
+		}
 
 		// free resources no longer needed (rendertargetviews, depth buffer, etc)
 		for (int i = 0; i < 6; i++) 

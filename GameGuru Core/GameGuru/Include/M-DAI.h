@@ -25,7 +25,7 @@ void darkai_destroy_all_characterdata ( void );
 void darkai_release_characters ( void );
 void darkai_setup_tree ( void );
 void darkai_setup_entity ( void );
-void darkai_addobstoallneededcontainers ( int iType, int iObj, int iFullHeight, float fMinHeight, float fSliceHeight );
+void darkai_addobstoallneededcontainers ( int iType, int iObj, int iFullHeight, float fMinHeight, float fSliceHeight, float fSliceMinSize );
 void darkai_staggerAIprocessing ( void );
 void darkai_setupcharacter ( void );
 void darkai_staywithzone ( int iAIObj, float fLastX, float fLastZ, float* pX, float* pZ );

@@ -1,0 +1,36 @@
+;header
+desc          = Wood Bridge (Mid Sides)
+
+;visualinfo
+textured      = Woodbridge_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
+castshadow    = 0
+
+;orientation
+model         = Wood bridge (mid sides).x
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 1
+materialindex = 3
+collisionmode = 1
+
+;statistics
+strength      = 25
+explodable    = 0
+debrisshape   = 1
+
+;ai
+aiinit	      = appear.lua
+aimain	      = default.lua
+aidestroy     = disappear.lua
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+

@@ -2,11 +2,15 @@
 //--- GAMEGURU - Common
 //----------------------------------------------------
 
+// Includes
 #include "gameguru.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "M-WelcomeSystem.h"
 #include "time.h"
+
+// Used for Free Weekend Promotion Build 
+//#define STEAMOWNERSHIPCHECKFREEWEEKEND
 
 // core externs to globals
 extern LPSTR gRefCommandLineString;
@@ -434,9 +438,11 @@ void common_init_globals ( void )
 	//  +1,2,3,4 = Jetpack textures (x8)
 	//  .. 32 (for all 8 jet pack textures)
 	g.weaponsimageoffset = 1000;
-	g.particlesimageoffset = 1400;
+	g.particlesimageoffset = 1400; 
+	// reserve 200 particles 1400-1599
 	g.ebeimageoffset = 1900;
 	g.texturebankoffset = 2000;
+	//PE: 50000+ to be used for internal images inside dbo's.
 	g.internalshadowdynamicterrain = 59950;
 	g.internalshadowdebugimagestart = 59951;
 	g.internalocclusiondebugimagestart = 59961;
@@ -1670,6 +1676,11 @@ void FPSC_SetDefaults ( void )
 	g.gexportassets = 0;
 	g.gproducelogfiles = 0;
 	g.gpbroverride = 0;
+	g.memskipwatermask = 0;
+	g.standalonefreememorybetweenlevels = 0;
+	g.lowestnearcamera = 6; // default , use setup.ini lowestnearcamera to adjust.
+	g.memgeneratedump = 0;
+	g.underwatermode = 0;
 	g.gproducetruevidmemreading = 0;
 	g.gcharactercapsulescale_f = 1.0;
 	g.ggodmodestate = 0;
@@ -1789,6 +1800,10 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "hidedistantshadows" ; if (  t.field_s == t.tryfield_s  ) g.globals.hidedistantshadows = t.value1;
 					t.tryfield_s = "realshadowresolution" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowresolution = t.value1;
 					t.tryfield_s = "realshadowcascadecount" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascadecount = t.value1;
+
+					if (g.globals.realshadowcascadecount < 2) g.globals.realshadowcascadecount = 2; //PE: Limit cascades.
+					if (g.globals.realshadowcascadecount > 8) g.globals.realshadowcascadecount = 8; //PE: Limit cascades.
+
 					t.tryfield_s = "realshadowcascade0" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[0] = t.value1;
 					t.tryfield_s = "realshadowcascade1" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[1] = t.value1;
 					t.tryfield_s = "realshadowcascade2" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[2] = t.value1;
@@ -1798,6 +1813,21 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "realshadowcascade6" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[6] = t.value1;
 					t.tryfield_s = "realshadowcascade7" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[7] = t.value1;
 
+					t.tryfield_s = "realshadowsize0"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[0] = t.value1;
+					t.tryfield_s = "realshadowsize1"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[1] = t.value1;
+					t.tryfield_s = "realshadowsize2"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[2] = t.value1;
+					t.tryfield_s = "realshadowsize3"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[3] = t.value1;
+					t.tryfield_s = "realshadowsize4"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[4] = t.value1;
+					t.tryfield_s = "realshadowsize5"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[5] = t.value1;
+					t.tryfield_s = "realshadowsize6"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[6] = t.value1;
+					t.tryfield_s = "realshadowsize7"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[7] = t.value1;
+
+					t.tryfield_s = "realshadowdistance"; if (t.field_s == t.tryfield_s) {
+						g.globals.realshadowdistance = t.value1;
+						g.globals.realshadowdistancehigh = t.value1;
+					}
+					t.tryfield_s = "editorusemediumshadows"; if (t.field_s == t.tryfield_s)  g.globals.editorusemediumshadows = t.value1;
+					
 					t.tryfield_s = "hidememorygauge" ; if (  t.field_s == t.tryfield_s  )  g.ghidememorygauge = t.value1;
 					t.tryfield_s = "hidelowfpswarning" ; if (  t.field_s == t.tryfield_s  )  g.globals.hidelowfpswarning = t.value1;
 					t.tryfield_s = "hardwareinfomode" ; if (  t.field_s == t.tryfield_s  )  g.ghardwareinfomode = t.value1;
@@ -1809,6 +1839,7 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "disablefreeflight" ; if (  t.field_s == t.tryfield_s  )  g.globals.disablefreeflight = t.value1;
 					t.tryfield_s = "fulldebugview" ; if (  t.field_s == t.tryfield_s  )  g.globals.fulldebugview = t.value1;
 					t.tryfield_s = "enableplrspeedmods" ; if (  t.field_s == t.tryfield_s  )  g.globals.enableplrspeedmods = t.value1;
+					t.tryfield_s = "disableweaponjams" ; if (  t.field_s == t.tryfield_s  )  g.globals.disableweaponjams = t.value1;
 
 					//  Control of display mode
 					t.tryfield_s = "adapterordinal" ; if (  t.field_s == t.tryfield_s  )  g.gadapterordinal = t.value1;
@@ -1904,6 +1935,14 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "dividetexturesize" ; if (  t.field_s == t.tryfield_s ) g.gdividetexturesize = t.value1  ; t.newdividetexturesize = t.value1;
 					t.tryfield_s = "producelogfiles" ; if (  t.field_s == t.tryfield_s  )  g.gproducelogfiles = t.value1;
 					t.tryfield_s = "pbroverride" ; if (  t.field_s == t.tryfield_s  )  g.gpbroverride = t.value1;
+					t.tryfield_s = "underwatermode"; if (t.field_s == t.tryfield_s)  g.underwatermode = t.value1;
+					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
+					t.tryfield_s = "standalonefreememorybetweenlevels"; if (t.field_s == t.tryfield_s)  g.standalonefreememorybetweenlevels = t.value1;
+					t.tryfield_s = "lowestnearcamera"; if (t.field_s == t.tryfield_s)  g.lowestnearcamera = t.value1;
+					
+					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
+					t.tryfield_s = "memgeneratedump"; if (t.field_s == t.tryfield_s)  g.memgeneratedump = t.value1;
+					
 					t.tryfield_s = "producetruevidmemreading" ; if (  t.field_s == t.tryfield_s  )  g.gproducetruevidmemreading = t.value1;
 					t.tryfield_s = "charactercapsulescale" ; if (  t.field_s == t.tryfield_s  )  g.gcharactercapsulescale_f = (t.value1+0.0)/100.0;
 					t.tryfield_s = "hsrmode" ; if (  t.field_s == t.tryfield_s  )  g.ghsrmode = t.value1;
@@ -2281,7 +2320,10 @@ void common_writeserialcode ( LPSTR pCode )
 {
 	char pAbsFilePath[1024];
 	strcpy ( pAbsFilePath, g.fpscrootdir_s.Get() );
-	strcat ( pAbsFilePath, "\\vrqcontrolmode.ini" );
+	if ( g.vrqoreducontrolmode == 2 )
+		strcat ( pAbsFilePath, "\\educontrolmode.ini" );
+	else
+		strcat ( pAbsFilePath, "\\vrqcontrolmode.ini" );
 	if ( FileExist(pAbsFilePath) == 1 ) DeleteFile ( pAbsFilePath );
 	if ( FileOpen(1) == 1 ) CloseFile (  1 );
 	OpenToWrite ( 1, pAbsFilePath );
@@ -2363,12 +2405,25 @@ void FPSC_Setup ( void )
 	}
 
 	// 050416 - get VRQUEST control flag and serial code
+	g.vrqoreducontrolmode = 0;
 	g.vrqcontrolmode = 0;
 	g.vrqcontrolmodeserialcode = "";
 	g.vrqTriggerSerialCodeEntrySystem = 0;
-	g.vrqTriggerSoftwareToQuit = 0;
+	g.iTriggerSoftwareToQuit = 0;
 	t.tfile_s="vrqcontrolmode.ini";
 	if ( FileExist(t.tfile_s.Get()) == 1 ) 
+	{
+		g.vrqoreducontrolmode = 1;
+	}
+	else
+	{
+		t.tfile_s="educontrolmode.ini";
+		if ( FileExist(t.tfile_s.Get()) == 1 ) 
+		{
+			g.vrqoreducontrolmode = 2;
+		}
+	}
+	if ( g.vrqoreducontrolmode > 0 )
 	{
 		// read serial code from VRQ controlmode file
 		g.vrqcontrolmode = 1;
@@ -2384,9 +2439,9 @@ void FPSC_Setup ( void )
 			if ( common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get()) == 0 )
 			{
 				// serial code expired
-				MessageBox ( NULL, "Your VRQUEST serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
+				MessageBox ( NULL, "Your serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
 				g.vrqTriggerSerialCodeEntrySystem = 1;
-				g.vrqTriggerSoftwareToQuit = 1;
+				g.iTriggerSoftwareToQuit = 1;
 			}
 			else
 			{
@@ -2398,7 +2453,7 @@ void FPSC_Setup ( void )
 		{
 			// no serial code found, ask for one
 			g.vrqTriggerSerialCodeEntrySystem = 1;
-			g.vrqTriggerSoftwareToQuit = 1;
+			g.iTriggerSoftwareToQuit = 1;
 		}
 
 		// all VRQ is restricted content mode
@@ -2412,7 +2467,7 @@ void FPSC_Setup ( void )
 			if ( FileExist("steam_appid.txt") == 0 ) 
 			{
 				MessageBox ( NULL, "Root file missing from installation.", "System File Not Found", MB_OK );
-				g.vrqTriggerSoftwareToQuit = 1;
+				g.iTriggerSoftwareToQuit = 1;
 			}
 		}
 	}
@@ -2856,6 +2911,7 @@ void FPSC_Setup ( void )
 	material_init ( );
 	material_startup ( );
 
+
 	// 
 	//  LEAP POINT (detect if running as Guru-Game.exe or Guru-MapEditor.exe)
 	// 
@@ -2877,6 +2933,20 @@ void FPSC_Setup ( void )
 			ExitPrompt ( "Game Guru cannot write files to the Program Files area. Exit the software, right click on the Game Guru icon, and select 'Run As Administrator'", "Init Error" );
 		}
 	
+		//  New security requires Steam client to be running (for ownership check)
+		#ifdef STEAMOWNERSHIPCHECKFREEWEEKEND
+		bool bSteamRunningAndGameGuruOwned = false;
+		if ( g.steamworks.isRunning == 1 )
+		{
+			if ( SteamOwned() == true ) 
+				bSteamRunningAndGameGuruOwned = true;
+		}
+		if ( bSteamRunningAndGameGuruOwned == false )
+		{
+			g.iTriggerSoftwareToQuit = 2;
+		}
+		#endif
+
 		//  Enter Map Editor specific code
 		SETUPLoadAllCoreShadersREST(g.gforceloadtestgameshaders,g.gpbroverride);
 		material_loadsounds ( );
@@ -5311,7 +5381,9 @@ void loadscreenpromptassets ( void )
 					// show splash initially
 					tfile_s = respart_s;
 					sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
+					SetMipmapNum(1); //PE: mipmaps not needed.
 					LoadImage ( t.szwork, g.testgamesplashimage );
+					SetMipmapNum(-1);
 				}
 				else
 				{
@@ -5340,7 +5412,9 @@ void loadscreenpromptassets ( void )
 					}
 					sprintf ( t.szwork , "languagebank\\%s\\artwork\\%s" , g.language_s.Get() , tfile_s.Get() );
 				}
+				SetMipmapNum(1); //PE: mipmaps not needed.
 				LoadImage (  t.szwork , g.testgamesplashimage );
+				SetMipmapNum(-1);
 			}
 		}
 	}

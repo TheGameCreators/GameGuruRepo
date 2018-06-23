@@ -4,9 +4,6 @@
 #include "settings.fx"                                                  
 #include "cascadeshadows.fx"
 
-//Some should be moved to settings.fx
-#define RealisticVsCool (0.60)
-#define AmountExtractLight (0.50)
 #define mSunColor (float3(1.0,1.0,1.0))
 
 #define K_MODEL_SCHLICK 0
@@ -23,7 +20,8 @@ float4 HighlightParams = {0.0f,0.0f,0.0f,1.0f};
 float4 GlowIntensity = float4(0,0,0,0);
 float AlphaOverride = 1.0f;
 float SpecularOverride = 1.0f;
-float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f};
+float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Alpha Slice Y=not used
+float4 ArtFlagControl1 = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (off by default) Y=Preserve Tangents (off by default) Z=DiffuseBoost
 float4 ShaderVariables = float4(0,0,0,0);
 float4 AmbiColorOverride = {1.0f, 1.0f, 1.0f, 1.0f};
 float4 clipPlane : ClipPlane;
@@ -168,7 +166,7 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
      }   
    #endif
    output.position = mul(float4(inputPosition,1), World);
-   output.positionCS = mul(output.position, mul(View, Projection));
+   output.positionCS = mul(output.position, mul(View, Projection)); // 
    output.normal = mul(inputNormal, wsTransform);   
    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
    output.viewDepth = mul(output.position, View).z;
@@ -195,19 +193,38 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
     #else
      output.uv = float2(ScrollScaleUV.x+(input.uv.x*ScrollScaleUV.z),ScrollScaleUV.y+(input.uv.y*ScrollScaleUV.w));
      
-     //PE: tangent has problems, calculate.
-     if ( abs(inputNormal.y) > 0.999 ) inputTangent = float3( inputNormal.y,0.0,0.0 );
-     else inputTangent = normalize( float3(-inputNormal.z, 0.0, inputNormal.x) );
-     inputBinormal = normalize( float3(inputNormal.y*inputTangent.z, inputNormal.z*inputTangent.x-inputNormal.x*inputTangent.z, -inputNormal.y*inputTangent.x) );
-
+     // PE: tangent has problems, calculate.
+     //if ( abs(inputNormal.y) > 0.999 ) inputTangent = float3( inputNormal.y,0.0,0.0 );
+     //else inputTangent = normalize( float3(-inputNormal.z, 0.0, inputNormal.x) );
+     //inputBinormal = normalize( float3(inputNormal.y*inputTangent.z, inputNormal.z*inputTangent.x-inputNormal.x*inputTangent.z, //-inputNormal.y*inputTangent.x) );
+	 
+	 // LEE: Fixed above tangent/binormal calculation (see Concrete Girder)
+	 if ( ArtFlagControl1.y == 0 )
+	 {
+		 float3 c1 = cross(output.normal, float3(0.0, 0.0, 1.0)); 
+		 float3 c2 = cross(output.normal, float3(0.0, 1.0, 0.0)); 
+		 if (length(c1) > length(c2)) {
+		  output.tangent = c1;   
+		 } else {
+		  output.tangent = c2;   
+		 }
+		 inputTangent = normalize(output.tangent);
+		 inputBinormal = normalize(cross(inputTangent, output.normal)); 
+     }
      output.tangent = mul(inputTangent, wsTransform);
      output.binormal = mul(inputBinormal, wsTransform);
+	 
     #endif
     output.binormal = normalize(output.binormal);
     output.tangent = normalize(output.tangent);
    #endif
    output.normal = normalize(output.normal);
    output.clip = dot(output.position, clipPlane);                                                                      
+
+
+	//PE: Experimental , http://www.mvps.org/directx/articles/linear_z/linearz.htm
+	//PE: z fighting. We need to extract the far plane somehow to test it.
+	//output.positionCS.z = output.positionCS.z * output.positionCS.w / 5000.0f;
 
 #ifdef PBRTERRAIN
     if(output.positionCS.z > 3400.0 && output.position.y < 460.0 && output.normal.y > 0.9985 ) {
@@ -241,16 +258,14 @@ struct Attributes
 };
 
 #ifdef PBRVEGETATION
- float usingNormalMap = 0;
  Texture2D AlbedoMap : register( t0 );
  Texture2D Unused1Map : register( t1 );
  Texture2D Unused2Map : register( t2 );
  Texture2D Unused3Map : register( t3 );
  Texture2D Unused4Map : register( t4 );
  Texture2D Unused5Map : register( t5 );
- Texture2D Unused6Map : register( t8 );
+ Texture2D Unused6Map : register( t7 );
 #else
- float usingNormalMap = 1;
  #ifdef PBRTERRAIN
   Texture2D VegShadowSampler : register( t0 );
   Texture2D AGEDMap : register( t1 );
@@ -258,7 +273,7 @@ struct Attributes
   Texture2D HighlighterSampler : register( t3 );
   Texture2D NormalMap : register( t4 );
   Texture2D MetalnessMap : register( t5 );
-  Texture2D Unused1Map : register( t8 );
+  Texture2D Unused1Map : register( t7 );
  #else
   Texture2D AlbedoMap : register( t0 );
   #ifdef AOISAGED
@@ -267,7 +282,7 @@ struct Attributes
    Texture2D MetalnessMap : register( t3 );
    Texture2D Unused1Map : register( t4 );
    Texture2D Unused2Map : register( t5 );
-   Texture2D Unused3Map : register( t8 );
+   Texture2D Unused3Map : register( t7 );
   #else
    Texture2D AOMap : register( t1 );
    Texture2D NormalMap : register( t2 );
@@ -275,15 +290,16 @@ struct Attributes
    Texture2D GlossMap : register( t4 );
    Texture2D HeightMap : register( t5 );
    #ifdef ILLUMINATIONMAP
-    Texture2D IlluminationMap : register( t8 );
+    Texture2D IlluminationMap : register( t7 );
    #else
-    Texture2D DetailMap : register( t8 );
+    Texture2D DetailMap : register( t7 );
    #endif
   #endif
  #endif
 #endif
 TextureCube EnvironmentMap : register( t6 );
-Texture2D GlossCurveMap : register( t7 );
+//PE: changed register t7 to t8 so we can just skip it. ( old t8 changed to t7 )
+//Texture2D GlossCurveMap : register( t8 ); //PE: not really needed. i already do it in code below.
 
 SamplerState AnisoClamp
 {
@@ -1007,15 +1023,17 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      rawmetalmap = float3(0,0,0);
      rawglossmap = float3(rawdiffusemap.w,rawdiffusemap.w,rawdiffusemap.w);
     #else
+	
+	
      float4 rawdiffusemap = AlbedoMap.Sample(SampleWrap, attributes.uv);
      float3 rawnormalmap = NormalMap.Sample(SampleWrap, attributes.uv).rgb;
-     float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1) + (SpecularOverride-1.0);;
+     float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1) + ((SpecularOverride-1.0)/10.0f);
      float3 rawmetalmap = float3(SpecValue,SpecValue,SpecValue);
      #ifdef AOISAGED
-      float GlossValue = (1.0f-min(AGEDMap.Sample(SampleWrap, attributes.uv).g, 1)) + (SpecularOverride-1.0);
+      float GlossValue = (1.0f-min(AGEDMap.Sample(SampleWrap, attributes.uv).g, 1)) + ((SpecularOverride-1.0)/10.0f);
       float3 rawglossmap = float3(GlossValue,GlossValue,GlossValue);
      #else
-      float GlossValue = (1.0f-min(GlossMap.Sample(SampleWrap, attributes.uv).r, 1)) + (SpecularOverride-1.0);
+      float GlossValue = (1.0f-min(GlossMap.Sample(SampleWrap, attributes.uv).r, 1)) + ((SpecularOverride-1.0)/10.0f);
       float3 rawglossmap = float3(GlossValue,GlossValue,GlossValue);
      #endif
     #endif
@@ -1054,14 +1072,15 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    #ifdef PBRVEGETATION
     attributes.normal = float3(0,1,0);
    #else
-    if (usingNormalMap > 0.0)
-    {
-      float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
-      rawnormalmap.y = 1.0f-rawnormalmap.y; // FBX normal maps have this reversed!
-      float3 norm = rawnormalmap * 2.0 - 1.0;
-      norm = mul(norm.rgb, toWorld);
-      attributes.normal = normalize(norm);
-    }
+    float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
+	// allow this to be toggled in the FPE for artist control (could be a way to do this with math, eliminate the IF)
+	if ( ArtFlagControl1.x == 1 )
+	{
+	  rawnormalmap.y = 1.0f - rawnormalmap.y;
+	}  
+    float3 norm = rawnormalmap * 2.0 - 1.0;
+    norm = mul(norm.rgb, toWorld);
+    attributes.normal = normalize(norm);
    #endif
 
    // eye vector
@@ -1094,11 +1113,11 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
        float3 DetailMapRGB = DetailMap.Sample(SampleWrap,attributes.uv*16.0f).rgb;
       #endif
       DetailMapRGB = lerp(1.0f,DetailMapRGB,detaildistance);
-       rawdiffusemap.xyz *= DetailMapRGB;
+      rawdiffusemap.xyz *= DetailMapRGB;
      #endif
     #endif
    #endif
-
+   
    // Shadows
    int iCurrentCascadeIndex = 0;
    float fShadow = 0.0f;
@@ -1108,16 +1127,15 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #ifdef CALLEDFROMOLDTERRAIN
 #ifdef PBRTERRAIN
 	if ( fullshadowsoreditor == 0 ) {
-	  // Looks like only cascade 7 is working when called from old terrain , terrain_basic.fx
-	  fShadow = GetShadowCascade ( 7, input.position, originalNormal, normalize(LightSource.xyz) );
+	  // DynTerShaSampler = AGEDMap , dont work.
+	  // Looks like only cascade 3 is working when called from old terrain , terrain_basic.fx
+	  fShadow = GetShadowCascade ( 3, input.position, originalNormal, normalize(LightSource.xyz) );
 	  float fBlendBetweenCascadesAmount = 1.0f;
 	  float fCurrentPixelsBlendBandLocation = 1.0f;
-      CalculateBlendAmountForInterval ( 7, input.viewDepth,fCurrentPixelsBlendBandLocation, fBlendBetweenCascadesAmount );
+      CalculateBlendAmountForInterval ( 3, input.viewDepth,fCurrentPixelsBlendBandLocation, fBlendBetweenCascadesAmount );
   	  fShadow = lerp( 0.0, fShadow, clamp(fBlendBetweenCascadesAmount,0.0,1.0) );
 	}
 #endif
-#else
-	if ( fullshadowsoreditor == 0 ) fShadow = GetShadowCascade ( 7, input.position, originalNormal, normalize(LightSource.xyz) );
 #endif
 
    float visibility =  max ( 1.0f - fShadow, 0 );
@@ -1135,7 +1153,9 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #endif
 #if K_MODEL_PE
    // remove shadow artifacts on sun side , fade slowly into shadow.
-   visibility = lerp(1.0,visibility,clamp(dot(-gDirLight.Direction,attributes.normal)-0.10,0.0,1.0) ); // slowly fade away shadow on light side of objects.
+//   visibility = lerp(1.0,visibility,clamp(dot(-gDirLight.Direction,attributes.normal)-0.10,0.0,1.0) ); // slowly fade away shadow on light side of objects.
+   visibility = lerp(1.0,visibility,clamp(dot(-gDirLight.Direction,attributes.normal)+0.10,0.0,1.0) ); // slowly fade away shadow on light side of objects.
+
    //PE: todo - GetShadow remove shadow on dark side , but reflection objects dont always have "lowligt" on dark side , so...
 #endif
 
@@ -1153,7 +1173,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	 visibility -= ((1.0f-rawaovalue)*visibility);
 	#endif
    #endif
-
+   
    Material gMaterial;
    gMaterial.Ambient = float4(1,1,1,1);
    gMaterial.Diffuse = rawdiffusemap;
@@ -1238,17 +1258,27 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     float flashlight = pow(max(fspecular.r,0),conewidth) * intensity * SpotFlashColor.w * MAXFLASHLIGHT;
 #endif
 
-	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
+//	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
+	visibility = clamp( visibility+(flashlight*0.75) , 0.15 ,1.0 ); //PE: Set lowest dark shadow, to stop uneven shadow colors.
 
 	//light += (rawdiffusemap.xyz) * flashlight);
 
 
 	// work out environmental fresnel
 	float3 envFresnel = lerp(0.02f, texColor.rgb, gMaterial.Properties.g);
+	
+	// can boost 
+	#ifdef BOOSTINTENSITY
+	ambientIntensity *= (1.0f+ArtFlagControl1.z);
+	lightIntensity *= (1.0f+ArtFlagControl1.z);
+	#endif
 
 	// work out contributions
 	float3 flashlightContrib = rawdiffusemap.xyz * flashlight;
-	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity;
+#ifndef PBRTERRAIN
+	ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
+#endif
+	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
 	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
@@ -1348,13 +1378,30 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    // and also apply any alpha override
     #ifndef PBRTERRAIN
      #ifndef PBRVEGETATION
-     litColor.a *= AlphaOverride * fAlphaOverride; // fAlphaOverride from per-entity (lock entity)
+     litColor.a *= AlphaOverride;
     #endif
    #endif
    
    // final pixel color and alpha
    return float4(finalColor, litColor.a);
 }
+
+float4 depthPS(in VSOutput input) : SV_TARGET
+{
+   clip(input.clip);
+   float4 rawdiffusemap = AlbedoMap.Sample(SampleWrap, input.uv);
+#ifdef ALPHADISABLED
+    rawdiffusemap.a = 1;
+#else
+	if( rawdiffusemap.a < ALPHACLIP ) 
+	{
+		clip(-1);
+		return rawdiffusemap;
+	}
+#endif
+   return rawdiffusemap;
+}
+
 
 float4 PSMain(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARGET
 {
@@ -1431,7 +1478,11 @@ technique11 Medium
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(0)));
+#ifdef CALLEDFROMOLDTERRAIN
+        SetPixelShader(CompileShader(ps_5_0, PSMain(0))); // 0 for in editor. (DynTerShaSampler not set so must be 1 for now. )
+#else
+        SetPixelShader(CompileShader(ps_5_0, PSMain(1))); // 0 for in editor. (DynTerShaSampler not set so must be 1 for now. )
+#endif
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1530,12 +1581,13 @@ technique11 Lowest_Prebake
     }
 }
 
+#ifdef PBRTERRAIN
 technique11 DepthMap
 {
     pass MainPass
     {
         SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
-        SetPixelShader(CompileShader(ps_5_0, PSMain(0))); //causes RT warning when used to render depth(shadows) only!
+        SetPixelShader(NULL);
         SetGeometryShader(NULL);
         #ifdef CUTINTODEPTHBUFFER
         SetDepthStencilState( YesDepthRead, 0 );
@@ -1543,6 +1595,21 @@ technique11 DepthMap
         #endif
     }
 }
+#else
+technique11 DepthMap
+{
+    pass MainPass
+    {
+        SetVertexShader(CompileShader(vs_5_0, VSMain(1))); //PE: I dont see this RT warning, so made a depthPS() only using albedo ?.
+        SetPixelShader(CompileShader(ps_5_0, depthPS())); //causes RT warning when used to render depth(shadows) only! 
+        SetGeometryShader(NULL);
+        #ifdef CUTINTODEPTHBUFFER
+        SetDepthStencilState( YesDepthRead, 0 );
+        SetRasterizerState ( BackwardCull );
+        #endif
+    }
+}
+#endif
 
 technique11 DepthMapNoAnim
 {

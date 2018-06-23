@@ -77,7 +77,7 @@
 #define WEAPON_PROJECTILERESULT_NULL     0
 #define WEAPON_PROJECTILERESULT_DAMAGE   1
 #define WEAPON_PROJECTILERESULT_EXPLODE  2
-#define WEAPON_PROJECTILERESULT_MULTIPLY 3
+#define WEAPON_PROJECTILERESULT_CUSTOM   99
 
 //  These are the animations a weapon can perform
 #define WEAPON_ANIMATION_NULL            0
@@ -104,8 +104,7 @@
 #define WEAPON_ANIMATION_MOVESCOPETOHIP  21
 #define WEAPON_ANIMATION_MOVESCOPETOIRON 22
 
-//  These are the type of particle the weapon or projectile can create. I expect this
-//  to be removed/changed when we have our final particle system
+//  These are the type of particle the weapon or projectile can create (stock defaults)
 #define WEAPON_PARTICLETYPE_NONE         0
 #define WEAPON_PARTICLETYPE_SMOKE        1
 #define WEAPON_PARTICLETYPE_FLARE        2
@@ -115,12 +114,10 @@
 #define RAVEY_PARTICLE_EMITTERS_MAX 10
 #define RAVEY_PARTICLES_MAX 100
 #define RAVEY_PARTICLES_MAX_SPAWNED_AT_ONCE_BY_AN_EMITTER 20
-#define RAVEY_PARTICLES_IMAGETYPE_SMOKE      0
+#define RAVEY_PARTICLES_IMAGETYPE_FLARE      0
 #define RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE 1
 #define RAVEY_PARTICLES_IMAGETYPE_FLAME      2
-#define RAVEY_PARTICLES_IMAGETYPE_DEBRIS     3
-#define RAVEY_PARTICLES_IMAGETYPE_EXPLOSION  4
-#define RAVEY_PARTICLES_IMAGETYPE_SPLASH     5
+#define RAVEY_PARTICLES_IMAGETYPE_LASTONE    3
 
 //  Widget keys
 #define WIDGET_KEY_TRANSLATE 88
@@ -906,7 +903,6 @@ struct WeaponSystemType
 //  This forms the basis for the data passed to the particle system. Not all values are used by all particle types
 struct weaponParticleEmitterBaseType
 {
-
 	int particleType;
 	float delay;
 	int joint;
@@ -983,27 +979,20 @@ struct weaponParticleEmitterBaseType
 		 delay = 0.0f;
 		 particleType = 0;
 	}
-	// End of Constructor
-
 };
 
 
 //  This is the realtime changing data for a particle emitter type defined with weaponParticleEmitterBaseType
 struct weaponParticleEmitterType
 {
-
 	int lastEmitStamp;
-
 
 	// Constructor
 	weaponParticleEmitterType ( )
 	{
 		 lastEmitStamp = 0;
 	}
-	// End of Constructor
-
 };
-
 
 //  Settings for the currently held weapon and global high level settings
 struct CurrentWeaponType
@@ -1344,14 +1333,11 @@ struct weaponSoundType
 		 minVolume = 0;
 		 sndID = 0;
 	}
-	// End of Constructor
-
 };
 
 
 struct weaponProjectileBaseType
 {
-
 	int activeFlag;
 	cstr name_s;
 	int mode;
@@ -1423,6 +1409,17 @@ struct weaponProjectileBaseType
 	int soundDeath;
 
 	int particleType;
+	cstr particleName;
+	int particleImageID;
+	int explosionType;
+	cstr explosionName;
+	int explosionImageID;
+	int explosionLightFlag;
+	cstr explosionSmokeName;
+	int explosionSmokeImageID;
+	int explosionSparksCount;
+	int projectileEventType;
+
 	int thrustTime;
 	int thrustDelay;
 	weaponParticleEmitterBaseType thrustParticle1;
@@ -1432,13 +1429,22 @@ struct weaponProjectileBaseType
 
 	int overridespotlighting;
 
-
 	// Constructor
 	weaponProjectileBaseType ( )
 	{
 		 overridespotlighting = 0;
 		 thrustDelay = 0;
 		 thrustTime = 0;
+		 projectileEventType = 0;
+		 explosionSmokeName = "";
+		 explosionLightFlag = 0;
+		 explosionSmokeImageID = 0;
+		 explosionSparksCount = 0;
+		 explosionImageID = 0;
+		 explosionName = "";
+		 explosionType = 0;
+		 particleImageID = 0;
+		 particleName = "";
 		 particleType = 0;
 		 soundDeath = 0;
 		 soundInterval = 0;
@@ -2586,10 +2592,16 @@ struct importerTexture
 	int spriteID2;
 	cstr fileName;
 	cstr originalName;
+	int iExpandedThisSlot;
+	int iOptionalStage;
+	int iAssociatedBaseImage;
 
 	// Constructor
 	importerTexture ( )
 	{
+		 iAssociatedBaseImage = 0;
+		 iOptionalStage = 0;
+ 		 iExpandedThisSlot = 0;
 		 originalName = "";
 		 fileName = "";
 		 spriteID2 = 0;
@@ -3241,16 +3253,34 @@ struct globalstype
 	int disablefreeflight;
 	int fulldebugview;
 	int enableplrspeedmods;
+	int disableweaponjams;
 	int showdebugcollisonboxes;
 	int hideebe;
 	int hidedistantshadows;
 	int realshadowresolution;
 	int realshadowcascadecount;
 	int realshadowcascade[8];
+	int realshadowsize[8];
+	float realshadowdistance;
+	float realshadowdistancehigh;
+	int editorusemediumshadows;
 
 	// Constructor
 	globalstype ( )
 	{
+		 realshadowdistance = 5000.0f;
+		 realshadowdistancehigh = 5000.0f;
+		 editorusemediumshadows = 1;
+
+		 realshadowsize[0] = 0;
+		 realshadowsize[1] = 0;
+		 realshadowsize[2] = 0;
+		 realshadowsize[3] = 0;
+		 realshadowsize[4] = 0;
+		 realshadowsize[5] = 0;
+		 realshadowsize[6] = 0;
+		 realshadowsize[7] = 0;
+
 		 realshadowcascade[0] = 2;
 		 realshadowcascade[1] = 8;
 		 realshadowcascade[2] = 16;
@@ -3264,6 +3294,7 @@ struct globalstype
 		 hidedistantshadows = 1;
 		 hideebe = 0;
 		 showdebugcollisonboxes = 0;
+		 disableweaponjams = 0;
 		 enableplrspeedmods = 0;
 		 fulldebugview = 0;
 		 disablefreeflight = 0;
@@ -4945,6 +4976,7 @@ struct entityprofiletype
 	int forcesimpleobstacle;
 	float forceobstaclepolysize;
 	float forceobstaclesliceheight;
+	float forceobstaclesliceminsize;
 	int notanoccluder;
 	int materialindex;
 	int disablebatch;
@@ -4985,6 +5017,8 @@ struct entityprofiletype
 	float uvscrollv;
 	float uvscaleu;
 	float uvscalev;
+	int invertnormal;
+	int preservetangents;
 	int zdepth;
 	int cullmode;
 	int reducetexture;
@@ -5269,6 +5303,7 @@ struct entityprofiletype
 		 forcesimpleobstacle = 0;
 		 forceobstaclepolysize = 0.0f;
 		 forceobstaclesliceheight = 0.0f;
+		 forceobstaclesliceminsize = 0.0f;
 		 collisionoverride = 0;
 		 collisionscaling = 0;
 		 collisionmode = 0;
@@ -6841,6 +6876,9 @@ struct guntype
 	int ammoimg;
 	int iconimg;
 	float keyframespeed_f;
+	int invertnormal;
+	int preservetangents;
+	float boostintensity;
 
 	// Constructor
 	guntype ( )

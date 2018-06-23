@@ -1631,6 +1631,8 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 	sprintf ( Path, "%s%s", TexturePath, pNoPath );
 	if ( strlen ( Path ) >= _MAX_PATH ) Path[_MAX_PATH]=0;
 
+	//PE:-MEM: Double load images sample "entitybank\\\\CityscapePBR\\Palm Tree_ao.dds"
+	//PE:-MEM: Origin , LoadObject -> LoadCore -> LoadInternalTextures . (FindInternalImage)
 	// texture load a : default file
 	iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
 	if ( iImageIndex==0 )
@@ -1656,48 +1658,66 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 				{
 					// lee - 231017 - prevent ABSOLUTE path to ORIGINAL texture being used by standalones
 					// (check local folder and fileonly before rest)
-					sprintf ( Path, "%s", pNoPath );
-					iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-					if ( iImageIndex==0 )
+
+					//PE: This generates doubble load. moved as last check.
+					//if (strstr(TexturePath, "lightmaps\\") != NULL) {
+					//sprintf(Path, "%s", pNoPath);
+					//iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+					//}
+					//if ( iImageIndex==0 )
+					//{
+
+					//PE: This combi works in standalone/test , so prefer this as it can be reused.
+					// texture load e : 031208 - U71 - absolute path with relative path in model file
+					sprintf(Path, "%s%s", TexturePath, pTextureName);
+					if (strlen(Path) >= _MAX_PATH) Path[_MAX_PATH] = 0;
+					iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+					if (iImageIndex == 0)
 					{
+
 						// okay, check if texture file alongside model as DDS)
-						Path[strlen(Path)-4]=0;
+						Path[strlen(Path) - 4] = 0;
 						strcat(Path, ".dds");
-						iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-						if ( iImageIndex==0 )
+						iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+						if (iImageIndex == 0)
 						{
 							// texture load c : original file
-							iImageIndex = LoadImageInternalEx ( pTextureName, iDivideTextureSize );
-							if ( iImageIndex==0 )
+							iImageIndex = LoadImageInternalEx(pTextureName, iDivideTextureSize);
+							if (iImageIndex == 0)
 							{
 								// texture load c2 : try as dds
-								strcpy ( Path, pTextureName );
-								Path[strlen(Path)-4]=0;
+								//PE: Create a doubble load in standalone , try .dds with relative path instead. ( can be reused ).
+								//strcpy ( Path, pTextureName );
+								sprintf(Path, "%s%s", TexturePath, pTextureName);
+								if (strlen(Path) >= _MAX_PATH) Path[_MAX_PATH] = 0;
+								Path[strlen(Path) - 4] = 0;
 								strcat(Path, ".dds");
-								iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-								if ( iImageIndex==0 )
+								iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+								if (iImageIndex == 0)
 								{
-									// texture load d : no path just file
-									iImageIndex = LoadImageInternalEx ( pNoPath, iDivideTextureSize );
-									if ( iImageIndex==0 )
+									// texture load e : 031208 - U71 - absolute path with relative path in model file
+									sprintf(Path, "%s%s", TexturePath, pTextureName);
+									if (strlen(Path) >= _MAX_PATH) Path[_MAX_PATH] = 0;
+									iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+									if (iImageIndex == 0)
 									{
-										// texture load e : 031208 - U71 - absolute path with relative path in model file
-										sprintf ( Path, "%s%s", TexturePath, pTextureName );
-										if ( strlen ( Path ) >= _MAX_PATH ) Path[_MAX_PATH]=0;
-										iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-										if ( iImageIndex==0 )
+										// texture load f : 031208 - U71 - as above, but as DDS
+										strcpy(pDDSFile, pTextureName);
+										DWORD dwLenDot = strlen(pDDSFile);
+										if (dwLenDot > 4)
 										{
-											// texture load f : 031208 - U71 - as above, but as DDS
-											strcpy(pDDSFile, pTextureName);
-											DWORD dwLenDot = strlen(pDDSFile);
-											if ( dwLenDot>4 )
-											{
-												pDDSFile[dwLenDot-4]=0;
-												strcat(pDDSFile, ".dds");
-												sprintf ( Path, "%s%s", TexturePath, pDDSFile );
-												iImageIndex = LoadImageInternalEx ( Path, iDivideTextureSize );
-											}
+											pDDSFile[dwLenDot - 4] = 0;
+											strcat(pDDSFile, ".dds");
+											sprintf(Path, "%s%s", TexturePath, pDDSFile);
+											iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
 										}
+
+										if (iImageIndex == 0)
+										{
+											//PE: This can generates doubble loads. so this is the last combi to test.
+											iImageIndex = LoadImageInternalEx(pNoPath, iDivideTextureSize);
+										}
+
 									}
 								}
 							}
@@ -1716,6 +1736,208 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 	return LoadOrFindTextureAsImage ( pTextureName, TexturePath, 0 );
 }
 
+void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, int iDBProMode, int iDivideTextureSize, int* piImageDiffuseIndex, int* piImageAOIndex, int* piImageNormalIndex, int* piImageSpecularIndex, int* piImageGlossIndex )
+{
+	// take copy of base texture name
+	char pBaseTexName[MAX_STRING];
+	strcpy ( pBaseTexName, pName );
+
+	// load the base color texture 
+	*piImageDiffuseIndex = LoadOrFindTextureAsImage ( pBaseTexName, TexturePath, iDivideTextureSize );
+
+	// if success, also check for and record a normal, specular and gloss (Fuse/Sketchfab character)
+	*piImageAOIndex = 0;
+	*piImageNormalIndex = 0;
+	*piImageSpecularIndex = 0;
+	*piImageGlossIndex = 0;
+	if ( *piImageDiffuseIndex != 0 && strlen(pBaseTexName) > 6 )
+	{
+		// free any existing texture data for entries below
+		SAFE_DELETE_ARRAY ( pMesh->pTextures );
+		pMesh->dwTextureCount = 7;
+		sTexture* pTexture = new sTexture[pMesh->dwTextureCount];
+		pMesh->pTextures = pTexture;
+
+		// strip file extenion
+		char pTextureName[MAX_STRING];
+		strcpy ( pTextureName, pBaseTexName );
+		pTextureName[strlen(pTextureName)-4] = 0;
+
+		// determine if non-PBR (DNS) or PBR (color,normal,metalness,gloss) naming convention
+		int iTextureType = 0;
+		LPSTR pAlbedoVariant = "";
+		char pTmpName[MAX_STRING];
+		if ( strnicmp ( pTextureName + strlen(pTextureName) - 5, "color", 5 ) == NULL ) 
+		{
+			pAlbedoVariant = "color";
+			strcpy ( pTmpName, pTextureName );
+			pTmpName[strlen(pTmpName)-5]=0;
+			strcpy ( pTextureName, pTmpName );
+			iTextureType = 2;
+		}
+		if ( iTextureType == 0 && strnicmp ( pTextureName + strlen(pTextureName) - 7, "diffuse", 7 ) == NULL ) 
+		{
+			pAlbedoVariant = "diffuse";
+			strcpy ( pTmpName, pTextureName );
+			pTmpName[strlen(pTmpName)-7]=0;
+			strcpy ( pTextureName, pTmpName );
+			iTextureType = 2;
+		}
+		if ( iTextureType == 0 && strnicmp ( pTextureName + strlen(pTextureName) - 1, "d", 1 ) == NULL ) 
+		{
+			pAlbedoVariant = "d";
+			strcpy ( pTmpName, pTextureName );
+			pTmpName[strlen(pTmpName)-1]=0;
+			strcpy ( pTextureName, pTmpName );
+			iTextureType = 1;
+		}
+
+		// act on texture type
+		if ( iTextureType == 1 ) // non-PBR - use DNS
+		{
+			// diffuse
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, pAlbedoVariant );
+			strcat ( pTmpName, ".png" );
+			strcpy ( pMesh->pTextures [ 0 ].pName, pTmpName );
+
+			// normal
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, "n.png" );
+			strcpy ( pMesh->pTextures [ 2 ].pName, pTmpName );
+			*piImageNormalIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+			if ( *piImageNormalIndex == 0 ) *piImageNormalIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_N.dds", TexturePath, iDivideTextureSize );
+
+			// specular
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, "s.png" );
+			strcpy ( pMesh->pTextures [ 3 ].pName, pTmpName );
+			*piImageSpecularIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+			if ( *piImageSpecularIndex == 0 ) *piImageSpecularIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_none_S.dds", TexturePath, iDivideTextureSize );
+
+			// no AO or gloss in DNS system
+			*piImageAOIndex = 0;
+			*piImageGlossIndex = 0;
+		}
+		if ( iTextureType == 2 ) // PBR - use color,normal,metalness,gloss
+		{
+			// color
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, pAlbedoVariant );
+			strcat ( pTmpName, ".png" );
+			strcpy ( pMesh->pTextures [ 0 ].pName, pTmpName );
+
+			// ao
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, "ao.png" );
+			strcpy ( pMesh->pTextures [ 1 ].pName, pTmpName );
+			*piImageAOIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+			if ( *piImageAOIndex == 0 ) *piImageAOIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_O.dds", TexturePath, iDivideTextureSize );
+
+			// normal
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, "normal.png" );
+			strcpy ( pMesh->pTextures [ 2 ].pName, pTmpName );
+			*piImageNormalIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+			if ( *piImageNormalIndex == 0 ) *piImageNormalIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_N.dds", TexturePath, iDivideTextureSize );
+
+			// specular
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, "specular.png" );
+			strcpy ( pMesh->pTextures [ 3 ].pName, pTmpName );
+			*piImageSpecularIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+			if ( *piImageSpecularIndex == 0 )
+			{
+				// or metalness
+				strcpy ( pTmpName, pTextureName );
+				strcat ( pTmpName, "metalness.png" );
+				strcpy ( pMesh->pTextures [ 3 ].pName, pTmpName );
+				*piImageSpecularIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+				if ( *piImageSpecularIndex == 0 ) *piImageSpecularIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\materials\\0_Metalness.dds", TexturePath, iDivideTextureSize );
+			}
+
+			// gloss
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, "gloss.png" );
+			strcpy ( pMesh->pTextures [ 4 ].pName, pTmpName );
+			*piImageGlossIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+			if ( *piImageGlossIndex == 0 ) *piImageGlossIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\materials\\0_Gloss.dds", TexturePath, iDivideTextureSize );
+		}
+	}
+
+	// Populate texture set
+	if ( *piImageDiffuseIndex != 0 )
+	{
+		pMesh->pTextures[0].iImageID = *piImageDiffuseIndex;
+		pMesh->pTextures[0].pTexturesRef = GetImagePointer ( pMesh->pTextures[0].iImageID );
+		pMesh->pTextures[0].pTexturesRefView = GetImagePointerView ( pMesh->pTextures[0].iImageID );
+		pMesh->pTextures[0].dwBlendMode = GGTOP_MODULATE;
+		pMesh->pTextures[0].dwBlendArg1 = GGTA_TEXTURE;
+		pMesh->pTextures[1].iImageID = *piImageAOIndex;
+		pMesh->pTextures[1].pTexturesRef = GetImagePointer ( pMesh->pTextures[1].iImageID );
+		pMesh->pTextures[1].pTexturesRefView = GetImagePointerView ( pMesh->pTextures[1].iImageID );
+		pMesh->pTextures[1].dwBlendMode = GGTOP_MODULATE;
+		pMesh->pTextures[1].dwBlendArg1 = GGTA_TEXTURE;
+		pMesh->pTextures[2].iImageID = *piImageNormalIndex;
+		pMesh->pTextures[2].pTexturesRef = GetImagePointer ( pMesh->pTextures[2].iImageID );
+		pMesh->pTextures[2].pTexturesRefView = GetImagePointerView ( pMesh->pTextures[2].iImageID );
+		pMesh->pTextures[2].dwBlendMode = GGTOP_MODULATE;
+		pMesh->pTextures[2].dwBlendArg1 = GGTA_TEXTURE;
+		pMesh->pTextures[3].iImageID = *piImageSpecularIndex;
+		pMesh->pTextures[3].pTexturesRef = GetImagePointer ( pMesh->pTextures[3].iImageID );
+		pMesh->pTextures[3].pTexturesRefView = GetImagePointerView ( pMesh->pTextures[3].iImageID );
+		pMesh->pTextures[3].dwBlendMode = GGTOP_MODULATE;
+		pMesh->pTextures[3].dwBlendArg1 = GGTA_TEXTURE;
+		pMesh->pTextures[4].iImageID = *piImageGlossIndex;
+		pMesh->pTextures[4].pTexturesRef = GetImagePointer ( pMesh->pTextures[4].iImageID );
+		pMesh->pTextures[4].pTexturesRefView = GetImagePointerView ( pMesh->pTextures[4].iImageID );
+		pMesh->pTextures[4].dwBlendMode = GGTOP_MODULATE;
+		pMesh->pTextures[4].dwBlendArg1 = GGTA_TEXTURE;
+
+		// From old DBP legacy behavior
+		// mode to blend texture and diffuse at stage zero (load object with material alpha setting)
+		if ( iDBProMode==4 )
+		{
+			// Mode 4 - retains material settings and blends with texture
+			pMesh->pTextures[0].dwBlendMode = GGTOP_MODULATE;
+			pMesh->pTextures[0].dwBlendArg1 = GGTA_TEXTURE;
+			pMesh->pTextures[0].dwBlendArg2 = GGTA_DIFFUSE;
+		}
+		else
+		{
+			// Mode 0,1,2,3 - to alter texture behaviour from basic color to texture
+			if ( iDBProMode!=2 && iDBProMode!=3 )
+			{
+				// Force a MODULATE for default behaviours of [0] and [1]
+				pMesh->pTextures[0].dwBlendMode = GGTOP_MODULATE;
+				pMesh->pTextures[1].dwBlendMode = GGTOP_MODULATE;
+				pMesh->pTextures[2].dwBlendMode = GGTOP_MODULATE;
+				pMesh->pTextures[3].dwBlendMode = GGTOP_MODULATE;
+				pMesh->pTextures[4].dwBlendMode = GGTOP_MODULATE;
+				pMesh->pTextures[5].dwBlendMode = GGTOP_MODULATE;
+				pMesh->pTextures[6].dwBlendMode = GGTOP_MODULATE;
+			}
+
+			// Only force this for [0] [1] and [3] where we are expecting texture results
+			if ( iDBProMode!=2 ) 
+			{
+				pMesh->pTextures[0].dwBlendArg1 = GGTA_TEXTURE;
+				pMesh->pTextures[1].dwBlendArg1 = GGTA_TEXTURE;
+				pMesh->pTextures[2].dwBlendArg1 = GGTA_TEXTURE;
+				pMesh->pTextures[3].dwBlendArg1 = GGTA_TEXTURE;
+				pMesh->pTextures[4].dwBlendArg1 = GGTA_TEXTURE;
+				pMesh->pTextures[5].dwBlendArg1 = GGTA_TEXTURE;
+				pMesh->pTextures[6].dwBlendArg1 = GGTA_TEXTURE;
+			}
+		}
+	}
+	else
+	{
+		pMesh->pTextures[0].iImageID = 0;
+		pMesh->pTextures[0].pTexturesRef = NULL;
+	}
+}
+
 DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDBProMode, int iDivideTextureSize, LPSTR pOptionalLightmapNoReduce )
 {
 	// iDBProMode : 0-DBV1 / 1-DBPro defaults / 2-leave all states alone (for internal textureloaduse)
@@ -1729,9 +1951,6 @@ DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDB
 	// load multimaterial textures from internal name
 	if ( pMesh->bUseMultiMaterial==true )
 	{
-		// Currrent texture if any used
-		sTexture* pTexture = NULL;
-
 		// Define textures for multi material array
 		DWORD dwMultiMatCount = pMesh->dwMultiMaterialCount;
 		for ( DWORD m=0; m<dwMultiMatCount; m++ )
@@ -1739,6 +1958,10 @@ DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDB
 			// get multimat at index
 			sMultiMaterial* pMultiMat = &(pMesh->pMultiMaterial [ m ]);
 
+			// load diffuse, normal, spec, gloss textures and assign to mesh
+			int iImageDiffuseIndex = 0, iImageAOIndex = 0, iImageNormalIndex = 0, iImageSpecularIndex = 0, iImageGlossIndex = 0;
+			LoadColorNormalSpecGloss ( pMesh, pMultiMat->pName, TexturePath, iDBProMode, iDivideTextureSize, &iImageDiffuseIndex, &iImageAOIndex, &iImageNormalIndex, &iImageSpecularIndex, &iImageGlossIndex );
+			/*
 			// load texture
 			int iImageDiffuseIndex = LoadOrFindTextureAsImage ( pMultiMat->pName, TexturePath, iDivideTextureSize );
 
@@ -1774,6 +1997,7 @@ DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDB
 				strcat ( pTmpName, "gloss.png" );
 				iImageGlossIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
 			}
+			*/
 
 			// store texture ref
 			if ( iImageDiffuseIndex != 0 )
@@ -1807,34 +2031,6 @@ DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDB
 
 			// in order to let users use ambient, force this!
 			if ( iDBProMode!=2 && iDBProMode!=3 && iDBProMode!=5 ) pMultiMat->mMaterial.Ambient = pMultiMat->mMaterial.Diffuse;
-
-			// leefix - 100303 - Define master texture for blending (first texture if any)
-			if ( iImageDiffuseIndex != 0 && pTexture==NULL )
-			{
-				// free any existing texture data
-				SAFE_DELETE_ARRAY ( pMesh->pTextures );
-
-				// create single texture for mesh
-				pMesh->dwTextureCount = 7;
-				pTexture = new sTexture[pMesh->dwTextureCount];
-				pMesh->pTextures = pTexture;
-				pMesh->pTextures[0].iImageID = iImageDiffuseIndex;
-				pMesh->pTextures[0].pTexturesRef = NULL;
-				pMesh->pTextures[0].dwBlendMode = GGTOP_MODULATE;
-				pMesh->pTextures[0].dwBlendArg1 = GGTA_TEXTURE;
-				pMesh->pTextures[2].iImageID = iImageNormalIndex;
-				pMesh->pTextures[2].pTexturesRef = NULL;
-				pMesh->pTextures[2].dwBlendMode = GGTOP_MODULATE;
-				pMesh->pTextures[2].dwBlendArg1 = GGTA_TEXTURE;
-				pMesh->pTextures[3].iImageID = iImageSpecularIndex;
-				pMesh->pTextures[3].pTexturesRef = NULL;
-				pMesh->pTextures[3].dwBlendMode = GGTOP_MODULATE;
-				pMesh->pTextures[3].dwBlendArg1 = GGTA_TEXTURE;
-				pMesh->pTextures[6].iImageID = iImageGlossIndex;
-				pMesh->pTextures[6].pTexturesRef = NULL;
-				pMesh->pTextures[6].dwBlendMode = GGTOP_MODULATE;
-				pMesh->pTextures[6].dwBlendArg1 = GGTA_TEXTURE;
-			}
 		}
 
 		// lee - 040306 - u6rc5 - force this mode on load
@@ -1843,72 +2039,100 @@ DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDB
 	else
 	{
 		// load standard textures for internal name
+		int iImageDiffuseIndex = 0, iImageAOIndex = 0, iImageNormalIndex = 0, iImageSpecularIndex = 0, iImageGlossIndex = 0;
 		DWORD dwTextureCount = pMesh->dwTextureCount;
-		for ( DWORD t=0; t<dwTextureCount; t++ )
+		if ( dwTextureCount == 1 )
 		{
 			// get texture at index
-			sTexture* pTexture = &(pMesh->pTextures [ t ]);
+			sTexture* pTexture = &(pMesh->pTextures [ 0 ]);
 
-			// divide or not to divide
-			int iLocalDivideValueForStage = iDivideTextureSize;
-			if ( pOptionalLightmapNoReduce )
-				if ( _strnicmp ( pTexture->pName, pOptionalLightmapNoReduce, strlen(pOptionalLightmapNoReduce))==NULL ) 
-					iLocalDivideValueForStage=0;
-
-			// load texture
-			int iImageIndex = LoadOrFindTextureAsImage ( pTexture->pName, TexturePath, iLocalDivideValueForStage );
-
-			// store image in texture
-			if ( iImageIndex != 0 )
+			// load diffuse, normal, spec, gloss textures and assign to mesh
+			LoadColorNormalSpecGloss ( pMesh, pTexture->pName, TexturePath, iDBProMode, iDivideTextureSize, &iImageDiffuseIndex, &iImageAOIndex, &iImageNormalIndex, &iImageSpecularIndex, &iImageGlossIndex );
+		}
+		else
+		{
+			// mesh already has texture set specified, so direct load and assign them
+			for ( DWORD t=0; t<dwTextureCount; t++ )
 			{
-				// setup texture settings
-				pTexture->iImageID = iImageIndex;
-				pTexture->pTexturesRef = GetImagePointer ( iImageIndex );
-				pTexture->pTexturesRefView = GetImagePointerView ( iImageIndex );
+				// get texture at index
+				sTexture* pTexture = &(pMesh->pTextures [ t ]);
 
-				// lee - 200306 - u6b4 - new mode to blend texture and diffuse at stage zero (load object with material alpha setting)
-				if ( iDBProMode==4 )
+				// divide or not to divide
+				int iLocalDivideValueForStage = iDivideTextureSize;
+				if ( pOptionalLightmapNoReduce )
+					if ( _strnicmp ( pTexture->pName, pOptionalLightmapNoReduce, strlen(pOptionalLightmapNoReduce))==NULL ) 
+						iLocalDivideValueForStage=0;
+
+				// load texture
+				int iImageIndex = LoadOrFindTextureAsImage ( pTexture->pName, TexturePath, iLocalDivideValueForStage );
+
+				// store image in texture
+				if ( iImageIndex != 0 )
 				{
-					// Mode 4 - retains material settings and blends with texture
-					if ( t==0 )
+					// setup texture settings
+					pTexture->iImageID = iImageIndex;
+					pTexture->pTexturesRef = GetImagePointer ( iImageIndex );
+					pTexture->pTexturesRefView = GetImagePointerView ( iImageIndex );
+
+					// lee - 200306 - u6b4 - new mode to blend texture and diffuse at stage zero (load object with material alpha setting)
+					if ( iDBProMode==4 )
 					{
-						pTexture->dwBlendMode = GGTOP_MODULATE;
-						pTexture->dwBlendArg1 = GGTA_TEXTURE;
-						pTexture->dwBlendArg2 = GGTA_DIFFUSE;
+						// Mode 4 - retains material settings and blends with texture
+						if ( t==0 )
+						{
+							pTexture->dwBlendMode = GGTOP_MODULATE;
+							pTexture->dwBlendArg1 = GGTA_TEXTURE;
+							pTexture->dwBlendArg2 = GGTA_DIFFUSE;
+						}
+					}
+					else
+					{
+						// Mode 0,1,2,3
+						// to alter texture behaviour from basic color to texture
+						if ( iDBProMode!=2 && iDBProMode!=3 )
+						{
+							// Force a MODULATE for default behaviours of [0] and [1]
+							pTexture->dwBlendMode = GGTOP_MODULATE;
+						}
+
+						// Only force this for [0] [1] and [3] where we are expecting texture results
+						if ( iDBProMode!=2 ) pTexture->dwBlendArg1 = GGTA_TEXTURE;
+
+						// maximum diffuse with texture (for DBV1 compatibility)
+						if ( iDBProMode!=2 && iDBProMode!=3 )
+						{
+							pMesh->mMaterial.Diffuse.r = 1.0f;
+							pMesh->mMaterial.Diffuse.g = 1.0f;
+							pMesh->mMaterial.Diffuse.b = 1.0f;
+							pMesh->mMaterial.Diffuse.a = 1.0f;
+						}
 					}
 				}
 				else
 				{
-					// Mode 0,1,2,3
-					// to alter texture behaviour from basic color to texture
-					if ( iDBProMode!=2 && iDBProMode!=3 )
-					{
-						// Force a MODULATE for default behaviours of [0] and [1]
-						pTexture->dwBlendMode = GGTOP_MODULATE;
-					}
-
-					// Only force this for [0] [1] and [3] where we are expecting texture results
-					if ( iDBProMode!=2 ) pTexture->dwBlendArg1 = GGTA_TEXTURE;
-
-					// maximum diffuse with texture (for DBV1 compatibility)
-					if ( iDBProMode!=2 && iDBProMode!=3 )
-					{
-						pMesh->mMaterial.Diffuse.r = 1.0f;
-						pMesh->mMaterial.Diffuse.g = 1.0f;
-						pMesh->mMaterial.Diffuse.b = 1.0f;
-						pMesh->mMaterial.Diffuse.a = 1.0f;
-					}
+					pTexture->iImageID = 0;
+					pTexture->pTexturesRef = NULL;
 				}
 			}
-			else
-			{
-				pTexture->iImageID = 0;
-				pTexture->pTexturesRef = NULL;
-			}
-
-			//240203-added more defaults for better backward compat. with Patch 3 and earlier
-			if ( iDBProMode!=2 && iDBProMode!=3 && iDBProMode!=4 ) pMesh->mMaterial.Ambient = pMesh->mMaterial.Diffuse;
 		}
+
+		// maximum diffuse with texture (for DBV1 compatibility)
+		if ( iImageDiffuseIndex != 0 )
+		{
+			if ( iDBProMode!=4 )
+			{
+				if ( iDBProMode!=2 && iDBProMode!=3 )
+				{
+					pMesh->mMaterial.Diffuse.r = 1.0f;
+					pMesh->mMaterial.Diffuse.g = 1.0f;
+					pMesh->mMaterial.Diffuse.b = 1.0f;
+					pMesh->mMaterial.Diffuse.a = 1.0f;
+				}
+			}
+		}
+
+		// 240203 - added more defaults for better backward compat. with Patch 3 and earlier
+		if ( iDBProMode!=2 && iDBProMode!=3 && iDBProMode!=4 ) pMesh->mMaterial.Ambient = pMesh->mMaterial.Diffuse;
 	}
 }
 
@@ -2024,6 +2248,7 @@ void CopyMeshSettings ( sMesh* pDestMesh, sMesh* pSrcMesh )
 	pDestMesh->fZBiasDepth = pSrcMesh->fZBiasDepth;
 	pDestMesh->fZBiasSlopeScale = pSrcMesh->fZBiasSlopeScale;
 	pDestMesh->iCastShadowIfStatic = pSrcMesh->iCastShadowIfStatic;
+	pDestMesh->fBoostIntensity = pSrcMesh->fBoostIntensity;
 	pDestMesh->iCurrentFrame = pSrcMesh->iCurrentFrame;
 	pDestMesh->iSolidForVisibility = pSrcMesh->iSolidForVisibility;
 	CopyBaseMaterialToMultiMaterial ( pDestMesh );

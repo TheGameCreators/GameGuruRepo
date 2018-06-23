@@ -3428,6 +3428,21 @@ bool CObjectManager::ShaderPass ( sMesh* pMesh, UINT uPass, UINT uPasses, bool b
 			}
 			#endif
 
+			// added per-object control for additional artist flags
+			#ifdef DX11
+			GGHANDLE pArtFlags = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+			if ( pArtFlags )
+			{
+				float fInvertNormal = 0.0f;
+				float fGenerateTangents = 0.0f;
+				if ( pMesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+				if ( pMesh->dwArtFlags & 0x2 ) fGenerateTangents = 1.0f;
+				float fBoostIntensity = pMesh->fBoostIntensity;
+				GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, fGenerateTangents, fBoostIntensity, 0.0f );
+				pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+			}
+			#endif
+
 			// when flagged, we must update effect with changes we made
 			if ( bMustCommit==true )
 			{
@@ -3734,7 +3749,8 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 	// do not render meshes with an effect and a single poly
 	bool bSkipDrawNow = false;
 	if ( pMesh->pVertexShaderEffect && pMesh->dwVertexCount<=3 )
-		bSkipDrawNow = true;
+		if ( pObject->dwObjectNumber < 70000 ) // 220618 - horrid hack (later find out why we need to hide single poly renders)
+			bSkipDrawNow = true;
 
 	#ifdef DX11
 	// set input layout
@@ -4002,9 +4018,19 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			#ifdef DX11
 			for ( int i = 0; i < pMesh->dwTextureCount; i++ )
 			{
+				//PE: pMesh->pTextures[i].dwStage not used so stages must be in correct order in the shaders.
 				ID3D11ShaderResourceView* lpTexture = GetImagePointerView ( pMesh->pTextures[i].iImageID );
 				m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
 			}
+
+			//PE: Debug.
+			//GGHANDLE pSurfColor = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("SurfColor");
+			//if (pSurfColor)
+			//{
+			//	GGVECTOR4 vec4 = GGVECTOR4(1.0f, 0.0f, 0.0f, 1.0f);
+			//	pSurfColor->AsVector()->SetFloatVector((float*)&vec4);
+			//} 
+
 			#endif
 
 			// see if we have an index buffer
@@ -4816,8 +4842,9 @@ bool CObjectManager::DrawObject ( sObject* pObject, bool bFrustrumCullMeshes )
 							}
 
 							// draw old LOD mesh
-							if ( !DrawMesh ( pOldLOD ) )
-								return false;
+							DrawMesh ( pOldLOD );
+							//if ( !DrawMesh ( pOldLOD ) )
+							//	return false;
 
 							// restore projection matrix
 							if ( pObject->iUsingWhichLOD!=3 )
@@ -4831,7 +4858,12 @@ bool CObjectManager::DrawObject ( sObject* pObject, bool bFrustrumCullMeshes )
 
 					// draw the current mesh
 					if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject ) )
-						return false;
+					{
+						// mesh failed to draw - catch it here to investigate strangeness
+						int lee = 42;
+					}
+					//if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject ) )
+					//	return false;
 
 					// for linked objects
 					if ( pMesh->bLinked )

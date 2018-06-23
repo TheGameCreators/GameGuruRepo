@@ -36,6 +36,7 @@ void game_masterroot ( void )
 	t.game.masterloop=1;
 	while ( t.game.masterloop == 1 ) 
 	{
+
 		// first hide rendering of 3D while we set up
 		SyncMaskOverride ( 0 );
 
@@ -136,6 +137,7 @@ void game_masterroot ( void )
 		//  Level loop will run while level progression is in progress
 		while (  t.game.levelloop == 1 ) 
 		{
+
 			// also hide rendering of 3D while we set up a new level
 			SyncMaskOverride ( 0 );
 
@@ -824,11 +826,15 @@ void game_masterroot ( void )
 					{
 						if ( t.postprocessings.fadeinvalue_f <= 0 )
 						{
-							// only if in test game mode, standalone already set volume values (in title.lua)
+							// only if in test game mode, standalone already set volume values (in title.lua)						
 							if ( t.game.gameisexe == 0 )
 							{
 								// set music and sound global volumes
 								audio_volume_init ( );
+							}
+							else if (!FileExist("savegames\\sounds.dat")) {
+								//PE: This is not always in standalone ? , so:
+								audio_volume_init();
 							}
 							// and update internal volume values so music update can use volumes!
 							audio_volume_update ( );
@@ -873,7 +879,13 @@ void game_masterroot ( void )
 
 			} //  Game cycle loop end
 
-			//  Rest any internal game variables
+
+//			if (g.memgeneratedump == 1) {
+//				timestampactivity(0, "DumpImageList before freeing level data.");
+//				DumpImageList(); // PE:
+//			}
+
+			  //  Rest any internal game variables
 			game_main_stop ( );
 
 			//  Free any level resources
@@ -958,6 +970,11 @@ void game_masterroot ( void )
 				t.game.levelloop=0;
 			}
 
+			if (g.memgeneratedump == 1) {
+				timestampactivity(0, "DumpImageList after freeing level data.");
+				DumpImageList(); // PE: Dump image usage after level.
+			}
+
 		//  Level loop end
 		}
 
@@ -984,6 +1001,7 @@ void game_masterroot ( void )
 		//  Master loop end
 		if ( t.game.allowfragmentation == 0 ) break;
 	}
+
 
 	//  End splash if EXE is advertising
 	if (  t.game.set.endsplash == 1 ) 
@@ -1288,7 +1306,7 @@ void game_setup_character_shader_entities ( bool bMode )
 
 	//PE: Bug. reset effect clip , so visible.
 	t.tnothing = MakeVector4(g.characterkitvector);
-	SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+	SetVector4(g.characterkitvector, 500000, 1, 0, 0);
 	SetEffectConstantV(t.entityBasicShaderID, "EntityEffectControl", g.characterkitvector);
 	SetEffectConstantV(t.characterBasicShaderID, "EntityEffectControl", g.characterkitvector);
 	t.tnothing = DeleteVector4(g.characterkitvector);
@@ -1759,6 +1777,13 @@ void game_freelevel ( void )
 	{
 		// only for standalone as test game needs entities for editor :)
 		entity_delete ( );
+		//PE: Free any lightmaps, next level might not use lightmaps.
+		lm_deleteall();
+		ClearAnyLightMapInternalTextures();
+
+		//PE: Delete all entitybank textures used.
+		if( g.standalonefreememorybetweenlevels == 1 )
+			ClearAnyEntitybankInternalTextures();
 	}
 }
 
@@ -2062,11 +2087,11 @@ void game_main_loop ( void )
 			if (  g.globals.ideinputmode == 1 ) 
 			{
 				g.lmlightmapnowmode=0;
-				if (  KeyState(g.keymap[59]) == 1  )  g.lmlightmapnowmode = 1;
-				if (  KeyState(g.keymap[60]) == 1  )  g.lmlightmapnowmode = 2;
-				if (  KeyState(g.keymap[61]) == 1  )  g.lmlightmapnowmode = 3;
-				if (  KeyState(g.keymap[62]) == 1  )  g.lmlightmapnowmode = 4;
-				if (  g.lmlightmapnowmode>0 ) 
+				if (KeyState(g.keymap[59]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 1;
+				if (KeyState(g.keymap[60]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 2;
+				if (KeyState(g.keymap[61]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 3;
+				if (KeyState(g.keymap[62]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 4;
+				if (  g.lmlightmapnowmode>0 )
 				{
 					//  User prompt
 					t.strwork = ""; t.strwork = t.strwork + "Select Lightmapping Mode "+Str(g.lmlightmapnowmode);

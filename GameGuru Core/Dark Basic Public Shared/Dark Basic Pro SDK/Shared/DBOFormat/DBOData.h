@@ -464,7 +464,7 @@ struct sMeshInternalProperties
 	};
 
 	// reserved members
-	DWORD							dwReservedMIP1;								// reserved - maintain plugin compat.
+	DWORD							fBoostIntensity;							// reserved - maintain plugin compat.
 	DWORD							dwReservedMIP2;								// reserved - maintain plugin compat.
 	DWORD							dwReservedMIP3;								// reserved - maintain plugin compat.
 };
@@ -496,7 +496,7 @@ struct sMeshExternalProperties
 	float							fScrollOffsetV;								// 
 	float							fScaleOffsetU;								//
 	float							fScaleOffsetV;								// 
-	DWORD							dwReservedMEP5;								// reserved
+	DWORD							dwArtFlags;									// art flags (invert normal green channel, etc)
 };
 
 struct sMesh : public sMeshFVF,

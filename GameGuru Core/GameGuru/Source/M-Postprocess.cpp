@@ -52,6 +52,11 @@ void postprocess_init ( void )
 				SetObjectMask (  g.postprocessobjectoffset+0,(1 << g.gfinalrendercameraid) );
 				SetCameraToImage ( 0, g.postprocessimageoffset+0, GetDisplayWidth(), GetDisplayHeight(), 2 );
 				TextureObject ( g.postprocessobjectoffset+0,0,g.postprocessimageoffset+0 );
+				if( g.underwatermode == 1 ) {
+					//PE:Underwater normal texture for wave.
+					TextureObject(g.postprocessobjectoffset + 0, 1, t.terrain.imagestartindex + 7);
+				}
+
 				//  special code to instruct this post process shader to generate depth texture
 				//  from the main camera zero and pass into the shader as 'DepthMapTex' texture slot
 				SetVector4 (  g.terrainvectorindex,0,0,0,0 );

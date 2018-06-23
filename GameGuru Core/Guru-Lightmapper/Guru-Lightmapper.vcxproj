@@ -240,7 +240,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO /STACK:1000000 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3dxof.lib;DXGI.lib;DirectXTex.lib;libfbxsdk-mt.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)Guru-Lightmapper.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Release/DarkEXE.pdb</ProgramDatabaseFile>
@@ -325,9 +325,6 @@
     <ClCompile Include="..\Guru-MapEditor\DarkEXE.cpp" />
     <ClCompile Include="..\Guru-MapEditor\Encryptor.cpp" />
     <ClCompile Include="..\Guru-MapEditor\EXEBlock.cpp" />
-    <ClCompile Include="..\Guru-MapEditor\FBXExporter\FBXExporter.cpp" />
-    <ClCompile Include="..\Guru-MapEditor\FBXExporter\MathHelper.cpp" />
-    <ClCompile Include="..\Guru-MapEditor\FBXExporter\Utilities.cpp" />
     <ClCompile Include="..\Guru-MapEditor\FileReader.cpp" />
     <ClCompile Include="..\SDK\DirectX\directx-macros.cpp" />
     <ClCompile Include="GameGuruLightmapper.cpp" />
@@ -390,11 +387,6 @@
     <ClInclude Include="..\Guru-MapEditor\DarkEXE.h" />
     <ClInclude Include="..\Guru-MapEditor\Encryptor.h" />
     <ClInclude Include="..\Guru-MapEditor\EXEBlock.h" />
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\FBXExporter.h" />
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\Material.h" />
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\MathHelper.h" />
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\Utilities.h" />
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\Vertex.h" />
     <ClInclude Include="..\Guru-MapEditor\FileReader.h" />
     <ClInclude Include="..\Guru-MapEditor\GameGuruEngine.h" />
     <ClInclude Include="GameGuruLightmapper.h" />

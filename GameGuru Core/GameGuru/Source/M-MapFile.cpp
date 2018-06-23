@@ -269,7 +269,7 @@ void mapfile_loadproject_fpm ( void )
 
 		//  If file still not present, extraction failed
 		SetDir (  cstr(t.tdirst_s+"\\levelbank\\testmap\\").Get() );
-		if (  FileExist("watermask.dds") == 0 ) 
+		if ( g.memskipwatermask == 0  && FileExist("watermask.dds") == 0 )
 		{
 			//  Only Reloaded Formats have this texture file, so fail load if not there (Classic FPM)
 			t.tloadsuccessfully=2;
@@ -677,6 +677,7 @@ void mapfile_savestandalone ( void )
 	addfoldertocollection("gamecore\\decals\\splash_small");
 	addfoldertocollection("gamecore\\projectiletypes");
 	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\fireball");
+	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\magicbolt");
 	addfoldertocollection("gamecore\\projectiletypes\\modern\\handgrenade");
 	addfoldertocollection("gamecore\\projectiletypes\\modern\\rpggrenade");
 
@@ -799,6 +800,20 @@ void mapfile_savestandalone ( void )
 								}
 							}
 						}
+						if (strstr(tTempLine, "SetSkyTo(" )) {
+							char* pSkyFolder = strstr(tTempLine, "\"");
+							if (pSkyFolder)
+							{
+								pSkyFolder++;
+								char* pSkyFolderEnd = strstr(pSkyFolder, "\"");
+								if (pSkyFolderEnd)
+								{
+									*pSkyFolderEnd = '\0';
+									cstr tFolderToAdd = cstr(cstr("skybank\\") + cstr(pSkyFolder));
+									addfoldertocollection(tFolderToAdd.Get());
+								}
+							}
+						}
 					}
 					fclose ( tLuaScriptFile );
 				}
@@ -901,6 +916,7 @@ void mapfile_savestandalone ( void )
 						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_s."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
 						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_i."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
 						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_o."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
+						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_cube."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
 					}
 					int iNewPBRTextureMode = 0;
 					if ( cstr(Left(Lower(Right(t.tfile_s.Get(),10)),6)) == "_color" ) iNewPBRTextureMode = 6+4;
@@ -1312,10 +1328,21 @@ void mapfile_savestandalone ( void )
 		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "[CONTROLLER]" ; ++t.i;
 		if ( g.vrqcontrolmode != 0 )
 		{
-			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=1"; ++t.i;
-			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
-			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
-			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
+			if ( g.vrqoreducontrolmode == 2 )
+			{
+				// No controller by default in EDU mode
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=0"; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
+			}
+			else
+			{
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=1"; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
+			}
 		}
 		else
 		{
@@ -1327,11 +1354,18 @@ void mapfile_savestandalone ( void )
 	}
 	if ( g.vrqcontrolmode != 0 )
 	{
-		// VR
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "" ; ++t.i;
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "[VR]" ; ++t.i;
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmode=5"; ++t.i;
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmodemag=100"; ++t.i;
+		if ( g.vrqoreducontrolmode == 2 )
+		{
+			// NO VR IN EDU
+		}
+		else
+		{
+			// VR
+			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "" ; ++t.i;
+			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "[VR]" ; ++t.i;
+			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmode=5"; ++t.i;
+			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmodemag=100"; ++t.i;
+		}
 	}
 
 	if (  FileExist(t.setupfile_s.Get()) == 1  )  DeleteAFile (  t.setupfile_s.Get() );

@@ -1401,10 +1401,10 @@ void entity_lua_setanimationspeed ( void )
 		t.charanimstates[t.tcharanimindex].animationspeed_f=(65.0/100.0)*t.entityelement[t.e].eleprof.animspeed;
 }
 
-void entity_lua_setentityhealth ( void )
+void entity_lua_setentityhealth_core ( int iSilent )
 {
-	//  if health is zero, apply damage to entity instead
-	if (  t.v <= 0 ) 
+	//  if new health is zero, apply damage to entity directly
+	if (  t.v <= 0 && iSilent == 0 ) 
 	{
 		//  set an entities health
 		if ( t.entityelement[t.e].briefimmunity == 0 )
@@ -1428,6 +1428,14 @@ void entity_lua_setentityhealth ( void )
 	{
 		t.entityelement[t.e].health=t.v;
 	}
+}
+void entity_lua_setentityhealth ( )
+{
+	entity_lua_setentityhealth_core ( 0 );
+}
+void entity_lua_setentityhealthsilent ( )
+{
+	entity_lua_setentityhealth_core ( 1 );
 }
 
 void entity_lua_setforcex ( void )

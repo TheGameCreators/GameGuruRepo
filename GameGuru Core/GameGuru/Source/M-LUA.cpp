@@ -54,6 +54,16 @@ void lua_init ( void )
 	// flags to reset before LUA activity starts
 	g.luaactivatemouse = 0;
 	g.luacameraoverride = 0;
+
+	// reset some LUA globals
+	g.projectileEventType_explosion = 0;
+	g.projectileEventType_name = "";
+	g.projectileEventType_x = 0;
+	g.projectileEventType_y = 0;
+	g.projectileEventType_z = 0;
+	g.projectileEventType_radius = 0;
+	g.projectileEventType_damage = 0;
+	g.projectileEventType_entityhit = 0;
 }
 
 void lua_loadscriptin ( void )
@@ -305,6 +315,8 @@ void lua_loop_begin ( void )
 	// continuing settinf of LUA globals
 	LuaSetInt ( "g_EntityElementMax", g.entityelementlist );	
 
+	LuaSetInt("g_PlayerUnderwaterMode", g.underwatermode); // PE: underwater mode active.
+
 	// 020316 - call the global loop once per cycle (for things like loading game states)
 	if ( t.playercontrol.gameloopinitflag > 0 ) t.playercontrol.gameloopinitflag--;
 	if ( t.playercontrol.gameloopinitflag == 0 )
@@ -330,6 +342,16 @@ void lua_loop_begin ( void )
 	}
 	LuaSetString("g_InKey", t.strwork.Get());
 	LuaSetString("g_LevelFilename", g.projectfilename_s.Get()+strlen("mapbank\\"));
+
+	// pass in values from projectileexplosionevents
+	LuaSetInt("g_projectileevent_explosion", g.projectileEventType_explosion);
+	LuaSetString("g_projectileevent_name", g.projectileEventType_name.Get());
+	LuaSetInt("g_projectileevent_x", g.projectileEventType_x);
+	LuaSetInt("g_projectileevent_y", g.projectileEventType_y);
+	LuaSetInt("g_projectileevent_z", g.projectileEventType_z);
+	LuaSetInt("g_projectileevent_radius", g.projectileEventType_radius);
+	LuaSetInt("g_projectileevent_damage", g.projectileEventType_damage);
+	LuaSetInt("g_projectileevent_entityhit", g.projectileEventType_entityhit);
 }
 
 void lua_updateweaponstats ( void )
@@ -880,12 +902,8 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "rotatelimbx" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatelimbx() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "rotatelimby" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatelimby() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "rotatelimbz" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatelimbz() ; }
-
-		if ( strcmp ( t.luaaction_s.Get() , "setentityhealth" ) == 0 ) 
-		{ 
-			t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setentityhealth() ; 
-		}
-
+		else if ( strcmp ( t.luaaction_s.Get() , "setentityhealth" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setentityhealth() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setentityhealthsilent" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setentityhealthsilent() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setforcex" ) == 0 ) { t.v=LuaMessageFloat() ; entity_lua_setforcex() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setforcey" ) == 0 ) { t.v=LuaMessageFloat() ; entity_lua_setforcey() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setforcez" ) == 0 ) { t.v=LuaMessageFloat() ; entity_lua_setforcez() ; }
@@ -1005,6 +1023,9 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "setloadingresource" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; lua_setloadingresource() ; }
 		
 	}
+
+	// update engine global at end of all LUA activity this cycle
+	g.projectileEventType_explosion = LuaGetInt("g_projectileevent_explosion");
 }
 
 void lua_loop ( void )

@@ -73,6 +73,7 @@ void entity_lua_movewithanimation ( void );
 void entity_lua_setanimationframe ( void );
 void entity_lua_setanimationspeed ( void );
 void entity_lua_setentityhealth ( void );
+void entity_lua_setentityhealthsilent ( void );
 void entity_lua_setforcex ( void );
 void entity_lua_setforcey ( void );
 void entity_lua_setforcez ( void );

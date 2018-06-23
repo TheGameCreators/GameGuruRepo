@@ -362,7 +362,7 @@ DARKSDK_DLL void RefreshMeshShortList ( sMesh* pMesh )
 	g_vRefreshMeshList.push_back ( pMesh );
 }
 
-DARKSDK_DLL void LoadCore ( SDK_LPSTR szFilename, int iID, int iDBProMode, int iDivideTextureSize )
+DARKSDK_DLL void LoadCore ( SDK_LPSTR szFilename, SDK_LPSTR szOrgFilename, int iID, int iDBProMode, int iDivideTextureSize )
 {
 	// ensure the object is okay to use
 	ConfirmNewObject ( iID );
@@ -394,9 +394,14 @@ DARKSDK_DLL void LoadCore ( SDK_LPSTR szFilename, int iID, int iDBProMode, int i
 	}
 	else
 	{
+		//PE: This is why textures is found, and are doubble loaded.
+		//PE: In standalone path is C:\Users\name\AppData\Local\Temp\\dbpdata\ , We need to use the real path.
+		
 		// Path is current model location
 		strcpy( szPath, "" );
-		LPSTR pFile = (LPSTR)szFilename;
+		//PE: Always use original as path. so standalone can find textures and reuse.
+		//LPSTR pFile = (LPSTR)szFilename;
+		LPSTR pFile = (LPSTR)szOrgFilename;
 		DWORD dwLength = strlen(pFile);
 		for ( int n=dwLength; n>0; n-- )
 		{
@@ -427,61 +432,83 @@ DARKSDK_DLL void LoadCore ( SDK_LPSTR szFilename, int iID, int iDBProMode, int i
 	}
 }
 
-DARKSDK_DLL void LoadObject ( LPSTR szFilename, int iID )
+void timestampactivity(int i, char* desc_s); // for debug
+
+DARKSDK_DLL void LoadObject(LPSTR szFilename, int iID)
 {
 	// Uses actual or virtual file..
 	char VirtualFilename[_MAX_PATH];
 	strcpy(VirtualFilename, szFilename);
-	g_pGlob->UpdateFilenameFromVirtualTable( (DWORD)VirtualFilename);
+	g_pGlob->UpdateFilenameFromVirtualTable((DWORD)VirtualFilename);
 
 	// store current folder
 	char pStoreCurrentDir[_MAX_PATH];
-	GetCurrentDirectory ( _MAX_PATH, pStoreCurrentDir );
+	GetCurrentDirectory(_MAX_PATH, pStoreCurrentDir);
 
-	bool bTempFolderChangeForEncrypt = CheckForWorkshopFile (VirtualFilename);
+	bool bTempFolderChangeForEncrypt = CheckForWorkshopFile(VirtualFilename);
 
 	char pPathToOriginalFile[_MAX_PATH];
-	if ( bTempFolderChangeForEncrypt )
+	if (bTempFolderChangeForEncrypt)
 	{
-		strcpy ( pPathToOriginalFile, "" );
+		strcpy(pPathToOriginalFile, "");
 		FILE* tempFile = NULL;
-		tempFile = fopen ( VirtualFilename ,"r" );
-		if ( tempFile )
+		tempFile = fopen(VirtualFilename, "r");
+		if (tempFile)
 		{
 			// get relative path from current
-			strcpy ( pPathToOriginalFile, VirtualFilename );
-			for(DWORD n=strlen(pPathToOriginalFile)-1; n>0; n--)
+			strcpy(pPathToOriginalFile, VirtualFilename);
+			for (DWORD n = strlen(pPathToOriginalFile) - 1; n > 0; n--)
 			{
-				if(pPathToOriginalFile[n]=='\\' || pPathToOriginalFile[n]=='/' || (unsigned char)(pPathToOriginalFile[n])<32)
+				if (pPathToOriginalFile[n] == '\\' || pPathToOriginalFile[n] == '/' || (unsigned char)(pPathToOriginalFile[n]) < 32)
 				{
-					pPathToOriginalFile[n]=0;
+					pPathToOriginalFile[n] = 0;
 					break;
 				}
 			}
 
-			fclose ( tempFile );
+			fclose(tempFile);
 		}
 	}
 
 	// Decrypt and use media, re-encrypt
-	g_pGlob->Decrypt( (DWORD)VirtualFilename );
+	g_pGlob->Decrypt((DWORD)VirtualFilename);
 
 	// if encrypting model file (and model MAY load internal textures, ensure current directory is temporarily in model file folder
-	if ( bTempFolderChangeForEncrypt==true )
+//	if ( bTempFolderChangeForEncrypt==true )
+//	{
+//		// assign new one (at original model file location)
+//		SetCurrentDirectory ( pPathToOriginalFile );
+//	}
+
+
+	//PE: We will now find it using the original path (model) , so we cant change dir.
+	//PE: Lightmap object still need dir change.
+
+	//char mdebug[1024];
+	//sprintf(mdebug, "DIRS: %s (%s)", VirtualFilename, szFilename);
+	//timestampactivity(0, mdebug);
+
+
+	if (strstr(VirtualFilename, "lightmaps\\") != NULL) //PEREV:
 	{
-		// assign new one (at original model file location)
 		SetCurrentDirectory ( pPathToOriginalFile );
 	}
 
 	// Load media
-	LoadCore ( (SDK_LPSTR)VirtualFilename, iID, 0, 0 );
+	LoadCore ( (SDK_LPSTR)VirtualFilename, (SDK_LPSTR) szFilename, iID, 0, 0 );
 
-	// restore current directory
-	if ( bTempFolderChangeForEncrypt==true )
+	if (strstr(VirtualFilename, "lightmaps\\") != NULL)
 	{
 		SetCurrentDirectory ( pStoreCurrentDir );
 		bTempFolderChangeForEncrypt = false;
 	}
+
+	// restore current directory
+//	if ( bTempFolderChangeForEncrypt==true )
+//	{
+//		SetCurrentDirectory ( pStoreCurrentDir );
+//		bTempFolderChangeForEncrypt = false;
+//	}
 
 	// Re-encrypt
 	g_pGlob->Encrypt( (DWORD)VirtualFilename );
@@ -499,7 +526,7 @@ DARKSDK_DLL void LoadObject ( LPSTR szFilename, int iID, int iDBProMode )
 
 	// Decrypt and use media, re-encrypt
 	g_pGlob->Decrypt( (DWORD)VirtualFilename );
-	LoadCore ( (SDK_LPSTR)VirtualFilename, iID, iDBProMode, 0 );
+	LoadCore ( (SDK_LPSTR)VirtualFilename, (SDK_LPSTR)szFilename, iID, iDBProMode, 0 );
 	g_pGlob->Encrypt( (DWORD)VirtualFilename );
 }
 
@@ -514,7 +541,7 @@ DARKSDK_DLL void LoadObject ( LPSTR szFilename, int iID, int iDBProMode, int iDi
 
 	// Decrypt and use media, re-encrypt
 	g_pGlob->Decrypt( (DWORD)VirtualFilename );
-	LoadCore ( (SDK_LPSTR)VirtualFilename, iID, iDBProMode, iDivideTextureSize );
+	LoadCore ( (SDK_LPSTR)VirtualFilename, (SDK_LPSTR)szFilename, iID, iDBProMode, iDivideTextureSize );
 	g_pGlob->Encrypt( (DWORD)VirtualFilename );
 }
 
@@ -1410,6 +1437,26 @@ DARKSDK_DLL void SetObjectScrollScaleUV ( int iID, float fScrU, float fScrV, flo
 			pMesh->fScrollOffsetV = fScrV;
 			pMesh->fScaleOffsetU = fScaU;
 			pMesh->fScaleOffsetV = fScaV;
+		}
+	}
+}
+
+DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags, float fBoostIntensity )
+{
+	// check the object exists
+	if ( !ConfirmObjectInstance ( iID ) )
+		return;
+
+	// apply setting to all meshes (or parent if just instance)
+	sObject* pObject = g_ObjectList [ iID ];
+	if ( pObject->pInstanceOfObject ) pObject = pObject->pInstanceOfObject;
+	for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+	{
+		sMesh* pMesh = pObject->ppMeshList [ iMesh ];
+		if ( pMesh )
+		{
+			pMesh->dwArtFlags = dwArtFlags;
+			pMesh->fBoostIntensity = fBoostIntensity;
 		}
 	}
 }
@@ -4592,6 +4639,12 @@ DARKSDK_DLL void SetEffectShadowMappingMode ( int iMode )
 	g_CascadedShadow.m_dwMask = iMode;
 }
 
+DARKSDK_DLL void SetShadowTexelSize(int isize)
+{
+	// Can set the size of the cascade textures use, to calculate the texel size.
+	g_CascadeConfig.m_iBufferSize = isize;
+}
+
 DARKSDK_DLL void RenderEffectShadowMapping ( int iEffectID )
 {
 	// renders shadow maps for effect
@@ -4651,7 +4704,6 @@ DARKSDK_DLL void RenderEffectShadowMapping ( int iEffectID )
 			pEffectPtr->SetTechnique(hOldTechnique);
 		#endif
 	}
-
 	// set shaodw mapping settings for final render (for all effects that call this command inc. primary)
     g_CascadedShadow.RenderScene( iEffectID, pEffectPtr, NULL, NULL, NULL, false );
 

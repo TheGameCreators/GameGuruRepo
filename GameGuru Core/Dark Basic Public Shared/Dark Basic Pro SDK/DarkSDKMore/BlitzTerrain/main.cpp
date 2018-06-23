@@ -2131,17 +2131,21 @@ void BT_Intern_Render()
 	}
 
 	// 100418 - seems when skip terrain render (.superflat), viewport is not set (and needs to be)
-	// look further into this to determine if 1920 or 1772 width viewport is correct for terrain
-	tagCameraData* Camera = (tagCameraData*)GetCameraInternalData(0);
-    D3D11_VIEWPORT vp;
-	GGVIEWPORT* pvp = &Camera->viewPort3D;
-    vp.TopLeftX = pvp->X;
-    vp.TopLeftY = pvp->Y;
-    vp.Width = (FLOAT)pvp->Width;
-    vp.Height = (FLOAT)pvp->Height;
-    vp.MinDepth = pvp->MinZ;
-    vp.MaxDepth = pvp->MaxZ;
-	SetupSetViewport ( g_pGlob->dwRenderCameraID, &vp, NULL );
+	// look FURTHER into this to determine if 1920 or 1772 width viewport is correct for terrain
+	// 160418 - ensure this fix does not interfere with 64x64 viewport setting for bitmap capture
+	if ( g_pGlob->iCurrentBitmapNumber < 32 )
+	{
+		tagCameraData* Camera = (tagCameraData*)GetCameraInternalData(0);
+		D3D11_VIEWPORT vp;
+		GGVIEWPORT* pvp = &Camera->viewPort3D;
+		vp.TopLeftX = pvp->X;
+		vp.TopLeftY = pvp->Y;
+		vp.Width = (FLOAT)pvp->Width;
+		vp.Height = (FLOAT)pvp->Height;
+		vp.MinDepth = pvp->MinZ;
+		vp.MaxDepth = pvp->MaxZ;
+		SetupSetViewport ( g_pGlob->dwRenderCameraID, &vp, NULL );
+	}
 
 	try
 	{
@@ -2474,6 +2478,18 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 					}
 					Mesh->pVertexShaderEffect->m_VecClipPlaneEffectHandle->AsVector()->SetFloatVector ( (float*)&vec );
 				}
+
+				// Ensure normal invert in effect for terrain (NOTE: not liking duplicated of code)
+				#ifdef DX11
+				GGHANDLE pArtFlags = Mesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+				if ( pArtFlags )
+				{
+					float fInvertNormal = 0.0f;
+					if ( Mesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+					GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, 0.0f, 0.0f, 0.0f );
+					pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+				}
+				#endif
 
 				// apply effect ready for rendering
 				hTechniqueUsed->GetPassByIndex(0)->Apply(0,m_pImmediateContext);

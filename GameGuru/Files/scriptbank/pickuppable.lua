@@ -15,24 +15,32 @@ local minSpeed  = 0.05  -- speed of movement at max weight
 
 local carryOfst = 0     -- x offset of carrying position \
 local carryHght = 27    -- y offset of carrying position  | relative to player
-local carryDist = 35    -- z offset of carrying position /
+local carryDist = 60    -- z offset of carrying position /
 local levelAng  = 20    -- number of degrees off horizontal still considered 
                         -- as 'level' for stacking purposes
 local handSize  = 15    -- size of hand icon (screen %)
+
+local throwEnabled = true   -- Picked up items can be thrown
+local pushEnabled  = true   -- Also Pull
+
 --------------------------
 
 local U = require "scriptbank\\utillib"
 local Q = require "scriptbank\\quatlib"
+local P = require "scriptbank\\physlib"
 
 local modf = math.modf
 local deg  = math.deg
 local rad  = math.rad
 local max  = math.max
+local min  = math.min
 local abs  = math.abs
 local sin  = math.sin
 local cos  = math.cos
 local atan = math.atan2
 local sqrt = math.sqrt
+local log  = math.log
+local rnd  = math.random
 
 -- return a copy of a table/list (move to utils when tested)
 local function deepcopy( orig )
@@ -69,14 +77,38 @@ local dimensions = {}
 local names = {}
 local pEnt = {}
 
-
-local carryingEnt  = nil   -- 'pickuppable' actually in hand (i.e. bottom of any 'Stack'
-local droppedEnt   = nil   -- 'pickuppable' last to be in hand (i.e. last to be dropped)
-local promptsOn    = true  -- whether to show Prompts to player or not
+local carryingEnt = nil   -- 'pickuppable' actually in hand (i.e. bottom of any 'Stack'
+local droppedEnt  = nil   -- 'pickuppable' last to be in hand (i.e. last to be dropped)
+local promptsOn   = true  -- whether to show Prompts to player or not
+local thrownObj   = nil   -- details of thrown objects for collision purposes
 
 -- ================================= --
 -- start of global functions section --
 -- ================================= --
+
+function PU_EnableThrowing()
+	throwEnabled = true
+	g_pickuppables_list.throwEnabled = throwEnabled
+end
+
+function PU_CanThrow() return throwEnabled end
+
+function PU_DisableThrowing()
+	throwEnabled = false
+	g_pickuppables_list.throwEnabled = throwEnabled
+end
+
+function PU_EnablePushPull()
+	pushEnabled = true
+	g_pickuppables_list.pushEnabled = pushEnabled
+end
+
+function PU_CanPush() return pushEnabled end
+
+function PU_DisablePushPull()
+	pushEnabled = false
+	g_pickuppables_list.pushEnabled = pushEnabled
+end
 
 -- global functions to read/set max weight we can lift
 function PU_GetMaxCarryWeight()
@@ -98,12 +130,7 @@ function PU_SetMaxCarrySize( value )
 	g_pickuppables_list.maxSize = maxSize
 end
 
--- global functions to control player prompts
 function PU_DisablePrompts()
-	promptsOn = false
-end
-
-function PU_EnablePrompts()
 	promptsOn = false
 end
 
@@ -213,37 +240,8 @@ local function ObjectPickuppable( obj )
 	return false
 end
 
-local function getDims( e, obj )
-		
-	local x, y, z, xA, yA, zA = GetObjectPosAng( obj )
-	local xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox( obj ) 
-	
-	-- first re-orientate collision box if entity is at an angle
-	if xA ~= 0 or yA ~= 0 or zA ~= 0 then
-	
-		local q  = Q.FromEuler( rad( xA ), rad( yA ), rad( zA ) ) 
-		
-		xA, yA, zA = Q.ToEuler( Q.Mul( q, Q.Conjugate( q ) ) ) 
-		
-		xmin, ymin, zmin = U.Rotate3D( xmin, ymin, zmin, xA, yA, zA )
-		xmax, ymax, zmax = U.Rotate3D( xmax, ymax, zmax, xA, yA, zA )
-		
-	end
-
-	-- get scale factors for object
-	local sx, sy, sz = GetObjectScales( obj )
-	
-	-- now work out width, height, length and mass
-	local w, h, l = (xmax - xmin) * sx, (ymax - ymin) * sy, (zmax - zmin) * sz
-	
-	-- and offsets from centre
-	local cx, cy, cz = x + ( xmin * sx ) + w / 2, 
-	                   y + ( ymin * sy ) + h / 2, 
-					   z + ( zmin * sz ) + l / 2;
-					   	
-	dimensions[ obj ] = { w = w, h = h, l = l,
-						  m = GetEntityWeight( e ),
-						  offsets = { x = cx - x, y = cy - y, z = cz - z  } }						
+local function getDims( obj )
+	dimensions[ obj ] = P.GetObjectDimensions( obj )						
 end
 
 -------------------------------------------
@@ -253,10 +251,10 @@ end
 function pickuppable_init_name( e, name )
 	-- These includes ensure that the 'make standalone' process
 	-- copies the libararies to the standalone folder
-	-- (note: no spaces after open bracket!
-	Include("utillib.lua")
-	Include("quatlib.lua")
-	
+	Include( "utillib.lua" )
+	Include( "quatlib.lua" )
+	Include( "physlib.lua" )
+
 	-- save name to local list
 	names[ e ] = name
 	
@@ -292,13 +290,19 @@ function pickuppable_init_name( e, name )
 	if g_pickuppables_list.maxSize ~= nil then
 		maxSize = g_pickuppables_list.maxSize
 	end
+	if g_pickuppables_list.pushEnabled ~= nil then
+		pushEnabled = g_pickuppables_list.pushEnabled
+	end
+	if g_pickuppables_list.throwEnabled ~= nil then
+		throwEnabled = g_pickuppables_list.throwEnabled
+	end
 end
 
 local function getRealWorldYangle( xa, ya, za )  -- Euler in degrees, returns radians 
 	-- Tricky to explain but basically g_PlayerAngY is the real-world
 	-- angle, i.e. 0-359 degrees, whereas the Euler angle for an entity
     -- returned by GetObjectPosAng is not.
-	-- In order to get the 'real-world' equivelent we need to do some math.
+	-- In order to get the 'real-world' equivalent we need to do some math.
 
 	-- first rotate a unit 'facing forward' vector by the Euler angles
 	local xv, _, zv = U.Rotate3D( 0, 0, 1,  rad( xa ), rad( ya ), rad ( za ) )
@@ -323,8 +327,8 @@ local RayCast = IntersectAll
 -- given angles and origin position return centre position
 local function getCentre( p, x, y, z, xa, ya, za )
 	-- first rotate offsets 
-	local pdo = dimensions[ p.obj ].offsets
-	local xo, yo, zo = U.Rotate3D( pdo.x, pdo.y, pdo.z, xa, ya, za )
+	local dims = dimensions[ p.obj ]
+	local xo, yo, zo = U.Rotate3D( dims.cx, dims.cy, dims.cz, xa, ya, za )
 
 	-- now calculate centre of object
 	return x + xo, y + yo, z + zo
@@ -339,7 +343,7 @@ local function checkIfSatOn( pb, bpx, bpy, bpz, bax, bay, baz,
 	
 	-- send a ray trace straight down from the centre of the top object
 
-	-- now calculate centre of object
+	-- first calculate centre of object
 	local tcx, tcy, tcz = getCentre( pt, tpx, tpy, tpz, tax, tay, taz )
 	
 	local lowestY = tcy - ( dimensions[ pt.obj ].h / 2 + 5 )
@@ -381,7 +385,7 @@ local function buildStackList( p, base_obj )
 	-- first check if object is roughly level
 	local pbx, pby, pbz, abx, aby, abz = GetObjectPosAng( p.obj )
 
-	-- for now only allow stacking on 'level' object
+	-- for now only allow stacking on 'level(ish)' object
 	if p.obj == base_obj and not isLevelIsh( abx, aby, abz ) then 
 		p.stackList = nil
 		return 
@@ -481,11 +485,13 @@ local function adjustForTerrainCollision( nx, ny, nz, dims, ax, ay, az )
 	-- by the difference plus a little bit
 	-- ( could be expanded to add a raycast from corner to corner to check
     --	 for a terrain collision, but that's difficult ;-) )
+	-- TODO - replace this with the new terrain collision detection commands
+	--        at some point
 
 	local hw, hh, hl = dims.w / 2, dims.h / 2, dims.l / 2
-	local offs = dims.offsets
+	
 	-- rotate offsets 
-	local ofx, ofy, ofz = U.Rotate3D( offs.x, offs.y, offs.z, ax, ay, az );
+	local ofx, ofy, ofz = U.Rotate3D( dims.cxs, dims.cys,dims.czs, ax, ay, az );
 	
 	-- create our own collision box
 	corners = { { xo =  hw, yo =  hh, zo =  hl },
@@ -581,7 +587,7 @@ local function stopEntsPunchingThroughTerrain()
 				
 				local th = GetTerrainHeight( x, z )
 				
-				if cy < th - 10 then
+				if cy < th - 30 then
 					ya = getRealWorldYangle( xa, ya, za )
 					rePositionEnt( k, v.obj, x, th + 1, z, 0, ya, 0 )
 				end
@@ -634,13 +640,79 @@ local function positionHandler( e, p, rq, ppx, ppy, ppz )
 	end
 end
 
-local currSpeed = 0
+local RayCast = IntersectAll
+ 
+local throwTimer = 0
+
+local hitObject = {}
+
+local function CheckThrowCollision()
+
+	if throwTimer == 0 then throwTimer = g_Time + 1000 end
+	
+	local colList = P.GetObjectCollisionDetails( thrownObj )
+	
+	if colList ~= nil then
+		for i, v in ipairs( colList ) do
+			if v.obj ~= 0 then
+				local force = v.f * 1000
+				local e = P.ObjectToEntity( v.obj )
+				local Ent = g_Entity[ e ]
+				if Ent ~= nil then
+					SetEntityHealth( e, g_Entity[ e ].health - force )
+				end
+				if PU_ShowDecal ~= nil then
+					PU_ShowDecal( "PU Decal", v.x, v.y, v.z, force * 5 )
+				end
+			end
+		end
+	
+		-- remove health from thrown object causing it to
+		-- explode ( if explodable )
+		SetEntityHealth( P.ObjectToEntity( thrownObj ), 0)
+		
+	elseif g_Time < throwTimer then
+		-- didn't hit anything yet so give it more time
+		return
+	end
+	
+	-- done with this object so remove from checking list 
+	RemoveObjectCollisionCheck( thrownObj )
+	thrownObj = nil
+	throwTimer = 0	
+end
+
+local function HandleTerrainCollisions()
+
+	local colList = P.GetTerrainCollisionDetails( thrownObj )
+	
+	if colList == nil then return end
+	
+	for _, v in ipairs( colList ) do
+		if v.x ~= 0 then
+			if PU_ShowDecal ~= nil then
+				PU_ShowDecal( "PU Decal2", v.x, v.y, v.z )
+			end
+		end
+	end
+end
+
+local currSpeed     = 0
+local colCheckTimer = 0 
 
 -----------------------------------------------------
 -- Start of main entry routine - called very frame --
 -----------------------------------------------------
 function pickuppable_main(e)
 
+	if throwEnabled and P.ObjectToEntity( thrownObj ) == e then
+		if g_Time > colCheckTimer then
+			HandleTerrainCollisions()
+			CheckThrowCollision()
+			colCheckTimer = g_Time + 100 -- 1/10 second-
+		end
+	end
+	
 	if g_pickuppables_list.removed ~= nil and
 	   g_pickuppables_list.removed[ e ] then 
 	   return
@@ -654,7 +726,7 @@ function pickuppable_main(e)
 	local dims = dimensions[ Ent.obj ]
 	
 	if dims == nil then
-		getDims( e, Ent.obj )
+		getDims( Ent.obj )
 
 		return
 	end
@@ -677,13 +749,15 @@ function pickuppable_main(e)
 		end
 	end
 	
+	local pObj, objX, objY, objZ = 0, 0, 0, 0
+
 	if carryingEnt == nil then
 		if not U.PlayerCloserThan( e, 200 ) then return end
 		
-		local pObj = U.ObjectPlayerLookingAt( 100 )
+		pObj, objX, objY, objZ = P.ObjectPlayerLookingAt( 100 )
 		
 		if pObj == p.obj then 
-									 
+					
 			if handShowing == 'none' then ShowHand( 'hand1' ) end
 				
 		elseif not ObjectPickuppable( pObj ) then
@@ -696,7 +770,7 @@ function pickuppable_main(e)
 		end
 		
 	elseif carryingEnt == e then	
-
+	
 		if g_PlrKeySPACE == 1 then
 			SetGamePlayerControlTopspeed( minSpeed )
 		else
@@ -716,11 +790,43 @@ function pickuppable_main(e)
 		if handShowing ~= 'none' then 
 			HideHand( handShowing )
 		end
-		if promptsOn then Prompt( "LMB to drop " .. names[ e ] .. ", Hold RMB to rotate") end
+		if promptsOn then 
+			if not throwEnabled then
+				Prompt( "LMB to drop " .. names[ e ] .. ", Hold RMB to rotate")
+			else
+				Prompt( "LMB(+E) to drop(throw) " .. names[ e ] .. ", Hold RMB to rotate")
+			end
+		end
 		if g_MouseClick == 1 or GetPlayerWeaponID() ~= 0 then
 			if not mouse1Clicked then
+
 				dropObject( p, e )
 				
+				if not throwEnabled then return end
+				
+				-- handle throwing
+				if g_KeyPressE == 1 and g_MouseClick == 1 then 
+				    local force = min( maxWeight / 6, dims.m )
+					
+					vx, vy, vz = U.Rotate3D ( 0, 0, 1, paX, paY, paZ )
+					
+					if names[ e ] == 'saw blade' then 
+					    force = force * 20
+						PushObject( p.obj, vx * force, vy * force, vz * force, 
+										  rnd()/10 , 0, rnd()/10 )
+					else
+						PushObject( p.obj, vx * force, vy * force, vz * force, 
+										   rnd()/100, rnd()/100, rnd()/100 )
+					end
+					
+					-- test new collision testing command
+					thrownObj = p.obj
+					
+					AddObjectCollisionCheck( p.obj )
+
+					-- do initial check in case enemy really close!
+					CheckThrowCollision()
+				end
 				return
 			end
 
@@ -737,8 +843,7 @@ function pickuppable_main(e)
 			mouse1Clicked = false
 			mouse2Clicked = false
 			mouseTimer    = math.huge
-		end
-		
+		end	
 				
 		-- move entity with player
 		-- (may need to handle collision as entity will probably be
@@ -753,14 +858,13 @@ function pickuppable_main(e)
 			p.xo, p.yo, p.zo = carryOfst, carryHght, carryDist + size / 2
 
 			-- get entity angles
-			local cz, cy, cz, eaX, eaY, eaZ = GetObjectPosAng( p.obj )
+			local _,_,_, eaX, eaY, eaZ = GetObjectPosAng( p.obj )
 			
 			-- need to work out real world angle of entity
 			rwY = getRealWorldYangle( eaX, eaY, eaZ )
 			
 			-- store angle as quaternion
 			p.quat = Q.FromEuler( 0, rwY - paY, 0 ) 
-	
 		end
 			
 
@@ -773,13 +877,12 @@ function pickuppable_main(e)
 		
 		-- then object offsets, i.e to centre it properly
 		local oAx, oAy, oAz = Q.ToEuler( enQ )
-		local offs = dims.offsets
-		local oxo, oyo, ozo = U.Rotate3D( offs.x, offs.y, offs.z, oAx, oAy, oAz )
+
+		local oxo, oyo, ozo = U.Rotate3D( dims.cx, dims.cy, dims.cz, oAx, oAy, oAz )
 
 		-- calculate new position for entity
 		p.rx, p.ry, p.rz = ppX + xo - oxo, ppY + yo - oyo, ppZ + zo - ozo 
 
-		-- TBD check for collisions with terrain or other entities 
 		-- make sure we don't sink the entity into the terrain	
 		p.ry = adjustForTerrainCollision( p.rx, p.ry, p.rz, dims, oAx, oAy, oAz )
 
@@ -792,7 +895,7 @@ function pickuppable_main(e)
 	end
 	
 	if GetPlayerWeaponID() ~= 0 then
-		if promptsOn then Prompt( "Can't pick up " .. names[ e ] .. " without your hands free!" ) end
+		if promptsOn then Prompt( "Can't manipulate " .. names[ e ] .. " without your hands free!" ) end
 		if handShowing == 'hand1' then
 			HideHand( handShowing )
 			ShowHand( 'hand2' )
@@ -832,10 +935,50 @@ function pickuppable_main(e)
 			return
 		end
 		
-		if promptsOn then Prompt( "LMB to pick up " .. names[ e ] ) end
-		
+		if promptsOn then
+			if pushEnabled then
+				Prompt( "LMB to pick up " .. names[ e ] .. ", E/R + LMB to Push/Pull." )
+			else
+				Prompt( "LMB to pick up " .. names[ e ] )
+			end
+		end
+		local pushX, pushY, pushZ = P.GetViewVector()
+		-- PromptLocal( e, pushX .. "," .. pushY .. "," .. pushZ .. " : " ..
+		--                objX  .. "," .. objY  .. "," .. objZ )
 		if g_MouseClick == 1 then
-		
+			if pushEnabled then
+				-- handle pushing
+				if g_KeyPressE == 1 or g_KeyPressR == 1 then
+					-- local pushX, pushY, pushZ = P.GetViewVector()
+				
+					-- get object position and angle
+					local ex, ey, ez, xa, ya, za = GetObjectPosAng( p.obj )
+			
+					-- work out centre of object
+					local ox, oy, oz = U.Rotate3D( dims.cx, dims.cy, dims.cz, xa, ya, za );
+					local cx, cy, cz = ex + ox, ey + oy, ez + oz
+			
+					-- finally work out contact point offsets from centre
+					ox, oy, oz = objX - cx, objY - cy, objZ - cz
+			
+					-- push force less than throw force
+					local force
+					if g_KeyPressE == 1 then
+						force = min( maxWeight / 20, dims.m / 4 )
+				
+						-- and push!
+						PushObject( p.obj, pushX*force, pushY*force, pushZ*force, ox, oy, oz )
+					else
+						-- pull force less than push force
+						local force = min( maxWeight / 60, dims.m / 6 )
+
+						-- and pull!
+						PushObject( p.obj, -pushX*force, -pushY*force, -pushZ*force, ox, oy, oz )
+					end
+					return
+				end
+			end
+			
 			mouse1Clicked = true
 			
 			-- build stack list
@@ -856,6 +999,7 @@ function pickuppable_main(e)
 				mouseTimer = g_Time + 2000
 			else
 				carryingEnt   = e
+				
 				mouseTimer    = g_Time + 200
 				
 				topSpeed = GetGamePlayerControlTopspeed()

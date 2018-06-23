@@ -79,7 +79,7 @@ void hud_scanforhudlayers ( void )
 
 					//PE: HUD is getting clipped.
 					t.tnothing = MakeVector4(g.characterkitvector);
-					SetVector4(g.characterkitvector, 500000, 0, 0, 0);
+					SetVector4(g.characterkitvector, 500000, 1, 0, 0);
 					SetEffectConstantV(t.playercontrol.jetpackeffect, "EntityEffectControl", g.characterkitvector);
 					t.tnothing = DeleteVector4(g.characterkitvector);
 
@@ -108,7 +108,12 @@ void hud_scanforhudlayers ( void )
 						//LoadImage ( t.strwork.Get() ,t.hudlayersimageoffsetindex+3 );
 						t.strwork = ""; t.strwork = t.strwork + "effectbank\\reloaded\\media\\white_D.dds";
 						LoadImage ( t.strwork.Get() ,t.hudlayersimageoffsetindex+3 );
-						TextureObject ( t.hudlayersbankoffsetindex, 8, 0 );
+						if (g.memskipibr == 0) 
+						{
+							t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+							TextureObject(t.hudlayersbankoffsetindex, 8, t.entityprofiletexibrid);
+						}
+						TextureObject ( t.hudlayersbankoffsetindex, 7, 0 );
 						TextureObject ( t.hudlayersbankoffsetindex, 0, t.hudlayersimageoffsetindex+0 );
 						TextureObject ( t.hudlayersbankoffsetindex, 1, t.hudlayersimageoffsetindex+3 );
 						TextureObject ( t.hudlayersbankoffsetindex, 2, t.hudlayersimageoffsetindex+1 );
@@ -117,8 +122,6 @@ void hud_scanforhudlayers ( void )
 						TextureObject ( t.hudlayersbankoffsetindex, 5, t.hudlayersimageoffsetindex+3 );
 						int iPBRCubeImg = t.terrain.imagestartindex+31;
 						TextureObject ( t.hudlayersbankoffsetindex, 6, iPBRCubeImg );
-						t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
-						TextureObject ( t.hudlayersbankoffsetindex, 7, t.entityprofiletexibrid );
 						/*
 						t.strwork = ""; t.strwork = t.strwork + "gamecore\\hudlayers\\"+t.entityprofile[t.entid].ishudlayer_s+".x";
 						LoadObject ( t.strwork.Get() ,t.hudlayersbankoffsetindex );

@@ -1009,8 +1009,11 @@ technique11 Medium
 {
     pass MainPass
     {
-        SetVertexShader(CompileShader(vs_5_0, mainVS_lowest()));
-        SetPixelShader(CompileShader(ps_5_0, mainPS_medium()));
+		//PE: We dont really have any difference now, speed is controlled in code by lowering cascades.
+        SetVertexShader(CompileShader(vs_5_0, mainVS_highest()));
+        SetPixelShader(CompileShader(ps_5_0, mainPS_highest()));
+        //SetVertexShader(CompileShader(vs_5_0, mainVS_lowest()));
+        //SetPixelShader(CompileShader(ps_5_0, mainPS_medium()));
         SetGeometryShader(NULL);
 		#ifdef ALPHATOCOVERAGE
 		 SetBlendState(CoverageAdd, float4( 0.0f, 0.0f, 0.0f, 0.0f ), 0xFFFFFFFF);

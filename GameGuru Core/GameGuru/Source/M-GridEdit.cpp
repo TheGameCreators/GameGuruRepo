@@ -179,7 +179,7 @@ void mapeditorexecutable ( void )
 	{
 		// Welcome quick start page
 		g.quickstartmenumode = 0;
-		if ( g.gshowonstartup == 1 ) 
+		if ( g.gshowonstartup == 1 || g.iTriggerSoftwareToQuit != 0 ) 
 			editor_showquickstart ( 0 );
 		else
 			welcome_free();
@@ -883,7 +883,7 @@ void editor_showquickstart ( int iForceMainOpen )
 	}
 
 	// can stay here forever if quit triggered
-	if ( g.vrqTriggerSoftwareToQuit == 1 ) welcome_show(WELCOME_EXITAPP);
+	if ( g.iTriggerSoftwareToQuit != 0 ) welcome_show(WELCOME_EXITAPP);
 
 	// if first time run
 	if ( g.gfirsttimerun == 1 ) welcome_show(WELCOME_WHATYOUGET);
@@ -2221,23 +2221,6 @@ void input_getfilemapcontrols ( void )
 			}
 		}
 
-		// VRQ can terminate app if no serial code
-		/* does not work
-		if ( g.vrqTriggerSoftwareToQuit == 1 ) 
-		{
-			// go ahead, confirmed, end interface program
-			OpenFileMap (  1,"FPSEXCHANGE" );
-			SetFileMapDWORD (  1, 912, 1 );
-			SetEventAndWait (  1 );
-			// close down Steam hook
-			steam_free ( );
-			// end editor program
-			timestampactivity(0,"Terminated because triggered a quit");
-			common_justbeforeend();
-			ExitProcess ( 0 );
-		}				
-		*/
-
 		//  EDIT MENU
 		if (  GetFileMapDWORD( 1, 446 ) == 1 ) {  t.inputsys.doundo = 1  ; SetFileMapDWORD (  1, 446, 0 ); }
 		if (  GetFileMapDWORD( 1, 450 ) == 1 ) { t.inputsys.doredo = 1  ; SetFileMapDWORD (  1, 450, 0 ); }
@@ -3232,6 +3215,7 @@ void editor_enableafterzoom ( void )
 void editor_init ( void )
 {
 	//  Load editor images
+	SetMipmapNum(1); //PE: mipmaps not needed.
 	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\quick-help.png";
 	LoadImage (  t.strwork.Get() ,g.editorimagesoffset+1 );
 	LoadImage (  "editors\\gfx\\memorymeter.png",g.editorimagesoffset+2 );
@@ -3284,7 +3268,7 @@ void editor_init ( void )
 	{
 		LoadImage (  "editors\\gfx\\resourcesworking.png",g.editordrawlastimagesoffset+4 );
 	}
-
+	SetMipmapNum(-1);
 	//  Work area entity cursor (placeholder for instance of target expanded by 1.05 to make shell highligher)
 	MakeObjectPlane (  t.editor.objectstartindex+5,150,150  ); 
 	XRotateObject (  t.editor.objectstartindex+5,90 );
@@ -4397,11 +4381,11 @@ if (  t.updatezoom == 1 )
 			{
 				if (  t.gridnearcameraclip == -1 ) 
 				{
-					SetVector4 (  g.terrainvectorindex,500000,0,0,0 );
+					SetVector4 ( g.terrainvectorindex, 500000, 1, 0, 0 );
 				}
 				else
 				{
-					SetVector4 (  g.terrainvectorindex,t.gridtrueslicey_f,0,0,0 );
+					SetVector4 ( g.terrainvectorindex, t.gridtrueslicey_f, 1, 0, 0 );
 				}
 				SetEffectConstantV (  t.effectid,"EntityEffectControl",g.terrainvectorindex );
 			}

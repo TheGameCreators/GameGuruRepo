@@ -145,11 +145,10 @@ reloadspeed 		= 150
 alt reloadspeed 	= 150
 
 ;// Visuals
-
-textured		= gun_D.dds
-effect			= effectbank\reloaded\weapon_bone.fx
-transparency		= 0
-minpolytrim		= 32
+textured		 = gun_D.dds
+effect			 = effectbank\reloaded\weapon_bone.fx
+transparency     = 0
+minpolytrim		 = 32
 
 ;// GUN HUD (0-colt,1-magnum,2-uzi,3-shotgun,4-rifle,5-rpg)
 statuspanelcode		= 2

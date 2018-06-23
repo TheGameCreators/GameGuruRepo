@@ -10,8 +10,8 @@ int g_iBlackListMax = 0;
 bool g_bBlackListRemovedSomeEntities = false;
 
 // Externs
-extern int g_iFBXGeometryToggleMode;
-extern int g_iFBXGeometryCenterMesh;
+//extern int g_iFBXGeometryToggleMode;
+//extern int g_iFBXGeometryCenterMesh;
 
 // prototypes
 void LoadFBX ( LPSTR szFilename, int iID );
@@ -511,13 +511,13 @@ void entity_load ( void )
 					if (  t.entityprofile[t.entid].fullbounds == 1  )  SetFastBoundsCalculation (  0 );
 					if ( strnicmp ( t.tfile_s.Get() + strlen(t.tfile_s.Get()) - 4, ".fbx", 4 )==NULL )
 					{
-						int iStoreFBXGeometryToggleMode = g_iFBXGeometryToggleMode;
-						int iStoreFBXGeometryCenterMesh = g_iFBXGeometryCenterMesh;
-						g_iFBXGeometryToggleMode = 0;
-						g_iFBXGeometryCenterMesh = 0;
+						//int iStoreFBXGeometryToggleMode = g_iFBXGeometryToggleMode;
+						//int iStoreFBXGeometryCenterMesh = g_iFBXGeometryCenterMesh;
+						//g_iFBXGeometryToggleMode = 0;
+						//g_iFBXGeometryCenterMesh = 0;
 						LoadFBX ( t.tfile_s.Get(), t.entobj );
-						g_iFBXGeometryToggleMode = iStoreFBXGeometryToggleMode;
-						g_iFBXGeometryCenterMesh = iStoreFBXGeometryCenterMesh;
+						//g_iFBXGeometryToggleMode = iStoreFBXGeometryToggleMode;
+						//g_iFBXGeometryCenterMesh = iStoreFBXGeometryCenterMesh;
 					}
 					else
 						LoadObject ( t.tfile_s.Get(), t.entobj );
@@ -1039,6 +1039,8 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].uvscrollv=0;
 		t.entityprofile[t.entid].uvscaleu=1.0f;
 		t.entityprofile[t.entid].uvscalev=1.0f;
+		t.entityprofile[t.entid].invertnormal=0;
+		t.entityprofile[t.entid].preservetangents=0;		
 		t.entityprofile[t.entid].colondeath=1;
 		t.entityprofile[t.entid].parententityindex=0;
 		t.entityprofile[t.entid].parentlimbindex=0;
@@ -1058,6 +1060,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].forcesimpleobstacle=0;
 		t.entityprofile[t.entid].forceobstaclepolysize=30.0f;
 		t.entityprofile[t.entid].forceobstaclesliceheight=14.0f;
+		t.entityprofile[t.entid].forceobstaclesliceminsize=5.0f;
 		t.entityprofile[t.entid].effectprofile=0;
 
 		//  Starter animation counts
@@ -1239,6 +1242,8 @@ void entity_loaddata ( void )
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclepolysize = t.value1;
 					t.tryfield_s="forceobstaclesliceheight";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclesliceheight = t.value1;
+					t.tryfield_s="forceobstaclesliceminsize";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclesliceminsize = t.value1;
 
 					t.tryfield_s="notanoccluder";
 					if (  t.field_s == t.tryfield_s  )  
@@ -1401,6 +1406,14 @@ void entity_loaddata ( void )
 					t.tryfield_s="uvscale";
 					if (  t.field_s == t.tryfield_s  ) { t.entityprofile[t.entid].uvscaleu = t.value1/100.0f; t.entityprofile[t.entid].uvscalev = t.value2/100.0f; }
 
+					// can invert the normal, or set to zero to not invert (not inverted by default)
+					t.tryfield_s="invertnormal";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].invertnormal = t.value1;
+
+					// can choose whether to generate tangent/binormal in the shader
+					t.tryfield_s="preservetangents";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].preservetangents = t.value1;
+					
 					t.tryfield_s="zdepth";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].zdepth = t.value1;
 
@@ -2014,13 +2027,16 @@ void entity_loaddata ( void )
 			if ( n <= 0 ) strcpy ( pEntityItemPath, "" );
 			char pJustTextureName[1024];
 			strcpy ( pJustTextureName, t.entityprofile[t.entid].texd_s.Get() );
-			pJustTextureName[strlen(pJustTextureName)-4]=0;
-			if ( stricmp ( pJustTextureName+strlen(pJustTextureName)-6, "_color" ) == NULL )
+			if ( strlen ( pJustTextureName ) > 4 )
 			{
-				pJustTextureName[strlen(pJustTextureName)-6]=0;
-				strcat ( pJustTextureName, "_D" );
+				pJustTextureName[strlen(pJustTextureName)-4]=0;
+				if ( stricmp ( pJustTextureName+strlen(pJustTextureName)-6, "_color" ) == NULL )
+				{
+					pJustTextureName[strlen(pJustTextureName)-6]=0;
+					strcat ( pJustTextureName, "_D" );
+				}
+				strcat ( pJustTextureName, ".png" );
 			}
-			strcat ( pJustTextureName, ".png" );
 			char pReplaceWithDNS[1024];
 			strcpy ( pReplaceWithDNS, pEntityItemPath );
 			strcat ( pReplaceWithDNS, pJustTextureName );
@@ -2029,18 +2045,25 @@ void entity_loaddata ( void )
 			if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pPBREffectMatch, strlen(pPBREffectMatch) ) == NULL ) 
 			{
 				// entity effect specifies PBR, do we have the DNS files available
-				cstr pFindDNSFile = t.entdir_s + pReplaceWithDNS;
-				if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+				if ( strlen ( pJustTextureName ) > 4 )
 				{
-					pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
-					strcat ( pReplaceWithDNS, ".dds" );
-					pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+					cstr pFindDNSFile = t.entdir_s + pReplaceWithDNS;
 					if ( FileExist ( pFindDNSFile.Get() ) == 0 )
 					{
 						pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
-						strcat ( pReplaceWithDNS, ".jpg" );
+						strcat ( pReplaceWithDNS, ".dds" );
 						pFindDNSFile = t.entdir_s + pReplaceWithDNS;
-						if ( FileExist ( pFindDNSFile.Get() ) == 1 )
+						if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+						{
+							pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
+							strcat ( pReplaceWithDNS, ".jpg" );
+							pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+							if ( FileExist ( pFindDNSFile.Get() ) == 1 )
+							{
+								bReplacePBRWithNonPBRDNS = true;
+							}
+						}
+						else
 						{
 							bReplacePBRWithNonPBRDNS = true;
 						}
@@ -2052,6 +2075,7 @@ void entity_loaddata ( void )
 				}
 				else
 				{
+					// no texture specified, but can still switch to classic shaders (legacy behavior)
 					bReplacePBRWithNonPBRDNS = true;
 				}
 			}
@@ -2628,6 +2652,33 @@ void entity_loadtexturesandeffect ( void )
 	// Texture and apply effect
 	if ( t.entobj>0 ) 
 	{
+		// lee - 300518 - added extra code in LoadObject to detect DNS and PBR texture file sets and set the mesh, so 
+		// skip the override code below if the object has a good texture in place
+		//bool bGotAO = false - replaced this with a later scan to add AO only when missing
+		bool bGotNormal = false, bGotMetalness = false, bGotGloss = false;
+		sObject* pObject = GetObjectData ( t.entobj );
+		if ( pObject )
+		{
+			for ( int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++ )
+			{
+				sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+				if ( pMesh )
+				{
+					for ( int iTextureIndex = 2; iTextureIndex < pMesh->dwTextureCount; iTextureIndex++ )
+					{
+						if ( pMesh->pTextures[iTextureIndex].iImageID > 0 )
+						{
+							//if ( iTextureIndex == 1 ) bGotAO = true;
+							if ( iTextureIndex == 2 ) bGotNormal = true;
+							if ( iTextureIndex == 3 ) bGotMetalness = true;
+							if ( iTextureIndex == 4 ) bGotGloss = true;
+						}
+					}
+				}
+			}
+		}
+
+		// detect if using an effect or not
 		int use_illumination = false;
 		if ( t.entityprofile[t.entid].usingeffect == 0 ) 
 		{
@@ -2726,20 +2777,36 @@ void entity_loadtexturesandeffect ( void )
 				t.entityprofile[t.entid].texsid = t.texuseid;
 
 				// Assign ILLUMINATION or CUBE (or real-time 'ENVCUBE for PBR' later)
-				t.texdirI_s = t.texdirnoext_s+"_i.dds";
-				t.texuseid = loadinternaltextureex(t.texdirI_s.Get(),1,t.tfullorhalfdivide);
-				if ( t.texuseid == 0 )
+				if ( iEffectProfile == 0 )
 				{
-					// if no _I file, try to find and load _CUBE file (load mode 2 = cube)
+					// non-PBR legacy behaviour
+					t.texdirI_s = t.texdirnoext_s+"_i.dds";
+					t.texuseid = loadinternaltextureex(t.texdirI_s.Get(),1,t.tfullorhalfdivide);
+					if ( t.texuseid == 0 )
+					{
+						// if no _I file, try to find and load _CUBE file (load mode 2 = cube)
+						t.texdirI_s = t.texdirnoext_s+"_cube.dds";
+						t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
+						if ( t.texuseid == 0 )
+						{
+							// if no local CUBE, see if the level has generated one (matches sky and terrain)
+							t.texuseid = t.terrain.imagestartindex+31;
+						}
+					}
+					t.entityprofiletexiid = t.texuseid;
+				}
+				else
+				{
+					// PBR behaviour only allow _CUBE to override PBR reflection
 					t.texdirI_s = t.texdirnoext_s+"_cube.dds";
 					t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
-					if ( t.texuseid == 0 && iEffectProfile == 1 )
+					if ( t.texuseid == 0 )
 					{
 						// if no local CUBE, see if the level has generated one (matches sky and terrain)
 						t.texuseid = t.terrain.imagestartindex+31;
 					}
+					t.entityprofiletexiid = t.texuseid;
 				}
-				t.entityprofiletexiid = t.texuseid;
 				t.entityprofile[t.entid].texiid = t.entityprofiletexiid;
 
 				// Assign AMBIENT OCCLUSION MAP
@@ -2753,8 +2820,20 @@ void entity_loadtexturesandeffect ( void )
 					{
 						t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_O.dds",1,t.tfullorhalfdivide);
 					}
+					else
+					{
+						// disable override to AO that exists can be used
+						if ( strlen ( t.entityprofile[t.entid].texd_s.Get() ) > 0 )
+						{
+							// but only if texture was specified in FPE, not if we assume model based textures
+							//bGotAO = false; // see replacement solution below
+						}
+					}
 				}
 				t.entityprofiletexoid = t.texuseid;
+
+				//PE: IBR old t7 is now t8 , detail/illum t8 is now t7. Done so we can skip t8, we still need the correct order of textures.
+				//PE: IBR was not large but generate tons of stage changes.
 
 				// Assign textures for PBR
 				if ( iEffectProfile == 1 )
@@ -2787,7 +2866,10 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texhid = t.texuseid;
 
 					// IBR texture
-					t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+					if (g.memskipibr == 0) 
+					{
+						t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+					}
 
 					//PE: Use illumination instead of detail if found.
 					//PE: Illumination overwrite detail.
@@ -2831,10 +2913,10 @@ void entity_loadtexturesandeffect ( void )
 				// Additional texture assignments required for PBR mode
 				if ( iEffectProfile == 1 )
 				{
-					TextureObject ( t.entobj, 8, t.entityprofile[t.entid].texlid );
+					if (g.memskipibr == 0) TextureObject ( t.entobj, 8, t.entityprofiletexibrid );
+					TextureObject ( t.entobj, 7, t.entityprofile[t.entid].texlid );
 					TextureObject ( t.entobj, 4, t.entityprofile[t.entid].texgid );
 					TextureObject ( t.entobj, 5, t.entityprofile[t.entid].texhid );
-					TextureObject ( t.entobj, 7, t.entityprofiletexibrid );
 				}
 			}
 			else
@@ -2845,14 +2927,16 @@ void entity_loadtexturesandeffect ( void )
 
 				// PE 240118: not always if missing texture= in fpe , normal/spec is not always in the objects texture lists. ( we must have normal maps on all objects ).
 				// Fix: https://github.com/LeeBamberTGC/GameGuruRepo/issues/10
+				// lee - 300518 - added extra code in LoadObject to detect DNS and PBR texture file sets and set the mesh, so 
+				// skip the override code below if the object has a good texture in place
 
-				if (t.entityprofile[t.entid].texnid == 0)
+				if (t.entityprofile[t.entid].texnid == 0 && bGotNormal == false )
 				{
 					t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_N.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texnid = t.texuseid;
 					TextureObject(t.entobj, 2, t.entityprofile[t.entid].texnid);
 				}
-				if (t.entityprofile[t.entid].texsid == 0)
+				if (t.entityprofile[t.entid].texsid == 0 && bGotMetalness == false )
 				{
 					t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texsid = t.texuseid;
@@ -2879,15 +2963,39 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texgid = loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texhid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
-					TextureObject(t.entobj, 8, t.entityprofile[t.entid].texlid);
-					TextureObject(t.entobj, 4, t.entityprofile[t.entid].texgid);
+					if (g.memskipibr == 0) TextureObject(t.entobj, 8, t.entityprofiletexibrid);
+					TextureObject(t.entobj, 7, t.entityprofile[t.entid].texlid);
+					if ( bGotGloss == false ) TextureObject(t.entobj, 4, t.entityprofile[t.entid].texgid);
 					TextureObject(t.entobj, 5, t.entityprofile[t.entid].texhid);
-					TextureObject(t.entobj, 7, t.entityprofiletexibrid);
+				}
+			}
+
+			// 230618 - apply AO texture ONLY when missing
+			// if ( bGotAO == false ) TextureObject ( t.entobj, 1, t.entityprofiletexoid );
+			sObject* pObject = GetObjectData ( t.entobj );
+			if ( pObject )
+			{
+				for ( int iFrameIndex = 0; iFrameIndex < pObject->iFrameCount; iFrameIndex++ )
+				{
+					sFrame* pFrame = pObject->ppFrameList[iFrameIndex];
+					if ( pFrame )
+					{
+						sMesh* pMesh = pFrame->pMesh;
+						if ( pMesh )
+						{
+							for ( int iTextureIndex = 1; iTextureIndex < pMesh->dwTextureCount; iTextureIndex++ )
+							{
+								if ( pMesh->pTextures[iTextureIndex].iImageID == 0 )
+								{
+									if ( iTextureIndex == 1 ) TextureLimbStage ( t.entobj, iFrameIndex, iTextureIndex, t.entityprofiletexoid );
+								}
+							}
+						}
+					}
 				}
 			}
 
 			// Apply all textures to REMAINING entity parent object (V C I)
-			TextureObject ( t.entobj, 1, t.entityprofiletexoid );
 			TextureObject ( t.entobj, 6, t.entityprofile[t.entid].texiid );
 
 			// PBR or non-PBR modes
@@ -4367,18 +4475,18 @@ void entity_addentitytomap_core ( void )
 
 void entity_addentitytomap ( void )
 {
-	//  Entity To Add
+	// Entity To Add
 	t.entitymaintype=1;
 	t.entitybankindex=t.gridentity;
 	entity_addentitytomap_core ( );
 
-	//  update infinilight list with addition
-	if (  t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5 ) 
+	// update infinilight list with addition
+	if ( t.entityprofile[t.entitybankindex].ismarker == 2 || t.entityprofile[t.entitybankindex].ismarker == 5 ) 
 	{
 		lighting_refresh ( );
 	}
 
-	//  transfer waypoint zone index to entityelement
+	// transfer waypoint zone index to entityelement
 	t.waypointindex=t.grideleprof.trigger.waypointzoneindex;
 	t.entityelement[t.e].eleprof.trigger.waypointzoneindex=t.waypointindex;
 	t.waypoint[t.waypointindex].linkedtoentityindex=t.e;
@@ -4507,6 +4615,9 @@ void entity_deleteentityfrommap ( void )
 	//  Use entity coord to find tile
 	t.tupdatee=t.tentitytoselect;
 
+	// remember entity bank index for later light refresh
+	int iWasEntID = t.entityelement[t.tupdatee].bankindex;
+
 	//  cleanup character creator
 	t.ccobjToDelete = t.tupdatee;
 	characterkit_deleteEntity ( );
@@ -4539,14 +4650,14 @@ void entity_deleteentityfrommap ( void )
 	}
 	t.tDontDeleteWPFlag = 0;
 
-	//  update infinilight list with removal
-	if (  t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5 ) 
+	// update infinilight list with removal
+	if ( t.entityprofile[iWasEntID].ismarker == 2 || t.entityprofile[iWasEntID].ismarker == 5 ) 
 	{
 		//  refresh existing lights
 		lighting_refresh ( );
 	}
 
-	//  update real ent obj (.obj=0 inside)
+	// update real ent obj (.obj=0 inside)
 	entity_updateentityobj ( );
 }
 

@@ -101,6 +101,11 @@ void gun_loaddata ( void )
 					if (  t.field_s == "transparency"  )  t.gun[t.gunid].transparency = t.value1;
 					if (  t.field_s == "vweaptex"  )  t.gun[t.gunid].vweaptex_s = t.value_s;
 
+					//  control weapon shader using art flags
+					if (  t.field_s == "invertnormal"  )  t.gun[t.gunid].invertnormal = t.value1;
+					if (  t.field_s == "preservetangents"  )  t.gun[t.gunid].preservetangents = t.value1;
+					if (  t.field_s == "boostintensity"  )  t.gun[t.gunid].boostintensity = t.value1 / 100.0f;
+
 					//  weapontype ; 0-grenade, 1-pistol, 2-rocket, 3-shotgun, 4-uzi, 5-assault, 51-melee(noammo)
 					if (  t.field_s == "weapontype"  )  t.gun[t.gunid].weapontype = t.value1;
 
@@ -329,8 +334,12 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"zoomto" ) { g.firemodes[t.gunid][t.x].zoomaction.show.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.show.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoomfrom" ) { g.firemodes[t.gunid][t.x].zoomaction.hide.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.hide.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom start fire" ) { g.firemodes[t.gunid][t.x].zoomaction.start.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.start.e = t.value2; }
+						if (  t.field_s == t.alt_s+"zoom start fire 2" ) { g.firemodes[t.gunid][t.x].zoomaction.start2.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.start2.e = t.value2; }
+						if (  t.field_s == t.alt_s+"zoom start fire 3" ) { g.firemodes[t.gunid][t.x].zoomaction.start3.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.start3.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom automatic fire" ) { g.firemodes[t.gunid][t.x].zoomaction.automatic.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.automatic.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom end fire" ) { g.firemodes[t.gunid][t.x].zoomaction.finish.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.finish.e = t.value2; }
+						if (  t.field_s == t.alt_s+"zoom end fire 2" ) { g.firemodes[t.gunid][t.x].zoomaction.finish2.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.finish2.e = t.value2; }
+						if (  t.field_s == t.alt_s+"zoom end fire 3" ) { g.firemodes[t.gunid][t.x].zoomaction.finish3.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.finish3.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom last start fire" ) { g.firemodes[t.gunid][t.x].zoomaction.laststart.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.laststart.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom last end fire" ) { g.firemodes[t.gunid][t.x].zoomaction.lastfinish.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.lastfinish.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom idle" ) { g.firemodes[t.gunid][t.x].zoomaction.idle.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.idle.e = t.value2; }
@@ -447,10 +456,9 @@ void gun_loaddata ( void )
 		t.gun[t.gunid].texd_s = pTexFileName;
 	}
 
-	//  Go through gun settings and populate with defaults
+	// Go through gun settings and populate with defaults
 	for ( t.i = 0 ; t.i<=  1; t.i++ )
 	{
-
 		//  If no run, replace with regular move action
 		if (  g.firemodes[t.gunid][t.i].action.run.e == 0  )  g.firemodes[t.gunid][t.i].action.run = g.firemodes[t.gunid][t.i].action.move;
 		if (  g.firemodes[t.gunid][t.i].zoomaction.run.e == 0  )  g.firemodes[t.gunid][t.i].zoomaction.run = g.firemodes[t.gunid][t.i].zoomaction.move;
@@ -530,6 +538,12 @@ void gun_loaddata ( void )
 				t.decal[t.decalid].active=1;
 				g.firemodes[t.gunid][t.i].decalid=t.decalid;
 			}
+		}
+
+		// global setting to stop any jamming of weapons
+		if ( g.globals.disableweaponjams == 1 )
+		{
+			g.firemodes[t.gunid][t.i].settings.jamchance = 0;
 		}
 	}
 }

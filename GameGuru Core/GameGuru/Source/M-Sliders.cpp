@@ -6,9 +6,9 @@
 #include "gameguru.h"
 
 // Externals
-extern int g_iTriggerReloadOfImportModel;
-extern int g_iFBXGeometryToggleMode;
-extern int g_iFBXGeometryCenterMesh;
+//extern int g_iTriggerReloadOfImportModel;
+//extern int g_iFBXGeometryToggleMode;
+//extern int g_iFBXGeometryCenterMesh;
 //extern bool g_VR920RenderStereoNow;
 extern UINT g_StereoEyeToggle;
 
@@ -20,6 +20,7 @@ void sliders_init ( void )
 {
 	//  load images for slider resources
 	t.timgbase=g.slidersmenuimageoffset;
+	SetMipmapNum(1); //PE: mipmaps not needed.
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\bar.png",t.timgbase+1,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\handle.png",t.timgbase+2,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\paneltop.png",t.timgbase+3,1 );
@@ -73,7 +74,8 @@ void sliders_init ( void )
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-staff.png",t.timgbase+82,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\health-icon.png",t.timgbase+91,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\lives-icon.png",t.timgbase+92,1 );
-
+	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-infinity.png",t.timgbase+93,1 );
+	SetMipmapNum(-1);
 	//  Multiple panels allowed
 	g.slidersmenumax=0;
 
@@ -1641,7 +1643,8 @@ void sliders_draw ( void )
 					//  custom panel (ammo, health)
 					if (  t.slidersmenu[t.slidersmenuindex].customimagetype == 1 && t.gunid>0 ) 
 					{
-						if ( g.quickparentalcontrolmode == 2 || t.gun[t.gunid].weapontype == 51 || g.firemodes[t.gunid][g.firemode].settings.reloadqty == 0 ) 
+						//if ( g.quickparentalcontrolmode == 2 || t.gun[t.gunid].weapontype == 51 || g.firemodes[t.gunid][g.firemode].settings.reloadqty == 0 ) 
+						if ( g.quickparentalcontrolmode == 2 || t.gun[t.gunid].weapontype == 51 ) 
 						{
 							//  melee has no ammo panel
 						}
@@ -1670,22 +1673,8 @@ void sliders_draw ( void )
 							SetSpriteDiffuse (  g.ammopanelsprite,t.tDiffuseR,t.tDiffuseG,0 );
 							PasteSprite (  g.ammopanelsprite,t.rmposx,t.tpanely );
 							PasteImage (  t.timgbase+52,t.rmposx+12,t.tpanely+64,1 );
-							PasteImage (  t.timgbase+53,t.rmposx+141,t.tpanely+22,1 );
-							//  ammo panel icons
+
 							t.slidersmenu[t.slidersmenuindex].customimagesubtype=t.gun[t.gunid].statuspanelcode;
-							if (  t.slidersmenu[t.slidersmenuindex].customimagesubtype == 100 ) 
-							{
-								t.timgtouse=g.firemodes[t.gunid][g.firemode].ammoimg;
-								if (  t.timgtouse == 0  )  t.timgtouse = g.firemodes[t.gunid][0].ammoimg;
-							}
-							else
-							{
-								t.timgtouse=t.timgbase+71+t.slidersmenu[t.slidersmenuindex].customimagesubtype;
-							}
-							if (  ImageExist(t.timgtouse) == 1 ) 
-							{
-								PasteImage (  t.timgtouse,t.rmposx+60-(ImageWidth(t.timgtouse)/2),t.tpanely+20,1 );
-							}
 							if (  t.slidersmenu[t.slidersmenuindex].customimagesubtype == 100 ) 
 							{
 								t.timgtouse=g.firemodes[t.gunid][g.firemode].iconimg;
@@ -1699,11 +1688,36 @@ void sliders_draw ( void )
 							{
 								PasteImage (  t.timgtouse,t.rmposx+115-(ImageWidth(t.timgtouse)/2),t.tpanely+75,1 );
 							}
-							t.tammovalue_s=Str(t.slidersmenuvalue[t.slidersmenuindex][1].value);
-							t.twidth=getbitmapfontwidth(t.tammovalue_s.Get(),4);
-							pastebitmapfont(t.tammovalue_s.Get(),t.rmposx+136-t.twidth,t.rmposy+19,4,255);
-							t.tclipvalue_s=Str(t.slidersmenuvalue[t.slidersmenuindex][2].value);
-							pastebitmapfont(t.tclipvalue_s.Get(),t.rmposx+147,t.rmposy+22,3,255);
+
+							if ( g.firemodes[t.gunid][g.firemode].settings.reloadqty == 0 )
+							{
+								// use infinity symbol instead of hiding ammo panel
+								PasteImage (  t.timgbase+93,(t.rmposx+141)-69,t.tpanely+22,1 );
+							}
+							else
+							{
+								//  ammo panel icons
+								if (  t.slidersmenu[t.slidersmenuindex].customimagesubtype == 100 ) 
+								{
+									t.timgtouse=g.firemodes[t.gunid][g.firemode].ammoimg;
+									if (  t.timgtouse == 0  )  t.timgtouse = g.firemodes[t.gunid][0].ammoimg;
+								}
+								else
+								{
+									t.timgtouse=t.timgbase+71+t.slidersmenu[t.slidersmenuindex].customimagesubtype;
+								}
+								if (  ImageExist(t.timgtouse) == 1 ) 
+								{
+									PasteImage (  t.timgtouse,t.rmposx+60-(ImageWidth(t.timgtouse)/2),t.tpanely+20,1 );
+								}
+
+								PasteImage (  t.timgbase+53,t.rmposx+141,t.tpanely+22,1 );
+								t.tammovalue_s=Str(t.slidersmenuvalue[t.slidersmenuindex][1].value);
+								t.twidth=getbitmapfontwidth(t.tammovalue_s.Get(),4);
+								pastebitmapfont(t.tammovalue_s.Get(),t.rmposx+136-t.twidth,t.rmposy+19,4,255);
+								t.tclipvalue_s=Str(t.slidersmenuvalue[t.slidersmenuindex][2].value);
+								pastebitmapfont(t.tclipvalue_s.Get(),t.rmposx+147,t.rmposy+22,3,255);
+							}
 						}
 					}
 					if (  t.slidersmenu[t.slidersmenuindex].customimagetype == 2 ) 
@@ -2493,13 +2507,13 @@ void sliders_write ( void )
 			// changed shader while in model importer
 			importer_changeshader ( t.slidersmenuvalue[t.slidersmenuindex][2].value_s.Get() );
 		}
-		if ( t.whichmenuitem==13 || t.whichmenuitem==14 )
-		{
-			// selected options to force the imported model to reload
-			g_iFBXGeometryToggleMode = t.slidersmenuvalue[t.slidersmenuindex][13].value-1;
-			g_iFBXGeometryCenterMesh = t.slidersmenuvalue[t.slidersmenuindex][14].value-1;
-			g_iTriggerReloadOfImportModel = 1;
-		}
+		//if ( t.whichmenuitem==13 || t.whichmenuitem==14 )
+		//{
+		//	// selected options to force the imported model to reload
+		//	g_iFBXGeometryToggleMode = t.slidersmenuvalue[t.slidersmenuindex][13].value-1;
+		//	g_iFBXGeometryCenterMesh = t.slidersmenuvalue[t.slidersmenuindex][14].value-1;
+		//	g_iTriggerReloadOfImportModel = 1;
+		//}
 	}
 }
 
@@ -2515,8 +2529,8 @@ void sliders_scope_draw ( void )
 			t.timgwidth_f=ImageWidth(t.timgbase) ; t.timgheight_f=ImageHeight(t.timgbase);
 			t.timgratio_f=t.timgwidth_f/t.timgheight_f;
 			t.tsprwidth_f=GetDisplayHeight()*t.timgratio_f;
-			SizeSprite (  t.timgbase,t.tsprwidth_f,GetDisplayHeight() );
-			PasteSprite (  t.timgbase,(t.tsprwidth_f-GetDisplayWidth())/-2,0 );
+			SizeSprite ( t.timgbase, t.tsprwidth_f, GetDisplayHeight()+1 );
+			PasteSprite ( t.timgbase, (t.tsprwidth_f-GetDisplayWidth())/-2, 0 );
 		}
 	}
 }

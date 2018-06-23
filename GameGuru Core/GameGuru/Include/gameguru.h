@@ -497,6 +497,13 @@ struct Sglobals
 	int gpretestsavemode;
 	int gproducelogfiles;
 	int gpbroverride;
+	int underwatermode;
+	int memskipwatermask;
+	int standalonefreememorybetweenlevels;
+	int lowestnearcamera;
+	int memskipibr;
+	int memgeneratedump;
+
 	int grawtextsizelast;
 	int grenadeexplosion;
 	DWORD guniquesignature;
@@ -627,10 +634,11 @@ struct Sglobals
 	int quickstartmenumode;
 	int quickparentalcontrolmode;
 	int quickparentalcontrolmodepassword[5];
+	int vrqoreducontrolmode;
 	int vrqcontrolmode;
 	cstr vrqcontrolmodeserialcode;
 	int vrqTriggerSerialCodeEntrySystem;
-	int vrqTriggerSoftwareToQuit;
+	int iTriggerSoftwareToQuit;
 	int videoMenuPlayed[10];
 	int reviewRequestReminder;
 	int reviewRequestMinuteCounter;
@@ -1109,10 +1117,26 @@ struct Sglobals
 	int guidiffuseshadereffectindex;
 	int guiwireframeshadereffectindex;
 	int guidepthshadereffectindex;
+	int projectileEventType_explosion;
+	cstr projectileEventType_name;
+	int projectileEventType_x;
+	int projectileEventType_y;
+	int projectileEventType_z;
+	int projectileEventType_radius;
+	int projectileEventType_damage;
+	int projectileEventType_entityhit;
 
 	// Constructor
 	Sglobals ( )
 	{
+		 projectileEventType_explosion = 0;
+		 projectileEventType_name = "";
+		 projectileEventType_x = 0;
+		 projectileEventType_y = 0;
+		 projectileEventType_z = 0;
+		 projectileEventType_radius = 0;
+		 projectileEventType_damage = 0;
+		 projectileEventType_entityhit = 0;
 		 guidepthshadereffectindex = 0;
 		 guiwireframeshadereffectindex = 0;
 		 guidiffuseshadereffectindex = 0;
@@ -2134,6 +2158,7 @@ struct Stemps
 	int tcoopyentityupdatetostartat;
 	int tdisablepickupdropthiscycle;
 	int tDrowning_OldReflectionMode;
+	int tDrowning_OldWobbleHeight;
 	cstr tempsteamworkshopfilename_s;
 	int tgeneratefreshwatermaskflag;
 	float toriginalTranslateClickX1_f;
@@ -2763,6 +2788,10 @@ struct Stemps
 	float tphysicsadvance_f;
 	cstr tProjectileName_s;
 	int tProjectileResult;
+	int tProjectileResultExplosionImageID;
+	int tProjectileResultLightFlag;
+	int tProjectileResultSmokeImageID;
+	int tProjectileResultSparksCount;
 	cstr tProjectileType_s;
 	int trecentfilechoice;
 	int trecolorAfterGame;
@@ -4585,6 +4614,8 @@ struct Stemps
 	int gunfull;
 	int gunmode;
 	int gunmodelast;
+	int gunmodetransitionoverride;
+	float gunmodewaitforframe;
 	float ImpMaxX;
 	float ImpMaxY;
 	float ImpMaxZ;
@@ -8006,6 +8037,10 @@ struct Stemps
 		 trecolorAfterGame = 0;
 		 trecentfilechoice = 0;
 		 tProjectileType_s = "";
+		 tProjectileResultLightFlag = 0;
+		 tProjectileResultSmokeImageID = 0;
+		 tProjectileResultSparksCount = 0;
+		 tProjectileResultExplosionImageID = 0;
 		 tProjectileResult = 0;
 		 tProjectileName_s = "";
 		 tphysicsadvance_f = 0.0f;

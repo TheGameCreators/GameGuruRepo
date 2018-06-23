@@ -695,7 +695,8 @@ void darkai_setup_entity ( void )
 			{
 				float forceobstacleslicemin = t.entityprofile[t.entid].forceobstaclepolysize;
 				float forceobstaclesliceheight = t.entityprofile[t.entid].forceobstaclesliceheight;
-				darkai_addobstoallneededcontainers ( 3, t.tobj, t.tfullheight, forceobstacleslicemin, forceobstaclesliceheight );
+				float forceobstaclesliceminsize = t.entityprofile[t.entid].forceobstaclesliceminsize;
+				darkai_addobstoallneededcontainers ( 3, t.tobj, t.tfullheight, forceobstacleslicemin, forceobstaclesliceheight, forceobstaclesliceminsize );
 			}
 			AIAddAlternateVisibilityObject (  t.tobj,0 );
 		}
@@ -704,7 +705,7 @@ void darkai_setup_entity ( void )
 			if (  t.aisystem.generateobs == 1 ) 
 			{
 				//AIAddStaticObstacle (  t.tobj,t.tfullheight,t.tcontainerid );
-				darkai_addobstoallneededcontainers ( 2, t.tobj, t.tfullheight, 0.0f, 0.0f );
+				darkai_addobstoallneededcontainers ( 2, t.tobj, t.tfullheight, 0.0f, 0.0f, 5.0f );
 			}
 			AIAddAlternateVisibilityObject (  t.tobj,0 );
 		}
@@ -719,7 +720,7 @@ void darkai_setup_entity ( void )
 			if (  t.aisystem.generateobs == 1 ) 
 			{
 				//AIAddStaticObstacle (  g.darkaiobsboxobject,t.tfullheight,t.tcontainerid );
-				darkai_addobstoallneededcontainers ( 1, g.darkaiobsboxobject, t.tfullheight, 0.0f, 0.0f );
+				darkai_addobstoallneededcontainers ( 1, g.darkaiobsboxobject, t.tfullheight, 0.0f, 0.0f, 5.0f );
 			}
 			AIAddAlternateVisibilityObject (  g.darkaiobsboxobject,0 );
 			DeleteObject (  g.darkaiobsboxobject );
@@ -727,7 +728,7 @@ void darkai_setup_entity ( void )
 	}
 }
 
-void darkai_addobstoallneededcontainers ( int iType, int iObj, int iFullHeight, float fMinHeight, float fSliceHeight )
+void darkai_addobstoallneededcontainers ( int iType, int iObj, int iFullHeight, float fMinHeight, float fSliceHeight, float fSliceMinSize )
 {
 	// go through all zones (zone zero is container zero)
 	for ( t.twaypointindex = 0; t.twaypointindex <= g.waypointmax; t.twaypointindex++ )
@@ -787,7 +788,7 @@ void darkai_addobstoallneededcontainers ( int iType, int iObj, int iFullHeight, 
 					{
 						case 1 : AIAddStaticObstacle ( iObj, iFullHeight, iContainerID ); break;
 						case 2 : AIAddStaticObstacle ( iObj, iFullHeight, iContainerID ); break;
-						case 3 : AIAddObstacleFromLevel ( iObj, iContainerID, iFullHeight, ObjectPositionY(iObj)+fSliceHeight, 5.0, fMinHeight, 0 ); break;
+						case 3 : AIAddObstacleFromLevel ( iObj, iContainerID, iFullHeight, ObjectPositionY(iObj)+fSliceHeight, fSliceMinSize, fMinHeight, 0 ); break;
 					}
 				}
 			}
@@ -1528,7 +1529,7 @@ void darkai_calcplrvisible ( void )
 						if (  g.gnumberofraycastslastoneused == t.tcharanimindex ) 
 						{
 							t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,t.brayx1_f,t.brayy1_f,t.brayz1_f,0,0,0,-123);
-							t.tintersectvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.brayx1_f,t.brayy1_f,t.brayz1_f,t.brayx2_f,t.brayy2_f,t.brayz2_f,t.charanimstate.obj)>0;
+							t.tintersectvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.brayx1_f,t.brayy1_f,t.brayz1_f,t.brayx2_f,t.brayy2_f,t.brayz2_f,t.charanimstate.obj);//220618 yuk >0;
 							if (  t.tintersectvalue>0 ) 
 							{
 								t.ttokay=0;
