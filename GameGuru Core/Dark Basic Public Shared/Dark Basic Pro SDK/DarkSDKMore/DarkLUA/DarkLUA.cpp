@@ -3477,6 +3477,23 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 	{
 		if ( n < 2 ) return 0;
 	}
+	int gunId = t.gunid;
+	int fireMode = g.firemode;
+	int param = 1;
+	if ( n > 1 && iDataMode > 200 && iDataMode < 500 ) 
+	{
+		gunId = lua_tonumber( L, 1 );
+		if ( n == 2 )
+		{
+			fireMode = 0;
+			param = 2;
+		}
+		else
+		{
+			fireMode = lua_tonumber( L, 2 );
+			param = 3;
+		}
+	}
 	switch ( iDataMode )
 	{
 		case 1 : t.playercontrol.jetpackmode = lua_tonumber(L, 1); break;
@@ -3656,38 +3673,38 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 188 : t.huddamage.immunity = lua_tonumber(L, 1); break;		
 		case 189 : g.charanimindex = lua_tonumber(L, 1); break;	
 	
-		case 201 : t.gun[t.gunid].settings.ismelee = lua_tonumber(L, 1); break;
-		case 202 : t.gun[t.gunid].settings.alternate = lua_tonumber(L, 1); break;
-		case 203 : t.gun[t.gunid].settings.modessharemags = lua_tonumber(L, 1); break;
-		case 204 : t.gun[t.gunid].settings.alternateisflak = lua_tonumber(L, 1); break;
-		case 205 : t.gun[t.gunid].settings.alternateisray = lua_tonumber(L, 1); break;
+		case 201 : t.gun[gunId].settings.ismelee         = lua_tonumber( L, param ); break;
+		case 202 : t.gun[gunId].settings.alternate       = lua_tonumber( L, param ); break;
+		case 203 : t.gun[gunId].settings.modessharemags  = lua_tonumber( L, param ); break;
+		case 204 : t.gun[gunId].settings.alternateisflak = lua_tonumber( L, param ); break;
+		case 205 : t.gun[gunId].settings.alternateisray  = lua_tonumber( L, param ); break;
 
-		case 301 : g.firemodes[t.gunid][g.firemode].settings.reloadqty = lua_tonumber(L, 1); break;
-		case 302 : g.firemodes[t.gunid][g.firemode].settings.isempty = lua_tonumber(L, 1); break;
-		case 303 : g.firemodes[t.gunid][g.firemode].settings.jammed = lua_tonumber(L, 1); break;
-		case 304 : g.firemodes[t.gunid][g.firemode].settings.jamchance = lua_tonumber(L, 1); break;
-		case 305 : g.firemodes[t.gunid][g.firemode].settings.mintimer = lua_tonumber(L, 1); break;
-		case 306 : g.firemodes[t.gunid][g.firemode].settings.addtimer = lua_tonumber(L, 1); break;
-		case 307 : g.firemodes[t.gunid][g.firemode].settings.shotsfired = lua_tonumber(L, 1); break;
-		case 308 : g.firemodes[t.gunid][g.firemode].settings.cooltimer = lua_tonumber(L, 1); break;
-		case 309 : g.firemodes[t.gunid][g.firemode].settings.overheatafter = lua_tonumber(L, 1); break;
-		case 310 : g.firemodes[t.gunid][g.firemode].settings.jamchancetime = lua_tonumber(L, 1); break;
-		case 311 : g.firemodes[t.gunid][g.firemode].settings.cooldown = lua_tonumber(L, 1); break;
-		case 312 : g.firemodes[t.gunid][g.firemode].settings.nosubmergedfire = lua_tonumber(L, 1); break;
-		case 313 : g.firemodes[t.gunid][g.firemode].settings.simplezoom = lua_tonumber(L, 1); break;
-		case 314 : g.firemodes[t.gunid][g.firemode].settings.forcezoomout = lua_tonumber(L, 1); break;
-		case 315 : g.firemodes[t.gunid][g.firemode].settings.zoommode = lua_tonumber(L, 1); break;
-		case 316 : g.firemodes[t.gunid][g.firemode].settings.simplezoomanim = lua_tonumber(L, 1); break;
-		case 317 : g.firemodes[t.gunid][g.firemode].settings.poolindex = lua_tonumber(L, 1); break;
-		case 318 : g.firemodes[t.gunid][g.firemode].settings.plrturnspeedmod = lua_tonumber(L, 1); break;
-		case 319 : g.firemodes[t.gunid][g.firemode].settings.zoomturnspeed = lua_tonumber(L, 1); break;
-		case 320 : g.firemodes[t.gunid][g.firemode].settings.plrjumpspeedmod = lua_tonumber(L, 1); break;
-		case 321 : g.firemodes[t.gunid][g.firemode].settings.plremptyspeedmod = lua_tonumber(L, 1); break;
-		case 322 : g.firemodes[t.gunid][g.firemode].settings.plrmovespeedmod = lua_tonumber(L, 1); break;
-		case 323 : g.firemodes[t.gunid][g.firemode].settings.zoomwalkspeed = lua_tonumber(L, 1); break;
-		case 324 : g.firemodes[t.gunid][g.firemode].settings.plrreloadspeedmod = lua_tonumber(L, 1); break;
-		case 325 : g.firemodes[t.gunid][g.firemode].settings.hasempty = lua_tonumber(L, 1); break;
-		case 326 : g.firemodes[t.gunid][g.firemode].action.block.s = lua_tonumber(L, 1); break;
+		case 301 : g.firemodes[gunId][fireMode].settings.reloadqty         = lua_tonumber( L, param ); break;
+		case 302 : g.firemodes[gunId][fireMode].settings.isempty           = lua_tonumber( L, param ); break;
+		case 303 : g.firemodes[gunId][fireMode].settings.jammed            = lua_tonumber( L, param ); break;
+		case 304 : g.firemodes[gunId][fireMode].settings.jamchance         = lua_tonumber( L, param ); break;
+		case 305 : g.firemodes[gunId][fireMode].settings.mintimer          = lua_tonumber( L, param ); break;
+		case 306 : g.firemodes[gunId][fireMode].settings.addtimer          = lua_tonumber( L, param ); break;
+		case 307 : g.firemodes[gunId][fireMode].settings.shotsfired        = lua_tonumber( L, param ); break;
+		case 308 : g.firemodes[gunId][fireMode].settings.cooltimer         = lua_tonumber( L, param ); break;
+		case 309 : g.firemodes[gunId][fireMode].settings.overheatafter     = lua_tonumber( L, param ); break;
+		case 310 : g.firemodes[gunId][fireMode].settings.jamchancetime     = lua_tonumber( L, param ); break;
+		case 311 : g.firemodes[gunId][fireMode].settings.cooldown          = lua_tonumber( L, param ); break;
+		case 312 : g.firemodes[gunId][fireMode].settings.nosubmergedfire   = lua_tonumber( L, param ); break;
+		case 313 : g.firemodes[gunId][fireMode].settings.simplezoom        = lua_tonumber( L, param ); break;
+		case 314 : g.firemodes[gunId][fireMode].settings.forcezoomout      = lua_tonumber( L, param ); break;
+		case 315 : g.firemodes[gunId][fireMode].settings.zoommode          = lua_tonumber( L, param ); break;
+		case 316 : g.firemodes[gunId][fireMode].settings.simplezoomanim    = lua_tonumber( L, param ); break;
+		case 317 : g.firemodes[gunId][fireMode].settings.poolindex         = lua_tonumber( L, param ); break;
+		case 318 : g.firemodes[gunId][fireMode].settings.plrturnspeedmod   = lua_tonumber( L, param ); break;
+		case 319 : g.firemodes[gunId][fireMode].settings.zoomturnspeed     = lua_tonumber( L, param ); break;
+		case 320 : g.firemodes[gunId][fireMode].settings.plrjumpspeedmod   = lua_tonumber( L, param ); break;
+		case 321 : g.firemodes[gunId][fireMode].settings.plremptyspeedmod  = lua_tonumber( L, param ); break;
+		case 322 : g.firemodes[gunId][fireMode].settings.plrmovespeedmod   = lua_tonumber( L, param ); break;
+		case 323 : g.firemodes[gunId][fireMode].settings.zoomwalkspeed     = lua_tonumber( L, param ); break;
+		case 324 : g.firemodes[gunId][fireMode].settings.plrreloadspeedmod = lua_tonumber( L, param ); break;
+		case 325 : g.firemodes[gunId][fireMode].settings.hasempty          = lua_tonumber( L, param ); break;
+		case 326 : g.firemodes[gunId][fireMode].action.block.s             = lua_tonumber( L, param ); break;
 
 		case 501 : t.gunsound[t.gunid][lua_tonumber(L, 1)].soundid1 = lua_tonumber(L, 2); break;
 		case 502 : t.gunsound[t.gunid][lua_tonumber(L, 1)].altsoundid = lua_tonumber(L, 2); break;
@@ -3757,6 +3774,22 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		else
 			if ( n < 1 ) return 0;
 	}
+	int gunId = t.gunid;
+	int fireMode = t.tfiremode;
+
+	if ( n > 0 && iDataMode > 200 && iDataMode < 500 )
+	{
+		gunId = lua_tonumber(L, 1);
+		if (n > 1)
+		{
+			fireMode = lua_tonumber(L, 2);
+		}
+		else
+		{
+			fireMode = 0;
+		}
+	}
+
 	switch ( iDataMode )
 	{
 		case 1 : lua_pushnumber ( L, t.playercontrol.jetpackmode ); break;
@@ -3935,38 +3968,38 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 188 : lua_pushnumber ( L, t.huddamage.immunity ); break;	
 		case 189 : lua_pushnumber ( L, g.charanimindex ); break;				
 			
-		case 201 : lua_pushnumber ( L, t.gun[t.gunid].settings.ismelee ); break;
-		case 202 : lua_pushnumber ( L, t.gun[t.gunid].settings.alternate ); break;
-		case 203 : lua_pushnumber ( L, t.gun[t.gunid].settings.modessharemags ); break;
-		case 204 : lua_pushnumber ( L, t.gun[t.gunid].settings.alternateisflak ); break;
-		case 205 : lua_pushnumber ( L, t.gun[t.gunid].settings.alternateisray ); break;
+		case 201 : lua_pushnumber ( L, t.gun[gunId].settings.ismelee         ); break;
+		case 202 : lua_pushnumber ( L, t.gun[gunId].settings.alternate       ); break;
+		case 203 : lua_pushnumber ( L, t.gun[gunId].settings.modessharemags  ); break;
+		case 204 : lua_pushnumber ( L, t.gun[gunId].settings.alternateisflak ); break;
+		case 205 : lua_pushnumber ( L, t.gun[gunId].settings.alternateisray  ); break;
 		
-		case 301 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.reloadqty ); break;
-		case 302 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.isempty ); break;
-		case 303 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.jammed ); break;
-		case 304 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.jamchance ); break;
-		case 305 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.mintimer ); break;
-		case 306 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.addtimer ); break;
-		case 307 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.shotsfired ); break;
-		case 308 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.cooltimer ); break;
-		case 309 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.overheatafter ); break;
-		case 310 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.jamchancetime ); break;
-		case 311 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.cooldown ); break;
-		case 312 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.nosubmergedfire ); break;
-		case 313 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.simplezoom ); break;
-		case 314 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.forcezoomout ); break;
-		case 315 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.zoommode ); break;
-		case 316 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.simplezoomanim ); break;
-		case 317 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.poolindex ); break;
-		case 318 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plrturnspeedmod ); break;
-		case 319 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.zoomturnspeed ); break;
-		case 320 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plrjumpspeedmod ); break;
-		case 321 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plremptyspeedmod ); break;
-		case 322 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plrmovespeedmod ); break;
-		case 323 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.zoomwalkspeed ); break;
-		case 324 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plrreloadspeedmod ); break;
-		case 325 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.hasempty ); break;
-		case 326 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].action.block.s ); break;
+		case 301 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.reloadqty         ); break;
+		case 302 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.isempty           ); break;
+		case 303 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.jammed            ); break;
+		case 304 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.jamchance         ); break;
+		case 305 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.mintimer          ); break;
+		case 306 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.addtimer          ); break;
+		case 307 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.shotsfired        ); break;
+		case 308 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.cooltimer         ); break;
+		case 309 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.overheatafter     ); break;
+		case 310 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.jamchancetime     ); break;
+		case 311 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.cooldown          ); break;
+		case 312 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.nosubmergedfire   ); break;
+		case 313 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.simplezoom        ); break;
+		case 314 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.forcezoomout      ); break;
+		case 315 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.zoommode          ); break;
+		case 316 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.simplezoomanim    ); break;
+		case 317 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.poolindex         ); break;
+		case 318 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plrturnspeedmod   ); break;
+		case 319 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.zoomturnspeed     ); break;
+		case 320 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plrjumpspeedmod   ); break;
+		case 321 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plremptyspeedmod  ); break;
+		case 322 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plrmovespeedmod   ); break;
+		case 323 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.zoomwalkspeed     ); break;
+		case 324 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plrreloadspeedmod ); break;
+		case 325 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.hasempty          ); break;
+		case 326 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].action.block.s             ); break;
 
 		case 501 : lua_pushnumber ( L, t.gunsound[t.gunid][lua_tonumber(L, 1)].soundid1 ); break;
 		case 502 : lua_pushnumber ( L, t.gunsound[t.gunid][lua_tonumber(L, 1)].altsoundid ); break;		
