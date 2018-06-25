@@ -1678,9 +1678,10 @@ void FPSC_SetDefaults ( void )
 	g.gpbroverride = 0;
 	g.memskipwatermask = 0;
 	g.standalonefreememorybetweenlevels = 0;
-	g.lowestnearcamera = 6; // default , use setup.ini lowestnearcamera to adjust.
+	g.lowestnearcamera = 2; //PE: default , use setup.ini lowestnearcamera to adjust.
 	g.memgeneratedump = 0;
 	g.underwatermode = 0;
+	g.editorsavebak = 0;
 	g.gproducetruevidmemreading = 0;
 	g.gcharactercapsulescale_f = 1.0;
 	g.ggodmodestate = 0;
@@ -1939,7 +1940,8 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
 					t.tryfield_s = "standalonefreememorybetweenlevels"; if (t.field_s == t.tryfield_s)  g.standalonefreememorybetweenlevels = t.value1;
 					t.tryfield_s = "lowestnearcamera"; if (t.field_s == t.tryfield_s)  g.lowestnearcamera = t.value1;
-					
+					t.tryfield_s = "editorsavebak"; if (t.field_s == t.tryfield_s)  g.editorsavebak = t.value1;
+
 					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
 					t.tryfield_s = "memgeneratedump"; if (t.field_s == t.tryfield_s)  g.memgeneratedump = t.value1;
 					
