@@ -498,6 +498,7 @@ struct Sglobals
 	int gproducelogfiles;
 	int gpbroverride;
 	int underwatermode;
+	int editorsavebak;
 	int memskipwatermask;
 	int standalonefreememorybetweenlevels;
 	int lowestnearcamera;
