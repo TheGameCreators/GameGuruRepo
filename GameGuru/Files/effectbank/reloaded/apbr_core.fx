@@ -1,3 +1,4 @@
+
 #define PI 3.1415926535897932384626433832795f
 #define GAMMA 2.2f                                                                                                                    
 #include "constantbuffers.fx"
@@ -166,7 +167,16 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
      }   
    #endif
    output.position = mul(float4(inputPosition,1), World);
+
+
+#ifdef PBRTERRAIN
    output.positionCS = mul(output.position, mul(View, Projection)); // 
+#else
+	//PE: depth buffer is based on this calculation so we need to use the same.
+	//PE: otherwise we get floating point precision errors and z-fighting.
+   output.positionCS = mul(float4(inputPosition,1), WorldViewProjection);
+#endif
+
    output.normal = mul(inputNormal, wsTransform);   
    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
    output.viewDepth = mul(output.position, View).z;
@@ -227,13 +237,15 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
 	//output.positionCS.z = output.positionCS.z * output.positionCS.w / 5000.0f;
 
 #ifdef PBRTERRAIN
-    if(output.positionCS.z > 3400.0 && output.position.y < 460.0 && output.normal.y > 0.9985 ) {
-      output.clip=-1.0;
-      output.positionCS.z = 100000.0;
-      output.positionCS.x = 100000.0;
-      output.positionCS.y = 100000.0;
-      output.positionCS.w = 0.0;
-    }
+//PE: Something is wrong with the terrin normals, they are often set is flat output.normal.y > 0.9985 , but are not flat ?
+//PE: So need to disable this for now.
+//    if(output.positionCS.z > 3400.0 && output.position.y < 460.0 && output.normal.y > 0.9985 ) {
+//      output.clip=-1.0;
+//      output.positionCS.z = 100000.0;
+//      output.positionCS.x = 100000.0;
+//      output.positionCS.y = 100000.0;
+//      output.positionCS.w = 0.0;
+//    }
 #endif
    return output;
 }
@@ -880,6 +892,67 @@ float CalcFlashLight( float3 worldPos)
 }
 */
 
+
+float3 CalcLightingPBR(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap, float3 toEye, float metallic, float roughness )
+{
+   float3 output = GlowIntensity.xyz;
+   #ifdef SKIPIFNODYNAMICLIGHTS
+   if ( g_lights_data.x == 0 ) return output;
+   #endif
+
+    // light 0
+    float3 toLight = g_lights_pos0.xyz - worldPos;
+    float lightDist = length( toLight );
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float4 local_lights_atten0 = float4(1.0, 1.0/g_lights_pos0.w, 1.0/(g_lights_pos0.w*g_lights_pos0.w), 0.0);
+
+	fAtten = 1.0/dot( local_lights_atten0, float4(1,lightDist,lightDist*lightDist,0) );
+	lightDir = normalize( toLight );
+	halfvec = normalize(Vn + lightDir);
+	lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+
+	float3 albedoAdd = float3(1.0,1.0,1.0);
+	float3 fspecular = CookTorranceSpecFactor(Nb, toEye, metallic, roughness, -lightDir, albedoAdd);
+	fspecular = clamp( ( fspecular * GlobalSpecular)  ,0.0,1.0);
+  
+    output+= (lit0.y *g_lights_diffuse0.xyz * fAtten * 1.7*diffusemap) + (fspecular * g_lights_diffuse0.xyz * fAtten  );   
+
+    // light 1
+    toLight = g_lights_pos1.xyz - worldPos;
+    lightDist = length( toLight );
+	float4 local_lights_atten1 = float4(1.0, 1.0/g_lights_pos1.w, 1.0/(g_lights_pos1.w*g_lights_pos1.w), 0.0);
+	fAtten = 1.0/dot( local_lights_atten1, float4(1,lightDist,lightDist*lightDist,0) );
+	lightDir = normalize( toLight );
+	halfvec = normalize(Vn + lightDir);
+	lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+
+	fspecular = CookTorranceSpecFactor(Nb, toEye, metallic, roughness, -lightDir, albedoAdd);
+	fspecular = clamp( ( fspecular * GlobalSpecular) ,0.0,1.0);
+
+    output+= (lit0.y *g_lights_diffuse1.xyz * fAtten * 1.7*diffusemap) + (fspecular * g_lights_diffuse1.xyz * fAtten  );   
+
+	// light 2
+	toLight = g_lights_pos2.xyz - worldPos;
+	lightDist = length( toLight );
+	float4 local_lights_atten2 = float4(1.0, 1.0/g_lights_pos2.w, 1.0/(g_lights_pos2.w*g_lights_pos2.w), 0.0);
+	fAtten = 1.0/dot( local_lights_atten2, float4(1,lightDist,lightDist*lightDist,0) );
+	lightDir = normalize( toLight );
+	halfvec = normalize(Vn + lightDir);
+	lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+
+	fspecular = CookTorranceSpecFactor(Nb, toEye, metallic, roughness, -lightDir, albedoAdd);
+	fspecular = clamp( ( fspecular * GlobalSpecular)  ,0.0,1.0);
+
+    output+= (lit0.y *g_lights_diffuse2.xyz * fAtten * 1.7*diffusemap) + (fspecular * g_lights_diffuse2.xyz * fAtten  );   
+
+	// return final light influence
+	return output;
+}
+
+
 float3 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap)
 {
    float3 output = GlowIntensity.xyz;
@@ -1235,7 +1308,16 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	float3 eye = normalize(eyeraw);
 	float3 spotflashlighting = CalcSpotFlash(inputnormalW,attributes.position.xyz);   
 	
+#ifdef DYNAMICPBRLIGHT
+#ifndef PBRTERRAIN
+	light += CalcLightingPBR(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0), toEye, gMaterial.Properties.g, gMaterial.Properties.b ) + spotflashlighting;  
+#else
 	light += CalcLighting(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0)) + spotflashlighting;  
+#endif
+#else
+	light += CalcLighting(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0)) + spotflashlighting;  
+#endif
+
 	//float flashlight = CalcFlashLight(attributes.position.xyz);
 
     // flash light system (flash light control carried in SpotFlashColor.w )
@@ -1258,6 +1340,15 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     float flashlight = pow(max(fspecular.r,0),conewidth) * intensity * SpotFlashColor.w * MAXFLASHLIGHT;
 #endif
 
+#ifndef PBRTERRAIN
+    #ifdef SPECULARCAMERA
+     float4 lightingsc = lit(dot(eye,inputnormalW),dot(eye,inputnormalW),24);
+     //intensity = max(0, 1.5f - (viewspacePos.z/500.0f));
+     lightingsc.z = lightingsc.z * intensity;
+     light =  light + ( ( (lightingsc.z * SPECULARCAMERAINTENSITY ) * SurfColor.xyz * visibility * GlobalSpecular) * 0.5);
+    #endif
+#endif
+    
 //	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
 	visibility = clamp( visibility+(flashlight*0.75) , 0.15 ,1.0 ); //PE: Set lowest dark shadow, to stop uneven shadow colors.
 
