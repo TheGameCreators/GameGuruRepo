@@ -2857,9 +2857,10 @@ void FPSC_Setup ( void )
 	sprintf ( t.szwork , "Just about to read languagebank\\%s\\textfiles\\guru-wordcount.ini" , g.language_s.Get() );
 	timestampactivity(0,t.szwork);
 
-	//  Translation Component (load strarr data)
-	if (  t.tnopathprotomode == 0 ) 
+	// Translation Component (load strarr data)
+	if ( t.tnopathprotomode == 0 ) 
 	{
+		// 250618 - this is the old translation system, capable of translating interface into many languages
 		t.stdir_s=GetDir();
 		sprintf ( t.szwork , "languagebank\\%s\\textfiles\\" , g.language_s.Get() );
 		SetDir ( t.szwork );
