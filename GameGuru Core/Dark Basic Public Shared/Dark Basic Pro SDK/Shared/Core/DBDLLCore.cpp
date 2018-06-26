@@ -1479,7 +1479,33 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	// Appname
 	char pAppName[256];
 	char pAppNameUnique[256];
-	strcpy(pAppName, "Game Guru");
+
+	//PE: Use the exe filenane as the title in the game.
+	//PE: So if you use Test-my-Game_name.exe as the standalone
+	//PE: the windows title will be "Test my Game name".
+
+	char workstring[1024];
+	GetModuleFileName(NULL, workstring, 1024);
+
+	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0 )
+	{
+		strcpy(pAppName, "Game Guru");
+	}
+	else {
+		strcpy(pAppName, "Game Guru");
+		TCHAR * out;
+		out = PathFindFileName(workstring);
+		if (out != NULL) {
+			*(PathFindExtension(out)) = 0;
+			for (int i = strlen(out); i > 0; i--) {
+				if (out[i] == '-') out[i] = ' ';
+				if (out[i] == '_') out[i] = ' ';
+			}
+			if (strlen(out) > 0)
+				strcpy(pAppName, out);
+		}
+	}
+
 
 	// this ensures no conflict between window class name and application class name
 	strcpy ( pAppNameUnique, pAppName );

@@ -224,13 +224,15 @@ vertexOutput mainVS_highest(appdata IN)
     OUT.Tn = normalize( OUT.Tn);
     OUT.Bn = normalize(cross(OUT.WorldNormal, OUT.Tn)); 
    
-    if(OUT.Position.z > 3400.0 && OUT.WPos.y < 460.0 && OUT.WorldNormal.y > 0.9985 ) {
-      OUT.clip=-1.0;
-      OUT.Position.z = 100000.0;
-      OUT.Position.x = 100000.0;
-      OUT.Position.y = 100000.0;
-      OUT.Position.w = 0.0;
-    }
+//PE: Something is wrong with the terrin normals, they are often set is flat output.normal.y > 0.9985 , but are not flat ?
+//PE: So need to disable this for now.
+//    if(OUT.Position.z > 3400.0 && OUT.WPos.y < 460.0 && OUT.WorldNormal.y > 0.9985 ) {
+//      OUT.clip=-1.0;
+//      OUT.Position.z = 100000.0;
+//      OUT.Position.x = 100000.0;
+//      OUT.Position.y = 100000.0;
+//      OUT.Position.w = 0.0;
+//    }
     return OUT;
 }
 
@@ -247,14 +249,16 @@ vertexOutput_low mainVS_lowest(appdata IN)
     float4 worldSpacePos = mul(float4(IN.Position,1), World);
     OUT.WPos = worldSpacePos;  
     OUT.clip = dot(worldSpacePos, clipPlane); 
-    if(OUT.Position.z > 3400.0 && OUT.WPos.y < 460.0 && OUT.WorldNormal.y > 0.9985 ) 
-    {
-      OUT.clip=-1.0;
-      OUT.Position.z = 100000.0;
-      OUT.Position.x = 100000.0;
-      OUT.Position.y = 100000.0;
-      OUT.Position.w = 0.0;
-    }
+//PE: Something is wrong with the terrin normals, they are often set is flat output.normal.y > 0.9985 , but are not flat ?
+//PE: So need to disable this for now.
+//    if(OUT.Position.z > 3400.0 && OUT.WPos.y < 460.0 && OUT.WorldNormal.y > 0.9985 ) 
+//    {
+//      OUT.clip=-1.0;
+//      OUT.Position.z = 100000.0;
+//      OUT.Position.x = 100000.0;
+//      OUT.Position.y = 100000.0;
+//      OUT.Position.w = 0.0;
+//    }
     return OUT;
 }
 
