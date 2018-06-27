@@ -6399,6 +6399,8 @@ struct gunsettingstype
 	float brassrotyrand;
 	float brassrotz;
 	float brassrotzrand;
+	int brassdelay;
+	int zoombrassdelay;
 	int smoke;
 	int flashlimb;
 	int brasslimb;
@@ -6434,6 +6436,7 @@ struct gunsettingstype
 	int range;
 	int dropoff;
 	int usespotlighting;
+	int smokesize;
 	int smokespeed;
 	cstr smokedecal_s;
 	int firerate;
@@ -6605,6 +6608,7 @@ struct gunsettingstype
 		 altfirerate = 0;
 		 firerate = 0;
 		 smokedecal_s = "";
+		 smokesize = 0;
 		 smokespeed = 0;
 		 usespotlighting = 0;
 		 dropoff = 0;
@@ -6743,6 +6747,8 @@ struct gunactionstype
 {
 	gunanimtype show;
 	gunanimtype idle;
+	gunanimtype runto;
+	gunanimtype runfrom;
 	gunanimtype move;
 	gunanimtype run;
 	gunanimtype flattentochest;

@@ -4344,6 +4344,7 @@ struct Stemps
 	gunanimtype gdryfire;
 	gridedittype gridedit;
 	int gunbrass;
+	DWORD gunbrasstrigger;
 	int gunburst;
 	int gunclick;
 	int gunflash;
@@ -4615,7 +4616,6 @@ struct Stemps
 	int gunfull;
 	int gunmode;
 	int gunmodelast;
-	int gunmodetransitionoverride;
 	float gunmodewaitforframe;
 	float ImpMaxX;
 	float ImpMaxY;
@@ -5071,6 +5071,7 @@ struct Stemps
 	gunanimtype gcock;
 	gunanimtype ghide;
 	gunanimtype gidle;
+	gunanimtype gruntofrom;
 	gunanimtype gmove;
 	int group;
 	gunanimtype gshow;

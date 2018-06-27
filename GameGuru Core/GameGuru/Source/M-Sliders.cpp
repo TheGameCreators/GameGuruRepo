@@ -1588,32 +1588,32 @@ void sliders_draw ( void )
 		for ( t.slidersmenuindex = 1 ; t.slidersmenuindex<=  g.slidersmenumax; t.slidersmenuindex++ )
 		{
 			t.tabviewflag=0;
-			if (  t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
-			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0 && g.tabmode<3  )  t.tabviewflag = 1;
-			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
-			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -9 && g.lowfpswarning == 1  )  t.tabviewflag = 1;
+			if ( t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
+			if ( t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0 && g.tabmode<3  )  t.tabviewflag = 1;
+			if ( t.slidersmenu[t.slidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
+			if ( t.slidersmenu[t.slidersmenuindex].tabpage == -9 && g.lowfpswarning == 1  )  t.tabviewflag = 1;
 
-			if (  t.tabviewflag == 1 ) 
+			if ( t.tabviewflag == 1 ) 
 			{
 				t.rmposx=t.slidersmenu[t.slidersmenuindex].tleft;
 				t.rmposy=t.slidersmenu[t.slidersmenuindex].ttop;
 				t.timgbase=g.slidersmenuimageoffset;
 				t.tpanely=t.rmposy;
-				if (  t.slidersmenu[t.slidersmenuindex].customimage>0 ) 
+				if ( t.slidersmenu[t.slidersmenuindex].customimage>0 ) 
 				{
-					//  custom panel (ammo, health)
-					if (  t.slidersmenu[t.slidersmenuindex].customimagetype == 1 && t.gunid>0 ) 
+					// custom panel (ammo, health)
+					if ( t.slidersmenu[t.slidersmenuindex].customimagetype == 1 && t.gunid>0 ) 
 					{
 						//if ( g.quickparentalcontrolmode == 2 || t.gun[t.gunid].weapontype == 51 || g.firemodes[t.gunid][g.firemode].settings.reloadqty == 0 ) 
 						if ( g.quickparentalcontrolmode == 2 || t.gun[t.gunid].weapontype == 51 ) 
 						{
-							//  melee has no ammo panel
+							// melee has no ammo panel
 						}
 						else
 						{
-							//  ammo panel (flash if no ammo or weapon jammed)
-							if (  SpriteExist(g.ammopanelsprite)  ==  0  )  Sprite (  g.ammopanelsprite,-1000,-1000,t.timgbase+51 );
-							t.tflashforjam = 0 ; if (  g.firemodes[t.gunid][g.firemode].settings.jammed == 1  )  t.tflashforjam = 1;
+							// ammo panel (flash if no ammo or weapon jammed)
+							if ( SpriteExist(g.ammopanelsprite)  ==  0  )  Sprite (  g.ammopanelsprite,-1000,-1000,t.timgbase+51 );
+							t.tflashforjam = 0 ; if ( g.firemodes[t.gunid][g.firemode].settings.jammed == 1 )  t.tflashforjam = 1;
 							if (  t.slidersmenuvalue[t.slidersmenuindex][1].value <= 0 || t.tflashforjam == 1 ) 
 							{
 								t.tDiffuseR = (1+Cos(Timer()/2.5))*100;

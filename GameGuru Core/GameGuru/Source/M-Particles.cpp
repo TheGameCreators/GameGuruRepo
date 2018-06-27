@@ -131,13 +131,22 @@ void ravey_particles_update_emitters ( void )
 						//  Is there a parent object? if so use its position, if not use emitters xyz
 						if (  t.ravey_particle_emitters[t.c].parentObject > 0 ) 
 						{
-							t.ravey_particles[t.tfound].x = LimbPositionX(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinX + Rnd(t.distx_f) / 1000.0;
 							t.disty_f = (t.ravey_particle_emitters[t.c].offsetMinY - t.ravey_particle_emitters[t.c].offsetMaxY);
 							t.disty_f = Sqrt(abs(t.disty_f*t.disty_f)) * 1000.0;
-							t.ravey_particles[t.tfound].y = LimbPositionY(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinY + Rnd(t.disty_f) / 1000.0;
 							t.distz_f = (t.ravey_particle_emitters[t.c].offsetMinZ - t.ravey_particle_emitters[t.c].offsetMaxZ);
 							t.distz_f = Sqrt(abs(t.distz_f*t.distz_f) ) * 1000.0;
-							t.ravey_particles[t.tfound].z = LimbPositionZ(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinZ + Rnd(t.distz_f) / 1000.0;
+							if ( t.ravey_particle_emitters[t.c].parentLimb == 0 )
+							{
+								t.ravey_particles[t.tfound].x = ObjectPositionX(t.ravey_particle_emitters[t.c].parentObject) + (t.ravey_particle_emitters[t.c].offsetMinX + Rnd(t.distx_f) / 1000.0);
+								t.ravey_particles[t.tfound].y = ObjectPositionY(t.ravey_particle_emitters[t.c].parentObject) + (t.ravey_particle_emitters[t.c].offsetMinY + Rnd(t.disty_f) / 1000.0);
+								t.ravey_particles[t.tfound].z = ObjectPositionZ(t.ravey_particle_emitters[t.c].parentObject) + (t.ravey_particle_emitters[t.c].offsetMinZ + Rnd(t.distz_f) / 1000.0);
+							}
+							else
+							{
+								t.ravey_particles[t.tfound].x = LimbPositionX(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinX + Rnd(t.distx_f) / 1000.0;
+								t.ravey_particles[t.tfound].y = LimbPositionY(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinY + Rnd(t.disty_f) / 1000.0;
+								t.ravey_particles[t.tfound].z = LimbPositionZ(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinZ + Rnd(t.distz_f) / 1000.0;
+							}
 						}
 						else
 						{

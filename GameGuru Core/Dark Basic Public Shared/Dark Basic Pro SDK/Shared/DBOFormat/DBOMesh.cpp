@@ -1742,6 +1742,16 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 	char pBaseTexName[MAX_STRING];
 	strcpy ( pBaseTexName, pName );
 
+	// 270618 - first check if diffuse file exists, if not, try tacking PBR texture naming convention to it
+	*piImageDiffuseIndex = LoadOrFindTextureAsImage ( pBaseTexName, TexturePath, iDivideTextureSize );
+	if ( *piImageDiffuseIndex == 0 )
+	{
+		// convert regular file reference to PBR one
+		strcpy ( pBaseTexName, pName );
+		pBaseTexName[strlen(pBaseTexName)-4]=0;
+		strcat ( pBaseTexName, "_color.png" );
+	}
+
 	// load the base color texture 
 	*piImageDiffuseIndex = LoadOrFindTextureAsImage ( pBaseTexName, TexturePath, iDivideTextureSize );
 

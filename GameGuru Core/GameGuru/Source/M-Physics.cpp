@@ -1415,7 +1415,17 @@ void physics_player_gatherkeycontrols ( void )
 		case 8 : t.plrkeyRETURN = 1 ; break ;
 		case 9 : t.tmouseclick = 1 ; break ;
 		case 10 : t.tmouseclick = 2 ; break ;
-		case 11 : g.firemodes[t.gunid][g.firemode].settings.jammed = 1 ; break ;
+		case 11 : 
+		{
+			// ensure weapon unjams affect both modes if sharing ammo
+			g.firemodes[t.gunid][g.firemode].settings.jammed = 1; 
+			if ( t.gun[t.gunid].settings.modessharemags == 1 ) 
+			{
+				g.firemodes[t.gunid][0].settings.jammed = 1;
+				g.firemodes[t.gunid][1].settings.jammed = 1;
+			}
+		}
+		break;
 	}
 
 	// Third person disables crouch/zoom/RMB
@@ -1427,7 +1437,7 @@ void physics_player_gatherkeycontrols ( void )
 	}
 
 	//  Free weapon jam if reload used (possible relocate these to gun module
-	if ( t.player[1].state.firingmode == 2 && t.gunzoommode == 0 ) 
+	if ( t.player[1].state.firingmode == 2 ) //&& t.gunzoommode == 0 ) 
 	{
 		// unjam or reload animation to unjam weapon
 		g.plrreloading=1;
@@ -1435,18 +1445,23 @@ void physics_player_gatherkeycontrols ( void )
 		// play free jam animation if it exists
 		if ( g.firemodes[t.gunid][g.firemode].action2.clearjam.s != 0 && g.firemodes[t.gunid][g.firemode].settings.jammed == 1 ) 
 		{
+			// come out of zoom if in it
+			if ( t.gunzoommode >=8 ) t.gunzoommode = 11; // catches all states of a zoomed in state
+
+			// play anim to fix jam
 			g.plrreloading=2;
 			g.custstart=g.firemodes[t.gunid][g.firemode].action2.clearjam.s;
 			g.custend=g.firemodes[t.gunid][g.firemode].action2.clearjam.e;
 			t.gunmode=9998;
 		}
-		g.firemodes[t.gunid][g.firemode].settings.jammed=0;
 		g.firemodes[t.gunid][g.firemode].settings.shotsfired=0;
+
 		// ensure weapon unjams affect both modes if sharing ammo
+		g.firemodes[t.gunid][g.firemode].settings.jammed = 0;
 		if ( t.gun[t.gunid].settings.modessharemags == 1 ) 
 		{
-			g.firemodes[t.gunid][0].settings.jammed=0;
-			g.firemodes[t.gunid][1].settings.jammed=0;
+			g.firemodes[t.gunid][0].settings.jammed = 0;
+			g.firemodes[t.gunid][1].settings.jammed = 0;
 		}
 	}
 

@@ -3664,7 +3664,18 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 
 		case 301 : g.firemodes[t.gunid][g.firemode].settings.reloadqty = lua_tonumber(L, 1); break;
 		case 302 : g.firemodes[t.gunid][g.firemode].settings.isempty = lua_tonumber(L, 1); break;
-		case 303 : g.firemodes[t.gunid][g.firemode].settings.jammed = lua_tonumber(L, 1); break;
+		case 303 :
+		{
+			// ensure weapon unjams affect both modes if sharing ammo
+			int iJammed = lua_tonumber(L, 1); 
+			g.firemodes[t.gunid][g.firemode].settings.jammed = iJammed;
+			if ( t.gun[t.gunid].settings.modessharemags == 1 ) 
+			{
+				g.firemodes[t.gunid][0].settings.jammed = iJammed;
+				g.firemodes[t.gunid][1].settings.jammed = iJammed;
+			}
+		}
+		break;
 		case 304 : g.firemodes[t.gunid][g.firemode].settings.jamchance = lua_tonumber(L, 1); break;
 		case 305 : g.firemodes[t.gunid][g.firemode].settings.mintimer = lua_tonumber(L, 1); break;
 		case 306 : g.firemodes[t.gunid][g.firemode].settings.addtimer = lua_tonumber(L, 1); break;
