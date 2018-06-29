@@ -65,38 +65,44 @@ float ScaleOverride = 2.5f;
 
 struct appdata
 {
-    float3 position     : POSITION;
-    float3 normal       : NORMAL;
-    float2 uv           : TEXCOORD0;
-   #ifdef PBRVEGETATION
-   #else
-    #ifdef PBRTERRAIN
-      float2 uv2          : TEXCOORD1;
-    #else
-      float3 tangent      : TANGENT0;
-      float3 binormal     : BINORMAL0;
-     #ifdef WITHANIMATION
-       float4 Blendweight  : TEXCOORD1;
-       float4 Blendindices : TEXCOORD2;   
-      #endif
-    #endif
-   #endif
+	float3 position     : POSITION;
+	float3 normal       : NORMAL;
+	float2 uv           : TEXCOORD0;
+	#ifdef LIGHTMAPPED
+	 float2 uv2          : TEXCOORD1;
+	#endif
+	#ifdef PBRVEGETATION
+	#else
+	 #ifdef PBRTERRAIN
+	  float2 uv2          : TEXCOORD1;
+	 #else
+	  float3 tangent      : TANGENT0;
+	  float3 binormal     : BINORMAL0;
+	  #ifdef WITHANIMATION
+	   float4 Blendweight  : TEXCOORD1;
+	   float4 Blendindices : TEXCOORD2;   
+	  #endif
+	 #endif
+	#endif
 };
 
 struct VSOutput
 {
-   float4 positionCS     : POSITION;
-   float3 cameraPosition : TEXCOORD0;
-   float4 position       : TEXCOORD1;
-   float3 normal         : TEXCOORD2;
-   float2 uv             : TEXCOORD3;
-   #ifndef PBRVEGETATION
-    float3 binormal       : TEXCOORD4;
-    float3 tangent        : TEXCOORD5;
-   #endif
-   float4 color         : TEXCOORD6;
-   float viewDepth      : TEXCOORD7;
-   float clip           : TEXCOORD8;
+	float4 positionCS     : POSITION;
+	float3 cameraPosition : TEXCOORD0;
+	float4 position       : TEXCOORD1;
+	float3 normal         : TEXCOORD2;
+	float2 uv             : TEXCOORD3;
+	#ifndef PBRVEGETATION
+	float3 binormal       : TEXCOORD4;
+	float3 tangent        : TEXCOORD5;
+	#endif
+	float4 color         : TEXCOORD6;
+	float viewDepth      : TEXCOORD7;
+	float clip           : TEXCOORD8;
+	#ifdef LIGHTMAPPED
+	 float2 uv2           : TEXCOORD9;
+	#endif
 };
 
 VSOutput VSMain(appdata input, uniform int geometrymode)
@@ -167,7 +173,6 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
      }   
    #endif
    output.position = mul(float4(inputPosition,1), World);
-
 
 #ifdef PBRTERRAIN
    output.positionCS = mul(output.position, mul(View, Projection)); // 
@@ -247,6 +252,11 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
 //      output.positionCS.w = 0.0;
 //    }
 #endif
+
+   #ifdef LIGHTMAPPED
+    output.uv2 = input.uv2;
+   #endif
+
    return output;
 }
 
@@ -1124,7 +1134,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      rawdiffusemap.a = 1;
     #endif
    #endif
-                         
+   
    // entity effect control can slice alpha based on a world Y position
    #ifndef PBRTERRAIN
     #ifndef PBRVEGETATION
@@ -1155,7 +1165,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     norm = mul(norm.rgb, toWorld);
     attributes.normal = normalize(norm);
    #endif
-
+   
    // eye vector
    float3 eyeraw = trueCameraPosition - attributes.position;
     
@@ -1232,24 +1242,38 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    //PE: todo - GetShadow remove shadow on dark side , but reflection objects dont always have "lowligt" on dark side , so...
 #endif
 
-   #ifdef PBRVEGETATION
+   #ifdef LIGHTMAPPED
     float rawaovalue = 1.0f;
    #else
-    #ifdef PBRTERRAIN
+    #ifdef PBRVEGETATION
      float rawaovalue = 1.0f;
-	#else
-	 #ifdef AOISAGED
-	  float rawaovalue = AGEDMap.Sample(SampleWrap,attributes.uv).x;
-	 #else
-      float rawaovalue = AOMap.Sample(SampleWrap,attributes.uv).x;
+    #else
+     #ifdef PBRTERRAIN
+      float rawaovalue = 1.0f;
+     #else 
+	  #ifdef AOISAGED
+	   float rawaovalue = AGEDMap.Sample(SampleWrap,attributes.uv).x;
+	  #else
+       float rawaovalue = AOMap.Sample(SampleWrap,attributes.uv).x;
+	  #endif
+	  visibility -= ((1.0f-rawaovalue)*visibility);
 	 #endif
-	 visibility -= ((1.0f-rawaovalue)*visibility);
-	#endif
+    #endif
+   #endif
+   
+   #ifdef LIGHTMAPPED
+    // get lightmap image
+    float3 rawlightmap = AOMap.Sample(SampleWrap,input.uv2).xyz;
+    // remove lightmapper blur artifacts
+    rawlightmap = clamp(rawlightmap,0.265,1.0);
+    // produced final light-color
+	rawdiffusemap.xyz = rawdiffusemap.xyz * rawlightmap;
    #endif
    
    Material gMaterial;
    gMaterial.Ambient = float4(1,1,1,1);
    gMaterial.Diffuse = rawdiffusemap;
+   
    gMaterial.Specular = float4(1,1,1,1);
    gMaterial.Properties.r = 1.0f; //r = reflectance
    gMaterial.Properties.g = rawmetalmap.r; //g = metallic
@@ -1448,7 +1472,11 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
       if ( ShaderVariables.x == 2 ) { finalColor = attributes.normal; }
       if ( ShaderVariables.x == 3 ) { finalColor = rawmetalmap; }
       if ( ShaderVariables.x == 4 ) { finalColor = rawglossmap; }
-      if ( ShaderVariables.x == 5 ) { finalColor = float3(rawaovalue,rawaovalue,rawaovalue); }
+      #ifdef LIGHTMAPPED
+       if ( ShaderVariables.x == 5 ) { finalColor = rawlightmap; }
+      #else
+       if ( ShaderVariables.x == 5 ) { finalColor = float3(rawaovalue,rawaovalue,rawaovalue); }
+      #endif
       if ( ShaderVariables.x == 6 ) { finalColor = albedoContrib; }
       if ( ShaderVariables.x == 7 ) { finalColor = lightContrib; }
       if ( ShaderVariables.x == 8 ) { finalColor = reflectiveContrib; }

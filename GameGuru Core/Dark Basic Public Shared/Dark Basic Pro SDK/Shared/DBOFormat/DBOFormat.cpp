@@ -2710,12 +2710,15 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 	std::vector<float> position;
 	std::vector<float> normal;
 	std::vector<float> texCoord;
+	std::vector<float> texCoord2;
 	std::vector<float> binormal;
 	std::vector<float> tangent;
 
 	// Retrieve data from the temp mesh, put in input/output ptrs
 	sOffsetMap offsetMap;
+	bool bRetainSecondaryUVData = false;
 	GetFVFValueOffsetMap ( gMasterMesh->dwFVF, &offsetMap );
+	if ( offsetMap.dwTU[1] > 0 ) bRetainSecondaryUVData = true;
 	DWORD numVertices = gMasterMesh->dwVertexCount;
 	for (unsigned int i = 0; i < numVertices; ++i) 
 	{
@@ -2727,6 +2730,13 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 		float fNZ = *( ( float* ) gMasterMesh->pVertexData + offsetMap.dwNZ + ( offsetMap.dwSize * i ) );
 		float fU = *( ( float* ) gMasterMesh->pVertexData + offsetMap.dwTU[0] + ( offsetMap.dwSize * i ) );
 		float fV = *( ( float* ) gMasterMesh->pVertexData + offsetMap.dwTV[0] + ( offsetMap.dwSize * i ) );
+		float fU2 = 0.0f;
+		float fV2 = 0.0f;
+		if ( bRetainSecondaryUVData == true )
+		{
+			fU2 = *( ( float* ) gMasterMesh->pVertexData + offsetMap.dwTU[1] + ( offsetMap.dwSize * i ) );
+			fV2 = *( ( float* ) gMasterMesh->pVertexData + offsetMap.dwTV[1] + ( offsetMap.dwSize * i ) );
+		}
 		position.push_back(fX);
 		position.push_back(fY);
 		position.push_back(fZ);
@@ -2736,6 +2746,9 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 		texCoord.push_back(fU);
 		texCoord.push_back(fV);
 		texCoord.push_back(0);
+		texCoord2.push_back(fU2);
+		texCoord2.push_back(fV2);
+		texCoord2.push_back(0);
 	}
 
 	// Retrieve triangle indices from the temp mesh, put in input/output ptr
@@ -2755,9 +2768,29 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 	}
 	else
 	{
-		// no indices, no conversion
-		// sky tried to convert, but had no indices
-		return NULL;
+		// no indices, no conversion - sky ried to convert, but had no indices
+		// return NULL;
+		if ( gMasterMesh->dwFVF == 530 )
+		{
+			// 290618 - so can add tangents and binormals to lightmapped objects, add indices if not present
+			int iPolygonCount = 0;
+			DWORD numTriangles = gMasterMesh->iDrawPrimitives;
+			for (unsigned int i = 0; i < numTriangles; ++i) 
+			{
+				int i0 = iPolygonCount + 0;
+				int i1 = iPolygonCount + 1;
+				int i2 = iPolygonCount + 2;
+				index.push_back(i0);
+				index.push_back(i1);
+				index.push_back(i2);
+				iPolygonCount+=3;
+			}
+		}
+		else
+		{
+			// all other objects are not converted to retain backwards compatibility with engine elements (shadow floor)
+			return NULL;
+		}
 	}
 
 	// Specify conversion options from flags
@@ -2781,12 +2814,16 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 	NVMeshMender::VertexAttribute texCoordAtt;
 	texCoordAtt.Name_ = "tex0";
 	texCoordAtt.floatVector_ = texCoord;
+	NVMeshMender::VertexAttribute texCoordAtt2;
+	texCoordAtt2.Name_ = "tex1";
+	texCoordAtt2.floatVector_ = texCoord2;
 
 	// Create INPUT Attribute
 	std::vector<NVMeshMender::VertexAttribute> inputAtts;
 	inputAtts.push_back(positionAtt);
 	inputAtts.push_back(indexAtt);
 	inputAtts.push_back(texCoordAtt);
+	if ( bRetainSecondaryUVData == true ) inputAtts.push_back(texCoordAtt2);
 	inputAtts.push_back(normalAtt);
 	
 	// Add In OUTPUT Components
@@ -2801,6 +2838,10 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 	outputAtts.push_back(positionAtt); ++n;
 	outputAtts.push_back(indexAtt); ++n;
 	outputAtts.push_back(texCoordAtt); ++n;
+	if ( bRetainSecondaryUVData == true ) 
+	{
+		outputAtts.push_back(texCoordAtt2); ++n;
+	}
 	outputAtts.push_back(normalAtt); ++n;
 	outputAtts.push_back(tangentAtt); ++n;
 	outputAtts.push_back(binormalAtt); ++n;
@@ -2826,6 +2867,10 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 	--n; binormal = outputAtts[n].floatVector_; 
 	--n; tangent = outputAtts[n].floatVector_; 
 	--n; normal = outputAtts[n].floatVector_; 
+	if ( bRetainSecondaryUVData == true ) 
+	{
+		--n; texCoord2 = outputAtts[n].floatVector_;
+	}
 	--n; texCoord = outputAtts[n].floatVector_;
 	--n; index = outputAtts[n].intVector_;
 	--n; position = outputAtts[n].floatVector_;
@@ -2839,14 +2884,20 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 	SAFE_DELETE(gMasterMesh->pIndices);
 	gMasterMesh->dwFVF = 0;
 	gMasterMesh->dwFVFSize = 12+12+8+12+12;
+	if ( bRetainSecondaryUVData == true ) 
+	{
+		gMasterMesh->dwFVFSize += 8;
+	}
 	DWORD dwVSize = gMasterMesh->dwFVFSize;
 	gMasterMesh->pVertexData = new BYTE[dwNewVertexCount*dwVSize];
 	gMasterMesh->pIndices = new WORD[dwNewFaceCount*3];
+	gMasterMesh->dwIndexCount = dwNewFaceCount*3;
 
 	// Copy data into new mesh
 	int iPosOffset = -1;
 	int iDiffuseOffset = -1;
 	int iTexOffset = -1;
+	int iTexOffset2 = -1;
 	int iNormalOffset = -1;
 	int iTangentOffset = -1;
 	int iBinormalOffset = -1;
@@ -2877,6 +2928,7 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 				if( stricmp ( pSigParDesc.SemanticName, "NORMAL" ) == NULL ) { iNormalOffset = iByteOffset; iByteOffset += 12; }
 				if( stricmp ( pSigParDesc.SemanticName, "COLOR" ) == NULL ) { iDiffuseOffset = iByteOffset; iByteOffset += 4; }
 				if( stricmp ( pSigParDesc.SemanticName, "TEXCOORD" ) == NULL && pSigParDesc.SemanticIndex == 0 ) { iTexOffset = iByteOffset; iByteOffset += 8; }
+				if( stricmp ( pSigParDesc.SemanticName, "TEXCOORD" ) == NULL && pSigParDesc.SemanticIndex == 1 ) { iTexOffset2 = iByteOffset; iByteOffset += 8; }
 				if( stricmp ( pSigParDesc.SemanticName, "TANGENT" ) == NULL ) { iTangentOffset = iByteOffset; iByteOffset += 12; }
 				if( stricmp ( pSigParDesc.SemanticName, "BINORMAL" ) == NULL ) { iBinormalOffset = iByteOffset; iByteOffset += 12; }
 			}
@@ -2912,6 +2964,15 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 		{
 			vecTex->x = texCoord[3 * v + 0];
 			vecTex->y = texCoord[3 * v + 1];
+		}
+		if ( bRetainSecondaryUVData == true ) 
+		{
+			GGVECTOR2* vecTex2 = (GGVECTOR2*)(pPtr+iTexOffset2);
+			if ( iTexOffset2!=-1 )
+			{
+				vecTex2->x = texCoord2[3 * v + 0];
+				vecTex2->y = texCoord2[3 * v + 1];
+			}
 		}
 		if ( iDiffuseOffset!=-1 )
 		{
@@ -3643,7 +3704,7 @@ DARKSDK_DLL void GenerateExtraDataForMeshEx ( sMesh* pMesh, BOOL bNormals, BOOL 
 			iDeclarationIndex++;
 			bHasNormals = TRUE;
 		}
-		if ( pMesh->dwFVF & GGFVF_TEX1 ) 
+		if ( pMesh->dwFVF & GGFVF_TEX1 || offsetMap.dwTU[0] > 0 ) // lightmapped objects failed this test!
 		{
 			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
 			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
@@ -3653,7 +3714,6 @@ DARKSDK_DLL void GenerateExtraDataForMeshEx ( sMesh* pMesh, BOOL bNormals, BOOL 
 			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
 			iDeclarationIndex++;
-			bHasDiffuse = TRUE;
 		}
 		if ( pMesh->dwFVF & GGFVF_DIFFUSE ) 
 		{
@@ -3669,7 +3729,8 @@ DARKSDK_DLL void GenerateExtraDataForMeshEx ( sMesh* pMesh, BOOL bNormals, BOOL 
 		}
 		//if ( pMesh->dwFVF & dsadadsa ) bHasTangents = TRUE; // No FVF specifies TANGENT/BINORMALS
 		//if ( pMesh->dwFVF & dsadadsa ) bHasBinormals = TRUE;
-		if ( pMesh->dwFVF & offsetMap.dwTU[1] > 0 ) 
+		//if ( pMesh->dwFVF & offsetMap.dwTU[1] > 0 ) 
+		if ( offsetMap.dwTU[1] > 0 ) // 290618 - small fix removed the & operation?!
 		{
 			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
 			pDeclaration[iDeclarationIndex].SemanticIndex = 1;
@@ -3682,13 +3743,14 @@ DARKSDK_DLL void GenerateExtraDataForMeshEx ( sMesh* pMesh, BOOL bNormals, BOOL 
 			bHasSecondaryUVs = TRUE;
 		}
 
+		// 290618 - allow secondary UV objects to have tangent and binormals calculated (for lightmapped PBR objects)
 		// objects that have TWO UV channels cause declaration problems when generating data
 		// so we strip out any secondary UV channels from declaration (if generate bit two is one)
-		if ( bHasSecondaryUVs==TRUE )
-		{
-			MessageBox ( NULL, "Secondary UV data not accepted", "GenerateExtraData", MB_OK );
-			return;
-		}
+		//if ( bHasSecondaryUVs==TRUE )
+		//{
+		//	MessageBox ( NULL, "Secondary UV data not accepted", "GenerateExtraData", MB_OK );
+		//	return;
+		//}
 
 		// Update Mesh Semantics if does not have components
 		bool bGiveMeNormals = false;

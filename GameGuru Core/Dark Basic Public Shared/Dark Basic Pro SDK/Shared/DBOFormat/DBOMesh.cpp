@@ -2609,12 +2609,14 @@ DARKSDK_DLL bool SetSpecialEffect ( sMesh* pMesh, cSpecialEffect* pEffectObj, bo
 		//if ( pMesh->pVertexShaderEffect->m_dwTextureCount > 8 )
 		//	return false;
 
+		/* 290618 - does nothing these days
 		// load effect with settings
 		if ( !pMesh->pVertexShaderEffect->Setup ( pMesh ) )
 		{
 			pMesh->pVertexShaderEffect=NULL;
 			return false;
 		}
+		*/
 
 		// prepare model for effect
 		if ( bChangeMesh ) pMesh->pVertexShaderEffect->Mesh ( pMesh );
