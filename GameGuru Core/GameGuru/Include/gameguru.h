@@ -2793,6 +2793,9 @@ struct Stemps
 	int tProjectileResultLightFlag;
 	int tProjectileResultSmokeImageID;
 	int tProjectileResultSparksCount;
+	int tProjectileResultSize;
+	int tProjectileResultSmokeSize;
+	int tProjectileResultSparksSize;
 	cstr tProjectileType_s;
 	int trecentfilechoice;
 	int trecolorAfterGame;
@@ -4350,6 +4353,7 @@ struct Stemps
 	int gunflash;
 	int gunshoot;
 	int gunsmoke;
+	int gunactiveidlesoundloopindex;
 	int handlimb;
 	float hatRed_f;
 	int iControl;
@@ -6756,6 +6760,7 @@ struct Stemps
 		 gunclick = 0;
 		 gunburst = 0;
 		 gunbrass = 0;
+		 gunactiveidlesoundloopindex = 0;
 		 firerate = 0;
 		 filesmax = 0;
 		 filesize = 0;
@@ -8039,6 +8044,9 @@ struct Stemps
 		 trecolorAfterGame = 0;
 		 trecentfilechoice = 0;
 		 tProjectileType_s = "";
+		 tProjectileResultSize = 0;
+		 tProjectileResultSmokeSize = 0;
+		 tProjectileResultSparksSize = 0;
 		 tProjectileResultLightFlag = 0;
 		 tProjectileResultSmokeImageID = 0;
 		 tProjectileResultSparksCount = 0;

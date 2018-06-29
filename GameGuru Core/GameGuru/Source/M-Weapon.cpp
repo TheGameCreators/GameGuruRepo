@@ -370,6 +370,9 @@ void weapon_projectile_loop ( void )
 					t.tProjectileResultLightFlag = t.WeaponProjectileBase[t.tProjType].explosionLightFlag;
 					t.tProjectileResultSmokeImageID = t.WeaponProjectileBase[t.tProjType].explosionSmokeImageID;
 					t.tProjectileResultSparksCount = t.WeaponProjectileBase[t.tProjType].explosionSparksCount;
+					t.tProjectileResultSize = t.WeaponProjectileBase[t.tProjType].explosionSize;
+					t.tProjectileResultSmokeSize = t.WeaponProjectileBase[t.tProjType].explosionSmokeSize;
+					t.tProjectileResultSparksSize = t.WeaponProjectileBase[t.tProjType].explosionSparksSize;
 				}
 				t.tx_f = t.tXNewPos_f; t.ty_f = t.tYNewPos_f; t.tz_f = t.tZNewPos_f;
 				t.tDamage_f = t.WeaponProjectileBase[t.tProjType].damage_f;
@@ -417,6 +420,9 @@ void weapon_projectile_loop ( void )
 							t.tProjectileResultLightFlag = t.WeaponProjectileBase[t.tProjType].explosionLightFlag;
 							t.tProjectileResultSmokeImageID = t.WeaponProjectileBase[t.tProjType].explosionSmokeImageID;
 							t.tProjectileResultSparksCount = t.WeaponProjectileBase[t.tProjType].explosionSparksCount;
+							t.tProjectileResultSize = t.WeaponProjectileBase[t.tProjType].explosionSize;
+							t.tProjectileResultSmokeSize = t.WeaponProjectileBase[t.tProjType].explosionSmokeSize;
+							t.tProjectileResultSparksSize = t.WeaponProjectileBase[t.tProjType].explosionSparksSize;
 						}
 						t.tx_f = t.tHitX_f; t.ty_f = t.tHitY_f; t.tz_f = t.tHitZ_f;
 						t.tDamage_f = t.WeaponProjectileBase[t.tProjType].damage_f;
@@ -461,6 +467,9 @@ void weapon_projectile_loop ( void )
 								t.tProjectileResultLightFlag = t.WeaponProjectileBase[t.tProjType].explosionLightFlag;
 								t.tProjectileResultSmokeImageID = t.WeaponProjectileBase[t.tProjType].explosionSmokeImageID;
 								t.tProjectileResultSparksCount = t.WeaponProjectileBase[t.tProjType].explosionSparksCount;
+								t.tProjectileResultSize = t.WeaponProjectileBase[t.tProjType].explosionSize;
+								t.tProjectileResultSmokeSize = t.WeaponProjectileBase[t.tProjType].explosionSmokeSize;
+								t.tProjectileResultSparksSize = t.WeaponProjectileBase[t.tProjType].explosionSparksSize;
 							}
 							t.tx_f = t.tHitX_f; t.ty_f = t.tHitY_f; t.tz_f = t.tHitZ_f;
 							t.tDamage_f = t.WeaponProjectileBase[t.tProjType].damage_f;
@@ -629,6 +638,9 @@ void weapon_projectile_loop ( void )
 										t.tProjectileResultLightFlag = t.WeaponProjectileBase[t.tProjType].explosionLightFlag;
 										t.tProjectileResultSmokeImageID = t.WeaponProjectileBase[t.tProjType].explosionSmokeImageID;
 										t.tProjectileResultSparksCount = t.WeaponProjectileBase[t.tProjType].explosionSparksCount;
+										t.tProjectileResultSize = t.WeaponProjectileBase[t.tProjType].explosionSize;
+										t.tProjectileResultSmokeSize = t.WeaponProjectileBase[t.tProjType].explosionSmokeSize;
+										t.tProjectileResultSparksSize = t.WeaponProjectileBase[t.tProjType].explosionSparksSize;
 									}
 									t.tx_f = t.tHitX_f; t.ty_f = t.tHitY_f; t.tz_f = t.tHitZ_f;
 									t.tDamage_f = t.WeaponProjectileBase[t.tProjType].damage_f;
@@ -832,6 +844,9 @@ void weapon_projectile_load ( void )
 	t.tInField_s = "explosionLightFlag" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionLightFlag = t.value1_f;
 	t.tInField_s = "explosionSmokeName" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSmokeName = t.value_s;
 	t.tInField_s = "explosionSparksCount" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSparksCount = t.value1_f;
+	t.tInField_s = "explosionSize" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSize = t.value1_f;
+	t.tInField_s = "explosionSmokeSize" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSmokeSize = t.value1_f;
+	t.tInField_s = "explosionSparksSize" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSparksSize = t.value1_f;
 	t.tInField_s = "projectileEventType" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].projectileEventType = t.value1_f;
 
 	t.tInField_s = "object" ; weapon_readfield ( );
@@ -1426,6 +1441,9 @@ void weapon_projectileresult_make ( void )
 	// t.tProjectileResultLightFlag 
 	// t.tProjectileResultSmokeImageID 
 	// t.tProjectileResultSparksCount
+	// t.tProjectileResultSize
+	// t.tProjectileResultSmokeSize
+	// t.tProjectileResultSparksSize
 	// tHitObj, tX#, tY#, tZ#, tAngX#, tAngY#, tAngZ#
 	// t.tDamage_f, tRadius#, tAICharacter etc.
 	// tSoundID, tSourceEntity
@@ -1471,7 +1489,10 @@ void weapon_projectileresult_make ( void )
 				int iLightFlag = t.tProjectileResultLightFlag;
 				int iSmokeImageID = t.tProjectileResultSmokeImageID;
 				int iSparksCount = t.tProjectileResultSparksCount;
-				explosion_custom(t.tProjectileResultExplosionImageID, iLightFlag, iSmokeImageID, iSparksCount, t.tXPos_f, t.tYPos_f, t.tZPos_f);
+				float fSize = (float)t.tProjectileResultSize / 100.0f;
+				float fSmokeSize = (float)t.tProjectileResultSmokeSize / 100.0f;
+				float fSparksSize = (float)t.tProjectileResultSparksSize / 100.0f;
+				explosion_custom(t.tProjectileResultExplosionImageID, iLightFlag, iSmokeImageID, iSparksCount, fSize, fSmokeSize, fSparksSize, t.tXPos_f, t.tYPos_f, t.tZPos_f);
 			}
 			else
 			{

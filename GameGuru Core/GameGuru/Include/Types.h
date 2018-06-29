@@ -1415,9 +1415,12 @@ struct weaponProjectileBaseType
 	cstr explosionName;
 	int explosionImageID;
 	int explosionLightFlag;
+	int explosionSize;
 	cstr explosionSmokeName;
 	int explosionSmokeImageID;
+	int explosionSmokeSize;
 	int explosionSparksCount;
+	int explosionSparksSize;
 	int projectileEventType;
 
 	int thrustTime;
@@ -1436,6 +1439,9 @@ struct weaponProjectileBaseType
 		 thrustDelay = 0;
 		 thrustTime = 0;
 		 projectileEventType = 0;
+		 explosionSize = 0;
+		 explosionSmokeSize = 0;
+		 explosionSparksSize = 0;
 		 explosionSmokeName = "";
 		 explosionLightFlag = 0;
 		 explosionSmokeImageID = 0;
@@ -6287,16 +6293,16 @@ struct gunsoundstype
 	int soundframes;
 	int fireloopend;
 	int altfireloopend;
-
-	// Constructor
+	int loopsound;
+	int emptyloopsound;
 	gunsoundstype ( )
 	{
+		 loopsound = 0;
+		 emptyloopsound = 0;
 		 altfireloopend = 0;
 		 fireloopend = 0;
 		 soundframes = 0;
 	}
-	// End of Constructor
-
 };
 
 
@@ -6367,8 +6373,7 @@ struct gunsettingstype
 	int minpolytrim;
 	int decalforward;
 	int meleenoscorch;
-//  `altmeleekey as integer
-
+	int doesnotuseammo;
 	int altmeleedamage;
 	int altmeleerange;
 	int altmeleenoscorch;

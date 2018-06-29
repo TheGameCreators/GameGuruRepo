@@ -1068,6 +1068,7 @@ void gun_control ( void )
 	}
 	if (  t.gunmode  ==  2007 ) 
 	{
+		if ( t.gunzoommode >=8 ) t.gunzoommode = 11; // catches all states of a zoomed in state
 		SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2008;
 		PlayObject (  t.currentgunobj,t.taltactionto.s,t.taltactionto.e );
@@ -1079,6 +1080,7 @@ void gun_control ( void )
 	}
 	if (  t.gunmode  ==  2009 ) 
 	{
+		if ( t.gunzoommode >=8 ) t.gunzoommode = 11; // catches all states of a zoomed in state
 		SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2010;
 		PlayObject (  t.currentgunobj,t.taltactionfrom.s,t.taltactionfrom.e );
@@ -1245,19 +1247,23 @@ void gun_control ( void )
 		}
 		else
 		{
-			if ( gun_getstartandfinish ( false ) == true )
+			//if ( gun_getstartandfinish ( false ) == true )
+			//{
+			if (  t.tfireanim == 1 ) 
 			{
-				if (  t.tfireanim == 2 ) 
-				{
-					t.gstart=g.firemodes[t.gunid][g.firemode].action.start2;
-					t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish2;
-				}
-				if (  t.tfireanim == 3 ) 
-				{
-					t.gstart=g.firemodes[t.gunid][g.firemode].action.start3;
-					t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish3;
-				}
+				gun_getstartandfinish ( false );
 			}
+			if (  t.tfireanim == 2 ) 
+			{
+				t.gstart=g.firemodes[t.gunid][g.firemode].action.start2;
+				t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish2;
+			}
+			if (  t.tfireanim == 3 ) 
+			{
+				t.gstart=g.firemodes[t.gunid][g.firemode].action.start3;
+				t.gfinish=g.firemodes[t.gunid][g.firemode].action.finish3;
+			}
+			//}
 		}
 	}
 
@@ -1442,8 +1448,47 @@ void gun_control ( void )
 		t.gunburst=g.firemodes[t.gunid][g.firemode].settings.burst;
 	}
 
+	// 280618 - active/idle constant loopsound feature for weapons
+	if ( 1 )
+	{
+		int iWeaponLoopSound = g.firemodes[t.gunid][g.firemode].sound.loopsound;
+		if ( t.weaponammo[g.weaponammoindex+g.ammooffset] == 0 ) iWeaponLoopSound = g.firemodes[t.gunid][g.firemode].sound.emptyloopsound;
+		t.sndid = 0;		
+		if ( iWeaponLoopSound > 0 ) 
+		{
+			// only start activeidle once retrieve finished and in idle/move/run
+			if ( t.gunmode >= 5 && t.gunmode < 31 )
+				t.sndid = t.gunsound[t.gunid][iWeaponLoopSound].soundid1;
+			else
+				t.sndid = t.gunactiveidlesoundloopindex;
+		}
+		else
+		{
+			// only stop activeidle when finish switching alternate modes
+			if ( t.gunmode >= 2007 && t.gunmode <= 2010 )
+				t.sndid = t.gunactiveidlesoundloopindex;
+			else
+				t.sndid = 0;
+		}
+		if ( t.sndid != t.gunactiveidlesoundloopindex )
+		{
+			if ( t.sndid > 0 )
+			{
+				if ( SoundExist ( t.sndid ) ==1 )
+					LoopSound ( t.sndid );
+			}
+			else
+			{
+				if ( t.gunactiveidlesoundloopindex > 0 )
+					if ( SoundExist ( t.gunactiveidlesoundloopindex ) == 1 )
+						StopSound ( t.gunactiveidlesoundloopindex );
+			}
+			t.gunactiveidlesoundloopindex = t.sndid;
+		}
+	}
+
 	//  gun idle control ((4*0.75)=3.0)
-	if (  t.gunmode == 5 ) 
+	if ( t.gunmode == 5 ) 
 	{
 		t.gunmode=6;
 		t.guninterp=4;
@@ -1581,13 +1626,12 @@ void gun_control ( void )
 	// gun put away and hide control
 	if (  t.gunmode == 31 && g.noholster == 1 ) 
 	{
-		//  Scene Commander, clear fired count if holstering
+		// Clear fired count if holstering
 		t.gunmode=32;
 		t.guninterp=4;
 		StopObject (  t.currentgunobj );
 		SetObjectInterpolation (  t.currentgunobj,100 );
 		SetObjectFrame (  t.currentgunobj,t.ghide.s );
-		//  PlaySound (  of gun select-change )
 		if (  t.gun[t.gunid].settings.alternate == 0  )  t.sndid = t.gunsound[t.gunid][4].soundid1 ; else t.sndid = t.gunsound[t.gunid][4].altsoundid;
 		if (  t.sndid>0 ) 
 		{
@@ -1690,6 +1734,7 @@ void gun_control ( void )
 	{
 		if (  t.weaponammo[g.weaponammoindex+g.ammooffset]>0 ) 
 		{
+			// do nothing in this case
 		}
 		else
 		{
@@ -1909,7 +1954,11 @@ void gun_control ( void )
 				}
 			}
 		}
-		t.weaponammo[g.weaponammoindex+g.ammooffset]=t.weaponammo[g.weaponammoindex+g.ammooffset]-1 ; --t.gunburst;
+		if ( g.firemodes[t.gunid][g.firemode].settings.doesnotuseammo == 0 )
+		{
+			t.weaponammo[g.weaponammoindex+g.ammooffset]=t.weaponammo[g.weaponammoindex+g.ammooffset]-1; 
+		}
+		--t.gunburst;
 		if ( t.gun[t.gunid].settings.smokelimb != -1 ) {  t.gunsmoke = 1 ; g.gunsmokecount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
 		if ( g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
 		{
@@ -2018,7 +2067,12 @@ void gun_control ( void )
 				if (  t.gunflash == 0  )  t.gunflash = 1;
 				if (  g.guntimercount <= 0 ) 
 				{
-					t.gunshoot=1 ; g.guntimercount=g.firemodes[t.gunid][g.firemode].settings.firerate/2 ; t.weaponammo[g.weaponammoindex+g.ammooffset]=t.weaponammo[g.weaponammoindex+g.ammooffset]-1 ;--t.gunburst;
+					t.gunshoot=1 ; g.guntimercount=g.firemodes[t.gunid][g.firemode].settings.firerate/2; 
+					if ( g.firemodes[t.gunid][g.firemode].settings.doesnotuseammo == 0 )
+					{
+						t.weaponammo[g.weaponammoindex+g.ammooffset]=t.weaponammo[g.weaponammoindex+g.ammooffset]-1;
+					}
+					--t.gunburst;
 				}
 			}
 			if (  t.gautomatic.s == 0 || t.gun[t.gunid].settings.alternate == 1 && t.gun[t.gunid].settings.alternateisflak == 1  )  t.gunmode = 105;
@@ -2057,9 +2111,25 @@ void gun_control ( void )
 			// 270618 - intercept automatic loop shoot if 
 			if ( t.weaponammo[g.weaponammoindex+g.ammooffset] == 1 )
 			{
-				if ( g.firemodes[t.gunid][g.firemode].action.laststart.s > 0 )
+				bool bUseLastStartAnim = false;
+				if ( t.gunzoommode != 0 )
 				{
-					gun_getstartandfinish ( true );
+					if ( g.firemodes[t.gunid][g.firemode].zoomaction.laststart.s > 0 )
+					{
+						gun_getzoomstartandfinish ( );
+						bUseLastStartAnim = true;
+					}
+				}
+				else
+				{
+					if ( g.firemodes[t.gunid][g.firemode].action.laststart.s > 0 )
+					{
+						gun_getstartandfinish ( true );
+						bUseLastStartAnim = true;
+					}
+				}
+				if ( bUseLastStartAnim == true )
+				{
 					t.gunmode=105;
 					t.gunburst=0;
 				}
@@ -4095,6 +4165,13 @@ void gun_free ( void )
 			t.obj=g.hudbankoffset+t.o;
 			if (  ObjectExist(t.obj) == 1  )  HideObject (  t.obj );
 		}
+	}
+
+	// stop and clear any idle sound loop
+	if ( t.gunactiveidlesoundloopindex != 0 )
+	{
+		if ( t.gunactiveidlesoundloopindex > 0 && SoundExist ( t.gunactiveidlesoundloopindex ) == 1 ) StopSound ( t.gunactiveidlesoundloopindex );
+		t.gunactiveidlesoundloopindex = 0;
 	}
 
 	//  Clear basic gun vars

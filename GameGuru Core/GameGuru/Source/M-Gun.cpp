@@ -61,6 +61,7 @@ void gun_loaddata ( void )
 		// reset other items
 		g.firemodes[t.gunid][t.i].settings.brassdelay = 0;
 		g.firemodes[t.gunid][t.i].settings.zoombrassdelay = 0;
+		g.firemodes[t.gunid][t.i].settings.doesnotuseammo = 0;
 	}
 
 	//  Load GUNSPEC details (270618 - increased to 1000 lines)
@@ -84,6 +85,12 @@ void gun_loaddata ( void )
 					}
 					t.field_s=Lower(removeedgespaces(Left(t.line_s.Get(),t.mid-1)));
 					t.value_s=removeedgespaces(Right(t.line_s.Get(),Len(t.line_s.Get())-t.mid));
+
+					// 280618 - remove TAB characters from field (where TAB is used instead of SPACE in describing field)
+					for ( t.c = 0 ; t.c < Len(t.field_s.Get()); t.c++ )
+					{
+						if ( t.field_s.Get()[t.c] == 9 ) { t.field_s.Get()[t.c] = ' '; }
+					}
 
 					//  take value 1 and 2 from value
 					for ( t.c = 0 ; t.c <  Len(t.value_s.Get()); t.c++ )
@@ -172,6 +179,7 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"melee force"  )  g.firemodes[t.gunid][t.x].settings.meleeforce = t.value1;
 						if (  t.field_s == t.alt_s+"npcignorereload"  )  g.firemodes[t.gunid][t.x].settings.npcignorereload = t.value1;
 						if (  t.field_s == t.alt_s+"zoomhidecrosshair"  )  g.firemodes[t.gunid][t.x].settings.zoomhidecrosshair = t.value1;
+						if (  t.field_s == t.alt_s+"doesnotuseammo"  )  g.firemodes[t.gunid][t.x].settings.doesnotuseammo = t.value1;
 
 						//  Brass details
 						if (  t.field_s == t.alt_s+"brass"  )  g.firemodes[t.gunid][t.x].settings.brass = t.value1;
@@ -358,6 +366,10 @@ void gun_loaddata ( void )
 						//  Gun repeat-fire sound
 						if (  t.field_s == t.alt_s+"fireloop"  )  g.firemodes[t.gunid][t.x].sound.fireloopend = t.value1;
 
+						// 280618 - Special active/idle sound loop triggers
+						if (  t.field_s == t.alt_s+"loopsound"  )  g.firemodes[t.gunid][t.x].sound.loopsound = t.value1;
+						if (  t.field_s == t.alt_s+"empty loopsound"  )  g.firemodes[t.gunid][t.x].sound.emptyloopsound = t.value1;
+
 						//  Gun and muzzle alignment
 						if (  t.field_s == t.alt_s+"horiz"  )  g.firemodes[t.gunid][t.x].horiz_f = t.value1;
 						if (  t.field_s == t.alt_s+"vert"  )  g.firemodes[t.gunid][t.x].vert_f = t.value1;
@@ -418,12 +430,12 @@ void gun_loaddata ( void )
 					}
 
 					//  Gun sound bank
-					for ( t.p = 1 ; t.p<=  14; t.p++ )
+					for ( t.p = 1 ; t.p <= 14; t.p++ )
 					{
 						t.tryfield_s = "" ; t.tryfield_s=t.tryfield_s+"sound"+Str(t.p);
 						if (  t.field_s == t.tryfield_s  )  t.gunsound[t.gunid][t.p].name_s = t.value_s;
 					}
-					for ( t.p = 1 ; t.p<=  4; t.p++ )
+					for ( t.p = 1 ; t.p <= 4; t.p++ )
 					{
 						t.tryfield_s = ""; t.tryfield_s=t.tryfield_s+"altsound"+Str(t.p) ; t.tryfield2_s = "" ; t.tryfield2_s=t.tryfield2_s+"alt sound"+Str(t.p);
 						if (  t.p != 2 ) 

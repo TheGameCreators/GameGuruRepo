@@ -91,8 +91,10 @@ void physics_init ( void )
 		MakeObjectCube (  t.aisystem.objectstartindex,10 );
 	}
 	HideObject (  t.aisystem.objectstartindex );
-	t.freezeplayerposonly = 0;
-	physics_setupplayer ( );
+
+	// moved player physics setup closer to main loop
+	//t.freezeplayerposonly = 0;
+	//physics_setupplayer ( );
 
 	//  set default player gravity
 	t.playercontrol.gravityactive=1;
@@ -123,48 +125,6 @@ void physics_init ( void )
 		{
 			// get entity index associated with character
 			t.e=t.charanimstates[g.charanimindex].e;
-
-			//  if character is above terrain Floor (  (stood on something at start), make them immobile )
-			/* 230217 - this discontinued now that characters find their floor and use zones to navigate on many Y layers
-			if (  t.entityelement[t.e].eleprof.isimmobile == 0 ) 
-			{
-				if (  t.terrain.TerrainID>0 ) 
-				{
-					t.tgroundfloory_f=BT_GetGroundHeight(t.terrain.TerrainID,t.entityelement[t.e].x,t.entityelement[t.e].z);
-				}
-				else
-				{
-					t.tgroundfloory_f=1000.0;
-				}
-				if (  t.entityelement[t.e].y > t.tgroundfloory_f+20.0f ) 
-				{
-					//  first try to detect the closest surface they can stand on
-					t.brayx1_f=t.entityelement[t.e].x;
-					t.brayy1_f=t.entityelement[t.e].y+1.0f;
-					t.brayz1_f=t.entityelement[t.e].z;
-					t.brayx2_f=t.entityelement[t.e].x;
-					t.brayy2_f=t.entityelement[t.e].y-10000.0;
-					t.brayz2_f=t.entityelement[t.e].z;
-					t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
-					t.thitvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.brayx1_f,t.brayy1_f,t.brayz1_f,t.brayx2_f,t.brayy2_f,t.brayz2_f,0);
-					if (  t.thitvalue > 0 ) 
-					{
-						t.entityelement[t.e].y = ChecklistFValueB(6);
-					}
-				}
-				if (  t.entityelement[t.e].y > t.tgroundfloory_f+20.0f ) 
-				{
-					t.entityelement[t.e].eleprof.isimmobile=1;
-				}
-
-				// 291116 - in case adjusted character Y position (clown zombie in asylum)
-				if ( t.entityelement[t.e].eleprof.isimmobile == 0 )
-				{
-					// drop character ONTO any surface, to defeat physics floor sink
-					PositionObject ( t.tphyobj, ObjectPositionX(t.tphyobj), t.entityelement[t.e].y + GetObjectCollisionCenterY(t.tphyobj), ObjectPositionZ(t.tphyobj) );
-				}
-			}
-			*/
 			physics_setupcharacter ( );
 			t.entityelement[t.e].usingphysicsnow=1;
 		}
@@ -172,6 +132,10 @@ void physics_init ( void )
 
 	// Ensure the LUA mouse is always reset
 	lua_deactivatemouse();
+
+	// player physics setup closer to main loop
+	t.freezeplayerposonly = 0;
+	physics_setupplayer ( );
 }
 
 void physics_finalize ( void )
@@ -901,7 +865,7 @@ void physics_loop ( void )
 		//  only process physics once we reach the minimum substep constant
 		if ( t.tphysicsadvance_f>0.05f ) t.tphysicsadvance_f = 0.05f;
 		t.machineindependentphysicsupdate = timeGetSecond();
-		ODEUpdate ( t.tphysicsadvance_f );
+		ODEUpdate ( );//t.tphysicsadvance_f );
 	}
 }
 
