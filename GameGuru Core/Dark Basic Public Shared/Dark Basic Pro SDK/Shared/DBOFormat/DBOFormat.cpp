@@ -2882,11 +2882,13 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasisEx ( LPGGMESH gMasterMesh, bool bMakeNor
 	// create mesh from new declaration
 	SAFE_DELETE(gMasterMesh->pVertexData);
 	SAFE_DELETE(gMasterMesh->pIndices);
+	gMasterMesh->dwFVFOriginal = gMasterMesh->dwFVF;
 	gMasterMesh->dwFVF = 0;
 	gMasterMesh->dwFVFSize = 12+12+8+12+12;
 	if ( bRetainSecondaryUVData == true ) 
 	{
 		gMasterMesh->dwFVFSize += 8;
+		gMasterMesh->dwFVF = 530;
 	}
 	DWORD dwVSize = gMasterMesh->dwFVFSize;
 	gMasterMesh->pVertexData = new BYTE[dwNewVertexCount*dwVSize];

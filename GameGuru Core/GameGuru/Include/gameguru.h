@@ -197,7 +197,6 @@ struct Sglobals
 	int ravey_particles_old_time;
 	int timestampactivityflagged;
 	int timestampactivitymemthen;
-	int characterkitimageoffset;
 	int characterSoundBankCount;
 	int characterSoundStackSize;
 	int csi_relaxedmoveforeANIM;
@@ -1988,7 +1987,6 @@ struct Sglobals
 		 csi_relaxedmoveforeANIM = 0;
 		 characterSoundStackSize = 0;
 		 characterSoundBankCount = 0;
-		 characterkitimageoffset = 0;
 		 timestampactivitymemthen = 0;
 		 timestampactivityflagged = 0;
 		 ravey_particles_old_time = 0;

@@ -450,8 +450,7 @@ void common_init_globals ( void )
 	g.tempimageoffset = 63000;
 	g.widgetimagebankoffset = 63100;
 	g.huddamageimageoffset = 63200;
-	g.characterkitimageoffset = 63250;
-	g.importermenuimageoffset = 63400;
+	g.importermenuimageoffset = 63250; // was 63400
 	g.slidersmenuimageoffset = 63500;
 	g.terrainimageoffset = 63600;
 	g.gamehudimagesoffset = 64700;
@@ -959,10 +958,9 @@ void common_init_globals ( void )
 	Dim (  t.playerobjective,99 );
 
 	g.slidersprotoworkmode = 0;
-	//t.slidersmenunames as slidersmenunamestype;
 	g.slidersmenumax = 0;
-	Dim (  t.slidersmenu,20   );
-	Dim2(  t.slidersmenuvalue,20, 20 );
+	Dim ( t.slidersmenu, 50 );
+	Dim2( t.slidersmenuvalue, 50, 20 );
 	g.sliderspecialview = 0;
 	g.slidersmenufreshclick = 0;
 	g.slidersmenudropdownscroll_f = 1;

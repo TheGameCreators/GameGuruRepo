@@ -3050,7 +3050,11 @@ void entity_loadtexturesandeffect ( void )
 			}
 
 			// Apply effect and textures
-			SetObjectEffectCore (  t.entobj,t.entityprofile[t.entid].usingeffect,t.teffectid2,t.entityprofile[t.entid].cpuanims );
+			if ( t.lightmapper.onlyloadstaticentitiesduringlightmapper == 0 )
+			{
+				// don't use shader effects when lightmapping
+				SetObjectEffectCore (  t.entobj,t.entityprofile[t.entid].usingeffect,t.teffectid2,t.entityprofile[t.entid].cpuanims );
+			}
 		}
 	}
 

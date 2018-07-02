@@ -2111,7 +2111,7 @@ void lm_applystaticshader ( void )
 				{
 					if (  ObjectExist(t.tlmobj) == 1 ) 
 					{
-						SetObjectEffect (  t.tlmobj,g.staticlightmapeffectoffset );
+						//SetObjectEffect (  t.tlmobj,g.staticlightmapeffectoffset );
 						SetObjectWireframe (  t.tlmobj,0 );
 						if (  t.entid>0 ) 
 						{
