@@ -1261,11 +1261,14 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     #endif
    #endif
    
+   float4 originalrawdiffusemap = rawdiffusemap;
    #ifdef LIGHTMAPPED
     // get lightmap image
     float3 rawlightmap = AOMap.Sample(SampleWrap,input.uv2).xyz;
     // remove lightmapper blur artifacts
-    rawlightmap = clamp(rawlightmap,0.265,1.0);
+    rawlightmap = clamp(rawlightmap,0.1,1.0);
+    // intensity lightmapper to match realtime PBR albedo
+    rawlightmap = (((rawlightmap-0.5)*1.5)+0.5) * 2;
     // produced final light-color
 	rawdiffusemap.xyz = rawdiffusemap.xyz * rawlightmap;
    #endif
@@ -1393,7 +1396,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #ifndef PBRTERRAIN
 	ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
 #endif
-	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
+	//float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
+	float3 albedoContrib = originalrawdiffusemap.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
 	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
