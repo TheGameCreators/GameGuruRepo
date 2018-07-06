@@ -910,23 +910,36 @@ DARKSDK_DLL bool AppendAnimationData ( sObject* pObject, LPSTR szFilename, int i
 				bAnimationAppended = true;
 
 				// lee - 200306 - u6b4 - missed out matrix data for some reason (added below)
-				DWORD           dwOrigNumMatrixKeys		= pOrigCurrent->dwNumMatrixKeys;
-				sMatrixKey*	pOrigMatrixKeys				= pOrigCurrent->pMatrixKeys;
-				DWORD           dwAppNumMatrixKeys		= pCurrent->dwNumMatrixKeys;
-				sMatrixKey*	pAppMatrixKeys				= pCurrent->pMatrixKeys;
+				// old and new data
+				DWORD           dwOrigNumMatrixKeys			= pOrigCurrent->dwNumMatrixKeys;
+				sMatrixKey*		pOrigMatrixKeys				= pOrigCurrent->pMatrixKeys;
+				DWORD           dwAppNumMatrixKeys			= pCurrent->dwNumMatrixKeys;
+				sMatrixKey*		pAppMatrixKeys				= pCurrent->pMatrixKeys;
+
 				// create new animation arrays
-				sMatrixKey*	pNewMatrixKeys				= NULL;
-				DWORD           dwNewNumMatrixKeys		= dwOrigNumMatrixKeys + dwAppNumMatrixKeys;
-				if(dwNewNumMatrixKeys>0) pNewMatrixKeys	= new sMatrixKey[dwNewNumMatrixKeys];
+				sMatrixKey*		pNewMatrixKeys				= NULL;
+				DWORD           dwNewNumMatrixKeys			= dwOrigNumMatrixKeys + dwAppNumMatrixKeys;
+				if(dwNewNumMatrixKeys>0) pNewMatrixKeys		= new sMatrixKey[dwNewNumMatrixKeys];
+
+				// before create new animation data, erase ALL animation instructions beyond "dwTimeOffset"
+				// so as not to interfeer with new appended animation
+				for ( DWORD o=0; o < dwOrigNumMatrixKeys; o++) 
+					if ( pOrigMatrixKeys[o].dwTime >= dwTimeOffset )
+						pOrigMatrixKeys[o].dwTime = 9999999;
+
 				// modify additional data to account for keyframe-start-shift
 				for ( DWORD p=0; p<dwAppNumMatrixKeys; p++) pAppMatrixKeys[p].dwTime+=dwTimeOffset;
+
 				// copy old animation
 				if(pNewMatrixKeys) memcpy( pNewMatrixKeys, pOrigMatrixKeys, dwOrigNumMatrixKeys*sizeof(sMatrixKey) );
+
 				// copy appended animation
 				LPSTR pMiddleM = (LPSTR)pNewMatrixKeys + dwOrigNumMatrixKeys*sizeof(sMatrixKey);
 				if(pNewMatrixKeys) memcpy( pMiddleM, pAppMatrixKeys, dwAppNumMatrixKeys*sizeof(sMatrixKey) );
+
 				// delete original animation arrays
 				if(pOrigMatrixKeys) SAFE_DELETE_ARRAY(pOrigMatrixKeys);
+
 				// assign new ptrs and totals
 				pOrigCurrent->dwNumMatrixKeys = dwNewNumMatrixKeys;
 				pOrigCurrent->pMatrixKeys = pNewMatrixKeys;
@@ -989,28 +1002,6 @@ DARKSDK_DLL bool AppendAnimationData ( sObject* pObject, LPSTR szFilename, int i
 				pOrigCurrent->dwNumScaleKeys = dwNewNumScaleKeys;
 				pOrigCurrent->pScaleKeys = pNewScaleKeys;
 
-				// must tie old and new animations by creating interpolation for penultimate keyframe
-				if ( dwNewNumPositionKeys > 1 )
-				{
-					for( DWORD i = 0; i < dwNewNumPositionKeys - 1; i++ )
-					{
-						pNewPositionKeys[i].vecPosInterpolation = pNewPositionKeys[i+1].vecPos  - pNewPositionKeys[i].vecPos;
-						DWORD Time = pNewPositionKeys[i+1].dwTime  - pNewPositionKeys[i].dwTime;
-						if ( !Time ) Time = 1;
-						pNewPositionKeys[i].vecPosInterpolation/=(float)Time;
-					}
-				}				
-				if ( dwNewNumScaleKeys > 1 )
-				{
-					for( DWORD i = 0; i < dwNewNumScaleKeys - 1; i++ )
-					{
-						pNewScaleKeys[i].vecScaleInterpolation = pNewScaleKeys[i+1].vecScale  - pNewScaleKeys[i].vecScale;
-						DWORD Time = pNewScaleKeys[i+1].dwTime  - pNewScaleKeys[i].dwTime;
-						if ( !Time ) Time = 1;
-						pNewScaleKeys[i].vecScaleInterpolation/=(float)Time;
-					}
-				}
-
 				// increment both
 				pOrigCurrent=pOrigCurrent->pNext;
 				pCurrent=pCurrent->pNext;
@@ -1044,9 +1035,10 @@ DARKSDK_DLL bool AppendAnimationData ( sObject* pObject, LPSTR szFilename, int i
 	pObject->pAnimationSet->ulLength += dwNewFrames;
 
 	// recalculate animation data and bounds for object
-	MapFramesToAnimations ( pObject );
-	if ( !CalculateAllBounds ( pObject, true ) )
-		return false;
+	MapFramesToAnimations ( pObject, true );
+
+	//if ( !CalculateAllBounds ( pObject, true ) ) // 060718 - corrects model somehow
+	//	return false;
 
 	// okay
 	return true;

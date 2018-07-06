@@ -3806,6 +3806,7 @@ struct Stemps
 	std::vector <ani> animations;
 	std::vector <bitdetailstype> bitdetails;
 	std::vector< std::vector<bitmapfonttype> > bitmapfont;
+	std::vector< std::vector<entityappendanimtype> > entityappendanim;
 	std::vector< std::vector<entityanimtype> > entityanim;
 	std::vector <cstr> fileData_s;
 	std::vector <cstr> filelist_s;

@@ -4611,7 +4611,7 @@ DARKSDK_DLL sAnimation* CopyAnimation ( sAnimation* pCurrentAnim, LPSTR szNewNam
 	return pNewAnim;
 }
 
-DARKSDK_DLL bool SortAnimationPositionByTime ( sAnimation* pAnim )
+DARKSDK_DLL bool SortAnimationPositionByTime ( sAnimation* pAnim, bool bDoTheCostlySort )
 {
 	// leefix - 270203 - some animation data is not time sorted (required for keyframe finder)
 	SAFE_MEMORY ( pAnim->pPositionKeys );
@@ -4619,25 +4619,26 @@ DARKSDK_DLL bool SortAnimationPositionByTime ( sAnimation* pAnim )
 	// store the number of keys
 	DWORD dwNumKeys = pAnim->dwNumPositionKeys;
 
-	/* 121113 - Reloaded assumes all keyframes sequential for performance
-	// bubble sort into time ascending order (or key-frame select gets messed up)
-	for ( int iKeyA = 0; iKeyA < ( int ) dwNumKeys; iKeyA++ )
+	if ( bDoTheCostlySort == true )
 	{
-		for ( int iKeyB = iKeyA; iKeyB < ( int ) dwNumKeys; iKeyB++ )
+		// bubble sort into time ascending order (or key-frame select gets messed up)
+		for ( int iKeyA = 0; iKeyA < ( int ) dwNumKeys; iKeyA++ )
 		{
-			if ( iKeyA!=iKeyB )
+			for ( int iKeyB = iKeyA; iKeyB < ( int ) dwNumKeys; iKeyB++ )
 			{
-				if ( pAnim->pPositionKeys [ iKeyB ].dwTime < pAnim->pPositionKeys [ iKeyA ].dwTime ) 
+				if ( iKeyA!=iKeyB )
 				{
-					// swap A and B
-					sPositionKey sStoreA = pAnim->pPositionKeys [ iKeyA ];
-					pAnim->pPositionKeys [ iKeyA ] = pAnim->pPositionKeys [ iKeyB ];
-					pAnim->pPositionKeys [ iKeyB ] = sStoreA;
+					if ( pAnim->pPositionKeys [ iKeyB ].dwTime < pAnim->pPositionKeys [ iKeyA ].dwTime ) 
+					{
+						// swap A and B
+						sPositionKey sStoreA = pAnim->pPositionKeys [ iKeyA ];
+						pAnim->pPositionKeys [ iKeyA ] = pAnim->pPositionKeys [ iKeyB ];
+						pAnim->pPositionKeys [ iKeyB ] = sStoreA;
+					}
 				}
 			}
 		}
 	}
-	*/
 
 	// work out interpolation data after keyframes sorted
 	if ( dwNumKeys > 1 )
@@ -4660,7 +4661,7 @@ DARKSDK_DLL bool SortAnimationPositionByTime ( sAnimation* pAnim )
 	return true;
 }
 
-DARKSDK_DLL bool SortAnimationRotationByTime ( sAnimation* pAnim )
+DARKSDK_DLL bool SortAnimationRotationByTime ( sAnimation* pAnim, bool bDoTheCostlySort )
 {
 	// leefix - 270203 - some animation data is not time sorted (required for keyframe finder)
 	SAFE_MEMORY ( pAnim->pRotateKeys );
@@ -4668,31 +4669,32 @@ DARKSDK_DLL bool SortAnimationRotationByTime ( sAnimation* pAnim )
 	// store the number of keys
 	DWORD dwNumKeys = pAnim->dwNumRotateKeys;
 	
-	/* 121113 - Reloaded assumes all keyframes sequential for performance
-	// bubble sort into time ascending order (or key-frame select gets messed up)
-	for ( int iKeyA = 0; iKeyA < ( int ) dwNumKeys; iKeyA++ )
+	if ( bDoTheCostlySort == true )
 	{
-		for ( int iKeyB = iKeyA; iKeyB < ( int ) dwNumKeys; iKeyB++ )
+		// bubble sort into time ascending order (or key-frame select gets messed up)
+		for ( int iKeyA = 0; iKeyA < ( int ) dwNumKeys; iKeyA++ )
 		{
-			if ( iKeyA!=iKeyB )
+			for ( int iKeyB = iKeyA; iKeyB < ( int ) dwNumKeys; iKeyB++ )
 			{
-				if ( pAnim->pRotateKeys [ iKeyB ].dwTime < pAnim->pRotateKeys [ iKeyA ].dwTime ) 
+				if ( iKeyA!=iKeyB )
 				{
-					// swap A and B
-					sRotateKey sStoreA = pAnim->pRotateKeys [ iKeyA ];
-					pAnim->pRotateKeys [ iKeyA ] = pAnim->pRotateKeys [ iKeyB ];
-					pAnim->pRotateKeys [ iKeyB ] = sStoreA;
+					if ( pAnim->pRotateKeys [ iKeyB ].dwTime < pAnim->pRotateKeys [ iKeyA ].dwTime ) 
+					{
+						// swap A and B
+						sRotateKey sStoreA = pAnim->pRotateKeys [ iKeyA ];
+						pAnim->pRotateKeys [ iKeyA ] = pAnim->pRotateKeys [ iKeyB ];
+						pAnim->pRotateKeys [ iKeyB ] = sStoreA;
+					}
 				}
 			}
 		}
 	}
-	*/
 
 	// success
 	return true;
 }
 
-DARKSDK_DLL bool SortAnimationScaleByTime ( sAnimation* pAnim )
+DARKSDK_DLL bool SortAnimationScaleByTime ( sAnimation* pAnim, bool bDoTheCostlySort )
 {
 	// leefix - 270203 - some animation data is not time sorted (required for keyframe finder)
 	SAFE_MEMORY ( pAnim->pScaleKeys );
@@ -4700,25 +4702,26 @@ DARKSDK_DLL bool SortAnimationScaleByTime ( sAnimation* pAnim )
 	// store the number of keys
 	DWORD dwNumKeys = pAnim->dwNumScaleKeys;
 	
-	/* 121113 - Reloaded assumes all keyframes sequential for performance
-	// bubble sort into time ascending order (or key-frame select gets messed up)
-	for ( int iKeyA = 0; iKeyA < ( int ) dwNumKeys; iKeyA++ )
+	if ( bDoTheCostlySort == true )
 	{
-		for ( int iKeyB = iKeyA; iKeyB < ( int ) dwNumKeys; iKeyB++ )
+		// bubble sort into time ascending order (or key-frame select gets messed up)
+		for ( int iKeyA = 0; iKeyA < ( int ) dwNumKeys; iKeyA++ )
 		{
-			if ( iKeyA!=iKeyB )
+			for ( int iKeyB = iKeyA; iKeyB < ( int ) dwNumKeys; iKeyB++ )
 			{
-				if ( pAnim->pScaleKeys [ iKeyB ].dwTime < pAnim->pScaleKeys [ iKeyA ].dwTime ) 
+				if ( iKeyA!=iKeyB )
 				{
-					// swap A and B
-					sScaleKey sStoreA = pAnim->pScaleKeys [ iKeyA ];
-					pAnim->pScaleKeys [ iKeyA ] = pAnim->pScaleKeys [ iKeyB ];
-					pAnim->pScaleKeys [ iKeyB ] = sStoreA;
+					if ( pAnim->pScaleKeys [ iKeyB ].dwTime < pAnim->pScaleKeys [ iKeyA ].dwTime ) 
+					{
+						// swap A and B
+						sScaleKey sStoreA = pAnim->pScaleKeys [ iKeyA ];
+						pAnim->pScaleKeys [ iKeyA ] = pAnim->pScaleKeys [ iKeyB ];
+						pAnim->pScaleKeys [ iKeyB ] = sStoreA;
+					}
 				}
 			}
 		}
 	}
-	*/
 
 	// work out interpolation data after keyframes sorted
 	if ( dwNumKeys > 1 )
@@ -4741,18 +4744,64 @@ DARKSDK_DLL bool SortAnimationScaleByTime ( sAnimation* pAnim )
 	return true;
 }
 
-DARKSDK_DLL bool SortAnimationDataByTime ( sAnimation* pAnim )
+DARKSDK_DLL bool SortAnimationMatrixByTime ( sAnimation* pAnim, bool bDoTheCostlySort )
 {
-	// sort position, rotation and scale data and calc interpolations
-	SortAnimationPositionByTime	( pAnim );
-	SortAnimationRotationByTime	( pAnim );
-	SortAnimationScaleByTime	( pAnim );
+	// store the number of keys
+	DWORD dwNumKeys = pAnim->dwNumMatrixKeys;
+	
+	// bubble sort into time ascending order (or key-frame select gets messed up)
+	if ( bDoTheCostlySort == true )
+	{
+		for ( int iKeyA = 0; iKeyA < ( int ) dwNumKeys; iKeyA++ )
+		{
+			for ( int iKeyB = iKeyA; iKeyB < ( int ) dwNumKeys; iKeyB++ )
+			{
+				if ( iKeyA!=iKeyB )
+				{
+					if ( pAnim->pMatrixKeys [ iKeyB ].dwTime < pAnim->pMatrixKeys [ iKeyA ].dwTime ) 
+					{
+						// swap A and B
+						sMatrixKey sStoreA = pAnim->pMatrixKeys [ iKeyA ];
+						pAnim->pMatrixKeys [ iKeyA ] = pAnim->pMatrixKeys [ iKeyB ];
+						pAnim->pMatrixKeys [ iKeyB ] = sStoreA;
+					}
+				}
+			}
+		}
+	}
+
+	// work out interpolation data after keyframes sorted
+	if ( dwNumKeys > 1 )
+	{
+		for ( int iKey = 0; iKey < ( int ) dwNumKeys - 1; iKey++ )
+		{
+			DWORD dwTime = 0;
+			pAnim->pMatrixKeys [ iKey ].matInterpolation = pAnim->pMatrixKeys [ iKey + 1 ].matMatrix - pAnim->pMatrixKeys [ iKey ].matMatrix;
+			dwTime = pAnim->pMatrixKeys [ iKey + 1 ].dwTime - pAnim->pMatrixKeys [ iKey ].dwTime;
+			if ( !dwTime ) dwTime = 1;
+			pAnim->pMatrixKeys [ iKey ].matInterpolation /= ( float ) dwTime;
+		}
+	}
 
 	// success
 	return true;
 }
 
-bool MapFramesToAnimations ( sObject* pObject )
+DARKSDK_DLL bool SortAnimationDataByTime ( sAnimation* pAnim, bool bCostlySort )
+{
+	// sort position, rotation and scale data and calc interpolations
+	SortAnimationPositionByTime	( pAnim, bCostlySort );
+	SortAnimationRotationByTime	( pAnim, bCostlySort );
+	SortAnimationScaleByTime	( pAnim, bCostlySort );
+
+	// 060718 - need to organise matrix keyframes too
+	SortAnimationMatrixByTime	( pAnim, bCostlySort );
+
+	// success
+	return true;
+}
+
+bool MapFramesToAnimations ( sObject* pObject, bool bCostlySort )
 {
 	// go through the animation and find the frames which are used
 	// we then store a pointer to the frame in the anim structure
@@ -4782,7 +4831,6 @@ bool MapFramesToAnimations ( sObject* pObject )
 	sAnimationSet* pAnimSet = NULL;
 	sAnimation*    pAnim    = NULL;
 
-	// MIKE 240303
 	// LEEFIX - 171203 - this cannot work as some MD* do not have 'pAnimationSet'
 	if ( !pObject->pAnimationSet->pAnimation->bBoneType )
 	{
@@ -4810,7 +4858,7 @@ bool MapFramesToAnimations ( sObject* pObject )
 		while ( pAnim != NULL )
 		{
 			// scans all animation data and creates the interpolation vectors between all keyframes (vital)
-			if ( pAnim ) SortAnimationDataByTime ( pAnim );
+			if ( pAnim ) SortAnimationDataByTime ( pAnim, bCostlySort );
 
 			// find the frame which matches the animation
 			pAnim->pFrame = FindFrame ( pAnim->szName, pObject->pFrame );	// find matching frame

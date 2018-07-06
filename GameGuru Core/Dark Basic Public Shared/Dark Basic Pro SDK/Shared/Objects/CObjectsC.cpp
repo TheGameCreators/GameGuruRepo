@@ -2902,6 +2902,7 @@ DARKSDK_DLL void AppendObject ( SDK_LPSTR pString, int iID, int iFrame )
 		return;
 	}
 
+	/* no longer necessary, can INSERT animations at any frame start for good or ill
 	// must be end of object
 	int iEndFrame = pObject->pAnimationSet->ulLength;
 	if ( iFrame < iEndFrame )
@@ -2914,6 +2915,7 @@ DARKSDK_DLL void AppendObject ( SDK_LPSTR pString, int iID, int iFrame )
 		RunTimeError(RUNTIMEERROR_B3DKEYFRAMENOTEXIST);
 		return;
 	}
+	*/
 
 	// Append animation from file to model
 	if ( !AppendAnimationFromFile ( pObject, (LPSTR)pString, iFrame ) )

@@ -1377,6 +1377,7 @@ g.entidmastermax = 100;
 //Dave fix - 100 was not enough for some stress test levels
 Dim2(  t.entityphysicsbox,MAX_ENTITY_PHYSICS_BOXES*2, MAX_ENTITY_PHYSICS_BOXES  );
 Dim2(  t.entitybodypart,100, 100  );
+Dim2(  t.entityappendanim, 100, 100 );
 Dim2(  t.entityanim,100, g.animmax );
 Dim2(  t.entityfootfall,100, g.footfallmax  );
 Dim (  t.entityprofileheader,100  );

@@ -4828,21 +4828,28 @@ struct entityprofileheadertype
 
 };
 
+struct entityappendanimtype
+{
+	cstr filename;
+	int startframe;
+	entityappendanimtype ( )
+	{
+		 filename = "";
+		 startframe = 0;
+	}
+};
+
 struct entityanimtype
 {
 	int start;
 	int finish;
 	int found;
-
-	// Constructor
 	entityanimtype ( )
 	{
 		 found = 0;
 		 finish = 0;
 		 start = 0;
 	}
-	// End of Constructor
-
 };
 
 struct tentityfootfall
@@ -5036,6 +5043,7 @@ struct entityprofiletype
 	int spine;
 	int spine2;
 	int firespotlimb;
+	int appendanimmax;
 	int animmax;
 	int startofaianim;
 	int footfallmax;

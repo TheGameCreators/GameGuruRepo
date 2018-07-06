@@ -160,6 +160,7 @@ void entity_validatearraysize ( void )
 	{
 		g.entidmastermax=g.entidmaster+32;
 		Dim2(  t.entitybodypart,g.entidmastermax, 100   );
+		Dim2(  t.entityappendanim,g.entidmastermax, 100  );
 		Dim2(  t.entityanim,g.entidmastermax, g.animmax   );
 		Dim2(  t.entityfootfall,g.entidmastermax, g.footfallmax  );
 		Dim (  t.entityprofileheader,g.entidmastermax   );
@@ -521,6 +522,33 @@ void entity_load ( void )
 					}
 					else
 						LoadObject ( t.tfile_s.Get(), t.entobj );
+
+					// 060718 - append animation data from other DBO files
+					if ( Len(t.tdbofile_s.Get()) == 0 )
+					{
+						if ( t.entityprofile[t.entid].appendanimmax > 0 )
+						{
+							// get path to original model
+							char pModelPath[10248];
+							strcpy ( pModelPath, "" );
+							LPSTR pOrigModelFilename = t.tfile_s.Get();
+							for ( int n = strlen(pOrigModelFilename) ; n > 0; n-- )
+							{
+								if ( pOrigModelFilename[n] == '\\' || pOrigModelFilename[n] == '/' )
+								{
+									strcpy ( pModelPath, pOrigModelFilename );
+									pModelPath[n+1] = 0;
+									break;
+								}
+							}
+							for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
+							{
+								cstr pAppendModelFilename = cstr(pModelPath) + t.entityappendanim[t.entid][aa].filename;
+								int iStartFrame = t.entityappendanim[t.entid][aa].startframe;
+								AppendObject ( (DWORD)(LPSTR)pAppendModelFilename.Get(), t.entobj, iStartFrame );
+							}
+						}
+					}
 
 					// wipe ANY material emission colors
 					SetObjectEmissive ( t.entobj, 0 );
@@ -1611,6 +1639,25 @@ void entity_loaddata ( void )
 						{
 							t.tryfield_s = cstr((cstr("decal")+Str(t.q)) );
 							if (  t.field_s == t.tryfield_s  )  t.entitydecal_s[t.entid][t.q] = t.value_s;
+						}
+					}
+
+					// 060718 - entity append anim system
+					t.tryfield_s="appendanimmax";
+					if ( t.field_s == t.tryfield_s ) 
+					{
+						t.entityprofile[t.entid].appendanimmax = t.value1; 
+						if ( t.entityprofile[t.entid].appendanimmax > 99 ) 
+							t.entityprofile[t.entid].appendanimmax = 99;
+					}
+					if ( t.entityprofile[t.entid].appendanimmax > 0 ) 
+					{
+						for ( int aa = 0 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
+						{
+							t.tryfield_s=cstr("appendanim")+Str(aa);
+							if (  t.field_s == t.tryfield_s ) { t.entityappendanim[t.entid][aa].filename = t.value_s; }
+							t.tryfield_s=cstr("appendanimframe")+Str(aa);
+							if (  t.field_s == t.tryfield_s ) { t.entityappendanim[t.entid][aa].startframe = t.value1; }
 						}
 					}
 
