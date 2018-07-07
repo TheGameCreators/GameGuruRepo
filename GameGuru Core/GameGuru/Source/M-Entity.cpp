@@ -482,6 +482,33 @@ void entity_load ( void )
 				}
 			}
 		}
+		// get path to original model
+		char pModelPath[10248];
+		strcpy ( pModelPath, "" );
+		LPSTR pOrigModelFilename = t.tfile_s.Get();
+		for ( int n = strlen(pOrigModelFilename) ; n > 0; n-- )
+		{
+			if ( pOrigModelFilename[n] == '\\' || pOrigModelFilename[n] == '/' )
+			{
+				strcpy ( pModelPath, pOrigModelFilename );
+				pModelPath[n+1] = 0;
+				break;
+			}
+		}
+		// 070718 - if append final file exists, use that
+		bool bUsingAppendAnimFileModel = false;
+		cstr pAppendFinalModelFilename = t.entityappendanim[t.entid][0].filename;
+		if ( strlen(pAppendFinalModelFilename.Get()) > 0 )
+		{
+			pAppendFinalModelFilename = cstr(pModelPath) + pAppendFinalModelFilename;
+			if ( FileExist(pAppendFinalModelFilename.Get()) == 1 ) 
+			{
+				bUsingAppendAnimFileModel = true;
+				t.tfile_s = pAppendFinalModelFilename;
+				pAppendFinalModelFilename = "";
+				t.tdbofile_s = "";
+			}
+		}
 		if ( FileExist(t.tfile_s.Get()) == 0 )
 		{
 			t.tfile_s=t.entityprofile[t.entid].model_s;
@@ -524,28 +551,18 @@ void entity_load ( void )
 						LoadObject ( t.tfile_s.Get(), t.entobj );
 
 					// 060718 - append animation data from other DBO files
-					if ( Len(t.tdbofile_s.Get()) == 0 )
+					if ( bUsingAppendAnimFileModel == false )
 					{
-						if ( t.entityprofile[t.entid].appendanimmax > 0 )
+						if ( Len(t.tdbofile_s.Get()) == 0 )
 						{
-							// get path to original model
-							char pModelPath[10248];
-							strcpy ( pModelPath, "" );
-							LPSTR pOrigModelFilename = t.tfile_s.Get();
-							for ( int n = strlen(pOrigModelFilename) ; n > 0; n-- )
+							if ( t.entityprofile[t.entid].appendanimmax > 0 )
 							{
-								if ( pOrigModelFilename[n] == '\\' || pOrigModelFilename[n] == '/' )
+								for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
 								{
-									strcpy ( pModelPath, pOrigModelFilename );
-									pModelPath[n+1] = 0;
-									break;
+									cstr pAppendModelFilename = cstr(pModelPath) + t.entityappendanim[t.entid][aa].filename;
+									int iStartFrame = t.entityappendanim[t.entid][aa].startframe;
+									AppendObject ( (DWORD)(LPSTR)pAppendModelFilename.Get(), t.entobj, iStartFrame );
 								}
-							}
-							for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
-							{
-								cstr pAppendModelFilename = cstr(pModelPath) + t.entityappendanim[t.entid][aa].filename;
-								int iStartFrame = t.entityappendanim[t.entid][aa].startframe;
-								AppendObject ( (DWORD)(LPSTR)pAppendModelFilename.Get(), t.entobj, iStartFrame );
 							}
 						}
 					}
@@ -596,15 +613,17 @@ void entity_load ( void )
 			//  loaded okay
 			if (  ObjectExist(t.entobj) == 1 ) 
 			{
-				//  Save if DBO not exist for entity (for fast loading)
-				if (  Len(t.tdbofile_s.Get())>1 ) 
+				// 070718 - if append final model needs to be created, prefer that
+				if ( strlen(pAppendFinalModelFilename.Get()) > 0 )
+					if ( FileExist(pAppendFinalModelFilename.Get()) == 0 ) 
+						t.tdbofile_s = pAppendFinalModelFilename;
+
+				// Save if DBO not exist for entity (for fast loading)
+				if ( Len(t.tdbofile_s.Get()) > 1 ) 
 				{
 					// ensure legacy compatibility (avoids new mapedito crashing build process)
-
 					if ( FileExist(t.tdbofile_s.Get()) == 1 )  DeleteFile ( t.tdbofile_s.Get() );
-
 					SaveObject ( t.tdbofile_s.Get(), t.entobj );
-
 					if (  FileExist(t.tdbofile_s.Get()) == 1 ) 
 					{
 						DeleteObject (  t.entobj );
@@ -1094,6 +1113,10 @@ void entity_loaddata ( void )
 		//  Starter animation counts
 		t.tnewanimmax=0 ; t.entityprofile[t.entid].animmax=t.tnewanimmax;
 		t.tstartofaianim=-1 ; t.entityprofile[t.entid].startofaianim=t.tstartofaianim;
+
+		// other resets
+		t.entityappendanim[t.entid][0].filename = "";
+		t.entityappendanim[t.entid][0].startframe = 0;
 
 		//  temp variable to hold which physics object we are on from the importer
 		t.tPhysObjCount = 0;
@@ -1643,6 +1666,12 @@ void entity_loaddata ( void )
 					}
 
 					// 060718 - entity append anim system
+					t.tryfield_s=cstr("appendanimfinal");
+					if (  t.field_s == t.tryfield_s )
+					{ 
+						t.entityappendanim[t.entid][0].filename = t.value_s; 
+						t.entityappendanim[t.entid][0].startframe = 0;
+					}
 					t.tryfield_s="appendanimmax";
 					if ( t.field_s == t.tryfield_s ) 
 					{
@@ -1652,7 +1681,7 @@ void entity_loaddata ( void )
 					}
 					if ( t.entityprofile[t.entid].appendanimmax > 0 ) 
 					{
-						for ( int aa = 0 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
+						for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
 						{
 							t.tryfield_s=cstr("appendanim")+Str(aa);
 							if (  t.field_s == t.tryfield_s ) { t.entityappendanim[t.entid][aa].filename = t.value_s; }

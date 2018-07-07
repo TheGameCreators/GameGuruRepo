@@ -37,6 +37,7 @@ debrisshape      = 0
 aimain           = default.lua
 
 ;append anim will add animation sets to base model
+appendanimfinal  = Dragon-final.dbo
 appendanimmax    = 14
 appendanim1      = Dragon-idle.dbo
 appendanimframe1 = 110
