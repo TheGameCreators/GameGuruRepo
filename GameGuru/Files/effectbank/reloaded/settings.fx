@@ -8,6 +8,8 @@
 
 //#define LAPTOP // Make everything faster for laptops, will also remove DOF,MB,SAO. Lower shadow, remove grass normals, distance improvements.
 
+#define DYNAMICPBRLIGHT //PE: Enable this for real dynamic PBR light with cook torrance specular reflections.
+
 //#define USEPBRTERRAIN // USE PBR terrain even if you have pbroverride=0 ( medium, only work with one cascade (3) using pbroverride=0 ).
 //#define USEPBRVEGETATION // USE PBR for vegetation even if you have pbroverride=0
 #define FASTROCKTEXTURE // disable tri-planar rock for faster terrain. 

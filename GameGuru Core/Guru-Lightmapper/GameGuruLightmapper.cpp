@@ -123,6 +123,7 @@ void GuruMain ( void )
 	Dim ( t.entitybank_s, 1000 );
 	Dim2 ( t.entityphysicsbox, 1000, MAX_ENTITY_PHYSICS_BOXES );
 	Dim2 ( t.entitybodypart, 1000, 100 );
+	Dim2 ( t.entityappendanim, 1000, 100 );
 	Dim2 ( t.entityanim, 1000, g.animmax );
 	Dim2 ( t.entityfootfall, 1000, g.footfallmax );
 	Dim ( t.entityprofileheader, 1000 );

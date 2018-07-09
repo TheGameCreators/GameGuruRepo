@@ -1720,20 +1720,19 @@ extern int lightmappedobjectoffset;
 
 void lm_loadscene ( void )
 {
-	//Dave Performance - set reset globals used by occluder
+	// set reset globals used by occluder
 	lightmappedterrainoffset = MAXINT32;
 	lightmappedobjectoffset = MAXINT32;
-	//  Check if FileExist (  before load process )
 	t.tlmloadsuccess=0;
 
-	//  10032015 - 018 - Don't use lightmaps for multiplayer, unless you are the host
-	if (  FileExist(t.lightmapper.lmobjectfile_s.Get()) == 0 || (t.game.runasmultiplayer  ==  1 && g.steamworks.isGameHost  ==  0)  )  return;
+	// Don't use lightmaps for multiplayer, unless you are the host
+	if ( FileExist(t.lightmapper.lmobjectfile_s.Get()) == 0 || (t.game.runasmultiplayer  ==  1 && g.steamworks.isGameHost  ==  0)  )  return;
 
-	//  Remove any old lightmapping scene
+	// Remove any old lightmapping scene
 	timestampactivity(0,"delete old LMOs");
 	lm_deleteall ( );
 
-	//  Load lmsceneobj list
+	// Load lmsceneobj list
 	t.tlightmapfilesexist=0;
 	g.lightmappedterrainoffsetfinish=g.lightmappedterrainoffset;
 	timestampactivity(0,"load LMO list");
@@ -1785,10 +1784,10 @@ void lm_loadscene ( void )
 		CloseFile (  1 );
 	}
 
-	//  Now mark ANY LM objects as not exist that do not tally with entityelement data
+	// Now mark ANY LM objects as not exist that do not tally with entityelement data
 	for ( t.e = 1 ; t.e<=  g.glmsceneentitymax; t.e++ )
 	{
-		if (  t.e <= ArrayCount(t.entityelement) ) 
+		if ( t.e <= ArrayCount(t.entityelement) ) 
 		{
 			t.tokay=0;
 			if ( t.entityelement[t.e].obj == 0  )  t.tokay = 1;
@@ -1828,18 +1827,18 @@ void lm_loadscene ( void )
 		}
 	}
 
-	//  record current directory
+	// record current directory
 	t.tolddir_s=GetDir();
 
-	//  Free hold on any previously stored lightmaps, so the ones
-	//  loaded next are the newest ones (to be re-used by other LMOs)
+	// Free hold on any previously stored lightmaps, so the ones
+	// loaded next are the newest ones (to be re-used by other LMOs)
 	timestampactivity(0,"clear LMO internal textures");
 	ClearAnyLightMapInternalTextures (  );
 
-	//  Activate auto generation of mipmaps for ALL LM objects
+	// Activate auto generation of mipmaps for ALL LM objects
 	SetImageAutoMipMap (  1 );
 
-	//  Load lightmapped scene objects (and only those not out of date)
+	// Load lightmapped scene objects (and only those not out of date)
 	timestampactivity(0,"begin loading LMO files");
 	for ( t.e = 1 ; t.e<=  g.glmsceneentitymax; t.e++ )
 	{
@@ -1847,171 +1846,181 @@ void lm_loadscene ( void )
 		t.tentid=t.entityelement[t.e].bankindex;
 		if ( (t.tlmobj>0 && t.lmsceneobj[t.e].lmvalid == 3) || (t.tlmobj<0) ) 
 		{
-
-			//  hide instance entity
-			if (  t.e <= ArrayCount(t.entityelement) ) 
+			// hide instance entity
+			if ( t.e <= ArrayCount(t.entityelement) ) 
 			{
-				if (  t.game.gameisexe == 1 ) 
+				if ( t.game.gameisexe == 1 ) 
 				{
-					//  Standalone Game
+					// Standalone Game
 					t.toldobj=t.entityelement[t.e].obj ; if ( t.toldobj>0 ) { if ( ObjectExist(t.toldobj) == 1 ) { DeleteObject ( t.toldobj ); } }
 					t.entityelement[t.e].obj=0;
 				}
 				else
 				{
-					//  Editor
-					//t.toldobj=t.entityelement[t.e].obj ; if ( t.toldobj>0 ) { if ( ObjectExist(t.toldobj) == 1 ) { HideObject ( t.toldobj ) ; } }
+					// Editor
 					t.toldobj=t.entityelement[t.e].obj ; if ( t.toldobj>0 ) { if ( ObjectExist(t.toldobj) == 1 ) { SetIgnoreObject ( t.toldobj , true ) ; } }
 				}
 			}
 
-			//  load LM object
-			if (  0 ) 
+			// load LM object
+			t.tobjstart=abs(t.lmsceneobj[t.e].startobj);
+			for ( t.tlmobj = t.tobjstart ; t.tlmobj<=  t.lmsceneobj[t.e].finishobj; t.tlmobj++ )
 			{
-				//  this lightmap object was absorbed/glued to a master LM object (static batching in LM process)
-			}
-			else
-			{
-				t.tobjstart=abs(t.lmsceneobj[t.e].startobj);
-				for ( t.tlmobj = t.tobjstart ; t.tlmobj<=  t.lmsceneobj[t.e].finishobj; t.tlmobj++ )
+				t.tfile_s=t.lightmapper.lmpath_s+"object"+Str(t.tlmobj)+".dbo";
+				if ( FileExist(t.tfile_s.Get()) == 1 && t.e <= ArrayCount(t.entityelement) ) 
 				{
-					t.tfile_s=t.lightmapper.lmpath_s+"object"+Str(t.tlmobj)+".dbo";
-					if (  FileExist(t.tfile_s.Get()) == 1 && t.e <= ArrayCount(t.entityelement) ) 
+					if ( t.tlmobj>g.lightmappedobjectoffsetfinish  )  g.lightmappedobjectoffsetfinish = t.tlmobj;
+					if ( ObjectExist(t.tlmobj) == 1  )  DeleteObject (  t.tlmobj );
+					t.tentid=t.entityelement[t.e].bankindex;
+					t.tdir_s = t.entdir_s + getpath(t.entitybank_s[t.tentid].Get());
+					if ( PathExist ( t.tdir_s.Get() ) )
 					{
-						if (  t.tlmobj>g.lightmappedobjectoffsetfinish  )  g.lightmappedobjectoffsetfinish = t.tlmobj;
-						if (  ObjectExist(t.tlmobj) == 1  )  DeleteObject (  t.tlmobj );
-						t.tentid=t.entityelement[t.e].bankindex;
-						//180217 - this can crash with path not found - entdir_s becomes levelbank\testmap??!
-						//t.tdir_s = t.entdir_s + getpath(t.entitybank_s[t.tentid].Get());
-						t.tdir_s = t.entdir_s + getpath(t.entitybank_s[t.tentid].Get());
-						if ( PathExist ( t.tdir_s.Get() ) )
+						SetDir ( t.tdir_s.Get() );
+					}
+					if ( t.lightmapper.onlyloadstaticentitiesduringlightmapper>0 && Rnd(10) == 1 ) 
+					{
+						t.tdisableLMprogressreading=1;
+						for ( t.n = 0 ; t.n<=  1; t.n++ )
 						{
-							SetDir ( t.tdir_s.Get() );
+							if ( t.lightmapper.onlyloadstaticentitiesduringlightmapper == 2  )  CLS (  Rgb(102,102,153) );
+							t.strwork = ""; t.strwork = t.strwork +"Loading Lightmap Object "+Str(t.e);
+							t.tonscreenprompt_s=t.strwork.Get();
+							if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
+							lm_onscreenprompt ( ); Sync ( );
+						}
+						t.tdisableLMprogressreading=0;
+					}
+					LoadObject ( t.tfile_s.Get(),t.tlmobj );
+					if ( t.lmsceneobj[t.e].reverseframes == 1 ) 
+					{
+						ReverseObjectFrames (  t.tlmobj );
+					}
+					SetDir ( t.tolddir_s.Get() );
+
+					// if white out, replace diffuse with white texture
+					if ( g.gdividetexturesize == 0 ) 
+					{
+						t.ttexuseid=loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds",1,0);
+						TextureObject (  t.tlmobj,0,t.ttexuseid );
+					}
+					else
+					{
+						// determine if in PBR mode, and apply lightmap PBR shader
+						if ( g.gpbroverride == 1 )
+						{
+							// load PBR lightmap shader if not exists
+							if ( GetEffectExist ( g.lightmappbreffect ) == 0 )
+							{
+								LPSTR pLightmapPBREffect = "effectbank\\reloaded\\apbr_lightmapped.fx";
+								//LPSTR pLightmapPBREffect = "effectbank\\reloaded\\static_basic.fx";
+								LoadEffect ( pLightmapPBREffect, g.lightmappbreffect, 0 );
+							}
+
+							// apply lightmap PBR shader to lightmapped object
+							SetObjectEffect ( t.tlmobj, g.lightmappbreffect );
+						}
+					}
+
+					// apply textures from doner entity parent only if not been consolidated
+					if ( t.lmsceneobj[t.e].startobj>0 ) 
+					{
+						// textures common to PBR and DNS
+						if ( t.entityprofile[t.tentid].texdid>0 ) TextureObject ( t.tlmobj, 0, t.entityprofile[t.tentid].texdid );
+						if ( t.entityprofile[t.tentid].texnid>0 ) TextureObject ( t.tlmobj, 2, t.entityprofile[t.tentid].texnid );
+						if ( t.entityprofile[t.tentid].texsid>0 ) TextureObject ( t.tlmobj, 3, t.entityprofile[t.tentid].texsid );
+
+						// which shader style (PBR or DNS)
+						if ( g.gpbroverride == 1 )
+						{
+							// PBR textures
+							if (g.memskipibr == 0) TextureObject ( t.tlmobj, 8, t.entityprofiletexibrid );
+							TextureObject ( t.tlmobj, 7, t.entityprofile[t.tentid].texlid );
+							TextureObject ( t.tlmobj, 4, t.entityprofile[t.tentid].texgid );
+							TextureObject ( t.tlmobj, 5, t.entityprofile[t.tentid].texhid );
 						}
 						else
 						{
-							// detect this, why is t.entdir_s being levelbank\testmap ??
+							// non-PBR
+							TextureObject ( t.tlmobj, 4, t.terrain.imagestartindex );
+							TextureObject ( t.tlmobj, 5, g.postprocessimageoffset+5 );
 						}
-						if (  t.lightmapper.onlyloadstaticentitiesduringlightmapper>0 && Rnd(10) == 1 ) 
+
+						// Apply all textures to REMAINING entity parent object (V C I)
+						// TextureObject ( t.entobj, 6, t.entityprofile[t.entid].texiid );
+						if ( t.entityprofile[t.tentid].texiid>0 ) 
 						{
-							t.tdisableLMprogressreading=1;
-							for ( t.n = 0 ; t.n<=  1; t.n++ )
-							{
-								if (  t.lightmapper.onlyloadstaticentitiesduringlightmapper == 2  )  CLS (  Rgb(102,102,153) );
-								t.strwork = ""; t.strwork = t.strwork +"Loading Lightmap Object "+Str(t.e);
-								t.tonscreenprompt_s=t.strwork.Get();
-								if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
-								lm_onscreenprompt ( ); Sync ( );
-							}
-							t.tdisableLMprogressreading=0;
+							TextureObject ( t.tlmobj, 6, t.entityprofile[t.tentid].texiid );
 						}
-						LoadObject (  t.tfile_s.Get(),t.tlmobj );
-						if (  t.lmsceneobj[t.e].reverseframes == 1 ) 
+					}
+
+					// batching incorporates rotation and scale (not position as we want to camera cull them)
+					SetObjectMask ( t.tlmobj,1 );
+					if ( t.e <= ArrayCount(t.entityelement) ) 
+					{
+						PositionObject ( t.tlmobj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );
+						if ( t.lmsceneobj[t.e].includerotandscale == 0 ) 
 						{
-							ReverseObjectFrames (  t.tlmobj );
+							RotateObject ( t.tlmobj,0,0,0 );
 						}
-						SetDir (  t.tolddir_s.Get() );
-						//  if white out, replace diffuse with white texture
-						if (  g.gdividetexturesize == 0 ) 
+						else
 						{
-							t.ttexuseid=loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds",1,0);
-							TextureObject (  t.tlmobj,0,t.ttexuseid );
+							RotateObject ( t.tlmobj,t.entityelement[t.e].rx,t.entityelement[t.e].ry,t.entityelement[t.e].rz );
+							ScaleObject ( t.tlmobj, 100+t.entityelement[t.e].scalex, 100+t.entityelement[t.e].scaley, 100+t.entityelement[t.e].scalez );
 						}
-						//  apply textures from doner entity parent
-						if (  t.lmsceneobj[t.e].startobj>0 ) 
+						// ensure batched object shares collision property of parent entity
+						if ( t.entityelement[t.e].staticflag == 1 )
 						{
-							//  only if not been consolidated
-							if (  t.entityprofile[t.tentid].texdid>0 ) 
+							t.tentid=t.entityelement[t.e].bankindex;
+							if ( t.entityprofile[t.tentid].canseethrough == 1 ) 
 							{
-								//  but only if diffuse specified, else use texture already loaded for model
-								TextureObject (  t.tlmobj,0,t.entityprofile[t.tentid].texdid );
-							}
-							if (  t.entityprofile[t.tentid].texnid>0 ) 
-							{
-								TextureObject (  t.tlmobj,2,t.entityprofile[t.tentid].texnid );
-							}
-							if (  t.entityprofile[t.tentid].texsid>0 ) 
-							{
-								TextureObject (  t.tlmobj,3,t.entityprofile[t.tentid].texsid );
-							}
-							TextureObject (  t.tlmobj,4,t.terrain.imagestartindex );
-							TextureObject (  t.tlmobj,5,g.postprocessimageoffset+5 );
-							if (  t.entityprofile[t.tentid].texiid>0 ) 
-							{
-								TextureObject (  t.tlmobj,6,t.entityprofile[t.tentid].texiid );
+								SetObjectCollisionProperty (  t.tlmobj,1 );
 							}
 						}
-						//  batching incorporates rotation and scale (not position as we want to camera cull them)
-						SetObjectMask (  t.tlmobj,1 );
-						if (  t.e <= ArrayCount(t.entityelement) ) 
+						if ( t.entityprofile[t.tentid].ischaracter == 0 ) 
 						{
-							PositionObject (  t.tlmobj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );
-							if (  t.lmsceneobj[t.e].includerotandscale == 0 ) 
+							if ( t.entityprofile[t.tentid].collisionmode == 11 ) 
 							{
-								RotateObject (  t.tlmobj,0,0,0 );
-							}
-							else
-							{
-								RotateObject (  t.tlmobj,t.entityelement[t.e].rx,t.entityelement[t.e].ry,t.entityelement[t.e].rz );
-								// 271115 - remember to scale the loaded LM object too!
-								ScaleObject ( t.tlmobj, 100+t.entityelement[t.e].scalex, 100+t.entityelement[t.e].scaley, 100+t.entityelement[t.e].scalez );
-							}
-							//  ensure batched object shares collision property of parent entity
-							if (  t.entityelement[t.e].staticflag == 1 )
-							{
-								t.tentid=t.entityelement[t.e].bankindex;
-								if (  t.entityprofile[t.tentid].canseethrough == 1 ) 
-								{
-									SetObjectCollisionProperty (  t.tlmobj,1 );
-								}
-							}
-							if (  t.entityprofile[t.tentid].ischaracter == 0 ) 
-							{
-								if (  t.entityprofile[t.tentid].collisionmode == 11 ) 
-								{
-									SetObjectCollisionProperty (  t.tlmobj,1 );
-								}
+								SetObjectCollisionProperty (  t.tlmobj,1 );
 							}
 						}
-						//  assign cull and transparency modes from parent settings
-						t.entid = 0 ; if (  t.e <= ArrayCount(t.entityelement)  )  t.entid = t.entityelement[t.e].bankindex;
-						if (  t.entid>0 ) 
+					}
+					// assign cull and transparency modes from parent settings
+					t.entid = 0 ; if ( t.e <= ArrayCount(t.entityelement)  )  t.entid = t.entityelement[t.e].bankindex;
+					if ( t.entid>0 ) 
+					{
+						// apply certain settings lost in the conversion
+						SetObjectTransparency ( t.tlmobj,t.entityelement[t.e].eleprof.transparency );
+						if ( t.entityprofile[t.entid].cullmode != 0 ) 
 						{
-							//  apply certain settings lost in the conversion
-							SetObjectTransparency (  t.tlmobj,t.entityelement[t.e].eleprof.transparency );
-							if (  t.entityprofile[t.entid].cullmode != 0 ) 
-							{
-								SetObjectCull (  t.tlmobj,0 );
-							}
-							else
-							{
-								SetObjectCull (  t.tlmobj,1 );
-							}
+							SetObjectCull (  t.tlmobj,0 );
+						}
+						else
+						{
+							SetObjectCull (  t.tlmobj,1 );
 						}
 					}
 				}
 			}
-
 		}
 	}
 
-	//  Load in terrain shadow objects
-	timestampactivity(0,"loading LMO t.terrain files");
+	// Load in terrain shadow objects
+	timestampactivity(0,"loading LMO terrain files");
 	t.liftshadowstositontopofterrain_f = 0.1f;
-	if (  g.lightmappedterrainoffsetfinish>g.lightmappedterrainoffset ) 
+	if ( g.lightmappedterrainoffsetfinish>g.lightmappedterrainoffset ) 
 	{
 		for ( t.tlmobj2 = g.lightmappedterrainoffset ; t.tlmobj2<=  g.lightmappedterrainoffsetfinish; t.tlmobj2++ )
 		{
 			t.tfile_s=t.lightmapper.lmpath_s+"object"+Str(t.tlmobj2)+".dbo";
-			if (  ObjectExist(t.tlmobj2) == 1  )  DeleteObject (  t.tlmobj2 );
-			if (  FileExist(t.tfile_s.Get()) == 1 ) 
+			if ( ObjectExist(t.tlmobj2) == 1  )  DeleteObject (  t.tlmobj2 );
+			if ( FileExist(t.tfile_s.Get()) == 1 ) 
 			{
 				if ( g.iLightmappingExcludeTerrain == 0 )
 				{
 					LoadObject (  t.tfile_s.Get(),t.tlmobj2 );
 					SetObjectMask (  t.tlmobj2, 1 );
 					SetObjectCollisionProperty (  t.tlmobj2,1 );
-					//  NOTE; Can optimize for shader here by making these objects world position based!
+					// NOTE; Can optimize for shader here by making these objects world position based!
 					PositionObject (  t.tlmobj2,t.lightmappedterrain[t.tlmobj2-g.lightmappedterrainoffset][0],t.liftshadowstositontopofterrain_f,t.lightmappedterrain[t.tlmobj2-g.lightmappedterrainoffset][1] );
 					SetObjectTransparency (  t.tlmobj2, 6 );
 					DisableObjectZWrite ( t.tlmobj2 );
@@ -2029,11 +2038,11 @@ void lm_loadscene ( void )
 	}
 	UnDim (  t.lightmappedterrain );
 
-	//  finished generating mipmaps
+	// finished generating mipmaps
 	SetImageAutoMipMap (  0 );
 
-	//  If there has been any LM loading, use PRE-BAKE technique
-	if (  t.tlightmapfilesexist == 1 ) 
+	// If there has been any LM loading, use PRE-BAKE technique
+	if ( t.tlightmapfilesexist == 1 ) 
 	{
 		t.visuals.shaderlevels.lighting=1;
 		t.visuals.refreshshaders=1;
@@ -2045,7 +2054,7 @@ void lm_loadscene ( void )
 	// add lightmapped objects as occludees
 	for ( t.tlmobj = g.lightmappedobjectoffset; t.tlmobj<= g.lightmappedobjectoffsetfinish; t.tlmobj++ )
 	{
-		if (  ObjectExist(t.tlmobj) == 1 ) 
+		if ( ObjectExist(t.tlmobj) == 1 ) 
 		{
 			CPU3DAddOccludee ( t.tlmobj , false );
 			if ( ( ObjectSizeX(t.tlmobj,1)>MINOCCLUDERSIZE && ObjectSizeY(t.tlmobj,1)>MINOCCLUDERSIZE ) || ( ObjectSizeZ(t.tlmobj,1)>MINOCCLUDERSIZE && ObjectSizeY(t.tlmobj,1)>MINOCCLUDERSIZE ) ) 
@@ -2060,10 +2069,10 @@ void lm_loadscene ( void )
 		{
 			for ( t.tlmobj2 = g.lightmappedterrainoffset ; t.tlmobj2<=  g.lightmappedterrainoffsetfinish; t.tlmobj2++ )
 			{
-				if (  ObjectExist(t.tlmobj2) == 1 ) 
+				if ( ObjectExist(t.tlmobj2) == 1 ) 
 				{
 					CPU3DAddOccludee ( t.tlmobj2 , false );
-					if (  (ObjectSizeX(t.tlmobj2,1)>MINOCCLUDERSIZE && ObjectSizeY(t.tlmobj2,1)>MINOCCLUDERSIZE) || (ObjectSizeZ(t.tlmobj2,1)>MINOCCLUDERSIZE && ObjectSizeY(t.tlmobj2,1)>MINOCCLUDERSIZE) ) 
+					if ( (ObjectSizeX(t.tlmobj2,1)>MINOCCLUDERSIZE && ObjectSizeY(t.tlmobj2,1)>MINOCCLUDERSIZE) || (ObjectSizeZ(t.tlmobj2,1)>MINOCCLUDERSIZE && ObjectSizeY(t.tlmobj2,1)>MINOCCLUDERSIZE) ) 
 						CPU3DAddOccluder (  t.tlmobj2 );
 				}
 			}
@@ -2102,7 +2111,7 @@ void lm_applystaticshader ( void )
 				{
 					if (  ObjectExist(t.tlmobj) == 1 ) 
 					{
-						SetObjectEffect (  t.tlmobj,g.staticlightmapeffectoffset );
+						//SetObjectEffect (  t.tlmobj,g.staticlightmapeffectoffset );
 						SetObjectWireframe (  t.tlmobj,0 );
 						if (  t.entid>0 ) 
 						{

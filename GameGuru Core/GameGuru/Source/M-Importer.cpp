@@ -142,13 +142,13 @@ void importer_init ( void )
 	g.tabmode = IMPORTERTABPAGE1;
 
 	t.importer.viewMessage = "Front";
-	
-	//  Check if panels already exist
-	if (  t.importer.panelsExist  ==  0 ) 
+
+	// Check if panels already exist
+	if ( t.importer.panelsExist ==  0 ) 
 	{
 		t.importer.panelsExist = 1;
 		if (  t.importer.scaleMulti  <= 0  )  t.importer.scaleMulti  =  1.0;
-		++g.slidersmenumax;
+		g.slidersmenumax = 30; // 020718 - start out of way of TAB TAB panels
 		t.importer.properties1Index = g.slidersmenumax;
 		t.slidersmenu[g.slidersmenumax].tabpage=IMPORTERTABPAGE1;
 		t.slidersmenu[g.slidersmenumax].title_s="Properties";

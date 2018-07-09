@@ -883,7 +883,7 @@ DARKSDK_DLL bool SetNewObjectFinalProperties ( int iID, float fRadius )
 	}
 
 	// map matrix frames to animation data
-	MapFramesToAnimations ( pObject );
+	MapFramesToAnimations ( pObject, false );
 
 	// store original vertex data immediately
 	for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )

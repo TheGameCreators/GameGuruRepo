@@ -91,8 +91,10 @@ void physics_init ( void )
 		MakeObjectCube (  t.aisystem.objectstartindex,10 );
 	}
 	HideObject (  t.aisystem.objectstartindex );
-	t.freezeplayerposonly = 0;
-	physics_setupplayer ( );
+
+	// moved player physics setup closer to main loop
+	//t.freezeplayerposonly = 0;
+	//physics_setupplayer ( );
 
 	//  set default player gravity
 	t.playercontrol.gravityactive=1;
@@ -123,48 +125,6 @@ void physics_init ( void )
 		{
 			// get entity index associated with character
 			t.e=t.charanimstates[g.charanimindex].e;
-
-			//  if character is above terrain Floor (  (stood on something at start), make them immobile )
-			/* 230217 - this discontinued now that characters find their floor and use zones to navigate on many Y layers
-			if (  t.entityelement[t.e].eleprof.isimmobile == 0 ) 
-			{
-				if (  t.terrain.TerrainID>0 ) 
-				{
-					t.tgroundfloory_f=BT_GetGroundHeight(t.terrain.TerrainID,t.entityelement[t.e].x,t.entityelement[t.e].z);
-				}
-				else
-				{
-					t.tgroundfloory_f=1000.0;
-				}
-				if (  t.entityelement[t.e].y > t.tgroundfloory_f+20.0f ) 
-				{
-					//  first try to detect the closest surface they can stand on
-					t.brayx1_f=t.entityelement[t.e].x;
-					t.brayy1_f=t.entityelement[t.e].y+1.0f;
-					t.brayz1_f=t.entityelement[t.e].z;
-					t.brayx2_f=t.entityelement[t.e].x;
-					t.brayy2_f=t.entityelement[t.e].y-10000.0;
-					t.brayz2_f=t.entityelement[t.e].z;
-					t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
-					t.thitvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.brayx1_f,t.brayy1_f,t.brayz1_f,t.brayx2_f,t.brayy2_f,t.brayz2_f,0);
-					if (  t.thitvalue > 0 ) 
-					{
-						t.entityelement[t.e].y = ChecklistFValueB(6);
-					}
-				}
-				if (  t.entityelement[t.e].y > t.tgroundfloory_f+20.0f ) 
-				{
-					t.entityelement[t.e].eleprof.isimmobile=1;
-				}
-
-				// 291116 - in case adjusted character Y position (clown zombie in asylum)
-				if ( t.entityelement[t.e].eleprof.isimmobile == 0 )
-				{
-					// drop character ONTO any surface, to defeat physics floor sink
-					PositionObject ( t.tphyobj, ObjectPositionX(t.tphyobj), t.entityelement[t.e].y + GetObjectCollisionCenterY(t.tphyobj), ObjectPositionZ(t.tphyobj) );
-				}
-			}
-			*/
 			physics_setupcharacter ( );
 			t.entityelement[t.e].usingphysicsnow=1;
 		}
@@ -172,6 +132,10 @@ void physics_init ( void )
 
 	// Ensure the LUA mouse is always reset
 	lua_deactivatemouse();
+
+	// player physics setup closer to main loop
+	t.freezeplayerposonly = 0;
+	physics_setupplayer ( );
 }
 
 void physics_finalize ( void )
@@ -901,7 +865,7 @@ void physics_loop ( void )
 		//  only process physics once we reach the minimum substep constant
 		if ( t.tphysicsadvance_f>0.05f ) t.tphysicsadvance_f = 0.05f;
 		t.machineindependentphysicsupdate = timeGetSecond();
-		ODEUpdate ( t.tphysicsadvance_f );
+		ODEUpdate ( );//t.tphysicsadvance_f );
 	}
 }
 
@@ -1415,7 +1379,17 @@ void physics_player_gatherkeycontrols ( void )
 		case 8 : t.plrkeyRETURN = 1 ; break ;
 		case 9 : t.tmouseclick = 1 ; break ;
 		case 10 : t.tmouseclick = 2 ; break ;
-		case 11 : g.firemodes[t.gunid][g.firemode].settings.jammed = 1 ; break ;
+		case 11 : 
+		{
+			// ensure weapon unjams affect both modes if sharing ammo
+			g.firemodes[t.gunid][g.firemode].settings.jammed = 1; 
+			if ( t.gun[t.gunid].settings.modessharemags == 1 ) 
+			{
+				g.firemodes[t.gunid][0].settings.jammed = 1;
+				g.firemodes[t.gunid][1].settings.jammed = 1;
+			}
+		}
+		break;
 	}
 
 	// Third person disables crouch/zoom/RMB
@@ -1427,7 +1401,7 @@ void physics_player_gatherkeycontrols ( void )
 	}
 
 	//  Free weapon jam if reload used (possible relocate these to gun module
-	if ( t.player[1].state.firingmode == 2 && t.gunzoommode == 0 ) 
+	if ( t.player[1].state.firingmode == 2 ) //&& t.gunzoommode == 0 ) 
 	{
 		// unjam or reload animation to unjam weapon
 		g.plrreloading=1;
@@ -1435,18 +1409,23 @@ void physics_player_gatherkeycontrols ( void )
 		// play free jam animation if it exists
 		if ( g.firemodes[t.gunid][g.firemode].action2.clearjam.s != 0 && g.firemodes[t.gunid][g.firemode].settings.jammed == 1 ) 
 		{
+			// come out of zoom if in it
+			if ( t.gunzoommode >=8 ) t.gunzoommode = 11; // catches all states of a zoomed in state
+
+			// play anim to fix jam
 			g.plrreloading=2;
 			g.custstart=g.firemodes[t.gunid][g.firemode].action2.clearjam.s;
 			g.custend=g.firemodes[t.gunid][g.firemode].action2.clearjam.e;
 			t.gunmode=9998;
 		}
-		g.firemodes[t.gunid][g.firemode].settings.jammed=0;
 		g.firemodes[t.gunid][g.firemode].settings.shotsfired=0;
+
 		// ensure weapon unjams affect both modes if sharing ammo
+		g.firemodes[t.gunid][g.firemode].settings.jammed = 0;
 		if ( t.gun[t.gunid].settings.modessharemags == 1 ) 
 		{
-			g.firemodes[t.gunid][0].settings.jammed=0;
-			g.firemodes[t.gunid][1].settings.jammed=0;
+			g.firemodes[t.gunid][0].settings.jammed = 0;
+			g.firemodes[t.gunid][1].settings.jammed = 0;
 		}
 	}
 
