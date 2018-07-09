@@ -4539,7 +4539,6 @@ int SetGamePlayerStateAlternateIsFlak ( lua_State *L ) { return SetGamePlayerCon
 int GetGamePlayerStateAlternateIsFlak ( lua_State *L ) { return GetGamePlayerControlData ( L, 204 ); }
 int SetGamePlayerStateAlternateIsRay ( lua_State *L ) { return SetGamePlayerControlData ( L, 205 ); }
 int GetGamePlayerStateAlternateIsRay ( lua_State *L ) { return GetGamePlayerControlData ( L, 205 ); }
-
 int SetFireModeSettingsReloadQty ( lua_State *L ) { return SetGamePlayerControlData ( L, 301 ); }
 int GetFireModeSettingsReloadQty ( lua_State *L ) { return GetGamePlayerControlData ( L, 301 ); }
 int SetFireModeSettingsIsEmpty ( lua_State *L ) { return SetGamePlayerControlData ( L, 302 ); }
@@ -5665,7 +5664,6 @@ void addFunctions()
 	
 	lua_register(lua, "SetGamePlayerStateIsMelee" , SetGamePlayerStateIsMelee );
 	lua_register(lua, "GetGamePlayerStateIsMelee" , GetGamePlayerStateIsMelee );
-
 	lua_register(lua, "SetGamePlayerStateAlternate" , SetGamePlayerStateAlternate );
 	lua_register(lua, "GetGamePlayerStateAlternate" , GetGamePlayerStateAlternate );
 	lua_register(lua, "SetGamePlayerStateModeShareMags" , SetGamePlayerStateModeShareMags );
@@ -5674,7 +5672,6 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateAlternateIsFlak" , GetGamePlayerStateAlternateIsFlak );
 	lua_register(lua, "SetGamePlayerStateAlternateIsRay" , SetGamePlayerStateAlternateIsRay );
 	lua_register(lua, "GetGamePlayerStateAlternateIsRay" , GetGamePlayerStateAlternateIsRay );
-
 	lua_register(lua, "SetFireModeSettingsReloadQty" , SetFireModeSettingsReloadQty );
 	lua_register(lua, "GetFireModeSettingsReloadQty" , GetFireModeSettingsReloadQty );
 	lua_register(lua, "SetFireModeSettingsIsEmpty" , SetFireModeSettingsIsEmpty );

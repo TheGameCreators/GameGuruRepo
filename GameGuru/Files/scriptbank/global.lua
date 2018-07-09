@@ -1620,67 +1620,69 @@ SetGamePlayerStateImmunity: SetGamePlayerStateImmunity() -- command used by the 
 GetGamePlayerStateImmunity: GetGamePlayerStateImmunity() -- command used by the default player control mechanism
 SetGamePlayerStateCharAnimIndex: SetGamePlayerStateCharAnimIndex() -- command used by the default player control mechanism
 GetGamePlayerStateCharAnimIndex: GetGamePlayerStateCharAnimIndex() -- command used by the default player control mechanism
-SetGamePlayerStateIsMelee: SetGamePlayerStateIsMelee() -- command used by the default player control mechanism
+
+SetGamePlayerStateIsMelee: SetGamePlayerStateIsMelee() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateIsMelee: GetGamePlayerStateIsMelee() -- command used by the default player control mechanism
-SetGamePlayerStateAlternate: SetGamePlayerStateAlternate() -- command used by the default player control mechanism
+SetGamePlayerStateAlternate: SetGamePlayerStateAlternate() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateAlternate: GetGamePlayerStateAlternate() -- command used by the default player control mechanism
-SetGamePlayerStateModeShareMags: SetGamePlayerStateModeShareMags() -- command used by the default player control mechanism
+SetGamePlayerStateModeShareMags: SetGamePlayerStateModeShareMags() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateModeShareMags: GetGamePlayerStateModeShareMags() -- command used by the default player control mechanism
-SetGamePlayerStateAlternateIsFlak: SetGamePlayerStateAlternateIsFlak() -- command used by the default player control mechanism
+SetGamePlayerStateAlternateIsFlak: SetGamePlayerStateAlternateIsFlak() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateAlternateIsFlak: GetGamePlayerStateAlternateIsFlak() -- command used by the default player control mechanism
-SetGamePlayerStateAlternateIsRay: SetGamePlayerStateAlternateIsRay() -- command used by the default player control mechanism
+SetGamePlayerStateAlternateIsRay: SetGamePlayerStateAlternateIsRay() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateAlternateIsRay: GetGamePlayerStateAlternateIsRay() -- command used by the default player control mechanism
-SetFireModeSettingsReloadQty: SetFireModeSettingsReloadQty() -- command used by the default player control mechanism
+SetFireModeSettingsReloadQty: SetFireModeSettingsReloadQty() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsReloadQty: GetFireModeSettingsReloadQty() -- command used by the default player control mechanism
-SetFireModeSettingsIsEmpty: SetFireModeSettingsIsEmpty() -- command used by the default player control mechanism
+SetFireModeSettingsIsEmpty: SetFireModeSettingsIsEmpty() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsIsEmpty: GetFireModeSettingsIsEmpty() -- command used by the default player control mechanism
-SetFireModeSettingsJammed: SetFireModeSettingsJammed() -- command used by the default player control mechanism
+SetFireModeSettingsJammed: SetFireModeSettingsJammed() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsJammed: GetFireModeSettingsJammed() -- command used by the default player control mechanism
-SetFireModeSettingsJamChance: SetFireModeSettingsJamChance() -- command used by the default player control mechanism
+SetFireModeSettingsJamChance: SetFireModeSettingsJamChance() -- by default sets current weapon, can specify optional gunid and firemodem
 GetFireModeSettingsJamChance: GetFireModeSettingsJamChance() -- command used by the default player control mechanism
-SetFireModeSettingsMinTimer: SetFireModeSettingsMinTimer() -- command used by the default player control mechanism
+SetFireModeSettingsMinTimer: SetFireModeSettingsMinTimer() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsMinTimer: GetFireModeSettingsMinTimer() -- command used by the default player control mechanism
-SetFireModeSettingsAddTimer: SetFireModeSettingsAddTimer() -- command used by the default player control mechanism
+SetFireModeSettingsAddTimer: SetFireModeSettingsAddTimer() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsAddTimer: GetFireModeSettingsAddTimer() -- command used by the default player control mechanism
-SetFireModeSettingsShotsFired: SetFireModeSettingsShotsFired() -- command used by the default player control mechanism
+SetFireModeSettingsShotsFired: SetFireModeSettingsShotsFired() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsShotsFired: GetFireModeSettingsShotsFired() -- command used by the default player control mechanism
-SetFireModeSettingsCoolTimer: SetFireModeSettingsCoolTimer() -- command used by the default player control mechanism
+SetFireModeSettingsCoolTimer: SetFireModeSettingsCoolTimer() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsCoolTimer: GetFireModeSettingsCoolTimer() -- command used by the default player control mechanism
-SetFireModeSettingsOverheatAfter: SetFireModeSettingsOverheatAfter() -- command used by the default player control mechanism
+SetFireModeSettingsOverheatAfter: SetFireModeSettingsOverheatAfter() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsOverheatAfter: GetFireModeSettingsOverheatAfter() -- command used by the default player control mechanism
-SetFireModeSettingsJamChanceTime: SetFireModeSettingsJamChanceTime() -- command used by the default player control mechanism
+SetFireModeSettingsJamChanceTime: SetFireModeSettingsJamChanceTime() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsJamChanceTime: GetFireModeSettingsJamChanceTime() -- command used by the default player control mechanism
-SetFireModeSettingsCoolDown: SetFireModeSettingsCoolDown() -- command used by the default player control mechanism
+SetFireModeSettingsCoolDown: SetFireModeSettingsCoolDown() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsCoolDown: GetFireModeSettingsCoolDown() -- command used by the default player control mechanism
-SetFireModeSettingsNoSubmergedFire: SetFireModeSettingsNoSubmergedFire() -- command used by the default player control mechanism
+SetFireModeSettingsNoSubmergedFire: SetFireModeSettingsNoSubmergedFire() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsNoSubmergedFire: GetFireModeSettingsNoSubmergedFire() -- command used by the default player control mechanism
-SetFireModeSettingsSimpleZoom: SetFireModeSettingsSimpleZoom() -- command used by the default player control mechanism
+SetFireModeSettingsSimpleZoom: SetFireModeSettingsSimpleZoom() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsSimpleZoom: GetFireModeSettingsSimpleZoom() -- command used by the default player control mechanism
-SetFireModeSettingsForceZoomOut: SetFireModeSettingsForceZoomOut() -- command used by the default player control mechanism
+SetFireModeSettingsForceZoomOut: SetFireModeSettingsForceZoomOut() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsForceZoomOut: GetFireModeSettingsForceZoomOut() -- command used by the default player control mechanism
-SetFireModeSettingsZoomMode: SetFireModeSettingsZoomMode() -- command used by the default player control mechanism
+SetFireModeSettingsZoomMode: SetFireModeSettingsZoomMode() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsZoomMode: GetFireModeSettingsZoomMode() -- command used by the default player control mechanism
-SetFireModeSettingsSimpleZoomAnim: SetFireModeSettingsSimpleZoomAnim() -- command used by the default player control mechanism
+SetFireModeSettingsSimpleZoomAnim: SetFireModeSettingsSimpleZoomAnim() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsSimpleZoomAnim: GetFireModeSettingsSimpleZoomAnim() -- command used by the default player control mechanism
-SetFireModeSettingsPoolIndex: SetFireModeSettingsPoolIndex() -- command used by the default player control mechanism
+SetFireModeSettingsPoolIndex: SetFireModeSettingsPoolIndex() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPoolIndex: GetFireModeSettingsPoolIndex() -- command used by the default player control mechanism
-SetFireModeSettingsPlrTurnSpeedMod: SetFireModeSettingsPlrTurnSpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrTurnSpeedMod: SetFireModeSettingsPlrTurnSpeedMod() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrTurnSpeedMod: GetFireModeSettingsPlrTurnSpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsZoomTurnSpeed: SetFireModeSettingsZoomTurnSpeed() -- command used by the default player control mechanism
+SetFireModeSettingsZoomTurnSpeed: SetFireModeSettingsZoomTurnSpeed() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsZoomTurnSpeed: GetFireModeSettingsZoomTurnSpeed() -- command used by the default player control mechanism
-SetFireModeSettingsPlrJumpSpeedMod: SetFireModeSettingsPlrJumpSpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrJumpSpeedMod: SetFireModeSettingsPlrJumpSpeedMod() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrJumpSpeedMod: GetFireModeSettingsPlrJumpSpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsPlrEmptySpeedMod: SetFireModeSettingsPlrEmptySpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrEmptySpeedMod: SetFireModeSettingsPlrEmptySpeedMod() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrEmptySpeedMod: GetFireModeSettingsPlrEmptySpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsPlrMoveSpeedMod: SetFireModeSettingsPlrMoveSpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrMoveSpeedMod: SetFireModeSettingsPlrMoveSpeedMod() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrMoveSpeedMod: GetFireModeSettingsPlrMoveSpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsZoomWalkSpeed: SetFireModeSettingsZoomWalkSpeed() -- command used by the default player control mechanism
+SetFireModeSettingsZoomWalkSpeed: SetFireModeSettingsZoomWalkSpeed() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsZoomWalkSpeed: GetFireModeSettingsZoomWalkSpeed() -- command used by the default player control mechanism
-SetFireModeSettingsPlrReloadSpeedMod: SetFireModeSettingsPlrReloadSpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrReloadSpeedMod: SetFireModeSettingsPlrReloadSpeedMod() -- default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrReloadSpeedMod: GetFireModeSettingsPlrReloadSpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsHasEmpty: SetFireModeSettingsHasEmpty() -- command used by the default player control mechanism
+SetFireModeSettingsHasEmpty: SetFireModeSettingsHasEmpty() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsHasEmpty: GetFireModeSettingsHasEmpty() -- command used by the default player control mechanism
 GetFireModeSettingsActionBlockStart: GetFireModeSettingsActionBlockStart() -- command used by the default player control mechanism
+
 SetGamePlayerStateGunSound: SetGamePlayerStateGunSound() -- command used by the default player control mechanism
 GetGamePlayerStateGunSound: GetGamePlayerStateGunSound() -- command used by the default player control mechanism
 SetGamePlayerStateGunAltSound: SetGamePlayerStateGunAltSound() -- command used by the default player control mechanism
