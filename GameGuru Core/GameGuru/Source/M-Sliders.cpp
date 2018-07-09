@@ -2329,8 +2329,9 @@ void sliders_write ( void )
 		t.visuals.PostContrast_f=t.slidersmenuvalue[t.slidersmenuindex][18].value/30.0;
 		t.visuals.refreshshaders=1;
 	}
-	if (t.slidersmenuindex == t.slidersmenunames.water) {
-		//Water
+	if ( t.slidersmenuindex == t.slidersmenunames.water ) 
+	{
+		// Water slider
 		g.gdefaultwaterheight = t.slidersmenuvalue[t.slidersmenuindex][1].value*10.0;
 		t.visuals.WaterRed_f = t.slidersmenuvalue[t.slidersmenuindex][2].value*2.55;
 		t.visuals.WaterGreen_f = t.slidersmenuvalue[t.slidersmenuindex][3].value*2.55;
@@ -2345,9 +2346,9 @@ void sliders_write ( void )
 		t.visuals.WaterSpeed1 = (t.slidersmenuvalue[t.slidersmenuindex][12].value - 100)*-1;
 		t.visuals.WaterFlowSpeed = t.slidersmenuvalue[t.slidersmenuindex][13].value / 10.0;
 		t.visuals.refreshshaders = 1;
-		//set the waterheight(fix for lua water height command to cover stuff in map editor)
+		//set the waterheight (fix for lua water height command to cover stuff in map editor)
 		t.terrain.waterliney_f = g.gdefaultwaterheight;
-		}
+	}
 	if (  t.slidersmenuindex == t.slidersmenunames.camera ) 
 	{
 		//  Camera settings

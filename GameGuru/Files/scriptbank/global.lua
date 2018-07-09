@@ -1783,29 +1783,27 @@ SetLightRGB : SetLightRGB ( lightNum, r, g, b ) -- sets the new color of the spe
 SetLightRange : SetLightRange ( lightNum, range ) -- sets the new range (1 to 10000) of the specified light
 
 ***Water Shader Settings*** Look into the shader for informations about these values(open effectbank/reloaded/water_basic.fx with i.e. notepad)
-***Setter***
-SetWaterHeight(value)
-SetWaterColor(red,green,blue)
-SetWaterWaveIntensity(value)
-SetWaterTransparancy(value)
-SetWaterReflection(value)
-SetWaterReflectionSparkleIntensity(value)
+SetWaterHeight(value) -- sets water setting attributes
+SetWaterColor(red,green,blue) -- sets water setting attributes
+SetWaterWaveIntensity(value) -- sets water setting attributes
+SetWaterTransparancy(value) -- sets water setting attributes
+SetWaterReflection(value) -- sets water setting attributes
+SetWaterReflectionSparkleIntensity(value) -- sets water setting attributes
 SetWaterFlowDirection(x,y,speed) small tip: -1 =east/north; 1=west/south - speed is a multiplier of the flowdirection(higher => fast flow)
-SetWaterDistortionWaves(value)
-SetRippleWaterSpeed(value)
-***Getter***
-GetWaterHeight()
-GetWaterWaveIntensity()
-GetWaterShaderColorRed()
-GetWaterShaderColorGreen()
-GetWaterShaderColorBlue()
-GetWaterTransparancy()
-GetWaterReflection()
-GetWaterReflectionSparkleIntensity()
-GetWaterFlowDirectionX()
-GetWaterFlowDirectionY()
-GetWaterFlowSpeed()
-GetWaterDistortionWaves()
-GetRippleWaterSpeed()
+SetWaterDistortionWaves(value) -- sets water setting attributes
+SetRippleWaterSpeed(value) -- sets water setting attributes
+GetWaterHeight() -- gets water setting attributes
+GetWaterWaveIntensity() -- gets water setting attributes
+GetWaterShaderColorRed() -- gets water setting attributes
+GetWaterShaderColorGreen() -- gets water setting attributes
+GetWaterShaderColorBlue() -- gets water setting attributes
+GetWaterTransparancy() -- gets water setting attributes
+GetWaterReflection() -- gets water setting attributes
+GetWaterReflectionSparkleIntensity() -- gets water setting attributes
+GetWaterFlowDirectionX() -- gets water setting attributes
+GetWaterFlowDirectionY() -- gets water setting attributes
+GetWaterFlowSpeed() -- gets water setting attributes
+GetWaterDistortionWaves() -- gets water setting attributes
+GetRippleWaterSpeed() -- gets water setting attributes
 
 --]]
