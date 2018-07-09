@@ -20,7 +20,7 @@ materialindex = 2
 ;statistics
 strength      = 25
 explodable    = 0
-debrisshape   = 1
+collisionmode = 3
 
 ;ai
 aiinit	      = appear.lua

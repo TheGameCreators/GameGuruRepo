@@ -638,34 +638,34 @@ void physics_setupebestructure ( void )
 
 void physics_setupobject ( void )
 {
-	//  create physics for this object. Takes tphyobj and entid and e
-	if (  t.tphyobj>0 ) 
+	// create physics for this object. Takes tphyobj and entid and e
+	if ( t.tphyobj>0 ) 
 	{
-		if (  ObjectExist(t.tphyobj) == 1 ) 
+		if ( ObjectExist(t.tphyobj) == 1 ) 
 		{
 			SetObjectArbitaryValue (  t.tphyobj,t.entityprofile[t.entid].materialindex );
-			if (  t.tstatic == 1 || t.game.runasmultiplayer == 1 ) 
+			if ( t.tstatic == 1 || t.game.runasmultiplayer == 1 ) 
 			{
-				//  if static, need to ensure FIXNEWY pivot is respected
-				if (  t.tstatic == 1 ) 
+				// if static, need to ensure FIXNEWY pivot is respected
+				if ( t.tstatic == 1 ) 
 				{
 					t.tstaticfixnewystore_f=ObjectAngleY(t.tphyobj);
 					RotateObject (  t.tphyobj,ObjectAngleX(t.tphyobj),ObjectAngleY(t.tphyobj)+t.entityprofile[t.entid].fixnewy,ObjectAngleZ(t.tphyobj) );
 				}
 				//  create the physics now
-				if (  t.tshape >= 1000 && t.tshape<2000 ) 
+				if ( t.tshape >= 1000 && t.tshape<2000 ) 
 				{
 					ODECreateStaticBox (  t.tphyobj,t.tshape-1000 );
 				}
-				if (  t.tshape >= 2000 && t.tshape<3000 ) 
+				if ( t.tshape >= 2000 && t.tshape<3000 ) 
 				{
 					ODECreateStaticTriangleMesh (  t.tphyobj,t.tshape-2000 );
 				}
-				if (  t.tshape == 1 ) 
+				if ( t.tshape == 1 ) 
 				{
 					ODECreateStaticBox (  t.tphyobj );
 				}
-				if (  t.tshape == 2 || t.tshape == 9 ) 
+				if ( t.tshape == 2 || t.tshape == 9 ) 
 				{
 					if (  t.tshape == 2 ) 
 					{
@@ -683,35 +683,38 @@ void physics_setupobject ( void )
 						ODECreateStaticTriangleMesh (  t.tphyobj,-1,t.tcollisionscaling,1 );
 					}
 				}
-				if (  t.tshape == 3 ) 
+				if ( t.tshape == 3 ) 
 				{
 					physics_setuptreecylinder ( );
 				}
-				//  tshape 4 is a list of physics objects from the importer
-				if (  t.tshape == 4 ) 
+				// tshape 4 is a list of physics objects from the importer
+				if ( t.tshape == 4 ) 
 				{
 					physics_setupimportershapes ( );
 				}
-				//  if static, restore object before leaving
-				if (  t.tstatic == 1 ) 
+				// if static, restore object before leaving
+				if ( t.tstatic == 1 ) 
 				{
 					RotateObject (  t.tphyobj,ObjectAngleX(t.tphyobj),t.tstaticfixnewystore_f,ObjectAngleZ(t.tphyobj) );
 				}
 			}
 			else
 			{
-				//  objects will fall through Floor (  if they are perfectly sitting on it )
-				PositionObject (  t.tphyobj,ObjectPositionX(t.tphyobj),ObjectPositionY(t.tphyobj)+0.1,ObjectPositionZ(t.tphyobj) );
-				if (t.tshape == 6)     // Sphere
+				// objects will fall through Floor (  if they are perfectly sitting on it )
+				PositionObject ( t.tphyobj, ObjectPositionX(t.tphyobj), ObjectPositionY(t.tphyobj)+0.1, ObjectPositionZ(t.tphyobj) );
+				if ( t.tshape == 6 )     
 				{
+					// Sphere
 					ODECreateDynamicSphere(t.tphyobj, t.tweight, t.tfriction, 0.01f);
 				}
-				else if (t.tshape == 7)  // Cylinder
+				else if ( t.tshape == 7 ) 
 				{
+					// Cylinder
 					ODECreateDynamicCylinder(t.tphyobj, t.tweight, t.tfriction, 0.01f);
 				}
-				else                     // box
+				else                     
 				{
+					// box
 					ODECreateDynamicBox(t.tphyobj, -1, 0, t.tweight, t.tfriction, -1);
 				}
 			}

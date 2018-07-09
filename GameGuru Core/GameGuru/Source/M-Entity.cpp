@@ -1248,8 +1248,8 @@ void entity_loaddata ( void )
 					//  collisionmode (see GameGuru\Docs\collisionmodevalues.txt)
 					//  0  ; box shape (default)
 					//  1  ; polygon shape
-					//  2  ; [sphere not implemented]
-					//  3  ; [cylinder not implemented]
+					//  2  ; sphere shape
+					//  3  ; cylinder shape
 					//  9  ; convex hull reduction shape
 					//  11 ; no physics
 					//  12 ; no physics but can still be detected with IntersectAll command
