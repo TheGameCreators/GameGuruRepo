@@ -1782,4 +1782,30 @@ SetLightPosition : SetLightPosition ( lightNum, x, y, z ) -- sets the new positi
 SetLightRGB : SetLightRGB ( lightNum, r, g, b ) -- sets the new color of the specified dynamic light
 SetLightRange : SetLightRange ( lightNum, range ) -- sets the new range (1 to 10000) of the specified light
 
+***Water Shader Settings*** Look into the shader for informations about these values(open effectbank/reloaded/water_basic.fx with i.e. notepad)
+***Setter***
+SetWaterHeight(value)
+SetWaterColor(red,green,blue)
+SetWaterWaveIntensity(value)
+SetWaterTransparancy(value)
+SetWaterReflection(value)
+SetWaterReflectionSparkleIntensity(value)
+SetWaterFlowDirection(x,y,speed) small tip: -1 =east/north; 1=west/south - speed is a multiplier of the flowdirection(higher => fast flow)
+SetWaterDistortionWaves(value)
+SetRippleWaterSpeed(value)
+***Getter***
+GetWaterHeight()
+GetWaterWaveIntensity()
+GetWaterShaderColorRed()
+GetWaterShaderColorGreen()
+GetWaterShaderColorBlue()
+GetWaterTransparancy()
+GetWaterReflection()
+GetWaterReflectionSparkleIntensity()
+GetWaterFlowDirectionX()
+GetWaterFlowDirectionY()
+GetWaterFlowSpeed()
+GetWaterDistortionWaves()
+GetRippleWaterSpeed()
+
 --]]

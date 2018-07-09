@@ -3461,6 +3461,140 @@ int SetShaderVariable ( lua_State *L )
 	return 1;
 }
 
+//Control Water Shader
+//setter
+int SetWaterHeight(lua_State *L) {
+	t.terrain.waterliney_f = lua_tonumber(L, 1);
+	return 0;
+}
+int SetWaterShaderColor(lua_State *L) {
+	t.visuals.WaterRed_f = lua_tonumber(L, 1);
+	t.visuals.WaterGreen_f = lua_tonumber(L, 2);
+	t.visuals.WaterBlue_f = lua_tonumber(L, 3);
+	SetVector4(g.terrainvectorindex, t.visuals.WaterRed_f / 256, t.visuals.WaterGreen_f / 256, t.visuals.WaterBlue_f / 256, 0);
+	SetEffectConstantV(t.terrain.effectstartindex + 1, "WaterCol", g.terrainvectorindex);
+	return 0;
+}
+int SetWaterWaveIntensity(lua_State *L){
+	t.visuals.WaterWaveIntensity_f = lua_tonumber(L, 1);
+	SetVector4(g.terrainvectorindex, t.visuals.WaterWaveIntensity_f, t.visuals.WaterWaveIntensity_f, 0, 0);
+	SetEffectConstantV(t.terrain.effectstartindex + 1, "nWaterScale", g.terrainvectorindex);
+	return 0;
+}
+int SetWaterTransparancy(lua_State *L){
+	t.visuals.WaterTransparancy_f = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterTransparancy", t.visuals.WaterTransparancy_f);
+	return 0;
+}
+int SetWaterReflection(lua_State *L){
+	t.visuals.WaterReflection_f = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterReflection", t.visuals.WaterReflection_f);
+	return 0;
+}
+int SetWaterReflectionSparkleIntensity(lua_State *L){
+	t.visuals.WaterReflectionSparkleIntensity = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "reflectionSparkleIntensity", t.visuals.WaterReflectionSparkleIntensity);
+	return 0;
+}
+int SetWaterFlowDirection(lua_State *L){
+	t.visuals.WaterFlowDirectionX = lua_tonumber(L, 1);
+	t.visuals.WaterFlowDirectionY = lua_tonumber(L, 2);
+	t.visuals.WaterFlowSpeed = lua_tonumber(L, 3);
+	SetVector4(g.terrainvectorindex, t.visuals.WaterFlowDirectionX*t.visuals.WaterFlowSpeed, t.visuals.WaterFlowDirectionY*t.visuals.WaterFlowSpeed, 0, 0);
+	SetEffectConstantV(t.terrain.effectstartindex + 1, "flowdirection", g.terrainvectorindex);
+	return 0;
+}
+int SetWaterDistortionWaves(lua_State *L){
+	t.visuals.WaterDistortionWaves = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "distortion2", t.visuals.WaterDistortionWaves);
+	return 0;
+}
+int SetRippleWaterSpeed(lua_State *L){
+	t.visuals.WaterSpeed1 = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterSpeed1", t.visuals.WaterSpeed1);
+	return 0;
+}
+//getter
+int GetWaterHeight(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.terrain.waterliney_f);
+	return 1;
+}
+int GetWaterWaveIntensity(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterWaveIntensity_f);
+	return 1;
+}
+int GetWaterShaderColorRed(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterRed_f);
+	return 1;
+}
+int GetWaterShaderColorGreen(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterGreen_f);
+	return 1;
+}
+int GetWaterShaderColorBlue(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterBlue_f);
+	return 1;
+}
+int GetWaterTransparancy(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterTransparancy_f);
+	return 1;
+}
+int GetWaterReflection(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterReflection_f);
+	return 1;
+}
+int GetWaterReflectionSparkleIntensity(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterReflectionSparkleIntensity);
+	return 1;
+}
+int GetWaterFlowDirectionX(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterFlowDirectionX);
+	return 1;
+}
+int GetWaterFlowDirectionY(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterFlowDirectionY);
+	return 1;
+}
+int GetWaterFlowSpeed(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterFlowSpeed);
+	return 1;
+}
+int GetWaterDistortionWaves(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterDistortionWaves);
+	return 1;
+}
+int GetRippleWaterSpeed(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterSpeed1);
+	return 1;
+}
+
+
 // Game Player Control/State Set/Get commands
 
 int SetGamePlayerControlData ( lua_State *L, int iDataMode )
@@ -5638,6 +5772,32 @@ void addFunctions()
 	
 	// utility
 	lua_register(lua, "MsgBox" , MsgBox );
+
+	//Water Shader
+	//setter
+	lua_register(lua, "SetWaterHeight", SetWaterHeight);
+	lua_register(lua, "SetWaterColor", SetWaterShaderColor);
+	lua_register(lua, "SetWaterWaveIntensity", SetWaterWaveIntensity);
+	lua_register(lua, "SetWaterTransparancy", SetWaterTransparancy);
+	lua_register(lua, "SetWaterReflection", SetWaterReflection);
+	lua_register(lua, "SetWaterReflectionSparkleIntensity", SetWaterReflectionSparkleIntensity);
+	lua_register(lua, "SetWaterFlowDirection", SetWaterFlowDirection);
+	lua_register(lua, "SetWaterDistortionWaves", SetWaterDistortionWaves);
+	lua_register(lua, "SetRippleWaterSpeed", SetRippleWaterSpeed);
+	//getter
+	lua_register(lua, "GetWaterHeight", GetWaterHeight);
+	lua_register(lua, "GetWaterWaveIntensity", GetWaterWaveIntensity);
+	lua_register(lua, "GetWaterShaderColorRed", GetWaterShaderColorRed);
+	lua_register(lua, "GetWaterShaderColorGreen", GetWaterShaderColorGreen);
+	lua_register(lua, "GetWaterShaderColorBlue", GetWaterShaderColorBlue);
+	lua_register(lua, "GetWaterTransparancy", GetWaterTransparancy);
+	lua_register(lua, "GetWaterReflection", GetWaterReflection);
+	lua_register(lua, "GetWaterReflectionSparkleIntensity", GetWaterReflectionSparkleIntensity);
+	lua_register(lua, "GetWaterFlowDirectionX", GetWaterFlowDirectionX);
+	lua_register(lua, "GetWaterFlowDirectionY", GetWaterFlowDirectionY);
+	lua_register(lua, "GetWaterFlowSpeed", GetWaterFlowSpeed);
+	lua_register(lua, "GetWaterDistortionWaves", GetWaterDistortionWaves);
+	lua_register(lua, "GetRippleWaterSpeed", GetRippleWaterSpeed);
 }
 
  /*
