@@ -509,16 +509,21 @@ void physics_prepareentityforphysics ( void )
 					else
 					{
 						//  create solid entities
-						if (  t.entityprofile[t.entid].collisionmode == 1 || t.entityprofile[t.entid].collisionmode == 9 ) 
+						if (t.entityprofile[t.entid].collisionmode == 1)
 						{
-							if (  t.entityprofile[t.entid].collisionmode == 1 ) 
-							{
-								t.tshape=2;
-							}
-							else
-							{
-								t.tshape=9;
-							}
+							t.tshape = 2;
+						}
+						else if (t.entityprofile[t.entid].collisionmode == 9)
+						{
+							t.tshape = 9;
+						}
+						else if (t.entityprofile[t.entid].collisionmode == 2)
+						{
+							t.tshape = 6;
+						}
+						else if (t.entityprofile[t.entid].collisionmode == 3)
+						{
+							t.tshape = 7;
 						}
 						else
 						{
@@ -697,7 +702,18 @@ void physics_setupobject ( void )
 			{
 				//  objects will fall through Floor (  if they are perfectly sitting on it )
 				PositionObject (  t.tphyobj,ObjectPositionX(t.tphyobj),ObjectPositionY(t.tphyobj)+0.1,ObjectPositionZ(t.tphyobj) );
-				ODECreateDynamicBox (  t.tphyobj,-1,0,t.tweight,t.tfriction,-1 );
+				if (t.tshape == 6)     // Sphere
+				{
+					ODECreateDynamicSphere(t.tphyobj, t.tweight, t.tfriction, 0.01f);
+				}
+				else if (t.tshape == 7)  // Cylinder
+				{
+					ODECreateDynamicCylinder(t.tphyobj, t.tweight, t.tfriction, 0.01f);
+				}
+				else                     // box
+				{
+					ODECreateDynamicBox(t.tphyobj, -1, 0, t.tweight, t.tfriction, -1);
+				}
 			}
 		}
 	}
