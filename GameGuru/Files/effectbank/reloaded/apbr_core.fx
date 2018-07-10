@@ -1377,15 +1377,10 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    // remove shadow artifacts on sun side , fade slowly into shadow.
 //   visibility = lerp(1.0,visibility,clamp(dot(-gDirLight.Direction,attributes.normal)-0.10,0.0,1.0) ); // slowly fade away shadow on light side of objects.
    visibility = lerp(1.0,visibility,clamp(dot(-gDirLight.Direction,attributes.normal)+0.10,0.0,1.0) ); // slowly fade away shadow on light side of objects.
-
    //PE: todo - GetShadow remove shadow on dark side , but reflection objects dont always have "lowligt" on dark side , so...
 #endif
 
    #ifdef LIGHTMAPPED
-    float rawaovalue = 1.0f;
-   #else
-   #ifdef PBRVEGETATION
-
     float rawaovalue = 1.0f;
    #else
     #ifdef PBRVEGETATION
@@ -1404,18 +1399,6 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     #endif
    #endif
    
-   float4 originalrawdiffusemap = rawdiffusemap;
-   #ifdef LIGHTMAPPED
-    // get lightmap image
-    float3 rawlightmap = AOMap.Sample(SampleWrap,input.uv2).xyz;
-    // remove lightmapper blur artifacts
-    rawlightmap = clamp(rawlightmap,0.1,1.0);
-    // intensity lightmapper to match realtime PBR albedo
-    rawlightmap = (((rawlightmap-0.5)*1.5)+0.5) * 2;
-    // produced final light-color
-	rawdiffusemap.xyz = rawdiffusemap.xyz * rawlightmap;
-   #endif
-   #endif
    float4 originalrawdiffusemap = rawdiffusemap;
    #ifdef LIGHTMAPPED
     // get lightmap image

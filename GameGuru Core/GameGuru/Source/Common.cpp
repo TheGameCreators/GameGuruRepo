@@ -2001,6 +2001,11 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "lightmappingambientblue"; if ( t.field_s == t.tryfield_s ) g.fLightmappingAmbientB = t.value1/100.0f;
 					t.tryfield_s = "lightmappingallterrainlighting"; if ( t.field_s == t.tryfield_s ) g.iLightmappingAllTerrainLighting = t.value1;
 					t.tryfield_s = "suspendscreenprompts" ; if (  t.field_s == t.tryfield_s  )  g.gsuspendscreenprompts = t.value1;
+
+					// forceloadtestgameshaders:
+					// 0 - off by default
+					// 1 - generate new .BLOB files when a shader is loaded
+					// 2 - scan effectbank folder and generate ALL NEW .BLOB files
 					t.tryfield_s = "forceloadtestgameshaders" ; if (  t.field_s == t.tryfield_s  )  g.gforceloadtestgameshaders = t.value1;				
 
 					t.tryfield_s = "usesky" ; if (  t.field_s == t.tryfield_s  )  g.guseskystate = t.value1;
@@ -2978,6 +2983,53 @@ void FPSC_Setup ( void )
 		}
 		#endif
 
+		// 100718 - generate all new .BLOB files (used when making builds)
+		if ( g.gforceloadtestgameshaders == 2 )
+		{
+			// scan effectsbank folder
+			cstr pOldDir = GetDir();
+			SetDir("effectbank\\reloaded");
+			ChecklistForFiles();
+			SetDir(pOldDir.Get());
+			cstr ShaderPath = cstr("effectbank\\reloaded\\");
+			for ( int c = 1; c < ChecklistQuantity(); c++ )
+			{
+				cstr file_s = ChecklistString(c);
+				LPSTR pFilename = file_s.Get();
+				if ( Len ( pFilename ) > 3 )
+				{
+					if ( strnicmp ( pFilename + strlen(pFilename) - 3, ".fx", 3 ) == NULL )
+					{
+						// some core shaders are except, but compile the rest
+						bool bExempt = false;
+						if ( stricmp ( pFilename, "apbr_core.fx" ) == NULL ) bExempt = true;
+						if ( stricmp ( pFilename, "cascadeshadows.fx" ) == NULL ) bExempt = true;
+						if ( bExempt == false )
+						{
+							// show which shader is being compiled into a blob
+							t.tsplashstatusprogress_s = pFilename;
+							timestampactivity(0,t.tsplashstatusprogress_s.Get());
+							version_splashtext_statusupdate ( );
+
+							// load shader to create blob file
+							cstr ShaderFX_s = ShaderPath + file_s;
+							char pShaderBLOB[2048];
+							strcpy ( pShaderBLOB, file_s.Get() );
+							pShaderBLOB[strlen(pShaderBLOB)-3]=0;
+							strcat ( pShaderBLOB, ".blob" );
+							cstr ShaderBLOB_s = ShaderPath + pShaderBLOB;
+							SETUPLoadShader ( ShaderFX_s.Get(), ShaderBLOB_s.Get(), 0 );
+						}
+					}
+				}
+			}
+			t.tsplashstatusprogress_s = "Finished compiling";
+			timestampactivity(0,t.tsplashstatusprogress_s.Get());
+			version_splashtext_statusupdate ( );
+			g.iTriggerSoftwareToQuit = 3;
+			g.gforceloadtestgameshaders = 0;
+		}
+
 		//  Enter Map Editor specific code
 		SETUPLoadAllCoreShadersREST(g.gforceloadtestgameshaders,g.gpbroverride);
 		material_loadsounds ( );
@@ -3148,6 +3200,11 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	t.screenprompt_s="PREPARING CORE FILES";
 	timestampactivity(0,"initbitmapfont");
 	loadallfonts();
+
+	// loading shaders message more accurate
+	t.tsplashstatusprogress_s="LOADING SHADERS";
+	timestampactivity(0,t.tsplashstatusprogress_s.Get());
+	version_splashtext_statusupdate ( );
 
 	// choose non-PBR or PBR shaders
 	LPSTR pEffectStatic = "effectbank\\reloaded\\entity_basic.fx";

@@ -4523,11 +4523,14 @@ DARKSDK int GetChildWindowHeight()
 #ifdef DX11
 DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iShaderIndex )
 {
-	// check if this index already has a shader inside it
-	if ( g_sShaders[iShaderIndex].pEffect )
+	// check if this index already has a shader inside it (zero just loads the shader to nowhere to create blob)
+	if ( iShaderIndex > 0 )
 	{
-		// return existing shader (likely when LoadEffect command used)
-		return g_sShaders[iShaderIndex].pEffect;
+		if ( g_sShaders[iShaderIndex].pEffect )
+		{
+			// return existing shader (likely when LoadEffect command used)
+			return g_sShaders[iShaderIndex].pEffect;
+		}
 	}
 
 	// get wchar of blobfilename
@@ -4538,7 +4541,7 @@ DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iSh
 	mbstowcs_s(&convertedChars, wcstringBlobFilename, origsize, szBlobFile, _TRUNCATE);
 
 	// if special flag, delete any blob file (editing shaders mode)
-	if ( gbAlwaysIgnoreShaderBlobFile == true )
+	if ( gbAlwaysIgnoreShaderBlobFile == true || iShaderIndex == 0 )
 		if ( DoesFileExist ( szBlobFile ) == true ) 
 			DeleteFile ( szBlobFile );
 
@@ -4554,7 +4557,7 @@ DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iSh
 	}
 	if ( pErrorBlob != NULL )
 	{
-		if ( g_iShowDetailedShaderErrorMessage == 0 )
+		if ( g_iShowDetailedShaderErrorMessage == 0 && iShaderIndex > 0 )
 		{
 			char pErrorDesc[1024];
 			sprintf ( pErrorDesc, "Failed to load the shader '%s'. All GameGuru shaders need to be HLSL level 5.0 or above.", szFile ); 
@@ -4576,8 +4579,18 @@ DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iSh
 			D3DWriteBlobToFile ( g_sShaders[iShaderIndex].pBlob, wcstringBlobFilename, FALSE );
 		}
 	}
-	ID3DBlob* pFXBlob = g_sShaders[iShaderIndex].pBlob;
-	D3DX11CreateEffectFromMemory(pFXBlob->GetBufferPointer(), pFXBlob->GetBufferSize(), 0, m_pD3D, &g_sShaders[iShaderIndex].pEffect);
+
+	// only if loading shader for real
+	if ( iShaderIndex > 0 )
+	{
+		ID3DBlob* pFXBlob = g_sShaders[iShaderIndex].pBlob;
+		D3DX11CreateEffectFromMemory(pFXBlob->GetBufferPointer(), pFXBlob->GetBufferSize(), 0, m_pD3D, &g_sShaders[iShaderIndex].pEffect);
+	}
+	else
+	{
+		// iShaderIndex of zero is just to create a new shader blob file
+		g_sShaders[iShaderIndex].pEffect = NULL;
+	}
 
 	// copy name into record
 	strcpy ( g_sShaders[iShaderIndex].pName, szFile );

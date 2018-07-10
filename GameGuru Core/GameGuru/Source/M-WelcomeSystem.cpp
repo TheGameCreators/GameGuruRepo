@@ -711,7 +711,12 @@ void welcome_exitapp_page ( int iHighlightingButton )
 	{
 		welcome_text ( "Steam not running or ownership not verified", 1, 50, 28+(2*5), 192, true, false );
 	}
-	welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(4*5), 192, true, false );
+	if ( g.iTriggerSoftwareToQuit == 3 )
+	{
+		welcome_text ( "All DirectX 11 Shaders Updated", 1, 50, 28+(2*5), 192, true, false );
+		welcome_text ( "You may change 'forceloadtestgameshaders' back to zero", 1, 50, 28+(3*5), 192, true, false );
+	}
+	welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(6*5), 192, true, false );
 }
 
 
