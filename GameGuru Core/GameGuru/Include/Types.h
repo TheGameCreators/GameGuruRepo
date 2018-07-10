@@ -7287,7 +7287,13 @@ struct infinilighttype
 	int islit;
 	int e;
 	float distfromcam_f;
+	float distfromobj_f;
 	float intensity_f;
+	bool drop_entry;
+	bool is_spot_light;
+	float f_angle_x;
+	float f_angle_y;
+	float f_angle_z;
 
 	// Constructor
 	infinilighttype ( )
@@ -7304,6 +7310,9 @@ struct infinilighttype
 		 x = 0.0f;
 		 type = 0;
 		 used = 0;
+		 f_angle_x = 0;
+		 f_angle_y = 0;
+		 f_angle_z = 0;
 	}
 	// End of Constructor
 
