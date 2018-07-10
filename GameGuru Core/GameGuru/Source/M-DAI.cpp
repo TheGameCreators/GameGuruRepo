@@ -1159,9 +1159,9 @@ void darkai_shooteffect ( void )
 		t.ty_f=ObjectPositionY(t.tobj)+50.0;
 		t.tz_f=ObjectPositionZ(t.tobj);
 	}
-	t.tcolr=g.firemodes[t.entityelement[t.te].eleprof.hasweapon][0].settings.muzzlecolorr/2;
-	t.tcolg=g.firemodes[t.entityelement[t.te].eleprof.hasweapon][0].settings.muzzlecolorg/2;
-	t.tcolb=g.firemodes[t.entityelement[t.te].eleprof.hasweapon][0].settings.muzzlecolorb/2;
+	t.tcolr=g.firemodes[t.entityelement[t.te].eleprof.hasweapon][0].settings.muzzlecolorr/5;// /2; 100718 - tone it down a touch
+	t.tcolg=g.firemodes[t.entityelement[t.te].eleprof.hasweapon][0].settings.muzzlecolorg/5;// /2;
+	t.tcolb=g.firemodes[t.entityelement[t.te].eleprof.hasweapon][0].settings.muzzlecolorb/5;// /2;
 	lighting_spotflash_forenemies ( );
 
 	//  initiate decal

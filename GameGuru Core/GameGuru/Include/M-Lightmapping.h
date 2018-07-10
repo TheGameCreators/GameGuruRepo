@@ -22,5 +22,5 @@ void lm_savescene ( void );
 void lm_emptylightmapfolder ( void );
 void lm_loadscene ( void );
 void lm_preplmobj ( void );
-void lm_applystaticshader ( void );
+void lm_handleshaders ( void );
 int findlightmaptexturefilenameindex ( char* file_s );

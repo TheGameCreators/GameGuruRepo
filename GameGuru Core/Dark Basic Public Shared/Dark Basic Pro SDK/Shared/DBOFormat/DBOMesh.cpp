@@ -232,7 +232,7 @@ DARKSDK_DLL void FreeVertexShaderMesh ( sMesh* pMesh )
 			//pMesh->pVertexDec = NULL;
 
 			// 221114 - and also wipe any reference to shader use
-			pMesh->bUseVertexShader = false;
+			//pMesh->bUseVertexShader = false; see below
 			pMesh->bOverridePixelShader = false;
 		}
 		else
@@ -246,14 +246,18 @@ DARKSDK_DLL void FreeVertexShaderMesh ( sMesh* pMesh )
 			#endif
 
 			// deactivate shader usage
-			pMesh->bUseVertexShader = false;
+			//pMesh->bUseVertexShader = false; see below
 			pMesh->bOverridePixelShader = false;
 		}
 
 		// clear from mesh
 		pMesh->bVertexShaderEffectRefOnly = false;
-		strcpy ( pMesh->pEffectName, "" );
+		//strcpy ( pMesh->pEffectName, "" ); see below
 	}
+
+	// 100718 - moved from above so absolutely sure shader is wiped out
+	pMesh->bUseVertexShader = false;
+	strcpy ( pMesh->pEffectName, "" );
 }
 
 DARKSDK_DLL void ClearTextureSettings ( sMesh* pMesh )

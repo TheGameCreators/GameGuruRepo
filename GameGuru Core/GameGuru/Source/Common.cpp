@@ -1951,24 +1951,34 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "lowestnearcamera"; if (t.field_s == t.tryfield_s)  g.lowestnearcamera = t.value1;
 					t.tryfield_s = "editorsavebak"; if (t.field_s == t.tryfield_s)  g.editorsavebak = t.value1;
 
-					t.tryfield_s = "maxtotalmeshlights"; if (t.field_s == t.tryfield_s)  g.maxtotalmeshlights = t.value1;
-					if (g.maxtotalmeshlights > 40 ) g.maxtotalmeshlights = 40;
-					if (g.maxtotalmeshlights < 4) g.maxtotalmeshlights = 4; //PE: Lowest to support old system on terrain.
-					t.tryfield_s = "maxpixelmeshlights"; if (t.field_s == t.tryfield_s)  g.maxpixelmeshlights = t.value1;
-					if (g.maxpixelmeshlights > 38) g.maxpixelmeshlights = 38; //PE: Leave 2 vertex based lights per mesh.
 					t.tryfield_s = "terrainoldlight"; if (t.field_s == t.tryfield_s)  g.terrainoldlight = t.value1;
 					t.tryfield_s = "terrainusevertexlights"; if (t.field_s == t.tryfield_s)  g.terrainusevertexlights = t.value1;
-					t.tryfield_s = "maxterrainlights"; if (t.field_s == t.tryfield_s)  g.maxterrainlights = t.value1;
-					if (g.maxterrainlights > 40) g.maxterrainlights = 40;
-					t.tryfield_s = "terrainlightfadedistance"; if (t.field_s == t.tryfield_s)  g.terrainlightfadedistance = t.value1;
-					if (g.terrainlightfadedistance < 600 ) g.terrainlightfadedistance = 600; //PE: Need atleast a 600 fade distance.
 					t.tryfield_s = "showstaticlightinrealtime"; if (t.field_s == t.tryfield_s)  g.showstaticlightinrealtime = t.value1;
-
-
-					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
-					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
-					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
-
+					t.tryfield_s = "maxtotalmeshlights"; 
+					if (t.field_s == t.tryfield_s)  
+					{
+						g.maxtotalmeshlights = t.value1;
+						if (g.maxtotalmeshlights > 38 ) g.maxtotalmeshlights = 38;
+						if (g.maxtotalmeshlights < 4) g.maxtotalmeshlights = 4; //PE: Lowest to support old system on terrain
+					}
+					t.tryfield_s = "maxpixelmeshlights"; 
+					if (t.field_s == t.tryfield_s)  
+					{
+						g.maxpixelmeshlights = t.value1;
+						if (g.maxpixelmeshlights > 38) g.maxpixelmeshlights = 38; //PE: Leave 2 vertex based lights per mesh.
+					}
+					t.tryfield_s = "maxterrainlights"; 
+					if (t.field_s == t.tryfield_s)  
+					{
+						g.maxterrainlights = t.value1;
+						if (g.maxterrainlights > 40) g.maxterrainlights = 40;
+					}
+					t.tryfield_s = "terrainlightfadedistance"; 
+					if (t.field_s == t.tryfield_s)  
+					{
+						g.terrainlightfadedistance = t.value1;
+						if (g.terrainlightfadedistance < 600 ) g.terrainlightfadedistance = 600; //PE: Need atleast a 600 fade distance.
+					}
 
 					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
 					t.tryfield_s = "memgeneratedump"; if (t.field_s == t.tryfield_s)  g.memgeneratedump = t.value1;

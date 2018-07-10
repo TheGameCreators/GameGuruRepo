@@ -2662,9 +2662,9 @@ void gun_flash ( void )
 			t.tz_f = CameraPositionZ();
 			MoveCamera ( -10.0 );
 			RotateCamera ( CameraAngleX(), CameraAngleY()+45.0f, CameraAngleZ() );
-			t.tcolr = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorr/2;
-			t.tcolg = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorg/2;
-			t.tcolb = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorb/2;
+			t.tcolr = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorr/5;// /2; 100718 - tone it down a touch
+			t.tcolg = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorg/5;// /2;
+			t.tcolb = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorb/5;// /2;
 			lighting_spotflash ( );
 		}
 	}

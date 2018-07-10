@@ -1373,7 +1373,7 @@ void lm_process ( void )
 
 		//  Prepare shader for light map objects
 		timestampactivity(0,"LIGHTMAPPER: Apply Static Shaders");
-		lm_applystaticshader ( );
+		lm_handleshaders ( );
 
 		//  Save lightmapped scene objects
 		timestampactivity(0,"LIGHTMAPPER: Save Lightmap Files");
@@ -2096,7 +2096,7 @@ void lm_preplmobj ( void )
 	SetObjectMask (  t.tlmobj, 1 );
 }
 
-void lm_applystaticshader ( void )
+void lm_handleshaders ( void )
 {
 	//  Apply effect to new lightmapped objects
 	for ( t.e = 1 ; t.e<=  g.glmsceneentitymax; t.e++ )
@@ -2111,8 +2111,9 @@ void lm_applystaticshader ( void )
 				{
 					if (  ObjectExist(t.tlmobj) == 1 ) 
 					{
-						//SetObjectEffect (  t.tlmobj,g.staticlightmapeffectoffset );
-						SetObjectWireframe (  t.tlmobj,0 );
+						// 100718 - important no shaders are applied to LM entity objects (done when loading in game engine)
+						SetObjectEffect ( t.tlmobj, 0 );
+						SetObjectWireframe ( t.tlmobj,0 );
 						if (  t.entid>0 ) 
 						{
 							//  apply certain settings lost in the conversion
