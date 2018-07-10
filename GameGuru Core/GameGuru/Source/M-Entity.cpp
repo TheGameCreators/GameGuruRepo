@@ -4480,12 +4480,6 @@ void entity_addentitytomap ( void )
 	t.entitybankindex=t.gridentity;
 	entity_addentitytomap_core ( );
 
-	// update infinilight list with addition
-	if ( t.entityprofile[t.entitybankindex].ismarker == 2 || t.entityprofile[t.entitybankindex].ismarker == 5 ) 
-	{
-		lighting_refresh ( );
-	}
-
 	// transfer waypoint zone index to entityelement
 	t.waypointindex=t.grideleprof.trigger.waypointzoneindex;
 	t.entityelement[t.e].eleprof.trigger.waypointzoneindex=t.waypointindex;
@@ -4605,6 +4599,15 @@ void entity_addentitytomap ( void )
 			// Selected an existing EBE entity from library
 		}
 	}
+
+	//PE: Moved here as we use the object direction vector for spot lights.
+	// update infinilight list with addition
+	if (t.entityprofile[t.entitybankindex].ismarker == 2 || t.entityprofile[t.entitybankindex].ismarker == 5 || t.entityelement[t.e].eleprof.usespotlighting)
+	{
+		lighting_refresh();
+	}
+
+
 }
 
 void entity_deleteentityfrommap ( void )
