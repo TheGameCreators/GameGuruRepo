@@ -167,7 +167,7 @@ class CObjectManager
 		void			SetMeshDepthStates		( sMesh* pMesh, bool bForceState );
 		bool			SetMeshRenderStates		( sMesh* pMesh );
 		bool			SetMeshTextureStates	( sMesh* pMesh );
-		bool			DrawMesh				( sMesh* pMesh, bool bIgnoreOwnMeshVisibility , sObject* pObject = NULL );
+		bool			DrawMesh				( sMesh* pMesh, bool bIgnoreOwnMeshVisibility , sObject* pObject = NULL, sFrame* pFrame = NULL);
 		bool			DrawMesh				( sMesh* pMesh );
 
 		int				SwitchRenderTargetToDepth ( int iFlag );
