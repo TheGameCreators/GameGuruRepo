@@ -51,6 +51,13 @@ float4 g_lights_diffuse0;
 float4 g_lights_diffuse1;
 float4 g_lights_diffuse2;
 
+float dl_lights;
+float dl_lightsVS;
+float4 dl_pos[40];
+float4 dl_diffuse[40];
+float4 dl_angle[40];
+
+
 #ifdef WITHANIMATION
 float4x4 boneMatrix[60] : BoneMatrixPalette;
 #endif
@@ -65,39 +72,99 @@ float ScaleOverride = 2.5f;
 
 struct appdata
 {
-    float3 position     : POSITION;
-    float3 normal       : NORMAL;
-    float2 uv           : TEXCOORD0;
-   #ifdef PBRVEGETATION
-   #else
-    #ifdef PBRTERRAIN
-      float2 uv2          : TEXCOORD1;
-    #else
-      float3 tangent      : TANGENT0;
-      float3 binormal     : BINORMAL0;
-     #ifdef WITHANIMATION
-       float4 Blendweight  : TEXCOORD1;
-       float4 Blendindices : TEXCOORD2;   
-      #endif
-    #endif
-   #endif
+	float3 position     : POSITION;
+	float3 normal       : NORMAL;
+	float2 uv           : TEXCOORD0;
+	#ifdef LIGHTMAPPED
+	 float2 uv2          : TEXCOORD1;
+	#endif
+	#ifdef PBRVEGETATION
+	#else
+	 #ifdef PBRTERRAIN
+	  float2 uv2          : TEXCOORD1;
+	 #else
+	  float3 tangent      : TANGENT0;
+	  float3 binormal     : BINORMAL0;
+	  #ifdef WITHANIMATION
+	   float4 Blendweight  : TEXCOORD1;
+	   float4 Blendindices : TEXCOORD2;   
+	  #endif
+	 #endif
+	#endif
 };
 
 struct VSOutput
 {
-   float4 positionCS     : POSITION;
-   float3 cameraPosition : TEXCOORD0;
-   float4 position       : TEXCOORD1;
-   float3 normal         : TEXCOORD2;
-   float2 uv             : TEXCOORD3;
-   #ifndef PBRVEGETATION
-    float3 binormal       : TEXCOORD4;
-    float3 tangent        : TEXCOORD5;
-   #endif
-   float4 color         : TEXCOORD6;
-   float viewDepth      : TEXCOORD7;
-   float clip           : TEXCOORD8;
+	float4 positionCS     : POSITION;
+	float3 cameraPosition : TEXCOORD0;
+	float4 position       : TEXCOORD1;
+	float3 normal         : TEXCOORD2;
+	float2 uv             : TEXCOORD3;
+	#ifndef PBRVEGETATION
+	float3 binormal       : TEXCOORD4;
+ 	float3 tangent        : TEXCOORD5;
+	#endif
+	float4 color         : TEXCOORD6;
+	float viewDepth      : TEXCOORD7;
+	float clip           : TEXCOORD8;
+	#ifdef LIGHTMAPPED
+	 float2 uv2           : TEXCOORD9;
+	 float3 VertexLight    : TEXCOORD10;
+	#else
+	 float3 VertexLight    : TEXCOORD9;
+	#endif
 };
+
+
+float3 CalcExtSpot( float3 worldNormal, float3 worldPos , float3 SpotPos , float3 SpotColor , float range, float3 angle,float3 diffusemap)
+{
+    float conewidth = 24;
+	float toLight = length(SpotPos.xyz - worldPos) * 2.0;
+	float4 local_lights_atten = float4(1.0, 1.0/range, 1.0/(range*range), 0.0);
+	float intensity = 1.0/dot( local_lights_atten, float4(1,toLight,toLight*toLight,0) );
+    float3 V  = SpotPos.xyz - worldPos;  
+    float3 Vn  = normalize(V); 
+    float3 lightvector = Vn;
+    float3 lightdir = normalize(float3(angle.x,angle.y*2.0,angle.z));
+    intensity = clamp(intensity * (dot(-lightdir,worldNormal)),0.0,1.0);
+    return (SpotColor.xyz * pow(max(dot(-lightvector, lightdir ),0),conewidth) * 2.5 ) * intensity * diffusemap;
+}
+
+
+float3 CalcExtLightingVS(float3 Nb, float3 worldPos, float3 Vn )
+{
+	float3 output = float3(0,0,0);
+    float3 toLight;
+    float lightDist;
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float4 local_lights_atten;
+	
+	//dl_pos[i].w = range.
+
+	for( int i=dl_lights ; i < dl_lightsVS+dl_lights ; i++ )
+	{
+
+		if( dl_diffuse[i].w == 3.0 ) {
+			output += CalcExtSpot(Nb,worldPos,dl_pos[i].xyz,dl_diffuse[i].xyz,dl_pos[i].w,dl_angle[i].xyz, float3(0.75,0.75,0.75));
+		} else {
+			toLight = dl_pos[i].xyz - worldPos;
+			lightDist = length( toLight ) * 2.0;
+			local_lights_atten = float4(1.0, 1.0/dl_pos[i].w, 1.0/(dl_pos[i].w*dl_pos[i].w), 0.0);
+			fAtten = 1.0/dot( local_lights_atten, float4(1,lightDist,lightDist*lightDist,0) );
+			lightDir = normalize( toLight );
+			halfvec = normalize(Vn + lightDir);
+			lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+			lit0.z = clamp( ( lit0.z * GlobalSpecular) ,0.0,1.0);
+			output+= (lit0.y *dl_diffuse[i].xyz * fAtten ); //PE: no spec + (lit0.z * dl_diffuse[i].xyz * fAtten );   
+		}
+
+	}
+	return output;
+}
+
 
 VSOutput VSMain(appdata input, uniform int geometrymode)
 {
@@ -232,6 +299,11 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
    output.clip = dot(output.position, clipPlane);                                                                      
 
 
+	float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
+	float3 eyeraw = trueCameraPosition - output.position.xyz;
+
+	output.VertexLight.xyz = CalcExtLightingVS(output.normal.xyz, output.position.xyz, eyeraw.xyz );
+
 	//PE: Experimental , http://www.mvps.org/directx/articles/linear_z/linearz.htm
 	//PE: z fighting. We need to extract the far plane somehow to test it.
 	//output.positionCS.z = output.positionCS.z * output.positionCS.w / 5000.0f;
@@ -247,6 +319,10 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
 //      output.positionCS.w = 0.0;
 //    }
 #endif
+   #ifdef LIGHTMAPPED
+    output.uv2 = input.uv2;
+   #endif
+
    return output;
 }
 
@@ -893,6 +969,80 @@ float CalcFlashLight( float3 worldPos)
 */
 
 
+float3 CalcExtLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap )
+{
+	float3 output = GlowIntensity.xyz;
+    float3 toLight;
+    float lightDist;
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float4 local_lights_atten;
+	
+	//dl_pos[i].w = range.
+
+	for( int i=0 ; i < dl_lights ; i++ ) {
+
+		if( dl_diffuse[i].w == 3.0 ) {
+			output += CalcExtSpot(Nb,worldPos,dl_pos[i].xyz,dl_diffuse[i].xyz,dl_pos[i].w,dl_angle[i].xyz,diffusemap);
+		} else {
+
+			toLight = dl_pos[i].xyz - worldPos;
+			lightDist = length( toLight ) * 2.0;
+			local_lights_atten = float4(1.0, 1.0/dl_pos[i].w, 1.0/(dl_pos[i].w*dl_pos[i].w), 0.0);
+			fAtten = 1.0/dot( local_lights_atten, float4(1,lightDist,lightDist*lightDist,0) );
+			lightDir = normalize( toLight );
+			halfvec = normalize(Vn + lightDir);
+			lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+			lit0.z = clamp( ( lit0.z * GlobalSpecular) ,0.0,1.0);
+			output += (lit0.y *dl_diffuse[i].xyz * fAtten * 1.7*diffusemap) + (lit0.z * dl_diffuse[i].xyz * fAtten * 0.5 );   
+		}
+	}
+	return output;
+}
+
+float3 CalcExtLightingPBR(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap, float3 toEye, float metallic, float roughness )
+{
+	float3 output = GlowIntensity.xyz;
+	float3 loutp;
+    float3 toLight;
+    float lightDist;
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float3 albedoAdd = float3(1.0,1.0,1.0);
+	float3 fspecular;
+	float4 local_lights_atten;
+	
+	//dl_pos[i].w = range.
+
+	for( int i=0 ; i < dl_lights ; i++ ) {
+
+		if( dl_diffuse[i].w == 3.0 ) {
+			output += CalcExtSpot(Nb,worldPos,dl_pos[i].xyz,dl_diffuse[i].xyz,dl_pos[i].w,dl_angle[i].xyz,diffusemap);
+		} else {
+
+			toLight = dl_pos[i].xyz - worldPos;
+			lightDist = length( toLight )*2.0;
+			local_lights_atten = float4(1.0, 1.0/dl_pos[i].w, 1.0/(dl_pos[i].w*dl_pos[i].w), 0.0);
+			fAtten = 1.0/dot( local_lights_atten, float4(1,lightDist,lightDist*lightDist,0) );
+			lightDir = normalize( toLight );
+			halfvec = normalize(Vn + lightDir);
+			lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+
+			fspecular = CookTorranceSpecFactor(Nb, toEye, metallic, roughness, -lightDir, albedoAdd);
+			fspecular = clamp( ( fspecular * GlobalSpecular) ,0.0,1.0);
+
+			output += (lit0.y *dl_diffuse[i].xyz * fAtten * 1.7*diffusemap) + (fspecular * dl_diffuse[i].xyz * fAtten  );   
+		}
+
+	}
+	return output;
+}
+
+
 float3 CalcLightingPBR(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap, float3 toEye, float metallic, float roughness )
 {
    float3 output = GlowIntensity.xyz;
@@ -1232,6 +1382,9 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    //PE: todo - GetShadow remove shadow on dark side , but reflection objects dont always have "lowligt" on dark side , so...
 #endif
 
+   #ifdef LIGHTMAPPED
+    float rawaovalue = 1.0f;
+   #else
    #ifdef PBRVEGETATION
     float rawaovalue = 1.0f;
    #else
@@ -1245,6 +1398,18 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	 #endif
 	 visibility -= ((1.0f-rawaovalue)*visibility);
 	#endif
+   #endif
+   #endif
+   float4 originalrawdiffusemap = rawdiffusemap;
+   #ifdef LIGHTMAPPED
+    // get lightmap image
+    float3 rawlightmap = AOMap.Sample(SampleWrap,input.uv2).xyz;
+    // remove lightmapper blur artifacts
+    rawlightmap = clamp(rawlightmap,0.1,1.0);
+    // intensity lightmapper to match realtime PBR albedo
+    rawlightmap = (((rawlightmap-0.5)*1.5)+0.5) * 2;
+    // produced final light-color
+	rawdiffusemap.xyz = rawdiffusemap.xyz * rawlightmap;
    #endif
    
    Material gMaterial;
@@ -1306,16 +1471,27 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	float3 albedo = texColor.rgb - texColor.rgb * (gMaterial.Properties.g); //metallic
 	float3 light = ComputeLight(gMaterial, gDirLight, inputnormalW, toEye, albedo.rgb);
 	float3 eye = normalize(eyeraw);
-	float3 spotflashlighting = CalcSpotFlash(inputnormalW,attributes.position.xyz);   
-	
+	//float3 spotflashlighting = CalcSpotFlash(inputnormalW,attributes.position.xyz);   
+	float3 spotflashlighting = float3(0.0,0.0,0.0);
+
+	float3 dynlight = float3(0.0,0.0,0.0);
+
 #ifdef DYNAMICPBRLIGHT
 #ifndef PBRTERRAIN
-	light += CalcLightingPBR(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0), toEye, gMaterial.Properties.g, gMaterial.Properties.b ) + spotflashlighting;  
+////	light += CalcLightingPBR(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0), toEye, gMaterial.Properties.g, gMaterial.Properties.b ) + spotflashlighting;  
+//	light += input.VertexLight.xyz * 1.7 * rawdiffusemap.xyz;
+	dynlight += CalcExtLightingPBR(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0), toEye, gMaterial.Properties.g, gMaterial.Properties.b ) + spotflashlighting + (input.VertexLight.xyz * 2.0 * rawdiffusemap.xyz);
+
 #else
-	light += CalcLighting(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0)) + spotflashlighting;  
+//	light += CalcLighting(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0)) + spotflashlighting;  
+////	light += CalcExtLighting(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0)) + spotflashlighting;
+//	light += input.VertexLight.xyz * 1.7 * rawdiffusemap.xyz;
+	dynlight += CalcExtLightingPBR(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0), toEye, gMaterial.Properties.g, gMaterial.Properties.b ) + spotflashlighting + (input.VertexLight.xyz * 2.0 * rawdiffusemap.xyz);  
+
+
 #endif
 #else
-	light += CalcLighting(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0)) + spotflashlighting;  
+	dynlight += CalcLighting(inputnormalW,attributes.position.xyz,eye,rawdiffusemap.xyz,float3(0,0,0)) + spotflashlighting;  
 #endif
 
 	//float flashlight = CalcFlashLight(attributes.position.xyz);
@@ -1351,6 +1527,11 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     
 //	visibility = clamp( visibility+(flashlight*0.75) , 0.0 ,1.0 );
 	visibility = clamp( visibility+(flashlight*0.75) , 0.15 ,1.0 ); //PE: Set lowest dark shadow, to stop uneven shadow colors.
+	//PE: Allow dyn light to remove shadow.
+	visibility = clamp( visibility+( length(dynlight) ) , 0.15 ,1.0 ); //PE: Set lowest dark shadow, to stop uneven shadow colors.
+	
+	light = light + dynlight;
+	
 
 	//light += (rawdiffusemap.xyz) * flashlight);
 
@@ -1369,7 +1550,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #ifndef PBRTERRAIN
 	ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
 #endif
-	float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
+	//float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
+	float3 albedoContrib = originalrawdiffusemap.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
 	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
@@ -1439,7 +1621,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     #ifdef DEBUGSHADOW
     finalColor = TintDebugShadow ( iCurrentCascadeIndex, float4(finalColor,1.0) ).rgb;
    #endif
-   
+  
+
    // final render pixel or show PBR debug layer views
    if ( ShaderVariables.x > 0 )
    {
@@ -1448,7 +1631,11 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
       if ( ShaderVariables.x == 2 ) { finalColor = attributes.normal; }
       if ( ShaderVariables.x == 3 ) { finalColor = rawmetalmap; }
       if ( ShaderVariables.x == 4 ) { finalColor = rawglossmap; }
-      if ( ShaderVariables.x == 5 ) { finalColor = float3(rawaovalue,rawaovalue,rawaovalue); }
+      #ifdef LIGHTMAPPED
+       if ( ShaderVariables.x == 5 ) { finalColor = rawlightmap; }
+      #else
+       if ( ShaderVariables.x == 5 ) { finalColor = float3(rawaovalue,rawaovalue,rawaovalue); }
+      #endif
       if ( ShaderVariables.x == 6 ) { finalColor = albedoContrib; }
       if ( ShaderVariables.x == 7 ) { finalColor = lightContrib; }
       if ( ShaderVariables.x == 8 ) { finalColor = reflectiveContrib; }
@@ -1472,7 +1659,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      litColor.a *= AlphaOverride;
     #endif
    #endif
-   
+
    // final pixel color and alpha
    return float4(finalColor, litColor.a);
 }
