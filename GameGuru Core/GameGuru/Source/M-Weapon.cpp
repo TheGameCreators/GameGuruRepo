@@ -269,7 +269,6 @@ void weapon_projectile_loop ( void )
 	{
 		if (  t.WeaponProjectile[t.tProj].activeFlag  ==  1 ) 
 		{
-			//C++ISSUE - this is used below without ever being set, only making a new one sets t.tNewProj, so setting it to t.tProj for now for safety
 			t.tNewProj = t.tProj;
 
 			//  get projectile base index
@@ -284,8 +283,8 @@ void weapon_projectile_loop ( void )
 			t.WeaponProjectile[t.tProj].yOldPos_f = t.tYOldPos_f;
 			t.WeaponProjectile[t.tProj].zOldPos_f = t.tZOldPos_f;
 
-			//  projectile movement if not real physics
-			if (  t.WeaponProjectileBase[t.tProjType].usingRealPhysics == 0 ) 
+			// projectile movement if not real physics
+			if ( t.WeaponProjectileBase[t.tProjType].usingRealPhysics == 0 ) 
 			{
 				//  perform turning if projectile can turn (use tracer object for calculation simplicity)
 				t.tXTurnSpeed_f = t.WeaponProjectile[t.tProj].xTurnSpeed_f;
@@ -371,6 +370,9 @@ void weapon_projectile_loop ( void )
 					t.tProjectileResultLightFlag = t.WeaponProjectileBase[t.tProjType].explosionLightFlag;
 					t.tProjectileResultSmokeImageID = t.WeaponProjectileBase[t.tProjType].explosionSmokeImageID;
 					t.tProjectileResultSparksCount = t.WeaponProjectileBase[t.tProjType].explosionSparksCount;
+					t.tProjectileResultSize = t.WeaponProjectileBase[t.tProjType].explosionSize;
+					t.tProjectileResultSmokeSize = t.WeaponProjectileBase[t.tProjType].explosionSmokeSize;
+					t.tProjectileResultSparksSize = t.WeaponProjectileBase[t.tProjType].explosionSparksSize;
 				}
 				t.tx_f = t.tXNewPos_f; t.ty_f = t.tYNewPos_f; t.tz_f = t.tZNewPos_f;
 				t.tDamage_f = t.WeaponProjectileBase[t.tProjType].damage_f;
@@ -418,6 +420,9 @@ void weapon_projectile_loop ( void )
 							t.tProjectileResultLightFlag = t.WeaponProjectileBase[t.tProjType].explosionLightFlag;
 							t.tProjectileResultSmokeImageID = t.WeaponProjectileBase[t.tProjType].explosionSmokeImageID;
 							t.tProjectileResultSparksCount = t.WeaponProjectileBase[t.tProjType].explosionSparksCount;
+							t.tProjectileResultSize = t.WeaponProjectileBase[t.tProjType].explosionSize;
+							t.tProjectileResultSmokeSize = t.WeaponProjectileBase[t.tProjType].explosionSmokeSize;
+							t.tProjectileResultSparksSize = t.WeaponProjectileBase[t.tProjType].explosionSparksSize;
 						}
 						t.tx_f = t.tHitX_f; t.ty_f = t.tHitY_f; t.tz_f = t.tHitZ_f;
 						t.tDamage_f = t.WeaponProjectileBase[t.tProjType].damage_f;
@@ -462,6 +467,9 @@ void weapon_projectile_loop ( void )
 								t.tProjectileResultLightFlag = t.WeaponProjectileBase[t.tProjType].explosionLightFlag;
 								t.tProjectileResultSmokeImageID = t.WeaponProjectileBase[t.tProjType].explosionSmokeImageID;
 								t.tProjectileResultSparksCount = t.WeaponProjectileBase[t.tProjType].explosionSparksCount;
+								t.tProjectileResultSize = t.WeaponProjectileBase[t.tProjType].explosionSize;
+								t.tProjectileResultSmokeSize = t.WeaponProjectileBase[t.tProjType].explosionSmokeSize;
+								t.tProjectileResultSparksSize = t.WeaponProjectileBase[t.tProjType].explosionSparksSize;
 							}
 							t.tx_f = t.tHitX_f; t.ty_f = t.tHitY_f; t.tz_f = t.tHitZ_f;
 							t.tDamage_f = t.WeaponProjectileBase[t.tProjType].damage_f;
@@ -487,7 +495,6 @@ void weapon_projectile_loop ( void )
 						//  has this projectile gone underwater?
 						if (  t.tYNewPos_f < t.terrain.waterliney_f ) 
 						{
-
 							//  yes it has
 							t.tXPos_f = t.tXNewPos_f; t.tZPos_f = t.tZNewPos_f ; t.tsize_f = 1.5;
 							weapon_projectile_destroy ( );
@@ -512,7 +519,6 @@ void weapon_projectile_loop ( void )
 						}
 						else
 						{
-
 							//  check for hit with entities
 							t.ttdx_f=t.tXNewPos_f-t.tXOldPos_f;
 							t.ttdy_f=t.tYNewPos_f-t.tYOldPos_f;
@@ -632,6 +638,9 @@ void weapon_projectile_loop ( void )
 										t.tProjectileResultLightFlag = t.WeaponProjectileBase[t.tProjType].explosionLightFlag;
 										t.tProjectileResultSmokeImageID = t.WeaponProjectileBase[t.tProjType].explosionSmokeImageID;
 										t.tProjectileResultSparksCount = t.WeaponProjectileBase[t.tProjType].explosionSparksCount;
+										t.tProjectileResultSize = t.WeaponProjectileBase[t.tProjType].explosionSize;
+										t.tProjectileResultSmokeSize = t.WeaponProjectileBase[t.tProjType].explosionSmokeSize;
+										t.tProjectileResultSparksSize = t.WeaponProjectileBase[t.tProjType].explosionSparksSize;
 									}
 									t.tx_f = t.tHitX_f; t.ty_f = t.tHitY_f; t.tz_f = t.tHitZ_f;
 									t.tDamage_f = t.WeaponProjectileBase[t.tProjType].damage_f;
@@ -702,22 +711,16 @@ void weapon_projectile_loop ( void )
 
 				if (  t.game.runasmultiplayer == 1 ) 
 				{
-
-				if (  t.WeaponProjectile[t.tNewProj].sourceEntity  ==  0 ) 
-				{
+					if (  t.WeaponProjectile[t.tNewProj].sourceEntity  ==  0 ) 
+					{
 						t.WeaponProjectile[t.tProj].xAng_f = ObjectAngleX(t.tobj);
 						t.WeaponProjectile[t.tProj].yAng_f = ObjectAngleY(t.tobj);
 						t.WeaponProjectile[t.tProj].zAng_f = ObjectAngleZ(t.tobj);
-
 						t.tSteamBulletOn = 1;
-
 						steam_update_projectile ( );
 					}
-
 				}
-
 			}
-
 		}
 	}
 }
@@ -841,6 +844,9 @@ void weapon_projectile_load ( void )
 	t.tInField_s = "explosionLightFlag" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionLightFlag = t.value1_f;
 	t.tInField_s = "explosionSmokeName" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSmokeName = t.value_s;
 	t.tInField_s = "explosionSparksCount" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSparksCount = t.value1_f;
+	t.tInField_s = "explosionSize" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSize = t.value1_f;
+	t.tInField_s = "explosionSmokeSize" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSmokeSize = t.value1_f;
+	t.tInField_s = "explosionSparksSize" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSparksSize = t.value1_f;
 	t.tInField_s = "projectileEventType" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].projectileEventType = t.value1_f;
 
 	t.tInField_s = "object" ; weapon_readfield ( );
@@ -885,39 +891,50 @@ void weapon_projectile_load ( void )
 		}
 	}
 
-	//  load diffuse texture
+	// load diffuse texture (if any)
 	t.tInField_s = "textureD" ; weapon_readfield ( );
-	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
-	weapon_loadtexture ( );
-	if (  t.tImgID  ==  0 ) 
+	if ( strlen ( t.value_s.Get() ) > 4 )
 	{
-		t.tResult = 0; return;
-	}
-	t.WeaponProjectileBase[t.tNewProjBase].textureD = t.tImgID;
+		t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
+		weapon_loadtexture ( );
+		if (  t.tImgID  ==  0 ) 
+		{
+			t.tResult = 0; return;
+		}
+		t.WeaponProjectileBase[t.tNewProjBase].textureD = t.tImgID;
 
-	//  load normal texture
-	t.tInField_s = "textureN" ; weapon_readfield ( );
-	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
-	weapon_loadtexture ( );
-	if (  t.tImgID  ==  0 ) 
-	{
-		t.tResult = 0; return;
-	}
-	t.WeaponProjectileBase[t.tNewProjBase].textureN = t.tImgID;
+		//  load normal texture
+		t.tInField_s = "textureN" ; weapon_readfield ( );
+		t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
+		weapon_loadtexture ( );
+		if (  t.tImgID  ==  0 ) 
+		{
+			t.tResult = 0; return;
+		}
+		t.WeaponProjectileBase[t.tNewProjBase].textureN = t.tImgID;
 
-	//  load specular texture
-	t.tInField_s = "textureS" ; weapon_readfield ( );
-	t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
-	weapon_loadtexture ( );
-	if (  t.tImgID  ==  0 ) 
-	{
-		t.tResult = 0; return;
+		//  load specular texture
+		t.tInField_s = "textureS" ; weapon_readfield ( );
+		t.tFileName_s=cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
+		weapon_loadtexture ( );
+		if (  t.tImgID  ==  0 ) 
+		{
+			t.tResult = 0; return;
+		}
+		t.WeaponProjectileBase[t.tNewProjBase].textureS = t.tImgID;
+		TextureObject ( t.tObjID, 0, t.WeaponProjectileBase[t.tNewProjBase].textureD );
 	}
-	t.WeaponProjectileBase[t.tNewProjBase].textureS = t.tImgID;
-	TextureObject (  t.tObjID,0,t.WeaponProjectileBase[t.tNewProjBase].textureD );
+	else
+	{
+		// no TEXTURED field assumes it to be a PBR with built-in texture references (for PBR set)
+		// just need to add the detail map and cube map
+		int texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
+		TextureObject ( t.tObjID, 7, texlid );
+		TextureObject ( t.tObjID, 6, t.terrain.imagestartindex+31 );
+	}
 	ExcludeOn (  t.tObjID );
 
-	//  load shader if specified
+	// load shader (if specified)
 	t.teffectid=0;
 	t.tInField_s = "effect" ; weapon_readfield ( );
 	if ( Len(t.value_s.Get())<=2 ) 
@@ -939,13 +956,13 @@ void weapon_projectile_load ( void )
 	}
 	SetObjectTransparency ( t.tObjID, 6 );
 
+	// load sounds
 	t.tInField_s = "sound" ; weapon_readfield(); t.sound_s = t.value_s;
 	if (  t.value_s  !=  "" ) 
 	{
 		t.tFileName_s = cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s ; weapon_loadsound ( );
 		t.WeaponProjectileBase[t.tNewProjBase].sound = t.tSndID;
 	}
-
 	t.tInField_s = "soundDeath" ; weapon_readfield(); t.sound_s = t.value_s;
 	if (  t.value_s  !=  "" ) 
 	{
@@ -963,7 +980,6 @@ void weapon_projectile_load ( void )
 	UnDim (  t.fileData_s );
 
 	t.WeaponProjectileBase[t.tNewProjBase].activeFlag = 1;
-
 	t.tResult = t.tNewProjBase;
 }
 
@@ -1425,6 +1441,9 @@ void weapon_projectileresult_make ( void )
 	// t.tProjectileResultLightFlag 
 	// t.tProjectileResultSmokeImageID 
 	// t.tProjectileResultSparksCount
+	// t.tProjectileResultSize
+	// t.tProjectileResultSmokeSize
+	// t.tProjectileResultSparksSize
 	// tHitObj, tX#, tY#, tZ#, tAngX#, tAngY#, tAngZ#
 	// t.tDamage_f, tRadius#, tAICharacter etc.
 	// tSoundID, tSourceEntity
@@ -1470,7 +1489,10 @@ void weapon_projectileresult_make ( void )
 				int iLightFlag = t.tProjectileResultLightFlag;
 				int iSmokeImageID = t.tProjectileResultSmokeImageID;
 				int iSparksCount = t.tProjectileResultSparksCount;
-				explosion_custom(t.tProjectileResultExplosionImageID, iLightFlag, iSmokeImageID, iSparksCount, t.tXPos_f, t.tYPos_f, t.tZPos_f);
+				float fSize = (float)t.tProjectileResultSize / 100.0f;
+				float fSmokeSize = (float)t.tProjectileResultSmokeSize / 100.0f;
+				float fSparksSize = (float)t.tProjectileResultSparksSize / 100.0f;
+				explosion_custom(t.tProjectileResultExplosionImageID, iLightFlag, iSmokeImageID, iSparksCount, fSize, fSmokeSize, fSparksSize, t.tXPos_f, t.tYPos_f, t.tZPos_f);
 			}
 			else
 			{

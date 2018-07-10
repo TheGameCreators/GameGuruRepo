@@ -224,6 +224,7 @@ void material_loadplayersounds ( void )
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\swim.wav").Get(),t.playercontrol.soundstartindex+15 );
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\heartbeat.wav").Get(),t.playercontrol.soundstartindex+17 );
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\jetpack.wav").Get(),t.playercontrol.soundstartindex+18 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\noammo.wav").Get(),t.playercontrol.soundstartindex+19 );
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathHold.wav").Get(),t.playercontrol.soundstartindex+31 );
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOut.wav").Get(),t.playercontrol.soundstartindex+32 );
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOutFast.wav").Get(),t.playercontrol.soundstartindex+33 );

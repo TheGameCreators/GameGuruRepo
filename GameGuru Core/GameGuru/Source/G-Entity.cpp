@@ -108,7 +108,6 @@ void entity_init ( void )
 							g.firemodes[t.tgunid][firemode].settings.range=t.entityelement[t.e].eleprof.range;
 							g.firemodes[t.tgunid][firemode].settings.dropoff=t.entityelement[t.e].eleprof.dropoff;
 							g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.entityelement[t.e].eleprof.usespotlighting;
-							//  FLAK TODO
 						}
 					}
 				}

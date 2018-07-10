@@ -450,8 +450,7 @@ void common_init_globals ( void )
 	g.tempimageoffset = 63000;
 	g.widgetimagebankoffset = 63100;
 	g.huddamageimageoffset = 63200;
-	g.characterkitimageoffset = 63250;
-	g.importermenuimageoffset = 63400;
+	g.importermenuimageoffset = 63250; // was 63400
 	g.slidersmenuimageoffset = 63500;
 	g.terrainimageoffset = 63600;
 	g.gamehudimagesoffset = 64700;
@@ -498,6 +497,7 @@ void common_init_globals ( void )
 	//  +X = see postprocessimages for assignment
 	g.effectbankoffset = 1000;
 	g.explosionandfireeffectbankoffset = 1100;
+	g.lightmappbreffect = 1297;
 	g.thirdpersonentityeffect = 1298;
 	g.thirdpersoncharactereffect = 1299;
 	g.charactercreatoreffectbankoffset = 1300;
@@ -958,10 +958,9 @@ void common_init_globals ( void )
 	Dim (  t.playerobjective,99 );
 
 	g.slidersprotoworkmode = 0;
-	//t.slidersmenunames as slidersmenunamestype;
 	g.slidersmenumax = 0;
-	Dim (  t.slidersmenu,20   );
-	Dim2(  t.slidersmenuvalue,20, 20 );
+	Dim ( t.slidersmenu, 50 );
+	Dim2( t.slidersmenuvalue, 50, 20 );
 	g.sliderspecialview = 0;
 	g.slidersmenufreshclick = 0;
 	g.slidersmenudropdownscroll_f = 1;
@@ -1378,6 +1377,7 @@ g.entidmastermax = 100;
 //Dave fix - 100 was not enough for some stress test levels
 Dim2(  t.entityphysicsbox,MAX_ENTITY_PHYSICS_BOXES*2, MAX_ENTITY_PHYSICS_BOXES  );
 Dim2(  t.entitybodypart,100, 100  );
+Dim2(  t.entityappendanim, 100, 100 );
 Dim2(  t.entityanim,100, g.animmax );
 Dim2(  t.entityfootfall,100, g.footfallmax  );
 Dim (  t.entityprofileheader,100  );
@@ -3156,6 +3156,14 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	{
 		pEffectStatic = "effectbank\\reloaded\\apbr_basic.fx";
 		pEffectAnimated = "effectbank\\reloaded\\apbr_anim.fx";
+	}
+
+	// load common lightmapper PBR shader
+	if ( GetEffectExist(g.lightmappbreffect) == 0 ) 
+	{
+		LPSTR pLightmapPBREffect = "effectbank\\reloaded\\apbr_lightmapped.fx";
+		LoadEffect ( pLightmapPBREffect, g.lightmappbreffect, 0 );
+		filleffectparamarray(g.lightmappbreffect);
 	}
 
 	// load common third person character shader

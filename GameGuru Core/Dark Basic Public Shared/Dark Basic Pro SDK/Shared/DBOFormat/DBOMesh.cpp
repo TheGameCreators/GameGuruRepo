@@ -1742,6 +1742,19 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 	char pBaseTexName[MAX_STRING];
 	strcpy ( pBaseTexName, pName );
 
+	// 270618 - first check if diffuse file exists, if not, try tacking PBR texture naming convention to it
+	if ( strlen ( pName ) > 4 )
+	{
+		*piImageDiffuseIndex = LoadOrFindTextureAsImage ( pBaseTexName, TexturePath, iDivideTextureSize );
+		if ( *piImageDiffuseIndex == 0 )
+		{
+			// convert regular file reference to PBR one
+			strcpy ( pBaseTexName, pName );
+			pBaseTexName[strlen(pBaseTexName)-4]=0;
+			strcat ( pBaseTexName, "_color.png" );
+		}
+	}
+
 	// load the base color texture 
 	*piImageDiffuseIndex = LoadOrFindTextureAsImage ( pBaseTexName, TexturePath, iDivideTextureSize );
 
@@ -2596,12 +2609,14 @@ DARKSDK_DLL bool SetSpecialEffect ( sMesh* pMesh, cSpecialEffect* pEffectObj, bo
 		//if ( pMesh->pVertexShaderEffect->m_dwTextureCount > 8 )
 		//	return false;
 
+		/* 290618 - does nothing these days
 		// load effect with settings
 		if ( !pMesh->pVertexShaderEffect->Setup ( pMesh ) )
 		{
 			pMesh->pVertexShaderEffect=NULL;
 			return false;
 		}
+		*/
 
 		// prepare model for effect
 		if ( bChangeMesh ) pMesh->pVertexShaderEffect->Mesh ( pMesh );

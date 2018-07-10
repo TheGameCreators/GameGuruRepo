@@ -296,7 +296,7 @@ function gameplayercontrol.weaponfire()
 		if ( GetGamePlayerControlJetpackMode()>0 ) then tttriggerironsight = 0 end
 
 		-- can now zoom even if have no bullets
-		if ( tttriggerironsight == 1 and (GetGamePlayerStateGunMode() <= 100 or GetFireModeSettingsSimpleZoom() == 0) and (GetFireModeSettingsForceZoomOut() == 0 or GetGamePlayerStateGunMode() <= 100) and GetGamePlayerControlIsRunning() == 0 ) then 
+		if ( tttriggerironsight == 1 and (GetGamePlayerStateGunMode() <= 100 or GetFireModeSettingsSimpleZoom() == 0) and (GetFireModeSettingsForceZoomOut() == 0 or GetGamePlayerStateGunMode() <= 100) and GetGamePlayerControlIsRunning() == 0 and GetGamePlayerStateIsMelee() == 0 ) then 
 			-- Modified for Simple Zoom
 			if ( GetGamePlayerStateGunZoomMode() == 0 and (GetFireModeSettingsZoomMode() ~= 0 or GetFireModeSettingsSimpleZoom() ~= 0) ) then 
 				SetGamePlayerStateGunZoomMode(1)  
@@ -372,11 +372,11 @@ function gameplayercontrol.weaponselectzoom()
 
 	-- Keyboard
 	taltswapkeycalled = 0
-	if ( GetGamePlayerStateGunAltSwapKey1()>-1 and GetKeyState(GetGamePlayerStateGunAltSwapKey1())==1 and GetGamePlayerStateGunZoomMode() == 0 or g_forcealtswap == 1 ) then 
+	if ( GetGamePlayerStateGunAltSwapKey1()>-1 and GetKeyState(GetGamePlayerStateGunAltSwapKey1())==1 and (GetGamePlayerStateGunZoomMode() == 0 or (GetGamePlayerStateGunZoomMode()>=8 and GetGamePlayerStateGunZoomMode()<=10)) or g_forcealtswap == 1 ) then 
 		taltswapkeycalled = 1 
 		g_forcealtswap = 0 
 	end
-	if ( tselkeystate>0 and (GetGamePlayerStateGunZoomMode() == 0 or GetGamePlayerStateGunZoomMode() == 10) or taltswapkeycalled == 1 ) then 
+	if ( tselkeystate>0 and (GetGamePlayerStateGunZoomMode() == 0 or (GetGamePlayerStateGunZoomMode()>=8 and GetGamePlayerStateGunZoomMode()<=10)) or taltswapkeycalled == 1 ) then 
 		if ( taltswapkeycalled == 1 and GetGamePlayerStateGunAltSwapKey2()>-1 and GetKeyState(GetGamePlayerStateGunAltSwapKey2())==1 or taltswapkeycalled == 1 and GetGamePlayerStateGunAltSwapKey2() == -1 or taltswapkeycalled == 0 ) then 
 			if ( g_keyboardpress == 0 ) then 
 				-- Change weapon - and prevent plr selecting gun if flagged
@@ -1045,7 +1045,13 @@ function gameplayercontrol.control()
 
 		-- If player under waterline, set playercontrol.underwater flag
 		SetGamePlayerStatePlayerY(GetPlrObjectPositionY())
-		if ( GetGamePlayerStatePlayerY()<GetGamePlayerStateWaterlineY()+20 and GetGamePlayerStateNoWater() == 0 ) then 
+		if ( GetGamePlayerStatePlayerDucking() ~= 0 ) then 
+			ttsubtleeyeadjustment=10.0
+		else
+			ttsubtleeyeadjustment=30.0
+		end
+		--if ( GetGamePlayerStatePlayerY()<GetGamePlayerStateWaterlineY()+20 and GetGamePlayerStateNoWater() == 0 ) then 
+		if ( (GetGamePlayerStatePlayerY()+ttsubtleeyeadjustment)<GetGamePlayerStateWaterlineY() and GetGamePlayerStateNoWater() == 0 ) then 
 			SetGamePlayerControlUnderwater(1)
 			if ( g_PlayerUnderwaterMode == 1 ) then
 				ChangePlayerWeaponID(0)

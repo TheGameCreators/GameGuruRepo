@@ -1415,9 +1415,12 @@ struct weaponProjectileBaseType
 	cstr explosionName;
 	int explosionImageID;
 	int explosionLightFlag;
+	int explosionSize;
 	cstr explosionSmokeName;
 	int explosionSmokeImageID;
+	int explosionSmokeSize;
 	int explosionSparksCount;
+	int explosionSparksSize;
 	int projectileEventType;
 
 	int thrustTime;
@@ -1436,6 +1439,9 @@ struct weaponProjectileBaseType
 		 thrustDelay = 0;
 		 thrustTime = 0;
 		 projectileEventType = 0;
+		 explosionSize = 0;
+		 explosionSmokeSize = 0;
+		 explosionSparksSize = 0;
 		 explosionSmokeName = "";
 		 explosionLightFlag = 0;
 		 explosionSmokeImageID = 0;
@@ -3699,6 +3705,18 @@ struct visualstype
 	float SAOIntensity_f;
 	float SAOQuality_f;
 	float LensFlare_f;
+	float WaterRed_f;
+	float WaterBlue_f;
+	float WaterGreen_f;
+	float WaterWaveIntensity_f;
+	float WaterTransparancy_f;
+	float WaterReflection_f;
+	float WaterReflectionSparkleIntensity;
+	float WaterFlowDirectionX;
+	float WaterFlowDirectionY;
+	float WaterDistortionWaves;
+	float WaterSpeed1;
+	float WaterFlowSpeed;
 
 	// Constructor
 	visualstype ( )
@@ -3785,6 +3803,19 @@ struct visualstype
 		 pressed = 0;
 		 value_f = 0.0f;
 		 mode = 0;
+		 //New Water Vars
+		 WaterRed_f= 0.0f;
+		 WaterBlue_f = 0.0f;
+		 WaterGreen_f = 0.0f;
+		 WaterWaveIntensity_f = 0.0f;
+		 WaterTransparancy_f = 0.0f;
+		 WaterReflectionSparkleIntensity = 0.0f;
+		 WaterReflection_f = 0.0f;
+		 WaterFlowDirectionX = 0.0f;
+		 WaterFlowDirectionY = 0.0f;
+		 WaterDistortionWaves=0.0f;
+		 WaterSpeed1 = 0.0f;
+		 WaterFlowSpeed=0.0f;
 	}
 	// End of Constructor
 
@@ -4822,21 +4853,28 @@ struct entityprofileheadertype
 
 };
 
+struct entityappendanimtype
+{
+	cstr filename;
+	int startframe;
+	entityappendanimtype ( )
+	{
+		 filename = "";
+		 startframe = 0;
+	}
+};
+
 struct entityanimtype
 {
 	int start;
 	int finish;
 	int found;
-
-	// Constructor
 	entityanimtype ( )
 	{
 		 found = 0;
 		 finish = 0;
 		 start = 0;
 	}
-	// End of Constructor
-
 };
 
 struct tentityfootfall
@@ -5030,6 +5068,7 @@ struct entityprofiletype
 	int spine;
 	int spine2;
 	int firespotlimb;
+	int appendanimmax;
 	int animmax;
 	int startofaianim;
 	int footfallmax;
@@ -6287,16 +6326,16 @@ struct gunsoundstype
 	int soundframes;
 	int fireloopend;
 	int altfireloopend;
-
-	// Constructor
+	int loopsound;
+	int emptyloopsound;
 	gunsoundstype ( )
 	{
+		 loopsound = 0;
+		 emptyloopsound = 0;
 		 altfireloopend = 0;
 		 fireloopend = 0;
 		 soundframes = 0;
 	}
-	// End of Constructor
-
 };
 
 
@@ -6367,8 +6406,7 @@ struct gunsettingstype
 	int minpolytrim;
 	int decalforward;
 	int meleenoscorch;
-//  `altmeleekey as integer
-
+	int doesnotuseammo;
 	int altmeleedamage;
 	int altmeleerange;
 	int altmeleenoscorch;
@@ -6399,6 +6437,8 @@ struct gunsettingstype
 	float brassrotyrand;
 	float brassrotz;
 	float brassrotzrand;
+	int brassdelay;
+	int zoombrassdelay;
 	int smoke;
 	int flashlimb;
 	int brasslimb;
@@ -6434,6 +6474,7 @@ struct gunsettingstype
 	int range;
 	int dropoff;
 	int usespotlighting;
+	int smokesize;
 	int smokespeed;
 	cstr smokedecal_s;
 	int firerate;
@@ -6605,6 +6646,7 @@ struct gunsettingstype
 		 altfirerate = 0;
 		 firerate = 0;
 		 smokedecal_s = "";
+		 smokesize = 0;
 		 smokespeed = 0;
 		 usespotlighting = 0;
 		 dropoff = 0;
@@ -6743,6 +6785,8 @@ struct gunactionstype
 {
 	gunanimtype show;
 	gunanimtype idle;
+	gunanimtype runto;
+	gunanimtype runfrom;
 	gunanimtype move;
 	gunanimtype run;
 	gunanimtype flattentochest;
@@ -7233,6 +7277,7 @@ struct slidersmenunamestype
 	int worldpanel;
 	int yesnopanel;
 	int posteffects;
+	int water;
 
 	// Constructor
 	slidersmenunamestype ( )
@@ -7250,6 +7295,7 @@ struct slidersmenunamestype
 		 visuals = 0;
 		 performance = 0;
 		 aidrilldown = 0;
+		 water = 0;
 	}
 	// End of Constructor
 

@@ -197,7 +197,6 @@ struct Sglobals
 	int ravey_particles_old_time;
 	int timestampactivityflagged;
 	int timestampactivitymemthen;
-	int characterkitimageoffset;
 	int characterSoundBankCount;
 	int characterSoundStackSize;
 	int csi_relaxedmoveforeANIM;
@@ -222,6 +221,7 @@ struct Sglobals
 	int postprocessobjectoffset;
 	int steamplayermodelsoffset;
 	int thirdpersonentityeffect;
+	int lightmappbreffect;
 	int camerapickupkeyrelease;
 	int conkitobjectbankoffset;
 	int ebeobjectbankoffset;
@@ -1995,7 +1995,6 @@ struct Sglobals
 		 csi_relaxedmoveforeANIM = 0;
 		 characterSoundStackSize = 0;
 		 characterSoundBankCount = 0;
-		 characterkitimageoffset = 0;
 		 timestampactivitymemthen = 0;
 		 timestampactivityflagged = 0;
 		 ravey_particles_old_time = 0;
@@ -2801,6 +2800,9 @@ struct Stemps
 	int tProjectileResultLightFlag;
 	int tProjectileResultSmokeImageID;
 	int tProjectileResultSparksCount;
+	int tProjectileResultSize;
+	int tProjectileResultSmokeSize;
+	int tProjectileResultSparksSize;
 	cstr tProjectileType_s;
 	int trecentfilechoice;
 	int trecolorAfterGame;
@@ -3812,6 +3814,7 @@ struct Stemps
 	std::vector <ani> animations;
 	std::vector <bitdetailstype> bitdetails;
 	std::vector< std::vector<bitmapfonttype> > bitmapfont;
+	std::vector< std::vector<entityappendanimtype> > entityappendanim;
 	std::vector< std::vector<entityanimtype> > entityanim;
 	std::vector <cstr> fileData_s;
 	std::vector <cstr> filelist_s;
@@ -4352,11 +4355,13 @@ struct Stemps
 	gunanimtype gdryfire;
 	gridedittype gridedit;
 	int gunbrass;
+	DWORD gunbrasstrigger;
 	int gunburst;
 	int gunclick;
 	int gunflash;
 	int gunshoot;
 	int gunsmoke;
+	int gunactiveidlesoundloopindex;
 	int handlimb;
 	float hatRed_f;
 	int iControl;
@@ -4623,7 +4628,6 @@ struct Stemps
 	int gunfull;
 	int gunmode;
 	int gunmodelast;
-	int gunmodetransitionoverride;
 	float gunmodewaitforframe;
 	float ImpMaxX;
 	float ImpMaxY;
@@ -5079,6 +5083,7 @@ struct Stemps
 	gunanimtype gcock;
 	gunanimtype ghide;
 	gunanimtype gidle;
+	gunanimtype gruntofrom;
 	gunanimtype gmove;
 	int group;
 	gunanimtype gshow;
@@ -6763,6 +6768,7 @@ struct Stemps
 		 gunclick = 0;
 		 gunburst = 0;
 		 gunbrass = 0;
+		 gunactiveidlesoundloopindex = 0;
 		 firerate = 0;
 		 filesmax = 0;
 		 filesize = 0;
@@ -8046,6 +8052,9 @@ struct Stemps
 		 trecolorAfterGame = 0;
 		 trecentfilechoice = 0;
 		 tProjectileType_s = "";
+		 tProjectileResultSize = 0;
+		 tProjectileResultSmokeSize = 0;
+		 tProjectileResultSparksSize = 0;
 		 tProjectileResultLightFlag = 0;
 		 tProjectileResultSmokeImageID = 0;
 		 tProjectileResultSparksCount = 0;

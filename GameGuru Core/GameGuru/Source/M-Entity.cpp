@@ -160,6 +160,7 @@ void entity_validatearraysize ( void )
 	{
 		g.entidmastermax=g.entidmaster+32;
 		Dim2(  t.entitybodypart,g.entidmastermax, 100   );
+		Dim2(  t.entityappendanim,g.entidmastermax, 100  );
 		Dim2(  t.entityanim,g.entidmastermax, g.animmax   );
 		Dim2(  t.entityfootfall,g.entidmastermax, g.footfallmax  );
 		Dim (  t.entityprofileheader,g.entidmastermax   );
@@ -481,6 +482,33 @@ void entity_load ( void )
 				}
 			}
 		}
+		// get path to original model
+		char pModelPath[10248];
+		strcpy ( pModelPath, "" );
+		LPSTR pOrigModelFilename = t.tfile_s.Get();
+		for ( int n = strlen(pOrigModelFilename) ; n > 0; n-- )
+		{
+			if ( pOrigModelFilename[n] == '\\' || pOrigModelFilename[n] == '/' )
+			{
+				strcpy ( pModelPath, pOrigModelFilename );
+				pModelPath[n+1] = 0;
+				break;
+			}
+		}
+		// 070718 - if append final file exists, use that
+		bool bUsingAppendAnimFileModel = false;
+		cstr pAppendFinalModelFilename = t.entityappendanim[t.entid][0].filename;
+		if ( strlen(pAppendFinalModelFilename.Get()) > 0 )
+		{
+			pAppendFinalModelFilename = cstr(pModelPath) + pAppendFinalModelFilename;
+			if ( FileExist(pAppendFinalModelFilename.Get()) == 1 ) 
+			{
+				bUsingAppendAnimFileModel = true;
+				t.tfile_s = pAppendFinalModelFilename;
+				pAppendFinalModelFilename = "";
+				t.tdbofile_s = "";
+			}
+		}
 		if ( FileExist(t.tfile_s.Get()) == 0 )
 		{
 			t.tfile_s=t.entityprofile[t.entid].model_s;
@@ -521,6 +549,23 @@ void entity_load ( void )
 					}
 					else
 						LoadObject ( t.tfile_s.Get(), t.entobj );
+
+					// 060718 - append animation data from other DBO files
+					if ( bUsingAppendAnimFileModel == false )
+					{
+						if ( Len(t.tdbofile_s.Get()) == 0 )
+						{
+							if ( t.entityprofile[t.entid].appendanimmax > 0 )
+							{
+								for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
+								{
+									cstr pAppendModelFilename = cstr(pModelPath) + t.entityappendanim[t.entid][aa].filename;
+									int iStartFrame = t.entityappendanim[t.entid][aa].startframe;
+									AppendObject ( (DWORD)(LPSTR)pAppendModelFilename.Get(), t.entobj, iStartFrame );
+								}
+							}
+						}
+					}
 
 					// wipe ANY material emission colors
 					SetObjectEmissive ( t.entobj, 0 );
@@ -568,15 +613,17 @@ void entity_load ( void )
 			//  loaded okay
 			if (  ObjectExist(t.entobj) == 1 ) 
 			{
-				//  Save if DBO not exist for entity (for fast loading)
-				if (  Len(t.tdbofile_s.Get())>1 ) 
+				// 070718 - if append final model needs to be created, prefer that
+				if ( strlen(pAppendFinalModelFilename.Get()) > 0 )
+					if ( FileExist(pAppendFinalModelFilename.Get()) == 0 ) 
+						t.tdbofile_s = pAppendFinalModelFilename;
+
+				// Save if DBO not exist for entity (for fast loading)
+				if ( Len(t.tdbofile_s.Get()) > 1 ) 
 				{
 					// ensure legacy compatibility (avoids new mapedito crashing build process)
-
 					if ( FileExist(t.tdbofile_s.Get()) == 1 )  DeleteFile ( t.tdbofile_s.Get() );
-
 					SaveObject ( t.tdbofile_s.Get(), t.entobj );
-
 					if (  FileExist(t.tdbofile_s.Get()) == 1 ) 
 					{
 						DeleteObject (  t.entobj );
@@ -1067,6 +1114,10 @@ void entity_loaddata ( void )
 		t.tnewanimmax=0 ; t.entityprofile[t.entid].animmax=t.tnewanimmax;
 		t.tstartofaianim=-1 ; t.entityprofile[t.entid].startofaianim=t.tstartofaianim;
 
+		// other resets
+		t.entityappendanim[t.entid][0].filename = "";
+		t.entityappendanim[t.entid][0].startframe = 0;
+
 		//  temp variable to hold which physics object we are on from the importer
 		t.tPhysObjCount = 0;
 
@@ -1197,8 +1248,8 @@ void entity_loaddata ( void )
 					//  collisionmode (see GameGuru\Docs\collisionmodevalues.txt)
 					//  0  ; box shape (default)
 					//  1  ; polygon shape
-					//  2  ; [sphere not implemented]
-					//  3  ; [cylinder not implemented]
+					//  2  ; sphere shape
+					//  3  ; cylinder shape
 					//  9  ; convex hull reduction shape
 					//  11 ; no physics
 					//  12 ; no physics but can still be detected with IntersectAll command
@@ -1611,6 +1662,31 @@ void entity_loaddata ( void )
 						{
 							t.tryfield_s = cstr((cstr("decal")+Str(t.q)) );
 							if (  t.field_s == t.tryfield_s  )  t.entitydecal_s[t.entid][t.q] = t.value_s;
+						}
+					}
+
+					// 060718 - entity append anim system
+					t.tryfield_s=cstr("appendanimfinal");
+					if (  t.field_s == t.tryfield_s )
+					{ 
+						t.entityappendanim[t.entid][0].filename = t.value_s; 
+						t.entityappendanim[t.entid][0].startframe = 0;
+					}
+					t.tryfield_s="appendanimmax";
+					if ( t.field_s == t.tryfield_s ) 
+					{
+						t.entityprofile[t.entid].appendanimmax = t.value1; 
+						if ( t.entityprofile[t.entid].appendanimmax > 99 ) 
+							t.entityprofile[t.entid].appendanimmax = 99;
+					}
+					if ( t.entityprofile[t.entid].appendanimmax > 0 ) 
+					{
+						for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
+						{
+							t.tryfield_s=cstr("appendanim")+Str(aa);
+							if (  t.field_s == t.tryfield_s ) { t.entityappendanim[t.entid][aa].filename = t.value_s; }
+							t.tryfield_s=cstr("appendanimframe")+Str(aa);
+							if (  t.field_s == t.tryfield_s ) { t.entityappendanim[t.entid][aa].startframe = t.value1; }
 						}
 					}
 
@@ -3050,7 +3126,11 @@ void entity_loadtexturesandeffect ( void )
 			}
 
 			// Apply effect and textures
-			SetObjectEffectCore (  t.entobj,t.entityprofile[t.entid].usingeffect,t.teffectid2,t.entityprofile[t.entid].cpuanims );
+			if ( t.lightmapper.onlyloadstaticentitiesduringlightmapper == 0 )
+			{
+				// don't use shader effects when lightmapping
+				SetObjectEffectCore (  t.entobj,t.entityprofile[t.entid].usingeffect,t.teffectid2,t.entityprofile[t.entid].cpuanims );
+			}
 		}
 	}
 

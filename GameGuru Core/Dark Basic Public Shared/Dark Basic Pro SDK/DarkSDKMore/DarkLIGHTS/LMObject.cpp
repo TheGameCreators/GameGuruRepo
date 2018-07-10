@@ -305,7 +305,7 @@ void LMObject::BuildPolyList( bool bFlatShaded )
 
 		// add to master poly list
 		LMPoly* pNewPoly = NULL;
-		if ( bFlatShaded || ( fDotP1 > 0.995f && fDotP2 > 0.995f && fDotP3 > 0.995f ) )
+		if ( bFlatShaded ) // 020718 - ignoring normals!! || ( fDotP1 > 0.995f && fDotP2 > 0.995f && fDotP3 > 0.995f ) )
 		{
 			// flat polygon
 			pNewPoly = new LMPoly( );
@@ -737,6 +737,14 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 					//	vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv1[2];
 					//}
 					//else
+					// 020718 - reinstated curvedpolys
+					if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
+					{
+						vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv1[0];
+						vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv1[1];
+						vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv1[2];
+					}
+					else
 					{
 						vecNorm.x = pPolyPtr->normal[0]; 
 						vecNorm.y = pPolyPtr->normal[1];
@@ -774,6 +782,14 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 					//	vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv2[2];
 					//}
 					//else
+					// 020718 - reinstated curvedpolys
+					if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
+					{
+						vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv2[0];
+						vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv2[1];
+						vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv2[2];
+					}
+					else
 					{
 						vecNorm.x = pPolyPtr->normal[0];
 						vecNorm.y = pPolyPtr->normal[1];
@@ -811,6 +827,14 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 					//	vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv3[2];
 					//}
 					//else
+					// 020718 - reinstated curvedpolys
+					if ( ((LMCurvedPoly*)pPolyPtr)->IsCurved() )
+					{
+						vecNorm.x = ((LMCurvedPoly*)pPolyPtr)->normalv3[0];
+						vecNorm.y = ((LMCurvedPoly*)pPolyPtr)->normalv3[1];
+						vecNorm.z = ((LMCurvedPoly*)pPolyPtr)->normalv3[2];
+					}
+					else
 					{
 						vecNorm.x = pPolyPtr->normal[0];
 						vecNorm.y = pPolyPtr->normal[1];

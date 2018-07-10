@@ -351,10 +351,417 @@ int Create_Emitter ( int x, int y, int z, int etype, int part, int textureid, in
 	int num = 0;
 	int use = 0;
 
-	//  find free emitter, if none free exit
-	emitter=find_free_emitter();
-	if (  emitter == 0  )  return 0;
+	// 280618 - ensure scale defaults to normal
+	if ( scale == 0 ) scale = 100;
 
+	// find free emitter, if none free exit
+	emitter = find_free_emitter();
+	if ( emitter == 0 ) return 0;
+
+	// create particle emitter based on type
+	switch ( etype ) 
+	{
+		// 1 = make small smoke
+		case 1:
+			for ( num = 1 ; num<=  part; num++ )
+			{
+				use=find_free_particle(emitter,1,10);
+				if (  use != 0 ) 
+				{
+					reset_current_particle(emitter,use);
+					if (  t.particle[emitter][use].obj>0 ) 
+					{
+						if (  ObjectExist(t.particle[emitter][use].obj) == 1 ) 
+						{
+							variation_f=Rnd(360);
+							t.particle[emitter][use].playforloops=0;
+							t.particle[emitter][use].actionperformed=0;
+							t.particle[emitter][use].damage=damage;
+							t.particle[emitter][use].x=x+(Sin(variation_f)*10);
+							t.particle[emitter][use].y=y+(num*(Rnd(32)+2));
+							t.particle[emitter][use].z=z+(Cos(variation_f)*10);
+							t.particle[emitter][use].used=1;
+							t.particle[emitter][use].etype=1;
+							t.particle[emitter][use].size=8;
+							t.particle[emitter][use].activein=delay;
+							t.particle[emitter][use].activetime=Timer();
+							t.particle[emitter][use].rotate=0;
+							t.particle[emitter][use].life=0;
+							t.particle[emitter][use].lasttime=Timer();
+							t.particle[emitter][use].lastanitime=Timer();
+							t.particle[emitter][use].anispeed=60;
+							TextureObject (  t.particle[emitter][use].obj,0,textureid );
+							t.particle[emitter][use].nextframe=1;
+							SetAlphaMappingOn (  t.particle[emitter][use].obj,0 );
+							SetObjectTransparency (  t.particle[emitter][use].obj,6 );
+							t.particle[emitter][use].vx=-0.02f;
+							t.particle[emitter][use].vy=1+(Rnd(0.2f)+(num*0.07f));
+							t.particle[emitter][use].vz=0.001f;
+							t.particle[emitter][use].vxvar_f=0.04f;
+							t.particle[emitter][use].vyvar_f=0.05f+(num*0.02f);
+							t.particle[emitter][use].vzvar_f=0.002f;
+							t.particle[emitter][use].alpha=0;
+							t.particle[emitter][use].fadein=0.6f;
+							t.particle[emitter][use].fademax=255;
+							t.particle[emitter][use].fadedir=0;
+							t.particle[emitter][use].fadeout=0;
+							t.particle[emitter][use].activeframe=Rnd(62)+1;
+						}
+					}
+				}
+			}
+		break;
+
+		// 4 = sparks from explosion
+		case 4:
+			for ( num = 1 ; num<=  part; num++ )
+			{
+				use=find_free_particle(emitter,41,110);
+				if (  use != 0 ) 
+				{
+					reset_current_particle(emitter,use);
+					if (  t.particle[emitter][use].obj>0 ) 
+					{
+						if (  ObjectExist(t.particle[emitter][use].obj) == 1 ) 
+						{
+							variation_f=Rnd(360);
+							t.particle[emitter][use].playforloops=0;
+							t.particle[emitter][use].actionperformed=0;
+							t.particle[emitter][use].damage=damage;
+							t.particle[emitter][use].x=x+(Sin(variation_f)*8);
+							t.particle[emitter][use].y=y;
+							t.particle[emitter][use].z=z+(Cos(variation_f)*8);
+							t.particle[emitter][use].used=1;
+							t.particle[emitter][use].size=4;
+							t.particle[emitter][use].etype=7;
+							t.particle[emitter][use].activein=delay;
+							t.particle[emitter][use].activetime=Timer();
+							t.particle[emitter][use].rotate=4;
+							t.particle[emitter][use].life=Timer()+1500;
+							t.particle[emitter][use].lasttime=Timer();
+							t.particle[emitter][use].lastanitime=Timer();
+							t.particle[emitter][use].anispeed=35;
+							TextureObject (  t.particle[emitter][use].obj,0,textureid );
+							t.particle[emitter][use].size=8;
+							t.particle[emitter][use].nextframe=1;
+							forceangle=WrapValue(-90+Rnd(180));
+							tforce_f=2.5f;
+							SetAlphaMappingOn (  t.particle[emitter][use].obj,30 );
+							SetObjectTransparency (  t.particle[emitter][use].obj,6);
+							PositionObject ( t.particle[emitter][use].obj,t.particle[emitter][use].x,t.particle[emitter][use].y,t.particle[emitter][use].z );
+							ScaleObject ( t.particle[emitter][use].obj, scale, scale, scale );
+							if (  t.particle[emitter][use].physicscreated == 1  )  ODEDestroyObject (  t.particle[emitter][use].obj );
+							t.particle[emitter][use].physicscreated=1;
+							ODECreateDynamicBox (  t.particle[emitter][use].obj,-1,11 );
+							ODESetLinearVelocity (  t.particle[emitter][use].obj,(Rnd(25))*tforce_f,(30+Rnd(205))*tforce_f,(-Rnd(25)+Rnd(25))*tforce_f );
+							ODESetAngularVelocity (  t.particle[emitter][use].obj,0,forceangle,0 );
+							ODEAddBodyForce (  t.particle[emitter][use].obj, 0, 0.05f, 0,0,-50,0 );
+						}
+					}
+				}
+			}
+		break;
+
+		// 5=  fire large
+		case 5:
+			for ( num = 1 ; num<=  part; num++ )
+			{
+				use=find_free_particle(emitter,111,116);
+				if (  use != 0 ) 
+				{
+					reset_current_particle(emitter,use);
+					if (  t.particle[emitter][use].obj>0 ) 
+					{
+						if (  ObjectExist(t.particle[emitter][use].obj) == 1 ) 
+						{
+							variation_f=Rnd(360);
+							t.particle[emitter][use].playforloops=2+Rnd(2);
+							t.particle[emitter][use].actionperformed=0;
+							t.particle[emitter][use].damage=damage;
+							t.particle[emitter][use].x=x;
+							t.particle[emitter][use].y=y;
+							t.particle[emitter][use].z=z;
+							t.particle[emitter][use].used=1;
+							t.particle[emitter][use].etype=5;
+							t.particle[emitter][use].size=8;
+							t.particle[emitter][use].activein=delay;
+							t.particle[emitter][use].activetime=Timer();
+							t.particle[emitter][use].rotate=0;
+							t.particle[emitter][use].life=0;
+							t.particle[emitter][use].lasttime=Timer();
+							t.particle[emitter][use].lastanitime=Timer();
+							t.particle[emitter][use].anispeed=20;
+							TextureObject (  t.particle[emitter][use].obj,0,textureid );
+							t.particle[emitter][use].nextframe=Rnd(8)+1;
+							SetAlphaMappingOn (  t.particle[emitter][use].obj,0 );
+							SetObjectTransparency (  t.particle[emitter][use].obj,6 );
+							t.particle[emitter][use].vy=0;
+							t.particle[emitter][use].vz=0;
+							t.particle[emitter][use].vz=0;
+							t.particle[emitter][use].vxvar_f=0;
+							t.particle[emitter][use].vyvar_f=0;
+							t.particle[emitter][use].vzvar_f=0;
+							t.particle[emitter][use].fadein=0.4f;
+							t.particle[emitter][use].fademax=255;
+							t.particle[emitter][use].fadedir=0;
+							t.particle[emitter][use].fadeout=0;
+							t.particle[emitter][use].alpha=0;
+							t.particle[emitter][use].time=Timer()+Rnd(1000);
+						}
+					}
+				}
+			}
+		break;
+
+		// 6 = large explosion
+		case 6:
+			for ( num = 1 ; num<=  part; num++ )
+			{
+				use=find_free_particle(emitter,131,160);
+				if (  use != 0 ) 
+				{
+					reset_current_particle(emitter,use);
+					if (  t.particle[emitter][use].obj>0 ) 
+					{
+						if (  ObjectExist(t.particle[emitter][use].obj) == 1 ) 
+						{
+							variation_f=Rnd(360);
+							t.particle[emitter][use].playforloops=0;
+							t.particle[emitter][use].actionperformed=0;
+							t.particle[emitter][use].damage=damage;
+							t.particle[emitter][use].x=x;
+							t.particle[emitter][use].y=y+(ObjectSize(t.particle[emitter][use].obj)/4);
+							t.particle[emitter][use].z=z;
+							t.particle[emitter][use].used=1;
+							t.particle[emitter][use].etype=6;
+							t.particle[emitter][use].size=8;
+							t.particle[emitter][use].rotate=0;
+							t.particle[emitter][use].activein=delay;
+							t.particle[emitter][use].activetime=Timer();
+							t.particle[emitter][use].life=0;
+							t.particle[emitter][use].lasttime=Timer();
+							t.particle[emitter][use].lastanitime=Timer();
+							t.particle[emitter][use].anispeed=25;
+							t.particle[emitter][use].fadein=10.0f;
+							t.particle[emitter][use].fademax=100;
+							t.particle[emitter][use].fadedir=0;
+							t.particle[emitter][use].fadeout=1.0f;
+							TextureObject (  t.particle[emitter][use].obj,0,textureid );
+							t.particle[emitter][use].nextframe=1;
+							SetAlphaMappingOn (  t.particle[emitter][use].obj,100 );
+							SetObjectTransparency (  t.particle[emitter][use].obj,6 );
+							t.particle[emitter][use].vx=-0.001f;
+							t.particle[emitter][use].vy=0.001f+(num*0.002f);
+							t.particle[emitter][use].vz=-0.002f;
+							t.particle[emitter][use].vxvar_f=0.002f;
+							t.particle[emitter][use].vyvar_f=0.003f;
+							t.particle[emitter][use].vzvar_f=-0.01f;
+						}
+					}
+				}
+			}
+		break;
+
+		// 12 = flame meduim
+		case 12:
+			for ( num = 1 ; num<=  part; num++ )
+			{
+				use=find_free_particle(emitter,117,122);
+				if (  use != 0 ) 
+				{
+					reset_current_particle(emitter,use);
+					if (  t.particle[emitter][use].obj>0 ) 
+					{
+						if (  ObjectExist(t.particle[emitter][use].obj) == 1 ) 
+						{
+							variation_f=Rnd(360);
+							t.particle[emitter][use].playforloops=2+Rnd(2);
+							t.particle[emitter][use].actionperformed=0;
+							t.particle[emitter][use].damage=damage;
+							t.particle[emitter][use].x=x+(Sin(variation_f)*15);
+							t.particle[emitter][use].y=y;
+							t.particle[emitter][use].z=z+(Cos(variation_f)*15);
+							t.particle[emitter][use].used=1;
+							t.particle[emitter][use].etype=12;
+							t.particle[emitter][use].size=8;
+							t.particle[emitter][use].activein=delay;
+							t.particle[emitter][use].activetime=Timer();
+							t.particle[emitter][use].rotate=0;
+							t.particle[emitter][use].life=0;
+							t.particle[emitter][use].lasttime=Timer();
+							t.particle[emitter][use].lastanitime=Timer();
+							t.particle[emitter][use].anispeed=20;
+							TextureObject (  t.particle[emitter][use].obj,0,textureid );
+							t.particle[emitter][use].nextframe=Rnd(8)+1;
+							SetAlphaMappingOn (  t.particle[emitter][use].obj,0 );
+							SetObjectTransparency (  t.particle[emitter][use].obj,6 );
+							t.particle[emitter][use].vy=0;
+							t.particle[emitter][use].vx=0;
+							t.particle[emitter][use].vz=0;
+							t.particle[emitter][use].vxvar_f=0;
+							t.particle[emitter][use].vyvar_f=0;
+							t.particle[emitter][use].vzvar_f=0;
+							t.particle[emitter][use].fadein=0.3f;
+							t.particle[emitter][use].fademax=255;
+							t.particle[emitter][use].fadedir=0;
+							t.particle[emitter][use].fadeout=0;
+							t.particle[emitter][use].alpha=0;
+							t.particle[emitter][use].time=Timer()+Rnd(1000);
+						}
+					}
+				}
+			}
+		break;
+
+		// 13 = large flame
+		case 13:
+			for ( num = 1 ; num<=  part; num++ )
+			{
+				use=find_free_particle(emitter,123,130);
+				if (  use != 0 ) 
+				{
+					reset_current_particle(emitter,use);
+					if (  t.particle[emitter][use].obj>0 ) 
+					{
+						if (  ObjectExist(t.particle[emitter][use].obj) == 1 ) 
+						{
+							variation_f=Rnd(360);
+							t.particle[emitter][use].playforloops=2+Rnd(2);
+							t.particle[emitter][use].actionperformed=0;
+							t.particle[emitter][use].damage=damage;
+							t.particle[emitter][use].x=x+(Sin(variation_f)*7);
+							t.particle[emitter][use].y=y;
+							t.particle[emitter][use].z=z+(Cos(variation_f)*7);
+							t.particle[emitter][use].used=1;
+							t.particle[emitter][use].etype=13;
+							t.particle[emitter][use].size=8;
+							t.particle[emitter][use].activein=delay;
+							t.particle[emitter][use].activetime=Timer();
+							t.particle[emitter][use].rotate=0;
+							t.particle[emitter][use].life=0;
+							t.particle[emitter][use].lasttime=Timer();
+							t.particle[emitter][use].lastanitime=Timer();
+							t.particle[emitter][use].anispeed=20;
+							TextureObject (  t.particle[emitter][use].obj,0,textureid );
+							t.particle[emitter][use].nextframe=Rnd(8)+1;
+							SetAlphaMappingOn (  t.particle[emitter][use].obj,0 );
+							SetObjectTransparency (  t.particle[emitter][use].obj,6 );
+							t.particle[emitter][use].vy=0;
+							t.particle[emitter][use].vx=0;
+							t.particle[emitter][use].vz=0;
+							t.particle[emitter][use].vxvar_f=0;
+							t.particle[emitter][use].vyvar_f=0;
+							t.particle[emitter][use].vzvar_f=0;
+							t.particle[emitter][use].fadein=0.3f;
+							t.particle[emitter][use].fademax=255;
+							t.particle[emitter][use].fadedir=0;
+							t.particle[emitter][use].fadeout=0;
+							t.particle[emitter][use].alpha=0;
+							t.particle[emitter][use].time=Timer()+Rnd(1000);
+						}
+					}
+				}
+			}
+		break;
+
+		// 15 = large smoke
+		case 15:
+			for ( num = 1 ; num<=  part; num++ )
+			{
+				use=find_free_particle(emitter,11,40);
+				if (  use != 0 ) 
+				{
+					if (  t.particle[emitter][use].obj>0 ) 
+					{
+						if (  ObjectExist(t.particle[emitter][use].obj) == 1 ) 
+						{
+							variation_f=Rnd(360);
+							t.particle[emitter][use].playforloops=0;
+							t.particle[emitter][use].actionperformed=0;
+							t.particle[emitter][use].damage=damage;
+							t.particle[emitter][use].x=x+(Sin(variation_f)*1);
+							t.particle[emitter][use].y=y+(num*(Rnd(32)+2));
+							t.particle[emitter][use].z=z;
+							t.particle[emitter][use].used=1;
+							t.particle[emitter][use].etype=1;
+							t.particle[emitter][use].size=8;
+							t.particle[emitter][use].activein=delay;
+							t.particle[emitter][use].activetime=Timer();
+							t.particle[emitter][use].rotate=0;
+							t.particle[emitter][use].life=0;
+							t.particle[emitter][use].lasttime=Timer();
+							t.particle[emitter][use].lastanitime=Timer();
+							t.particle[emitter][use].anispeed=35;
+							TextureObject (  t.particle[emitter][use].obj, 0, textureid );
+							ScaleObject ( t.particle[emitter][use].obj, scale, scale, scale );
+							t.particle[emitter][use].nextframe=1;
+							SetAlphaMappingOn (  t.particle[emitter][use].obj, 0 );
+							SetObjectTransparency (  t.particle[emitter][use].obj,6 );
+							t.particle[emitter][use].vx=-0.02f;
+							t.particle[emitter][use].vy=0.8f+Rnd(0.2f)+(num*0.03f);
+							t.particle[emitter][use].vz=0.001f;
+							t.particle[emitter][use].vxvar_f=0.04f;
+							t.particle[emitter][use].vyvar_f=0.5f+(num*0.02f);
+							t.particle[emitter][use].vzvar_f=0.002f;
+							t.particle[emitter][use].alpha=0;
+							t.particle[emitter][use].fadein=1.5f;
+							t.particle[emitter][use].fademax=255;
+							t.particle[emitter][use].fadedir=0;
+							t.particle[emitter][use].fadeout=0;
+						}
+					}
+				}
+			}
+		break;
+
+		// 16 = large explosion
+		case 16:
+			for ( num = 1 ; num<=  part; num++ )
+			{
+				use=find_free_particle(emitter,1,9);
+				if (  use != 0 ) 
+				{
+					reset_current_particle(emitter,use);
+					if (  t.particle[emitter][use].obj>0 ) 
+					{
+						if (  ObjectExist(t.particle[emitter][use].obj) == 1 ) 
+						{
+							variation_f=Rnd(360);
+							t.particle[emitter][use].playforloops=0;
+							t.particle[emitter][use].actionperformed=0;
+							t.particle[emitter][use].damage=damage;
+							t.particle[emitter][use].x=x;
+							t.particle[emitter][use].y=y;
+							t.particle[emitter][use].z=z;
+							t.particle[emitter][use].used=1;
+							t.particle[emitter][use].etype=16;
+							t.particle[emitter][use].size=8;
+							t.particle[emitter][use].activein=delay;
+							t.particle[emitter][use].activetime=Timer();
+							t.particle[emitter][use].rotate=0;
+							t.particle[emitter][use].life=0;
+							t.particle[emitter][use].lasttime=Timer();
+							t.particle[emitter][use].lastanitime=Timer();
+							t.particle[emitter][use].anispeed=25;
+							TextureObject ( t.particle[emitter][use].obj,0,textureid );
+							ScaleObject ( t.particle[emitter][use].obj, scale, scale, scale );
+							t.particle[emitter][use].nextframe=1;
+							SetAlphaMappingOn (  t.particle[emitter][use].obj,100 );
+							SetObjectTransparency (  t.particle[emitter][use].obj,6 );
+							t.particle[emitter][use].vx=-0.001f;
+							t.particle[emitter][use].vy=0.001f+(num*0.002f);
+							t.particle[emitter][use].vz=-0.002f;
+							t.particle[emitter][use].vxvar_f=0.002f;
+							t.particle[emitter][use].vyvar_f=0.003f;
+							t.particle[emitter][use].vzvar_f=-0.01f;
+						}
+					}
+				}
+			}
+		break;
+	}
+
+	/* old explosion and particle emitter types
 	switch (  etype ) 
 	{
 		//  make small smoke
@@ -520,7 +927,8 @@ int Create_Emitter ( int x, int y, int z, int etype, int part, int textureid, in
 								tforce_f=2.5f;
 								SetAlphaMappingOn (  t.particle[emitter][use].obj,30 );
 								SetObjectTransparency (  t.particle[emitter][use].obj,6);
-								PositionObject (  t.particle[emitter][use].obj,t.particle[emitter][use].x,t.particle[emitter][use].y,t.particle[emitter][use].z );
+								PositionObject ( t.particle[emitter][use].obj,t.particle[emitter][use].x,t.particle[emitter][use].y,t.particle[emitter][use].z );
+								ScaleObject ( t.particle[emitter][use].obj, scale, scale, scale );
 								if (  t.particle[emitter][use].physicscreated == 1  )  ODEDestroyObject (  t.particle[emitter][use].obj );
 								t.particle[emitter][use].physicscreated=1;
 								ODECreateDynamicBox (  t.particle[emitter][use].obj,-1,11 );
@@ -1051,6 +1459,7 @@ int Create_Emitter ( int x, int y, int z, int etype, int part, int textureid, in
 								t.particle[emitter][use].lastanitime=Timer();
 								t.particle[emitter][use].anispeed=35;
 								TextureObject (  t.particle[emitter][use].obj, 0, textureid );
+								ScaleObject ( t.particle[emitter][use].obj, scale, scale, scale );
 								t.particle[emitter][use].nextframe=1;
 								SetAlphaMappingOn (  t.particle[emitter][use].obj, 0 );
 								SetObjectTransparency (  t.particle[emitter][use].obj,6 );
@@ -1100,7 +1509,8 @@ int Create_Emitter ( int x, int y, int z, int etype, int part, int textureid, in
 								t.particle[emitter][use].lasttime=Timer();
 								t.particle[emitter][use].lastanitime=Timer();
 								t.particle[emitter][use].anispeed=25;
-								TextureObject (  t.particle[emitter][use].obj,0,textureid );
+								TextureObject ( t.particle[emitter][use].obj,0,textureid );
+								ScaleObject ( t.particle[emitter][use].obj, scale, scale, scale );
 								t.particle[emitter][use].nextframe=1;
 								SetAlphaMappingOn (  t.particle[emitter][use].obj,100 );
 								SetObjectTransparency (  t.particle[emitter][use].obj,6 );
@@ -1116,6 +1526,7 @@ int Create_Emitter ( int x, int y, int z, int etype, int part, int textureid, in
 			}
 		break;
 	}
+	*/
 	return emitter;
 }
 
@@ -1344,7 +1755,7 @@ void make_large_fire ( int x, int y, int z )
 	//  create smoke randomly
 	if (  Rnd(100)>50 ) 
 	{
-		Create_Emitter(x,y+35,z,1,1,g.smokedecal2,700,2,0,0,0,0);
+		Create_Emitter(x,y+35,z,1,1,g.smokedecal2,700,0,0,0,0,0);
 	}
 }
 
@@ -1356,7 +1767,7 @@ void explosion_rocket ( int x, int y, int z )
 	//  sparks
 	for ( f = 0 ; f <= 4; f++ )
 	{
-		Create_Emitter(x,y+30,z,4,16,g.sparks,70+(f*500),1,0,0,0,0);
+		Create_Emitter(x,y+30,z,4,16,g.sparks,70+(f*500),0,0,0,0,0);
 	}
 }
 
@@ -1370,15 +1781,15 @@ void explosion_fireball ( int x, int y, int z )
 	// dynamic light blast
 	t.playerlight.mode=0 ; t.tx_f=x ; t.ty_f=y ; t.tz_f=z ; tmodeindex=temitterindex ; lighting_spotflashexplosion ( );
 	// explosion second smoke
-	Create_Emitter(x,y+10,z,15,1,g.smokedecal2,60,1200,20,0,100,0);
+	Create_Emitter(x,y+10,z,15,1,g.smokedecal2,60,0,20,0,100,0);
 	// sparks
 	for ( f = 0 ; f <= 7; f++ )
 	{
-		Create_Emitter(x,y,z,4,5,g.sparks,70+(f*500),1,0,0,0,0);
+		Create_Emitter(x,y,z,4,5,g.sparks,70+(f*500),0,0,0,0,0);
 	}
 }
 
-void explosion_custom ( int imageID, int iLightFlag, int iSmokeImageID, int iSharksCount, int x, int y, int z )
+void explosion_custom ( int imageID, int iLightFlag, int iSmokeImageID, int iSharksCount, float fSize, float fSmokeSize, float fSparksSize, int x, int y, int z )
 {
 	int temitterindex = 0;
 	int tmodeindex = 0;
@@ -1386,7 +1797,7 @@ void explosion_custom ( int imageID, int iLightFlag, int iSmokeImageID, int iSha
 	if ( imageID > 0 )
 	{
 		// explosion
-		temitterindex = Create_Emitter(x-Rnd(2),y,z,16,1,imageID,1,0,20,2,100,0);
+		temitterindex = Create_Emitter(x-Rnd(2),y,z,16,1,imageID,1,100.0f*fSize,20,2,100,0);
 	}
 	if ( iLightFlag != 0 )
 	{
@@ -1399,14 +1810,14 @@ void explosion_custom ( int imageID, int iLightFlag, int iSmokeImageID, int iSha
 	{
 		// explosion second smoke
 		if ( iSmokeImageID == -1 ) iSmokeImageID = g.smokedecal2;
-		Create_Emitter(x,y+10,z,15,1,iSmokeImageID,60,1200,20,0,100,0);
+		Create_Emitter(x,y+10,z,15,1,iSmokeImageID,60,100.0f*fSmokeSize,20,0,100,0);
 	}
 	if ( iSharksCount > 0 )
 	{
 		// sparks
 		for ( f = 0 ; f <= iSharksCount; f++ )
 		{
-			Create_Emitter(x,y,z,4,5,g.sparks,70+(f*500),1,0,0,0,0);
+			Create_Emitter(x,y,z,4,5,g.sparks,70+(f*500),100.0f*fSparksSize,0,0,0,0);
 		}
 	}
 }

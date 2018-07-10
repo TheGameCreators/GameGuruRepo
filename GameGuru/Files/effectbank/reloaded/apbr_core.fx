@@ -235,7 +235,6 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
    #endif
    output.position = mul(float4(inputPosition,1), World);
 
-
 #ifdef PBRTERRAIN
    output.positionCS = mul(output.position, mul(View, Projection)); // 
 #else
@@ -1274,7 +1273,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      rawdiffusemap.a = 1;
     #endif
    #endif
-                         
+   
    // entity effect control can slice alpha based on a world Y position
    #ifndef PBRTERRAIN
     #ifndef PBRVEGETATION
@@ -1305,7 +1304,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     norm = mul(norm.rgb, toWorld);
     attributes.normal = normalize(norm);
    #endif
-
+   
    // eye vector
    float3 eyeraw = trueCameraPosition - attributes.position;
     
@@ -1386,18 +1385,35 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     float rawaovalue = 1.0f;
    #else
    #ifdef PBRVEGETATION
+
     float rawaovalue = 1.0f;
    #else
-    #ifdef PBRTERRAIN
+    #ifdef PBRVEGETATION
      float rawaovalue = 1.0f;
-	#else
-	 #ifdef AOISAGED
-	  float rawaovalue = AGEDMap.Sample(SampleWrap,attributes.uv).x;
-	 #else
-      float rawaovalue = AOMap.Sample(SampleWrap,attributes.uv).x;
+    #else
+     #ifdef PBRTERRAIN
+      float rawaovalue = 1.0f;
+     #else 
+	  #ifdef AOISAGED
+	   float rawaovalue = AGEDMap.Sample(SampleWrap,attributes.uv).x;
+	  #else
+       float rawaovalue = AOMap.Sample(SampleWrap,attributes.uv).x;
+	  #endif
+	  visibility -= ((1.0f-rawaovalue)*visibility);
 	 #endif
-	 visibility -= ((1.0f-rawaovalue)*visibility);
-	#endif
+    #endif
+   #endif
+   
+   float4 originalrawdiffusemap = rawdiffusemap;
+   #ifdef LIGHTMAPPED
+    // get lightmap image
+    float3 rawlightmap = AOMap.Sample(SampleWrap,input.uv2).xyz;
+    // remove lightmapper blur artifacts
+    rawlightmap = clamp(rawlightmap,0.1,1.0);
+    // intensity lightmapper to match realtime PBR albedo
+    rawlightmap = (((rawlightmap-0.5)*1.5)+0.5) * 2;
+    // produced final light-color
+	rawdiffusemap.xyz = rawdiffusemap.xyz * rawlightmap;
    #endif
    #endif
    float4 originalrawdiffusemap = rawdiffusemap;
@@ -1415,6 +1431,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    Material gMaterial;
    gMaterial.Ambient = float4(1,1,1,1);
    gMaterial.Diffuse = rawdiffusemap;
+   
    gMaterial.Specular = float4(1,1,1,1);
    gMaterial.Properties.r = 1.0f; //r = reflectance
    gMaterial.Properties.g = rawmetalmap.r; //g = metallic

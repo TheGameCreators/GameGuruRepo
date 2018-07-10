@@ -696,6 +696,9 @@ void darkai_setup_entity ( void )
 				float forceobstacleslicemin = t.entityprofile[t.entid].forceobstaclepolysize;
 				float forceobstaclesliceheight = t.entityprofile[t.entid].forceobstaclesliceheight;
 				float forceobstaclesliceminsize = t.entityprofile[t.entid].forceobstaclesliceminsize;
+				// 051718 - adjust if the entity is sunk into the floor (terrain height would slice higher)
+				float fTerrainWouldSliceHigher = t.tusecurrentgroundheight_f - t.entityelement[t.e].y;
+				if ( fTerrainWouldSliceHigher > 0 ) forceobstaclesliceheight += fTerrainWouldSliceHigher;
 				darkai_addobstoallneededcontainers ( 3, t.tobj, t.tfullheight, forceobstacleslicemin, forceobstaclesliceheight, forceobstaclesliceminsize );
 			}
 			AIAddAlternateVisibilityObject (  t.tobj,0 );

@@ -3844,9 +3844,19 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			}
 			if ( pMesh->dwFVF == 0 )
 			{
-				iLayoutSize = 7;
-				pLayoutPtr = &layoutFVFZero;
-				dwLayoutSize = sizeof(layoutFVFZero);
+				if ( pMesh->dwFVFOriginal == 530 )
+				{
+					// been conveerted to add tangent/binormal and it wiped FVF value (PBR lightmaps)
+					iLayoutSize = 6;
+					pLayoutPtr = &layoutFVF530;
+					dwLayoutSize = sizeof(layoutFVF530);
+				}
+				else
+				{
+					iLayoutSize = 7;
+					pLayoutPtr = &layoutFVFZero;
+					dwLayoutSize = sizeof(layoutFVFZero);
+				}
 			}
 			//LPGGVERTEXLAYOUT pNewVertexDec;	
 			D3D11_INPUT_ELEMENT_DESC* pLayout = new D3D11_INPUT_ELEMENT_DESC [ iLayoutSize ];

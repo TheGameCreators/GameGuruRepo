@@ -970,7 +970,8 @@ void ODEUpdate ( float fManualStep )
 
 void GetSizePositionRotation( sObject* pObject, float &fXSize, float &fYSize, float &fZSize,
 	                                            float &fXPos,  float &fYPos,  float &fZPos,
-	                                            float &fXRot,  float &fYRot,  float &fZRot )
+	                                            float &fXRot,  float &fYRot,  float &fZRot,
+												bool bMakeCollisionCenterAdjustment )
 {
 	fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x) * pObject->position.vecScale.x;
 	fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y) * pObject->position.vecScale.y;
@@ -983,18 +984,20 @@ void GetSizePositionRotation( sObject* pObject, float &fXSize, float &fYSize, fl
 	fZRot = GGToRadian( pObject->position.vecRotate.z );
 
 	// adjust for center of object as all physics objects coords are at center
-	// SK: Existing collision.vecColCenter appears buggy and does not correctly report collision centre in all cases	
-	float fXOffset = ( pObject->collision.vecMin.x * pObject->position.vecScale.x ) + ( fXSize / 2.0f );
-	float fYOffset = ( pObject->collision.vecMin.y * pObject->position.vecScale.y ) + ( fYSize / 2.0f );
-	float fZOffset = ( pObject->collision.vecMin.z * pObject->position.vecScale.z ) + ( fZSize / 2.0f );
-	GGVECTOR3 vColOffset = GGVECTOR3( fXOffset, fYOffset, fZOffset );
-	GGMATRIX matRot;
-	GGMatrixRotationX( &matRot, fXRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
-	GGMatrixRotationY( &matRot, fYRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
-	GGMatrixRotationZ( &matRot, fZRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
-	fXPos += vColOffset.x;
-	fYPos += vColOffset.y;
-	fZPos += vColOffset.z;
+	if ( bMakeCollisionCenterAdjustment == true )
+	{
+		float fXOffset = ( pObject->collision.vecMin.x * pObject->position.vecScale.x ) + ( fXSize / 2.0f );
+		float fYOffset = ( pObject->collision.vecMin.y * pObject->position.vecScale.y ) + ( fYSize / 2.0f );
+		float fZOffset = ( pObject->collision.vecMin.z * pObject->position.vecScale.z ) + ( fZSize / 2.0f );
+		GGVECTOR3 vColOffset = GGVECTOR3( fXOffset, fYOffset, fZOffset );
+		GGMATRIX matRot;
+		GGMatrixRotationX( &matRot, fXRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
+		GGMatrixRotationY( &matRot, fYRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
+		GGMatrixRotationZ( &matRot, fZRot );  GGVec3TransformCoord( &vColOffset, &vColOffset, &matRot );
+		fXPos += vColOffset.x;
+		fYPos += vColOffset.y;
+		fZPos += vColOffset.z;
+	}
 }
 
 void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOverMode, float fWeight, float fFriction, float fRestitution,
@@ -1026,7 +1029,7 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 	}
 	else
 	{
-		GetSizePositionRotation( pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
+		GetSizePositionRotation( pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot, true);
 	}
 	
 	// real object
@@ -1380,7 +1383,7 @@ void AddStaticObjectBox ( int iObjectNumber , int iStaticBoxObject, int iMateria
 	if ( pObject==NULL ) return;
 
 	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
-	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot, true);
 	
 	// real object
 	sObject* pRealObject = pObject;
@@ -1438,7 +1441,7 @@ void CreateSphere ( int iObjectNumber, int isDynamic, float fWeight, float fFric
 	float fRadius = pObject->collision.fRadius * pObject->position.vecScale.x;
 
 	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
-	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot, true);
 	
 	// just before shape creation, reduce scale of size and position
 	fRadius /= gSc;
@@ -1605,7 +1608,7 @@ void CreateCylinder ( int iObjectNumber, int isDynamic, float fWeight, float fFr
 
 	// obtain sizes, position and rotation
 	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
-	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot, true);
 
 	CreateCylinder(iObjectNumber, isDynamic, fXPos, fYPos, fZPos, fXSize, fYSize, fZSize, fXRot, fYRot, fZRot, fWeight, fFriction, fRestitution);
 }
@@ -2091,7 +2094,7 @@ void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, flo
 
 	// obtain sizes, position and rotation
 	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
-	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot, true);
 
 	// just before shape creation, reduce scale of size and position
 	fXSize /= gSc;
@@ -2197,7 +2200,9 @@ void ODECreateDynamicCharacterController ( int iObjectNumber, float fGravity, fl
 
 	// obtain sizes, position and rotation
 	float fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot;
-	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
+	// 280618 - this threw initial player position up (incorrectly correcting for object center!)
+	bool bMakeCollisionCenterAdjustment = false;
+	GetSizePositionRotation(pObject, fXSize, fYSize, fZSize, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot, bMakeCollisionCenterAdjustment); 
 
 	// just before shape creation, reduce scale of size and position
 	fXSize /= gSc;
