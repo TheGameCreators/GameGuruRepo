@@ -4541,6 +4541,11 @@ DARKSDK_DLL void DeleteEffectCore ( int iEffectID, bool bAlsoEraseObjReferences 
 					{
 						strcpy ( pObject->ppMeshList [ dwMesh ]->pEffectName, "" );
 						pObject->ppMeshList [ dwMesh ]->pVertexShaderEffect = NULL;
+						pObject->ppMeshList[dwMesh]->dl_lights = NULL;
+						pObject->ppMeshList[dwMesh]->dl_lightsVS = NULL;
+						pObject->ppMeshList[dwMesh]->dl_pos[0] = NULL;
+						pObject->ppMeshList[dwMesh]->dl_diffuse[0] = NULL;
+						pObject->ppMeshList[dwMesh]->dl_angle[0] = NULL;
 					}
 				}
 			}
