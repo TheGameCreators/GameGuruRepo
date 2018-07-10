@@ -7,6 +7,8 @@
 #include "CGfxC.h"
 #include ".\..\..\Shared\Objects\ShadowMapping\cShadowMaps.h"
 
+bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame);
+
 s_BT_main BT_Main;
 
 // shadow mapping
@@ -2507,6 +2509,9 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 				GGGetTransform ( GGTS_WORLD, &matWorld );
 				Mesh->pVertexShaderEffect->Start ( Mesh, matWorld );
 
+				//PE: Terrain should be split into smaller meshes for better light.
+				update_mesh_light(Mesh, NULL,NULL);
+
 				// Render many terrain chunks (only CB changes for world position for faster rendering)
 				BT_Intern_RenderTerrainRec(Terrain,Terrain->QuadTree,Terrain->QuadTreeLevels,iQualityPass);
 
@@ -3187,6 +3192,9 @@ static void BT_Intern_RenderSector(s_BT_Sector* Sector)
 			stride = Sector->DrawBuffer->FVF_Size;
 			offset = 0;
 			m_pImmediateContext->IASetVertexBuffers ( 0, 1, &Sector->DrawBuffer->VertexBuffer, &stride, &offset);
+
+
+			
 
 			//Draw
 			m_pImmediateContext->DrawIndexed(Sector->DrawBuffer->Indices, 0, 0);
