@@ -2958,13 +2958,14 @@ void entity_loadtexturesandeffect ( void )
 						t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
 						if (t.entityprofile[t.entid].texlid == 0)
 						{
-							if (g.gpbroverride == 1) {
-								//PE: Also support _i when using gpbroverride == 1.
+							if (g.gpbroverride == 1) 
+							{
+								// PE: Also support _i when using gpbroverride == 1.
 								t.texdirI_s = t.texdirnoext_s + "_i.dds";
 								t.entityprofile[t.entid].texlid = loadinternaltextureex(t.texdirI_s.Get(), 1, t.tfullorhalfdivide);
 							}
-							if (t.entityprofile[t.entid].texlid == 0) {
-								use_illumination = false;
+							if (t.entityprofile[t.entid].texlid == 0) 
+							{
 								// Detail texture
 								cstr pDetailtex_s = t.texdirnoext_s + "_detail.dds";
 								t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
@@ -2972,6 +2973,7 @@ void entity_loadtexturesandeffect ( void )
 								{
 									t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
 								}
+								use_illumination = false;
 							}
 						}
 					}
@@ -3078,7 +3080,6 @@ void entity_loadtexturesandeffect ( void )
 			LPSTR pEntityBasic = "effectbank\\reloaded\\entity_basic.fx";
 			LPSTR pEntityAnim = "effectbank\\reloaded\\entity_anim.fx";
 			LPSTR pCharacterBasic = "effectbank\\reloaded\\character_basic.fx";
-
 			LPSTR pEntityBasicIllum = "effectbank\\reloaded\\apbr_illum.fx";
 			LPSTR pCharacterBasicIllum = "effectbank\\reloaded\\apbr_illum_anim.fx";
 
@@ -3089,12 +3090,20 @@ void entity_loadtexturesandeffect ( void )
 				pCharacterBasic = "effectbank\\reloaded\\apbr_anim.fx";
 			}
 			
-			//PE: Illum we only change usingeffect , so the compares for effect_s should still be fine.
+			// 100718 - fix issue where old effect (non-illum) is retained for non-bone shader
+			if ( stricmp ( EffectFile_s.Get(), pEntityBasic)==NULL ) 
+			{
+				if ( g.gpbroverride == 1 && use_illumination )
+				{
+					t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityBasicIllum);
+				}
+			}
 
 			// Special case for character_basic shader, when has meshes with no bones, use entity_basic instead
 			t.teffectid2=0;
-			if (stricmp(EffectFile_s.Get(), pCharacterBasic) == NULL) {
-				if(g.gpbroverride == 1 && use_illumination)
+			if ( stricmp(EffectFile_s.Get(), pCharacterBasic) == NULL )  
+			{
+				if ( g.gpbroverride == 1 && use_illumination)
 					t.teffectid2 = loadinternaleffect(pEntityBasicIllum);
 				else
 					t.teffectid2 = loadinternaleffect(pEntityBasic);
@@ -3111,16 +3120,19 @@ void entity_loadtexturesandeffect ( void )
 					else
 						t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityAnim);
 				}
-				else {
-					//PE: Change basic effect to use illumination
-					if (g.gpbroverride == 1 && use_illumination)
+				else 
+				{
+					// PE: Change basic effect to use illumination
+					if ( g.gpbroverride == 1 && use_illumination )
 						t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityBasicIllum);
 				}
 			}
 
-			if (stricmp(EffectFile_s.Get(), pCharacterBasic) == NULL) {
-				//PE: Change character effect to use illumination
-				if (g.gpbroverride == 1 && use_illumination) {
+			if (stricmp(EffectFile_s.Get(), pCharacterBasic) == NULL) 
+			{
+				// PE: Change character effect to use illumination
+				if (g.gpbroverride == 1 && use_illumination) 
+				{
 					t.entityprofile[t.entid].usingeffect = loadinternaleffect(pCharacterBasicIllum);
 				}
 			}
@@ -3129,7 +3141,7 @@ void entity_loadtexturesandeffect ( void )
 			if ( t.lightmapper.onlyloadstaticentitiesduringlightmapper == 0 )
 			{
 				// don't use shader effects when lightmapping
-				SetObjectEffectCore (  t.entobj,t.entityprofile[t.entid].usingeffect,t.teffectid2,t.entityprofile[t.entid].cpuanims );
+				SetObjectEffectCore ( t.entobj, t.entityprofile[t.entid].usingeffect, t.teffectid2, t.entityprofile[t.entid].cpuanims );
 			}
 		}
 	}
