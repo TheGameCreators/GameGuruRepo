@@ -505,6 +505,14 @@ struct Sglobals
 	int memskipibr;
 	int memgeneratedump;
 
+	int maxtotalmeshlights;
+	int maxpixelmeshlights;
+	int terrainoldlight;
+	int terrainusevertexlights;
+	int maxterrainlights;
+	int terrainlightfadedistance;
+	int showstaticlightinrealtime;
+
 	int grawtextsizelast;
 	int grenadeexplosion;
 	DWORD guniquesignature;

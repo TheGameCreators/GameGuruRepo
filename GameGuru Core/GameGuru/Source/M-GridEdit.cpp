@@ -4503,7 +4503,8 @@ void editor_mainfunctionality ( void )
 if (  t.grideditselect == 5 ) 
 {
 	//  do not rotate light or trigger entity
-	if (  t.entityprofile[t.gridentity].ismarker != 2 && t.entityprofile[t.gridentity].ismarker != 3 ) 
+	//PE: Allow light rotation rem: t.entityprofile[t.gridentity].ismarker != 2 &&  t.entityprofile[t.gridentity].ismarker != 3
+	if (   t.entityprofile[t.gridentity].ismarker != 3 ) 
 	{
 		if (  t.inputsys.keyshift == 1 ) 
 		{
@@ -4537,6 +4538,11 @@ if (  t.grideditselect == 5 )
 				if (  t.inputsys.doentityrotate == 4  )  t.entityelement[t.widget.pickedEntityIndex].ry = t.entityelement[t.widget.pickedEntityIndex].ry+t.tspeedofrot_f;
 				if (  t.inputsys.doentityrotate == 5  )  t.entityelement[t.widget.pickedEntityIndex].rz = t.entityelement[t.widget.pickedEntityIndex].rz-t.tspeedofrot_f;
 				if (  t.inputsys.doentityrotate == 6  )  t.entityelement[t.widget.pickedEntityIndex].rz = t.entityelement[t.widget.pickedEntityIndex].rz+t.tspeedofrot_f;
+
+				//PE: Update light data for spot.
+				if(t.entityelement[t.widget.pickedEntityIndex].eleprof.usespotlighting)
+					lighting_refresh();
+
 				if (  t.entityelement[t.widget.pickedEntityIndex].obj>0 ) 
 				{
 					int iTargetCenterObject = t.entityelement[t.widget.pickedEntityIndex].obj;
@@ -4856,7 +4862,8 @@ void editor_viewfunctionality ( void )
 			if (  t.inputsys.dozoomviewmovez == 2  )  t.zoomviewtargetz_f += t.tposadjspeed_f;
 
 			//  rotation adjustment
-			if (  t.entityprofile[t.gridentity].ismarker != 2 && t.entityprofile[t.gridentity].ismarker != 3 ) 
+			//PE: rotate lights rem: t.entityprofile[t.gridentity].ismarker != 2 &&
+			if (  t.entityprofile[t.gridentity].ismarker != 3 ) 
 			{
 				if (  t.inputsys.keyshift == 1 ) 
 				{
@@ -7385,6 +7392,9 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 
 									// update latest entity position
 									PositionObject ( tobj, t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z );
+									//PE: Update light data for spot.
+									if (t.entityelement[e].eleprof.usespotlighting)
+										lighting_refresh();
 
 									// move zones and lights if in group
 									//widget_movezonesandlights ( e );
@@ -8876,6 +8886,7 @@ void interface_openpropertywindow ( void )
 					}
 					if (  t.tokay == 1 ) 
 					{
+						//PE: 414=Static Mode
 						setpropertylist2(t.group,t.controlindex,Str(t.gridentitystaticmode),t.strarr_s[414].Get(),t.strarr_s[205].Get(),0) ; ++t.controlindex;
 					}
 				}
@@ -9131,9 +9142,12 @@ void interface_openpropertywindow ( void )
 			if (  t.tflaglight == 1 ) 
 			{
 				t.propfield[t.group]=t.controlindex;
-				++t.group ; startgroup(t.strarr_s[461].Get()) ; t.controlindex=0;
-				setpropertystring2(t.group,Str(t.grideleprof.light.range),t.strarr_s[462].Get(),t.strarr_s[250].Get()) ; ++t.controlindex;
-				setpropertycolor2(t.group,t.grideleprof.light.color,t.strarr_s[463].Get(),t.strarr_s[251].Get()) ; ++t.controlindex;
+				++t.group ; startgroup(t.strarr_s[461].Get()) ; t.controlindex=0; //PE: 461=Light
+				setpropertystring2(t.group,Str(t.grideleprof.light.range),t.strarr_s[462].Get(),t.strarr_s[250].Get()) ; ++t.controlindex; //PE: 462=Light Range
+				setpropertycolor2(t.group,t.grideleprof.light.color,t.strarr_s[463].Get(),t.strarr_s[251].Get()) ; ++t.controlindex; //PE: 463=Light Color
+				//PE: Add Spot light setting.
+				setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0); ++t.controlindex;
+
 			}
 
 			//  Decal data

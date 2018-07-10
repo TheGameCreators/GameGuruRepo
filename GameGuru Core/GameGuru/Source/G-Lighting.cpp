@@ -3,20 +3,555 @@
 //----------------------------------------------------
 
 #include "gameguru.h"
+#include "CObjectsC.h"
+
 
 // 
 //  LIGHTING
 // 
 
+//PE: Only actually used lights is sent to shaders, so it dont matter if this is quite high.
+#define MAXDYNLIGHTS 40 // PE: Make sure to match this with the shaders.
+int nearestlightId[MAXDYNLIGHTS];
+
+
 void lighting_init ( void )
 {
-
 	//  Create all lights
 	lighting_refresh ( );
-
 return;
 
 }
+void start_mesh_light(void);
+void setlayer_mesh_light(int layer);
+void end_mesh_light(void);
+bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame);
+void get_nearby_light(float f_meshX, float f_meshY, float f_meshZ, float f_objSize);
+
+sObject* debugobject=NULL;
+int debugcount = 0;
+
+
+//PE: Create a render list.
+//#define MAXRENDERLIST 8000 //PE: Generate a mesh render list with info.
+#ifdef MAXRENDERLIST
+int rl_entries = 0;
+DWORD rl_object[MAXRENDERLIST];
+int rl_object_rendered[MAXRENDERLIST];
+sMesh* rl_mesh[MAXRENDERLIST];
+int rl_mesh_rendered[MAXRENDERLIST];
+int rl_layer[MAXRENDERLIST];
+float rl_posx[MAXRENDERLIST];
+float rl_posy[MAXRENDERLIST];
+float rl_posz[MAXRENDERLIST];
+int rl_lightsused[MAXRENDERLIST];
+float rl_objsize[MAXRENDERLIST];
+char rl_colors[MAXRENDERLIST][1024];
+
+#endif
+
+void start_mesh_light()
+{
+#ifdef MAXRENDERLIST
+	//PE:
+	rl_entries = 0;
+	for (int i = 0; i < MAXRENDERLIST; i++) {
+		rl_mesh_rendered[i] = 0;
+		rl_object_rendered[i] = 0;
+		rl_layer[i] = 0;
+		strcpy(rl_colors[i], "");
+	}
+#endif
+}
+
+int rl_current_layer = 0;
+void setlayer_mesh_light(int clayer) {
+	rl_current_layer = clayer;
+}
+
+DWORD startrecording = 0;
+void end_mesh_light()
+{
+#ifdef MAXRENDERLIST
+	//PE:
+	if (startrecording++ > 500 ) {
+		startrecording = 0;
+		char debugmsg[1024];
+		OutputDebugString("--RenderList START--\n");
+		for (int i = 0; i < rl_entries; i++) {
+//			sprintf(debugmsg, "%ld (%d) - %ld (%d) - (%d) - (%f,%f,%f) - L(%d) S(%f) - %s\n", rl_object[i], rl_object_rendered[i], rl_mesh[i], rl_mesh_rendered[i], rl_layer[i], rl_posx[i], rl_posy[i], rl_posz[i], rl_lightsused[i], rl_objsize[i], rl_colors[i]);
+			sprintf(debugmsg, "%ld (%d) - %ld (%d) - (%d) - (%f,%f,%f) - L(%d) S(%f)\n", rl_object[i], rl_object_rendered[i], rl_mesh[i], rl_mesh_rendered[i], rl_layer[i], rl_posx[i], rl_posy[i], rl_posz[i], rl_lightsused[i], rl_objsize[i]);
+			OutputDebugString(debugmsg);
+		}
+		OutputDebugString("--RenderList END--\n");
+	}
+#endif
+}
+
+bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
+{
+	//PE: Ignore shadow camera.
+	if (g_pGlob->dwRenderCameraID >= 31) return false;
+	
+	//PE: Make sure when last light is deleted , that we dont display any.
+	if (g.infinilightmax == 0 && t.playerlight.spotflash <= 0 ) {
+		if (pMesh->dl_lights) {
+			float f_tmp = 0;
+			pMesh->dl_lights->AsScalar()->SetFloat(f_tmp);
+		}
+		if (pMesh->dl_lightsVS) {
+			float f_tmp = 0;
+			pMesh->dl_lightsVS->AsScalar()->SetFloat(f_tmp);
+		}
+		return true;
+	}
+	//PE: not needed at the moment.
+	//if (pObject && pObject->dwRememberTransparencyState > 0) return false;
+
+	//PE: new light per mesh.
+	if (pMesh->dl_lights == NULL) {
+		pMesh->dl_lights = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_lights");
+		if (pMesh->dl_lights) {
+			if (pMesh->dl_lightsVS == NULL) {
+				pMesh->dl_lightsVS = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_lightsVS");
+			}
+			if (pMesh->dl_pos[0] == NULL) {
+				pMesh->dl_pos[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_pos");
+			}
+			if (pMesh->dl_diffuse[0] == NULL) {
+				pMesh->dl_diffuse[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_diffuse");
+			}
+			if (pMesh->dl_angle[0] == NULL) {
+				pMesh->dl_angle[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_angle");
+			}
+		}
+		else {
+			return false;
+		}
+	}
+
+	float fposData[ 4 * MAXDYNLIGHTS ];
+	float fdiffuseData[4 * MAXDYNLIGHTS];
+	float fangleData[4 * MAXDYNLIGHTS];
+	int frealLightsUsed = 0;
+	int frealVSLightsUsed = 0;
+	bool b_angle_used = false;
+
+	if(pObject) {
+
+		//PE: find closest to object.
+		float f_oPosX = pObject->position.vecPosition.x;
+		float f_oPosY = pObject->position.vecPosition.y;
+		float f_oPosZ = pObject->position.vecPosition.z;
+		float fXSize = fabs(pObject->collision.vecMax.x - pObject->collision.vecMin.x) * pObject->position.vecScale.x;
+		float fYSize = fabs(pObject->collision.vecMax.y - pObject->collision.vecMin.y) * pObject->position.vecScale.y;
+		float fZSize = fabs(pObject->collision.vecMax.z - pObject->collision.vecMin.z) * pObject->position.vecScale.z;
+
+		float f_objsize = fXSize;
+		if (f_objsize < fZSize) f_objsize = fZSize;
+//		if (f_objsize < fYSize) f_objsize = fYSize;
+
+/*
+		//PE: Mesh size is not always accurate, keep it here if needed later.
+		//PE: Perhaps use the largest from object,mesh
+		float f_oPosX, f_oPosY, f_oPosZ;
+		float fXSize, fYSize, fZSize;
+		GGMATRIX  mWorld;
+		GGGetTransform(GGTS_WORLD, &mWorld);
+
+		fXSize = (pMesh->Collision.vecMax.x - pMesh->Collision.vecMin.x);
+		fYSize = (pMesh->Collision.vecMax.y - pMesh->Collision.vecMin.y);
+		fZSize = (pMesh->Collision.vecMax.z - pMesh->Collision.vecMin.z);
+		GGVECTOR3 vCtr = GGVECTOR3(pMesh->Collision.vecMin.x + (fXSize / 2), pMesh->Collision.vecMin.y + (fYSize / 2), pMesh->Collision.vecMin.z + (fZSize / 2));
+		GGVec3TransformCoord(&vCtr, &vCtr, &mWorld);
+		f_oPosX = vCtr.x;
+		f_oPosY = vCtr.y;
+		f_oPosZ = vCtr.z;
+		fXSize = fXSize * pObject->position.vecScale.x;
+		fYSize = fYSize * pObject->position.vecScale.y;
+		fZSize = fZSize * pObject->position.vecScale.z;
+*/
+
+		get_nearby_light(f_oPosX, f_oPosY, f_oPosZ , f_objsize);
+		
+
+		if (t.playerlight.spotflash > 0 && ((frealLightsUsed + frealVSLightsUsed) < g.maxtotalmeshlights))
+		{
+
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotflashx_f;
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotflashy_f;
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotflashz_f;
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 40.0; // t.playerlight.spotfadeout_f;
+
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotlightr_f * (t.playerlight.spotfadeout_f * 0.2);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotlightg_f * (t.playerlight.spotfadeout_f * 0.2);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotlightb_f * (t.playerlight.spotfadeout_f * 0.2);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0; //PE: type point;
+
+			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = 0.0;
+			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = 0.0;
+			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = 0.0;
+			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0.0;
+
+			//if (frealLightsUsed >= g.maxpixelmeshlights) {
+			//	//PE: Add the rest as fast Vertex lights.
+			//	frealVSLightsUsed++;
+			//}
+			//else {
+				frealLightsUsed++;
+			//}
+		}
+
+		for (int i = 0; i < (g.maxtotalmeshlights); i++)
+		{
+			int l_index = nearestlightId[i];
+			if (l_index>0)
+			{
+				t.tlx_f = t.infinilight[l_index].x;
+				t.tly_f = t.infinilight[l_index].y;
+				t.tlz_f = t.infinilight[l_index].z;
+
+				t.tcolr_f = (t.infinilight[l_index].colrgb.r + 0.0) / 255.0;
+				t.tcolg_f = (t.infinilight[l_index].colrgb.g + 0.0) / 255.0;
+				t.tcolb_f = (t.infinilight[l_index].colrgb.b + 0.0) / 255.0;
+
+				fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tlx_f;
+				fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tly_f;
+				fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tlz_f;
+				fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range; //PE: Put range in pos.w
+
+				if (t.infinilight[l_index].type == 1) {
+					//PE: static light has less intensity then realtime , so lower it to match lightmapper.
+					fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range*0.70; //PE: Put range in pos.w
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f*0.70;
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tcolg_f*0.70;
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tcolb_f*0.70;
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].type; //PE: Put type in diffuse.w;
+				}
+				else {
+
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f;
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tcolg_f;
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tcolb_f;
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].type; //PE: Put type in diffuse.w;
+				}
+
+				fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.infinilight[l_index].f_angle_x;
+				fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.infinilight[l_index].f_angle_y;
+				fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.infinilight[l_index].f_angle_z;
+				fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0.0;
+
+				if (t.infinilight[l_index].is_spot_light) {
+					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 3; //PE: spot = type 3. also set angle.
+					b_angle_used = true;
+				}
+
+#ifdef MAXRENDERLIST
+				//char ctmp[256];
+				//sprintf(ctmp, " RGB%d(%f,%f,%f)", l_index, t.tcolr_f, t.tcolg_f, t.tcolb_f);
+				//strcat(rl_colors[rl_entries], ctmp);
+#endif
+
+				if (frealLightsUsed >= g.maxpixelmeshlights ) {
+					//PE: Add the rest as fast Vertex lights.
+					frealVSLightsUsed++;
+				}
+				else {
+					frealLightsUsed++;
+				}
+			}
+
+
+		}
+
+#ifdef MAXRENDERLIST
+		if (pObject) {
+			rl_object[rl_entries] = pObject->dwObjectNumber;
+			rl_mesh[rl_entries] = pMesh;
+
+			int iObjCount = 0;
+			int iMeshCount = 0;
+			for (int i = 0; i <= rl_entries; i++) {
+				if (rl_object[i] == pObject->dwObjectNumber) iObjCount++;
+				if (rl_mesh[i] == pMesh) iMeshCount++;
+			}
+			rl_object_rendered[rl_entries] = iObjCount;
+			rl_mesh_rendered[rl_entries] = iMeshCount;
+			rl_layer[rl_entries] = rl_current_layer;
+
+			rl_posx[rl_entries] = f_oPosX;
+			rl_posy[rl_entries] = f_oPosY;
+			rl_posz[rl_entries] = f_oPosZ;
+			rl_lightsused[rl_entries] = frealLightsUsed;
+			rl_objsize[rl_entries] = f_objsize;
+			rl_entries++;
+		}
+#endif
+
+//		if (pObject->dwObjectNumber == t.widget.pickedObject) {
+//			//fake yellow light.
+//			frealLightsUsed = 0;
+//			fposData[(frealLightsUsed * 4) + 0] = f_oPosX;
+//			fposData[(frealLightsUsed * 4) + 1] = f_oPosY+100;
+//			fposData[(frealLightsUsed * 4) + 2] = f_oPosZ;
+//			fposData[(frealLightsUsed * 4) + 3] = 500;
+//			fdiffuseData[(frealLightsUsed * 4) + 0] = 1.0;
+//			fdiffuseData[(frealLightsUsed * 4) + 1] = 1.0;
+//			fdiffuseData[(frealLightsUsed * 4) + 2] = 0.0;
+//			fdiffuseData[(frealLightsUsed * 4) + 3] = 0;
+//			frealLightsUsed++;
+//		}
+
+
+
+	}
+	else {
+
+
+
+		if (t.playerlight.spotflash > 0 && ((frealLightsUsed + frealVSLightsUsed) < g.maxtotalmeshlights))
+		{
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotflashx_f;
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotflashy_f;
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotflashz_f;
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 30.0;
+
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotlightr_f * (t.playerlight.spotfadeout_f * 0.2);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotlightg_f * (t.playerlight.spotfadeout_f * 0.2);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotlightb_f * (t.playerlight.spotfadeout_f * 0.2);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0; //PE: type point;
+
+			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = 0.0;
+			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = 0.0;
+			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = 0.0;
+			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0.0;
+
+			//PE: Always use per pixel on terrain  when moving lights.
+			frealLightsUsed++;
+		}
+
+		//PE: Terrain use the old fading light system max 3 dyn lights.
+
+		if (g.terrainoldlight == 1) {
+			//PE: Terrain use old way for now.
+			for (t.best = 0; t.best <= 3; t.best++)
+			{
+				int l_index = t.nearestlightindex[t.best];
+				if (l_index > 0)
+				{
+					t.tlx_f = t.infinilight[l_index].x;
+					t.tly_f = t.infinilight[l_index].y;
+					t.tlz_f = t.infinilight[l_index].z;
+
+					t.tcolr_f = (t.infinilight[l_index].colrgb.r + 0.0)*t.infinilight[l_index].intensity_f; t.tcolr_f = t.tcolr_f / 255.0;
+					t.tcolg_f = (t.infinilight[l_index].colrgb.g + 0.0)*t.infinilight[l_index].intensity_f; t.tcolg_f = t.tcolg_f / 255.0;
+					t.tcolb_f = (t.infinilight[l_index].colrgb.b + 0.0)*t.infinilight[l_index].intensity_f; t.tcolb_f = t.tcolb_f / 255.0;
+
+					fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tlx_f;
+					fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tly_f;
+					fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tlz_f;
+					fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range;
+
+					if (t.infinilight[l_index].type == 1) {
+						//PE: static light has less intensity then realtime , so lower it to match lightmapper.
+						fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range*0.70;
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f*0.70;
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tcolg_f*0.70;
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tcolb_f*0.70;
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0;
+					}
+					else {
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f;
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tcolg_f;
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tcolb_f;
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0;
+					}
+					fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.infinilight[l_index].f_angle_x;
+					fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.infinilight[l_index].f_angle_y;
+					fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.infinilight[l_index].f_angle_z;
+					fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0.0;
+
+					if (t.infinilight[l_index].is_spot_light) {
+						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 3; //PE: spot = type 3. also set angle.
+						b_angle_used = true;
+					}
+
+
+					frealLightsUsed++;
+				}
+			}
+		}
+		else {
+
+			//PE: Terrain use lights nearby camera.
+			//PE: for now add terrain as VS light.
+			if (g.maxterrainlights > g.infinilightmax) //PE: Only use fade if needed.
+				get_nearby_light(CameraPositionX(0), CameraPositionY(0), CameraPositionZ(0), 70000);
+			else
+				get_nearby_light(CameraPositionX(0), CameraPositionY(0), CameraPositionZ(0), g.terrainlightfadedistance);
+
+			for (int i = 0; i < g.maxterrainlights; i++)
+			{
+				int l_index = nearestlightId[i];
+				if (l_index > 0)
+				{
+					t.tlx_f = t.infinilight[l_index].x;
+					t.tly_f = t.infinilight[l_index].y;
+					t.tlz_f = t.infinilight[l_index].z;
+
+					//float fade = 1.0 / (3500.0 / t.infinilight[l_index].distfromobj_f);
+					float fade = 1.0 / ( (g.terrainlightfadedistance-500.0) / t.infinilight[l_index].distfromobj_f);
+					if (fade > 1.0) fade = 1.0;
+					if (fade < 0.0) fade = 0.0;
+					fade = 1.0 - fade;
+
+					if (g.maxterrainlights > g.infinilightmax) //PE: Only use fade if needed.
+						fade = 1.0;
+
+					//PE: Ignore lights that is nearly out.
+					if (fade > 0.01) {
+
+						t.tcolr_f = ((t.infinilight[l_index].colrgb.r + 0.0)*fade) / 255.0;
+						t.tcolg_f = ((t.infinilight[l_index].colrgb.g + 0.0)*fade) / 255.0;
+						t.tcolb_f = ((t.infinilight[l_index].colrgb.b + 0.0)*fade) / 255.0;
+
+						fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tlx_f;
+						fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tly_f;
+						fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tlz_f;
+						fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range;
+
+
+						if (t.infinilight[l_index].type == 1) {
+							//PE: static light has less intensity then realtime , so lower it to match lightmapper.
+							fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range*0.70;
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f*0.70;
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tcolg_f*0.70;
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tcolb_f*0.70;
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0;
+						}
+						else {
+
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f;
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tcolg_f;
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tcolb_f;
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0;
+						}
+
+						fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.infinilight[l_index].f_angle_x;
+						fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.infinilight[l_index].f_angle_y;
+						fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.infinilight[l_index].f_angle_z;
+						fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0.0;
+
+						if (t.infinilight[l_index].is_spot_light) {
+							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 3; //PE: spot = type 3. also set angle.
+							b_angle_used = true;
+						}
+
+						if( g.terrainusevertexlights == 1 || frealLightsUsed >= g.maxpixelmeshlights ) {
+							//PE: Add the rest as fast Vertex lights.
+							frealVSLightsUsed++;
+						}
+						else {
+							frealLightsUsed++;
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	/* Optimizing: 114fps: FPS without sending light data: 114fps , takes 0 fps. */
+	if (pMesh->dl_lights) {
+		float f_tmp = frealLightsUsed;
+		pMesh->dl_lights->AsScalar()->SetFloat(f_tmp);
+	}
+	if (pMesh->dl_lightsVS) {
+		float f_tmp = frealVSLightsUsed;
+		pMesh->dl_lightsVS->AsScalar()->SetFloat(f_tmp);
+	}
+	if ((frealLightsUsed > 0 || frealVSLightsUsed > 0) && pMesh->dl_pos[0]) {
+		pMesh->dl_pos[0]->AsVector()->SetFloatVectorArray(fposData, 0, frealLightsUsed+frealVSLightsUsed);
+	}
+	if ((frealLightsUsed > 0 || frealVSLightsUsed > 0) && pMesh->dl_diffuse[0]) {
+		pMesh->dl_diffuse[0]->AsVector()->SetFloatVectorArray(fdiffuseData, 0, frealLightsUsed+frealVSLightsUsed);
+	}
+	if ( b_angle_used && pMesh->dl_angle[0]) {
+		pMesh->dl_angle[0]->AsVector()->SetFloatVectorArray(fangleData, 0, frealLightsUsed + frealVSLightsUsed);
+	}
+
+	return true;
+}
+
+
+
+void get_nearby_light(float f_meshX , float f_meshY , float f_meshZ, float f_objSize)
+{
+	//PE: Get the nearest lights.
+	if (g.infinilightmax>0 && g.infinilightmax <= ArrayCount(t.infinilight))
+	{
+
+		t.infinilight[0].distfromobj_f = 9999999;
+		t.infinilight[0].drop_entry = false;
+		int i_ctype = 0;
+		for (int loop = 1; loop <= g.infinilightmax; loop++)
+		{
+			t.infinilight[loop].drop_entry = false;
+
+			i_ctype = t.infinilight[loop].type;
+
+			if (g.showstaticlightinrealtime == 1 && t.visuals.shaderlevels.lighting != 1) //PE: Also display static lights if not in prebake.
+				i_ctype = 0;
+
+			if (t.infinilight[loop].used == 1 && i_ctype == 0 && t.infinilight[loop].islit == 1)
+			{
+				//get distance from object to light.
+				t.tdx_f = t.infinilight[loop].x - f_meshX;
+				t.tdz_f = t.infinilight[loop].z - f_meshZ;
+				t.tdd_f = Sqrt( (t.tdx_f*t.tdx_f) + (t.tdz_f*t.tdz_f) );
+				t.infinilight[loop].distfromobj_f = fabs(t.tdd_f);
+
+//				t.tda_f = atan2deg(t.tdx_f, t.tdz_f) - CameraAngleY(0);
+//				if (t.tda_f<-180)  t.tda_f = t.tda_f + 360.0;
+//				if (t.tda_f >= 180)  t.tda_f = t.tda_f - 360.0;
+//				t.tfrontfacingstr_f = abs(t.tda_f) / 45.0;
+//				if (t.tfrontfacingstr_f<1.0)  t.tfrontfacingstr_f = 1.0;
+//				if (t.tfrontfacingstr_f>2.0)  t.tfrontfacingstr_f = 2.0;
+//				t.infinilight[l_index].distfromobj_f = fabs(t.tdd_f*t.tfrontfacingstr_f);
+			}
+		}
+
+		for (int i = 0; i < g.maxtotalmeshlights; i++) {
+			nearestlightId[i] = 0;
+			float fsearch = 9999999;
+
+			for (int loop = 1; loop <= g.infinilightmax; loop++)
+			{
+
+				i_ctype = t.infinilight[loop].type;
+
+				if (g.showstaticlightinrealtime == 1 && t.visuals.shaderlevels.lighting != 1) //PE: Also display static lights if not in prebake.
+					i_ctype = 0;
+
+				if (t.infinilight[loop].drop_entry == false && t.infinilight[loop].used == 1 && i_ctype == 0 && t.infinilight[loop].islit == 1)
+				{
+					//PE: Large objects can suffer from this system , so we must consider object size/placement/light range.
+					if (t.infinilight[loop].distfromobj_f < (f_objSize + (t.infinilight[loop].range *1.25) ) ) { // PE: Add * 1.25 to allow fading out.
+						if (t.infinilight[loop].distfromobj_f < fsearch) {
+							nearestlightId[i] = loop;
+							fsearch = t.infinilight[loop].distfromobj_f;
+						}
+					}
+				}
+			}
+			t.infinilight[nearestlightId[i]].drop_entry = true;
+		}
+
+	}
+}
+
+
+
 
 void lighting_blanklights ( void )
 {
@@ -226,6 +761,7 @@ void lighting_loop ( void )
 						SetVector4 (  g.terrainvectorindex3,0,0,0,0 );
 					}
 				}
+
 				if (  GetEffectExist(t.terrain.terrainshaderindex) == 1 ) 
 				{
 					if ( t.best == 0 )

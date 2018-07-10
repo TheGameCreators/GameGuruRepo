@@ -78,6 +78,12 @@ float4 g_lights_diffuse0;
 float4 g_lights_diffuse1;
 float4 g_lights_diffuse2;
 
+float dl_lights;
+float dl_lightsVS;
+float4 dl_pos[40];
+float4 dl_diffuse[40];
+float4 dl_angle[40];
+
 //SpotFlash Values
 float4 SpotFlashPos;  //SpotFlashPos.w is carrying the spotflash fadeout value
 float4 SpotFlashColor; //RGB of flash colour
@@ -178,7 +184,8 @@ struct vertexOutput
     float  clip         : TEXCOORD6;
     float  vDepth       : TEXCOORD7;
     float3 Tn            : TEXCOORD8;    
-    float3 Bn            : TEXCOORD9;    
+    float3 Bn            : TEXCOORD9;  
+    float3 VertexLight  : TEXCOORD10;
 };
 
 struct vertexOutput_low
@@ -190,7 +197,58 @@ struct vertexOutput_low
     float4 WPos         : TEXCOORD3;
     float  clip         : TEXCOORD4;
     float  vDepth       : TEXCOORD5;
+    float3 VertexLight  : TEXCOORD6;
 };
+
+
+float3 CalcExtSpot( float3 worldNormal, float3 worldPos , float3 SpotPos , float3 SpotColor , float range, float3 angle,float3 diffusemap)
+{
+    float conewidth = 24;
+	float toLight = length(SpotPos.xyz - worldPos) * 2.0;
+	float4 local_lights_atten = float4(1.0, 1.0/range, 1.0/(range*range), 0.0);
+	float intensity = 1.0/dot( local_lights_atten, float4(1,toLight,toLight*toLight,0) );
+    float3 V  = SpotPos.xyz - worldPos;  
+    float3 Vn  = normalize(V); 
+    float3 lightvector = Vn;
+    //float3 lightdir = (2.0/(360.0/angle)) - 1.0;
+    //float3 lightdir = normalize(  SpotPos.xyz -(SpotPos.xyz+angle+angle) );
+    float3 lightdir = normalize(float3(angle.x,angle.y*2.0,angle.z));
+    intensity = clamp(intensity * (dot(-lightdir,worldNormal)),0.0,1.0);
+    return (SpotColor.xyz * pow(max(dot(-lightvector, lightdir ),0),conewidth) * 2.5 ) * intensity * diffusemap;
+}
+
+
+float3 CalcExtLightingVS(float3 Nb, float3 worldPos, float3 Vn )
+{
+	float3 output = float3(0,0,0);
+    float3 toLight;
+    float lightDist;
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float4 local_lights_atten;
+	
+	//dl_pos[i].w = range.
+
+	for( int i=dl_lights ; i < dl_lightsVS+dl_lights ; i++ )
+	{
+		if( dl_diffuse[i].w == 3.0 ) {
+			output += CalcExtSpot(Nb,worldPos,dl_pos[i].xyz,dl_diffuse[i].xyz,dl_pos[i].w,dl_angle[i].xyz, float3(0.75,0.75,0.75));
+		} else {
+			toLight = dl_pos[i].xyz - worldPos;
+			lightDist = length( toLight ) * 2.0;
+			local_lights_atten = float4(1.0, 1.0/dl_pos[i].w, 1.0/(dl_pos[i].w*dl_pos[i].w), 0.0);
+			fAtten = 1.0/dot( local_lights_atten, float4(1,lightDist,lightDist*lightDist,0) );
+			lightDir = normalize( toLight );
+			halfvec = normalize(Vn + lightDir);
+			lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+			lit0.z = clamp( ( lit0.z * GlobalSpecular) ,0.0,1.0);
+			output+= (lit0.y *dl_diffuse[i].xyz * fAtten ); //PE: no spec + (lit0.z * dl_diffuse[i].xyz * fAtten );   
+		}
+	}
+	return output;
+}
 
 /*******Vertex Shader***************************/
 
@@ -223,7 +281,11 @@ vertexOutput mainVS_highest(appdata IN)
     }
     OUT.Tn = normalize( OUT.Tn);
     OUT.Bn = normalize(cross(OUT.WorldNormal, OUT.Tn)); 
-   
+
+	float3 WorldEyeVec = (eyePos.xyz - worldSpacePos.xyz);
+	OUT.VertexLight.xyz = CalcExtLightingVS(OUT.WorldNormal.xyz, worldSpacePos.xyz, WorldEyeVec );
+
+
 //PE: Something is wrong with the terrin normals, they are often set is flat output.normal.y > 0.9985 , but are not flat ?
 //PE: So need to disable this for now.
 //    if(OUT.Position.z > 3400.0 && OUT.WPos.y < 460.0 && OUT.WorldNormal.y > 0.9985 ) {
@@ -249,6 +311,10 @@ vertexOutput_low mainVS_lowest(appdata IN)
     float4 worldSpacePos = mul(float4(IN.Position,1), World);
     OUT.WPos = worldSpacePos;  
     OUT.clip = dot(worldSpacePos, clipPlane); 
+
+	float3 WorldEyeVec = (eyePos.xyz - worldSpacePos.xyz);
+	OUT.VertexLight.xyz = CalcExtLightingVS(OUT.WorldNormal.xyz, worldSpacePos.xyz, WorldEyeVec );
+    
 //PE: Something is wrong with the terrin normals, they are often set is flat output.normal.y > 0.9985 , but are not flat ?
 //PE: So need to disable this for now.
 //    if(OUT.Position.z > 3400.0 && OUT.WPos.y < 460.0 && OUT.WorldNormal.y > 0.9985 ) 
@@ -282,6 +348,41 @@ float4 CalcSpotFlash( float3 worldNormal, float3 worldPos )
         
     return output;
 }
+
+
+float3 CalcExtLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap )
+{
+	float3 output = float3(0,0,0);
+    float3 toLight;
+    float lightDist;
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float4 local_lights_atten;
+	
+	//dl_pos[i].w = range.
+
+	for( int i=0 ; i < dl_lights ; i++ ) {
+
+		if( dl_diffuse[i].w == 3.0 ) {
+			output += CalcExtSpot(Nb,worldPos,dl_pos[i].xyz,dl_diffuse[i].xyz,dl_pos[i].w,dl_angle[i].xyz,diffusemap);
+		} else {
+		
+			toLight = dl_pos[i].xyz - worldPos;
+			lightDist = length( toLight ) * 2.0;
+			local_lights_atten = float4(1.0, 1.0/dl_pos[i].w, 1.0/(dl_pos[i].w*dl_pos[i].w), 0.0);
+			fAtten = 1.0/dot( local_lights_atten, float4(1,lightDist,lightDist*lightDist,0) );
+			lightDir = normalize( toLight );
+			halfvec = normalize(Vn + lightDir);
+			lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+			lit0.z = clamp( ( lit0.z * GlobalSpecular) ,0.0,1.0);
+			output+= (lit0.y *dl_diffuse[i].xyz * fAtten * 1.25 * diffusemap) + (lit0.z * dl_diffuse[i].xyz * fAtten * 0.5 );
+		}
+	}
+	return output;
+}
+
 
 float4 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float4 diffusemap,float4 specmap)
 {
@@ -668,9 +769,15 @@ float4 mainlightPS_highest(vertexOutput IN) : COLOR
       //lighting.z = lighting.z * max(1.0f-(viewspacePos.z/1000.0f),0); 
 
       // dynamic lighting
-      float4 spotflashlighting = CalcSpotFlash (Nb,IN.WPos.xyz);   
+      //float4 spotflashlighting = CalcSpotFlash (Nb,IN.WPos.xyz);   
+	  float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+      
       //LEE060517-deathvalleycanyonmessesup!float4 dynamicContrib = CalcLighting (Nb,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
-      float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+//      float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+
+      float4 dynamicContrib = float4( CalcExtLighting (IN.WorldNormal.xyz,IN.WPos.xyz,Vn,diffusemap.xyz,float3(0,0,0)) + spotflashlighting.xyz + (IN.VertexLight.xyz * 1.25 * diffusemap.xyz) , 1.0 );
+
+
      
       // flash light system (flash light control carried in SpotFlashColor.w )
       float conewidth = 24;
@@ -890,8 +997,13 @@ float4 mainlightPS_medium(vertexOutput_low IN) : COLOR
 	  fShadow = fShadow * max(0,1.0f-((eyePos.y-1200.0f)/3000.0f));
    
       // dynamic lighting
-      float4 spotflashlighting = CalcSpotFlash (IN.WorldNormal,IN.WPos.xyz);   
-      float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+//      float4 spotflashlighting = CalcSpotFlash (IN.WorldNormal,IN.WPos.xyz);   
+	  float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+
+      //float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+
+      float4 dynamicContrib = float4( CalcExtLighting (IN.WorldNormal.xyz,IN.WPos.xyz,Vn,diffusemap.xyz,float3(0,0,0)) + spotflashlighting.xyz + (IN.VertexLight.xyz * 1.25 * diffusemap.xyz) , 1.0 );  
+
 
       // flash light system (flash light control carried in SpotFlashColor.w )
       float conewidth = 24;
@@ -1238,10 +1350,15 @@ float4 mainlightPS_highest_prebake(vertexOutput IN) : COLOR
       lighting.z = lighting.z * max(1.0f-(viewspacePos.z/1000.0f),0); 
 
       // dynamic lighting
-      float4 spotflashlighting = CalcSpotFlash (Nb,IN.WPos.xyz);   
+//      float4 spotflashlighting = CalcSpotFlash (Nb,IN.WPos.xyz);   
+	  float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+
       //LEE060517-deathvalleycanyonmessesup!CalcLighting (Nb,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  potflashlighting;  
-      float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
-      
+      //float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+
+      float4 dynamicContrib = float4( CalcExtLighting (IN.WorldNormal.xyz,IN.WPos.xyz,Vn,diffusemap.xyz,float3(0,0,0)) + spotflashlighting.xyz + (IN.VertexLight.xyz * 1.25 * diffusemap.xyz) , 1.0 );
+
+
       // flash light system (flash light control carried in SpotFlashColor.w )
       float conewidth = 24;
       float intensity = max(0, 1.5f - (viewspacePos.z/500.0f));
@@ -1437,8 +1554,13 @@ float4 mainlightPS_medium_prebake(vertexOutput_low IN) : COLOR
       lighting.z = lighting.z * max(1.0f-(viewspacePos.z/1000.0f),0); 
 
       // dynamic lighting
-      float4 spotflashlighting = CalcSpotFlash (IN.WorldNormal,IN.WPos.xyz);   
-      float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+//      float4 spotflashlighting = CalcSpotFlash (IN.WorldNormal,IN.WPos.xyz);   
+	  float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+
+      //float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;
+
+      float4 dynamicContrib = float4( CalcExtLighting (IN.WorldNormal.xyz,IN.WPos.xyz,Vn,diffusemap.xyz,float3(0,0,0)) + spotflashlighting.xyz + (IN.VertexLight.xyz * 1.25 * diffusemap.xyz), 1.0 );  
+
       
       // flash light system (flash light control carried in SpotFlashColor.w )
       float conewidth = 24;

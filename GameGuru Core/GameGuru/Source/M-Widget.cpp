@@ -853,6 +853,10 @@ void widget_loop ( void )
 				//  some markers have Y rotation
 				t.thaveyrot = 0; 
 				if ( t.entityprofile[t.tttentid].ismarker == 1 || t.entityprofile[t.tttentid].ismarker == 6 || t.entityprofile[t.tttentid].ismarker == 7  )  t.thaveyrot = 1;
+
+				//PE: Allow spotlight rotation.
+				if (t.entityelement[t.te].eleprof.usespotlighting) t.thaveyrot = 1;
+
 				if ( (t.entityprofile[t.tttentid].ismarker == 0 || t.thaveyrot == 1) && ObjectExist(t.widget.activeObject) == 1 ) 
 				{
 						// rotate
@@ -879,7 +883,7 @@ void widget_loop ( void )
 							t.p1z_f=ObjectPositionZ(t.twidgetRotStartObject+11);
 
 							//  handle rotation modes
-							if (  t.widget.pickedSection  ==  t.widget.widgetXRotObj && t.thaveyrot == 0 ) 
+							if (  t.widget.pickedSection  ==  t.widget.widgetXRotObj && (t.thaveyrot == 0 || t.entityelement[t.te].eleprof.usespotlighting ) )
 							{
 								if (  ObjectExist(t.twidgetRotStartObject+14) == 1  )  DeleteObject (  t.twidgetRotStartObject+14 );
 								MakeObjectBox (  t.twidgetRotStartObject+14,1,5000000,5000000 );
@@ -909,7 +913,7 @@ void widget_loop ( void )
 								}
 								PositionObject (  t.twidgetRotStartObject+13,t.pinterx_f,t.pintery_f,t.pinterz_f );
 							}
-							if (  t.widget.pickedSection  ==  t.widget.widgetZRotObj && t.thaveyrot == 0 ) 
+							if (  t.widget.pickedSection  ==  t.widget.widgetZRotObj && ( t.thaveyrot == 0|| t.entityelement[t.te].eleprof.usespotlighting) )
 							{
 								if (  ObjectExist(t.twidgetRotStartObject+14) == 1  )  DeleteObject (  t.twidgetRotStartObject+14 );
 								MakeObjectBox (  t.twidgetRotStartObject+14,5000000,5000000,1 );

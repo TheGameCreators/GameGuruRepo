@@ -22,6 +22,24 @@ void lighting_refresh ( void )
 				Dim (  t.infinilight,g.infinilightmax  );
 				t.infinilight[g.infinilightmax].used=1;
 				t.infinilight[g.infinilightmax].type=t.entityelement[t.tle].staticflag;
+
+				//PE: Add dynamic spot light support.
+				t.infinilight[g.infinilightmax].is_spot_light = t.entityelement[t.tle].eleprof.usespotlighting;
+
+
+				//PE: Get the spot light direction vector.
+				sObject* pObject = g_ObjectList[t.entityelement[t.tle].obj];
+				if (pObject) {
+					t.infinilight[g.infinilightmax].f_angle_x = pObject->position.vecLook.x;
+					t.infinilight[g.infinilightmax].f_angle_y = pObject->position.vecLook.y;
+					t.infinilight[g.infinilightmax].f_angle_z = pObject->position.vecLook.z;
+				}
+
+//				t.infinilight[g.infinilightmax].f_angle_x = t.entityelement[t.tle].rx;
+//				t.infinilight[g.infinilightmax].f_angle_y = t.entityelement[t.tle].ry;
+//				t.infinilight[g.infinilightmax].f_angle_z = t.entityelement[t.tle].rz;
+
+
 				t.infinilight[g.infinilightmax].x=t.entityelement[t.tle].x;
 				t.infinilight[g.infinilightmax].y=t.entityelement[t.tle].y;
 				t.infinilight[g.infinilightmax].z=t.entityelement[t.tle].z;

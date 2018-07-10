@@ -51,6 +51,13 @@ float4 g_lights_diffuse0;
 float4 g_lights_diffuse1;
 float4 g_lights_diffuse2;
 
+float dl_lights;
+float dl_lightsVS;
+float4 dl_pos[40];
+float4 dl_diffuse[40];
+float4 dl_angle[40];
+
+
 float4 SpotFlashPos;  //SpotFlashPos.w is carrying the spotflash fadeout value
 float4 SpotFlashColor; //RGB of flash colour
 
@@ -194,6 +201,7 @@ struct vs_out
    float4 WPos        : TEXCOORD4;
    float3 LightVec    : TEXCOORD6;
    float3 WorldNormal : TEXCOORD7; 
+   float3 VertexLight : TEXCOORD8;
 };
 
 struct vs_out_lowest
@@ -205,6 +213,7 @@ struct vs_out_lowest
    float DistAlpha    : TEXCOORD3;
    float clip         : TEXCOORD4;
    float4 cameraPos   : TEXCOORD5;
+   float3 VertexLight : TEXCOORD6;   
 };
 
 // CALC LIGHT
@@ -271,6 +280,54 @@ float4 CalcLightingNoNormal(float3 worldPos)
     return output;
 }
 
+
+
+float3 CalcExtSpotNoNormal( float3 worldPos , float3 SpotPos , float3 SpotColor , float range, float3 angle)
+{
+    float conewidth = 24;
+	float toLight = length(SpotPos.xyz - worldPos);
+	float4 local_lights_atten = float4(1.0, 1.0/range, 1.0/(range*range), 0.0);
+	float intensity = 1.0/dot( local_lights_atten, float4(1,toLight,toLight*toLight,0) );
+    float3 V  = SpotPos.xyz - worldPos;  
+    float3 Vn  = normalize(V); 
+    float3 lightvector = Vn;
+    float3 lightdir = normalize(float3(angle.x,angle.y*2.0,angle.z));
+    intensity = clamp(intensity ,0.0,1.0);
+    return (SpotColor.xyz * pow(max(dot(-lightvector, lightdir ),0),conewidth) * 2.0 ) * intensity;
+}
+
+float3 CalcExtLightingNoNormal(float3 worldPos)
+{
+	float3 output = float3(0,0,0);
+    float3 toLight;
+    float lightDist;
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float4 local_lights_atten;
+	
+	//dl_pos[i].w = range.
+
+	for( int i=0 ; i < dl_lights ; i++ ) {
+
+		if( dl_diffuse[i].w == 3.0 ) {
+			output += CalcExtSpotNoNormal(worldPos,dl_pos[i].xyz,dl_diffuse[i].xyz,dl_pos[i].w,dl_angle[i].xyz);
+		} else {
+		
+			toLight = dl_pos[i].xyz - worldPos;
+			lightDist = length( toLight );
+			local_lights_atten = float4(1.0, 1.0/dl_pos[i].w, 1.0/(dl_pos[i].w*dl_pos[i].w), 0.0);
+			fAtten = 1.0/dot( local_lights_atten, float4(1,lightDist,lightDist*lightDist,0) );
+			lightDir = normalize( toLight );
+			output+= (dl_diffuse[i].xyz * fAtten * 1.25 );
+		}
+	}
+	output *= 0.5f;
+	return output;
+}
+
+
 /****** vertex shader *****/
 
 vs_out mainVS_highest( app_in IN )
@@ -332,6 +389,7 @@ vs_out mainVS_highest( app_in IN )
       OUT.WPos = float4(0,0,0,0);
       OUT.clip = -1; 
    }
+   OUT.VertexLight = float3(0,0,0);
    return OUT;
 }
 
@@ -351,6 +409,8 @@ vs_out_lowest mainVS_lowest( app_in IN )
    OUT.clip = alphaoffset - (max(0,IN.pos.y-199));
    OUT.cameraPos = mul(temppos, View);
    //if( OUT.DistAlpha < 0.05 ) OUT.clip = -1;
+   OUT.VertexLight = float3(0,0,0);
+
    return OUT;
 }
 
@@ -372,8 +432,12 @@ float4 mainPS_highest( vs_out IN ) : COLOR
     lighting.y = lerp(0.65,lighting.y,SurfaceSunFactor);
    
    // dynamic lighting
-    float4 spotflashlighting = CalcSpotFlashNoNormal (IN.WPos.xyz);
-    float4 dynamicContrib = (CalcLightingNoNormal(IN.WPos.xyz) * diffusemap) + spotflashlighting;
+    //float4 spotflashlighting = CalcSpotFlashNoNormal (IN.WPos.xyz);
+    float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+//    float4 dynamicContrib = (CalcLightingNoNormal(IN.WPos.xyz) * diffusemap) + spotflashlighting;
+    float4 dynamicContrib = ( float4( CalcExtLightingNoNormal(IN.WPos.xyz) , 1.0) * diffusemap) + spotflashlighting;
+
+
    
    // flash light system (flash light control carried in SpotFlashColor.w )
     float4 cameraPos = mul(IN.WPos, View);
@@ -425,8 +489,10 @@ float4 mainPS_high( vs_out IN ) : COLOR
    clip(diffusemap.a < 0.7f ? -1:1); 
 
    // dynamic lighting
-    float4 spotflashlighting = CalcSpotFlashNoNormal (IN.WPos.xyz);
-    float4 dynamicContrib = (CalcLightingNoNormal(IN.WPos.xyz) * diffusemap) + spotflashlighting;
+    //float4 spotflashlighting = CalcSpotFlashNoNormal (IN.WPos.xyz);
+    float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+    //float4 dynamicContrib = (CalcLightingNoNormal(IN.WPos.xyz) * diffusemap) + spotflashlighting;
+    float4 dynamicContrib = ( float4( CalcExtLightingNoNormal(IN.WPos.xyz) , 1.0) * diffusemap) + spotflashlighting;
    
    // flash light system (flash light control carried in SpotFlashColor.w )
    float3 V  = (eyePos.xyz - IN.WPos.xyz);  
@@ -486,8 +552,10 @@ float4 mainPS_medium( vs_out_lowest IN ) : COLOR
    clip(diffusemap.a < 0.7f ? -1:1); 
 
    // dynamic lighting
-    float4 spotflashlighting = CalcSpotFlashNoNormal (IN.WPos.xyz);
-    float4 dynamicContrib = (CalcLightingNoNormal(IN.WPos.xyz) * diffusemap) + spotflashlighting;
+    //float4 spotflashlighting = CalcSpotFlashNoNormal (IN.WPos.xyz);
+    float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+    //float4 dynamicContrib = (CalcLightingNoNormal(IN.WPos.xyz) * diffusemap) + spotflashlighting;
+    float4 dynamicContrib = ( float4( CalcExtLightingNoNormal(IN.WPos.xyz) , 1.0) * diffusemap) + spotflashlighting;
    
    // flash light system (flash light control carried in SpotFlashColor.w )
    float3 V  = (eyePos.xyz - IN.WPos.xyz);  

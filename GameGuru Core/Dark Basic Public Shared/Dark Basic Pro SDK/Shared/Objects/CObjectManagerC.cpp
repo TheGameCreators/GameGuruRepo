@@ -11,6 +11,11 @@
 
 
 // extern/protos
+bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame);
+void start_mesh_light(void);
+void end_mesh_light(void);
+void setlayer_mesh_light(int layer);
+
 GGFORMAT GetValidStencilBufferFormat ( GGFORMAT Format );
 extern UINT	g_StereoEyeToggle;
 extern DWORD g_dwSyncMaskOverride;
@@ -3713,7 +3718,9 @@ inline DWORD FtoDW( FLOAT f ) { return *((DWORD*)&f); }
 //#include <DxErr.h>
 //#pragma comment(lib, "dxerr.lib")
 
-bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sObject* pObject )
+
+
+bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sObject* pObject, sFrame* pFrame)
 {
 	// get pointer to drawbuffers
 	sDrawBuffer* pDrawBuffer = pMesh->pDrawBuffer;
@@ -3969,8 +3976,14 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 
 	// loop through all shader passes
 	// each mesh can have several render passes
+	bool lightset = false;
     for(UINT uPass = uPassStartIndex; uPass < uPasses; uPass++)
     {
+		if (!lightset && bSkipDrawNow == false) {
+			lightset = true;
+			update_mesh_light(pMesh, pObject, pFrame);
+		}
+
 		// start shader pass
 		if ( ShaderPass ( pMesh, uPass, uPasses, bEffectRendering, bLocalOverrideAllTexturesAndEffects, pCurrentRenderTarget, pCurrentDepthTarget, pObject )==true )
 		{
@@ -4039,13 +4052,14 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			//{
 			//	GGVECTOR4 vec4 = GGVECTOR4(1.0f, 0.0f, 0.0f, 1.0f);
 			//	pSurfColor->AsVector()->SetFloatVector((float*)&vec4);
-			//} 
+			//}
 
 			#endif
-
+			
 			// see if we have an index buffer
 			if ( bSkipDrawNow==false )
 			{
+
 				if ( pMesh->pIndices )
 				{
 					// if multimaterial mesh
@@ -4852,7 +4866,8 @@ bool CObjectManager::DrawObject ( sObject* pObject, bool bFrustrumCullMeshes )
 							}
 
 							// draw old LOD mesh
-							DrawMesh ( pOldLOD );
+							//DrawMesh(pOldLOD);
+							DrawMesh ( pOldLOD , false , pObject, pFrame); //PE: Need the object for new dyn light to work.
 							//if ( !DrawMesh ( pOldLOD ) )
 							//	return false;
 
@@ -4867,7 +4882,7 @@ bool CObjectManager::DrawObject ( sObject* pObject, bool bFrustrumCullMeshes )
 					}
 
 					// draw the current mesh
-					if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject ) )
+					if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject , pFrame) )
 					{
 						// mesh failed to draw - catch it here to investigate strangeness
 						int lee = 42;
@@ -5065,6 +5080,9 @@ void CObjectManager::UpdateInitOnce ( void )
 	if ( !m_ObjectManager.ReplaceAllFlaggedObjectsInBuffers() )
 		return;
 
+	//PE: Start mesh light system.
+	start_mesh_light();
+
 	SortTextureList();
 
     // get camera data into member variable
@@ -5192,7 +5210,10 @@ bool CObjectManager::UpdateLayer ( int iLayer )
 	if ( !PreDrawSettings ( ) )
 		return false;
 
-    bool Status = UpdateLayerInner(iLayer);
+	//PE: Set current layer being redered.
+	setlayer_mesh_light(iLayer);
+
+	bool Status = UpdateLayerInner(iLayer);
 
     // restore render states after draw
 	if ( !PostDrawRestores ( ) )
@@ -5694,6 +5715,10 @@ bool CObjectManager::UpdateNoZLayer ( void )
 
 	// Overlay render layer (lock, nozdepth)
 	UpdateLayer ( 4 );
+
+
+	//PE: End mesh light system.
+	end_mesh_light();
 
 	// okay
 	return true;

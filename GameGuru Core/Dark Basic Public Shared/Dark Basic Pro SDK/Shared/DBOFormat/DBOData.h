@@ -497,6 +497,12 @@ struct sMeshExternalProperties
 	float							fScaleOffsetU;								//
 	float							fScaleOffsetV;								// 
 	DWORD							dwArtFlags;									// art flags (invert normal green channel, etc)
+	GGHANDLE						dl_lights;
+	GGHANDLE						dl_lightsVS;
+	GGHANDLE						dl_pos[4];
+	GGHANDLE						dl_atten[4];
+	GGHANDLE						dl_diffuse[4];
+	GGHANDLE						dl_angle[4];
 };
 
 struct sMesh : public sMeshFVF,
