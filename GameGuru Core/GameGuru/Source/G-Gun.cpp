@@ -248,7 +248,11 @@ void gun_manager ( void )
 			{
 				if ( t.gunclick == 2 && (t.gunfull == 0 || g.firemodes[t.gunid][g.firemode].settings.nofullreload == 0)  )  
 				{
-					t.gunmode = 121;
+					// 110718 - ensure cannot reload while running or transitioning (will reload as soon as transition ends)
+					if ( t.playercontrol.usingrun == -1 && (t.gunmode<27 || t.gunmode>28) )
+					{
+						t.gunmode = 121;
+					}
 				}
 			}
 		}
@@ -351,7 +355,13 @@ void gun_manager ( void )
 		if ( ObjectExist(t.currentgunobj) == 1 ) 
 		{
 			// handle gun and soundcontrol
+			if ( g.firemode != t.gun[t.gunid].settings.alternate )
+			{
+				t.tfireanim = 0;
+				t.tmeleeanim = 0;
+			}
 			g.firemode=t.gun[t.gunid].settings.alternate;
+
 			g.ammooffset=g.firemode*10;
 			if (  t.gun[t.gunid].settings.modessharemags == 1  )  g.ammooffset = 0;
 			if ( t.player[t.plrid].health>0 ) gun_control ( );
@@ -1066,41 +1076,137 @@ void gun_control ( void )
 	{
 		if (  GetFrame(t.currentgunobj) >= t.tzoomactionhide.e && t.gunzoommode == 0  )  t.gunmode = 121;
 	}
-	if (  t.gunmode  ==  2007 ) 
+
+	// handle switch weapon firemode
+	if ( t.gunmode == 2007 ) 
 	{
-		if ( t.gunzoommode >=8 ) t.gunzoommode = 11; // catches all states of a zoomed in state
+		if ( t.gunzoommode >=8 ) 
+		{
+			t.gunzoommode = 11;
+			if ( t.tzoomactionhide.s > 0 )
+			{
+				t.gunmode = 2027;
+				SetObjectInterpolation ( t.currentgunobj,100 );
+				PlayObject ( t.currentgunobj, t.tzoomactionhide.s, t.tzoomactionhide.e );
+			}
+			else
+				t.gunmode = 2017;
+		}
+		else
+			t.gunmode = 2017;
+
+		// 110718 - if about to perform firemode switch, and running
+		if ( t.gunmode == 2017 && t.playercontrol.usingrun == 1 )
+		{
+			// intercept with anim to transition back to move first
+			SetObjectInterpolation ( t.currentgunobj, 100 );
+			t.gruntofrom = g.firemodes[t.gunid][g.firemode].action.runfrom;
+			PlayObject ( t.currentgunobj, t.gruntofrom.s, t.gruntofrom.e );
+			t.gunmodewaitforframe = t.gruntofrom.e;
+			t.gunmode = 2037;
+		}
+	}
+	if ( t.gunmode == 2008 ) 
+	{
+		if ( GetFrame(t.currentgunobj) >= t.taltactionto.e ) 
+		{
+			t.gun[t.gunid].settings.alternate = 1;
+			if ( t.playercontrol.usingrun == 1 )
+			{
+				t.gruntofrom = g.firemodes[t.gunid][g.firemode].action.runto;
+				t.gunmode = 27;
+			}
+			else
+				t.gunmode = 5;
+		}
+	}
+	if ( t.gunmode == 2009 ) 
+	{
+		if ( t.gunzoommode >=8 ) 
+		{
+			t.gunzoommode = 11;
+			if ( t.tzoomactionhide.s > 0 )
+			{
+				t.gunmode = 2029;
+				SetObjectInterpolation (  t.currentgunobj,100 );
+				PlayObject ( t.currentgunobj, t.tzoomactionhide.s, t.tzoomactionhide.e );
+			}
+			else
+				t.gunmode = 2019;
+		}
+		else
+			t.gunmode = 2019;
+
+		// 110718 - if about to perform firemode switch, and running
+		if ( t.gunmode == 2019 && t.playercontrol.usingrun == 1 )
+		{
+			// intercept with anim to transition back to move first
+			SetObjectInterpolation ( t.currentgunobj, 100 );
+			t.gruntofrom = g.firemodes[t.gunid][g.firemode].action.runfrom;
+			PlayObject ( t.currentgunobj, t.gruntofrom.s, t.gruntofrom.e );
+			t.gunmodewaitforframe = t.gruntofrom.e;
+			t.gunmode = 2039;
+		}
+	}
+	if ( t.gunmode == 2010 ) 
+	{
+		if ( GetFrame(t.currentgunobj) >= t.taltactionfrom.e  )  
+		{
+			t.gun[t.gunid].settings.alternate = 0;
+			if ( t.playercontrol.usingrun == 1 )
+			{
+				t.gruntofrom = g.firemodes[t.gunid][g.firemode].action.runto;
+				t.gunmode = 27;
+			}
+			else
+				t.gunmode = 5;
+		}
+	}
+	if ( t.gunmode == 2017 )
+	{
 		SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2008;
 		PlayObject (  t.currentgunobj,t.taltactionto.s,t.taltactionto.e );
 		TextureObject (  g.hudbankoffset+5,0,g.firemodes[t.gunid][1].settings.flashimg );
 	}
-	if (  t.gunmode  ==  2008 ) 
+	if ( t.gunmode == 2019 )
 	{
-		if (  GetFrame(t.currentgunobj) >= t.taltactionto.e  )  t.gunmode = 5;
-	}
-	if (  t.gunmode  ==  2009 ) 
-	{
-		if ( t.gunzoommode >=8 ) t.gunzoommode = 11; // catches all states of a zoomed in state
 		SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2010;
 		PlayObject (  t.currentgunobj,t.taltactionfrom.s,t.taltactionfrom.e );
 		TextureObject (  g.hudbankoffset+5,0,g.firemodes[t.gunid][0].settings.flashimg );
 	}
-	if (  t.gunmode  ==  2010 ) 
+	if ( t.gunmode == 2027 ) 
 	{
-		if (  GetFrame(t.currentgunobj) >= t.taltactionfrom.e  )  t.gunmode = 5;
+		if ( GetFrame(t.currentgunobj) >= t.tzoomactionhide.e ) t.gunmode = 2017;
+	}
+	if ( t.gunmode == 2029 ) 
+	{
+		if ( GetFrame(t.currentgunobj) >= t.tzoomactionhide.e )  t.gunmode = 2019;
+	}
+	if ( t.gunmode == 2037 ) 
+	{
+		if ( GetFrame(t.currentgunobj) >= t.gunmodewaitforframe ) t.gunmode = 2017;
+	}
+	if ( t.gunmode == 2039 ) 
+	{
+		if ( GetFrame(t.currentgunobj) >= t.gunmodewaitforframe )  t.gunmode = 2019;
 	}
 	
 	// player must be at top speed before transitioning to run animation
 	// when fire weapon, t.playercontrol.isrunningtime is updated with timer so does not trigger immediate run after firing
 	bool bReallyRunning = false;
-	if ( t.playercontrol.isrunning == 1 ) 
+	if ( t.playercontrol.isrunning == 1 && t.player[t.plrid].state.firingmode == 0 && t.gun[t.gunid].settings.ismelee == 0 ) 
 	{
-		if ( t.playercontrol.isrunningtime == 0 ) 
-			t.playercontrol.isrunningtime = Timer();
-		else
-			if ( Timer() > t.playercontrol.isrunningtime + g.firemodes[t.gunid][g.firemode].settings.runanimdelay )
-				bReallyRunning = true;
+		// also ensure player is not reloading, meleeing, firing but is moving
+		if ( t.playercontrol.movement != 0 && (t.gunmode < 121 || t.gunmode > 126) && (t.gunmode < 700 || t.gunmode > 707) )
+		{
+			if ( t.playercontrol.isrunningtime == 0 ) 
+				t.playercontrol.isrunningtime = Timer();
+			else
+				if ( Timer() > t.playercontrol.isrunningtime + g.firemodes[t.gunid][g.firemode].settings.runanimdelay )
+					bReallyRunning = true;
+		}
 	}
 	else
 		t.playercontrol.isrunningtime = 0;
@@ -1138,7 +1244,7 @@ void gun_control ( void )
 				bool bInRunningFrames = false;
 				float fThisFrame = GetFrame(t.currentgunobj);
 				if ( fThisFrame >= g.firemodes[t.gunid][g.firemode].emptyaction.run.s && fThisFrame <= g.firemodes[t.gunid][g.firemode].emptyaction.run.e ) bInRunningFrames = true;
-				if ( g.firemodes[t.gunid][g.firemode].emptyaction.runfrom.s > 0 && bInRunningFrames == true )
+				if ( g.firemodes[t.gunid][g.firemode].emptyaction.runfrom.s > 0 )// && bInRunningFrames == true )
 					t.gunmode = 27; //21; // use run to move animation
 				else
 					t.gunmode = 21;
@@ -1147,7 +1253,7 @@ void gun_control ( void )
 		if ( bReallyRunning == true && t.playercontrol.usingrun != 1 ) 
 		{
 			t.playercontrol.usingrun=1;
-			if (  t.gunmode >= 21 && t.gunmode <= 28  )  
+			if ( t.gunmode >= 21 && t.gunmode <= 28 )  
 			{
 				if ( g.firemodes[t.gunid][g.firemode].emptyaction.runto.s > 0 )
 					t.gunmode = 27;//21; // use move to run animation
@@ -1178,12 +1284,12 @@ void gun_control ( void )
 		if ( bReallyRunning == false && t.playercontrol.usingrun != -1 ) 
 		{
 			t.playercontrol.usingrun=-1;
-			if (  t.gunmode >= 21 && t.gunmode <= 28  )  
+			if ( t.gunmode >= 21 && t.gunmode <= 28 )  
 			{
 				bool bInRunningFrames = false;
 				float fThisFrame = GetFrame(t.currentgunobj);
 				if ( fThisFrame >= g.firemodes[t.gunid][g.firemode].action.run.s && fThisFrame <= g.firemodes[t.gunid][g.firemode].action.run.e ) bInRunningFrames = true;
-				if ( g.firemodes[t.gunid][g.firemode].action.runfrom.s > 0 && bInRunningFrames == true )
+				if ( g.firemodes[t.gunid][g.firemode].action.runfrom.s > 0 )//&& bInRunningFrames == true )
 					t.gunmode = 27; //21; // use move to run animation
 				else
 					t.gunmode = 21;
@@ -1192,7 +1298,7 @@ void gun_control ( void )
 		if ( bReallyRunning == true && t.playercontrol.usingrun != 1 ) 
 		{
 			t.playercontrol.usingrun=1;
-			if (  t.gunmode >= 21 && t.gunmode <= 28  )  
+			if ( t.gunmode >= 21 && t.gunmode <= 28 )  
 			{
 				if ( g.firemodes[t.gunid][g.firemode].action.runto.s > 0 )
 					t.gunmode = 27;//21; // use move to run animation
@@ -1613,16 +1719,19 @@ void gun_control ( void )
 	if ( t.gunmode == 27 ) 
 	{
 		t.gunmode = 28;
+		SetObjectInterpolation ( t.currentgunobj, 100 );
+		SetObjectFrame ( t.currentgunobj, t.gruntofrom.s );
 		PlayObject ( t.currentgunobj, t.gruntofrom.s, t.gruntofrom.e );
 		t.currentgunanimspeed_f = g.timeelapsed_f*(t.playercontrol.basespeed_f*t.genericgunanimspeed_f);
 		SetObjectSpeed ( t.currentgunobj, t.currentgunanimspeed_f );
+		t.gunmodewaitforframe = t.gruntofrom.e;
 	}
 	if ( t.gunmode == 28 ) 
 	{
 		// monitor for when move to run transition finished
-		if ( GetFrame(t.currentgunobj) >= t.gruntofrom.e ) t.gunmode = 21;
+		if ( GetFrame(t.currentgunobj) >= t.gunmodewaitforframe ) t.gunmode = 21;
 	}
-
+	
 	// gun put away and hide control
 	if (  t.gunmode == 31 && g.noholster == 1 ) 
 	{
@@ -2355,23 +2464,6 @@ void gun_control ( void )
 		if (  t.tpool == 0  )  t.ammo = t.weaponclipammo[g.weaponammoindex+g.ammooffset]; else t.ammo = t.ammopool[t.tpool].ammo;
 		if (  t.ammo == 0 || t.gun[t.gunid].settings.weaponisammo == 1 ) 
 		{
-	//   `if gun(gunid).settings.weaponisammo=0
-
-				//  no reload (reuse dry fire) - 090315 - EAI said this was silly
-	//    `if gun(gunid).settings.alternate == 0 then sndid == gunsound(gunid,3).soundid1 else sndid == gunsound(gunid,3).altsoundid
-			//if ( t.gun[t.gunid].settings.alternate == 0  )  t.sndid = t.gunsound[t.gunid][3].soundid1; else t.sndid = t.gunsound[t.gunid][3].altsoundid;
-
-	//    `if sndid>0
-
-				//if SoundExist(sndid)=1
-				// if SoundPlaying(sndid)=0
-				//  playinternalsound(sndid)
-				// endif
-				//endif
-	//    `endif
-
-	//   `endif
-
 			t.gunmode=5;
 		}
 		else
@@ -2383,9 +2475,6 @@ void gun_control ( void )
 			SetObjectFrame (  t.currentgunobj,t.gstartreload.s );
 		}
 	}
-
-	//  AirMod - Added for Reload Cancel
-	//C++ISSUE
 	gunmode121_cancel();
 }
 
@@ -2398,7 +2487,6 @@ void gunmode121_cancel ( void )
 		{
 			SetObjectInterpolation (  t.currentgunobj,100 );
 			SetObjectFrame (  t.currentgunobj,t.gstartreload.s );
-		//   `gunmode=123 ; rem V113 AIRSLIDE 5/8/8 ; shotgun
 			if (  g.firemodes[t.gunid][g.firemode].settings.shotgun == 1 && g.firemodes[t.gunid][g.firemode].settings.isempty == 0 || g.firemodes[t.gunid][g.firemode].settings.isempty == 1 && g.firemodes[t.gunid][g.firemode].settings.emptyshotgun == 1 ) 
 			{
 				t.gunmode=700;
@@ -3371,12 +3459,16 @@ void gun_selectandorload ( void )
 	}
 
 	//  Setup gun with brass models
-	if (  t.gun[t.gunid].settings.brasslimb != -1 ) 
+	if ( t.gun[t.gunid].settings.brasslimb != -1 ) 
 	{
 		for ( t.o = 6 ; t.o<=  20; t.o++ )
 		{
 			t.obj=g.hudbankoffset+t.o;
-			if (  ObjectExist(t.obj) == 1  )  DeleteObject (  t.obj );
+			if ( ObjectExist(t.obj) == 1 )  
+			{
+				ODEDestroyObject ( t.obj );
+				DeleteObject ( t.obj );
+			}
 			if (  g.firemodes[t.gunid][g.firemode].settings.brassobjmaster == 0 ) 
 			{
 				MakeObjectCube (  t.obj,0 );
@@ -3809,7 +3901,7 @@ void gun_load ( void )
 	}
 
 	// STANDARD and ALT modes
-	for ( t.i = 0 ; t.i<=  1; t.i++ )
+	for ( t.i = 0 ; t.i <= 1; t.i++ )
 	{
 		// load in scope if any
 		if ( g.firemodes[t.gunid][t.i].zoomscope_s != "" ) 
@@ -4155,7 +4247,11 @@ void gun_free ( void )
 		for ( t.o = 6 ; t.o<=  20; t.o++ )
 		{
 			t.obj=g.hudbankoffset+t.o;
-			if (  ObjectExist(t.obj) == 1  )  HideObject (  t.obj );
+			if ( ObjectExist(t.obj) == 1 )  
+			{
+				ODEDestroyObject ( t.obj );
+				HideObject ( t.obj );
+			}
 		}
 	}
 	if (  t.gun[t.gunid].settings.smokelimb != -1 ) 

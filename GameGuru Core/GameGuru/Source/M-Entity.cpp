@@ -4587,17 +4587,16 @@ void entity_addentitytomap ( void )
 	entity_getgunidandflakid ( );
 	if (  t.tgunid>0 ) 
 	{
-		//  populate the actual gun and flak settings (for further weapon entity creations)
-		for ( int firemode = 0; firemode < 2; firemode++ )
-		{
-			g.firemodes[t.tgunid][firemode].settings.damage=t.grideleprof.damage;
-			g.firemodes[t.tgunid][firemode].settings.accuracy=t.grideleprof.accuracy;
-			g.firemodes[t.tgunid][firemode].settings.reloadqty=t.grideleprof.reloadqty;
-			g.firemodes[t.tgunid][firemode].settings.iterate=t.grideleprof.fireiterations;
-			g.firemodes[t.tgunid][firemode].settings.range=t.grideleprof.range;
-			g.firemodes[t.tgunid][firemode].settings.dropoff=t.grideleprof.dropoff;
-			g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.grideleprof.usespotlighting;
-		}
+		// populate the actual gun and flak settings (for further weapon entity creations)
+		int firemode = 0; // 110718 - entity properties should only edit first primary gun settings (so we dont mess up enhanced weapons)
+		//for ( int firemode = 0; firemode < 2; firemode++ )
+		g.firemodes[t.tgunid][firemode].settings.damage=t.grideleprof.damage;
+		g.firemodes[t.tgunid][firemode].settings.accuracy=t.grideleprof.accuracy;
+		g.firemodes[t.tgunid][firemode].settings.reloadqty=t.grideleprof.reloadqty;
+		g.firemodes[t.tgunid][firemode].settings.iterate=t.grideleprof.fireiterations;
+		g.firemodes[t.tgunid][firemode].settings.range=t.grideleprof.range;
+		g.firemodes[t.tgunid][firemode].settings.dropoff=t.grideleprof.dropoff;
+		g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.grideleprof.usespotlighting;
 		if (  t.tflakid>0 ) 
 		{
 			// flak to follow

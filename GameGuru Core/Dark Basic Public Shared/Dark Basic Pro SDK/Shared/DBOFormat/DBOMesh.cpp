@@ -1740,7 +1740,7 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 	return LoadOrFindTextureAsImage ( pTextureName, TexturePath, 0 );
 }
 
-void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, int iDBProMode, int iDivideTextureSize, int* piImageDiffuseIndex, int* piImageAOIndex, int* piImageNormalIndex, int* piImageSpecularIndex, int* piImageGlossIndex )
+void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, int iDBProMode, int iDivideTextureSize, int* piImageDiffuseIndex, int* piImageAOIndex, int* piImageNormalIndex, int* piImageSpecularIndex, int* piImageGlossIndex, int* piImageIlluminationIndex )
 {
 	// take copy of base texture name
 	char pBaseTexName[MAX_STRING];
@@ -1767,11 +1767,12 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 	*piImageNormalIndex = 0;
 	*piImageSpecularIndex = 0;
 	*piImageGlossIndex = 0;
+	*piImageIlluminationIndex = 0;
 	if ( *piImageDiffuseIndex != 0 && strlen(pBaseTexName) > 6 )
 	{
 		// free any existing texture data for entries below
 		SAFE_DELETE_ARRAY ( pMesh->pTextures );
-		pMesh->dwTextureCount = 7;
+		pMesh->dwTextureCount = 8;
 		sTexture* pTexture = new sTexture[pMesh->dwTextureCount];
 		pMesh->pTextures = pTexture;
 
@@ -1836,7 +1837,7 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 			*piImageAOIndex = 0;
 			*piImageGlossIndex = 0;
 		}
-		if ( iTextureType == 2 ) // PBR - use color,normal,metalness,gloss
+		if ( iTextureType == 2 ) // PBR - use color,normal,metalness,gloss,illumination
 		{
 			// color
 			strcpy ( pTmpName, pTextureName );
@@ -1879,6 +1880,13 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 			strcpy ( pMesh->pTextures [ 4 ].pName, pTmpName );
 			*piImageGlossIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
 			if ( *piImageGlossIndex == 0 ) *piImageGlossIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\materials\\0_Gloss.dds", TexturePath, iDivideTextureSize );
+
+			// illumination
+			strcpy ( pTmpName, pTextureName );
+			strcat ( pTmpName, "illumination.png" );
+			strcpy ( pMesh->pTextures [ 7 ].pName, pTmpName );
+			*piImageIlluminationIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+			if ( *piImageIlluminationIndex == 0 ) *piImageIlluminationIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_none_S.dds", TexturePath, iDivideTextureSize );
 		}
 	}
 
@@ -1910,6 +1918,11 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 		pMesh->pTextures[4].pTexturesRefView = GetImagePointerView ( pMesh->pTextures[4].iImageID );
 		pMesh->pTextures[4].dwBlendMode = GGTOP_MODULATE;
 		pMesh->pTextures[4].dwBlendArg1 = GGTA_TEXTURE;
+		pMesh->pTextures[7].iImageID = *piImageIlluminationIndex;
+		pMesh->pTextures[7].pTexturesRef = GetImagePointer ( pMesh->pTextures[7].iImageID );
+		pMesh->pTextures[7].pTexturesRefView = GetImagePointerView ( pMesh->pTextures[7].iImageID );
+		pMesh->pTextures[7].dwBlendMode = GGTOP_MODULATE;
+		pMesh->pTextures[7].dwBlendArg1 = GGTA_TEXTURE;
 
 		// From old DBP legacy behavior
 		// mode to blend texture and diffuse at stage zero (load object with material alpha setting)
@@ -1933,6 +1946,7 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 				pMesh->pTextures[4].dwBlendMode = GGTOP_MODULATE;
 				pMesh->pTextures[5].dwBlendMode = GGTOP_MODULATE;
 				pMesh->pTextures[6].dwBlendMode = GGTOP_MODULATE;
+				pMesh->pTextures[7].dwBlendMode = GGTOP_MODULATE;
 			}
 
 			// Only force this for [0] [1] and [3] where we are expecting texture results
@@ -1945,6 +1959,7 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 				pMesh->pTextures[4].dwBlendArg1 = GGTA_TEXTURE;
 				pMesh->pTextures[5].dwBlendArg1 = GGTA_TEXTURE;
 				pMesh->pTextures[6].dwBlendArg1 = GGTA_TEXTURE;
+				pMesh->pTextures[7].dwBlendArg1 = GGTA_TEXTURE;
 			}
 		}
 	}
@@ -1976,8 +1991,8 @@ DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDB
 			sMultiMaterial* pMultiMat = &(pMesh->pMultiMaterial [ m ]);
 
 			// load diffuse, normal, spec, gloss textures and assign to mesh
-			int iImageDiffuseIndex = 0, iImageAOIndex = 0, iImageNormalIndex = 0, iImageSpecularIndex = 0, iImageGlossIndex = 0;
-			LoadColorNormalSpecGloss ( pMesh, pMultiMat->pName, TexturePath, iDBProMode, iDivideTextureSize, &iImageDiffuseIndex, &iImageAOIndex, &iImageNormalIndex, &iImageSpecularIndex, &iImageGlossIndex );
+			int iImageDiffuseIndex = 0, iImageAOIndex = 0, iImageNormalIndex = 0, iImageSpecularIndex = 0, iImageGlossIndex = 0, iImageIlluminationIndex = 0;
+			LoadColorNormalSpecGloss ( pMesh, pMultiMat->pName, TexturePath, iDBProMode, iDivideTextureSize, &iImageDiffuseIndex, &iImageAOIndex, &iImageNormalIndex, &iImageSpecularIndex, &iImageGlossIndex, &iImageIlluminationIndex );
 			/*
 			// load texture
 			int iImageDiffuseIndex = LoadOrFindTextureAsImage ( pMultiMat->pName, TexturePath, iDivideTextureSize );
@@ -2056,7 +2071,7 @@ DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDB
 	else
 	{
 		// load standard textures for internal name
-		int iImageDiffuseIndex = 0, iImageAOIndex = 0, iImageNormalIndex = 0, iImageSpecularIndex = 0, iImageGlossIndex = 0;
+		int iImageDiffuseIndex = 0, iImageAOIndex = 0, iImageNormalIndex = 0, iImageSpecularIndex = 0, iImageGlossIndex = 0, iImageIlluminationIndex = 0;
 		DWORD dwTextureCount = pMesh->dwTextureCount;
 		if ( dwTextureCount == 1 )
 		{
@@ -2064,7 +2079,7 @@ DARKSDK_DLL void LoadInternalTextures ( sMesh* pMesh, LPSTR TexturePath, int iDB
 			sTexture* pTexture = &(pMesh->pTextures [ 0 ]);
 
 			// load diffuse, normal, spec, gloss textures and assign to mesh
-			LoadColorNormalSpecGloss ( pMesh, pTexture->pName, TexturePath, iDBProMode, iDivideTextureSize, &iImageDiffuseIndex, &iImageAOIndex, &iImageNormalIndex, &iImageSpecularIndex, &iImageGlossIndex );
+			LoadColorNormalSpecGloss ( pMesh, pTexture->pName, TexturePath, iDBProMode, iDivideTextureSize, &iImageDiffuseIndex, &iImageAOIndex, &iImageNormalIndex, &iImageSpecularIndex, &iImageGlossIndex, &iImageIlluminationIndex );
 		}
 		else
 		{

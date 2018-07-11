@@ -99,16 +99,15 @@ void entity_init ( void )
 					entity_getgunidandflakid ( );
 					if (  t.tgunid>0 ) 
 					{
-						for ( int firemode = 0; firemode < 2; firemode++ )
-						{
-							g.firemodes[t.tgunid][firemode].settings.damage=t.entityelement[t.e].eleprof.damage;
-							g.firemodes[t.tgunid][firemode].settings.accuracy=t.entityelement[t.e].eleprof.accuracy;
-							g.firemodes[t.tgunid][firemode].settings.reloadqty=t.entityelement[t.e].eleprof.reloadqty;
-							g.firemodes[t.tgunid][firemode].settings.iterate=t.entityelement[t.e].eleprof.fireiterations;
-							g.firemodes[t.tgunid][firemode].settings.range=t.entityelement[t.e].eleprof.range;
-							g.firemodes[t.tgunid][firemode].settings.dropoff=t.entityelement[t.e].eleprof.dropoff;
-							g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.entityelement[t.e].eleprof.usespotlighting;
-						}
+						int firemode = 0; // 110718 - entity properties should only edit first primary gun settings (so we dont mess up enhanced weapons)
+						//for ( int firemode = 0; firemode < 2; firemode++ )
+						g.firemodes[t.tgunid][firemode].settings.damage=t.entityelement[t.e].eleprof.damage;
+						g.firemodes[t.tgunid][firemode].settings.accuracy=t.entityelement[t.e].eleprof.accuracy;
+						g.firemodes[t.tgunid][firemode].settings.reloadqty=t.entityelement[t.e].eleprof.reloadqty;
+						g.firemodes[t.tgunid][firemode].settings.iterate=t.entityelement[t.e].eleprof.fireiterations;
+						g.firemodes[t.tgunid][firemode].settings.range=t.entityelement[t.e].eleprof.range;
+						g.firemodes[t.tgunid][firemode].settings.dropoff=t.entityelement[t.e].eleprof.dropoff;
+						g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.entityelement[t.e].eleprof.usespotlighting;
 					}
 				}
 			}

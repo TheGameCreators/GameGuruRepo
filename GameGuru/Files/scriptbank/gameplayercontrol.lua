@@ -419,11 +419,11 @@ function gameplayercontrol.weaponselectzoom()
 								-- reset gunburst variable so burst doesn't get confused when switching gunmodes
 								if ( GetGamePlayerStateAlternate() == 1 ) then 
 									SetGamePlayerStateGunMode(2009) 
-									SetGamePlayerStateAlternate(0)
+									--SetGamePlayerStateAlternate(0) now set inside gunmode 2009 'after' zoom out
 									SetGamePlayerStateGunBurst(0)
 								else 
 									SetGamePlayerStateGunMode(2007) 
-									SetGamePlayerStateAlternate(1) 
+									--SetGamePlayerStateAlternate(1) now set inside gunmode 2009 'after' zoom out
 									SetGamePlayerStateGunBurst(0) 
 								end
 							end
