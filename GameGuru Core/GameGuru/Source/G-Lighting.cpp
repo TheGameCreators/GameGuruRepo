@@ -181,11 +181,11 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotflashx_f;
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotflashy_f;
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotflashz_f;
-			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 40.0; // t.playerlight.spotfadeout_f;
+			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 30.0; // t.playerlight.spotfadeout_f;
 
-			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotlightr_f * (t.playerlight.spotfadeout_f * 0.2);
-			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotlightg_f * (t.playerlight.spotfadeout_f * 0.2);
-			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotlightb_f * (t.playerlight.spotfadeout_f * 0.2);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotlightr_f * (t.playerlight.spotfadeout_f * 0.12);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotlightg_f * (t.playerlight.spotfadeout_f * 0.12);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotlightb_f * (t.playerlight.spotfadeout_f * 0.12);
 			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0; //PE: type point;
 
 			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = 0.0;
@@ -316,9 +316,9 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotflashz_f;
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 30.0;
 
-			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotlightr_f * (t.playerlight.spotfadeout_f * 0.2);
-			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotlightg_f * (t.playerlight.spotfadeout_f * 0.2);
-			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotlightb_f * (t.playerlight.spotfadeout_f * 0.2);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotlightr_f * (t.playerlight.spotfadeout_f * 0.12);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotlightg_f * (t.playerlight.spotfadeout_f * 0.12);
+			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotlightb_f * (t.playerlight.spotfadeout_f * 0.12);
 			fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0; //PE: type point;
 
 			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = 0.0;
