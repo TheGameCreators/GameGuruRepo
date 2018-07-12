@@ -784,14 +784,24 @@ float3 ComputeLight(Material mat, DirectionalLight L, float3 normal, float3 toEy
 // also produce highlights (mat.Properties.b).
 
 #if K_MODEL_PE
-    float3 thisSunColor = mSunColor * SurfaceSunFactor;
+    #ifdef LIGHTMAPPED
+     float3 thisSunColor = mSunColor * SurfaceSunFactor;
+    #else
+     float3 thisSunColor = mSunColor;
+	#endif
 	#ifdef PBRVEGETATION
-		return clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) * ((albedo)*0.85);
+	 return clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) * ((albedo)*0.85);
 	#endif
 	float3 albedoAdd = lerp( max(albedo.rgb, dot(-L.Direction,normal)*0.15) , albedo.rgb , RealisticVsCool ); // Give light side a bit more spec.
 	float3 specular = CookTorranceSpecFactor(normal, toEye, mat.Properties.g, mat.Properties.b, L.Direction, albedoAdd);
 	specular = specular * GlobalSpecular;
-	return clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) * ((albedoAdd * (1.0-specular))*0.85) + (specular*thisSunColor);
+    #ifdef LIGHTMAPPED
+     float3 thisNonSunColor = mSunColor * (1-SurfaceSunFactor);
+     float3 thisFinalSunColor = clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) + thisNonSunColor;
+    #else
+     float3 thisFinalSunColor = clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0);
+	#endif
+	return thisFinalSunColor * ((albedoAdd * (1.0-specular))*0.85) + (specular*thisSunColor);
 #else
    float3 resultLight = float3(0.0f, 0.0f, 0.0f);
    float NdotL = saturate(dot(normal, -L.Direction));
