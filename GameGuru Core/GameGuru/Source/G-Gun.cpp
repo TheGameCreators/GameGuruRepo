@@ -1110,7 +1110,10 @@ void gun_control ( void )
 	{
 		if ( GetFrame(t.currentgunobj) >= t.taltactionto.e ) 
 		{
+			t.tfireanim = 0;
+			t.tmeleeanim = 0;
 			t.gun[t.gunid].settings.alternate = 1;
+			g.firemode=t.gun[t.gunid].settings.alternate;
 			if ( t.playercontrol.usingrun == 1 )
 			{
 				t.gruntofrom = g.firemodes[t.gunid][g.firemode].action.runto;
@@ -1152,7 +1155,10 @@ void gun_control ( void )
 	{
 		if ( GetFrame(t.currentgunobj) >= t.taltactionfrom.e  )  
 		{
+			t.tfireanim = 0;
+			t.tmeleeanim = 0;
 			t.gun[t.gunid].settings.alternate = 0;
+			g.firemode=t.gun[t.gunid].settings.alternate;
 			if ( t.playercontrol.usingrun == 1 )
 			{
 				t.gruntofrom = g.firemodes[t.gunid][g.firemode].action.runto;
@@ -1164,15 +1170,15 @@ void gun_control ( void )
 	}
 	if ( t.gunmode == 2017 )
 	{
-		SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2008;
+		SetObjectInterpolation (  t.currentgunobj,100 );
 		PlayObject (  t.currentgunobj,t.taltactionto.s,t.taltactionto.e );
 		TextureObject (  g.hudbankoffset+5,0,g.firemodes[t.gunid][1].settings.flashimg );
 	}
 	if ( t.gunmode == 2019 )
 	{
-		SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2010;
+		SetObjectInterpolation (  t.currentgunobj,100 );
 		PlayObject (  t.currentgunobj,t.taltactionfrom.s,t.taltactionfrom.e );
 		TextureObject (  g.hudbankoffset+5,0,g.firemodes[t.gunid][0].settings.flashimg );
 	}
@@ -1851,9 +1857,10 @@ void gun_control ( void )
 			if ( t.gunclick != 1 ) 
 			{
 				// 270618 - ensure cannot do dry fire sound when running
-				if ( t.playercontrol.usingrun != 1 )
+				if ( t.playercontrol.usingrun != 1 && t.gunandmelee.pressedtrigger == 0 )
 				{
 					// dry fire
+					t.gunandmelee.pressedtrigger = 1;
 					if ( t.gun[t.gunid].settings.alternate == 0  )  t.sndid = t.gunsound[t.gunid][3].soundid1; else t.sndid = t.gunsound[t.gunid][3].altsoundid;
 					if ( t.sndid>0 ) 
 					{
@@ -1885,7 +1892,6 @@ void gun_control ( void )
 			if (  t.gun[t.gunid].settings.weaponisammo == 0 ) 
 			{
 				// dry fire fake replaced with unique noammo sound
-				//if ( t.gun[t.gunid].settings.alternate == 0  ) t.sndid = t.gunsound[t.gunid][3].soundid1; else t.sndid = t.gunsound[t.gunid][3].altsoundid;
 				t.sndid = t.playercontrol.soundstartindex+19;
 				if ( t.sndid>0 ) 
 				{
@@ -1976,14 +1982,14 @@ void gun_control ( void )
 						t.gunmode=109;
 
 						// dryfire sound
-						if (  t.gun[t.gunid].settings.alternate == 0  )  t.sndid = t.gunsound[t.gunid][3].soundid1; else t.sndid = t.gunsound[t.gunid][3].altsoundid;
-						if (  t.sndid>0 ) 
+						if ( t.gun[t.gunid].settings.alternate == 0 ) t.sndid = t.gunsound[t.gunid][3].soundid1; else t.sndid = t.gunsound[t.gunid][3].altsoundid;
+						if ( t.sndid>0 ) 
 						{
-							if (  SoundExist(t.sndid) == 1 ) 
+							if ( SoundExist(t.sndid) == 1 ) 
 							{
-								if (  SoundPlaying(t.sndid) == 0 ) 
+								if ( SoundPlaying(t.sndid) == 0 ) 
 								{
-									if (  g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
+									if ( g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
 									{
 										playinternalsound(t.sndid);
 									}
@@ -2008,7 +2014,7 @@ void gun_control ( void )
 			}
 		}
 	}
-	if (  t.gunmode == 102 ) 
+	if ( t.gunmode == 102 ) 
 	{
 		t.currentgunanimspeed_f=g.timeelapsed_f*t.genericgunanimspeed_f;
 		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
