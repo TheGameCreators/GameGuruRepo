@@ -5244,6 +5244,7 @@ struct entityprofiletype
 		 quantity = 0;
 		 footfallmax = 0;
 		 startofaianim = 0;
+		 appendanimmax = 0;
 		 animmax = 0;
 		 firespotlimb = 0;
 		 spine2 = 0;
