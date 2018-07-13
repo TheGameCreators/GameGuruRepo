@@ -1011,6 +1011,7 @@ void entity_loaddata ( void )
 		//  Must be reset before parse
 		t.entityprofile[t.entid].limbmax=0;
 		t.entityprofile[t.entid].animmax=0;
+		t.entityprofile[t.entid].appendanimmax=0; //PE: sometimes , caused endless loop, was never set anywhere.
 		t.entityprofile[t.entid].footfallmax=0;
 		t.entityprofile[t.entid].headlimb=-1;
 		t.entityprofile[t.entid].firespotlimb=-1;
@@ -1679,7 +1680,10 @@ void entity_loaddata ( void )
 						if ( t.entityprofile[t.entid].appendanimmax > 99 ) 
 							t.entityprofile[t.entid].appendanimmax = 99;
 					}
-					if ( t.entityprofile[t.entid].appendanimmax > 0 ) 
+
+					//PE: Hanging, in my case: appendanimmax=573444874 value_s=road_straight01.x
+					//PE: Hang if you are unlucky and get mem that "appendanimmax" are not already set to zero.
+					if ( t.entityprofile[t.entid].appendanimmax > 0 && t.entityprofile[t.entid].appendanimmax <= 99 )
 					{
 						for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
 						{
