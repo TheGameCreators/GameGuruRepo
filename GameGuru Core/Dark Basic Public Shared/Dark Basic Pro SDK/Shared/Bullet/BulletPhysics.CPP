@@ -1657,9 +1657,12 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 		sFrame* pFrame = pRealObject->ppFrameList[iFrame];
 		if ( pFrame )
 		{
-			if ( stricmp ( pFrame->szName, "lod_0" )==NULL && iBestLowLOD<1 ) { iChooseLowLOD = iFrame; iBestLowLOD=1; }
-			if ( stricmp ( pFrame->szName, "lod_1" )==NULL && iBestLowLOD<2 ) { iChooseLowLOD = iFrame; iBestLowLOD=2; }
-			if ( stricmp ( pFrame->szName, "lod_2" )==NULL && iBestLowLOD<3 ) { iChooseLowLOD = iFrame; iBestLowLOD=3; }
+			if ( pFrame->pMesh )
+			{
+				if ( stricmp ( pFrame->szName, "lod_0" )==NULL && iBestLowLOD<1 ) { iChooseLowLOD = iFrame; iBestLowLOD=1; }
+				if ( stricmp ( pFrame->szName, "lod_1" )==NULL && iBestLowLOD<2 ) { iChooseLowLOD = iFrame; iBestLowLOD=2; }
+				if ( stricmp ( pFrame->szName, "lod_2" )==NULL && iBestLowLOD<3 ) { iChooseLowLOD = iFrame; iBestLowLOD=3; }
+			}
 		}
 	}
 

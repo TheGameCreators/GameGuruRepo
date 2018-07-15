@@ -1613,6 +1613,10 @@ void entity_loaddata ( void )
 					t.tryfield_s="lightoffsetz";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].light.offsetz = t.value1;
 
+					// light type flags
+					t.tryfield_s="usespotlighting";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].usespotlighting = t.value1;
+
 					//  trigger extras
 					t.tryfield_s="stylecolor";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].trigger.stylecolor = t.value1;
@@ -2431,6 +2435,7 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.markerindex=t.entityprofile[t.entid].markerindex;
 	t.grideleprof.light=t.entityprofile[t.entid].light;
 	t.grideleprof.trigger=t.entityprofile[t.entid].trigger;
+	t.grideleprof.usespotlighting=t.entityprofile[t.entid].usespotlighting;
 
 	//  Data Extracted From GUN and FLAK
 	t.tgunid_s=t.entityprofile[t.entid].isweapon_s;

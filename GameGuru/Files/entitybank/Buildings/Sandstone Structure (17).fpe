@@ -1,0 +1,38 @@
+;header
+desc          = Sandstone Structure (17)
+
+;visualinfo
+textured      = combat building_D.dds
+effect        = effectbank\reloaded\entity_basic.fx
+castshadow    = 0
+
+;orientation
+model         = sandstone structure (17).X
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 1
+materialindex = 3
+collisionmode = 1
+autoflatten   = 1
+forcesimpleobstacle = 3
+
+;statistics
+strength      = 25
+explodable    = 0
+debrisshape   = 1
+
+;ai
+aiinit	      = appear.lua
+aimain	      = default.lua
+aidestroy     = disappear.lua
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+
