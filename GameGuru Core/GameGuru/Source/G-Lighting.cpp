@@ -94,12 +94,15 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 	if (g_pGlob->dwRenderCameraID >= 31) return false;
 	
 	//PE: Make sure when last light is deleted , that we dont display any.
-	if (g.infinilightmax == 0 && t.playerlight.spotflash <= 0 ) {
-		if (pMesh->dl_lights) {
+	if (g.infinilightmax == 0 && t.playerlight.spotflash <= 0 ) 
+	{
+		if (pMesh->dl_lights) 
+		{
 			float f_tmp = 0;
 			pMesh->dl_lights->AsScalar()->SetFloat(f_tmp);
 		}
-		if (pMesh->dl_lightsVS) {
+		if (pMesh->dl_lightsVS) 
+		{
 			float f_tmp = 0;
 			pMesh->dl_lightsVS->AsScalar()->SetFloat(f_tmp);
 		}
@@ -109,25 +112,40 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 	//if (pObject && pObject->dwRememberTransparencyState > 0) return false;
 
 	//PE: new light per mesh.
-	if (pMesh->dl_lights == NULL) {
-		pMesh->dl_lights = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_lights");
-		if (pMesh->dl_lights) {
-			if (pMesh->dl_lightsVS == NULL) {
-				pMesh->dl_lightsVS = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_lightsVS");
+	if (pMesh->dl_lights == NULL) 
+	{
+		if ( pMesh->pVertexShaderEffect )
+		{
+			if ( pMesh->pVertexShaderEffect->m_pEffect )
+			{
+				pMesh->dl_lights = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_lights");
+				if (pMesh->dl_lights) 
+				{
+					if (pMesh->dl_lightsVS == NULL) 
+					{
+						pMesh->dl_lightsVS = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_lightsVS");
+					}
+					if (pMesh->dl_pos[0] == NULL) 
+					{
+						pMesh->dl_pos[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_pos");
+					}
+					if (pMesh->dl_diffuse[0] == NULL) 
+					{
+						pMesh->dl_diffuse[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_diffuse");
+					}
+					if (pMesh->dl_angle[0] == NULL) 
+					{
+						pMesh->dl_angle[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_angle");
+					}
+				}
+				else 
+					return false;
 			}
-			if (pMesh->dl_pos[0] == NULL) {
-				pMesh->dl_pos[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_pos");
-			}
-			if (pMesh->dl_diffuse[0] == NULL) {
-				pMesh->dl_diffuse[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_diffuse");
-			}
-			if (pMesh->dl_angle[0] == NULL) {
-				pMesh->dl_angle[0] = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("dl_angle");
-			}
+			else 
+				return false;
 		}
-		else {
+		else 
 			return false;
-		}
 	}
 
 	float fposData[ 4 * MAXDYNLIGHTS ];
@@ -137,8 +155,8 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 	int frealVSLightsUsed = 0;
 	bool b_angle_used = false;
 
-	if(pObject) {
-
+	if(pObject) 
+	{
 		//PE: find closest to object.
 		float f_oPosX = pObject->position.vecPosition.x;
 		float f_oPosY = pObject->position.vecPosition.y;
@@ -149,35 +167,9 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 
 		float f_objsize = fXSize;
 		if (f_objsize < fZSize) f_objsize = fZSize;
-//		if (f_objsize < fYSize) f_objsize = fYSize;
-
-/*
-		//PE: Mesh size is not always accurate, keep it here if needed later.
-		//PE: Perhaps use the largest from object,mesh
-		float f_oPosX, f_oPosY, f_oPosZ;
-		float fXSize, fYSize, fZSize;
-		GGMATRIX  mWorld;
-		GGGetTransform(GGTS_WORLD, &mWorld);
-
-		fXSize = (pMesh->Collision.vecMax.x - pMesh->Collision.vecMin.x);
-		fYSize = (pMesh->Collision.vecMax.y - pMesh->Collision.vecMin.y);
-		fZSize = (pMesh->Collision.vecMax.z - pMesh->Collision.vecMin.z);
-		GGVECTOR3 vCtr = GGVECTOR3(pMesh->Collision.vecMin.x + (fXSize / 2), pMesh->Collision.vecMin.y + (fYSize / 2), pMesh->Collision.vecMin.z + (fZSize / 2));
-		GGVec3TransformCoord(&vCtr, &vCtr, &mWorld);
-		f_oPosX = vCtr.x;
-		f_oPosY = vCtr.y;
-		f_oPosZ = vCtr.z;
-		fXSize = fXSize * pObject->position.vecScale.x;
-		fYSize = fYSize * pObject->position.vecScale.y;
-		fZSize = fZSize * pObject->position.vecScale.z;
-*/
-
 		get_nearby_light(f_oPosX, f_oPosY, f_oPosZ , f_objsize);
-		
-
 		if (t.playerlight.spotflash > 0 && ((frealLightsUsed + frealVSLightsUsed) < g.maxtotalmeshlights))
 		{
-
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotflashx_f;
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.playerlight.spotflashy_f;
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.playerlight.spotflashz_f;
@@ -193,13 +185,7 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = 0.0;
 			fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0.0;
 
-			//if (frealLightsUsed >= g.maxpixelmeshlights) {
-			//	//PE: Add the rest as fast Vertex lights.
-			//	frealVSLightsUsed++;
-			//}
-			//else {
-				frealLightsUsed++;
-			//}
+			frealLightsUsed++;
 		}
 
 		for (int i = 0; i < (g.maxtotalmeshlights); i++)
@@ -220,7 +206,8 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 				fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tlz_f;
 				fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range; //PE: Put range in pos.w
 
-				if (t.infinilight[l_index].type == 1) {
+				if (t.infinilight[l_index].type == 1) 
+				{
 					//PE: static light has less intensity then realtime , so lower it to match lightmapper.
 					fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range*0.70; //PE: Put range in pos.w
 					fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f*0.70;
@@ -252,16 +239,16 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 				//strcat(rl_colors[rl_entries], ctmp);
 #endif
 
-				if (frealLightsUsed >= g.maxpixelmeshlights ) {
+				if (frealLightsUsed >= g.maxpixelmeshlights ) 
+				{
 					//PE: Add the rest as fast Vertex lights.
 					frealVSLightsUsed++;
 				}
-				else {
+				else 
+				{
 					frealLightsUsed++;
 				}
 			}
-
-
 		}
 
 #ifdef MAXRENDERLIST
@@ -287,28 +274,9 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 			rl_entries++;
 		}
 #endif
-
-//		if (pObject->dwObjectNumber == t.widget.pickedObject) {
-//			//fake yellow light.
-//			frealLightsUsed = 0;
-//			fposData[(frealLightsUsed * 4) + 0] = f_oPosX;
-//			fposData[(frealLightsUsed * 4) + 1] = f_oPosY+100;
-//			fposData[(frealLightsUsed * 4) + 2] = f_oPosZ;
-//			fposData[(frealLightsUsed * 4) + 3] = 500;
-//			fdiffuseData[(frealLightsUsed * 4) + 0] = 1.0;
-//			fdiffuseData[(frealLightsUsed * 4) + 1] = 1.0;
-//			fdiffuseData[(frealLightsUsed * 4) + 2] = 0.0;
-//			fdiffuseData[(frealLightsUsed * 4) + 3] = 0;
-//			frealLightsUsed++;
-//		}
-
-
-
 	}
-	else {
-
-
-
+	else 
+	{
 		if (t.playerlight.spotflash > 0 && ((frealLightsUsed + frealVSLightsUsed) < g.maxtotalmeshlights))
 		{
 			fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.playerlight.spotflashx_f;
@@ -332,7 +300,8 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 
 		//PE: Terrain use the old fading light system max 3 dyn lights.
 
-		if (g.terrainoldlight == 1) {
+		if (g.terrainoldlight == 1) 
+		{
 			//PE: Terrain use old way for now.
 			for (t.best = 0; t.best <= 3; t.best++)
 			{
@@ -352,7 +321,8 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 					fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tlz_f;
 					fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range;
 
-					if (t.infinilight[l_index].type == 1) {
+					if (t.infinilight[l_index].type == 1) 
+					{
 						//PE: static light has less intensity then realtime , so lower it to match lightmapper.
 						fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range*0.70;
 						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f*0.70;
@@ -360,7 +330,8 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tcolb_f*0.70;
 						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0;
 					}
-					else {
+					else 
+					{
 						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f;
 						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 1] = t.tcolg_f;
 						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.tcolb_f;
@@ -371,18 +342,18 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 					fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.infinilight[l_index].f_angle_z;
 					fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0.0;
 
-					if (t.infinilight[l_index].is_spot_light) {
+					if (t.infinilight[l_index].is_spot_light) 
+					{
 						fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 3; //PE: spot = type 3. also set angle.
 						b_angle_used = true;
 					}
-
 
 					frealLightsUsed++;
 				}
 			}
 		}
-		else {
-
+		else 
+		{
 			//PE: Terrain use lights nearby camera.
 			//PE: for now add terrain as VS light.
 			if (g.maxterrainlights > g.infinilightmax) //PE: Only use fade if needed.
@@ -421,7 +392,8 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 						fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range;
 
 
-						if (t.infinilight[l_index].type == 1) {
+						if (t.infinilight[l_index].type == 1) 
+						{
 							//PE: static light has less intensity then realtime , so lower it to match lightmapper.
 							fposData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = t.infinilight[l_index].range*0.70;
 							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 0] = t.tcolr_f*0.70;
@@ -442,16 +414,19 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 						fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 2] = t.infinilight[l_index].f_angle_z;
 						fangleData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 0.0;
 
-						if (t.infinilight[l_index].is_spot_light) {
+						if (t.infinilight[l_index].is_spot_light) 
+						{
 							fdiffuseData[((frealLightsUsed + frealVSLightsUsed) * 4) + 3] = 3; //PE: spot = type 3. also set angle.
 							b_angle_used = true;
 						}
 
-						if( g.terrainusevertexlights == 1 || frealLightsUsed >= g.maxpixelmeshlights ) {
+						if( g.terrainusevertexlights == 1 || frealLightsUsed >= g.maxpixelmeshlights ) 
+						{
 							//PE: Add the rest as fast Vertex lights.
 							frealVSLightsUsed++;
 						}
-						else {
+						else 
+						{
 							frealLightsUsed++;
 						}
 					}
@@ -462,21 +437,26 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 	}
 
 	/* Optimizing: 114fps: FPS without sending light data: 114fps , takes 0 fps. */
-	if (pMesh->dl_lights) {
+	if (pMesh->dl_lights) 
+	{
 		float f_tmp = frealLightsUsed;
 		pMesh->dl_lights->AsScalar()->SetFloat(f_tmp);
 	}
-	if (pMesh->dl_lightsVS) {
+	if (pMesh->dl_lightsVS) 
+	{
 		float f_tmp = frealVSLightsUsed;
 		pMesh->dl_lightsVS->AsScalar()->SetFloat(f_tmp);
 	}
-	if ((frealLightsUsed > 0 || frealVSLightsUsed > 0) && pMesh->dl_pos[0]) {
+	if ((frealLightsUsed > 0 || frealVSLightsUsed > 0) && pMesh->dl_pos[0]) 
+	{
 		pMesh->dl_pos[0]->AsVector()->SetFloatVectorArray(fposData, 0, frealLightsUsed+frealVSLightsUsed);
 	}
-	if ((frealLightsUsed > 0 || frealVSLightsUsed > 0) && pMesh->dl_diffuse[0]) {
+	if ((frealLightsUsed > 0 || frealVSLightsUsed > 0) && pMesh->dl_diffuse[0]) 
+	{
 		pMesh->dl_diffuse[0]->AsVector()->SetFloatVectorArray(fdiffuseData, 0, frealLightsUsed+frealVSLightsUsed);
 	}
-	if ( b_angle_used && pMesh->dl_angle[0]) {
+	if ( b_angle_used && pMesh->dl_angle[0]) 
+	{
 		pMesh->dl_angle[0]->AsVector()->SetFloatVectorArray(fangleData, 0, frealLightsUsed + frealVSLightsUsed);
 	}
 

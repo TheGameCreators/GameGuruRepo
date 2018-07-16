@@ -3646,12 +3646,12 @@ void editor_clearlibrary ( void )
 	t.tadd=2;
 
 	//  Determine if extra ZONES included
-	t.tstoryzoneincluded=15;
-	if ( g.vrqcontrolmode != 0 )
-	{
-		// if VRQ, also add extra zones
-		t.tstoryzoneincluded=18;
-	}
+	t.tstoryzoneincluded=25;
+	//if ( g.vrqcontrolmode != 0 )
+	//{
+	//	// if VRQ, also add extra zones
+	//	t.tstoryzoneincluded=18;
+	//}
 
 	//  Default markers
 	for ( t.tt = 0 ; t.tt <= t.tstoryzoneincluded; t.tt++ )
@@ -3683,6 +3683,13 @@ void editor_clearlibrary ( void )
 		if (  t.tt == 16 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
 		if (  t.tt == 17 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
 		if (  t.tt == 18 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
+		if (  t.tt == 19 ) { t.t1_s = "White Spotlight"; t.t2_s = "files\\entitybank\\_markers\\white light spot.bmp"; }
+		if (  t.tt == 20 ) { t.t1_s = "Red Spotlight"; t.t2_s = "files\\entitybank\\_markers\\red light spot.bmp"; }
+		if (  t.tt == 21 ) { t.t1_s = "Green Spotlight"; t.t2_s = "files\\entitybank\\_markers\\green light spot.bmp"; }
+		if (  t.tt == 22 ) { t.t1_s = "Blue Spotlight"; t.t2_s = "files\\entitybank\\_markers\\blue light spot.bmp"; }
+		if (  t.tt == 23 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
+		if (  t.tt == 24 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
+		if (  t.tt == 25 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
 		SetFileMapDWORD (  1, 508, t.tadd );
 		SetFileMapString (  1, 1000, t.t2_s.Get() );
 		SetFileMapString (  1, 1256, t.t1_s.Get() );
@@ -3695,7 +3702,7 @@ void editor_clearlibrary ( void )
 	}
 
 	//  actual entity names of the markers
-	Dim ( t.markerentitybank_s, 20 );
+	Dim ( t.markerentitybank_s, 30 );
 	t.markerentitybank_s[1]="_markers\\player start.fpe";
 	t.markerentitybank_s[2]="_markers\\player checkpoint.fpe";
 	t.markerentitybank_s[3]="_markers\\cover zone.fpe";
@@ -3714,15 +3721,22 @@ void editor_clearlibrary ( void )
 	{
 		t.markerentitybank_s[14] = "_markers\\audio zone.fpe";
 		t.markerentitybank_s[15] = "_markers\\video zone.fpe";
-		t.markerentitybank_s[17] = "_markers\\image zone.fpe";
-		t.markerentitybank_s[18] = "_markers\\text zone.fpe";
-		t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
 	}
 	else
 	{
 		t.markerentitybank_s[14] = "_markers\\sound zone.fpe";
 		t.markerentitybank_s[15] = "_markers\\story zone.fpe";
 	}
+	t.markerentitybank_s[17] = "_markers\\image zone.fpe";
+	t.markerentitybank_s[18] = "_markers\\text zone.fpe";
+	t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
+	t.markerentitybank_s[20] = "_markers\\white light spot.fpe";
+	t.markerentitybank_s[21] = "_markers\\red light spot.fpe";
+	t.markerentitybank_s[22] = "_markers\\green light spot.fpe";
+	t.markerentitybank_s[23] = "_markers\\blue light spot.fpe";
+	t.markerentitybank_s[24] = "_markers\\yellow light spot.fpe";
+	t.markerentitybank_s[25] = "_markers\\purple light spot.fpe";
+	t.markerentitybank_s[26] = "_markers\\cyan light spot.fpe";
 
 	// only if EBE enabled
 	if ( g.globals.hideebe == 0 )
