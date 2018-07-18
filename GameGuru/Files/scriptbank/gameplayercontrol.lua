@@ -141,9 +141,17 @@ function gameplayercontrol.weaponfire()
 		if ( (bit32.band(g_MouseClickControl,1)) == 1 ) then 
 			SetGamePlayerStateFiringMode(1)
 		end
+		
+		-- Hold down fire button value (can be interrupted when weapon runs out or is reloading)
+		holdDownMouseClickButton = (bit32.band(g_MouseClickControl,1))
+		holdDownMouseClickButton2 = (bit32.band(g_MouseClickControl,2))
+		if ( GetGamePlayerStateGunMode() <= 8 or GetGamePlayerStateGunMode() == 9999 ) then
+			holdDownMouseClickButton = 0
+			holdDownMouseClickButton2 = 0
+		end
 
 		-- Gun jamming Timer
-		if ( (bit32.band(g_MouseClickControl,1)) == 1 ) then 
+		if ( holdDownMouseClickButton == 1 ) then 
 			if ( g_lmbheld == 0 ) then 
 				if ( GetFireModeSettingsJammed() == 1 ) then 
 					-- if tried to fire, but jammed, dry fire
@@ -167,18 +175,18 @@ function gameplayercontrol.weaponfire()
 		end
 
 		-- Track mouse held times (for lmb/rmb and jam adjust control) then
-		if ( (bit32.band(g_MouseClickControl,2)) == 2 ) then 
+		if ( holdDownMouseClickButton2 == 2 ) then 
 			if ( g_rmbheld == 0 ) then 
 				g_rmbheld = 1
 				g_rmbheldtime = Timer()
 			end
 		end
-		if ( (bit32.band(g_MouseClickControl,1)) == 0 ) then 
+		if ( holdDownMouseClickButton == 0 ) then 
 			g_lmbheld = 0
 			g_lmbheldtime = 0
 			g_jamadjust = 0
 		end
-		if ( (bit32.band(g_MouseClickControl,2)) == 0 ) then 
+		if ( holdDownMouseClickButton2 == 0 ) then 
 			g_rmbheld = 0
 			g_rmbheldtime = 0
 		end
@@ -264,6 +272,7 @@ function gameplayercontrol.weaponfire()
 
 		-- Trigger Zoom (no Zoom in When Reloading or firing in simple zoom or with gun empty or when running) then
 		tttriggerironsight=0
+		if ( GetGamePlayerControlThirdpersonEnabled() == 0 ) then
 		if ( GetGamePlayerStateRightMouseHold()>0 ) then 
 			-- mode to allow toggle with RMB instead of holding it down
 			if ( (bit32.band(g_MouseClickControl,2)) == 2 and GetGamePlayerStateRightMouseHold() == 1 ) then SetGamePlayerStateRightMouseHold(2) end
@@ -273,6 +282,7 @@ function gameplayercontrol.weaponfire()
 			if ( GetGamePlayerStateRightMouseHold() >= 2 and GetGamePlayerStateRightMouseHold() <= 4 ) then tttriggerironsight = 1 end
 		else
 			if ( (bit32.band(g_MouseClickControl,2)) == 2  ) then tttriggerironsight = 1 end
+		end
 		end
 		if ( GetGamePlayerStateXBOX() == 1 ) then 
 			if ( GetGamePlayerStateXBOXControllerType() == 2 ) then 
@@ -286,7 +296,7 @@ function gameplayercontrol.weaponfire()
 		if ( GetGamePlayerControlJetpackMode()>0 ) then tttriggerironsight = 0 end
 
 		-- can now zoom even if have no bullets
-		if ( tttriggerironsight == 1 and (GetGamePlayerStateGunMode() <= 100 or GetFireModeSettingsSimpleZoom() == 0) and (GetFireModeSettingsForceZoomOut() == 0 or GetGamePlayerStateGunMode() <= 100) and GetGamePlayerControlIsRunning() == 0 ) then 
+		if ( tttriggerironsight == 1 and (GetGamePlayerStateGunMode() <= 100 or GetFireModeSettingsSimpleZoom() == 0) and (GetFireModeSettingsForceZoomOut() == 0 or GetGamePlayerStateGunMode() <= 100) and GetGamePlayerControlIsRunning() == 0 and GetGamePlayerStateIsMelee() == 0 ) then 
 			-- Modified for Simple Zoom
 			if ( GetGamePlayerStateGunZoomMode() == 0 and (GetFireModeSettingsZoomMode() ~= 0 or GetFireModeSettingsSimpleZoom() ~= 0) ) then 
 				SetGamePlayerStateGunZoomMode(1)  
@@ -362,11 +372,11 @@ function gameplayercontrol.weaponselectzoom()
 
 	-- Keyboard
 	taltswapkeycalled = 0
-	if ( GetGamePlayerStateGunAltSwapKey1()>-1 and GetKeyState(GetGamePlayerStateGunAltSwapKey1())==1 and GetGamePlayerStateGunZoomMode() == 0 or g_forcealtswap == 1 ) then 
+	if ( GetGamePlayerStateGunAltSwapKey1()>-1 and GetKeyState(GetGamePlayerStateGunAltSwapKey1())==1 and (GetGamePlayerStateGunZoomMode() == 0 or (GetGamePlayerStateGunZoomMode()>=8 and GetGamePlayerStateGunZoomMode()<=10)) or g_forcealtswap == 1 ) then 
 		taltswapkeycalled = 1 
 		g_forcealtswap = 0 
 	end
-	if ( tselkeystate>0 and (GetGamePlayerStateGunZoomMode() == 0 or GetGamePlayerStateGunZoomMode() == 10) or taltswapkeycalled == 1 ) then 
+	if ( tselkeystate>0 and (GetGamePlayerStateGunZoomMode() == 0 or (GetGamePlayerStateGunZoomMode()>=8 and GetGamePlayerStateGunZoomMode()<=10)) or taltswapkeycalled == 1 ) then 
 		if ( taltswapkeycalled == 1 and GetGamePlayerStateGunAltSwapKey2()>-1 and GetKeyState(GetGamePlayerStateGunAltSwapKey2())==1 or taltswapkeycalled == 1 and GetGamePlayerStateGunAltSwapKey2() == -1 or taltswapkeycalled == 0 ) then 
 			if ( g_keyboardpress == 0 ) then 
 				-- Change weapon - and prevent plr selecting gun if flagged
@@ -409,11 +419,11 @@ function gameplayercontrol.weaponselectzoom()
 								-- reset gunburst variable so burst doesn't get confused when switching gunmodes
 								if ( GetGamePlayerStateAlternate() == 1 ) then 
 									SetGamePlayerStateGunMode(2009) 
-									SetGamePlayerStateAlternate(0)
+									--SetGamePlayerStateAlternate(0) now set inside gunmode 2009 'after' zoom out
 									SetGamePlayerStateGunBurst(0)
 								else 
 									SetGamePlayerStateGunMode(2007) 
-									SetGamePlayerStateAlternate(1) 
+									--SetGamePlayerStateAlternate(1) now set inside gunmode 2009 'after' zoom out
 									SetGamePlayerStateGunBurst(0) 
 								end
 							end
@@ -766,8 +776,11 @@ function gameplayercontrol.control()
 		end
 		if ( GetGamePlayerControlGravityActive() == 1 and GetGamePlayerControlJumpMode() ~= 1 ) then 
 			-- on ground
-			ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
-			if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+			ttWeaponMoveSpeedMod = 1.0
+			if ( GetGamePlayerStateGunID() > 0 ) then
+			 ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
+			 if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+			end
 			SetGamePlayerControlWobble(WrapValue(GetGamePlayerControlWobble()+(GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttWeaponMoveSpeedMod)))
 		else
 			-- in air
@@ -1032,9 +1045,17 @@ function gameplayercontrol.control()
 
 		-- If player under waterline, set playercontrol.underwater flag
 		SetGamePlayerStatePlayerY(GetPlrObjectPositionY())
-		if ( GetGamePlayerStatePlayerY()<GetGamePlayerStateWaterlineY()+20 and GetGamePlayerStateNoWater() == 0 ) then 
+		if ( GetGamePlayerStatePlayerDucking() ~= 0 ) then 
+			ttsubtleeyeadjustment=10.0
+		else
+			ttsubtleeyeadjustment=30.0
+		end
+		--if ( GetGamePlayerStatePlayerY()<GetGamePlayerStateWaterlineY()+20 and GetGamePlayerStateNoWater() == 0 ) then 
+		if ( (GetGamePlayerStatePlayerY()+ttsubtleeyeadjustment)<GetGamePlayerStateWaterlineY() and GetGamePlayerStateNoWater() == 0 ) then 
 			SetGamePlayerControlUnderwater(1)
-			ChangePlayerWeaponID(0)
+			if ( g_PlayerUnderwaterMode == 1 ) then
+				ChangePlayerWeaponID(0)
+			end
 		else
 			SetGamePlayerControlUnderwater(0)
 		end
@@ -1045,7 +1066,7 @@ function gameplayercontrol.control()
 			SetGamePlayerControlPlrHitFloorMaterial(ttplrhitfloormaterial)
 			ttplrfell=GetCharacterFallDistance()
 			if ( GetGamePlayerStateImmunity() == 0 ) then 
-				if ( ttplrfell>0 and GetGamePlayerStatePlayerY()>GetGamePlayerStateWaterlineY() ) then 
+				if ( ttplrfell>0 and (g_PlayerUnderwaterMode == 0 or GetGamePlayerStatePlayerY()>GetGamePlayerStateWaterlineY()) ) then 
 					-- for a small landing, make a sound
 					if ( ttplrfell>75 ) then 
 						ttsnd=GetGamePlayerControlSoundStartIndex()+5
@@ -1588,20 +1609,44 @@ function gameplayercontrol.control()
 				end
 				SetGamePlayerControlInWaterState(1)
 			end
+
+			-- PE: Simple system to get us up, when below water, this is where the real swimming below water should be made.
+			-- allow swimming with head above water.
+			if ( GetCameraPositionY(0) <= GetGamePlayerStateWaterlineY()+8.0 ) then 
+				-- check for space to move player slowly up when underwater.
+				if ( g_PlayerUnderwaterMode == 1 and g_PlrKeySPACE == 1 ) then
+					if( GetCameraPositionY(0) >= GetGamePlayerStateWaterlineY()+7.0 ) then
+						SetFreezePosition(GetPlrObjectPositionX(),GetPlrObjectPositionY()+0.01,GetPlrObjectPositionZ()) -- slow down
+					elseif( GetCameraPositionY(0) >= GetGamePlayerStateWaterlineY()+6.0 ) then
+						SetFreezePosition(GetPlrObjectPositionX(),GetPlrObjectPositionY()+0.075,GetPlrObjectPositionZ()) -- slow down
+					else
+						SetFreezePosition(GetPlrObjectPositionX(),GetPlrObjectPositionY()+0.25,GetPlrObjectPositionZ()) -- full speed up
+					end
+					SetFreezeAngle(GetCameraAngleX(0),GetCameraAngleY(0),GetCameraAngleZ(0))
+					TransportToFreezePosition()
+				end
+			end
 			-- going under water
 			if ( GetCameraPositionY(0) <= GetGamePlayerStateWaterlineY() ) then 
 				-- head goes under water
 				if ( GetGamePlayerControlInWaterState() < 2 ) then 
 					SetGamePlayerControlInWaterState(2)
 					SetUnderwaterOn()
-					-- added delay before drowning damage starts
-					SetGamePlayerControlDrownTimestamp(Timer()+15000)
+					if( g_PlayerUnderwaterMode == 1 ) then
+						-- added delay before drowning damage starts
+						SetGamePlayerControlDrownTimestamp(Timer()+15000)
+					end
 				end
+			
 				-- check for drowning
 				if ( GetGamePlayerControlDrownTimestamp() == 0 ) then 
-					SetGamePlayerControlDrownTimestamp(Timer()+5000)
+					if( g_PlayerUnderwaterMode == 1 ) then
+						SetGamePlayerControlDrownTimestamp(Timer()+5000)
+					else
+						SetGamePlayerControlDrownTimestamp(Timer()+500)
+					end
 				else
-					-- lose 1 health per second until dead
+					-- if g_PlayerUnderwaterMode == 1 lose 1 health per second until dead , else 50 health 
 					if ( Timer() > GetGamePlayerControlDrownTimestamp() ) then 
 						-- if there was no start marker, reset player (cannot kill, as no start marker) then. Indicated by crazy health and no lives
 						if ( g_PlayerLives == 0 and g_PlayerHealth == 99999 ) then 
@@ -1610,8 +1655,13 @@ function gameplayercontrol.control()
 							g_PlayerHealth=0
 						else
 							-- Gulp in water for plr damage
-							SetGamePlayerControlDrownTimestamp(Timer()+5000)
-							DrownPlayer(-1,5)
+							if( g_PlayerUnderwaterMode == 1 ) then
+								SetGamePlayerControlDrownTimestamp(Timer()+5000)
+								DrownPlayer(-1,5)
+							else
+								SetGamePlayerControlDrownTimestamp(Timer()+500)
+								DrownPlayer(-1,200)
+							end
 						end
 						-- if player died
 						if ( g_PlayerHealth == 0 ) then 
@@ -1675,7 +1725,7 @@ function gameplayercontrol.control()
 	end
 
 	-- Screen REDNESS effect, and heartbeat, player is healthy, so fade away from redness
-	if ( g_PlayerHealth >= (g_gameloop_StartHealth / 1.5) ) then 
+	if ( g_PlayerHealth >= 100 ) then 
 		if ( GetGamePlayerControlRedDeathFog() > 0 ) then 
 			SetGamePlayerControlRedDeathFog(GetGamePlayerControlRedDeathFog() - GetElapsedTime())
 			if ( GetGamePlayerControlRedDeathFog() < 0 ) then SetGamePlayerControlRedDeathFog(0) end
@@ -1693,7 +1743,7 @@ function gameplayercontrol.control()
 				end
 			else
 				-- player is in injured state, so play low health heart beat and fade screen proportional to health
-				if ( GetGamePlayerControlHeartbeatTimeStamp() < Timer() and g_PlayerHealth <= (g_gameloop_StartHealth / 1.5) ) then 
+				if ( GetGamePlayerControlHeartbeatTimeStamp() < Timer() ) then 
 					ttsnd = GetGamePlayerControlSoundStartIndex()+17
 					if ( RawSoundExist ( ttsnd ) == 1 ) then
 						PlayRawSound ( ttsnd )
