@@ -702,16 +702,24 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 		// get inverse matrices (to restore local object space values in new vert data)
 		float fDet;
 		GGMATRIX matInvWorld;
+		GGMatrixInverse(&matInvWorld,&fDet,&pFrame->matAbsoluteWorld);
+
+		// 160718 - old code seems to include world position in the inverse (MUST mess up normals!)
+		// OR IT COULD BE THE WRONG NORMALS ARE BEING PASSED IN - rotate entity 270 degrees, see normals mess up!!
 		GGMATRIX matInvTransposedWorld;
 		GGMATRIX * pmatTransInvAbsoluteWorld = new GGMATRIX;
 		GGMatrixInverse( pmatTransInvAbsoluteWorld, NULL, &pFrame->matAbsoluteWorld );
 		GGMatrixTranspose( pmatTransInvAbsoluteWorld, pmatTransInvAbsoluteWorld );
-		GGMatrixInverse(&matInvWorld,&fDet,&pFrame->matAbsoluteWorld);
 		GGMatrixInverse(&matInvTransposedWorld,&fDet,pmatTransInvAbsoluteWorld);
-		GGVECTOR3 vecVert;
-		GGVECTOR3 vecNorm;
+		//GGMATRIX matInvNoTransWorld = pFrame->matAbsoluteWorld;
+		//matInvNoTransWorld._41 = 0;
+		//matInvNoTransWorld._42 = 0;
+		//matInvNoTransWorld._43 = 0;
+		//GGMatrixInverse(&matInvNoTransWorld,&fDet,&matInvNoTransWorld);
 
 		// fill new vertex data block
+		GGVECTOR3 vecVert;
+		GGVECTOR3 vecNorm;
 		DWORD dwVertexIndex = 0;
 		LMPolyGroup *pPolyGroup = pPolyGroupList;
 		while ( pPolyGroup )
@@ -751,6 +759,7 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 						vecNorm.z = pPolyPtr->normal[2];
 					}
 					GGVec3TransformNormal ( &vecNorm, &vecNorm, &matInvTransposedWorld );
+					//GGVec3TransformNormal ( &vecNorm, &vecNorm, &matInvNoTransWorld );
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNX*4) ) ) = vecNorm.x;
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNY*4) ) ) = vecNorm.y;
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNZ*4) ) ) = vecNorm.z;
@@ -796,6 +805,7 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 						vecNorm.z = pPolyPtr->normal[2];
 					}
 					GGVec3TransformNormal ( &vecNorm, &vecNorm, &matInvTransposedWorld );
+					//GGVec3TransformNormal ( &vecNorm, &vecNorm, &matInvNoTransWorld );
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNX*4) ) ) = vecNorm.x;
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNY*4) ) ) = vecNorm.y;
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNZ*4) ) ) = vecNorm.z;
@@ -841,6 +851,7 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 						vecNorm.z = pPolyPtr->normal[2];
 					}
 					GGVec3TransformNormal ( &vecNorm, &vecNorm, &matInvTransposedWorld );
+					//GGVec3TransformNormal ( &vecNorm, &vecNorm, &matInvNoTransWorld );
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNX*4) ) ) = vecNorm.x;
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNY*4) ) ) = vecNorm.y;
 					*( (float*) ( pVertexData + dwVertexIndex + (cOffsetMap.dwNZ*4) ) ) = vecNorm.z;

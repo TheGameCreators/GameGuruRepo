@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Animation", "Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDK\Animation\Animation.vcxproj", "{7BBD98EB-0DFE-4602-AA0B-0F657CE494E8}"
 EndProject
@@ -629,8 +629,8 @@ Global
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug Build All|Win32.Build.0 = Debug|Win32
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug Build All|x64.ActiveCfg = Release|Win32
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug Build All|x64.Build.0 = Release|Win32
-		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug Game|Win32.ActiveCfg = Debug|Win32
-		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug Game|Win32.Build.0 = Debug|Win32
+		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug Game|Win32.ActiveCfg = Debug Game|Win32
+		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug Game|Win32.Build.0 = Debug Game|Win32
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug Game|x64.ActiveCfg = Debug Game|Win32
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug|Win32.ActiveCfg = Debug|Win32
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.Debug|Win32.Build.0 = Debug|Win32

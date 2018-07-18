@@ -235,6 +235,10 @@ Matrix* MatrixRotationX(Matrix *pout, float angle)
     pout->m[2][2] = cosf(angle);
     pout->m[1][2] = sinf(angle);
     pout->m[2][1] = -sinf(angle);
+	if ( fabs(pout->m[1][1]) < 0.0001f ) pout->m[1][1] = 0.0f;
+	if ( fabs(pout->m[2][2]) < 0.0001f ) pout->m[2][2] = 0.0f;
+	if ( fabs(pout->m[1][2]) < 0.0001f ) pout->m[1][2] = 0.0f;
+	if ( fabs(pout->m[2][1]) < 0.0001f ) pout->m[2][1] = 0.0f;
     return pout;
 }
 
@@ -245,6 +249,10 @@ Matrix* MatrixRotationY(Matrix *pout, float angle)
     pout->m[2][2] = cosf(angle);
     pout->m[0][2] = -sinf(angle);
     pout->m[2][0] = sinf(angle);
+	if ( fabs(pout->m[0][0]) < 0.0001f ) pout->m[0][0] = 0.0f;
+	if ( fabs(pout->m[2][2]) < 0.0001f ) pout->m[2][2] = 0.0f;
+	if ( fabs(pout->m[0][2]) < 0.0001f ) pout->m[0][2] = 0.0f;
+	if ( fabs(pout->m[2][0]) < 0.0001f ) pout->m[2][0] = 0.0f;
     return pout;
 }
 
@@ -255,6 +263,10 @@ Matrix* MatrixRotationZ(Matrix *pout, float angle)
     pout->m[1][1] = cosf(angle);
     pout->m[0][1] = sinf(angle);
     pout->m[1][0] = -sinf(angle);
+	if ( fabs(pout->m[0][0]) < 0.0001f ) pout->m[0][0] = 0.0f;
+	if ( fabs(pout->m[1][1]) < 0.0001f ) pout->m[1][1] = 0.0f;
+	if ( fabs(pout->m[0][1]) < 0.0001f ) pout->m[0][1] = 0.0f;
+	if ( fabs(pout->m[1][0]) < 0.0001f ) pout->m[1][0] = 0.0f;
     return pout;
 }
 

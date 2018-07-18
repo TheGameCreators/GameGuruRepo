@@ -3979,7 +3979,8 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 	bool lightset = false;
     for(UINT uPass = uPassStartIndex; uPass < uPasses; uPass++)
     {
-		if (!lightset && bSkipDrawNow == false) {
+		if (!lightset && bSkipDrawNow == false) 
+		{
 			lightset = true;
 			update_mesh_light(pMesh, pObject, pFrame);
 		}
