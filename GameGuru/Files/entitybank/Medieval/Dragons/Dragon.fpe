@@ -34,7 +34,7 @@ explodable       = 0
 debrisshape      = 0
 
 ;ai
-aimain           = default.lua
+aimain           = ai_dragon.lua
 
 ;append anim will add animation sets to base model
 appendanimfinal  = Dragon-final.dbo
@@ -70,5 +70,5 @@ appendanimframe14 = 1204
 
 ;anim
 animmax          = 1
-anim0            = 0,1233
+anim0            = 610,763
 playanimineditor = 1

@@ -855,34 +855,48 @@ void mapfile_savestandalone ( void )
 				}
 			}
 
-			//  model file
-			t.tlocaltofpe=1;
-			for ( t.n = 1 ; t.n<=  Len(t.entityprofile[t.entid].model_s.Get()); t.n++ )
+			//  model files (main model, final appended model and all other append
+			int iModelAppendFileCount = t.entityprofile[t.entid].appendanimmax;
+			if ( Len ( t.entityappendanim[t.entid][0].filename.Get() ) > 0 ) iModelAppendFileCount = 0;
+			for ( int iModels = -1; iModels <= iModelAppendFileCount; iModels++ )
 			{
-				if (  cstr(Mid(t.entityprofile[t.entid].model_s.Get(),t.n)) == "\\" || cstr(Mid(t.entityprofile[t.entid].model_s.Get(),t.n)) == "/" ) 
+				LPSTR pModelFile = "";
+				if ( iModels == -1 ) 
 				{
-					t.tlocaltofpe=0 ; break;
+					pModelFile = t.entityprofile[t.entid].model_s.Get();
 				}
+				else
+				{
+					pModelFile = t.entityappendanim[t.entid][iModels].filename.Get();
+				}
+				t.tlocaltofpe=1;
+				for ( t.n = 1 ; t.n <= Len(pModelFile); t.n++ )
+				{
+					if (  cstr(Mid(pModelFile,t.n)) == "\\" || cstr(Mid(pModelFile,t.n)) == "/" ) 
+					{
+						t.tlocaltofpe=0 ; break;
+					}
+				}
+				if (  t.tlocaltofpe == 1 ) 
+				{
+					t.tfile1_s=t.tentityfolder_s+pModelFile;
+				}
+				else
+				{
+					t.tfile1_s=pModelFile;
+				}
+				t.tfile2_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dbo";
+				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile2_s).Get() ) == 1 ) 
+				{
+					t.tfile_s=t.tfile2_s;
+				}
+				else
+				{
+					t.tfile_s=t.tfile1_s;
+				}
+				t.tmodelfile_s=t.tfile_s;
+				addtocollection(t.tmodelfile_s.Get());
 			}
-			if (  t.tlocaltofpe == 1 ) 
-			{
-				t.tfile1_s=t.tentityfolder_s+t.entityprofile[t.entid].model_s;
-			}
-			else
-			{
-				t.tfile1_s=t.entityprofile[t.entid].model_s;
-			}
-			t.tfile2_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dbo";
-			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile2_s).Get() ) == 1 ) 
-			{
-				t.tfile_s=t.tfile2_s;
-			}
-			else
-			{
-				t.tfile_s=t.tfile1_s;
-			}
-			t.tmodelfile_s=t.tfile_s;
-			addtocollection(t.tmodelfile_s.Get());
 
 			// entity characterpose file (if any)
 			t.tfile3_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dat";

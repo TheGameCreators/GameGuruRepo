@@ -2734,18 +2734,13 @@ void terrain_shadowupdate ( void )
 
 					//PE: PBR both terrain and entity must be set to low/medium before lowering cascades.
 					//PE: Editor always use highest.
-					if (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 3 && t.visuals.shaderlevels.entities >= 3) {
+					if (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 4 && t.visuals.shaderlevels.entities >= 3) 
+					{
 						//PE: Lowest disable shadows.
 						SetEffectShadowMappingMode(0);
 					}
-					else if ( (g.globals.editorusemediumshadows == 1 && t.game.set.ismapeditormode == 1 ) || (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 2 && t.visuals.shaderlevels.entities >= 2 ) ) {
-						//PE: Medium.
-						//PE: Fake medium 2 cascades. using same shadercode , pixeldepth never < m_iCascadePartitionsZeroToOne[0] = 0 , so cascade 6-7 ( or last 2 cascades ) is always used.
-						//SetEffectToShadowMapingEx(t.terrain.terrainshaderindex, g.shadowdebugobjectoffset, g.guidepthshadereffectindex, g.globals.hidedistantshadows, g.globals.realshadowresolution, g.globals.realshadowcascadecount, g.globals.realshadowcascade[0], g.globals.realshadowcascade[1], g.globals.realshadowcascade[2], g.globals.realshadowcascade[3], g.globals.realshadowcascade[4], g.globals.realshadowcascade[5], g.globals.realshadowcascade[6], g.globals.realshadowcascade[7]);
-						//g.globals.realshadowcascadecount
-						//g.globals.realshadowresolution
-						//g_CascadeConfig.m_iBufferSize = g_RealShadowResolution;
-
+					else if ( (g.globals.editorusemediumshadows == 1 && t.game.set.ismapeditormode == 1 ) || (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 2 && t.visuals.shaderlevels.entities >= 2 ) ) 
+					{
 						for (int icl = 0; icl < g.globals.realshadowcascadecount; icl++)
 							g_CascadedShadow.m_iCascadePartitionsZeroToOne[icl] = 0;
 
@@ -2755,9 +2750,6 @@ void terrain_shadowupdate ( void )
 						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 2] = 24;
 						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 1] = 100;
 					}
-
-
-
 				}
 				else
 				{

@@ -586,18 +586,21 @@ void physics_disableplayer ( void )
 
 void physics_setupcharacter ( void )
 {
-	//  create physics for this character/faux-character object
+	// create physics for this character/faux-character object
 	SetObjectArbitaryValue (  t.tphyobj,6 );
 	if ( t.entityelement[t.e].eleprof.isimmobile == 0 ) 
 	{
-		//  ensure CHARACTER do not spawn UNDER the terrain
+		// 190718 - remove t.terrain.adjaboveground_f from enemy terrain relative positioning
+		// ensure CHARACTER do not spawn UNDER the terrain
 		if (  t.terrain.TerrainID>0 ) 
 		{
-			t.tgroundheight_f=BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.tphyobj),ObjectPositionZ(t.tphyobj))+t.terrain.adjaboveground_f;
+			//t.tgroundheight_f=BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.tphyobj),ObjectPositionZ(t.tphyobj))+t.terrain.adjaboveground_f;
+			t.tgroundheight_f=BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.tphyobj),ObjectPositionZ(t.tphyobj));
 		}
 		else
 		{
-			t.tgroundheight_f=1000.0+t.terrain.adjaboveground_f;
+			//t.tgroundheight_f=1000.0+t.terrain.adjaboveground_f;
+			t.tgroundheight_f=1000.0;
 		}
 		t.tgroundheight_f=t.tgroundheight_f+2.5;
 		// 291116 - account for object vecCenter (so characters with Y=0=Floor are not unjustly raised)
