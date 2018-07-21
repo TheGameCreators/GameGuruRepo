@@ -1005,9 +1005,9 @@ void physics_explodesphere ( void )
 		t.entid=t.entityelement[t.e].bankindex;
 		if (  g.steamworks.damageWasFromAI  ==  0 ) 
 		{
-			if (  t.texplodesourceEntity>0 && t.e == t.texplodesourceEntity  )  t.entid = 0;
+			if (  t.texplodesourceEntity > 0 && t.e == t.texplodesourceEntity  )  t.entid = 0;
 		}
-		if (  t.entid>0 && t.entityelement[t.e].obj>0 ) 
+		if (  t.entid > 0 && t.entityelement[t.e].obj > 0 ) 
 		{
 			// 220618 - use center of object, not coordinate of entity XYZ
 			float fCenterOfEntityX = ObjectPositionX(t.entityelement[t.e].obj) + GetObjectCollisionCenterX(t.entityelement[t.e].obj);
@@ -1017,6 +1017,7 @@ void physics_explodesphere ( void )
 			t.tdy_f = fCenterOfEntityY - t.texplodey_f;
 			t.tdz_f = fCenterOfEntityZ - t.texplodez_f;
 			t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f)+abs(t.tdy_f*t.tdy_f)+abs(t.tdz_f*t.tdz_f));
+
 			if ( t.tdd_f<t.texploderadius_f ) 
 			{
 				// 220618 - before apply actual entity damage/effect, ensure a line of sight exists (could be behind wall/door)
@@ -1032,12 +1033,17 @@ void physics_explodesphere ( void )
 				fRayDestFromExplosionX += t.texplodex_f;
 				fRayDestFromExplosionY += t.texplodey_f;
 				fRayDestFromExplosionZ += t.texplodez_f;
-				t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,t.brayx1_f,t.brayy1_f,t.brayz1_f,0,0,0,-123);
-				t.tintersectvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.texplodex_f,t.texplodey_f,t.texplodez_f,fRayDestFromExplosionX,fRayDestFromExplosionY,fRayDestFromExplosionZ,t.entityelement[t.e].obj);
-				if ( t.tintersectvalue == 0 ) 
+
+				t.ttt = IntersectAll( g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, t.brayx1_f, t.brayy1_f, t.brayz1_f, 0, 0, 0, -123 );
+
+				t.tintersectvalue = IntersectAll( g.entityviewstartobj, g.entityviewendobj, 
+					                              t.texplodex_f, t.texplodey_f, t.texplodez_f, 
+					                              fRayDestFromExplosionX, fRayDestFromExplosionY, fRayDestFromExplosionZ, 
+					                              t.entityelement[ t.e ].obj );
+				if ( t.tintersectvalue == 0 || t.tintersectvalue == t.entityelement[ t.texplodesourceEntity ].obj )
 				{
-					t.tdamage = (t.texploderadius_f-t.tdd_f)*t.tstrengthofexplosion_f;
-					t.tdamageforce = (t.texploderadius_f-t.tdd_f)*t.tstrengthofexplosion_f;
+					t.tdamage = ( t.texploderadius_f - t.tdd_f ) * t.tstrengthofexplosion_f;
+					t.tdamageforce = ( t.texploderadius_f - t.tdd_f ) * t.tstrengthofexplosion_f;
 					t.brayx1_f = t.texplodex_f;
 					t.brayy1_f = t.texplodey_f;
 					t.brayz1_f = t.texplodez_f;
@@ -1047,8 +1053,8 @@ void physics_explodesphere ( void )
 					t.braydx_f = t.brayx2_f-t.brayx1_f;
 					t.braydz_f = t.brayz2_f-t.brayz1_f;
 					t.braydist_f = Sqrt(abs(t.braydx_f*t.braydx_f)+abs(t.braydz_f*t.braydz_f));
-					if ( t.braydist_f<75 ) t.brayy2_f = t.texplodey_f+100.0;
-					if ( t.tdamageforce>150 ) t.tdamageforce = 150;
+					if ( t.braydist_f < 75 ) t.brayy2_f = t.texplodey_f + 100.0;
+					if ( t.tdamageforce > 150 ) t.tdamageforce = 150;
 					t.tdamagesource = 2;
 					t.ttte = t.e ; entity_applydamage( ); t.e = t.ttte;
 					//  inform darkAI of the explosion
