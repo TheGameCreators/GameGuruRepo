@@ -3254,6 +3254,25 @@ int GetLightPosition( lua_State *L )
 	}
 	return 0;
 }
+int GetLightAngle(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1)
+		return 0;
+
+	// get light number
+	int i = lua_tointeger(L, 1);
+
+	if (i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1)
+	{
+		lua_pushnumber(L, t.infinilight[i].f_angle_x);
+		lua_pushnumber(L, t.infinilight[i].f_angle_y);
+		lua_pushnumber(L, t.infinilight[i].f_angle_z);
+		return 3;
+	}
+	return 0;
+}
 int GetLightRGB( lua_State *L )
 {
 	lua = L;
@@ -3311,7 +3330,26 @@ int SetLightPosition( lua_State *L )
 	}
 	return 0;
 }
+int SetLightAngle(lua_State *L)
+{
+	lua = L;
+	// get number of arguments
+	int n = lua_gettop(L);
+	// Not enough params, return out
+	if (n < 4)
+		return 0;
 
+	// get light number
+	int i = lua_tonumber(L, 1);
+
+	if (i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1)
+	{
+		t.infinilight[i].f_angle_x = lua_tonumber(L, 2);
+		t.infinilight[i].f_angle_y = lua_tonumber(L, 3);
+		t.infinilight[i].f_angle_z = lua_tonumber(L, 4);
+	}
+	return 0;
+}
 int SetLightRGB( lua_State *L ) 
 {
 	lua = L;
@@ -5295,18 +5333,20 @@ void addFunctions()
 	lua_register(lua, "RemoveObjectCollisionCheck", RemoveObjectCollisionCheck );
 
 	// quaternion library functions
-	lua_register(lua, "QuatToEuler", QuatToEuler );
-	lua_register(lua, "EulerToQuat", EulerToQuat );
+	lua_register(lua, "QuatToEuler",  QuatToEuler );
+	lua_register(lua, "EulerToQuat",  EulerToQuat );
 	lua_register(lua, "QuatMultiply", QuatMultiply );
-	lua_register(lua, "QuatSLERP", QuatSLERP );
-	lua_register(lua, "QuatLERP", QuatLERP );
+	lua_register(lua, "QuatSLERP",    QuatSLERP );
+	lua_register(lua, "QuatLERP",     QuatLERP );
 
 	// Lua control of dynamic light
 	lua_register(lua, "GetEntityLightNumber", GetEntityLightNumber );
 	lua_register(lua, "GetLightPosition",     GetLightPosition );
+	lua_register(lua, "GetLightAngle",        GetLightAngle );
 	lua_register(lua, "GetLightRGB",          GetLightRGB );
-	lua_register(lua, "GetLightRange",        GetLightRange);
+	lua_register(lua, "GetLightRange",        GetLightRange );
 	lua_register(lua, "SetLightPosition",     SetLightPosition );
+	lua_register(lua, "SetLightAngle",        SetLightAngle );
 	lua_register(lua, "SetLightRGB",          SetLightRGB );
 	lua_register(lua, "SetLightRange",        SetLightRange );
 	

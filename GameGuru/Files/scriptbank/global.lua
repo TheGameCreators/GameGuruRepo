@@ -1778,9 +1778,11 @@ GetEntityColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityColBox( e )   --
 ***** for example; lightNum = GetEntityLightNumber( e )  then  x, y, z = GetLightPosition( lightNum )
 GetEntityLightNumber : lightNum = GetEntityLightNumber( e ) -- returns the internal light number held by the entity
 GetLightPosition : x, y, z = GetLightPosition( lightNum ) -- returns the XYZ position of the dynamic light specified
+GetLightAngle : xv, yv, zv = GetLightAngle( LightNum ) -- returns the angle vector of the dynamic light specified
 GetLightRGB : r, g, b = GetLightRGB( lightNum ) -- returns the RGB color of the dynamic light specified
 GetLightRange : range = GetLightRange ( lightNum ) -- returns the range value of the dynamic light specified
 SetLightPosition : SetLightPosition ( lightNum, x, y, z ) -- sets the new position of the specified dynamic light
+SetLightAngle : SetLightAngle( lightNum, xv, yv, zv ) -- sets the angle vector of the specified light ( e.g. 0, 0, 1 would be 'North' or +Z axis )
 SetLightRGB : SetLightRGB ( lightNum, r, g, b ) -- sets the new color of the specified dynamic light
 SetLightRange : SetLightRange ( lightNum, range ) -- sets the new range (1 to 10000) of the specified light
 
