@@ -1,0 +1,31 @@
+;header
+desc          = Invisible Wall
+
+;visualinfo
+textured      = invisible_wall_D.dds
+effect        = effectbank\reloaded\entity_basic.fx
+castshadow    = 0
+cullmode      = 1
+transparency  = 6
+
+;orientation
+model         = invisible_wall.x
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 2
+collisionmode = 0
+resetlimbmatrix = 1
+isimmobile = 1
+
+;statistics
+strength      = 25
+explodable    = 0
+debrisshape   = 1
+
+;ai
+aimain	      = invisible_wall.lua
