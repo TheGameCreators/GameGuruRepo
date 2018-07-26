@@ -77,6 +77,7 @@ DARKSDK void RemoveFromRenderList(LPVOID pFunction)
 
 #include "DBDLLCore.h"
 extern DWORD g_dwSyncMask;
+extern DWORD g_dwSyncMaskOverride;
 extern GlobStruct g_Glob;
 
 void ExecuteRenderList()

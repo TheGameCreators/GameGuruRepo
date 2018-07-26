@@ -650,7 +650,6 @@ void SetResourceValues(int iGrassObjIN, int iGridObjectStartIN, int iGrassImgIN,
 				// PBR
 				TextureObject ( iObj, 0, iGrassImg ); //Diffuse
 				TextureObject ( iObj, 6, iPBRCubeImg );//EnvironmentMap
-				TextureObject ( iObj, 7, iPBRCurveImg );//GlossCurveMap
 			}
 		}
 	}	

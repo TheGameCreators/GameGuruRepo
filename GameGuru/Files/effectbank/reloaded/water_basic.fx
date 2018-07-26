@@ -161,7 +161,7 @@ float4 PS_Fresnel_Reflect(output IN) : COLOR
 {
    #ifdef USEWATERFORFLOOR
    float2 refluv = IN.ReflProj.xy / IN.ReflProj.w;
-   return float4( WaterreflectTX.Sample(SampleClamp,refluv+Distort.xy).xyz,0.10);
+   return float4( WaterreflectTX.Sample(SampleClamp,refluv).xyz,0.10);
    #else
 #ifdef OLDWATER    
    float Mask=WatermaskTX.Sample(SampleClamp,IN.Tex0).x;

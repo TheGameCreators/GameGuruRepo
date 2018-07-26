@@ -54,7 +54,22 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 		float fObjCtrX = GetObjectCollisionCenterX(t.entityelement[t.e].obj);
 		float fObjCtrZ = GetObjectCollisionCenterZ(t.entityelement[t.e].obj);
 		float fObjHeight = ObjectSizeY(t.entityelement[t.e].obj);
-		lua_positionprompt3d ( t.entityelement[t.e].x+fObjCtrX, t.entityelement[t.e].y+(fObjHeight/2.0f), t.entityelement[t.e].z+fObjCtrZ, ObjectAngleY(t.entityelement[t.e].obj) );
+		float fObjAngle = ObjectAngleY(t.entityelement[t.e].obj);
+		if ( iTrueLocalOrForVR > 0 )
+		{
+			// if PromptLocalForVR mode 1 used, always face player
+			float fDX = t.entityelement[t.e].x - CameraPositionX(0);
+			float fDZ = t.entityelement[t.e].z - CameraPositionZ(0);
+			float fDA = atan2deg ( fDX, fDZ );
+			fObjAngle = fDA;
+
+			// if PromptLocalForVR mode 2 used, also elevate text toi above entity (for characters)
+			if ( iTrueLocalOrForVR == 2 )
+			{
+				fObjHeight = fObjHeight * 1.8f;
+			}
+		}
+		lua_positionprompt3d ( t.entityelement[t.e].x+fObjCtrX, t.entityelement[t.e].y+(fObjHeight/2.0f), t.entityelement[t.e].z+fObjCtrZ, fObjAngle );
 	}
 	else
 	{
@@ -76,9 +91,14 @@ void lua_promptlocal ( void )
 	lua_promptlocalcore ( 0 );
 }
 
+void lua_promptlocalforvrmode ( void )
+{
+	t.promptlocalforvrmode = t.v_f;
+}
+
 void lua_promptlocalforvr ( void )
 {
-	lua_promptlocalcore ( 1 );
+	lua_promptlocalcore ( t.promptlocalforvrmode );
 }
 
 void lua_text ( void )
@@ -1016,7 +1036,9 @@ void lua_loadimages ( void )
 			t.tfile_s=cstr(Right(Str(1000+t.t),3))+".png";
 			if (  FileExist(t.tfile_s.Get()) == 1 ) 
 			{
+				SetMipmapNum(1); //PE: mipmaps not needed.
 				LoadImage (  t.tfile_s.Get(),g.promptimageimageoffset+t.v+t.t );
+				SetMipmapNum(-1); 
 			}
 			else
 			{
@@ -1143,4 +1165,23 @@ void lua_setgamemusicvolume ( void )
 void lua_setloadingresource ( void )
 {
 	t.loadingresource[t.e] = t.v;
+}
+
+void lua_set_sky(void)
+{
+	int index = -1;
+	for (int i = 0; i <= ArrayCount(t.skybank_s); i++) 
+	{
+		if (t.skybank_s[i].Lower()==t.s_s.Lower()) 
+		{
+			index = i;
+			break;
+		}
+	}
+	if (index != -1) 
+	{
+		t.visuals.skyindex = index;
+		t.visuals.refreshskysettings = 1;
+		t.visuals.refreshshaders = 1;
+	}
 }

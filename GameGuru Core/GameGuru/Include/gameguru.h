@@ -168,7 +168,7 @@ struct Sglobals
 	int startbuildingleveloverride;
 	int staticlightmapeffectoffset;
 	int thirdpersoncharactereffect;
-	float cheapshadowhistorypacer_f;
+	//float cheapshadowhistorypacer_f;
 	int csi_unarmedimpactbackANIM;
 	int csi_unarmedimpactforeANIM;
 	int csi_unarmedimpactleftANIM;
@@ -197,7 +197,6 @@ struct Sglobals
 	int ravey_particles_old_time;
 	int timestampactivityflagged;
 	int timestampactivitymemthen;
-	int characterkitimageoffset;
 	int characterSoundBankCount;
 	int characterSoundStackSize;
 	int csi_relaxedmoveforeANIM;
@@ -222,6 +221,7 @@ struct Sglobals
 	int postprocessobjectoffset;
 	int steamplayermodelsoffset;
 	int thirdpersonentityeffect;
+	int lightmappbreffect;
 	int camerapickupkeyrelease;
 	int conkitobjectbankoffset;
 	int ebeobjectbankoffset;
@@ -497,6 +497,22 @@ struct Sglobals
 	int gpretestsavemode;
 	int gproducelogfiles;
 	int gpbroverride;
+	int underwatermode;
+	int editorsavebak;
+	int memskipwatermask;
+	int standalonefreememorybetweenlevels;
+	int lowestnearcamera;
+	int memskipibr;
+	int memgeneratedump;
+
+	int maxtotalmeshlights;
+	int maxpixelmeshlights;
+	int terrainoldlight;
+	int terrainusevertexlights;
+	int maxterrainlights;
+	int terrainlightfadedistance;
+	int showstaticlightinrealtime;
+
 	int grawtextsizelast;
 	int grenadeexplosion;
 	DWORD guniquesignature;
@@ -627,10 +643,11 @@ struct Sglobals
 	int quickstartmenumode;
 	int quickparentalcontrolmode;
 	int quickparentalcontrolmodepassword[5];
+	int vrqoreducontrolmode;
 	int vrqcontrolmode;
 	cstr vrqcontrolmodeserialcode;
 	int vrqTriggerSerialCodeEntrySystem;
-	int vrqTriggerSoftwareToQuit;
+	int iTriggerSoftwareToQuit;
 	int videoMenuPlayed[10];
 	int reviewRequestReminder;
 	int reviewRequestMinuteCounter;
@@ -1109,10 +1126,26 @@ struct Sglobals
 	int guidiffuseshadereffectindex;
 	int guiwireframeshadereffectindex;
 	int guidepthshadereffectindex;
+	int projectileEventType_explosion;
+	cstr projectileEventType_name;
+	int projectileEventType_x;
+	int projectileEventType_y;
+	int projectileEventType_z;
+	int projectileEventType_radius;
+	int projectileEventType_damage;
+	int projectileEventType_entityhit;
 
 	// Constructor
 	Sglobals ( )
 	{
+		 projectileEventType_explosion = 0;
+		 projectileEventType_name = "";
+		 projectileEventType_x = 0;
+		 projectileEventType_y = 0;
+		 projectileEventType_z = 0;
+		 projectileEventType_radius = 0;
+		 projectileEventType_damage = 0;
+		 projectileEventType_entityhit = 0;
 		 guidepthshadereffectindex = 0;
 		 guiwireframeshadereffectindex = 0;
 		 guidiffuseshadereffectindex = 0;
@@ -1962,7 +1995,6 @@ struct Sglobals
 		 csi_relaxedmoveforeANIM = 0;
 		 characterSoundStackSize = 0;
 		 characterSoundBankCount = 0;
-		 characterkitimageoffset = 0;
 		 timestampactivitymemthen = 0;
 		 timestampactivityflagged = 0;
 		 ravey_particles_old_time = 0;
@@ -1990,7 +2022,7 @@ struct Sglobals
 		 csi_unarmedimpactleftANIM = 0;
 		 csi_unarmedimpactforeANIM = 0;
 		 csi_unarmedimpactbackANIM = 0;
-		 cheapshadowhistorypacer_f = 0.0f;
+		 //cheapshadowhistorypacer_f = 0.0f;
 		 thirdpersoncharactereffect = 0;
 		 staticlightmapeffectoffset = 0;
 		 startbuildingleveloverride = 0;
@@ -2069,7 +2101,7 @@ struct Stemps
 	int gamememactuallyusedstarttriggercount;
 	std::vector <inventorytype> saveloadgamepositionplayerinventory;
 	std::vector <int> saveloadgamepositionplayerobjective;
-	int gdynamicterrainshadowcameragenerate;
+	//int gdynamicterrainshadowcameragenerate;
 	cstr tsteamlostconnectioncustommessage_s;
 	int gdynamicterrainshadowcameratrigger;
 	int tempsteamingameinitialwaitingdelay;
@@ -2080,7 +2112,7 @@ struct Stemps
 	int tempsteamhaveaskedtosubscribeflag;
 	cstr tempSteamworksLobbyNameFromList_s;
 	std::vector <int> steamworks_playerAttachmentIndex;
-	int gdynamicterrainshadowcameratimer;
+	//int gdynamicterrainshadowcameratimer;
 	float liftshadowstositontopofterrain_f;
 	int tconsolidatelocallightmapobjects;
 	int tmaxcharacterstateengineentities;
@@ -2105,7 +2137,7 @@ struct Stemps
 	std::vector <int> csi_stoodincoverthrowleftANIM;
 	std::vector <int> interactivesequencemaxhistory;
 	int entityorsegmententrieschanged;
-	int gdynamicterrainshadowcameraid;
+	//int gdynamicterrainshadowcameraid;
 	int geditorhighlightingtentityobj;
 	int scanforentitiescharactersonly;
 	int tdeathamounttotakeoffdistance;
@@ -2134,6 +2166,7 @@ struct Stemps
 	int tcoopyentityupdatetostartat;
 	int tdisablepickupdropthiscycle;
 	int tDrowning_OldReflectionMode;
+	int tDrowning_OldWobbleHeight;
 	cstr tempsteamworkshopfilename_s;
 	int tgeneratefreshwatermaskflag;
 	float toriginalTranslateClickX1_f;
@@ -2199,7 +2232,7 @@ struct Stemps
 	cstr tempsteamworkshopidfile_s;
 	int thideprojectileinhudmodel;
 	int tischaracterholdingweapon;
-	int tonlyusingcheapestcascade;
+	//int tonlyusingcheapestcascade;
 	int tsteamdisplaymessagetimer;
 	int tsteamlastdamageincounter;
 	int tsteamwaitedforlobbytimer;
@@ -2207,6 +2240,7 @@ struct Stemps
 	float tusecurrentgroundheight_f;
 	std::vector <cstr> characterkitavatarbank_s;
 	std::vector <cstr> characterkitweaponbank_s;
+	std::vector <cstr> characterkitprofilebank_s;
 	std::vector <int> csi_crouchdownrocketANIM;
 	std::vector <int> csi_crouchfirerocketANIM;
 	std::vector <int> csi_crouchidlerocketANIM;
@@ -2354,6 +2388,7 @@ struct Stemps
 	int charactergunposeindex;
 	int characterkitavatarmax;
 	int characterkitweaponmax;
+	int characterkitprofilemax;
 	int completelyfillvegarea;
 	float currentgunanimspeed_f;
 	cstr dynterrshadowshader_s;
@@ -2761,6 +2796,13 @@ struct Stemps
 	float tphysicsadvance_f;
 	cstr tProjectileName_s;
 	int tProjectileResult;
+	int tProjectileResultExplosionImageID;
+	int tProjectileResultLightFlag;
+	int tProjectileResultSmokeImageID;
+	int tProjectileResultSparksCount;
+	int tProjectileResultSize;
+	int tProjectileResultSmokeSize;
+	int tProjectileResultSparksSize;
 	cstr tProjectileType_s;
 	int trecentfilechoice;
 	int trecolorAfterGame;
@@ -3089,6 +3131,12 @@ struct Stemps
 	int gunmodeloopsnd;
 	int gunshootnoammo;
 	int gunshootspread;
+	float gunshootspreadposx;
+	float gunshootspreadposy;
+	float gunshootspreadposz;
+	float gunshootspreadanglex;
+	float gunshootspreadangley;
+	float gunshootspreadanglez;
 	cstr levelmapptah_s;
 	int mainstatistic1;
 	int mainstatistic5;
@@ -3766,6 +3814,7 @@ struct Stemps
 	std::vector <ani> animations;
 	std::vector <bitdetailstype> bitdetails;
 	std::vector< std::vector<bitmapfonttype> > bitmapfont;
+	std::vector< std::vector<entityappendanimtype> > entityappendanim;
 	std::vector< std::vector<entityanimtype> > entityanim;
 	std::vector <cstr> fileData_s;
 	std::vector <cstr> filelist_s;
@@ -3920,6 +3969,7 @@ struct Stemps
 	float tmastery_f;
 	float tmasterz_f;
 	int tmeleeanim;
+	int tlastmeleeanim;
 	float tmempercdest_f;
 	float tmemperc_f;
 	float tMiddleX_f;
@@ -4305,11 +4355,13 @@ struct Stemps
 	gunanimtype gdryfire;
 	gridedittype gridedit;
 	int gunbrass;
+	DWORD gunbrasstrigger;
 	int gunburst;
 	int gunclick;
 	int gunflash;
 	int gunshoot;
 	int gunsmoke;
+	int gunactiveidlesoundloopindex;
 	int handlimb;
 	float hatRed_f;
 	int iControl;
@@ -4575,6 +4627,8 @@ struct Stemps
 	float gunay_f;
 	int gunfull;
 	int gunmode;
+	int gunmodelast;
+	float gunmodewaitforframe;
 	float ImpMaxX;
 	float ImpMaxY;
 	float ImpMaxZ;
@@ -4585,6 +4639,7 @@ struct Stemps
 	int L_Thigh;
 	int leaping;
 	int leftArm;
+	int promptlocalforvrmode;
 	luatexttype luaText;
 	int mytimer;
 	float newx1_f;
@@ -4662,6 +4717,7 @@ struct Stemps
 	float tdist_f;
 	int tdouble;
 	int tempani;
+	int templastani;
 	terraintype terrain;
 	int tescale;
 	int testore;
@@ -5027,6 +5083,7 @@ struct Stemps
 	gunanimtype gcock;
 	gunanimtype ghide;
 	gunanimtype gidle;
+	gunanimtype gruntofrom;
 	gunanimtype gmove;
 	int group;
 	gunanimtype gshow;
@@ -6711,6 +6768,7 @@ struct Stemps
 		 gunclick = 0;
 		 gunburst = 0;
 		 gunbrass = 0;
+		 gunactiveidlesoundloopindex = 0;
 		 firerate = 0;
 		 filesmax = 0;
 		 filesize = 0;
@@ -7994,6 +8052,13 @@ struct Stemps
 		 trecolorAfterGame = 0;
 		 trecentfilechoice = 0;
 		 tProjectileType_s = "";
+		 tProjectileResultSize = 0;
+		 tProjectileResultSmokeSize = 0;
+		 tProjectileResultSparksSize = 0;
+		 tProjectileResultLightFlag = 0;
+		 tProjectileResultSmokeImageID = 0;
+		 tProjectileResultSparksCount = 0;
+		 tProjectileResultExplosionImageID = 0;
 		 tProjectileResult = 0;
 		 tProjectileName_s = "";
 		 tphysicsadvance_f = 0.0f;
@@ -8394,7 +8459,7 @@ struct Stemps
 		 tsteamwaitedforlobbytimer = 0;
 		 tsteamlastdamageincounter = 0;
 		 tsteamdisplaymessagetimer = 0;
-		 tonlyusingcheapestcascade = 0;
+		 //tonlyusingcheapestcascade = 0;
 		 tischaracterholdingweapon = 0;
 		 thideprojectileinhudmodel = 0;
 		 tempsteamworkshopidfile_s = "";
@@ -8458,7 +8523,7 @@ struct Stemps
 		 tdeathamounttotakeoffdistance = 0;
 		 scanforentitiescharactersonly = 0;
 		 geditorhighlightingtentityobj = 0;
-		 gdynamicterrainshadowcameraid = 0;
+		 //gdynamicterrainshadowcameraid = 0;
 		 entityorsegmententrieschanged = 0;
 		 tsteamworkshopTheVersionNumber = 0;
 		 tforwardoffsettohideshoulder_f = 0.0f;
@@ -8473,7 +8538,7 @@ struct Stemps
 		 tmaxcharacterstateengineentities = 0;
 		 tconsolidatelocallightmapobjects = 0;
 		 liftshadowstositontopofterrain_f = 0.0f;
-		 gdynamicterrainshadowcameratimer = 0;
+		 //gdynamicterrainshadowcameratimer = 0;
 		 tempSteamworksLobbyNameFromList_s = "";
 		 tempsteamhaveaskedtosubscribeflag = 0;
 		 tsteamiseveryoneloadedandreadytime = 0;
@@ -8482,7 +8547,7 @@ struct Stemps
 		 tempsteamingameinitialwaitingdelay = 0;
 		 gdynamicterrainshadowcameratrigger = 0;
 		 tsteamlostconnectioncustommessage_s = "";
-		 gdynamicterrainshadowcameragenerate = 0;
+		 //gdynamicterrainshadowcameragenerate = 0;
 		 gamememactuallyusedstarttriggercount = 0;
 		 tmaskforcamerasnoreflectionlightrayflag = 0;
 		 tconsolidatelocallightmapobjectspolylimit = 0;

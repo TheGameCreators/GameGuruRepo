@@ -397,11 +397,14 @@ Vector3*  TransformCoord(Vector3 *pout, const Vector3 *pv, const KMaths::Matrix 
 
 Vector3*  TransformNormal(Vector3 *pout, const Vector3 *pv, const KMaths::Matrix *pm)
 {
-    pout->x = pm->m[0][0] * pv->x + pm->m[1][0] * pv->y + pm->m[2][0] * pv->z;
-    pout->y = pm->m[0][1] * pv->x + pm->m[1][1] * pv->y + pm->m[2][1] * pv->z;
-    pout->z = pm->m[0][2] * pv->x + pm->m[1][2] * pv->y + pm->m[2][2] * pv->z;
+	float x, y, z;
+    x = pm->m[0][0] * pv->x + pm->m[1][0] * pv->y + pm->m[2][0] * pv->z;
+    y = pm->m[0][1] * pv->x + pm->m[1][1] * pv->y + pm->m[2][1] * pv->z;
+    z = pm->m[0][2] * pv->x + pm->m[1][2] * pv->y + pm->m[2][2] * pv->z;
+    pout->x = x;
+    pout->y = y;
+    pout->z = z;
     return pout;
-
 }
 
 /*

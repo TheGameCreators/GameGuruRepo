@@ -18,7 +18,7 @@ void importer_snapUp ( void );
 void importer_snapforward ( void );
 void importer_check_for_physics_changes ( void );
 void importer_update_textures ( void );
-void importer_load_textures_finish ( int tCount );
+void importer_load_textures_finish ( int tCount, bool bCubeMapOnly );
 void importer_load_textures ( void );
 void importer_load_fpe ( void );
 void importer_apply_fpe ( void );

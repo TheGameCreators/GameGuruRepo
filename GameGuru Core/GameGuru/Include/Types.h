@@ -40,7 +40,7 @@
 //  These will be initial maximums for the data structures, but we can dynamically grow the arrays when required
 #define WEAPON_MAXWEAPONS      20
 #define WEAPON_MAXANIMATIONS   30
-#define WEAPON_PROJECTILETYPES 10
+#define WEAPON_PROJECTILETYPES 100
 #define WEAPON_MAXPROJECTILES  100
 #define WEAPON_MAXSOUNDS       100
 
@@ -77,7 +77,7 @@
 #define WEAPON_PROJECTILERESULT_NULL     0
 #define WEAPON_PROJECTILERESULT_DAMAGE   1
 #define WEAPON_PROJECTILERESULT_EXPLODE  2
-#define WEAPON_PROJECTILERESULT_MULTIPLY 3
+#define WEAPON_PROJECTILERESULT_CUSTOM   99
 
 //  These are the animations a weapon can perform
 #define WEAPON_ANIMATION_NULL            0
@@ -104,8 +104,7 @@
 #define WEAPON_ANIMATION_MOVESCOPETOHIP  21
 #define WEAPON_ANIMATION_MOVESCOPETOIRON 22
 
-//  These are the type of particle the weapon or projectile can create. I expect this
-//  to be removed/changed when we have our final particle system
+//  These are the type of particle the weapon or projectile can create (stock defaults)
 #define WEAPON_PARTICLETYPE_NONE         0
 #define WEAPON_PARTICLETYPE_SMOKE        1
 #define WEAPON_PARTICLETYPE_FLARE        2
@@ -115,12 +114,10 @@
 #define RAVEY_PARTICLE_EMITTERS_MAX 10
 #define RAVEY_PARTICLES_MAX 100
 #define RAVEY_PARTICLES_MAX_SPAWNED_AT_ONCE_BY_AN_EMITTER 20
-#define RAVEY_PARTICLES_IMAGETYPE_SMOKE      0
+#define RAVEY_PARTICLES_IMAGETYPE_FLARE      0
 #define RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE 1
 #define RAVEY_PARTICLES_IMAGETYPE_FLAME      2
-#define RAVEY_PARTICLES_IMAGETYPE_DEBRIS     3
-#define RAVEY_PARTICLES_IMAGETYPE_EXPLOSION  4
-#define RAVEY_PARTICLES_IMAGETYPE_SPLASH     5
+#define RAVEY_PARTICLES_IMAGETYPE_LASTONE    3
 
 //  Widget keys
 #define WIDGET_KEY_TRANSLATE 88
@@ -906,7 +903,6 @@ struct WeaponSystemType
 //  This forms the basis for the data passed to the particle system. Not all values are used by all particle types
 struct weaponParticleEmitterBaseType
 {
-
 	int particleType;
 	float delay;
 	int joint;
@@ -983,27 +979,20 @@ struct weaponParticleEmitterBaseType
 		 delay = 0.0f;
 		 particleType = 0;
 	}
-	// End of Constructor
-
 };
 
 
 //  This is the realtime changing data for a particle emitter type defined with weaponParticleEmitterBaseType
 struct weaponParticleEmitterType
 {
-
 	int lastEmitStamp;
-
 
 	// Constructor
 	weaponParticleEmitterType ( )
 	{
 		 lastEmitStamp = 0;
 	}
-	// End of Constructor
-
 };
-
 
 //  Settings for the currently held weapon and global high level settings
 struct CurrentWeaponType
@@ -1344,14 +1333,11 @@ struct weaponSoundType
 		 minVolume = 0;
 		 sndID = 0;
 	}
-	// End of Constructor
-
 };
 
 
 struct weaponProjectileBaseType
 {
-
 	int activeFlag;
 	cstr name_s;
 	int mode;
@@ -1361,6 +1347,7 @@ struct weaponProjectileBaseType
 	int textureN;
 	int textureS;
 	int effectid;
+	int noZWrite;
 	float baseObjScaleMinX_f;
 	float baseObjScaleMaxX_f;
 	float baseObjScaleMinY_f;
@@ -1422,6 +1409,20 @@ struct weaponProjectileBaseType
 	int soundDeath;
 
 	int particleType;
+	cstr particleName;
+	int particleImageID;
+	int explosionType;
+	cstr explosionName;
+	int explosionImageID;
+	int explosionLightFlag;
+	int explosionSize;
+	cstr explosionSmokeName;
+	int explosionSmokeImageID;
+	int explosionSmokeSize;
+	int explosionSparksCount;
+	int explosionSparksSize;
+	int projectileEventType;
+
 	int thrustTime;
 	int thrustDelay;
 	weaponParticleEmitterBaseType thrustParticle1;
@@ -1431,13 +1432,25 @@ struct weaponProjectileBaseType
 
 	int overridespotlighting;
 
-
 	// Constructor
 	weaponProjectileBaseType ( )
 	{
 		 overridespotlighting = 0;
 		 thrustDelay = 0;
 		 thrustTime = 0;
+		 projectileEventType = 0;
+		 explosionSize = 0;
+		 explosionSmokeSize = 0;
+		 explosionSparksSize = 0;
+		 explosionSmokeName = "";
+		 explosionLightFlag = 0;
+		 explosionSmokeImageID = 0;
+		 explosionSparksCount = 0;
+		 explosionImageID = 0;
+		 explosionName = "";
+		 explosionType = 0;
+		 particleImageID = 0;
+		 particleName = "";
 		 particleType = 0;
 		 soundDeath = 0;
 		 soundInterval = 0;
@@ -2585,10 +2598,16 @@ struct importerTexture
 	int spriteID2;
 	cstr fileName;
 	cstr originalName;
+	int iExpandedThisSlot;
+	int iOptionalStage;
+	int iAssociatedBaseImage;
 
 	// Constructor
 	importerTexture ( )
 	{
+		 iAssociatedBaseImage = 0;
+		 iOptionalStage = 0;
+ 		 iExpandedThisSlot = 0;
 		 originalName = "";
 		 fileName = "";
 		 spriteID2 = 0;
@@ -3240,16 +3259,34 @@ struct globalstype
 	int disablefreeflight;
 	int fulldebugview;
 	int enableplrspeedmods;
+	int disableweaponjams;
 	int showdebugcollisonboxes;
 	int hideebe;
 	int hidedistantshadows;
 	int realshadowresolution;
 	int realshadowcascadecount;
 	int realshadowcascade[8];
+	int realshadowsize[8];
+	float realshadowdistance;
+	float realshadowdistancehigh;
+	int editorusemediumshadows;
 
 	// Constructor
 	globalstype ( )
 	{
+		 realshadowdistance = 5000.0f;
+		 realshadowdistancehigh = 5000.0f;
+		 editorusemediumshadows = 1;
+
+		 realshadowsize[0] = 0;
+		 realshadowsize[1] = 0;
+		 realshadowsize[2] = 0;
+		 realshadowsize[3] = 0;
+		 realshadowsize[4] = 0;
+		 realshadowsize[5] = 0;
+		 realshadowsize[6] = 0;
+		 realshadowsize[7] = 0;
+
 		 realshadowcascade[0] = 2;
 		 realshadowcascade[1] = 8;
 		 realshadowcascade[2] = 16;
@@ -3263,6 +3300,7 @@ struct globalstype
 		 hidedistantshadows = 1;
 		 hideebe = 0;
 		 showdebugcollisonboxes = 0;
+		 disableweaponjams = 0;
 		 enableplrspeedmods = 0;
 		 fulldebugview = 0;
 		 disablefreeflight = 0;
@@ -3667,6 +3705,18 @@ struct visualstype
 	float SAOIntensity_f;
 	float SAOQuality_f;
 	float LensFlare_f;
+	float WaterRed_f;
+	float WaterBlue_f;
+	float WaterGreen_f;
+	float WaterWaveIntensity_f;
+	float WaterTransparancy_f;
+	float WaterReflection_f;
+	float WaterReflectionSparkleIntensity;
+	float WaterFlowDirectionX;
+	float WaterFlowDirectionY;
+	float WaterDistortionWaves;
+	float WaterSpeed1;
+	float WaterFlowSpeed;
 
 	// Constructor
 	visualstype ( )
@@ -3753,6 +3803,19 @@ struct visualstype
 		 pressed = 0;
 		 value_f = 0.0f;
 		 mode = 0;
+		 //New Water Vars
+		 WaterRed_f= 0.0f;
+		 WaterBlue_f = 0.0f;
+		 WaterGreen_f = 0.0f;
+		 WaterWaveIntensity_f = 0.0f;
+		 WaterTransparancy_f = 0.0f;
+		 WaterReflectionSparkleIntensity = 0.0f;
+		 WaterReflection_f = 0.0f;
+		 WaterFlowDirectionX = 0.0f;
+		 WaterFlowDirectionY = 0.0f;
+		 WaterDistortionWaves=0.0f;
+		 WaterSpeed1 = 0.0f;
+		 WaterFlowSpeed=0.0f;
 	}
 	// End of Constructor
 
@@ -4790,21 +4853,28 @@ struct entityprofileheadertype
 
 };
 
+struct entityappendanimtype
+{
+	cstr filename;
+	int startframe;
+	entityappendanimtype ( )
+	{
+		 filename = "";
+		 startframe = 0;
+	}
+};
+
 struct entityanimtype
 {
 	int start;
 	int finish;
 	int found;
-
-	// Constructor
 	entityanimtype ( )
 	{
 		 found = 0;
 		 finish = 0;
 		 start = 0;
 	}
-	// End of Constructor
-
 };
 
 struct tentityfootfall
@@ -4919,6 +4989,7 @@ struct entityprofiletype
 	int forcesimpleobstacle;
 	float forceobstaclepolysize;
 	float forceobstaclesliceheight;
+	float forceobstaclesliceminsize;
 	int notanoccluder;
 	int materialindex;
 	int disablebatch;
@@ -4959,6 +5030,8 @@ struct entityprofiletype
 	float uvscrollv;
 	float uvscaleu;
 	float uvscalev;
+	int invertnormal;
+	int preservetangents;
 	int zdepth;
 	int cullmode;
 	int reducetexture;
@@ -4995,6 +5068,7 @@ struct entityprofiletype
 	int spine;
 	int spine2;
 	int firespotlimb;
+	int appendanimmax;
 	int animmax;
 	int startofaianim;
 	int footfallmax;
@@ -5170,6 +5244,7 @@ struct entityprofiletype
 		 quantity = 0;
 		 footfallmax = 0;
 		 startofaianim = 0;
+		 appendanimmax = 0;
 		 animmax = 0;
 		 firespotlimb = 0;
 		 spine2 = 0;
@@ -5243,6 +5318,7 @@ struct entityprofiletype
 		 forcesimpleobstacle = 0;
 		 forceobstaclepolysize = 0.0f;
 		 forceobstaclesliceheight = 0.0f;
+		 forceobstaclesliceminsize = 0.0f;
 		 collisionoverride = 0;
 		 collisionscaling = 0;
 		 collisionmode = 0;
@@ -6251,16 +6327,16 @@ struct gunsoundstype
 	int soundframes;
 	int fireloopend;
 	int altfireloopend;
-
-	// Constructor
+	int loopsound;
+	int emptyloopsound;
 	gunsoundstype ( )
 	{
+		 loopsound = 0;
+		 emptyloopsound = 0;
 		 altfireloopend = 0;
 		 fireloopend = 0;
 		 soundframes = 0;
 	}
-	// End of Constructor
-
 };
 
 
@@ -6331,8 +6407,7 @@ struct gunsettingstype
 	int minpolytrim;
 	int decalforward;
 	int meleenoscorch;
-//  `altmeleekey as integer
-
+	int doesnotuseammo;
 	int altmeleedamage;
 	int altmeleerange;
 	int altmeleenoscorch;
@@ -6363,6 +6438,8 @@ struct gunsettingstype
 	float brassrotyrand;
 	float brassrotz;
 	float brassrotzrand;
+	int brassdelay;
+	int zoombrassdelay;
 	int smoke;
 	int flashlimb;
 	int brasslimb;
@@ -6398,6 +6475,7 @@ struct gunsettingstype
 	int range;
 	int dropoff;
 	int usespotlighting;
+	int smokesize;
 	int smokespeed;
 	cstr smokedecal_s;
 	int firerate;
@@ -6457,6 +6535,7 @@ struct gunsettingstype
 	float runy_f;
 	float runx_f;
 	int runaccuracy;
+	int runanimdelay;
 	unsigned char noautoreload;
 	unsigned char nofullreload;
 	unsigned char chamberedround;
@@ -6510,6 +6589,7 @@ struct gunsettingstype
 		 nofullreload = 0;
 		 noautoreload = 0;
 		 runaccuracy = 0;
+		 runanimdelay = 0;
 		 runx_f = 0.0f;
 		 runy_f = 0.0f;
 		 ammomax = 0;
@@ -6567,6 +6647,7 @@ struct gunsettingstype
 		 altfirerate = 0;
 		 firerate = 0;
 		 smokedecal_s = "";
+		 smokesize = 0;
 		 smokespeed = 0;
 		 usespotlighting = 0;
 		 dropoff = 0;
@@ -6705,6 +6786,8 @@ struct gunactionstype
 {
 	gunanimtype show;
 	gunanimtype idle;
+	gunanimtype runto;
+	gunanimtype runfrom;
 	gunanimtype move;
 	gunanimtype run;
 	gunanimtype flattentochest;
@@ -6813,6 +6896,9 @@ struct guntype
 	int ammoimg;
 	int iconimg;
 	float keyframespeed_f;
+	int invertnormal;
+	int preservetangents;
+	float boostintensity;
 
 	// Constructor
 	guntype ( )
@@ -7192,6 +7278,7 @@ struct slidersmenunamestype
 	int worldpanel;
 	int yesnopanel;
 	int posteffects;
+	int water;
 
 	// Constructor
 	slidersmenunamestype ( )
@@ -7209,6 +7296,7 @@ struct slidersmenunamestype
 		 visuals = 0;
 		 performance = 0;
 		 aidrilldown = 0;
+		 water = 0;
 	}
 	// End of Constructor
 
@@ -7246,7 +7334,13 @@ struct infinilighttype
 	int islit;
 	int e;
 	float distfromcam_f;
+	float distfromobj_f;
 	float intensity_f;
+	bool drop_entry;
+	bool is_spot_light;
+	float f_angle_x;
+	float f_angle_y;
+	float f_angle_z;
 
 	// Constructor
 	infinilighttype ( )
@@ -7263,6 +7357,9 @@ struct infinilighttype
 		 x = 0.0f;
 		 type = 0;
 		 used = 0;
+		 f_angle_x = 0;
+		 f_angle_y = 0;
+		 f_angle_z = 0;
 	}
 	// End of Constructor
 
@@ -8363,7 +8460,7 @@ struct terraintype
 	int terrainregionx2;
 	int terrainregionz1;
 	int terrainregionz2;
-	int terraintriggercheapshadowrefresh;
+	//int terraintriggercheapshadowrefresh;
 	int terrainquickupdate;
 	int terrainquickx1;
 	int terrainquickx2;
@@ -8542,7 +8639,7 @@ struct terraintype
 		 terrainquickx2 = 0;
 		 terrainquickx1 = 0;
 		 terrainquickupdate = 0;
-		 terraintriggercheapshadowrefresh = 0;
+		 //terraintriggercheapshadowrefresh = 0;
 		 terrainregionz2 = 0;
 		 terrainregionz1 = 0;
 		 terrainregionx2 = 0;
@@ -9122,6 +9219,7 @@ struct playercontroltype
 	float ripplecount_f;
 	int lastfootfallsound;
 	int isrunning;
+	DWORD isrunningtime;
 	int usingrun;
 	int gravityactive;
 	int gravityactivepress;

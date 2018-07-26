@@ -100,12 +100,19 @@ float4 mainPS(vertexOutput IN) : COLOR
     float4 result;
     result = float4(DiffuseMap.Sample(SampleWrap,IN.TexCoord.xy).xyz,alphaoverride);
     float distantfogfactor = 1.0 - (HudFogDist.y / 50000.0f);
+    distantfogfactor = clamp(distantfogfactor,0.0,1.0);
     #ifndef ADDSKYBOXFOG
+#ifdef ROUNDEDSKYBOXFOG
+	 //PE: let box look like its round.
+     float hudfogfactor = (1 - saturate( (IN.ObjPos.y / 1.5) * cos( length(IN.ObjPos)/8.0 ) )) * distantfogfactor;
+#else
      float hudfogfactor = (1 - saturate(IN.ObjPos.y / 1.5)) * distantfogfactor;
+#endif
     #else
      float hudfogfactor = distantfogfactor;
     #endif
-    result = lerp(result,float4(HudFogColor.xyz,0),hudfogfactor*HudFogColor.w);    
+    hudfogfactor = clamp(hudfogfactor*HudFogColor.w*distantfogfactor,0.0,1.0);
+    result = lerp(result,float4(HudFogColor.xyz,0),hudfogfactor); //*HudFogColor.w
     return float4(result.xyz,1);
 	#endif
 }

@@ -3,5 +3,5 @@ string Description = "PBR Weapon Shader (bone)";
 #define ILLUMINATIONMAP
 #define WITHANIMATION
 #define CUTINTODEPTHBUFFER
-#define CALLEDFROMWEAPON
+#define BOOSTINTENSITY
 #include "apbr_core.fx"

@@ -6,10 +6,10 @@
 #include "gameguru.h"
 
 // Externals
-extern int g_iTriggerReloadOfImportModel;
-extern int g_iFBXGeometryToggleMode;
-extern int g_iFBXGeometryCenterMesh;
-extern bool g_VR920RenderStereoNow;
+//extern int g_iTriggerReloadOfImportModel;
+//extern int g_iFBXGeometryToggleMode;
+//extern int g_iFBXGeometryCenterMesh;
+//extern bool g_VR920RenderStereoNow;
 extern UINT g_StereoEyeToggle;
 
 // 
@@ -20,6 +20,7 @@ void sliders_init ( void )
 {
 	//  load images for slider resources
 	t.timgbase=g.slidersmenuimageoffset;
+	SetMipmapNum(1); //PE: mipmaps not needed.
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\bar.png",t.timgbase+1,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\handle.png",t.timgbase+2,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\paneltop.png",t.timgbase+3,1 );
@@ -73,7 +74,8 @@ void sliders_init ( void )
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-staff.png",t.timgbase+82,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\health-icon.png",t.timgbase+91,1 );
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\lives-icon.png",t.timgbase+92,1 );
-
+	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-infinity.png",t.timgbase+93,1 );
+	SetMipmapNum(-1);
 	//  Multiple panels allowed
 	g.slidersmenumax=0;
 
@@ -230,6 +232,45 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.CameraFOVZoomed_f*100;
 	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Weapon Horizontal FOV";
 	t.slidersmenuvalue[g.slidersmenumax][4].value=(((t.visuals.WeaponFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
+
+	//  Water panel
+	++g.slidersmenumax;
+	t.slidersmenunames.water = g.slidersmenumax;
+	t.slidersmenu[g.slidersmenumax].tabpage = 2;
+	t.slidersmenu[g.slidersmenumax].title_s = "WATER SETTINGS";
+	t.slidersmenu[g.slidersmenumax].thighlight = -1;
+	t.slidersmenu[g.slidersmenumax].ttop = 5;
+	t.slidersmenu[g.slidersmenumax].tleft = GetDisplayWidth() - 256 - 16 - 5 - 260 - 260 - 260 -260;
+	t.slidersmenu[g.slidersmenumax].titlemargin = 63;
+	t.slidersmenu[g.slidersmenumax].leftmargin = 25;
+	t.slidersmenu[g.slidersmenumax].itemcount = 13;
+	t.slidersmenu[g.slidersmenumax].panelheight = 30 + (t.slidersmenu[g.slidersmenumax].itemcount * 38);
+	t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Water Height";
+	t.slidersmenuvalue[g.slidersmenumax][1].value = SlidersCutExtendedValues(g.gdefaultwaterheight/10);
+	t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Water Red";
+	t.slidersmenuvalue[g.slidersmenumax][2].value = SlidersCutExtendedValues(t.visuals.WaterRed_f/2.55);
+	t.slidersmenuvalue[g.slidersmenumax][3].name_s = "Water Green";
+	t.slidersmenuvalue[g.slidersmenumax][3].value = SlidersCutExtendedValues(t.visuals.WaterGreen_f/2.55);
+	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "Water Blue";
+	t.slidersmenuvalue[g.slidersmenumax][4].value = SlidersCutExtendedValues(t.visuals.WaterBlue_f/2.55);
+	t.slidersmenuvalue[g.slidersmenumax][5].name_s = "Wave Intensity";
+	t.slidersmenuvalue[g.slidersmenumax][5].value = SlidersCutExtendedValues(t.visuals.WaterWaveIntensity_f/2);
+	t.slidersmenuvalue[g.slidersmenumax][6].name_s = "Water Transparancy";
+	t.slidersmenuvalue[g.slidersmenumax][6].value = SlidersCutExtendedValues(t.visuals.WaterTransparancy_f*100.0);
+	t.slidersmenuvalue[g.slidersmenumax][7].name_s = "Water Reflection";
+	t.slidersmenuvalue[g.slidersmenumax][7].value = SlidersCutExtendedValues(t.visuals.WaterReflection_f*100.0);
+	t.slidersmenuvalue[g.slidersmenumax][8].name_s = "Reflection Sparkle Intensity";
+	t.slidersmenuvalue[g.slidersmenumax][8].value = SlidersCutExtendedValues(t.visuals.WaterReflectionSparkleIntensity *5.0);
+	t.slidersmenuvalue[g.slidersmenumax][9].name_s = "Flow Direction X";
+	t.slidersmenuvalue[g.slidersmenumax][9].value = SlidersCutExtendedValues(t.visuals.WaterFlowDirectionX * 10 + 50);
+	t.slidersmenuvalue[g.slidersmenumax][10].name_s = "Flow Direction Y";
+	t.slidersmenuvalue[g.slidersmenumax][10].value = SlidersCutExtendedValues(t.visuals.WaterFlowDirectionY * 10 + 50);
+	t.slidersmenuvalue[g.slidersmenumax][11].name_s = "Water Distortion Waves";
+	t.slidersmenuvalue[g.slidersmenumax][11].value = SlidersCutExtendedValues(t.visuals.WaterDistortionWaves*1000);
+	t.slidersmenuvalue[g.slidersmenumax][12].name_s = "Water Ripple Speed";
+	t.slidersmenuvalue[g.slidersmenumax][12].value = SlidersCutExtendedValues(100-t.visuals.WaterSpeed1);
+	t.slidersmenuvalue[g.slidersmenumax][13].name_s = "Water Speed";
+	t.slidersmenuvalue[g.slidersmenumax][13].value = SlidersCutExtendedValues(t.visuals.WaterFlowSpeed*10.0);
 
 	//  Post Effects panel
 	++g.slidersmenumax;
@@ -516,11 +557,8 @@ void sliders_init ( void )
 
 void sliders_free ( void )
 {
-
-	//  no need to free as will be returning to in-game test
-
-return;
-
+	// no need to free as will be returning to in-game test
+	g.slidersmenumax = 0;
 }
 
 void sliders_loop ( void )
@@ -997,10 +1035,11 @@ void sliders_loop ( void )
 								//  can scroll contents of drop down
 								if (  t.tgamemousey_f != 0 ) 
 								{
-									if (  t.tgamemousey_f >= GetDisplayHeight()-20 || t.tgamemousey_f<0 ) 
+									int iBottomOfScreenInUI = GetChildWindowHeight();
+									if (  t.tgamemousey_f >= iBottomOfScreenInUI-40 || t.tgamemousey_f<0 ) 
 									{
 										g.slidersmenudropdownscroll_f += 0.4f;
-										t.tlastchunkcanseemax=2+(t.slidersdropdownmax-((GetDisplayHeight()-t.slidersdropdowntop)/16));
+										t.tlastchunkcanseemax=2+(t.slidersdropdownmax-((iBottomOfScreenInUI-t.slidersdropdowntop)/16));
 										if (  g.slidersmenudropdownscroll_f>t.tlastchunkcanseemax ) 
 										{
 											g.slidersmenudropdownscroll_f=t.tlastchunkcanseemax;
@@ -1587,33 +1626,33 @@ void sliders_draw ( void )
 		//  draw slider menus
 		for ( t.slidersmenuindex = 1 ; t.slidersmenuindex<=  g.slidersmenumax; t.slidersmenuindex++ )
 		{
-
 			t.tabviewflag=0;
-			if (  t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
-			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0 && g.tabmode<3  )  t.tabviewflag = 1;
-			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
-			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -9 && g.lowfpswarning == 1  )  t.tabviewflag = 1;
+			if ( t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
+			if ( t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0 && g.tabmode<3  )  t.tabviewflag = 1;
+			if ( t.slidersmenu[t.slidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
+			if ( t.slidersmenu[t.slidersmenuindex].tabpage == -9 && g.lowfpswarning == 1  )  t.tabviewflag = 1;
 
-			if (  t.tabviewflag == 1 ) 
+			if ( t.tabviewflag == 1 ) 
 			{
 				t.rmposx=t.slidersmenu[t.slidersmenuindex].tleft;
 				t.rmposy=t.slidersmenu[t.slidersmenuindex].ttop;
 				t.timgbase=g.slidersmenuimageoffset;
 				t.tpanely=t.rmposy;
-				if (  t.slidersmenu[t.slidersmenuindex].customimage>0 ) 
+				if ( t.slidersmenu[t.slidersmenuindex].customimage>0 ) 
 				{
-					//  custom panel (ammo, health)
-					if (  t.slidersmenu[t.slidersmenuindex].customimagetype == 1 && t.gunid>0 ) 
+					// custom panel (ammo, health)
+					if ( t.slidersmenu[t.slidersmenuindex].customimagetype == 1 && t.gunid>0 ) 
 					{
-						if ( g.quickparentalcontrolmode == 2 || t.gun[t.gunid].weapontype == 51 || g.firemodes[t.gunid][g.firemode].settings.reloadqty == 0 ) 
+						//if ( g.quickparentalcontrolmode == 2 || t.gun[t.gunid].weapontype == 51 || g.firemodes[t.gunid][g.firemode].settings.reloadqty == 0 ) 
+						if ( g.quickparentalcontrolmode == 2 || t.gun[t.gunid].weapontype == 51 ) 
 						{
-							//  melee has no ammo panel
+							// melee has no ammo panel
 						}
 						else
 						{
-							//  ammo panel (flash if no ammo or weapon jammed)
-							if (  SpriteExist(g.ammopanelsprite)  ==  0  )  Sprite (  g.ammopanelsprite,-1000,-1000,t.timgbase+51 );
-							t.tflashforjam = 0 ; if (  g.firemodes[t.gunid][g.firemode].settings.jammed == 1  )  t.tflashforjam = 1;
+							// ammo panel (flash if no ammo or weapon jammed)
+							if ( SpriteExist(g.ammopanelsprite)  ==  0  )  Sprite (  g.ammopanelsprite,-1000,-1000,t.timgbase+51 );
+							t.tflashforjam = 0 ; if ( g.firemodes[t.gunid][g.firemode].settings.jammed == 1 )  t.tflashforjam = 1;
 							if (  t.slidersmenuvalue[t.slidersmenuindex][1].value <= 0 || t.tflashforjam == 1 ) 
 							{
 								t.tDiffuseR = (1+Cos(Timer()/2.5))*100;
@@ -1634,22 +1673,8 @@ void sliders_draw ( void )
 							SetSpriteDiffuse (  g.ammopanelsprite,t.tDiffuseR,t.tDiffuseG,0 );
 							PasteSprite (  g.ammopanelsprite,t.rmposx,t.tpanely );
 							PasteImage (  t.timgbase+52,t.rmposx+12,t.tpanely+64,1 );
-							PasteImage (  t.timgbase+53,t.rmposx+141,t.tpanely+22,1 );
-							//  ammo panel icons
+
 							t.slidersmenu[t.slidersmenuindex].customimagesubtype=t.gun[t.gunid].statuspanelcode;
-							if (  t.slidersmenu[t.slidersmenuindex].customimagesubtype == 100 ) 
-							{
-								t.timgtouse=g.firemodes[t.gunid][g.firemode].ammoimg;
-								if (  t.timgtouse == 0  )  t.timgtouse = g.firemodes[t.gunid][0].ammoimg;
-							}
-							else
-							{
-								t.timgtouse=t.timgbase+71+t.slidersmenu[t.slidersmenuindex].customimagesubtype;
-							}
-							if (  ImageExist(t.timgtouse) == 1 ) 
-							{
-								PasteImage (  t.timgtouse,t.rmposx+60-(ImageWidth(t.timgtouse)/2),t.tpanely+20,1 );
-							}
 							if (  t.slidersmenu[t.slidersmenuindex].customimagesubtype == 100 ) 
 							{
 								t.timgtouse=g.firemodes[t.gunid][g.firemode].iconimg;
@@ -1663,11 +1688,36 @@ void sliders_draw ( void )
 							{
 								PasteImage (  t.timgtouse,t.rmposx+115-(ImageWidth(t.timgtouse)/2),t.tpanely+75,1 );
 							}
-							t.tammovalue_s=Str(t.slidersmenuvalue[t.slidersmenuindex][1].value);
-							t.twidth=getbitmapfontwidth(t.tammovalue_s.Get(),4);
-							pastebitmapfont(t.tammovalue_s.Get(),t.rmposx+136-t.twidth,t.rmposy+19,4,255);
-							t.tclipvalue_s=Str(t.slidersmenuvalue[t.slidersmenuindex][2].value);
-							pastebitmapfont(t.tclipvalue_s.Get(),t.rmposx+147,t.rmposy+22,3,255);
+
+							if ( g.firemodes[t.gunid][g.firemode].settings.reloadqty == 0 )
+							{
+								// use infinity symbol instead of hiding ammo panel
+								PasteImage (  t.timgbase+93,(t.rmposx+141)-69,t.tpanely+22,1 );
+							}
+							else
+							{
+								//  ammo panel icons
+								if (  t.slidersmenu[t.slidersmenuindex].customimagesubtype == 100 ) 
+								{
+									t.timgtouse=g.firemodes[t.gunid][g.firemode].ammoimg;
+									if (  t.timgtouse == 0  )  t.timgtouse = g.firemodes[t.gunid][0].ammoimg;
+								}
+								else
+								{
+									t.timgtouse=t.timgbase+71+t.slidersmenu[t.slidersmenuindex].customimagesubtype;
+								}
+								if (  ImageExist(t.timgtouse) == 1 ) 
+								{
+									PasteImage (  t.timgtouse,t.rmposx+60-(ImageWidth(t.timgtouse)/2),t.tpanely+20,1 );
+								}
+
+								PasteImage (  t.timgbase+53,t.rmposx+141,t.tpanely+22,1 );
+								t.tammovalue_s=Str(t.slidersmenuvalue[t.slidersmenuindex][1].value);
+								t.twidth=getbitmapfontwidth(t.tammovalue_s.Get(),4);
+								pastebitmapfont(t.tammovalue_s.Get(),t.rmposx+136-t.twidth,t.rmposy+19,4,255);
+								t.tclipvalue_s=Str(t.slidersmenuvalue[t.slidersmenuindex][2].value);
+								pastebitmapfont(t.tclipvalue_s.Get(),t.rmposx+147,t.rmposy+22,3,255);
+							}
 						}
 					}
 					if (  t.slidersmenu[t.slidersmenuindex].customimagetype == 2 ) 
@@ -1869,7 +1919,7 @@ void sliders_draw ( void )
 			//t.col=192<<24;
 
 			//  Ensure drop downs dont go off screen in the importer and create a drop down list
-			if (  t.importer.importerActive  ==  1 ) 
+			if ( t.importer.importerActive == 1 )
 			{
 				t.tcol = t.col;
 				t.tlistmax  =  t.slidersdropdownmax ; if (  t.tlistmax > 10  )  t.tlistmax  =  10;
@@ -1986,6 +2036,7 @@ void sliders_getchoice ( void )
 		if (  t.characterkitcontrol.isMale  ==  1  )  t.sliderschoicemax = t.characterkithatmax; else t.sliderschoicemax = t.characterkitfemalehatmax;
 	}
 	if (  t.slidersmenuvaluechoice == 55  )  t.sliderschoicemax = t.characterkitweaponmax;
+	if (  t.slidersmenuvaluechoice == 56  )  t.sliderschoicemax = t.characterkitprofilemax;
 
 	//  (Dave) If we are in the importer then we can run this code
 	if (  t.importer.importerActive  ==  1 ) 
@@ -2103,6 +2154,13 @@ void sliders_getnamefromvalue ( void )
 		if (  t.slidersmenuvalueindex <= ArrayCount(t.characterkitweaponbank_s) ) 
 		{
 			t.slidervaluename_s=t.characterkitweaponbank_s[t.slidersmenuvalueindex];
+		}
+	}
+	if (  t.slidersmenuvaluechoice == 56 ) 
+	{
+		if (  t.slidersmenuvalueindex <= ArrayCount(t.characterkitprofilebank_s) ) 
+		{
+			t.slidervaluename_s=t.characterkitprofilebank_s[t.slidersmenuvalueindex];
 		}
 	}
 
@@ -2271,6 +2329,26 @@ void sliders_write ( void )
 		t.visuals.PostContrast_f=t.slidersmenuvalue[t.slidersmenuindex][18].value/30.0;
 		t.visuals.refreshshaders=1;
 	}
+	if ( t.slidersmenuindex == t.slidersmenunames.water ) 
+	{
+		// Water slider
+		g.gdefaultwaterheight = t.slidersmenuvalue[t.slidersmenuindex][1].value*10.0;
+		t.visuals.WaterRed_f = t.slidersmenuvalue[t.slidersmenuindex][2].value*2.55;
+		t.visuals.WaterGreen_f = t.slidersmenuvalue[t.slidersmenuindex][3].value*2.55;
+		t.visuals.WaterBlue_f = t.slidersmenuvalue[t.slidersmenuindex][4].value*2.55;
+		t.visuals.WaterWaveIntensity_f = t.slidersmenuvalue[t.slidersmenuindex][5].value*2.0;
+		t.visuals.WaterTransparancy_f = t.slidersmenuvalue[t.slidersmenuindex][6].value / 100.0;
+		t.visuals.WaterReflection_f = t.slidersmenuvalue[t.slidersmenuindex][7].value / 100.0;
+		t.visuals.WaterReflectionSparkleIntensity = t.slidersmenuvalue[t.slidersmenuindex][8].value / 5.0;
+		t.visuals.WaterFlowDirectionX = (t.slidersmenuvalue[t.slidersmenuindex][9].value - 50) / 10;
+		t.visuals.WaterFlowDirectionY = (t.slidersmenuvalue[t.slidersmenuindex][10].value - 50) / 10;
+		t.visuals.WaterDistortionWaves = t.slidersmenuvalue[t.slidersmenuindex][11].value / 1000.0;
+		t.visuals.WaterSpeed1 = (t.slidersmenuvalue[t.slidersmenuindex][12].value - 100)*-1;
+		t.visuals.WaterFlowSpeed = t.slidersmenuvalue[t.slidersmenuindex][13].value / 10.0;
+		t.visuals.refreshshaders = 1;
+		//set the waterheight (fix for lua water height command to cover stuff in map editor)
+		t.terrain.waterliney_f = g.gdefaultwaterheight;
+	}
 	if (  t.slidersmenuindex == t.slidersmenunames.camera ) 
 	{
 		//  Camera settings
@@ -2430,13 +2508,13 @@ void sliders_write ( void )
 			// changed shader while in model importer
 			importer_changeshader ( t.slidersmenuvalue[t.slidersmenuindex][2].value_s.Get() );
 		}
-		if ( t.whichmenuitem==13 || t.whichmenuitem==14 )
-		{
-			// selected options to force the imported model to reload
-			g_iFBXGeometryToggleMode = t.slidersmenuvalue[t.slidersmenuindex][13].value-1;
-			g_iFBXGeometryCenterMesh = t.slidersmenuvalue[t.slidersmenuindex][14].value-1;
-			g_iTriggerReloadOfImportModel = 1;
-		}
+		//if ( t.whichmenuitem==13 || t.whichmenuitem==14 )
+		//{
+		//	// selected options to force the imported model to reload
+		//	g_iFBXGeometryToggleMode = t.slidersmenuvalue[t.slidersmenuindex][13].value-1;
+		//	g_iFBXGeometryCenterMesh = t.slidersmenuvalue[t.slidersmenuindex][14].value-1;
+		//	g_iTriggerReloadOfImportModel = 1;
+		//}
 	}
 }
 
@@ -2452,8 +2530,8 @@ void sliders_scope_draw ( void )
 			t.timgwidth_f=ImageWidth(t.timgbase) ; t.timgheight_f=ImageHeight(t.timgbase);
 			t.timgratio_f=t.timgwidth_f/t.timgheight_f;
 			t.tsprwidth_f=GetDisplayHeight()*t.timgratio_f;
-			SizeSprite (  t.timgbase,t.tsprwidth_f,GetDisplayHeight() );
-			PasteSprite (  t.timgbase,(t.tsprwidth_f-GetDisplayWidth())/-2,0 );
+			SizeSprite ( t.timgbase, t.tsprwidth_f, GetDisplayHeight()+1 );
+			PasteSprite ( t.timgbase, (t.tsprwidth_f-GetDisplayWidth())/-2, 0 );
 		}
 	}
 }
@@ -2464,4 +2542,11 @@ float SlidersAdjustValue ( float value_f, float minFrom_f, float maxFrom_f, floa
 	//  (Dave) Added to allow custom values
 	mappedValue_f = minTo_f + ( maxTo_f - minTo_f ) * ( ( value_f - minFrom_f ) / ( maxFrom_f - minFrom_f ) );
 	return mappedValue_f;
+}
+
+//prevent that slider bar is in other panels when lua commands are used to set the values
+float SlidersCutExtendedValues(float value) {
+	if (value > 100) return 100;
+	else if (value < 0) return 0;
+	else return value;
 }

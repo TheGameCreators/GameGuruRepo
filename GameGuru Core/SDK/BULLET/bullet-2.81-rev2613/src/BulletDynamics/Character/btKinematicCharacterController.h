@@ -43,6 +43,7 @@ public:
 	float fLastFloorYPos;
 	float fThisFloorYPos;
 	float fFallDistance;
+	bool m_bDidJump;
 
 protected:
 

@@ -32,6 +32,9 @@ struct tagImgData
 	int						iDepth;						// depth of texture
 	bool					bLocked;					// is locked
 
+	int						AccessCountGPU;				// PE: Number of times sent to GPU
+	int						AccessCountCPU;				// PE: Number of times CPU accessed the image.
+
 	float					fTexUMax;					// U-coord for texture clip
 	float					fTexVMax;					// V-coord for texture clip
 
@@ -48,6 +51,7 @@ DARKSDK bool                UpdateImagePtr				( int iID );
 DARKSDK LPGGTEXTURE			GetTexture					( char* szFilename, GGIMAGE_INFO* info, int iOneToOnePixels );
 
 DARKSDK void				ImageConstructor			( void );
+DARKSDK void				DumpImageList				( void ); //PE: Image access debug.
 DARKSDK void				ImageDestructor				( void );
 DARKSDK void				ImageSetErrorHandler		( LPVOID pErrorHandlerPtr );
 DARKSDK void				PassSpriteInstance			( void );
@@ -59,6 +63,7 @@ DARKSDK void				StretchImage				( int iID, int iSizeX, int iSizeY );
 DARKSDK int					LoadImageInternal				( char* szFilename );
 DARKSDK int					LoadImageInternalEx				( char* szFilename, int iDivideTextureSize );
 DARKSDK void				ClearAnyLightMapInternalTextures ( void );
+DARKSDK void				ClearAnyEntitybankInternalTextures(void);
 
 DARKSDK LPGGTEXTURE			MakeImage						( int iID, int iWidth, int iHeight );	// makes a new image
 DARKSDK LPGGTEXTURE			MakeImageUsage					( int iID, int iWidth, int iHeight, DWORD dwUsage );
@@ -137,5 +142,7 @@ DARKSDK void 				GetImageData				( int iID, DWORD* dwWidth, DWORD* dwHeight, DWO
 DARKSDK void 				SetImageData				( int iID, DWORD dwWidth, DWORD dwHeight, DWORD dwDepth, LPSTR pData, DWORD dwDataSize );
 
 DARKSDK void 				SetImageAutoMipMap			( int iGenerateMipMaps );
+
+DARKSDK bool				LoadAndSaveUsingDirectXTex  ( LPSTR pLoadFile, LPSTR pSaveFile );
 
 #endif _CIMAGE_H_

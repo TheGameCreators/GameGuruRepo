@@ -24,7 +24,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	char folderToCheck[MAX_PATH];
 	//sprintf ( folderToCheck , "%s\\Files" , originalLocation );
-	strcpy ( folderToCheck , "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files" );
+	//strcpy ( folderToCheck , "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files" );
+	strcpy ( folderToCheck , "F:\\Dropbox\\Dropbox\\GameGuru Builds\\Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files" );
 
 	// add first directory into the listing
 	directoryListStack.push ( folderToCheck );
@@ -108,7 +109,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	// make the log file
 	FILE *f;
-	f = fopen ( "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files\\editors\\baseList.dat"  , "w" );
+	//f = fopen ( "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files\\editors\\baseList.dat"  , "w" );
+	f = fopen ( "F:\\Dropbox\\Dropbox\\GameGuru Builds\\Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files\\editors\\baseList.dat"  , "w" );
 
 	if ( f )
 	{
@@ -118,7 +120,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			if ( c ) fputs ( "\n" , f );
 
-			p = strstr ( fileList[c] , "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files\\" );
+			//p = strstr ( fileList[c] , "F:\\TGCSHARED\\GameGuru\\GameGuru Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files\\" );
+			p = strstr ( fileList[c] , "F:\\Dropbox\\Dropbox\\GameGuru Builds\\Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files\\" );
 			if ( p )
 				strcpy ( fileList[c] , p+87 );
 
@@ -158,7 +161,8 @@ void makeDevVersion()
 
 	char folderToCheck[MAX_PATH];
 	//sprintf ( folderToCheck , "%s\\Files" , originalLocation );
-	strcpy ( folderToCheck , "F:\\TGCSHARED\\GameGuru\\GameGuru\\Files" );
+	//strcpy ( folderToCheck , "F:\\TGCSHARED\\GameGuru\\GameGuru\\Files" );
+	strcpy ( folderToCheck , "F:\\GameGuruRepo\\GameGuru\\Files" );
 
 	// add first directory into the listing
 	directoryListStack.push ( folderToCheck );
@@ -242,7 +246,8 @@ void makeDevVersion()
 
 	// make the log file
 	FILE *f;
-	f = fopen ( "F:\\TGCSHARED\\GameGuru\\GameGuru\\Files\\editors\\baseList.dat"  , "w" );
+	//f = fopen ( "F:\\TGCSHARED\\GameGuru\\GameGuru\\Files\\editors\\baseList.dat"  , "w" );
+	f = fopen ( "F:\\GameGuruRepo\\GameGuru\\Files\\editors\\baseList.dat"  , "w" );
 
 	if ( f )
 	{
@@ -252,7 +257,8 @@ void makeDevVersion()
 		{
 			if ( c ) fputs ( "\n" , f );
 
-			p = strstr ( fileList[c] , "F:\\TGCSHARED\\GameGuru\\GameGuru\\Files\\" );
+			//p = strstr ( fileList[c] , "F:\\TGCSHARED\\GameGuru\\GameGuru\\Files\\" );
+			p = strstr ( fileList[c] , "F:\\GameGuruRepo\\GameGuru\\Files\\" );
 			if ( p )
 				strcpy ( fileList[c] , p+37 );
 

@@ -1,0 +1,29 @@
+;Entity Spec
+
+;Header
+desc          = Image Zone
+
+;AI For Trigger
+aimain        = markers\imageinzone.lua
+
+;AIUsed
+ifused        = 
+
+;Sound
+soundset      = scriptbank\images\imagesinzone\Image Zone.png
+
+;Orientation
+model         = triggerzone.x
+defaultheight = 5
+textured      = triggerzone.dds
+scale         = 100
+fixnewy       = 0
+
+;Marker Extras
+ismarker      = 3
+markerindex   = 3
+isobjective   = 0
+
+;Trigger data
+stylecolor    = 2
+

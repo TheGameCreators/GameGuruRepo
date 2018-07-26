@@ -2,15 +2,24 @@
 //--- GAMEGURU - Common
 //----------------------------------------------------
 
+// Includes
 #include "gameguru.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "M-WelcomeSystem.h"
 #include "time.h"
 
+// Used for Free Weekend Promotion Build 
+//#define STEAMOWNERSHIPCHECKFREEWEEKEND
+
 // core externs to globals
 extern LPSTR gRefCommandLineString;
 extern bool gbAlwaysIgnoreShaderBlobFile;
+extern bool g_VR920RenderStereoNow;
+extern float g_fVR920Sensitivity;
+
+// Globals
+int g_PopupControlMode = 0;
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
@@ -429,9 +438,11 @@ void common_init_globals ( void )
 	//  +1,2,3,4 = Jetpack textures (x8)
 	//  .. 32 (for all 8 jet pack textures)
 	g.weaponsimageoffset = 1000;
-	g.particlesimageoffset = 1400;
+	g.particlesimageoffset = 1400; 
+	// reserve 200 particles 1400-1599
 	g.ebeimageoffset = 1900;
 	g.texturebankoffset = 2000;
+	//PE: 50000+ to be used for internal images inside dbo's.
 	g.internalshadowdynamicterrain = 59950;
 	g.internalshadowdebugimagestart = 59951;
 	g.internalocclusiondebugimagestart = 59961;
@@ -439,8 +450,7 @@ void common_init_globals ( void )
 	g.tempimageoffset = 63000;
 	g.widgetimagebankoffset = 63100;
 	g.huddamageimageoffset = 63200;
-	g.characterkitimageoffset = 63250;
-	g.importermenuimageoffset = 63400;
+	g.importermenuimageoffset = 63250; // was 63400
 	g.slidersmenuimageoffset = 63500;
 	g.terrainimageoffset = 63600;
 	g.gamehudimagesoffset = 64700;
@@ -487,6 +497,7 @@ void common_init_globals ( void )
 	//  +X = see postprocessimages for assignment
 	g.effectbankoffset = 1000;
 	g.explosionandfireeffectbankoffset = 1100;
+	g.lightmappbreffect = 1297;
 	g.thirdpersonentityeffect = 1298;
 	g.thirdpersoncharactereffect = 1299;
 	g.charactercreatoreffectbankoffset = 1300;
@@ -607,7 +618,7 @@ void common_init_globals ( void )
 	//  2 - reflection camera
 	//  3 - post process camera
 	//  4 - light ray camera
-	//  5 - dynamic terrain shadow texture cam (cheap shadow)
+	//  5 - NOT USED FROM MAR2018 dynamic terrain shadow texture cam (cheap shadow)
 	//  6 - left eye camera [rift]
 	//  7 - right eye camera [rift]
 	//  9 - map editor
@@ -835,7 +846,7 @@ void common_init_globals ( void )
 	g.titlessavefile_s = "settings.ini";
 	
 	//  Visual settings
-	g.cheapshadowhistorypacer_f = 0;
+	//g.cheapshadowhistorypacer_f = 0;
 
 	//t.visuals as visualstype;
 	//t.editorvisuals as visualstype;
@@ -947,10 +958,9 @@ void common_init_globals ( void )
 	Dim (  t.playerobjective,99 );
 
 	g.slidersprotoworkmode = 0;
-	//t.slidersmenunames as slidersmenunamestype;
 	g.slidersmenumax = 0;
-	Dim (  t.slidersmenu,20   );
-	Dim2(  t.slidersmenuvalue,20, 20 );
+	Dim ( t.slidersmenu, 50 );
+	Dim2( t.slidersmenuvalue, 50, 20 );
 	g.sliderspecialview = 0;
 	g.slidersmenufreshclick = 0;
 	g.slidersmenudropdownscroll_f = 1;
@@ -1367,6 +1377,7 @@ g.entidmastermax = 100;
 //Dave fix - 100 was not enough for some stress test levels
 Dim2(  t.entityphysicsbox,MAX_ENTITY_PHYSICS_BOXES*2, MAX_ENTITY_PHYSICS_BOXES  );
 Dim2(  t.entitybodypart,100, 100  );
+Dim2(  t.entityappendanim, 100, 100 );
 Dim2(  t.entityanim,100, g.animmax );
 Dim2(  t.entityfootfall,100, g.footfallmax  );
 Dim (  t.entityprofileheader,100  );
@@ -1665,6 +1676,21 @@ void FPSC_SetDefaults ( void )
 	g.gexportassets = 0;
 	g.gproducelogfiles = 0;
 	g.gpbroverride = 0;
+	g.memskipwatermask = 0;
+
+	g.maxtotalmeshlights = 20;
+	g.maxpixelmeshlights = 10;
+	g.terrainoldlight = 0;
+	g.terrainusevertexlights = 1;
+	g.maxterrainlights = 10;
+	g.terrainlightfadedistance = 4000;
+	g.showstaticlightinrealtime = 0;
+
+	g.standalonefreememorybetweenlevels = 0;
+	g.lowestnearcamera = 2; //PE: default , use setup.ini lowestnearcamera to adjust.
+	g.memgeneratedump = 0;
+	g.underwatermode = 0;
+	g.editorsavebak = 0;
 	g.gproducetruevidmemreading = 0;
 	g.gcharactercapsulescale_f = 1.0;
 	g.ggodmodestate = 0;
@@ -1784,6 +1810,10 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "hidedistantshadows" ; if (  t.field_s == t.tryfield_s  ) g.globals.hidedistantshadows = t.value1;
 					t.tryfield_s = "realshadowresolution" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowresolution = t.value1;
 					t.tryfield_s = "realshadowcascadecount" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascadecount = t.value1;
+
+					if (g.globals.realshadowcascadecount < 2) g.globals.realshadowcascadecount = 2; //PE: Limit cascades.
+					if (g.globals.realshadowcascadecount > 8) g.globals.realshadowcascadecount = 8; //PE: Limit cascades.
+
 					t.tryfield_s = "realshadowcascade0" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[0] = t.value1;
 					t.tryfield_s = "realshadowcascade1" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[1] = t.value1;
 					t.tryfield_s = "realshadowcascade2" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[2] = t.value1;
@@ -1793,6 +1823,21 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "realshadowcascade6" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[6] = t.value1;
 					t.tryfield_s = "realshadowcascade7" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[7] = t.value1;
 
+					t.tryfield_s = "realshadowsize0"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[0] = t.value1;
+					t.tryfield_s = "realshadowsize1"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[1] = t.value1;
+					t.tryfield_s = "realshadowsize2"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[2] = t.value1;
+					t.tryfield_s = "realshadowsize3"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[3] = t.value1;
+					t.tryfield_s = "realshadowsize4"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[4] = t.value1;
+					t.tryfield_s = "realshadowsize5"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[5] = t.value1;
+					t.tryfield_s = "realshadowsize6"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[6] = t.value1;
+					t.tryfield_s = "realshadowsize7"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[7] = t.value1;
+
+					t.tryfield_s = "realshadowdistance"; if (t.field_s == t.tryfield_s) {
+						g.globals.realshadowdistance = t.value1;
+						g.globals.realshadowdistancehigh = t.value1;
+					}
+					t.tryfield_s = "editorusemediumshadows"; if (t.field_s == t.tryfield_s)  g.globals.editorusemediumshadows = t.value1;
+					
 					t.tryfield_s = "hidememorygauge" ; if (  t.field_s == t.tryfield_s  )  g.ghidememorygauge = t.value1;
 					t.tryfield_s = "hidelowfpswarning" ; if (  t.field_s == t.tryfield_s  )  g.globals.hidelowfpswarning = t.value1;
 					t.tryfield_s = "hardwareinfomode" ; if (  t.field_s == t.tryfield_s  )  g.ghardwareinfomode = t.value1;
@@ -1804,6 +1849,7 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "disablefreeflight" ; if (  t.field_s == t.tryfield_s  )  g.globals.disablefreeflight = t.value1;
 					t.tryfield_s = "fulldebugview" ; if (  t.field_s == t.tryfield_s  )  g.globals.fulldebugview = t.value1;
 					t.tryfield_s = "enableplrspeedmods" ; if (  t.field_s == t.tryfield_s  )  g.globals.enableplrspeedmods = t.value1;
+					t.tryfield_s = "disableweaponjams" ; if (  t.field_s == t.tryfield_s  )  g.globals.disableweaponjams = t.value1;
 
 					//  Control of display mode
 					t.tryfield_s = "adapterordinal" ; if (  t.field_s == t.tryfield_s  )  g.gadapterordinal = t.value1;
@@ -1899,6 +1945,44 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "dividetexturesize" ; if (  t.field_s == t.tryfield_s ) g.gdividetexturesize = t.value1  ; t.newdividetexturesize = t.value1;
 					t.tryfield_s = "producelogfiles" ; if (  t.field_s == t.tryfield_s  )  g.gproducelogfiles = t.value1;
 					t.tryfield_s = "pbroverride" ; if (  t.field_s == t.tryfield_s  )  g.gpbroverride = t.value1;
+					t.tryfield_s = "underwatermode"; if (t.field_s == t.tryfield_s)  g.underwatermode = t.value1;
+					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
+					t.tryfield_s = "standalonefreememorybetweenlevels"; if (t.field_s == t.tryfield_s)  g.standalonefreememorybetweenlevels = t.value1;
+					t.tryfield_s = "lowestnearcamera"; if (t.field_s == t.tryfield_s)  g.lowestnearcamera = t.value1;
+					t.tryfield_s = "editorsavebak"; if (t.field_s == t.tryfield_s)  g.editorsavebak = t.value1;
+
+					t.tryfield_s = "terrainoldlight"; if (t.field_s == t.tryfield_s)  g.terrainoldlight = t.value1;
+					t.tryfield_s = "terrainusevertexlights"; if (t.field_s == t.tryfield_s)  g.terrainusevertexlights = t.value1;
+					t.tryfield_s = "showstaticlightinrealtime"; if (t.field_s == t.tryfield_s)  g.showstaticlightinrealtime = t.value1;
+					t.tryfield_s = "maxtotalmeshlights"; 
+					if (t.field_s == t.tryfield_s)  
+					{
+						g.maxtotalmeshlights = t.value1;
+						if (g.maxtotalmeshlights > 38 ) g.maxtotalmeshlights = 38;
+						if (g.maxtotalmeshlights < 4) g.maxtotalmeshlights = 4; //PE: Lowest to support old system on terrain
+					}
+					t.tryfield_s = "maxpixelmeshlights"; 
+					if (t.field_s == t.tryfield_s)  
+					{
+						g.maxpixelmeshlights = t.value1;
+						if (g.maxpixelmeshlights > 38) g.maxpixelmeshlights = 38; //PE: Leave 2 vertex based lights per mesh.
+					}
+					t.tryfield_s = "maxterrainlights"; 
+					if (t.field_s == t.tryfield_s)  
+					{
+						g.maxterrainlights = t.value1;
+						if (g.maxterrainlights > 40) g.maxterrainlights = 40;
+					}
+					t.tryfield_s = "terrainlightfadedistance"; 
+					if (t.field_s == t.tryfield_s)  
+					{
+						g.terrainlightfadedistance = t.value1;
+						if (g.terrainlightfadedistance < 600 ) g.terrainlightfadedistance = 600; //PE: Need atleast a 600 fade distance.
+					}
+
+					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
+					t.tryfield_s = "memgeneratedump"; if (t.field_s == t.tryfield_s)  g.memgeneratedump = t.value1;
+					
 					t.tryfield_s = "producetruevidmemreading" ; if (  t.field_s == t.tryfield_s  )  g.gproducetruevidmemreading = t.value1;
 					t.tryfield_s = "charactercapsulescale" ; if (  t.field_s == t.tryfield_s  )  g.gcharactercapsulescale_f = (t.value1+0.0)/100.0;
 					t.tryfield_s = "hsrmode" ; if (  t.field_s == t.tryfield_s  )  g.ghsrmode = t.value1;
@@ -1927,6 +2011,11 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "lightmappingambientblue"; if ( t.field_s == t.tryfield_s ) g.fLightmappingAmbientB = t.value1/100.0f;
 					t.tryfield_s = "lightmappingallterrainlighting"; if ( t.field_s == t.tryfield_s ) g.iLightmappingAllTerrainLighting = t.value1;
 					t.tryfield_s = "suspendscreenprompts" ; if (  t.field_s == t.tryfield_s  )  g.gsuspendscreenprompts = t.value1;
+
+					// forceloadtestgameshaders:
+					// 0 - off by default
+					// 1 - generate new .BLOB files when a shader is loaded
+					// 2 - scan effectbank folder and generate ALL NEW .BLOB files
 					t.tryfield_s = "forceloadtestgameshaders" ; if (  t.field_s == t.tryfield_s  )  g.gforceloadtestgameshaders = t.value1;				
 
 					t.tryfield_s = "usesky" ; if (  t.field_s == t.tryfield_s  )  g.guseskystate = t.value1;
@@ -2276,7 +2365,10 @@ void common_writeserialcode ( LPSTR pCode )
 {
 	char pAbsFilePath[1024];
 	strcpy ( pAbsFilePath, g.fpscrootdir_s.Get() );
-	strcat ( pAbsFilePath, "\\vrqcontrolmode.ini" );
+	if ( g.vrqoreducontrolmode == 2 )
+		strcat ( pAbsFilePath, "\\educontrolmode.ini" );
+	else
+		strcat ( pAbsFilePath, "\\vrqcontrolmode.ini" );
 	if ( FileExist(pAbsFilePath) == 1 ) DeleteFile ( pAbsFilePath );
 	if ( FileOpen(1) == 1 ) CloseFile (  1 );
 	OpenToWrite ( 1, pAbsFilePath );
@@ -2358,12 +2450,25 @@ void FPSC_Setup ( void )
 	}
 
 	// 050416 - get VRQUEST control flag and serial code
+	g.vrqoreducontrolmode = 0;
 	g.vrqcontrolmode = 0;
 	g.vrqcontrolmodeserialcode = "";
 	g.vrqTriggerSerialCodeEntrySystem = 0;
-	g.vrqTriggerSoftwareToQuit = 0;
+	g.iTriggerSoftwareToQuit = 0;
 	t.tfile_s="vrqcontrolmode.ini";
 	if ( FileExist(t.tfile_s.Get()) == 1 ) 
+	{
+		g.vrqoreducontrolmode = 1;
+	}
+	else
+	{
+		t.tfile_s="educontrolmode.ini";
+		if ( FileExist(t.tfile_s.Get()) == 1 ) 
+		{
+			g.vrqoreducontrolmode = 2;
+		}
+	}
+	if ( g.vrqoreducontrolmode > 0 )
 	{
 		// read serial code from VRQ controlmode file
 		g.vrqcontrolmode = 1;
@@ -2373,14 +2478,15 @@ void FPSC_Setup ( void )
 		CloseFile ( 1 );
 
 		// if VRQ, ensure serial code has not expired, otherwise ask for new serial code
-		if ( strlen(g.vrqcontrolmodeserialcode.Get()) > 0 )
+		if ( strlen(g.vrqcontrolmodeserialcode.Get()) > 1 )
 		{
 			// determine FROM and TO dates from serial code
 			if ( common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get()) == 0 )
 			{
 				// serial code expired
-				MessageBox ( NULL, "Your VRQUEST serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
+				MessageBox ( NULL, "Your serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
 				g.vrqTriggerSerialCodeEntrySystem = 1;
+				g.iTriggerSoftwareToQuit = 1;
 			}
 			else
 			{
@@ -2392,6 +2498,7 @@ void FPSC_Setup ( void )
 		{
 			// no serial code found, ask for one
 			g.vrqTriggerSerialCodeEntrySystem = 1;
+			g.iTriggerSoftwareToQuit = 1;
 		}
 
 		// all VRQ is restricted content mode
@@ -2405,7 +2512,7 @@ void FPSC_Setup ( void )
 			if ( FileExist("steam_appid.txt") == 0 ) 
 			{
 				MessageBox ( NULL, "Root file missing from installation.", "System File Not Found", MB_OK );
-				g.vrqTriggerSoftwareToQuit = 1;
+				g.iTriggerSoftwareToQuit = 1;
 			}
 		}
 	}
@@ -2700,6 +2807,9 @@ void FPSC_Setup ( void )
 				}
 			}
 		}
+
+		// transfer SETUP.INI VRMODEMAG sensitivity setting to main engine
+		g_fVR920Sensitivity = g.gvrmodemag / 100.0f;
 	
 		//  option use use correct aspect ratio?
 		if (  g.gaspectratio == 1 ) 
@@ -2792,9 +2902,10 @@ void FPSC_Setup ( void )
 	sprintf ( t.szwork , "Just about to read languagebank\\%s\\textfiles\\guru-wordcount.ini" , g.language_s.Get() );
 	timestampactivity(0,t.szwork);
 
-	//  Translation Component (load strarr data)
-	if (  t.tnopathprotomode == 0 ) 
+	// Translation Component (load strarr data)
+	if ( t.tnopathprotomode == 0 ) 
 	{
+		// 250618 - this is the old translation system, capable of translating interface into many languages
 		t.stdir_s=GetDir();
 		sprintf ( t.szwork , "languagebank\\%s\\textfiles\\" , g.language_s.Get() );
 		SetDir ( t.szwork );
@@ -2846,6 +2957,7 @@ void FPSC_Setup ( void )
 	material_init ( );
 	material_startup ( );
 
+
 	// 
 	//  LEAP POINT (detect if running as Guru-Game.exe or Guru-MapEditor.exe)
 	// 
@@ -2867,6 +2979,67 @@ void FPSC_Setup ( void )
 			ExitPrompt ( "Game Guru cannot write files to the Program Files area. Exit the software, right click on the Game Guru icon, and select 'Run As Administrator'", "Init Error" );
 		}
 	
+		//  New security requires Steam client to be running (for ownership check)
+		#ifdef STEAMOWNERSHIPCHECKFREEWEEKEND
+		bool bSteamRunningAndGameGuruOwned = false;
+		if ( g.steamworks.isRunning == 1 )
+		{
+			if ( SteamOwned() == true ) 
+				bSteamRunningAndGameGuruOwned = true;
+		}
+		if ( bSteamRunningAndGameGuruOwned == false )
+		{
+			g.iTriggerSoftwareToQuit = 2;
+		}
+		#endif
+
+		// 100718 - generate all new .BLOB files (used when making builds)
+		if ( g.gforceloadtestgameshaders == 2 )
+		{
+			// scan effectsbank folder
+			cstr pOldDir = GetDir();
+			SetDir("effectbank\\reloaded");
+			ChecklistForFiles();
+			SetDir(pOldDir.Get());
+			cstr ShaderPath = cstr("effectbank\\reloaded\\");
+			for ( int c = 1; c < ChecklistQuantity(); c++ )
+			{
+				cstr file_s = ChecklistString(c);
+				LPSTR pFilename = file_s.Get();
+				if ( Len ( pFilename ) > 3 )
+				{
+					if ( strnicmp ( pFilename + strlen(pFilename) - 3, ".fx", 3 ) == NULL )
+					{
+						// some core shaders are except, but compile the rest
+						bool bExempt = false;
+						if ( stricmp ( pFilename, "apbr_core.fx" ) == NULL ) bExempt = true;
+						if ( stricmp ( pFilename, "cascadeshadows.fx" ) == NULL ) bExempt = true;
+						if ( bExempt == false )
+						{
+							// show which shader is being compiled into a blob
+							t.tsplashstatusprogress_s = pFilename;
+							timestampactivity(0,t.tsplashstatusprogress_s.Get());
+							version_splashtext_statusupdate ( );
+
+							// load shader to create blob file
+							cstr ShaderFX_s = ShaderPath + file_s;
+							char pShaderBLOB[2048];
+							strcpy ( pShaderBLOB, file_s.Get() );
+							pShaderBLOB[strlen(pShaderBLOB)-3]=0;
+							strcat ( pShaderBLOB, ".blob" );
+							cstr ShaderBLOB_s = ShaderPath + pShaderBLOB;
+							SETUPLoadShader ( ShaderFX_s.Get(), ShaderBLOB_s.Get(), 0 );
+						}
+					}
+				}
+			}
+			t.tsplashstatusprogress_s = "Finished compiling";
+			timestampactivity(0,t.tsplashstatusprogress_s.Get());
+			version_splashtext_statusupdate ( );
+			g.iTriggerSoftwareToQuit = 3;
+			g.gforceloadtestgameshaders = 0;
+		}
+
 		//  Enter Map Editor specific code
 		SETUPLoadAllCoreShadersREST(g.gforceloadtestgameshaders,g.gpbroverride);
 		material_loadsounds ( );
@@ -2902,6 +3075,9 @@ void FPSC_Setup ( void )
 		//  Generic asset loading common to editor and game
 		common_loadfonts();
 		common_loadcommonassets ( 1 );
+
+		// This used by 3D prompts in standalone
+		g.guishadereffectindex = loadinternaleffect("effectbank\\reloaded\\gui_basic.fx");
 	
 		//  Load terrain from terrain temp save file
 		terrain_createactualterrain();
@@ -2921,6 +3097,9 @@ void FPSC_Setup ( void )
 	
 		//  Main loop
 		timestampactivity(0,"Main Game Executable Loop Starts");
+
+		// after initial steroscopic fake load, switch to true stereo if used
+		g_VR920RenderStereoNow = true;
 	
 		//  One-off variable settings
 		t.game.set.resolution=0;
@@ -3032,6 +3211,11 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	timestampactivity(0,"initbitmapfont");
 	loadallfonts();
 
+	// loading shaders message more accurate
+	t.tsplashstatusprogress_s="LOADING SHADERS";
+	timestampactivity(0,t.tsplashstatusprogress_s.Get());
+	version_splashtext_statusupdate ( );
+
 	// choose non-PBR or PBR shaders
 	LPSTR pEffectStatic = "effectbank\\reloaded\\entity_basic.fx";
 	LPSTR pEffectAnimated = "effectbank\\reloaded\\character_basic.fx";
@@ -3039,6 +3223,14 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	{
 		pEffectStatic = "effectbank\\reloaded\\apbr_basic.fx";
 		pEffectAnimated = "effectbank\\reloaded\\apbr_anim.fx";
+	}
+
+	// load common lightmapper PBR shader
+	if ( GetEffectExist(g.lightmappbreffect) == 0 ) 
+	{
+		LPSTR pLightmapPBREffect = "effectbank\\reloaded\\apbr_lightmapped.fx";
+		LoadEffect ( pLightmapPBREffect, g.lightmappbreffect, 0 );
+		filleffectparamarray(g.lightmappbreffect);
 	}
 
 	// load common third person character shader
@@ -3121,12 +3313,12 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	terrain_setupedit ( );
 	terrain_make ( );
 
-	//  Create cheap shadow shader and apply
+	//  Create post process shader and apply
 	t.tsplashstatusprogress_s="INIT POST PROCESSING";
 	timestampactivity(0,t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate ( );
 	postprocess_general_init ( );
-	postprocess_forcheapshadows ( );
+	//postprocess_forcheapshadows ( );
 
 	//  Initialise ragdoll resources
 	t.tsplashstatusprogress_s="INIT RAGDOLL SYSTEM";
@@ -3863,6 +4055,60 @@ void popup_text_close ( void )
 	OpenFileMap (  2, "FPSPOPUP" );
 	SetFileMapDWORD (  2, 8, 1 );
 	SetEventAndWait (  2 );
+	g_PopupControlMode = 0;
+	Sleep(100);
+}
+
+void popup_text_change ( char* statusbar_s )
+{
+	OpenFileMap (  2, "FPSPOPUP" );
+	SetEventAndWait (  2 );
+	if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
+	{
+		SetFileMapString ( 2, 1000, statusbar_s );
+		SetFileMapDWORD ( 2, 4, 1 );
+		SetEventAndWait ( 2 );
+		//DWORD dwNow = timeGetTime();
+		//while (  GetFileMapDWORD( 2, 4 )  ==  1 && timeGetTime() > dwNow + 3000 ) 
+		//{
+		//	SetEventAndWait ( 2 );
+		//}
+	}
+}
+
+void popup_text ( char* statusbar_s )
+{
+	if ( g_PopupControlMode == 0 )
+	{
+		t.strwork = "" ; t.strwork = t.strwork + "1:popup_text "+statusbar_s;
+		timestampactivity(0, t.strwork.Get() );
+		OpenFileMap (  1,"FPSEXCHANGE" );
+		SetFileMapDWORD (  1, 750, 1 );
+		SetEventAndWait (  1 );
+		while (  1 ) 
+		{
+			OpenFileMap (  2, "FPSPOPUP" );
+			SetEventAndWait (  2 );
+			if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
+			{
+				SetFileMapString (  2, 1000, statusbar_s );
+				SetFileMapDWORD (  2, 4, 1 );
+				SetEventAndWait (  2 );
+				//DWORD dwNow = timeGetTime();
+				//while (  GetFileMapDWORD( 2, 4 )  ==  1 && timeGetTime() > dwNow + 3000 ) 
+				//{
+				//	SetEventAndWait (  2 );
+				//}
+				return;
+			}
+			Sync (  );
+		}
+		g_PopupControlMode = 1;
+	}
+	else
+	{
+		popup_text_change ( statusbar_s );
+	}
 }
 
 void loadresource ( void )
@@ -5241,7 +5487,9 @@ void loadscreenpromptassets ( void )
 					// show splash initially
 					tfile_s = respart_s;
 					sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
+					SetMipmapNum(1); //PE: mipmaps not needed.
 					LoadImage ( t.szwork, g.testgamesplashimage );
+					SetMipmapNum(-1);
 				}
 				else
 				{
@@ -5270,7 +5518,9 @@ void loadscreenpromptassets ( void )
 					}
 					sprintf ( t.szwork , "languagebank\\%s\\artwork\\%s" , g.language_s.Get() , tfile_s.Get() );
 				}
+				SetMipmapNum(1); //PE: mipmaps not needed.
 				LoadImage (  t.szwork , g.testgamesplashimage );
+				SetMipmapNum(-1);
 			}
 		}
 	}

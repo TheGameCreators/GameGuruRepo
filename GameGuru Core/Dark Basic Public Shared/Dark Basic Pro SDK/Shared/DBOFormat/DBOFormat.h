@@ -39,7 +39,7 @@ DARKSDK sFrame*		FindFrame							( char* szName, sFrame* pFrame );
 DARKSDK sAnimation* FindAnimation						( sObject* pObject, sFrame* pOriginalFrame );
 DARKSDK sAnimation* CopyAnimation						( sAnimation* pCurrentAnim, LPSTR szNewName );
 DARKSDK bool		InitFramesToBones					( sMesh** pMeshList, int iMeshCount );
-DARKSDK bool		MapFramesToAnimations				( sObject* pObject );
+DARKSDK bool		MapFramesToAnimations				( sObject* pObject, bool bCostlySort );
 DARKSDK void	    InitOneMeshFramesToBones			( sMesh* pMesh );
 DARKSDK bool		MapFramesToBones					( sMesh** pMesh, sFrame *pFrame, int iCount );
 DARKSDK bool	    MapOneMeshFramesToBones				( sMesh* pMain, sFrame* pFrame );

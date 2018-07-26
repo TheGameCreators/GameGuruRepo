@@ -1,0 +1,41 @@
+;Saved by FPSCR Object Importer v1.000
+;header
+desc             = Old bridge
+
+;visualinfo
+textured         = oldbridge_color.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+castshadow       = 0
+transparency     = 0
+
+;orientation
+model            = Old_bridge.dbo
+offx             = 0
+offy             = 0
+offz             = 0
+rotx             = 0
+roty             = 0
+rotz             = 0
+scale            = 0
+collisionmode    = 1
+defaultstatic    = 1
+materialindex    = 1
+
+;define pillars for AI
+forcesimpleobstacle = 3
+forceobstaclesliceheight = 40
+forceobstaclepolysize = 15
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 0
+
+;ai
+aimain           = default.lua

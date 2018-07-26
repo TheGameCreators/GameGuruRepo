@@ -16,6 +16,9 @@ g_sprButton = {}
 g_posButton = {}
 g_imgCursor = 0
 g_sprCursor = 0
+g_sprCursorPtrX = 50
+g_sprCursorPtrY = 33
+g_sprCursorPtrClick = 0
 
 g_strSlotNames = {}
 g_strLevelFilenames = {}
@@ -72,12 +75,14 @@ function loadgame_main()
  -- redraw header
  PasteSprite ( g_sprHeading )
  -- control menus
- SetSpritePosition ( g_sprCursor, g_MouseX, g_MouseY )
+ cursorControl = require "titlesbank\\cursorcontrol"
+ g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick = cursorControl.getinput(g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick)
+ SetSpritePosition ( g_sprCursor, g_sprCursorPtrX, g_sprCursorPtrY )
  iHighlightButton = 0
- if g_MouseX > 50-(GetImageWidth(g_imgButton[LOADGAME_BACK])/2) and g_MouseX <= 50+(GetImageWidth(g_imgButton[LOADGAME_BACK])/2) then
+ if g_sprCursorPtrX > 50-(GetImageWidth(g_imgButton[LOADGAME_BACK])/2) and g_sprCursorPtrX <= 50+(GetImageWidth(g_imgButton[LOADGAME_BACK])/2) then
   for i = 1, LOADGAME_BACK, 1
   do
-   if g_MouseY > g_posButton[i] and g_MouseY <= g_posButton[i]+GetImageHeight(g_imgButton[i]) then
+   if g_sprCursorPtrY > g_posButton[i] and g_sprCursorPtrY <= g_posButton[i]+GetImageHeight(g_imgButton[i]) then
     iHighlightButton = i
    end
   end
@@ -96,7 +101,7 @@ function loadgame_main()
    SetSpriteImage ( g_sprButton[i], g_imgButton[i] )
   end
  end
- if g_MouseClick == 1 then
+ if g_sprCursorPtrClick == 1 then
   if iHighlightButton>=LOADGAME_SLOT_FIRST and iHighlightButton<=LOADGAME_SLOT_LAST then
    if g_strSlotNames[iHighlightButton] ~= "EMPTY PROGRESS SLOT" then
     -- load slot file

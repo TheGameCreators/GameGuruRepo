@@ -11,11 +11,10 @@ aidestroy     = disappear.lua
 
 ;Orientation
 model         = lightbulb.X
-rotx          = 180
+rotx          = 0
 textured      = lightbulb_blue_D.tga
 scale         = 50
 fixnewy       = 0
-forwardfacing = 2
 defaultheight = 155
 defaultstatic = 0
 

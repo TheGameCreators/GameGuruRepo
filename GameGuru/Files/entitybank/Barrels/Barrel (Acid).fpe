@@ -2,8 +2,8 @@
 desc          = Barrel (Acid)
 
 ;visualinfo
-textured      = barrell_acid_D.dds
-effect        = effectbank\reloaded\entity_basic.fx
+textured      = barrell_acid_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
 castshadow    = 0
 
 ;orientation
@@ -20,7 +20,7 @@ materialindex = 2
 ;statistics
 strength      = 25
 explodable    = 0
-debrisshape   = 1
+collisionmode = 3
 
 ;ai
 aiinit	      = appear.lua

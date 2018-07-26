@@ -11,7 +11,6 @@ g_sprProgressB = 0
 g_imgProgressF = 0
 g_sprProgressF = 0
 g_iLoadingCountdown = 0
-g_iGraphicChoice = 3
 
 function loading_init()
  -- determine style folder we are in
@@ -56,16 +55,6 @@ function loading_main()
   SetLoadingResource(2,g_sprProgressB) -- used as a guide to the total width of progress at 100% (always [2])
   SetLoadingResource(3,g_sprHeading) -- the LOADING text
   SetLoadingResource(4,g_sprBackdrop) -- the overwriting backdrop to hide 3D elements
-  -- read graphics settings
-  file = io.open("savegames\\graphics.dat", "r")
-  if file ~= nil then
-   io.input(file)
-   g_iGraphicChoice = tonumber(io.read())
-   io.close(file)
-  else
-   g_iGraphicChoice = 3
-  end
-  SetGameQuality(g_iGraphicChoice)
   StartGame()
  end
 end

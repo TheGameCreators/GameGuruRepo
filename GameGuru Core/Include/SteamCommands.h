@@ -8,6 +8,7 @@
 
 FPSCR int SteamInit();
 FPSCR void SteamFree();
+FPSCR bool SteamOwned ( void );
 FPSCR LPSTR SteamGetPlayerName(void);
 FPSCR LPSTR SteamGetOtherPlayerName( int index );
 FPSCR LPSTR SteamGetPlayerID(void);

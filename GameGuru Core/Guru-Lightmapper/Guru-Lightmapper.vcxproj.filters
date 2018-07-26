@@ -19,9 +19,6 @@
     <Filter Include="GameGuruEngine\MapEditor">
       <UniqueIdentifier>{edc26ec9-6bc3-4d15-ae39-72ccf03ecf6f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GameGuruEngine\FBXExpoter">
-      <UniqueIdentifier>{d3809361-39fe-4c6f-8ad2-b7d52e8421e6}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GameGuru\Source\G-Lighting.cpp">
@@ -197,15 +194,6 @@
     </ClCompile>
     <ClCompile Include="GameGuruLightmapper.cpp">
       <Filter>GameGuruEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Guru-MapEditor\FBXExporter\FBXExporter.cpp">
-      <Filter>GameGuruEngine\FBXExpoter</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Guru-MapEditor\FBXExporter\MathHelper.cpp">
-      <Filter>GameGuruEngine\FBXExpoter</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Guru-MapEditor\FBXExporter\Utilities.cpp">
-      <Filter>GameGuruEngine\FBXExpoter</Filter>
     </ClCompile>
     <ClCompile Include="..\GameGuru\Source\M-EBE.cpp">
       <Filter>GameGuruEngine\MapEditor</Filter>
@@ -394,21 +382,6 @@
     </ClInclude>
     <ClInclude Include="GameGuruLightmapper.h">
       <Filter>GameGuruEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\FBXExporter.h">
-      <Filter>GameGuruEngine\FBXExpoter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\Material.h">
-      <Filter>GameGuruEngine\FBXExpoter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\MathHelper.h">
-      <Filter>GameGuruEngine\FBXExpoter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\Utilities.h">
-      <Filter>GameGuruEngine\FBXExpoter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Guru-MapEditor\FBXExporter\Vertex.h">
-      <Filter>GameGuruEngine\FBXExpoter</Filter>
     </ClInclude>
     <ClInclude Include="..\GameGuru\Include\M-EBE.h">
       <Filter>GameGuruEngine\MapEditor</Filter>

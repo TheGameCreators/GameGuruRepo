@@ -452,6 +452,9 @@ void welcome_serialcode_page ( int iHighlightingButton )
 				// write correct serial code to VRQ file
 				common_writeserialcode(g_welcomeserialcode.pCode);
 
+				// and ensure we can pass to active app
+				g.iTriggerSoftwareToQuit = 0;
+
 				// and continue
 				t.tclosequick = 1;
 			}
@@ -464,7 +467,7 @@ void welcome_serialcode_page ( int iHighlightingButton )
 		if ( iHighlightingButton == 2 ) 
 		{
 			// signal GameGuru to close down immediately
-			g.vrqTriggerSoftwareToQuit = 1;
+			g.iTriggerSoftwareToQuit = 1;
 			t.tclosequick = 1;
 		}
 		if ( iHighlightingButton == 3 ) 
@@ -704,7 +707,16 @@ void welcome_exitapp_page ( int iHighlightingButton )
 {
 	// draw page
 	welcome_drawbox ( 0, 10, 23, 90, 81 );
-	welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(4*5), 192, true, false );
+	if ( g.iTriggerSoftwareToQuit == 2 )
+	{
+		welcome_text ( "Steam not running or ownership not verified", 1, 50, 28+(2*5), 192, true, false );
+	}
+	if ( g.iTriggerSoftwareToQuit == 3 )
+	{
+		welcome_text ( "All DirectX 11 Shaders Updated", 1, 50, 28+(2*5), 192, true, false );
+		welcome_text ( "You may change 'forceloadtestgameshaders' back to zero", 1, 50, 28+(3*5), 192, true, false );
+	}
+	welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(6*5), 192, true, false );
 }
 
 

@@ -9,9 +9,16 @@
 #include "CGfxC.h"
 #include <algorithm>
 
+
 // extern/protos
+bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame);
+void start_mesh_light(void);
+void end_mesh_light(void);
+void setlayer_mesh_light(int layer);
+
 GGFORMAT GetValidStencilBufferFormat ( GGFORMAT Format );
 extern UINT	g_StereoEyeToggle;
+extern DWORD g_dwSyncMaskOverride;
 
 // weapon shader effect indexes
 extern int g_weaponbasicshadereffectindex;
@@ -2283,6 +2290,12 @@ bool CObjectManager::PreDrawSettings ( void )
 	// Set default FOV from camera (zero does not change camera FOV!)
 	if ( g_pGlob->dwRenderCameraID == 0 )
 	{
+		if ( m_RenderStates.fObjectFOV != 0.0f )
+		{
+			// sometimes, objectfov renderstate is not reset, and needed before we start again
+			SetCameraFOV ( m_RenderStates.fStoreCameraFOV );
+			m_RenderStates.fObjectFOV = 0.0f;
+		}
 		tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( 0 );
 		m_RenderStates.fStoreCameraFOV = m_Camera_Ptr->fFOV;
 		m_RenderStates.fObjectFOV = 0.0f;
@@ -3420,6 +3433,21 @@ bool CObjectManager::ShaderPass ( sMesh* pMesh, UINT uPass, UINT uPasses, bool b
 			}
 			#endif
 
+			// added per-object control for additional artist flags
+			#ifdef DX11
+			GGHANDLE pArtFlags = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+			if ( pArtFlags )
+			{
+				float fInvertNormal = 0.0f;
+				float fGenerateTangents = 0.0f;
+				if ( pMesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+				if ( pMesh->dwArtFlags & 0x2 ) fGenerateTangents = 1.0f;
+				float fBoostIntensity = pMesh->fBoostIntensity;
+				GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, fGenerateTangents, fBoostIntensity, 0.0f );
+				pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+			}
+			#endif
+
 			// when flagged, we must update effect with changes we made
 			if ( bMustCommit==true )
 			{
@@ -3686,7 +3714,13 @@ bool CObjectManager::ShaderFinish ( sMesh* pMesh, LPGGRENDERTARGETVIEW pCurrentR
 
 inline DWORD FtoDW( FLOAT f ) { return *((DWORD*)&f); }
 
-bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sObject* pObject )
+//PE: for debug info.
+//#include <DxErr.h>
+//#pragma comment(lib, "dxerr.lib")
+
+
+
+bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sObject* pObject, sFrame* pFrame)
 {
 	// get pointer to drawbuffers
 	sDrawBuffer* pDrawBuffer = pMesh->pDrawBuffer;
@@ -3722,7 +3756,8 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 	// do not render meshes with an effect and a single poly
 	bool bSkipDrawNow = false;
 	if ( pMesh->pVertexShaderEffect && pMesh->dwVertexCount<=3 )
-		bSkipDrawNow = true;
+		if ( pObject->dwObjectNumber < 70000 ) // 220618 - horrid hack (later find out why we need to hide single poly renders)
+			bSkipDrawNow = true;
 
 	#ifdef DX11
 	// set input layout
@@ -3809,11 +3844,21 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			}
 			if ( pMesh->dwFVF == 0 )
 			{
-				iLayoutSize = 7;
-				pLayoutPtr = &layoutFVFZero;
-				dwLayoutSize = sizeof(layoutFVFZero);
+				if ( pMesh->dwFVFOriginal == 530 )
+				{
+					// been conveerted to add tangent/binormal and it wiped FVF value (PBR lightmaps)
+					iLayoutSize = 6;
+					pLayoutPtr = &layoutFVF530;
+					dwLayoutSize = sizeof(layoutFVF530);
+				}
+				else
+				{
+					iLayoutSize = 7;
+					pLayoutPtr = &layoutFVFZero;
+					dwLayoutSize = sizeof(layoutFVFZero);
+				}
 			}
-			LPGGVERTEXLAYOUT pNewVertexDec;	
+			//LPGGVERTEXLAYOUT pNewVertexDec;	
 			D3D11_INPUT_ELEMENT_DESC* pLayout = new D3D11_INPUT_ELEMENT_DESC [ iLayoutSize ];
 			std::memcpy ( pLayout, pLayoutPtr, dwLayoutSize );
 			ID3DBlob* pBlob = g_sShaders[iMeshEffectID].pBlob;
@@ -3825,6 +3870,59 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			D3DX11_EFFECT_SHADER_DESC s_desc;
 			vs_desc.pShaderVariable->GetShaderDesc(0, &s_desc);
 			HRESULT hr = m_pD3D->CreateInputLayout ( pLayout, iLayoutSize, s_desc.pBytecode, s_desc.BytecodeLength, &g_sShaders[iMeshEffectID].pInputLayout );
+
+			
+			//PE: superflatterrain=1
+			//PE: generate : Exception thrown at 0x776508F2 in Guru-MapEditor.exe: Microsoft C++ exception: _com_error at memory location 0x0019DDB0.
+			if (hr != NOERROR) {
+				//PE: Failed , terrain use - tindex  1, pass 1
+				if ( iMeshEffectID == 1 ) { // 1==terrain. same as t.terrain.terrainshaderindex == iMeshEffectID , but we dont have t or g.
+
+					SAFE_DELETE_ARRAY(pLayout);
+					int iLayoutSize = 4;
+					pLayout = new D3D11_INPUT_ELEMENT_DESC[iLayoutSize];
+					D3D11_INPUT_ELEMENT_DESC layout[] =
+					{
+						{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,		0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,		0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,			0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT,			0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					};
+					pLayoutPtr = &layout;
+					std::memcpy(pLayout, layout, sizeof(layout));
+
+					DWORD tIndex = 0;
+					ID3DX11EffectTechnique* tech = NULL;
+					while ((tech = g_sShaders[iMeshEffectID].pEffect->GetTechniqueByIndex(tIndex++))->IsValid())
+					{
+						DWORD pIndex = 0;
+						ID3DX11EffectPass* pass = NULL;
+						while ((pass = tech->GetPassByIndex(pIndex++))->IsValid())
+						{
+							D3DX11_PASS_SHADER_DESC vs_desc;
+							pass->GetVertexShaderDesc(&vs_desc);
+							D3DX11_EFFECT_SHADER_DESC s_desc;
+							vs_desc.pShaderVariable->GetShaderDesc(0, &s_desc);
+							hr = m_pD3D->CreateInputLayout(pLayout, iLayoutSize, s_desc.pBytecode, s_desc.BytecodeLength, &g_sShaders[iMeshEffectID].pInputLayout);
+							break;
+						}
+						if (g_sShaders[iMeshEffectID].pInputLayout != NULL) {
+							break;
+						}
+					}
+
+//					if (hr != NOERROR) {
+//						//PE: debug.
+//						char tmpdebug[2048];
+//						sprintf(tmpdebug, "Error: %s error description: %s\n",
+//							DXGetErrorString(hr), DXGetErrorDescription(hr));
+//						OutputDebugString(tmpdebug);
+//						//PE: Error returned:
+//						//PE: Error: E_INVALIDARG error description: An invalid parameter was passed to the returning function.
+//					}
+				}
+			}
+
 			SAFE_DELETE_ARRAY(pLayout);
 		}
 		pMesh->pVertexDec = g_sShaders[iMeshEffectID].pInputLayout;
@@ -3878,8 +3976,15 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 
 	// loop through all shader passes
 	// each mesh can have several render passes
+	bool lightset = false;
     for(UINT uPass = uPassStartIndex; uPass < uPasses; uPass++)
     {
+		if (!lightset && bSkipDrawNow == false) 
+		{
+			lightset = true;
+			update_mesh_light(pMesh, pObject, pFrame);
+		}
+
 		// start shader pass
 		if ( ShaderPass ( pMesh, uPass, uPasses, bEffectRendering, bLocalOverrideAllTexturesAndEffects, pCurrentRenderTarget, pCurrentDepthTarget, pObject )==true )
 		{
@@ -3937,14 +4042,25 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			#ifdef DX11
 			for ( int i = 0; i < pMesh->dwTextureCount; i++ )
 			{
+				//PE: pMesh->pTextures[i].dwStage not used so stages must be in correct order in the shaders.
 				ID3D11ShaderResourceView* lpTexture = GetImagePointerView ( pMesh->pTextures[i].iImageID );
 				m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
 			}
-			#endif
 
+			//PE: Debug.
+			//GGHANDLE pSurfColor = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("SurfColor");
+			//if (pSurfColor)
+			//{
+			//	GGVECTOR4 vec4 = GGVECTOR4(1.0f, 0.0f, 0.0f, 1.0f);
+			//	pSurfColor->AsVector()->SetFloatVector((float*)&vec4);
+			//}
+
+			#endif
+			
 			// see if we have an index buffer
 			if ( bSkipDrawNow==false )
 			{
+
 				if ( pMesh->pIndices )
 				{
 					// if multimaterial mesh
@@ -4751,8 +4867,10 @@ bool CObjectManager::DrawObject ( sObject* pObject, bool bFrustrumCullMeshes )
 							}
 
 							// draw old LOD mesh
-							if ( !DrawMesh ( pOldLOD ) )
-								return false;
+							//DrawMesh(pOldLOD);
+							DrawMesh ( pOldLOD , false , pObject, pFrame); //PE: Need the object for new dyn light to work.
+							//if ( !DrawMesh ( pOldLOD ) )
+							//	return false;
 
 							// restore projection matrix
 							if ( pObject->iUsingWhichLOD!=3 )
@@ -4765,8 +4883,13 @@ bool CObjectManager::DrawObject ( sObject* pObject, bool bFrustrumCullMeshes )
 					}
 
 					// draw the current mesh
-					if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject ) )
-						return false;
+					if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject , pFrame) )
+					{
+						// mesh failed to draw - catch it here to investigate strangeness
+						int lee = 42;
+					}
+					//if ( !DrawMesh ( pCurrentLOD, (pObject->pInstanceMeshVisible!=NULL) , pObject ) )
+					//	return false;
 
 					// for linked objects
 					if ( pMesh->bLinked )
@@ -4958,6 +5081,9 @@ void CObjectManager::UpdateInitOnce ( void )
 	if ( !m_ObjectManager.ReplaceAllFlaggedObjectsInBuffers() )
 		return;
 
+	//PE: Start mesh light system.
+	start_mesh_light();
+
 	SortTextureList();
 
     // get camera data into member variable
@@ -5085,7 +5211,10 @@ bool CObjectManager::UpdateLayer ( int iLayer )
 	if ( !PreDrawSettings ( ) )
 		return false;
 
-    bool Status = UpdateLayerInner(iLayer);
+	//PE: Set current layer being redered.
+	setlayer_mesh_light(iLayer);
+
+	bool Status = UpdateLayerInner(iLayer);
 
     // restore render states after draw
 	if ( !PostDrawRestores ( ) )
@@ -5100,6 +5229,9 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 	int iObject = 0;
 	bool bUseStencilWrite=false;
 	GGVECTOR3 vecShadowPos;
+
+	// if sync mask override active, reject any drawing activity
+	if ( g_dwSyncMaskOverride == 0 ) return true;
 
     // Get camera information for LOD and distance calculation
 	// ensure rendercamera of 31-34 selects mask for camera 31 (shadow camera)
@@ -5323,6 +5455,43 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				}
 			}
 
+			// prefer to render objects that are marked as 'not' transparent, not locked and bNewZLayerObject as true
+			// this will allow muzzle flashes to render 'before' the weapon (and smoke to render AFTER as smoke transparency set to 6)
+			for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectNoZDepth.size(); ++iIndex )
+			{
+				sObject* pObject = m_vVisibleObjectNoZDepth [ iIndex ];
+				if ( !pObject ) continue;
+
+				// ignore objects whose masks reject the current camera
+				if ( (pObject->dwCameraMaskBits & dwCurrentCameraBit)==0 )
+					continue;
+
+				// only render not-transparent, not locked and bNewZLayerObject true objects
+				bool bRenderObject = false;
+				if ( pObject->bTransparentObject==false && pObject->bLockedObject==false && pObject->bNewZLayerObject==true )
+					bRenderObject=true;
+
+				// only if object should be rendered
+				if ( !bRenderObject )
+					continue;
+
+				// skip if IS weapon/jetpack
+				bool bIsWeaponOrJetPack = false;
+				sObject* pActualObject = pObject;
+				if ( pObject->pInstanceOfObject ) pActualObject = pObject->pInstanceOfObject;
+				if ( pActualObject->ppMeshList )
+				{
+					if ( pWeaponBasic && pWeaponBasic->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pWeaponBasic->pEffectObj ) bIsWeaponOrJetPack = true;
+					if ( pWeaponBone && pWeaponBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pWeaponBone->pEffectObj ) bIsWeaponOrJetPack = true;
+					if ( pJetpackBone && pJetpackBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pJetpackBone->pEffectObj ) bIsWeaponOrJetPack = true;
+				}
+				if ( bIsWeaponOrJetPack == true )
+					continue;
+
+				// draw
+				DrawObject ( pObject, false );
+			}
+
 			// WEAPON RENDERING
 			// for NoZDepth pass, two cycles one for depthcutout and regular
 			// and hard find weapon shaders that have cutoutdepth techniques
@@ -5425,6 +5594,10 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 						if ( pJetpackBone && pJetpackBone->pEffectObj > 0 && pActualObject->ppMeshList[0]->pVertexShaderEffect == pJetpackBone->pEffectObj ) bIsWeaponOrJetPack = true;
 					}
 					if ( bIsWeaponOrJetPack == true )
+						continue;
+
+					// do not render not-transparent, not locked and bNewZLayerObject true objects (did this earlier before weapon renders)
+					if ( pObject->bTransparentObject==false && pObject->bLockedObject==false && pObject->bNewZLayerObject==true )
 						continue;
 
 					// locked objects
@@ -5543,6 +5716,10 @@ bool CObjectManager::UpdateNoZLayer ( void )
 
 	// Overlay render layer (lock, nozdepth)
 	UpdateLayer ( 4 );
+
+
+	//PE: End mesh light system.
+	end_mesh_light();
 
 	// okay
 	return true;

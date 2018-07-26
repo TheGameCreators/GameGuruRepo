@@ -1,0 +1,145 @@
+;header
+desc          = Female Hag Zombie
+
+;visualinfo
+textured      = mobzombie_1_V4_D.dds
+effect        = effectbank\reloaded\character_basic.fx
+castshadow    = 0
+
+;ai
+aimain	      = ai_fastzombie.lua
+
+;orientation
+model         = mobzombie1.X
+offx          = 0
+offy          = -3
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 0
+
+;identity details
+ischaracter   = 1
+hasweapon     =
+isobjective   = 0
+cantakeweapon = 0
+skipfvfconvert= 1
+ragdoll       = 1
+endcollision  = 0
+
+;Sound
+soundset      = audiobank\zombies\Female_Zombie_Groan_1.wav
+soundset1     = audiobank\zombies\Female_Zombie_Attack.wav
+soundset2     = audiobank\zombies\Female_Zombie_Groan_2.wav
+soundset3     = audiobank\zombies\Female_Zombie_Death.wav
+soundset4     = audiobank\zombies\zombie_melee_hit.wav
+
+;headlimbs
+headlimbs     = 32,54
+
+;statistics
+strength      = 100
+explodable    = 0
+debrisshape   = 0
+speed         = 600
+
+;anim
+playanimineditor = 1
+animmax          = 4
+anim0            = 2552,2603;idle
+anim1            = 300,318  ;move
+anim2            = 2981,3034;bite
+anim3            = 2984,2990;hurt
+
+;character animation (reference only)
+csi_relaxed1 			= 2552,2603
+csi_relaxed2 			= 2608,2659
+csi_relaxedmovefore 		= 2500,2519
+csi_cautious 			= 2552,2603
+csi_cautiousmovefore 		= 2500,2519
+csi_unarmed1 			= 2664,2715
+csi_unarmed2 			= 2720,2771
+csi_unarmedconversation		= 3046,3094
+csi_unarmedexplain 		= 3105,3155
+csi_unarmedpointfore 		= 
+csi_unarmedpointback 		= 
+csi_unarmedpointleft 		= 
+csi_unarmedpointright 		= 
+csi_unarmedmovefore 		= 2500,2519
+csi_unarmedmoverun 		= 300,318
+csi_unarmedstairascend 		= 
+csi_unarmedstairdecend 		= 
+csi_unarmedladderascend1 	= 
+csi_unarmedladderascend2 	= 
+csi_unarmedladderascend3 	= 
+csi_unarmedladderdecend1 	= 
+csi_unarmedladderdecend2 	= 
+csi_unarmeddeath 		= 3380,3439
+csi_unarmedimpactfore 		= 3245,3300
+csi_unarmedimpactback 		= 3159,3234
+csi_unarmedimpactleft 		= 3310,3370
+csi_unarmedimpactright 		= 3380,3439
+csi_inchair 			= 
+csi_inchairsit 			= 
+csi_inchairgetup 		= 
+csi_swim 			= 
+csi_swimmovefore 		= 
+csi_stoodnormal			= 210,234
+csi_stoodrocket 		= 
+csi_stoodfidget1 		= 3046,3094
+csi_stoodfidget2 		= 3105,3155
+csi_stoodfidget3 		= 3046,3094
+csi_stoodfidget4 		= 3105,3155
+csi_stoodstartled 		= 2861,2904
+csi_stoodpunch 			= 2775,2848
+csi_stoodkick 			= 2916,2969
+csi_stoodmovefore 		= 235,259
+csi_stoodmoveback 		= 235,259
+csi_stoodmoveleft 		= 235,259
+csi_stoodmoveright 		= 235,259
+csi_stoodstepleft 		=
+csi_stoodstepright 		= 
+csi_stoodstrafeleft 		= 
+csi_stoodstraferight 		= 
+csi_stoodturnleft 		= 
+csi_stoodsubtleturnleft 	= 
+csi_stoodvault 			= 
+csi_stoodmoverun 		= 300,318
+csi_stoodmoverunleft 		= 300,318
+csi_stoodmoverunright 		= 300,318
+csi_stoodreload 		= 
+csi_stoodreloadrocket 		= 
+csi_stoodwave 			= 
+csi_stoodtoss 			= 2981,3034
+csi_stoodfirerocket 		= 
+csi_stoodincoverleft 		= 
+csi_stoodincoverpeekleft 	= 
+csi_stoodincoverthrowleft 	= 
+csi_stoodincoverright 		= 
+csi_stoodincoverpeekright 	= 
+csi_stoodincoverthrowright 	= 
+csi_crouchidlenormal1 		= 
+csi_crouchidlenormal2 		= 
+csi_crouchidlerocket 		= 
+csi_crouchdown 			= 
+csi_crouchdownrocket 		= 
+csi_crouchrolldown 		= 
+csi_crouchrollup		= 
+csi_crouchmovefore 		= 
+csi_crouchmoveback 		= 
+csi_crouchmoveleft 		= 
+csi_crouchmoveright 		= 
+csi_crouchmoverun 		= 
+csi_crouchreload 		= 
+csi_crouchreloadrocket 		= 
+csi_crouchwave 			= 
+csi_crouchtoss 			= 
+csi_crouchfirerocket 		= 
+csi_crouchimpactfore 		= 
+csi_crouchimpactback 		= 
+csi_crouchimpactleft 		= 
+csi_crouchimpactright 		= 
+csi_crouchgetup 		= 
+csi_crouchgetuprocket 		= 

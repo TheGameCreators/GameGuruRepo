@@ -1079,6 +1079,7 @@ luaMessage** ppLuaMessages = NULL;
 	}
 	return 0;
  }
+
  int GetEntityData ( lua_State *L, int iDataMode )
  {
 	lua = L;
@@ -1115,6 +1116,42 @@ luaMessage** ppLuaMessages = NULL;
 							fReturnValue = sqrt ( fabs(fDX*fDX)+fabs(fDY*fDY)+fabs(fDZ*fDZ) );
 							break;
 						}
+						case 14 : 
+						{
+							// Return collision box coordinates (6 values )
+							lua_pushnumber( L, pObject->collision.vecMin.x );
+							lua_pushnumber( L, pObject->collision.vecMin.y );
+							lua_pushnumber( L, pObject->collision.vecMin.x );
+							lua_pushnumber( L, pObject->collision.vecMax.x );
+							lua_pushnumber( L, pObject->collision.vecMax.y );
+							lua_pushnumber( L, pObject->collision.vecMax.z );
+							return 6;
+						}
+						case 15 :
+						{
+							// Position and Angle together (6 values )
+							lua_pushnumber( L, pObject->position.vecPosition.x );
+							lua_pushnumber( L, pObject->position.vecPosition.y );
+							lua_pushnumber( L, pObject->position.vecPosition.z );
+							lua_pushnumber( L, pObject->position.vecRotate.x );
+							lua_pushnumber( L, pObject->position.vecRotate.y );
+							lua_pushnumber( L, pObject->position.vecRotate.z );
+							return 6;
+						}
+						case 16 : fReturnValue = t.entityelement[iEntityIndex].eleprof.phyweight; break;
+						case 17 : 
+						{
+							// Scale factors 3 values
+							lua_pushnumber( L, pObject->position.vecScale.x );
+							lua_pushnumber( L, pObject->position.vecScale.y );
+							lua_pushnumber( L, pObject->position.vecScale.z );
+							return 3;
+						}
+						case 18 : 
+						{
+							lua_pushstring(L, t.entityelement[iEntityIndex].eleprof.name_s.Get() );
+							return 1;
+						}
 					}
 				}
 			}
@@ -1136,6 +1173,7 @@ luaMessage** ppLuaMessages = NULL;
 	}
 	return 1;
  }
+
  int GetEntityPositionX(lua_State *L) { return GetEntityData ( L, 1 ); }
  int GetEntityPositionY(lua_State *L) { return GetEntityData ( L, 2 ); }
  int GetEntityPositionZ(lua_State *L) { return GetEntityData ( L, 3 ); }
@@ -1146,6 +1184,51 @@ luaMessage** ppLuaMessages = NULL;
  int SetAnimationSpeedModulation(lua_State *L) { return RawSetEntityData ( L, 12 ); }
  int GetAnimationSpeedModulation(lua_State *L) { return GetEntityData ( L, 12 ); }
  int GetMovementDelta(lua_State *L) { return GetEntityData ( L, 13 ); }
+ int GetEntityCollBox(lua_State *L) { return GetEntityData ( L, 14 ); }
+ int GetEntityPosAng(lua_State *L)  { return GetEntityData ( L, 15 ); }
+ int GetEntityWeight(lua_State *L)  { return GetEntityData ( L, 16 ); }
+ int GetEntityScales(lua_State *L)  { return GetEntityData ( L, 17 ); }
+ int GetEntityName(lua_State *L)    { return GetEntityData ( L, 18 ); }
+
+ int SetEntityString(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 3 ) return 0;
+	int iReturnValue = 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iSlotIndex = lua_tonumber(L, 2);
+	const char* pString = lua_tostring(L, 3);
+	if ( iEntityIndex > 0 )
+	{
+		if ( iSlotIndex == 0 ) t.entityelement[iEntityIndex].eleprof.soundset_s = pString;
+		if ( iSlotIndex == 1 ) t.entityelement[iEntityIndex].eleprof.soundset1_s = pString;
+		if ( iSlotIndex == 2 ) t.entityelement[iEntityIndex].eleprof.soundset2_s = pString;
+		if ( iSlotIndex == 3 ) t.entityelement[iEntityIndex].eleprof.soundset3_s = pString;
+		if ( iSlotIndex == 4 ) t.entityelement[iEntityIndex].eleprof.soundset4_s = pString;
+	}
+	return 1;
+ }
+ int GetEntityString(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 2 ) return 0;
+	int iReturnValue = 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iSlotIndex = lua_tonumber(L, 2);
+	LPSTR pString = "";
+	if ( iEntityIndex > 0 )
+	{
+		if ( iSlotIndex == 0 ) pString = t.entityelement[iEntityIndex].eleprof.soundset_s.Get();
+		if ( iSlotIndex == 1 ) pString = t.entityelement[iEntityIndex].eleprof.soundset1_s.Get();
+		if ( iSlotIndex == 2 ) pString = t.entityelement[iEntityIndex].eleprof.soundset2_s.Get();
+		if ( iSlotIndex == 3 ) pString = t.entityelement[iEntityIndex].eleprof.soundset3_s.Get();
+		if ( iSlotIndex == 4 ) pString = t.entityelement[iEntityIndex].eleprof.soundset4_s.Get();
+	}
+	lua_pushstring ( L, pString );
+	return 1;
+ }
 
  // Entity Animation
  int GetEntityAnimationStart(lua_State *L)
@@ -1728,7 +1811,7 @@ int GetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	if ( SetupGetTracking(NULL,NULL,NULL) == true ) id = 1;
+	if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
 	lua_pushinteger ( L , id );
 	return 1;
 }
@@ -2419,6 +2502,13 @@ int PositionMouse ( lua_State *L )
 	g.LUAMouseY = fScreenY;
 	return 0;
 }
+
+int GetDynamicCharacterControllerDidJump ( lua_State *L )
+{
+	lua = L;
+	lua_pushnumber ( L, ODEGetDynamicCharacterControllerDidJump() );
+	return 1;
+}
 int GetCharacterControllerDucking ( lua_State *L )
 {
 	lua = L;
@@ -2662,6 +2752,141 @@ int PositionObject ( lua_State *L )
 	PositionObject ( lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
 	return 0;
 }
+int ScaleObjectXYZ(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	ScaleObject(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+	return 0;
+}
+// Add Fast Quaternion functions
+int QuatMultiply(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 8) return 0;
+
+	GGQUATERNION q1( lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	GGQUATERNION q2( lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8) );
+	
+	float A = ( q1.w + q1.x ) * ( q2.w + q2.x );
+	float B = ( q1.z - q1.y ) * ( q2.y - q2.z );
+	float C = ( q1.w - q1.x ) * ( q2.y + q2.z );
+	float D = ( q1.y + q1.z ) * ( q2.w - q2.x );
+	float E = ( q1.x + q1.z ) * ( q2.x + q2.y );
+	float F = ( q1.x - q1.z ) * ( q2.x - q2.y );
+	float G = ( q1.w + q1.y ) * ( q2.w - q2.z );
+	float H = ( q1.w - q1.y ) * ( q2.w + q2.z );
+
+	q1.w = B + (-E - F + G + H ) / 2;
+	q1.x = A - ( E + F + G + H ) / 2;
+	q1.y = C + ( E - F + G - H ) / 2;
+	q1.z = D + ( E - F - G + H ) / 2;
+
+	lua_pushnumber( L, q1.x );
+	lua_pushnumber( L, q1.y );
+	lua_pushnumber( L, q1.z );
+	lua_pushnumber( L, q1.w );
+	return 4;
+}
+int QuatToEuler(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+
+	GGQUATERNION q( lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+
+	float sqw = q.w * q.w;
+	float sqx = q.x * q.x;
+	float sqy = q.y * q.y;
+	float sqz = q.z * q.z;
+
+	float h = -2.0 * ( q.x * q.z - q.y * q.w );
+
+	float x, y, z;
+
+	x = -atan2( 2.0 * ( q.y * q.z + q.x * q.w ), ( -sqx - sqy + sqz + sqw ) );
+	z = -atan2( 2.0 * ( q.x * q.y + q.z * q.w ), (  sqx - sqy - sqz + sqw ) );
+
+	if ( abs( h ) < 0.99999 )
+	{		
+		y =  asin( -2.0 * ( q.x * q.z - q.y * q.w ) );
+	}
+	else
+	{
+		y = ( PI / 2 ) * h;
+	}
+
+	lua_pushnumber( L, x );
+	lua_pushnumber( L, y );
+	lua_pushnumber( L, z );
+	return 3;
+}
+int EulerToQuat(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	float pitch = lua_tonumber( L, 1 );
+	float yaw   = lua_tonumber( L, 2 );
+	float roll  = lua_tonumber( L, 3 );
+
+	float sr = sin( roll  / 2.0 );
+	float sp = sin( pitch / 2.0 );
+	float sy = sin( yaw   / 2.0 );
+	float cr = cos( roll  / 2.0 );
+	float cp = cos( pitch / 2.0 );
+	float cy = cos( yaw   / 2.0 );
+
+	float cycp = cy * cp;
+	float sysp = sy * sp;
+	float sycp = sy * cp;
+	float cysp = cy * sp;
+
+	lua_pushnumber( L, ( sr * sycp ) - ( cr * cysp ) );  // q.x
+	lua_pushnumber( L, ( sr * cysp ) + ( cr * sycp ) );  // q.y
+	lua_pushnumber( L, ( cr * sysp ) - ( sr * cycp ) );  // q.z
+	lua_pushnumber( L, ( sr * sysp ) + ( cr * cycp ) );  // q.w
+	return 4;
+}
+int QuatSLERP(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 9) return 0;
+	const GGQUATERNION qa(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+	const GGQUATERNION qb(lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+
+	GGQUATERNION qOut;
+
+	QuaternionSlerp( &qOut, &qa, &qb, lua_tonumber(L, 9) );
+
+	lua_pushnumber(L, qOut.x);
+	lua_pushnumber(L, qOut.y);
+	lua_pushnumber(L, qOut.z);
+	lua_pushnumber(L, qOut.w);
+	return 4;
+}
+int QuatLERP(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 9) return 0;
+
+	const GGQUATERNION qa(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+	const GGQUATERNION qb(lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+	float t = lua_tonumber(L, 9);
+
+	float at = 1.0 - t;
+	float bt = t;
+	if (qa.x * qb.x + qa.y * qb.y + qa.z * qb.z + qa.w * qb.w < 0) 
+	{
+		bt = -t;
+	}
+
+	lua_pushnumber(L, qa.x * at + qb.x * bt );
+	lua_pushnumber(L, qa.y * at + qb.y * bt );
+	lua_pushnumber(L, qa.z * at + qb.z * bt );
+	lua_pushnumber(L, qa.w * at + qb.w * bt );
+	return 4;
+}
+// end of Fast Quaternion functions
 int RotateObject ( lua_State *L )
 {
 	int n = lua_gettop(L);
@@ -2690,6 +2915,490 @@ int GetObjectAngleZ ( lua_State *L )
 	lua_pushnumber ( L, ObjectAngleZ(lua_tonumber(L, 1)) );
 	return 1;
 }
+int GetObjectPosAng( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if (n < 1) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	// object information
+	sObject* pObject = g_ObjectList[iID];
+
+	lua_pushnumber ( L, pObject->position.vecPosition.x );
+	lua_pushnumber ( L, pObject->position.vecPosition.y );
+	lua_pushnumber ( L, pObject->position.vecPosition.z );
+	lua_pushnumber ( L, pObject->position.vecRotate.x );
+	lua_pushnumber ( L, pObject->position.vecRotate.y );
+	lua_pushnumber ( L, pObject->position.vecRotate.z );
+	return 6;
+}
+int GetObjectColBox( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if (!ConfirmObjectInstance( iID ) )
+		return 0;
+	// object information
+	sObject* pObject = g_ObjectList[iID];
+
+	lua_pushnumber( L, pObject->collision.vecMin.x );
+	lua_pushnumber( L, pObject->collision.vecMin.y );
+	lua_pushnumber( L, pObject->collision.vecMin.z );
+	lua_pushnumber( L, pObject->collision.vecMax.x );
+	lua_pushnumber( L, pObject->collision.vecMax.y );
+	lua_pushnumber( L, pObject->collision.vecMax.z );
+	return 6;
+}
+int GetObjectCentre( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	// object information
+	sObject* pObject = g_ObjectList[iID];
+
+	lua_pushnumber(L, pObject->collision.vecCentre.x);
+	lua_pushnumber(L, pObject->collision.vecCentre.y);
+	lua_pushnumber(L, pObject->collision.vecCentre.z);
+	return 3;
+}
+int GetObjectScales( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	// object information
+	sObject* pObject = g_ObjectList[iID];
+
+	lua_pushnumber(L, pObject->position.vecScale.x);
+	lua_pushnumber(L, pObject->position.vecScale.y);
+	lua_pushnumber(L, pObject->position.vecScale.z);
+	return 3;
+}
+int PushObject( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	if (n == 7)
+	{
+		ODEAddBodyForce( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+						 	  lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7));
+	}
+	else if (n == 4)
+	{
+		ODEAddBodyForce( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4), 0, 0, 0 );
+	}
+	return 0;
+}
+int ConstrainObjMotion( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0; 
+	ODEConstrainBodyMotion( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	return 0;
+}
+int ConstrainObjRotation( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if ( n < 4 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance(iID) )
+		return 0;
+	ODEConstrainBodyRotation( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	return 0;
+}
+int CreateSingleHinge( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if ( n < 7 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance(iID) )
+		return 0;
+	int iC = ODECreateHingeSingle( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		                                lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7) );
+	lua_pushnumber( L, iC );
+	return 1;
+}
+int CreateDoubleHinge( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 11 ) return 0;
+	int iIDa = lua_tonumber(L, 1);
+	int iIDb = lua_tonumber(L, 2);
+	if (!ConfirmObjectInstance(iIDa) || !ConfirmObjectInstance(iIDb))
+		return 0;
+
+	int iC = ODECreateHingeDouble( iIDa, iIDb, lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5),
+		                                       lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8),
+		                                       lua_tonumber(L, 9), lua_tonumber(L, 10), lua_tonumber(L, 11) );
+	lua_pushnumber( L, iC );
+	return 1;
+}
+int CreateSingleJoint( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 4 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+
+	int iC = ODECreateJointSingle( iID, lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4) );
+	lua_pushnumber( L, iC );
+	return 1;
+}
+int CreateDoubleJoint( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 9 ) return 0;
+	int iIDa = lua_tonumber( L, 1 );
+	int iIDb = lua_tonumber( L, 2 );
+	if ( !ConfirmObjectInstance( iIDa ) || !ConfirmObjectInstance( iIDb ) )
+		return 0;
+
+	int iC = ODECreateJointDouble( iIDa, iIDb, lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5),
+		                                       lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8),
+		                                       lua_tonumber(L, 9) );
+	lua_pushnumber( L, iC );
+	return 1;
+}
+int RemoveObjectConstraints( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+
+	ODERemoveBodyConstraints( iID );
+	return 0;
+}
+int RemoveConstraint( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iC = lua_tonumber( L, 1 );
+
+	ODERemoveConstraint( iC );
+	return 0;
+}
+int SetObjectDamping( lua_State *L )
+{
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+
+	ODESetBodyDamping( iID, lua_tonumber( L, 2 ), lua_tonumber( L, 3 ) );
+
+	return 0;
+}
+int PhysicsRayCast( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 7 ) return 0;
+	float fFromX = lua_tonumber( L, 1 );
+	float fFromY = lua_tonumber( L, 2 );
+	float fFromZ = lua_tonumber( L, 3 );
+	float fToX   = lua_tonumber( L, 4 );
+	float fToY   = lua_tonumber( L, 5 );
+	float fToZ   = lua_tonumber( L, 6 );
+	float fForce = lua_tonumber( L, 7 );
+	if ( ODERayForce( fFromX, fFromY, fFromZ, fToX, fToY, fToZ, fForce ) == 1 )
+	{
+		int iObjHit = ODEGetRayObjectHit();
+		// only return dynamic objects
+		if ( ODEGetBodyIsDynamic( iObjHit ) )
+		{
+			lua_pushnumber( L, iObjHit );
+			lua_pushnumber( L, ODEGetRayCollisionX() );
+			lua_pushnumber( L, ODEGetRayCollisionY() );
+			lua_pushnumber( L, ODEGetRayCollisionZ() );
+			return 4;
+		}
+	}
+	lua_pushnumber( L, 0 );
+	return 1;
+}
+int GetObjectNumCollisions(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	lua_pushnumber(L, ODEGetBodyNumCollisions(iID));
+	return 1;
+}
+int GetObjectCollisionDetails( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	int colNum = 0;
+	int iColObj = 0;
+	float fX, fY, fZ, fF;
+	if (n == 2) colNum = lua_tonumber(L, 2);
+	ODEGetBodyCollisionDetails( iID, colNum, iColObj, fX, fY, fZ, fF );
+	lua_pushnumber( L, iColObj );
+	lua_pushnumber( L, fX );
+	lua_pushnumber( L, fY );
+	lua_pushnumber( L, fZ );
+	lua_pushnumber( L, fF );
+
+	return 5;
+}
+int GetTerrainNumCollisions( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	lua_pushnumber( L, ODEGetTerrainNumCollisions( iID ) );
+	return 1;
+}
+int GetTerrainCollisionDetails( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	int colNum = 0;
+	int iLatest = 0;
+	float fX, fY, fZ;
+	if (n == 2) colNum = lua_tonumber( L, 2 );
+	ODEGetTerrainCollisionDetails( iID, colNum, iLatest, fX, fY, fZ );
+	lua_pushnumber( L, iLatest );
+	lua_pushnumber( L, fX );
+	lua_pushnumber( L, fY );
+	lua_pushnumber( L, fZ );
+
+	return 4;
+}
+int AddObjectCollisionCheck( lua_State *L )
+{
+	int n = lua_gettop( L );
+	if (n < 1) return 0;
+	int iID = lua_tonumber( L, 1 );
+	if ( !ConfirmObjectInstance( iID ) )
+		return 0;
+	ODEAddBodyCollisionCheck( iID );
+	return 0;
+}
+int RemoveObjectCollisionCheck(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iID = lua_tonumber(L, 1);
+	if (!ConfirmObjectInstance(iID))
+		return 0;
+	ODERemoveBodyCollisionCheck(iID);
+	return 0;
+}
+
+// Lua control of dynamic light
+// get the light number using entity e number 
+// then use that in the other light functions
+int GetEntityLightNumber( lua_State *L )
+{
+	lua = L;
+	int n = lua_gettop( L );
+	if ( n < 1 ) return 0;
+
+	// get lightentity e number
+	int iID = lua_tonumber( L, 1 );
+	if ( iID <= 0 ) return 0;
+
+	for ( int i = 1; i <= g.infinilightmax; i++)
+	{
+		if ( t.infinilight[ i ].used == 1 && t.infinilight[ i ].e == iID )
+		{
+			lua_pushinteger( L, i );
+			return 1;
+		}
+	}
+	return 0;
+}
+int GetLightPosition( lua_State *L )
+{
+	lua = L;
+	int n = lua_gettop( L );
+	if ( n < 1 )
+		return 0;
+
+	// get light number
+	int i = lua_tointeger( L, 1 );
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[ i ].used == 1 )
+	{
+		lua_pushnumber( L, t.infinilight[i].x );
+		lua_pushnumber( L, t.infinilight[i].y );
+		lua_pushnumber( L, t.infinilight[i].z );
+		return 3;
+	}
+	return 0;
+}
+int GetLightAngle(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1)
+		return 0;
+
+	// get light number
+	int i = lua_tointeger(L, 1);
+
+	if (i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1)
+	{
+		lua_pushnumber(L, t.infinilight[i].f_angle_x);
+		lua_pushnumber(L, t.infinilight[i].f_angle_y);
+		lua_pushnumber(L, t.infinilight[i].f_angle_z);
+		return 3;
+	}
+	return 0;
+}
+int GetLightRGB( lua_State *L )
+{
+	lua = L;
+	int n = lua_gettop( L );
+	if ( n < 1 )
+		return 0;
+
+	// get light number
+	int i = lua_tointeger( L, 1 );
+
+	if (i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1)
+	{
+		lua_pushnumber( L, t.infinilight[i].colrgb.r );
+		lua_pushnumber( L, t.infinilight[i].colrgb.g );
+		lua_pushnumber( L, t.infinilight[i].colrgb.b );
+		return 3;
+	}
+	return 0;
+}
+int GetLightRange(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop( L );
+	if ( n < 1 )
+		return 0;
+
+	// get light number
+	int i = lua_tointeger( L, 1 );
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[ i ].used == 1 )
+	{
+		lua_pushnumber( L, t.infinilight[ i ].range );
+		return 1;
+	}
+	return 0;
+}
+// uses light number from above
+int SetLightPosition( lua_State *L )
+{
+	lua = L;
+	// get number of arguments
+	int n = lua_gettop( L );
+	// Not enough params, return out
+	if ( n < 4 )
+		return 0;
+
+	// get light number
+	int i = lua_tonumber( L, 1 );
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[ i ].used == 1 )
+	{
+		t.infinilight[ i ].x = lua_tonumber( L, 2 );
+		t.infinilight[ i ].y = lua_tonumber( L, 3 );
+		t.infinilight[ i ].z = lua_tonumber( L, 4 );
+	}
+	return 0;
+}
+int SetLightAngle(lua_State *L)
+{
+	lua = L;
+	// get number of arguments
+	int n = lua_gettop(L);
+	// Not enough params, return out
+	if (n < 4)
+		return 0;
+
+	// get light number
+	int i = lua_tonumber(L, 1);
+
+	if (i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1)
+	{
+		t.infinilight[i].f_angle_x = lua_tonumber(L, 2);
+		t.infinilight[i].f_angle_y = lua_tonumber(L, 3);
+		t.infinilight[i].f_angle_z = lua_tonumber(L, 4);
+	}
+	return 0;
+}
+int SetLightRGB( lua_State *L ) 
+{
+	lua = L;
+	// get number of arguments
+	int n = lua_gettop( L );
+	// Not enough params, return out
+	if ( n < 4 )
+		return 0;
+
+	// get light number
+	int i = lua_tonumber( L, 1 );
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[ i ].used == 1 )
+	{
+		t.infinilight[ i ].colrgb.r = lua_tonumber( L, 2 );
+		t.infinilight[ i ].colrgb.g = lua_tonumber( L, 3 );
+		t.infinilight[ i ].colrgb.b = lua_tonumber( L, 4 );
+	}
+	return 0;
+}
+
+int SetLightRange( lua_State *L )
+{
+	lua = L;
+	// get number of arguments
+	int n = lua_gettop(L);
+	// Not enough params, return out
+	if (n < 2)
+		return 0;
+
+	// get light number
+	int i = lua_tointeger(L, 1);
+
+	if ( i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1 )
+	{
+		float rng = lua_tonumber(L, 2);
+		if ( rng < 1.0f )
+		{
+			rng = 1.0f;
+		}
+		else if ( rng > 10000.0f )
+		{
+			rng = 10000.0f;
+		}
+		t.infinilight[ i ].range = rng;
+	}
+	return 0;
+}
+
 int RunCharLoop ( lua_State *L )
 {
 	// run character animation system
@@ -2738,7 +3447,7 @@ int PlayFootfallSound ( lua_State *L )
 		t.tsx_f = fX;
 		t.tsy_f = fY;
 		t.tsz_f = fZ;
-		material_triggersound ( );
+		material_triggersound ( 1 );
 	}
 	lua_pushnumber ( L, lastfootfallsound );
 	return 1;
@@ -2790,6 +3499,140 @@ int SetShaderVariable ( lua_State *L )
 	return 1;
 }
 
+//Control Water Shader
+//setter
+int SetWaterHeight(lua_State *L) {
+	t.terrain.waterliney_f = lua_tonumber(L, 1);
+	return 0;
+}
+int SetWaterShaderColor(lua_State *L) {
+	t.visuals.WaterRed_f = lua_tonumber(L, 1);
+	t.visuals.WaterGreen_f = lua_tonumber(L, 2);
+	t.visuals.WaterBlue_f = lua_tonumber(L, 3);
+	SetVector4(g.terrainvectorindex, t.visuals.WaterRed_f / 256, t.visuals.WaterGreen_f / 256, t.visuals.WaterBlue_f / 256, 0);
+	SetEffectConstantV(t.terrain.effectstartindex + 1, "WaterCol", g.terrainvectorindex);
+	return 0;
+}
+int SetWaterWaveIntensity(lua_State *L){
+	t.visuals.WaterWaveIntensity_f = lua_tonumber(L, 1);
+	SetVector4(g.terrainvectorindex, t.visuals.WaterWaveIntensity_f, t.visuals.WaterWaveIntensity_f, 0, 0);
+	SetEffectConstantV(t.terrain.effectstartindex + 1, "nWaterScale", g.terrainvectorindex);
+	return 0;
+}
+int SetWaterTransparancy(lua_State *L){
+	t.visuals.WaterTransparancy_f = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterTransparancy", t.visuals.WaterTransparancy_f);
+	return 0;
+}
+int SetWaterReflection(lua_State *L){
+	t.visuals.WaterReflection_f = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterReflection", t.visuals.WaterReflection_f);
+	return 0;
+}
+int SetWaterReflectionSparkleIntensity(lua_State *L){
+	t.visuals.WaterReflectionSparkleIntensity = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "reflectionSparkleIntensity", t.visuals.WaterReflectionSparkleIntensity);
+	return 0;
+}
+int SetWaterFlowDirection(lua_State *L){
+	t.visuals.WaterFlowDirectionX = lua_tonumber(L, 1);
+	t.visuals.WaterFlowDirectionY = lua_tonumber(L, 2);
+	t.visuals.WaterFlowSpeed = lua_tonumber(L, 3);
+	SetVector4(g.terrainvectorindex, t.visuals.WaterFlowDirectionX*t.visuals.WaterFlowSpeed, t.visuals.WaterFlowDirectionY*t.visuals.WaterFlowSpeed, 0, 0);
+	SetEffectConstantV(t.terrain.effectstartindex + 1, "flowdirection", g.terrainvectorindex);
+	return 0;
+}
+int SetWaterDistortionWaves(lua_State *L){
+	t.visuals.WaterDistortionWaves = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "distortion2", t.visuals.WaterDistortionWaves);
+	return 0;
+}
+int SetRippleWaterSpeed(lua_State *L){
+	t.visuals.WaterSpeed1 = lua_tonumber(L, 1);
+	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterSpeed1", t.visuals.WaterSpeed1);
+	return 0;
+}
+//getter
+int GetWaterHeight(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.terrain.waterliney_f);
+	return 1;
+}
+int GetWaterWaveIntensity(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterWaveIntensity_f);
+	return 1;
+}
+int GetWaterShaderColorRed(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterRed_f);
+	return 1;
+}
+int GetWaterShaderColorGreen(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterGreen_f);
+	return 1;
+}
+int GetWaterShaderColorBlue(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterBlue_f);
+	return 1;
+}
+int GetWaterTransparancy(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterTransparancy_f);
+	return 1;
+}
+int GetWaterReflection(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterReflection_f);
+	return 1;
+}
+int GetWaterReflectionSparkleIntensity(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterReflectionSparkleIntensity);
+	return 1;
+}
+int GetWaterFlowDirectionX(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterFlowDirectionX);
+	return 1;
+}
+int GetWaterFlowDirectionY(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterFlowDirectionY);
+	return 1;
+}
+int GetWaterFlowSpeed(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterFlowSpeed);
+	return 1;
+}
+int GetWaterDistortionWaves(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterDistortionWaves);
+	return 1;
+}
+int GetRippleWaterSpeed(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.WaterSpeed1);
+	return 1;
+}
+
+
 // Game Player Control/State Set/Get commands
 
 int SetGamePlayerControlData ( lua_State *L, int iDataMode )
@@ -2805,6 +3648,23 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 	else
 	{
 		if ( n < 2 ) return 0;
+	}
+	int gunId = t.gunid;
+	int fireMode = g.firemode;
+	int param = 1;
+	if ( n > 1 && iDataMode > 200 && iDataMode < 500 ) 
+	{
+		gunId = lua_tonumber( L, 1 );
+		if ( n == 2 )
+		{
+			fireMode = 0;
+			param = 2;
+		}
+		else
+		{
+			fireMode = lua_tonumber( L, 2 );
+			param = 3;
+		}
 	}
 	switch ( iDataMode )
 	{
@@ -2845,7 +3705,7 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 34 : t.playercontrol.jumpmax_f = lua_tonumber(L, 1); break;
 		case 35 : t.playercontrol.pushangle_f = lua_tonumber(L, 1); break;
 		case 36 : t.playercontrol.pushforce_f = lua_tonumber(L, 1); break;
-		case 37 : break;
+		case 37 : t.playercontrol.footfallpace_f = lua_tonumber(L, 1); break;
 		case 38 : t.playercontrol.lockatheight = lua_tonumber(L, 1); break;
 		case 39 : t.playercontrol.controlheight = lua_tonumber(L, 1); break;
 		case 40 : t.playercontrol.controlheightcooldown = lua_tonumber(L, 1); break;
@@ -2985,38 +3845,37 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 188 : t.huddamage.immunity = lua_tonumber(L, 1); break;		
 		case 189 : g.charanimindex = lua_tonumber(L, 1); break;	
 	
-		case 201 : t.gun[t.gunid].settings.ismelee = lua_tonumber(L, 1); break;
-		case 202 : t.gun[t.gunid].settings.alternate = lua_tonumber(L, 1); break;
-		case 203 : t.gun[t.gunid].settings.modessharemags = lua_tonumber(L, 1); break;
-		case 204 : t.gun[t.gunid].settings.alternateisflak = lua_tonumber(L, 1); break;
-		case 205 : t.gun[t.gunid].settings.alternateisray = lua_tonumber(L, 1); break;
-
-		case 301 : g.firemodes[t.gunid][g.firemode].settings.reloadqty = lua_tonumber(L, 1); break;
-		case 302 : g.firemodes[t.gunid][g.firemode].settings.isempty = lua_tonumber(L, 1); break;
-		case 303 : g.firemodes[t.gunid][g.firemode].settings.jammed = lua_tonumber(L, 1); break;
-		case 304 : g.firemodes[t.gunid][g.firemode].settings.jamchance = lua_tonumber(L, 1); break;
-		case 305 : g.firemodes[t.gunid][g.firemode].settings.mintimer = lua_tonumber(L, 1); break;
-		case 306 : g.firemodes[t.gunid][g.firemode].settings.addtimer = lua_tonumber(L, 1); break;
-		case 307 : g.firemodes[t.gunid][g.firemode].settings.shotsfired = lua_tonumber(L, 1); break;
-		case 308 : g.firemodes[t.gunid][g.firemode].settings.cooltimer = lua_tonumber(L, 1); break;
-		case 309 : g.firemodes[t.gunid][g.firemode].settings.overheatafter = lua_tonumber(L, 1); break;
-		case 310 : g.firemodes[t.gunid][g.firemode].settings.jamchancetime = lua_tonumber(L, 1); break;
-		case 311 : g.firemodes[t.gunid][g.firemode].settings.cooldown = lua_tonumber(L, 1); break;
-		case 312 : g.firemodes[t.gunid][g.firemode].settings.nosubmergedfire = lua_tonumber(L, 1); break;
-		case 313 : g.firemodes[t.gunid][g.firemode].settings.simplezoom = lua_tonumber(L, 1); break;
-		case 314 : g.firemodes[t.gunid][g.firemode].settings.forcezoomout = lua_tonumber(L, 1); break;
-		case 315 : g.firemodes[t.gunid][g.firemode].settings.zoommode = lua_tonumber(L, 1); break;
-		case 316 : g.firemodes[t.gunid][g.firemode].settings.simplezoomanim = lua_tonumber(L, 1); break;
-		case 317 : g.firemodes[t.gunid][g.firemode].settings.poolindex = lua_tonumber(L, 1); break;
-		case 318 : g.firemodes[t.gunid][g.firemode].settings.plrturnspeedmod = lua_tonumber(L, 1); break;
-		case 319 : g.firemodes[t.gunid][g.firemode].settings.zoomturnspeed = lua_tonumber(L, 1); break;
-		case 320 : g.firemodes[t.gunid][g.firemode].settings.plrjumpspeedmod = lua_tonumber(L, 1); break;
-		case 321 : g.firemodes[t.gunid][g.firemode].settings.plremptyspeedmod = lua_tonumber(L, 1); break;
-		case 322 : g.firemodes[t.gunid][g.firemode].settings.plrmovespeedmod = lua_tonumber(L, 1); break;
-		case 323 : g.firemodes[t.gunid][g.firemode].settings.zoomwalkspeed = lua_tonumber(L, 1); break;
-		case 324 : g.firemodes[t.gunid][g.firemode].settings.plrreloadspeedmod = lua_tonumber(L, 1); break;
-		case 325 : g.firemodes[t.gunid][g.firemode].settings.hasempty = lua_tonumber(L, 1); break;
-		case 326 : g.firemodes[t.gunid][g.firemode].action.block.s = lua_tonumber(L, 1); break;
+		case 201 : t.gun[gunId].settings.ismelee         = lua_tonumber( L, param ); break;
+		case 202 : t.gun[gunId].settings.alternate       = lua_tonumber( L, param ); break;
+		case 203 : t.gun[gunId].settings.modessharemags  = lua_tonumber( L, param ); break;
+		case 204 : t.gun[gunId].settings.alternateisflak = lua_tonumber( L, param ); break;
+		case 205 : t.gun[gunId].settings.alternateisray  = lua_tonumber( L, param ); break;
+		case 301 : g.firemodes[gunId][fireMode].settings.reloadqty         = lua_tonumber( L, param ); break;
+		case 302 : g.firemodes[gunId][fireMode].settings.isempty           = lua_tonumber( L, param ); break;
+		case 303 : g.firemodes[gunId][fireMode].settings.jammed            = lua_tonumber( L, param ); break;
+		case 304 : g.firemodes[gunId][fireMode].settings.jamchance         = lua_tonumber( L, param ); break;
+		case 305 : g.firemodes[gunId][fireMode].settings.mintimer          = lua_tonumber( L, param ); break;
+		case 306 : g.firemodes[gunId][fireMode].settings.addtimer          = lua_tonumber( L, param ); break;
+		case 307 : g.firemodes[gunId][fireMode].settings.shotsfired        = lua_tonumber( L, param ); break;
+		case 308 : g.firemodes[gunId][fireMode].settings.cooltimer         = lua_tonumber( L, param ); break;
+		case 309 : g.firemodes[gunId][fireMode].settings.overheatafter     = lua_tonumber( L, param ); break;
+		case 310 : g.firemodes[gunId][fireMode].settings.jamchancetime     = lua_tonumber( L, param ); break;
+		case 311 : g.firemodes[gunId][fireMode].settings.cooldown          = lua_tonumber( L, param ); break;
+		case 312 : g.firemodes[gunId][fireMode].settings.nosubmergedfire   = lua_tonumber( L, param ); break;
+		case 313 : g.firemodes[gunId][fireMode].settings.simplezoom        = lua_tonumber( L, param ); break;
+		case 314 : g.firemodes[gunId][fireMode].settings.forcezoomout      = lua_tonumber( L, param ); break;
+		case 315 : g.firemodes[gunId][fireMode].settings.zoommode          = lua_tonumber( L, param ); break;
+		case 316 : g.firemodes[gunId][fireMode].settings.simplezoomanim    = lua_tonumber( L, param ); break;
+		case 317 : g.firemodes[gunId][fireMode].settings.poolindex         = lua_tonumber( L, param ); break;
+		case 318 : g.firemodes[gunId][fireMode].settings.plrturnspeedmod   = lua_tonumber( L, param ); break;
+		case 319 : g.firemodes[gunId][fireMode].settings.zoomturnspeed     = lua_tonumber( L, param ); break;
+		case 320 : g.firemodes[gunId][fireMode].settings.plrjumpspeedmod   = lua_tonumber( L, param ); break;
+		case 321 : g.firemodes[gunId][fireMode].settings.plremptyspeedmod  = lua_tonumber( L, param ); break;
+		case 322 : g.firemodes[gunId][fireMode].settings.plrmovespeedmod   = lua_tonumber( L, param ); break;
+		case 323 : g.firemodes[gunId][fireMode].settings.zoomwalkspeed     = lua_tonumber( L, param ); break;
+		case 324 : g.firemodes[gunId][fireMode].settings.plrreloadspeedmod = lua_tonumber( L, param ); break;
+		case 325 : g.firemodes[gunId][fireMode].settings.hasempty          = lua_tonumber( L, param ); break;
+		case 326 : g.firemodes[gunId][fireMode].action.block.s             = lua_tonumber( L, param ); break;
 
 		case 501 : t.gunsound[t.gunid][lua_tonumber(L, 1)].soundid1 = lua_tonumber(L, 2); break;
 		case 502 : t.gunsound[t.gunid][lua_tonumber(L, 1)].altsoundid = lua_tonumber(L, 2); break;
@@ -3086,6 +3945,22 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		else
 			if ( n < 1 ) return 0;
 	}
+	int gunId = t.gunid;
+	int fireMode = t.tfiremode;
+
+	if ( n > 0 && iDataMode > 200 && iDataMode < 500 )
+	{
+		gunId = lua_tonumber(L, 1);
+		if (n > 1)
+		{
+			fireMode = lua_tonumber(L, 2);
+		}
+		else
+		{
+			fireMode = 0;
+		}
+	}
+
 	switch ( iDataMode )
 	{
 		case 1 : lua_pushnumber ( L, t.playercontrol.jetpackmode ); break;
@@ -3124,7 +3999,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 34 : lua_pushnumber ( L, t.playercontrol.jumpmax_f ); break;
 		case 35 : lua_pushnumber ( L, t.playercontrol.pushangle_f ); break;
 		case 36 : lua_pushnumber ( L, t.playercontrol.pushforce_f ); break;
-		case 37 : break;
+		case 37 : lua_pushnumber ( L, t.playercontrol.footfallpace_f ); break;
 		case 38 : lua_pushnumber ( L, t.playercontrol.lockatheight ); break;
 		case 39 : lua_pushnumber ( L, t.playercontrol.controlheight ); break;
 		case 40 : lua_pushnumber ( L, t.playercontrol.controlheightcooldown ); break;
@@ -3264,38 +4139,38 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 188 : lua_pushnumber ( L, t.huddamage.immunity ); break;	
 		case 189 : lua_pushnumber ( L, g.charanimindex ); break;				
 			
-		case 201 : lua_pushnumber ( L, t.gun[t.gunid].settings.ismelee ); break;
-		case 202 : lua_pushnumber ( L, t.gun[t.gunid].settings.alternate ); break;
-		case 203 : lua_pushnumber ( L, t.gun[t.gunid].settings.modessharemags ); break;
-		case 204 : lua_pushnumber ( L, t.gun[t.gunid].settings.alternateisflak ); break;
-		case 205 : lua_pushnumber ( L, t.gun[t.gunid].settings.alternateisray ); break;
+		case 201 : lua_pushnumber ( L, t.gun[gunId].settings.ismelee         ); break;
+		case 202 : lua_pushnumber ( L, t.gun[gunId].settings.alternate       ); break;
+		case 203 : lua_pushnumber ( L, t.gun[gunId].settings.modessharemags  ); break;
+		case 204 : lua_pushnumber ( L, t.gun[gunId].settings.alternateisflak ); break;
+		case 205 : lua_pushnumber ( L, t.gun[gunId].settings.alternateisray  ); break;
 		
-		case 301 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.reloadqty ); break;
-		case 302 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.isempty ); break;
-		case 303 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.jammed ); break;
-		case 304 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.jamchance ); break;
-		case 305 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.mintimer ); break;
-		case 306 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.addtimer ); break;
-		case 307 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.shotsfired ); break;
-		case 308 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.cooltimer ); break;
-		case 309 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.overheatafter ); break;
-		case 310 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.jamchancetime ); break;
-		case 311 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.cooldown ); break;
-		case 312 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.nosubmergedfire ); break;
-		case 313 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.simplezoom ); break;
-		case 314 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.forcezoomout ); break;
-		case 315 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.zoommode ); break;
-		case 316 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.simplezoomanim ); break;
-		case 317 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.poolindex ); break;
-		case 318 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plrturnspeedmod ); break;
-		case 319 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.zoomturnspeed ); break;
-		case 320 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plrjumpspeedmod ); break;
-		case 321 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plremptyspeedmod ); break;
-		case 322 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plrmovespeedmod ); break;
-		case 323 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.zoomwalkspeed ); break;
-		case 324 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.plrreloadspeedmod ); break;
-		case 325 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].settings.hasempty ); break;
-		case 326 : lua_pushnumber ( L, g.firemodes[t.gunid][g.firemode].action.block.s ); break;
+		case 301 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.reloadqty         ); break;
+		case 302 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.isempty           ); break;
+		case 303 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.jammed            ); break;
+		case 304 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.jamchance         ); break;
+		case 305 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.mintimer          ); break;
+		case 306 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.addtimer          ); break;
+		case 307 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.shotsfired        ); break;
+		case 308 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.cooltimer         ); break;
+		case 309 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.overheatafter     ); break;
+		case 310 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.jamchancetime     ); break;
+		case 311 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.cooldown          ); break;
+		case 312 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.nosubmergedfire   ); break;
+		case 313 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.simplezoom        ); break;
+		case 314 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.forcezoomout      ); break;
+		case 315 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.zoommode          ); break;
+		case 316 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.simplezoomanim    ); break;
+		case 317 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.poolindex         ); break;
+		case 318 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plrturnspeedmod   ); break;
+		case 319 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.zoomturnspeed     ); break;
+		case 320 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plrjumpspeedmod   ); break;
+		case 321 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plremptyspeedmod  ); break;
+		case 322 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plrmovespeedmod   ); break;
+		case 323 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.zoomwalkspeed     ); break;
+		case 324 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.plrreloadspeedmod ); break;
+		case 325 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.hasempty          ); break;
+		case 326 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].action.block.s             ); break;
 
 		case 501 : lua_pushnumber ( L, t.gunsound[t.gunid][lua_tonumber(L, 1)].soundid1 ); break;
 		case 502 : lua_pushnumber ( L, t.gunsound[t.gunid][lua_tonumber(L, 1)].altsoundid ); break;		
@@ -3387,7 +4262,7 @@ int GetGamePlayerControlWobbleHeight ( lua_State *L ) { return GetGamePlayerCont
 int GetGamePlayerControlJumpmax ( lua_State *L ) { return GetGamePlayerControlData ( L, 34 ); }
 int GetGamePlayerControlPushangle ( lua_State *L ) { return GetGamePlayerControlData ( L, 35 ); }
 int GetGamePlayerControlPushforce ( lua_State *L ) { return GetGamePlayerControlData ( L, 36 ); }
-int GetGamePlayerControlX2 ( lua_State *L ) { return GetGamePlayerControlData ( L, 37 ); }
+int GetGamePlayerControlFootfallPace ( lua_State *L ) { return GetGamePlayerControlData ( L, 37 ); }
 int GetGamePlayerControlLockAtHeight ( lua_State *L ) { return GetGamePlayerControlData ( L, 38 ); }
 int GetGamePlayerControlControlHeight ( lua_State *L ) { return GetGamePlayerControlData ( L, 39 ); }
 int GetGamePlayerControlControlHeightCooldown ( lua_State *L ) { return GetGamePlayerControlData ( L, 40 ); }
@@ -3471,7 +4346,7 @@ int SetGamePlayerControlWobbleHeight ( lua_State *L ) { return SetGamePlayerCont
 int SetGamePlayerControlJumpmax ( lua_State *L ) { return SetGamePlayerControlData ( L, 34 ); }
 int SetGamePlayerControlPushangle ( lua_State *L ) { return SetGamePlayerControlData ( L, 35 ); }
 int SetGamePlayerControlPushforce ( lua_State *L ) { return SetGamePlayerControlData ( L, 36 ); }
-int SetGamePlayerControlX2 ( lua_State *L ) { return SetGamePlayerControlData ( L, 37 ); }
+int SetGamePlayerControlFootfallPace ( lua_State *L ) { return SetGamePlayerControlData ( L, 37 ); }
 int SetGamePlayerControlLockAtHeight ( lua_State *L ) { return SetGamePlayerControlData ( L, 38 ); }
 int SetGamePlayerControlControlHeight ( lua_State *L ) { return SetGamePlayerControlData ( L, 39 ); }
 int SetGamePlayerControlControlHeightCooldown ( lua_State *L ) { return SetGamePlayerControlData ( L, 40 ); }
@@ -3702,7 +4577,6 @@ int SetGamePlayerStateAlternateIsFlak ( lua_State *L ) { return SetGamePlayerCon
 int GetGamePlayerStateAlternateIsFlak ( lua_State *L ) { return GetGamePlayerControlData ( L, 204 ); }
 int SetGamePlayerStateAlternateIsRay ( lua_State *L ) { return SetGamePlayerControlData ( L, 205 ); }
 int GetGamePlayerStateAlternateIsRay ( lua_State *L ) { return GetGamePlayerControlData ( L, 205 ); }
-
 int SetFireModeSettingsReloadQty ( lua_State *L ) { return SetGamePlayerControlData ( L, 301 ); }
 int GetFireModeSettingsReloadQty ( lua_State *L ) { return GetGamePlayerControlData ( L, 301 ); }
 int SetFireModeSettingsIsEmpty ( lua_State *L ) { return SetGamePlayerControlData ( L, 302 ); }
@@ -4257,6 +5131,11 @@ void addFunctions()
 	lua_register(lua, "GetEntityPositionX", GetEntityPositionX);
 	lua_register(lua, "GetEntityPositionY", GetEntityPositionY);
 	lua_register(lua, "GetEntityPositionZ", GetEntityPositionZ);
+	lua_register(lua, "GetEntityCollBox", GetEntityCollBox);
+	lua_register(lua, "GetEntityPosAng", GetEntityPosAng);
+	lua_register(lua, "GetEntityWeight", GetEntityWeight);
+	lua_register(lua, "GetEntityScales", GetEntityScales);
+	lua_register(lua, "GetEntityName", GetEntityName);
 	lua_register(lua, "GetEntityAngleX", GetEntityAngleX);
 	lua_register(lua, "GetEntityAngleY", GetEntityAngleY);
 	lua_register(lua, "GetEntityAngleZ", GetEntityAngleZ);
@@ -4264,6 +5143,9 @@ void addFunctions()
 	lua_register(lua, "SetAnimationSpeedModulation", SetAnimationSpeedModulation);
 	lua_register(lua, "GetAnimationSpeedModulation", GetAnimationSpeedModulation);
 	lua_register(lua, "GetMovementDelta", GetMovementDelta);
+
+	lua_register(lua, "SetEntityString", SetEntityString);
+	lua_register(lua, "GetEntityString", GetEntityString);
 
 	lua_register(lua, "SetEntitySpawnAtStart", SetEntitySpawnAtStart);
 	lua_register(lua, "GetEntitySpawnAtStart", GetEntitySpawnAtStart);
@@ -4386,6 +5268,7 @@ void addFunctions()
 	lua_register(lua, "CurveValue" , CurveValue );
 	lua_register(lua, "CurveAngle" , CurveAngle );
 	lua_register(lua, "PositionMouse" , PositionMouse );
+	lua_register(lua, "GetDynamicCharacterControllerDidJump" , GetDynamicCharacterControllerDidJump );
 	lua_register(lua, "GetCharacterControllerDucking" , GetCharacterControllerDucking );
 	lua_register(lua, "WrapValue" , WrapValue );
 	lua_register(lua, "GetElapsedTime" , GetElapsedTime );
@@ -4422,6 +5305,51 @@ void addFunctions()
 	lua_register(lua, "GetObjectAngleX" , GetObjectAngleX );
 	lua_register(lua, "GetObjectAngleY" , GetObjectAngleY );
 	lua_register(lua, "GetObjectAngleZ" , GetObjectAngleZ );
+	lua_register(lua, "GetObjectPosAng",  GetObjectPosAng );
+	lua_register(lua, "GetObjectColBox",  GetObjectColBox );
+	lua_register(lua, "GetObjectCentre",  GetObjectCentre );
+	lua_register(lua, "GetObjectScales",  GetObjectScales );
+	lua_register(lua, "ScaleObject",   ScaleObjectXYZ );
+
+	// Physics related functions
+	lua_register(lua, "PushObject",              PushObject );
+	lua_register(lua, "ConstrainObjMotion",      ConstrainObjMotion );
+	lua_register(lua, "ConstrainObjRotation",    ConstrainObjRotation );
+	lua_register(lua, "CreateSingleHinge",       CreateSingleHinge );
+	lua_register(lua, "CreateSingleJoint",       CreateSingleJoint );
+	lua_register(lua, "CreateDoubleHinge",       CreateDoubleHinge );
+	lua_register(lua, "CreateDoubleJoint",       CreateDoubleJoint );
+	lua_register(lua, "RemoveObjectConstraints", RemoveObjectConstraints );
+	lua_register(lua, "RemoveConstraint",        RemoveConstraint );
+	lua_register(lua, "PhysicsRayCast",          PhysicsRayCast );
+	lua_register(lua, "SetObjectDamping",        SetObjectDamping );
+
+	// Collision detection functions 
+	lua_register(lua, "GetObjectNumCollisions",     GetObjectNumCollisions );
+	lua_register(lua, "GetObjectCollisionDetails",  GetObjectCollisionDetails );
+	lua_register(lua, "GetTerrainNumCollisions",    GetTerrainNumCollisions );
+	lua_register(lua, "GetTerrainCollisionDetails", GetTerrainCollisionDetails );
+	lua_register(lua, "AddObjectCollisionCheck",    AddObjectCollisionCheck );
+	lua_register(lua, "RemoveObjectCollisionCheck", RemoveObjectCollisionCheck );
+
+	// quaternion library functions
+	lua_register(lua, "QuatToEuler",  QuatToEuler );
+	lua_register(lua, "EulerToQuat",  EulerToQuat );
+	lua_register(lua, "QuatMultiply", QuatMultiply );
+	lua_register(lua, "QuatSLERP",    QuatSLERP );
+	lua_register(lua, "QuatLERP",     QuatLERP );
+
+	// Lua control of dynamic light
+	lua_register(lua, "GetEntityLightNumber", GetEntityLightNumber );
+	lua_register(lua, "GetLightPosition",     GetLightPosition );
+	lua_register(lua, "GetLightAngle",        GetLightAngle );
+	lua_register(lua, "GetLightRGB",          GetLightRGB );
+	lua_register(lua, "GetLightRange",        GetLightRange );
+	lua_register(lua, "SetLightPosition",     SetLightPosition );
+	lua_register(lua, "SetLightAngle",        SetLightAngle );
+	lua_register(lua, "SetLightRGB",          SetLightRGB );
+	lua_register(lua, "SetLightRange",        SetLightRange );
+	
 	lua_register(lua, "RunCharLoop" , RunCharLoop );
 	lua_register(lua, "TriggerWaterRipple" , TriggerWaterRipple );
 	lua_register(lua, "PlayFootfallSound" , PlayFootfallSound );
@@ -4467,6 +5395,7 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerControlJumpmax" , GetGamePlayerControlJumpmax );
 	lua_register(lua, "GetGamePlayerControlPushangle" , GetGamePlayerControlPushangle );
 	lua_register(lua, "GetGamePlayerControlPushforce" , GetGamePlayerControlPushforce );
+	lua_register(lua, "GetGamePlayerControlFootfallPace" , GetGamePlayerControlFootfallPace );
 	lua_register(lua, "GetGamePlayerControlFinalCameraAngley" , GetGamePlayerControlFinalCameraAngley );
 	lua_register(lua, "GetGamePlayerControlLockAtHeight" , GetGamePlayerControlLockAtHeight );
 	lua_register(lua, "GetGamePlayerControlControlHeight" , GetGamePlayerControlControlHeight );
@@ -4551,6 +5480,7 @@ void addFunctions()
 	lua_register(lua, "SetGamePlayerControlJumpmax" , SetGamePlayerControlJumpmax );
 	lua_register(lua, "SetGamePlayerControlPushangle" , SetGamePlayerControlPushangle );
 	lua_register(lua, "SetGamePlayerControlPushforce" , SetGamePlayerControlPushforce );
+	lua_register(lua, "SetGamePlayerControlFootfallPace" , SetGamePlayerControlFootfallPace );
 	lua_register(lua, "SetGamePlayerControlFinalCameraAngley" , SetGamePlayerControlFinalCameraAngley );
 	lua_register(lua, "SetGamePlayerControlLockAtHeight" , SetGamePlayerControlLockAtHeight );
 	lua_register(lua, "SetGamePlayerControlControlHeight" , SetGamePlayerControlControlHeight );
@@ -4774,7 +5704,6 @@ void addFunctions()
 	
 	lua_register(lua, "SetGamePlayerStateIsMelee" , SetGamePlayerStateIsMelee );
 	lua_register(lua, "GetGamePlayerStateIsMelee" , GetGamePlayerStateIsMelee );
-
 	lua_register(lua, "SetGamePlayerStateAlternate" , SetGamePlayerStateAlternate );
 	lua_register(lua, "GetGamePlayerStateAlternate" , GetGamePlayerStateAlternate );
 	lua_register(lua, "SetGamePlayerStateModeShareMags" , SetGamePlayerStateModeShareMags );
@@ -4783,7 +5712,6 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateAlternateIsFlak" , GetGamePlayerStateAlternateIsFlak );
 	lua_register(lua, "SetGamePlayerStateAlternateIsRay" , SetGamePlayerStateAlternateIsRay );
 	lua_register(lua, "GetGamePlayerStateAlternateIsRay" , GetGamePlayerStateAlternateIsRay );
-
 	lua_register(lua, "SetFireModeSettingsReloadQty" , SetFireModeSettingsReloadQty );
 	lua_register(lua, "GetFireModeSettingsReloadQty" , GetFireModeSettingsReloadQty );
 	lua_register(lua, "SetFireModeSettingsIsEmpty" , SetFireModeSettingsIsEmpty );
@@ -4902,6 +5830,32 @@ void addFunctions()
 	
 	// utility
 	lua_register(lua, "MsgBox" , MsgBox );
+
+	//Water Shader
+	//setter
+	lua_register(lua, "SetWaterHeight", SetWaterHeight);
+	lua_register(lua, "SetWaterColor", SetWaterShaderColor);
+	lua_register(lua, "SetWaterWaveIntensity", SetWaterWaveIntensity);
+	lua_register(lua, "SetWaterTransparancy", SetWaterTransparancy);
+	lua_register(lua, "SetWaterReflection", SetWaterReflection);
+	lua_register(lua, "SetWaterReflectionSparkleIntensity", SetWaterReflectionSparkleIntensity);
+	lua_register(lua, "SetWaterFlowDirection", SetWaterFlowDirection);
+	lua_register(lua, "SetWaterDistortionWaves", SetWaterDistortionWaves);
+	lua_register(lua, "SetRippleWaterSpeed", SetRippleWaterSpeed);
+	//getter
+	lua_register(lua, "GetWaterHeight", GetWaterHeight);
+	lua_register(lua, "GetWaterWaveIntensity", GetWaterWaveIntensity);
+	lua_register(lua, "GetWaterShaderColorRed", GetWaterShaderColorRed);
+	lua_register(lua, "GetWaterShaderColorGreen", GetWaterShaderColorGreen);
+	lua_register(lua, "GetWaterShaderColorBlue", GetWaterShaderColorBlue);
+	lua_register(lua, "GetWaterTransparancy", GetWaterTransparancy);
+	lua_register(lua, "GetWaterReflection", GetWaterReflection);
+	lua_register(lua, "GetWaterReflectionSparkleIntensity", GetWaterReflectionSparkleIntensity);
+	lua_register(lua, "GetWaterFlowDirectionX", GetWaterFlowDirectionX);
+	lua_register(lua, "GetWaterFlowDirectionY", GetWaterFlowDirectionY);
+	lua_register(lua, "GetWaterFlowSpeed", GetWaterFlowSpeed);
+	lua_register(lua, "GetWaterDistortionWaves", GetWaterDistortionWaves);
+	lua_register(lua, "GetRippleWaterSpeed", GetRippleWaterSpeed);
 }
 
  /*
@@ -5143,6 +6097,7 @@ char szLuaReturnString[1024];
  DARKLUA_API int LoadLua( LPSTR pString )
  {
 	int id = defaultState;
+
 
 	if ( checkScriptAlreadyLoaded ( id , pString ) ) return 0;
 
@@ -5441,12 +6396,10 @@ DARKLUA_API void LuaCall()
 	functionStateID = 0;
 	if ( failedResults > 0 )
 		lua_pop(lua, failedResults);
-
 }
 
 DARKLUA_API void LuaCallSilent()
 {
-
 	for ( int c = 0 ; c < FunctionsWithErrors.size() ; c++ )
 	{
 		if ( strcmp ( functionName , FunctionsWithErrors[c].fileName ) == 0 )

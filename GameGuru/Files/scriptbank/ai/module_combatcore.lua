@@ -3,6 +3,7 @@
 -- anim1 : Move
 -- anim2 : Punch/Kick/Bite 
 -- anim3 : Hurt
+-- anim4 : Reload
 -- sound0 : Start moving A
 -- sound1 : Start strike
 -- sound2 : Start moving B
@@ -11,6 +12,7 @@
 
 module_agro = require "scriptbank\\ai\\module_agro"
 module_cameraoverride = require "scriptbank\\ai\\module_cameraoverride"
+module_combateffects = require "scriptbank\\ai\\module_combateffects"
 
 local module_combatcore = {}
 
@@ -321,6 +323,7 @@ function module_combatcore.homein(e,AIObjNo,PlayerDist,MoveType,CanFire,stopstat
 end
 
 function module_combatcore.moveandavoid(e,AIObjNo,PlayerDist,MoveType,x,y,z,stopstate)
+ movementfrozen = module_combateffects.ismovementfrozen(e)
  if ai_bot_substate[e] == 0 then
   if PlayerDist < 100 then
    tDistX = x - g_Entity[e]['x']
@@ -331,19 +334,21 @@ function module_combatcore.moveandavoid(e,AIObjNo,PlayerDist,MoveType,x,y,z,stop
   end
   AIEntityGoToPosition(AIObjNo,x,y,z)
   SetRotation(e,0,AIGetEntityAngleY(AIObjNo),0)
-  if AIGetEntityIsMoving(AIObjNo) == 1 then
-   if MoveType == ai_movetype_useanim then
-    MoveWithAnimation(e,1)
+  if movementfrozen == 0 then
+   if AIGetEntityIsMoving(AIObjNo) == 1 then
+    if MoveType == ai_movetype_useanim then
+     MoveWithAnimation(e,1)
+    else
+     MoveForward(e,AIGetEntitySpeed(AIObjNo))
+    end
    else
-    MoveForward(e,AIGetEntitySpeed(AIObjNo))
+    MoveForward(e,0.0)
+    if GetTimer(e) > 250 then
+     ai_bot_state[e] = stopstate
+    end
    end
-  else
-   MoveForward(e,0.0)
-   if GetTimer(e) > 250 then
-    ai_bot_state[e] = stopstate
-   end
+   AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
   end
-  AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
   if g_Entity[e]['avoid'] == 2 or (g_Entity[e]['avoid'] == 1 and stopstate ~= ai_state_startpatrol) then
    ai_bot_substate[e] = math.random(1,2)
    if ai_bot_substate[e] == 1 then
@@ -360,16 +365,18 @@ function module_combatcore.moveandavoid(e,AIObjNo,PlayerDist,MoveType,x,y,z,stop
  end
  if ai_bot_substate[e] > 0 then
   SetRotation(e,0,AIGetEntityAngleY(AIObjNo),0)
-  if AIGetEntityIsMoving(AIObjNo) == 1 then
-   if MoveType == ai_movetype_useanim then
-    MoveWithAnimation(e,1)
+  if movementfrozen == 0 then
+   if AIGetEntityIsMoving(AIObjNo) == 1 then
+    if MoveType == ai_movetype_useanim then
+     MoveWithAnimation(e,1)
+    else
+     MoveForward(e,AIGetEntitySpeed(AIObjNo))
+    end
    else
-    MoveForward(e,AIGetEntitySpeed(AIObjNo))
+    MoveForward(e,0.0)
    end
-  else
-   MoveForward(e,0.0)
+   AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
   end
-  AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
   if GetTimer(e) > 1000 then
    ai_bot_substate[e] = 0
   end
@@ -555,7 +562,7 @@ function module_combatcore.fireonspot(e,AIObjNo)
 end
 
 function module_combatcore.fireweapon(e)
- if ai_bot_state[e] ~= ai_state_startreload and ai_bot_state[e] ~= ai_state_reload then
+ if ai_bot_state[e] ~= ai_state_startreload and ai_bot_state[e] ~= ai_state_reload and ai_bot_state[e] ~= ai_state_reloadsettle then
   if GetAmmoClip(e) > 0 then
    FireWeapon(e)
   else
@@ -573,18 +580,30 @@ function module_combatcore.reloadweapon(e)
   SetAnimation(4)
   PlayAnimation(e)
   SetAnimationSpeedModulation(e,1.0)
+  tStart = GetEntityAnimationStart(e,4)
+  SetAnimationFrame(e,tStart)
   StartTimer(e)
  else
   if ai_bot_state[e] == ai_state_reload then
    if GetTimer(e) > 500 then 
     tFrame = GetAnimationFrame(e)
+    tStart = GetEntityAnimationStart(e,4)
     tFinish = GetEntityAnimationFinish(e,4)
-    if tFrame >= tFinish or tFinish == 0 then
-     ai_bot_state[e] = ai_state_startidle
-     SetAmmoClip(e,GetAmmoClipMax(e))
+	tDiffHalf = (tFinish - tStart) / 3
+    if (tFrame >= tFinish - tDiffHalf and tFrame <= tFinish ) or tFinish == 0 then
+     ai_bot_state[e] = ai_state_reloadsettle
+     StartTimer(e)
     end 
    end
    module_combatcore.donotmove(e)
+  else
+   if ai_bot_state[e] == ai_state_reloadsettle then
+    if GetTimer(e) > 750 then 
+	 SetAmmoClip(e,GetAmmoClipMax(e))
+     ai_bot_state[e] = ai_state_startidle
+    end
+    module_combatcore.donotmove(e)
+   end
   end
  end
 end

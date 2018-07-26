@@ -30,6 +30,7 @@ void gun_loaddata ( void )
 
 		//  Default Run Accuracy (No diff)
 		g.firemodes[t.gunid][t.i].settings.runaccuracy = -1;
+		g.firemodes[t.gunid][t.i].settings.runanimdelay = 250;
 
 		//  Default Sound Strength
 		g.firemodes[t.gunid][t.i].settings.soundstrength=100;
@@ -56,23 +57,27 @@ void gun_loaddata ( void )
 
 		// ensure material not ignored by default
 		g.firemodes[t.gunid][t.i].settings.ignorematerial = 0;
+
+		// reset other items
+		g.firemodes[t.gunid][t.i].settings.brassdelay = 0;
+		g.firemodes[t.gunid][t.i].settings.zoombrassdelay = 0;
+		g.firemodes[t.gunid][t.i].settings.doesnotuseammo = 0;
 	}
 
-	//  Load GUNSPEC details
-	Dim (  t.data_s,500  );
+	//  Load GUNSPEC details (270618 - increased to 1000 lines)
+	Dim ( t.data_s, 1000 );
 	t.filename_s = "" ; t.filename_s=t.filename_s+"gamecore\\"+g.fpgchuds_s+"\\"+t.gun_s+"\\gunspec.txt";
 	if (  FileExist(t.filename_s.Get()) == 0  ) { t.filename_s = "" ; t.filename_s=t.filename_s+ "gamecore\\"+g.fpgchuds_s+"\\"+t.gun_s+"\\spec.txt"; }
 	if (  FileExist(t.filename_s.Get()) == 1 ) 
 	{
 		LoadArray (  t.filename_s.Get() ,t.data_s );
-		for ( t.l = 0 ; t.l<=  499; t.l++ )
+		for ( t.l = 0 ; t.l <= 999; t.l++ )
 		{
 			t.line_s=t.data_s[t.l];
 			if (  Len(t.line_s.Get())>0 ) 
 			{
 				if ( t.line_s.Get()[0] != ';' )
 				{
-
 					//  take fieldname and value
 					for ( t.c = 0 ; t.c <  Len(t.line_s.Get()); t.c++ )
 					{
@@ -80,6 +85,12 @@ void gun_loaddata ( void )
 					}
 					t.field_s=Lower(removeedgespaces(Left(t.line_s.Get(),t.mid-1)));
 					t.value_s=removeedgespaces(Right(t.line_s.Get(),Len(t.line_s.Get())-t.mid));
+
+					// 280618 - remove TAB characters from field (where TAB is used instead of SPACE in describing field)
+					for ( t.c = 0 ; t.c < Len(t.field_s.Get()); t.c++ )
+					{
+						if ( t.field_s.Get()[t.c] == 9 ) { t.field_s.Get()[t.c] = ' '; }
+					}
 
 					//  take value 1 and 2 from value
 					for ( t.c = 0 ; t.c <  Len(t.value_s.Get()); t.c++ )
@@ -99,6 +110,11 @@ void gun_loaddata ( void )
 					if (  t.field_s == "effect"  )  t.gun[t.gunid].effect_s = t.value_s;
 					if (  t.field_s == "transparency"  )  t.gun[t.gunid].transparency = t.value1;
 					if (  t.field_s == "vweaptex"  )  t.gun[t.gunid].vweaptex_s = t.value_s;
+
+					//  control weapon shader using art flags
+					if (  t.field_s == "invertnormal"  )  t.gun[t.gunid].invertnormal = t.value1;
+					if (  t.field_s == "preservetangents"  )  t.gun[t.gunid].preservetangents = t.value1;
+					if (  t.field_s == "boostintensity"  )  t.gun[t.gunid].boostintensity = t.value1 / 100.0f;
 
 					//  weapontype ; 0-grenade, 1-pistol, 2-rocket, 3-shotgun, 4-uzi, 5-assault, 51-melee(noammo)
 					if (  t.field_s == "weapontype"  )  t.gun[t.gunid].weapontype = t.value1;
@@ -126,6 +142,7 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"muzzlecolorg"  )  g.firemodes[t.gunid][t.x].settings.muzzlecolorg = t.value1;
 						if (  t.field_s == t.alt_s+"muzzlecolorb"  )  g.firemodes[t.gunid][t.x].settings.muzzlecolorb = t.value1;
 						if (  t.field_s == t.alt_s+"smoke"  )  g.firemodes[t.gunid][t.x].settings.smoke = t.value1;
+						if (  t.field_s == t.alt_s+"smokesize"  )  g.firemodes[t.gunid][t.x].settings.smokesize = t.value1;
 						if (  t.field_s == t.alt_s+"smokespeed"  )  g.firemodes[t.gunid][t.x].settings.smokespeed = t.value1;
 						if (  t.field_s == t.alt_s+"smokedecal"  )  g.firemodes[t.gunid][t.x].settings.smokedecal_s = t.value_s;
 						if (  t.field_s == t.alt_s+"flak"  )  g.firemodes[t.gunid][t.x].settings.flakname_s = t.value_s;
@@ -162,6 +179,7 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"melee force"  )  g.firemodes[t.gunid][t.x].settings.meleeforce = t.value1;
 						if (  t.field_s == t.alt_s+"npcignorereload"  )  g.firemodes[t.gunid][t.x].settings.npcignorereload = t.value1;
 						if (  t.field_s == t.alt_s+"zoomhidecrosshair"  )  g.firemodes[t.gunid][t.x].settings.zoomhidecrosshair = t.value1;
+						if (  t.field_s == t.alt_s+"doesnotuseammo"  )  g.firemodes[t.gunid][t.x].settings.doesnotuseammo = t.value1;
 
 						//  Brass details
 						if (  t.field_s == t.alt_s+"brass"  )  g.firemodes[t.gunid][t.x].settings.brass = t.value1;
@@ -178,6 +196,8 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"brassrotyrand"  )  g.firemodes[t.gunid][t.x].settings.brassrotyrand = (t.value1+0.0);
 						if (  t.field_s == t.alt_s+"brassrotz"  )  g.firemodes[t.gunid][t.x].settings.brassrotz = (t.value1+0.0);
 						if (  t.field_s == t.alt_s+"brassrotzrand"  )  g.firemodes[t.gunid][t.x].settings.brassrotzrand = (t.value1+0.0);
+						if (  t.field_s == t.alt_s+"brassdelay"  )  g.firemodes[t.gunid][t.x].settings.brassdelay = t.value1;
+						if (  t.field_s == t.alt_s+"zoom brassdelay"  )  g.firemodes[t.gunid][t.x].settings.zoombrassdelay = t.value1;
 
 						//  Advanced Features
 						if (  t.field_s == t.alt_s+"gravitygun"  )  g.firemodes[t.gunid][t.x].settings.gravitygun = t.value1;
@@ -198,6 +218,7 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"runx"  )  g.firemodes[t.gunid][t.x].settings.runx_f = t.value1;
 						if (  t.field_s == t.alt_s+"runy"  )  g.firemodes[t.gunid][t.x].settings.runy_f = t.value1;
 						if (  t.field_s == t.alt_s+"runacc"  )  g.firemodes[t.gunid][t.x].settings.runaccuracy = t.value1;
+						if (  t.field_s == t.alt_s+"runanimdelay"  )  g.firemodes[t.gunid][t.x].settings.runanimdelay = t.value1;
 						if (  t.field_s == t.alt_s+"noscorch"  )  g.firemodes[t.gunid][t.x].settings.noscorch = t.value1;
 						if (  t.field_s == t.alt_s+"melee noscorch"  )  g.firemodes[t.gunid][t.x].settings.meleenoscorch = t.value1;
 						if (  t.field_s == t.alt_s+"simplezoom"  )  g.firemodes[t.gunid][t.x].settings.simplezoom = t.value1;
@@ -245,6 +266,8 @@ void gun_loaddata ( void )
 						//  Classic animations
 						if (  t.field_s == t.alt_s+"select" ) { g.firemodes[t.gunid][t.x].action.show.s = t.value1  ; g.firemodes[t.gunid][t.x].action.show.e = t.value2; }
 						if (  t.field_s == t.alt_s+"idle" ) { g.firemodes[t.gunid][t.x].action.idle.s = t.value1  ; g.firemodes[t.gunid][t.x].action.idle.e = t.value2; }
+						if (  t.field_s == t.alt_s+"runto" ) { g.firemodes[t.gunid][t.x].action.runto.s = t.value1  ; g.firemodes[t.gunid][t.x].action.runto.e = t.value2; }
+						if (  t.field_s == t.alt_s+"runfrom" ) { g.firemodes[t.gunid][t.x].action.runfrom.s = t.value1  ; g.firemodes[t.gunid][t.x].action.runfrom.e = t.value2; }
 						if (  t.field_s == t.alt_s+"move" ) { g.firemodes[t.gunid][t.x].action.move.s = t.value1  ; g.firemodes[t.gunid][t.x].action.move.e = t.value2; }
 						if (  t.field_s == t.alt_s+"run" ) { g.firemodes[t.gunid][t.x].action.run.s = t.value1  ; g.firemodes[t.gunid][t.x].action.run.e = t.value2; }
 						if (  t.field_s == t.alt_s+"fire" ) { g.firemodes[t.gunid][t.x].action.start.s = t.value1  ; g.firemodes[t.gunid][t.x].action.start.e = t.value1 ; g.firemodes[t.gunid][t.x].action.finish.s = t.value1 ; g.firemodes[t.gunid][t.x].action.finish.e = t.value2; }
@@ -289,6 +312,8 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"empty putaway" ) { g.firemodes[t.gunid][t.x].emptyaction.hide.s = t.value1  ; g.firemodes[t.gunid][t.x].emptyaction.hide.e = t.value2; }
 						if (  t.field_s == t.alt_s+"empty select" ) { g.firemodes[t.gunid][t.x].emptyaction.show.s = t.value1  ; g.firemodes[t.gunid][t.x].emptyaction.show.e = t.value2; }
 						if (  t.field_s == t.alt_s+"empty idle" ) { g.firemodes[t.gunid][t.x].emptyaction.idle.s = t.value1  ; g.firemodes[t.gunid][t.x].emptyaction.idle.e = t.value2; }
+						if (  t.field_s == t.alt_s+"empty runto" ) { g.firemodes[t.gunid][t.x].emptyaction.runto.s = t.value1  ; g.firemodes[t.gunid][t.x].emptyaction.runto.e = t.value2; }
+						if (  t.field_s == t.alt_s+"empty runfrom" ) { g.firemodes[t.gunid][t.x].emptyaction.runfrom.s = t.value1  ; g.firemodes[t.gunid][t.x].emptyaction.runfrom.e = t.value2; }
 						if (  t.field_s == t.alt_s+"empty move" ) { g.firemodes[t.gunid][t.x].emptyaction.move.s = t.value1  ; g.firemodes[t.gunid][t.x].emptyaction.move.e = t.value2; }
 						if (  t.field_s == t.alt_s+"empty run" ) { g.firemodes[t.gunid][t.x].emptyaction.run.s = t.value1  ; g.firemodes[t.gunid][t.x].emptyaction.run.e = t.value2; }
 						if (  t.field_s == t.alt_s+"empty start reload" ) { g.firemodes[t.gunid][t.x].emptyaction.startreload.s = t.value1  ; g.firemodes[t.gunid][t.x].emptyaction.startreload.e = t.value2; }
@@ -327,8 +352,12 @@ void gun_loaddata ( void )
 						if (  t.field_s == t.alt_s+"zoomto" ) { g.firemodes[t.gunid][t.x].zoomaction.show.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.show.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoomfrom" ) { g.firemodes[t.gunid][t.x].zoomaction.hide.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.hide.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom start fire" ) { g.firemodes[t.gunid][t.x].zoomaction.start.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.start.e = t.value2; }
+						if (  t.field_s == t.alt_s+"zoom start fire 2" ) { g.firemodes[t.gunid][t.x].zoomaction.start2.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.start2.e = t.value2; }
+						if (  t.field_s == t.alt_s+"zoom start fire 3" ) { g.firemodes[t.gunid][t.x].zoomaction.start3.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.start3.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom automatic fire" ) { g.firemodes[t.gunid][t.x].zoomaction.automatic.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.automatic.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom end fire" ) { g.firemodes[t.gunid][t.x].zoomaction.finish.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.finish.e = t.value2; }
+						if (  t.field_s == t.alt_s+"zoom end fire 2" ) { g.firemodes[t.gunid][t.x].zoomaction.finish2.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.finish2.e = t.value2; }
+						if (  t.field_s == t.alt_s+"zoom end fire 3" ) { g.firemodes[t.gunid][t.x].zoomaction.finish3.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.finish3.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom last start fire" ) { g.firemodes[t.gunid][t.x].zoomaction.laststart.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.laststart.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom last end fire" ) { g.firemodes[t.gunid][t.x].zoomaction.lastfinish.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.lastfinish.e = t.value2; }
 						if (  t.field_s == t.alt_s+"zoom idle" ) { g.firemodes[t.gunid][t.x].zoomaction.idle.s = t.value1  ; g.firemodes[t.gunid][t.x].zoomaction.idle.e = t.value2; }
@@ -336,6 +365,10 @@ void gun_loaddata ( void )
 
 						//  Gun repeat-fire sound
 						if (  t.field_s == t.alt_s+"fireloop"  )  g.firemodes[t.gunid][t.x].sound.fireloopend = t.value1;
+
+						// 280618 - Special active/idle sound loop triggers
+						if (  t.field_s == t.alt_s+"loopsound"  )  g.firemodes[t.gunid][t.x].sound.loopsound = t.value1;
+						if (  t.field_s == t.alt_s+"empty loopsound"  )  g.firemodes[t.gunid][t.x].sound.emptyloopsound = t.value1;
 
 						//  Gun and muzzle alignment
 						if (  t.field_s == t.alt_s+"horiz"  )  g.firemodes[t.gunid][t.x].horiz_f = t.value1;
@@ -374,7 +407,6 @@ void gun_loaddata ( void )
 								}
 							}
 						}
-
 					}
 
 					//  Alternate Fire settings
@@ -398,12 +430,12 @@ void gun_loaddata ( void )
 					}
 
 					//  Gun sound bank
-					for ( t.p = 1 ; t.p<=  14; t.p++ )
+					for ( t.p = 1 ; t.p <= 14; t.p++ )
 					{
 						t.tryfield_s = "" ; t.tryfield_s=t.tryfield_s+"sound"+Str(t.p);
 						if (  t.field_s == t.tryfield_s  )  t.gunsound[t.gunid][t.p].name_s = t.value_s;
 					}
-					for ( t.p = 1 ; t.p<=  4; t.p++ )
+					for ( t.p = 1 ; t.p <= 4; t.p++ )
 					{
 						t.tryfield_s = ""; t.tryfield_s=t.tryfield_s+"altsound"+Str(t.p) ; t.tryfield2_s = "" ; t.tryfield2_s=t.tryfield2_s+"alt sound"+Str(t.p);
 						if (  t.p != 2 ) 
@@ -429,16 +461,25 @@ void gun_loaddata ( void )
 				}
 			}
 		}
-		UnDim (  t.data_s );
+		UnDim ( t.data_s );
 	}
 
-	//  Correct any legacy fall-out
-	if (  cstr(Lower(t.gun[t.gunid].texd_s.Get())) == "gun_d2.dds"  )  t.gun[t.gunid].texd_s = "gun_d.dds";
+	// Correct any legacy fall-out
+	if ( cstr(Lower(t.gun[t.gunid].texd_s.Get())) == "gun_d2.dds"  )  t.gun[t.gunid].texd_s = "gun_d.dds";
 
-	//  Go through gun settings and populate with defaults
+	// 130418 - also replace any old TGA references
+	char pTexFileName[1024];
+	strcpy ( pTexFileName, t.gun[t.gunid].texd_s.Get() );
+	if ( stricmp ( pTexFileName+strlen(pTexFileName)-4, ".tga") == NULL )
+	{
+		pTexFileName[strlen(pTexFileName)-4] = 0;
+		strcat ( pTexFileName, ".png" );
+		t.gun[t.gunid].texd_s = pTexFileName;
+	}
+
+	// Go through gun settings and populate with defaults
 	for ( t.i = 0 ; t.i<=  1; t.i++ )
 	{
-
 		//  If no run, replace with regular move action
 		if (  g.firemodes[t.gunid][t.i].action.run.e == 0  )  g.firemodes[t.gunid][t.i].action.run = g.firemodes[t.gunid][t.i].action.move;
 		if (  g.firemodes[t.gunid][t.i].zoomaction.run.e == 0  )  g.firemodes[t.gunid][t.i].zoomaction.run = g.firemodes[t.gunid][t.i].zoomaction.move;
@@ -474,6 +515,12 @@ void gun_loaddata ( void )
 			g.firemodes[t.gunid][t.i].settings.muzzlecolorr=255;
 			g.firemodes[t.gunid][t.i].settings.muzzlecolorg=255;
 			g.firemodes[t.gunid][t.i].settings.muzzlecolorb=0;
+		}
+
+		//  Set default smoke size
+		if (  g.firemodes[t.gunid][t.i].settings.smokesize == 0 ) 
+		{
+			g.firemodes[t.gunid][t.i].settings.smokesize=100;
 		}
 
 		//  Set default smoke speed
@@ -518,6 +565,12 @@ void gun_loaddata ( void )
 				t.decal[t.decalid].active=1;
 				g.firemodes[t.gunid][t.i].decalid=t.decalid;
 			}
+		}
+
+		// global setting to stop any jamming of weapons
+		if ( g.globals.disableweaponjams == 1 )
+		{
+			g.firemodes[t.gunid][t.i].settings.jamchance = 0;
 		}
 	}
 }
@@ -606,53 +659,43 @@ void gun_findweaponindexbyname_core ( void )
 
 void gun_scaninall_findnewlyaddedgun ( void )
 {
-//  if find gun that is not in list, if find, flag is 'found'
-t.storegunid=t.gunid;
+	//  if find gun that is not in list, if find, flag is 'found'
+	t.storegunid=t.gunid;
 
-//  gather files
-SetDir (  "gamecore" );
-UnDim ( t.filelist_s );
-buildfilelist(g.fpgchuds_s.Get(),"");
-SetDir (  ".." );
+	//  gather files
+	SetDir (  "gamecore" );
+	UnDim ( t.filelist_s );
+	buildfilelist(g.fpgchuds_s.Get(),"");
+	SetDir (  ".." );
 
-//  go through file list of latest guns
-if (  ArrayCount(t.filelist_s)>0 ) 
-{
-	for ( t.chkfile = 0 ; t.chkfile<=  ArrayCount(t.filelist_s); t.chkfile++ )
+	//  go through file list of latest guns
+	if (  ArrayCount(t.filelist_s)>0 ) 
 	{
-		t.file_s=t.filelist_s[t.chkfile];
-		if (  t.file_s != "." && t.file_s != ".." ) 
+		for ( t.chkfile = 0 ; t.chkfile<=  ArrayCount(t.filelist_s); t.chkfile++ )
 		{
-			t.findgun_s="";
-			if ( cstr( Lower(Right(t.file_s.Get(),11))) == "gunspec.txt" ) 
+			t.file_s=t.filelist_s[t.chkfile];
+			if (  t.file_s != "." && t.file_s != ".." ) 
 			{
-				t.findgun_s=Left(t.file_s.Get(),Len(t.file_s.Get())-12);
-			}
-//    `if Lower(Right(file$,5))="hud.x"
-
-			//findgun$=Left(file$,Len(file$)-6)
-//    `else
-
-			//if Lower(Right(file$,7))="hud.dbo"
-			// findgun$=Left(file$,Len(file$)-8)
-			//endif
-//    `endif
-
-			if (  t.findgun_s != "" ) 
-			{
-				gun_findweaponindexbyname_core ( );
-				if (  t.foundgunid == 0 ) 
+				t.findgun_s="";
+				if ( cstr( Lower(Right(t.file_s.Get(),11))) == "gunspec.txt" ) 
 				{
-					++g.gunmax;
-					if (  g.gunmax>g.maxgunsinengine  )  g.gunmax = g.maxgunsinengine;
-					t.gun[g.gunmax].name_s=t.findgun_s;
-					t.gunid=g.gunmax ; t.gun_s=t.findgun_s ; gun_loaddata ( );
+					t.findgun_s=Left(t.file_s.Get(),Len(t.file_s.Get())-12);
+				}
+				if (  t.findgun_s != "" ) 
+				{
+					gun_findweaponindexbyname_core ( );
+					if (  t.foundgunid == 0 ) 
+					{
+						++g.gunmax;
+						if (  g.gunmax>g.maxgunsinengine  )  g.gunmax = g.maxgunsinengine;
+						t.gun[g.gunmax].name_s=t.findgun_s;
+						t.gunid=g.gunmax ; t.gun_s=t.findgun_s ; gun_loaddata ( );
+					}
 				}
 			}
 		}
 	}
-}
-t.gunid=t.storegunid;
+	t.gunid=t.storegunid;
 }
 
 void gun_findweaponindexbyname ( void )

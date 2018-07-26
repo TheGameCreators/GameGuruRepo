@@ -500,7 +500,8 @@ int terrain_loadcustomtexture ( LPSTR pDestPathAndFile, int iTextureSlot )
 	}
 
 	// Use large prompt
-	t.statusbar_s = "Generating New Terrain Texture"; popup_text(t.statusbar_s.Get());
+	t.statusbar_s = "Generating New Terrain Texture"; 
+	popup_text(t.statusbar_s.Get());
 
 	// strip file from path
 	char pPathOnly[512];
@@ -2208,7 +2209,7 @@ void terrain_applyshader ( void )
 			TextureObject ( t.terrain.terrainobjectindex, 4, t.terrain.imagestartindex+21 );//Normal
 			TextureObject ( t.terrain.terrainobjectindex, 5, t.terrain.imagestartindex+15 );//SpecularMap
 			TextureObject ( t.terrain.terrainobjectindex, 6, t.terrain.imagestartindex+31 );//EnvironmentMap
-			TextureObject ( t.terrain.terrainobjectindex, 7, t.terrain.imagestartindex+32 );//GlossCurveMap
+			if (g.memskipibr == 0) TextureObject ( t.terrain.terrainobjectindex, 8, t.terrain.imagestartindex+32 );//GlossCurveMap
 		}
 	}
 }
@@ -2230,11 +2231,15 @@ void terrain_createactualterrain ( void )
 		t.terrain.TerrainID=BT_MakeTerrain();
 		if (  FileExist(t.theightfile_s.Get()) == 1 ) 
 		{
+			SetMipmapNum(1); //PE: mipmaps not needed.
 			LoadImage (  t.theightfile_s.Get(),t.terrain.imagestartindex+3 );
+			SetMipmapNum(-1);
 		}
 		else
 		{
+			SetMipmapNum(1); //PE: mipmaps not needed.
 			LoadImage (  "effectbank\\reloaded\\media\\heightmap.dds",t.terrain.imagestartindex+3 );
+			SetMipmapNum(-1);
 		}
 		BT_SetTerrainHeightmap (  t.terrain.TerrainID,t.terrain.imagestartindex+3 );
 		BT_SetTerrainScale (  t.terrain.TerrainID,50 );
@@ -2298,8 +2303,11 @@ void terrain_make ( void )
 		terrain_assignnewshader();
 
 		// IBR curve loopup map as globals
-		cstr texIBRMap = "effectbank\\reloaded\\media\\IBR.png";
-		LoadImage ( texIBRMap.Get(), t.terrain.imagestartindex + 32 );
+		if (g.memskipibr == 0) 
+		{
+			cstr texIBRMap = "effectbank\\reloaded\\media\\IBR.png";
+			LoadImage(texIBRMap.Get(), t.terrain.imagestartindex + 32);
+		}
 
 		// Prepare shader as a shadow mapping primary effect (updated also in terrain_applyshader function if iTerrainPBRMode changes)
 		SetEffectShadowMappingMode ( 255 );
@@ -2349,8 +2357,10 @@ void terrain_make ( void )
 			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
 
 			// This texture acts as highlight graphic and also store for mega texture (distant terrain texture composite)
-			SetImageAutoMipMap (  0 );
+			SetImageAutoMipMap (  0 ); // PE: SetImageAutoMipMap Dont work anymore.
+			SetMipmapNum(1); //PE: mipmaps not needed.
 			LoadImage (  "effectbank\\reloaded\\media\\circle.dds",t.terrain.imagestartindex+17,10,0 );
+			SetMipmapNum(-1);
 			SetImageAutoMipMap (  1 );
 		}
 		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
@@ -2502,7 +2512,12 @@ void terrain_generateblanktextures ( void )
 	//  blank water mask
 	if (  FileExist(t.tfilewater_s.Get()) == 1  )  DeleteAFile (  t.tfilewater_s.Get() );
 	CLS (  Rgb(0,0,0) );
-	GrabImage (  t.terrain.imagestartindex+4,0,0,MAXTEXTURESIZE,MAXTEXTURESIZE );
+	if (g.memskipwatermask == 1) {
+		GrabImage(t.terrain.imagestartindex + 4, 0, 0, 1, 1);
+	}
+	else {
+		GrabImage(t.terrain.imagestartindex + 4, 0, 0, MAXTEXTURESIZE, MAXTEXTURESIZE);
+	}
 	SaveImage (  t.tfilewater_s.Get(),t.terrain.imagestartindex+4 );
 	SetCurrentBitmap (  0 );
 }
@@ -2531,16 +2546,16 @@ void terrain_loaddata ( void )
 			}
 
 			// Load water mask
-			if ( FileExist( cstr(t.levelmapptah_s+"watermask.dds").Get() ) == 1 ) 
+			if (g.memskipwatermask == 0 && FileExist( cstr(t.levelmapptah_s+"watermask.dds").Get() ) == 1 )
 			{
 				if ( ImageExist(t.terrain.imagestartindex+4) == 1  )  DeleteImage (  t.terrain.imagestartindex+4 );
 				SetMipmapNum(1);
 				LoadImage (  cstr(t.levelmapptah_s+"watermask.dds").Get(),t.terrain.imagestartindex+4,10,0,1 );
 				SetMipmapNum(-1);
-				if ( ImageExist(t.terrain.imagestartindex+4) == 0 ) 
-				{
-					GrabImage (  t.terrain.imagestartindex+4,0,0,1,1 );
-				}
+			}
+			if (ImageExist(t.terrain.imagestartindex + 4) == 0)
+			{
+				GrabImage(t.terrain.imagestartindex + 4, 0, 0, 1, 1);
 			}
 
 			// Load veg grass memblock
@@ -2664,8 +2679,9 @@ void terrain_shadowupdate ( void )
 			if ( 1 ) 
 			{
 				//  prepare scene shaders to render into the cascade shadow textures
-				for ( t.t = -3 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
 				{
+					if ( t.t == -4  )  t.effectid = g.lightmappbreffect;
 					if ( t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 					if ( t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;
 					if ( t.t == -1  )  t.effectid = g.staticlightmapeffectoffset;
@@ -2674,14 +2690,15 @@ void terrain_shadowupdate ( void )
 					if ( t.effectid>0 ) 
 					{
 						if ( GetEffectExist(t.effectid) == 1 )  SetEffectTechnique ( t.effectid,"DepthMap" );
-						if ( g.gpbroverride == 0 )
-						{
-							if ( t.visuals.shaderlevels.terrain >= 3 && t.visuals.shaderlevels.lighting != 1 ) 
-							{
-								// if this special technique does not exist in shaders, no new technique is used
-								if ( GetEffectExist(t.effectid) == 1 ) SetEffectTechnique ( t.effectid,"DepthMapNoAnim" );
-							}
-						}
+						//PE: This produce non transparent shadows on PBR objects in mode g.gpbroverride == 0
+						//if ( g.gpbroverride == 0 )
+						//{
+						//	if ( t.visuals.shaderlevels.terrain >= 3 && t.visuals.shaderlevels.lighting != 1 ) 
+						//	{
+						//		// if this special technique does not exist in shaders, no new technique is used
+						//		if ( GetEffectExist(t.effectid) == 1 ) SetEffectTechnique ( t.effectid,"DepthMapNoAnim" );
+						//	}
+						//}
 					}
 				}
 
@@ -2689,13 +2706,50 @@ void terrain_shadowupdate ( void )
 				if (  GetEffectExist(g.staticlightmapeffectoffset) == 1  )  SetEffectTechnique (  g.staticlightmapeffectoffset,"DepthMap" );
 
 				//  control how many cascade shadows to render based on shader levels for terrain shader
-				t.tonlyusingcheapestcascade=0;
+				//t.tonlyusingcheapestcascade=0;
 				t.game.set.shaderrequirecheapshadow=0;
 				SetEffectShadowMappingMode ( 0 );
-				if ( g.gpbroverride == 1 )
+
+				//PE: If we can set m_fCascadeFrustumsEyeSpaceDepths here (0) if not used,
+				//PE: then all shaders can use GetShadow highest/medium and we can control what cascades is available here.
+				//PE: current: old terrain medium/low = cascade 7 , veg high = cascade 3 , nonpbrentity medium = none , pbr entity medium = all.
+
+				if ( 1 ) // g.gpbroverride == 1
 				{
 					// PBR default mode is to render all shadows in editor mode
+
+					//PE: Set frustum percent so we can fake a medium.
+
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[0] = g.globals.realshadowcascade[0];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[1] = g.globals.realshadowcascade[1];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[2] = g.globals.realshadowcascade[2];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[3] = g.globals.realshadowcascade[3];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[4] = g.globals.realshadowcascade[4];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[5] = g.globals.realshadowcascade[5];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[6] = g.globals.realshadowcascade[6];
+					g_CascadedShadow.m_iCascadePartitionsZeroToOne[7] = g.globals.realshadowcascade[7];
+					g.globals.realshadowdistance = g.globals.realshadowdistancehigh;
+					SetShadowTexelSize(g.globals.realshadowresolution);
 					SetEffectShadowMappingMode ( 255 );
+
+					//PE: PBR both terrain and entity must be set to low/medium before lowering cascades.
+					//PE: Editor always use highest.
+					if (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 4 && t.visuals.shaderlevels.entities >= 3) 
+					{
+						//PE: Lowest disable shadows.
+						SetEffectShadowMappingMode(0);
+					}
+					else if ( (g.globals.editorusemediumshadows == 1 && t.game.set.ismapeditormode == 1 ) || (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 2 && t.visuals.shaderlevels.entities >= 2 ) ) 
+					{
+						for (int icl = 0; icl < g.globals.realshadowcascadecount; icl++)
+							g_CascadedShadow.m_iCascadePartitionsZeroToOne[icl] = 0;
+
+						SetEffectShadowMappingMode( (1<< g.globals.realshadowcascadecount-1) + (1<< (g.globals.realshadowcascadecount-2)) );
+						g.globals.realshadowdistance = g.globals.realshadowdistancehigh*0.65; //PE: Lower distance by 35%.
+						SetShadowTexelSize(2048); // Needed when we use so low a resolution.
+						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 2] = 24;
+						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 1] = 100;
+					}
 				}
 				else
 				{
@@ -2722,7 +2776,9 @@ void terrain_shadowupdate ( void )
 						else
 						{
 							//  for LOW/LOWEST only DISTANT CASCADE is used
-							SetEffectShadowMappingMode ( 8 ); //%00001000 //%1000
+							//SetEffectShadowMappingMode ( 8 ); //%00001000 //%1000
+							SetEffectShadowMappingMode ( 128 ); //%10000000 (changed terrain_basic to use cascade 7) //120418 - but keep cascade 4 for PBR shaders
+							/* complete remove old dynamic cheap shadow trick
 							if (  t.game.set.ismapeditormode == 1 ) 
 							{
 								//  if in LOWEST MAP, constant update
@@ -2733,13 +2789,15 @@ void terrain_shadowupdate ( void )
 								//  if in LOWEST TEST/GAME, intermittent update
 								t.tonlyusingcheapestcascade=1;
 							}
+							*/
 						}
 					}
-					if (  t.visuals.shaderlevels.terrain>2 ) 
+					/* complete remove old dynamic cheap shadow trick
+					if ( t.visuals.shaderlevels.terrain>2 ) 
 					{
-						//  for LOWEST, only render lowest cascade every X second(s)
+						// for LOWEST, only render lowest cascade every X second(s)
 						t.game.set.shaderrequirecheapshadow=1;
-						if (  t.gdynamicterrainshadowcameragenerate == 0 ) 
+						if ( t.gdynamicterrainshadowcameragenerate == 0 ) 
 						{
 							if (  t.game.set.ismapeditormode == 1 ) 
 							{
@@ -2757,11 +2815,13 @@ void terrain_shadowupdate ( void )
 							}
 						}
 					}
+					*/
 				}
 
 				//  render primary cascade (terrainshaderindex)
 				if (  t.terrain.terrainshaderindex>0 ) 
 				{
+					/* completely removed old dynamic cheap shadows
 					//  expensive to render shadow objects from high orbit, so only do for new view
 					//  or if something moved this cycle catch it with Timer (  based refresh )
 					g.cheapshadowhistorypacer_f=g.cheapshadowhistorypacer_f+g.timeelapsed_f;
@@ -2796,10 +2856,11 @@ void terrain_shadowupdate ( void )
 						}
 					}
 					else
-					{
-						//  primary shader renders actual cascade shadow RTs
-						RenderEffectShadowMapping (  t.terrain.terrainshaderindex );
-					}
+					*/
+					//{
+					// primary shader renders actual cascade shadow RTs
+					RenderEffectShadowMapping ( t.terrain.terrainshaderindex );
+					//}
 				}
 
 				//  restore all scene shaders after render to cascade shadow textures
@@ -2819,8 +2880,9 @@ void terrain_shadowupdate ( void )
 					//  gun - secondary shader simply conveys required shadow constants to shader
 					RenderEffectShadowMapping (  t.gun[t.gunid].effectidused );
 				}
-				for ( t.t = -3 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
 				{
+					if (  t.t == -4  )  t.effectid = g.lightmappbreffect;
 					if (  t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 					if (  t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;
 					if (  t.t == -1  )  t.effectid = g.staticlightmapeffectoffset;
@@ -2833,6 +2895,7 @@ void terrain_shadowupdate ( void )
 					}
 				}
 
+				/* completely remove old dynamic cheap shadow
 				//  if dynamic shadows required with pre-bake, send shadow info to glass terrain shader
 				//  calculate and send shadow constants to dynamic terrain shadow shader
 				if (  t.gdynamicterrainshadowcameraid>0 ) 
@@ -2840,6 +2903,7 @@ void terrain_shadowupdate ( void )
 					//  cheapshadow - secondary shader simply conveys requ ired shadow constants to shader
 					RenderEffectShadowMapping (  g.postprocesseffectoffset+5 );
 				}
+				*/
 			}
 
 			//  show all vegetation, but only if in game (we don't show veg in grid edit mode)
@@ -2923,8 +2987,9 @@ void terrain_shadowupdate ( void )
 		}
 	}
 
-	//  Render dynamic terrain shadow camera
-	if (  t.gdynamicterrainshadowcameraid>0 ) 
+	/* completely removed old dynamic cheap shadow
+	// Render dynamic terrain shadow camera
+	if ( t.gdynamicterrainshadowcameraid>0 ) 
 	{
 		//  only if quad for rendering cheap shadow is visible (prebake can hide it)
 		if (  ObjectExist(g.postprocessobjectoffset+5) == 1 ) 
@@ -2970,7 +3035,9 @@ void terrain_shadowupdate ( void )
 			}
 		}
 	}
+	*/
 
+	/* completely removed old dynamic cheap shadow, so don't need this refresh
 	//  Generate heightmap texture for cheap shadows (triggered by loading new level)
 	if (  t.terrain.terraintriggercheapshadowrefresh>0 ) 
 	{
@@ -2985,6 +3052,7 @@ void terrain_shadowupdate ( void )
 			terrain_quickupdateheightmapfromheightdata ( );
 		}
 	}
+	*/
 }
 
 void terrain_updaterealheights ( void )
@@ -3135,6 +3203,9 @@ void terrain_updatewatermask ( void )
 {
 	//  takes tfilewater$
 	//  if VIDMEM reset, must leave silently
+
+	if (g.memskipwatermask == 1)  return; //PE: if watermask not used.
+
 	if (  BitmapExist(g.terrainworkbitmapindex) == 0  )  return;
 	//  if no water exposed, we can skip this
 	terrain_skipifnowaterexposed() ; if (  t.tokay == 1  )  return;
@@ -3239,6 +3310,8 @@ void terrain_updatewatermask ( void )
 
 void terrain_updatewatermask_new ( void )
 {
+//	if (g.memskipwatermask == 1)  return; //PE: if watermask not used.
+
 	SetCurrentBitmap ( g.terrainworkbitmapindex );
 	CLS ( 0 );
 	GrabImage ( t.terrain.imagestartindex+4, 0, 0, 1, 1 );
@@ -4485,11 +4558,24 @@ void terrain_water_init ( void )
 
 	//  Make Water plain
 	LoadImage (  "effectbank\\reloaded\\media\\waves2.dds",t.terrain.imagestartindex+7,0,0);//g.gdividetexturesize );
+	
 	if ( ImageExist(t.terrain.imagestartindex+4) == 0 ) 
 	{
-		SetMipmapNum(1);
-		LoadImage (  "levelbank\\testmap\\watermask.dds",t.terrain.imagestartindex+4,10,0 );
-		SetMipmapNum(-1);
+		//PE: Just create a 1x1 image for shader , if OLDWATER is used.
+		if (g.memskipwatermask == 1) {
+			//  blank water mask
+			SetCurrentBitmap(g.terrainworkbitmapindex);
+			if (FileExist(t.tfilewater_s.Get()) == 1)  DeleteAFile(t.tfilewater_s.Get());
+			CLS(Rgb(0, 0, 0));
+			GrabImage(t.terrain.imagestartindex + 4, 0, 0, 1, 1);
+			//SaveImage(t.tfilewater_s.Get(), t.terrain.imagestartindex + 4);
+			SetCurrentBitmap(0);
+		}
+		else {
+			SetMipmapNum(1);
+			LoadImage("levelbank\\testmap\\watermask.dds", t.terrain.imagestartindex + 4, 10, 0);
+			SetMipmapNum(-1);
+		}
 	}
 	MakeObjectPlane (  t.terrain.objectstartindex+5,1024*50,1024*50 );
 	PositionObject (  t.terrain.objectstartindex+5,1024*25,t.terrain.waterliney_f,1024*25 );
@@ -4660,6 +4746,10 @@ void terrain_water_loop ( void )
 			else
 			{
 				//  no terrain in reflection render
+			}
+			if (t.visuals.reflectionmode == 1) {
+				//PE: Special mode that only clear the reflection image mainly for underwater.
+				SetCameraClip(2, 1, 0, t.terrain.waterliney_f - 100000.0, 0, 0, -1, 0);
 			}
 			SyncMask (  1<<2 );
 

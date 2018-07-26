@@ -10,7 +10,6 @@ extern bool OnlineMultiplayerModeForSharingFiles;
 //  Startup Steam
 void steam_init ( void )
 {
-
 	timestampactivity(0,"_steam_init:");
 	t.steamworks_build = 1121;
 	g.steamworks.isRunning = SteamInit();
@@ -21,10 +20,6 @@ void steam_init ( void )
 
 	// If a custom character head is used but the image no longer exists, we need to get rid of the avatar file
 	characterkit_checkAvatarExists();
-
-return;
-
-//  Steam Main Loop
 }
 
 bool OccluderCheckingForMultiplayer ( void )
@@ -5314,21 +5309,6 @@ t.debugHowManyInUse = 0;
 					t.steamworks_bullets[t.tbulletloop].btype = SteamGetBulletType(t.tbulletloop);
 					if (  ObjectExist(t.tsteamBObj)  ==  0 ) 
 					{
-						t.tfindObj = 0;
-//       `tProj = -1
-
-//       `for tProjLoop = 1 to weaponSystem.numProjectiles
-
-							//if WeaponProjectile(tProjLoop).baseType = steamworks_bullets(tbulletloop).btype
-								//tfindObj = WeaponProjectile(tProjLoop).obj
-//          `tProj = tProjLoop
-
-//          `exit
-
-//         `endif
-
-//       `next tProj
-
 						t.tfindObj = t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].baseObj;
 						if (  t.tfindObj  !=  0 ) 
 						{
@@ -5346,8 +5326,6 @@ t.debugHowManyInUse = 0;
 						if (  t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].particleType>0 && t.tokay == 1 ) 
 						{
 							ravey_particles_get_free_emitter ( );
-//        `WeaponProjectile(tNewProj).tempEmitter = tResult
-
 							if (  t.tResult>0 ) 
 							{
 								t.tobj = t.tsteamBObj;
@@ -6674,11 +6652,11 @@ void steam_save_workshop_files_needed ( void )
 	//  Work out how many lines there are so we can Dim (  the right amount )
 	t.thowmanyfpefiles = 0;
 	OpenToRead (  1,"editors\\baseList.dat" );
-		while (  FileEnd(1) == 0 ) 
-		{
-			t.tthrowawaystring_s = ReadString ( 1 );
-			++t.thowmanyfpefiles;
-		}
+	while (  FileEnd(1) == 0 ) 
+	{
+		t.tthrowawaystring_s = ReadString ( 1 );
+		++t.thowmanyfpefiles;
+	}
 	CloseFile (  1 );
 
 	//  Store the count in our global steamworks type
@@ -6687,17 +6665,12 @@ void steam_save_workshop_files_needed ( void )
 	Dim (  t.tallfpefiles_s,t.thowmanyfpefiles  );
 	t.thowmanyfpefiles = 0;
 	OpenToRead (  1,"editors\\baseList.dat" );
-		while (  FileEnd(1) == 0 ) 
-		{
-			t.tallfpefiles_s[t.thowmanyfpefiles] = ReadString ( 1 );
-			++t.thowmanyfpefiles;
-		}
+	while (  FileEnd(1) == 0 ) 
+	{
+		t.tallfpefiles_s[t.thowmanyfpefiles] = ReadString ( 1 );
+		++t.thowmanyfpefiles;
+	}
 	CloseFile (  1 );
-
-	//  work out what files used in this level do not come with the base install
-
-	//  Name without EXE
-//  `potato - use ttempprojfilename$ but it may contain full path
 
 	t.exename_s=t.tsteamsavefilename_s;
 	if (  cstr(Lower(Right(t.exename_s.Get(),4))) == ".fpm" ) 
@@ -6933,8 +6906,8 @@ void steam_save_workshop_files_needed ( void )
 					if (  Len(t.tlevelfile_s.Get())>1 ) 
 					{
 						t.tlevelfile_s=cstr("mapbank\\")+t.tlevelfile_s+".fpm";
-						++t.levelmax;
-						t.levellist_s[t.levelmax]=t.tlevelfile_s;
+						//++t.levelmax; // 130318 - not used for steam_save_workshop_files_needed function
+						//t.levellist_s[t.levelmax]=t.tlevelfile_s;
 						addtocollection(t.tlevelfile_s.Get());
 					}
 				}

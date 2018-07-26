@@ -19,6 +19,12 @@
 #include "CObjectsC.h"
 #include "DarkLUA.h"
 
+
+#define PETESTIMAGEUSAGE
+
+//Forward declclaration of timestampactivity since it is housed elsewhere
+void timestampactivity(int i, char* desc_s);
+
 extern GlobStruct*				g_pGlob;
 extern LPGG						m_pDX;
 extern LPGGDEVICE				m_pD3D;
@@ -119,6 +125,462 @@ DARKSDK void ImageConstructor ( void )
 	ImageConstructorD3D ( );
 	ImagePassCoreData ( NULL );
 }
+
+
+int getBitsPerPixel(int fmt);
+std::string getImageformat(int fmt);
+
+int DumpImageListCount = 1;
+
+//Clear all "entitybank" memory used.
+
+
+DARKSDK void DumpImageList(void)
+{
+#ifdef PETESTIMAGEUSAGE
+	char timestampMsg[1024];
+	long imageuse = 0;
+	long notused = 0;
+	long notusedsize = 0;
+	long usedsize = 0;
+	long used = 0;
+	long totalmipmaps = 0;
+	long savedbybaking = 0;
+	long minusmem = 0;
+	long GPUcachedimagesSize = 0;
+
+	for (ImagePtr pCheck = m_List.begin(); pCheck != m_List.end(); ++pCheck)
+	{
+		tagImgData* ptr = pCheck->second;
+
+
+		GGSURFACE_DESC imgdesc;
+
+		LPGGSURFACE pTextureInterface = NULL;
+		ptr->lpTexture->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
+
+		pTextureInterface->GetDesc(&imgdesc);
+		SAFE_RELEASE ( pTextureInterface );
+
+		//BC1: 5:6 : 5 color(5 bits red, 6 bits green, 5 bits blue).This is true even if the data also contains 1 - bit alpha.
+		//Assuming a 4×4 texture using the largest data format possible, the BC1 format reduces the memory required from 48 bytes(16 colors × 3 components / color × 1 byte / component) to 8 bytes of memory.
+		//So to calculate all 4 bits per pixels should be devided by 8.
+		//BC1: 48 bytes (16 colors × 3 components/color × 1 byte/component) to 8 bytes of memory.
+		//BC2: 64 bytes (16 colors × 4 components/color × 1 byte/component) to 16 bytes of memory.
+		//BC3: 64 bytes (16 colors × 4 components/color × 1 byte/component) to 16 bytes of memory.
+		//BC1 / 8.0 = * 0,125 (-alpha 4bit) (4 bits per pixel )
+		//BC2 / 4.0 = * 0.25 (8 bits per pixel )
+		//BC3 / 4.0 = * 0.25 (8 bits per pixel )
+		//So: Width*Height*4(RGBA)*(getBitsPerPixel/32.0)
+		//Or: Width*Height*(getBitsPerPixel/8.0)
+		//Substract BC1 alpha. = 0.5/4 = (-0.125)
+
+		float bperpixel = (float)getBitsPerPixel(imgdesc.Format) / 8;
+		if (bperpixel == 0.5 ) {
+			bperpixel -= 0.125; // remove alpha count from BC1
+		}
+
+		//in kb , so dont need to be so precise just use int.
+		int addmipmapssize;
+		
+		if (imgdesc.MipLevels > 1) {
+			addmipmapssize = (int)((float)(ptr->iWidth*ptr->iHeight) * bperpixel) / 1024 * imgdesc.ArraySize - 1; // Full mipmaps always give size -1.
+			if (addmipmapssize <= 0) addmipmapssize = 0;
+		}
+		else {
+			addmipmapssize = 0;
+		}
+		totalmipmaps += addmipmapssize;
+
+
+		if( strlen(ptr->szShortFilename) > 0 )
+			sprintf(timestampMsg, "DumpImgList%d(%d): %s (Calls CPU: %d , GPU: %d) (%ld,%ld, %ld kb.+ mipm %ld kb.) mipmaps %d array %d format %s ", DumpImageListCount, (int) pCheck->first , ptr->szShortFilename, ptr->AccessCountCPU, ptr->AccessCountGPU, ptr->iWidth, ptr->iHeight, (int) ( (float)(ptr->iWidth*ptr->iHeight) * bperpixel) / 1024 * imgdesc.ArraySize, addmipmapssize , imgdesc.MipLevels, imgdesc.ArraySize, getImageformat(imgdesc.Format));
+		else
+			sprintf(timestampMsg, "DumpImgList%d(%d): unknown (Calls CPU: %d , GPU: %d) (%ld,%ld, %ld kb.+ mipm %ld kb.) mipmaps %d array %d format %s ", DumpImageListCount, (int)pCheck->first , ptr->AccessCountCPU, ptr->AccessCountGPU, ptr->iWidth, ptr->iHeight, (int)((float)(ptr->iWidth*ptr->iHeight) * bperpixel) / 1024 * imgdesc.ArraySize, addmipmapssize, imgdesc.MipLevels, imgdesc.ArraySize, getImageformat(imgdesc.Format));
+
+		imageuse += ((int) (((float)(ptr->iWidth*ptr->iHeight) * bperpixel) / 1024) * imgdesc.ArraySize) + addmipmapssize;  //PE: Real mem use.
+
+		if ((int)pCheck->first < 0) {
+			minusmem += ((int)(((float)(ptr->iWidth*ptr->iHeight) * bperpixel) / 1024) * imgdesc.ArraySize) + addmipmapssize; 
+		}
+
+		if (ptr->AccessCountCPU <= 1 && ptr->AccessCountGPU <= 1) {
+			notused++;
+			notusedsize += ((int) (((float)(ptr->iWidth*ptr->iHeight) * bperpixel) / 1024) * imgdesc.ArraySize) + addmipmapssize;
+		}
+		else {
+			used++;
+			usedsize += ((int) (((float)(ptr->iWidth*ptr->iHeight) * bperpixel) / 1024) * imgdesc.ArraySize) + addmipmapssize;
+		}
+
+		if (ptr->AccessCountCPU >= 1 && ptr->AccessCountGPU >= 1000) {
+			//PE: Estimate that 1000 accesses will make the GPU cache the image. ( not releasing it ).
+			//PE: If this get larger then 2 gb ( depends on GPU ) we will get stuttering.
+			//PE: todo - reset GPU access between levels for standalone.
+			GPUcachedimagesSize += ((int)(((float)(ptr->iWidth*ptr->iHeight) * bperpixel) / 1024) * imgdesc.ArraySize) + addmipmapssize; //PE: Real mem use.
+		}
+
+		timestampactivity(0, timestampMsg);
+	}
+	//PE: until GPU access is reset , dont display GPUcachedimagesSize as this will only work for the first level you load and can confuse, now that you know this you can enable this line :)
+	//sprintf(timestampMsg, "DumpImageList: Total mem=%ld kb. mipmaps=%ld kb. Used Images: %ld mem %ld kb. - Notused Images: %ld mem %ld kb. - MinusMem: %ld kb. (GPUcachedimagesSize : %ld)", imageuse, totalmipmaps, used, usedsize, notused, notusedsize, minusmem, GPUcachedimagesSize);
+	sprintf(timestampMsg, "DumpImageList: Total mem=%ld kb. mipmaps=%ld kb. Used Images: %ld mem %ld kb. - Notused Images: %ld mem %ld kb. - MinusMem: %ld kb.", imageuse, totalmipmaps, used, usedsize, notused, notusedsize, minusmem);
+	timestampactivity(0, timestampMsg);
+
+#endif
+}
+
+
+std::string getImageformat(int fmt)
+{
+	switch (fmt)
+	{
+	case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+	case DXGI_FORMAT_R32G32B32A32_FLOAT:
+	case DXGI_FORMAT_R32G32B32A32_UINT:
+	case DXGI_FORMAT_R32G32B32A32_SINT:
+		return std::string("DXGI_FORMAT_R32G32B32A32_128B");
+
+	case DXGI_FORMAT_R32G32B32_TYPELESS:
+	case DXGI_FORMAT_R32G32B32_FLOAT:
+	case DXGI_FORMAT_R32G32B32_UINT:
+	case DXGI_FORMAT_R32G32B32_SINT:
+		return std::string("DXGI_FORMAT_R32G32B32_96B");
+
+	case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+	case DXGI_FORMAT_R16G16B16A16_FLOAT:
+	case DXGI_FORMAT_R16G16B16A16_UNORM:
+	case DXGI_FORMAT_R16G16B16A16_UINT:
+	case DXGI_FORMAT_R16G16B16A16_SNORM:
+	case DXGI_FORMAT_R16G16B16A16_SINT:
+	case DXGI_FORMAT_R32G32_TYPELESS:
+	case DXGI_FORMAT_R32G32_FLOAT:
+	case DXGI_FORMAT_R32G32_UINT:
+	case DXGI_FORMAT_R32G32_SINT:
+	case DXGI_FORMAT_R32G8X24_TYPELESS:
+	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+	case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+	case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+	case DXGI_FORMAT_Y416:
+	case DXGI_FORMAT_Y210:
+	case DXGI_FORMAT_Y216:
+		return std::string("DXGI_FORMAT_64B");
+
+	case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+		return std::string("DXGI_FORMAT_R10G10B10A2_TYPELESS_32B");
+	case DXGI_FORMAT_R10G10B10A2_UNORM:
+		return std::string("DXGI_FORMAT_R10G10B10A2_UNORM_32B");
+	case DXGI_FORMAT_R10G10B10A2_UINT:
+		return std::string("DXGI_FORMAT_R10G10B10A2_UINT_32B");
+	case DXGI_FORMAT_R11G11B10_FLOAT:
+		return std::string("DXGI_FORMAT_R11G11B10_FLOAT_32B");
+	case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+		return std::string("DXGI_FORMAT_R8G8B8A8_TYPELESS_32B");
+	case DXGI_FORMAT_R8G8B8A8_UNORM:
+		return std::string("DXGI_FORMAT_R8G8B8A8_UNORM_32B");
+	case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+		return std::string("DXGI_FORMAT_R8G8B8A8_UNORM_SRGB_32B");
+	case DXGI_FORMAT_R8G8B8A8_UINT:
+		return std::string("DXGI_FORMAT_R8G8B8A8_UINT_32B");
+	case DXGI_FORMAT_R8G8B8A8_SNORM:
+		return std::string("DXGI_FORMAT_R8G8B8A8_SNORM_32B");
+	case DXGI_FORMAT_R8G8B8A8_SINT:
+		return std::string("DXGI_FORMAT_R8G8B8A8_SINT_32B");
+	case DXGI_FORMAT_R16G16_TYPELESS:
+		return std::string("DXGI_FORMAT_R16G16_TYPELESS_32B");
+	case DXGI_FORMAT_R16G16_FLOAT:
+		return std::string("DXGI_FORMAT_R16G16_FLOAT_32B");
+	case DXGI_FORMAT_R16G16_UNORM:
+		return std::string("DXGI_FORMAT_R16G16_UNORM_32B");
+	case DXGI_FORMAT_R16G16_UINT:
+		return std::string("DXGI_FORMAT_R16G16_UINT_32B");
+	case DXGI_FORMAT_R16G16_SNORM:
+		return std::string("DXGI_FORMAT_R16G16_SNORM_32B");
+	case DXGI_FORMAT_R16G16_SINT:
+		return std::string("DXGI_FORMAT_R16G16_SINT_32B");
+	case DXGI_FORMAT_R32_TYPELESS:
+		return std::string("DXGI_FORMAT_R32_TYPELESS_32B");
+	case DXGI_FORMAT_D32_FLOAT:
+		return std::string("DXGI_FORMAT_D32_FLOAT_32B");
+	case DXGI_FORMAT_R32_FLOAT:
+		return std::string("DXGI_FORMAT_R32_FLOAT_32B");
+	case DXGI_FORMAT_R32_UINT:
+		return std::string("DXGI_FORMAT_R32_UINT_32B");
+	case DXGI_FORMAT_R32_SINT:
+		return std::string("DXGI_FORMAT_R32_SINT_32B");
+	case DXGI_FORMAT_R24G8_TYPELESS:
+		return std::string("DXGI_FORMAT_R24G8_TYPELESS_32B");
+	case DXGI_FORMAT_D24_UNORM_S8_UINT:
+		return std::string("DXGI_FORMAT_D24_UNORM_S8_UINT_32B");
+	case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+		return std::string("DXGI_FORMAT_R24_UNORM_X8_TYPELESS_32B");
+	case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+		return std::string("DXGI_FORMAT_X24_TYPELESS_G8_UINT_32B");
+	case DXGI_FORMAT_R9G9B9E5_SHAREDEXP:
+		return std::string("DXGI_FORMAT_R9G9B9E5_SHAREDEXP_32B");
+	case DXGI_FORMAT_R8G8_B8G8_UNORM:
+		return std::string("DXGI_FORMAT_R8G8_B8G8_UNORM_32B");
+	case DXGI_FORMAT_G8R8_G8B8_UNORM:
+		return std::string("DXGI_FORMAT_G8R8_G8B8_UNORM_32B");
+	case DXGI_FORMAT_B8G8R8A8_UNORM:
+		return std::string("DXGI_FORMAT_B8G8R8A8_UNORM_32B");
+	case DXGI_FORMAT_B8G8R8X8_UNORM:
+		return std::string("DXGI_FORMAT_B8G8R8X8_UNORM_32B");
+	case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:
+		return std::string("DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM_32B");
+	case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+		return std::string("DXGI_FORMAT_B8G8R8A8_TYPELESS_32B");
+	case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+		return std::string("DXGI_FORMAT_B8G8R8A8_UNORM_SRGB_32B");
+	case DXGI_FORMAT_B8G8R8X8_TYPELESS:
+		return std::string("DXGI_FORMAT_B8G8R8X8_TYPELESS_32B");
+	case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+		return std::string("DXGI_FORMAT_B8G8R8X8_UNORM_SRGB_32B");
+	case DXGI_FORMAT_AYUV:
+		return std::string("DXGI_FORMAT_AYUV_32B");
+	case DXGI_FORMAT_Y410:
+		return std::string("DXGI_FORMAT_Y410_32B");
+	case DXGI_FORMAT_YUY2:
+		return std::string("DXGI_FORMAT_YUY2_32B");
+
+	case DXGI_FORMAT_P010:
+	case DXGI_FORMAT_P016:
+		return std::string("DXGI_FORMAT_P0_24B");
+
+	case DXGI_FORMAT_R8G8_TYPELESS:
+	case DXGI_FORMAT_R8G8_UNORM:
+	case DXGI_FORMAT_R8G8_UINT:
+	case DXGI_FORMAT_R8G8_SNORM:
+	case DXGI_FORMAT_R8G8_SINT:
+	case DXGI_FORMAT_R16_TYPELESS:
+	case DXGI_FORMAT_R16_FLOAT:
+	case DXGI_FORMAT_D16_UNORM:
+	case DXGI_FORMAT_R16_UNORM:
+	case DXGI_FORMAT_R16_UINT:
+	case DXGI_FORMAT_R16_SNORM:
+	case DXGI_FORMAT_R16_SINT:
+	case DXGI_FORMAT_B5G6R5_UNORM:
+	case DXGI_FORMAT_B5G5R5A1_UNORM:
+	case DXGI_FORMAT_A8P8:
+	case DXGI_FORMAT_B4G4R4A4_UNORM:
+		return std::string("DXGI_FORMAT_R8G8_16B");
+
+	case DXGI_FORMAT_NV12:
+	case DXGI_FORMAT_420_OPAQUE:
+	case DXGI_FORMAT_NV11:
+		return std::string("DXGI_FORMAT_NV_12B");
+
+	case DXGI_FORMAT_R8_TYPELESS:
+	case DXGI_FORMAT_R8_UNORM:
+	case DXGI_FORMAT_R8_UINT:
+	case DXGI_FORMAT_R8_SNORM:
+	case DXGI_FORMAT_R8_SINT:
+	case DXGI_FORMAT_A8_UNORM:
+	case DXGI_FORMAT_AI44:
+	case DXGI_FORMAT_IA44:
+	case DXGI_FORMAT_P8:
+		return std::string("DXGI_FORMAT_R8_8B");
+
+	case DXGI_FORMAT_R1_UNORM:
+		return std::string("DXGI_FORMAT_R1_UNORM_1B");
+
+	case DXGI_FORMAT_BC1_TYPELESS:
+		return std::string("DXGI_FORMAT_BC1_TYPELESS_4B");
+	case DXGI_FORMAT_BC1_UNORM:
+		return std::string("DXGI_FORMAT_BC1_UNORM_4B");
+	case DXGI_FORMAT_BC1_UNORM_SRGB:
+		return std::string("DXGI_FORMAT_BC1_UNORM_SRGB_4B");
+	case DXGI_FORMAT_BC4_TYPELESS:
+		return std::string("DXGI_FORMAT_BC4_TYPELESS_4B");
+	case DXGI_FORMAT_BC4_UNORM:
+		return std::string("DXGI_FORMAT_BC4_UNORM_4B");
+	case DXGI_FORMAT_BC4_SNORM:
+		return std::string("DXGI_FORMAT_BC4_SNORM_4B");
+
+	case DXGI_FORMAT_BC2_TYPELESS:
+		return std::string("DXGI_FORMAT_BC2_TYPELESS_8B");
+	case DXGI_FORMAT_BC2_UNORM:
+		return std::string("DXGI_FORMAT_BC2_UNORM_8B");
+	case DXGI_FORMAT_BC2_UNORM_SRGB:
+		return std::string("DXGI_FORMAT_BC2_UNORM_SRGB_8B");
+	case DXGI_FORMAT_BC3_TYPELESS:
+		return std::string("DXGI_FORMAT_BC3_TYPELESS_8B");
+	case DXGI_FORMAT_BC3_UNORM:
+		return std::string("DXGI_FORMAT_BC3_UNORM_8B");
+	case DXGI_FORMAT_BC3_UNORM_SRGB:
+		return std::string("DXGI_FORMAT_BC3_UNORM_SRGB_8B");
+	case DXGI_FORMAT_BC5_TYPELESS:
+		return std::string("DXGI_FORMAT_BC5_TYPELESS_8B");
+	case DXGI_FORMAT_BC5_UNORM:
+		return std::string("DXGI_FORMAT_BC5_UNORM_8B");
+	case DXGI_FORMAT_BC5_SNORM:
+		return std::string("DXGI_FORMAT_BC5_SNORM_8B");
+	case DXGI_FORMAT_BC6H_TYPELESS:
+		return std::string("DXGI_FORMAT_BC6H_TYPELESS_8B");
+	case DXGI_FORMAT_BC6H_UF16:
+		return std::string("DXGI_FORMAT_BC6H_UF16_8B");
+	case DXGI_FORMAT_BC6H_SF16:
+		return std::string("DXGI_FORMAT_BC6H_SF16_8B");
+	case DXGI_FORMAT_BC7_TYPELESS:
+		return std::string("DXGI_FORMAT_BC7_TYPELESS_8B");
+	case DXGI_FORMAT_BC7_UNORM:
+		return std::string("DXGI_FORMAT_BC7_UNORM_8B");
+	case DXGI_FORMAT_BC7_UNORM_SRGB:
+		return std::string("DXGI_FORMAT_BC7_UNORM_SRGB_8B");
+
+	default:
+		return std::string("DXGI_?_0B");
+	}
+}
+
+
+int getBitsPerPixel(int fmt)
+{
+	switch (fmt)
+	{
+	case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+	case DXGI_FORMAT_R32G32B32A32_FLOAT:
+	case DXGI_FORMAT_R32G32B32A32_UINT:
+	case DXGI_FORMAT_R32G32B32A32_SINT:
+		return 128;
+
+	case DXGI_FORMAT_R32G32B32_TYPELESS:
+	case DXGI_FORMAT_R32G32B32_FLOAT:
+	case DXGI_FORMAT_R32G32B32_UINT:
+	case DXGI_FORMAT_R32G32B32_SINT:
+		return 96;
+
+	case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+	case DXGI_FORMAT_R16G16B16A16_FLOAT:
+	case DXGI_FORMAT_R16G16B16A16_UNORM:
+	case DXGI_FORMAT_R16G16B16A16_UINT:
+	case DXGI_FORMAT_R16G16B16A16_SNORM:
+	case DXGI_FORMAT_R16G16B16A16_SINT:
+	case DXGI_FORMAT_R32G32_TYPELESS:
+	case DXGI_FORMAT_R32G32_FLOAT:
+	case DXGI_FORMAT_R32G32_UINT:
+	case DXGI_FORMAT_R32G32_SINT:
+	case DXGI_FORMAT_R32G8X24_TYPELESS:
+	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+	case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+	case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+	case DXGI_FORMAT_Y416:
+	case DXGI_FORMAT_Y210:
+	case DXGI_FORMAT_Y216:
+		return 64;
+
+	case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+	case DXGI_FORMAT_R10G10B10A2_UNORM:
+	case DXGI_FORMAT_R10G10B10A2_UINT:
+	case DXGI_FORMAT_R11G11B10_FLOAT:
+	case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+	case DXGI_FORMAT_R8G8B8A8_UNORM:
+	case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+	case DXGI_FORMAT_R8G8B8A8_UINT:
+	case DXGI_FORMAT_R8G8B8A8_SNORM:
+	case DXGI_FORMAT_R8G8B8A8_SINT:
+	case DXGI_FORMAT_R16G16_TYPELESS:
+	case DXGI_FORMAT_R16G16_FLOAT:
+	case DXGI_FORMAT_R16G16_UNORM:
+	case DXGI_FORMAT_R16G16_UINT:
+	case DXGI_FORMAT_R16G16_SNORM:
+	case DXGI_FORMAT_R16G16_SINT:
+	case DXGI_FORMAT_R32_TYPELESS:
+	case DXGI_FORMAT_D32_FLOAT:
+	case DXGI_FORMAT_R32_FLOAT:
+	case DXGI_FORMAT_R32_UINT:
+	case DXGI_FORMAT_R32_SINT:
+	case DXGI_FORMAT_R24G8_TYPELESS:
+	case DXGI_FORMAT_D24_UNORM_S8_UINT:
+	case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+	case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+	case DXGI_FORMAT_R9G9B9E5_SHAREDEXP:
+	case DXGI_FORMAT_R8G8_B8G8_UNORM:
+	case DXGI_FORMAT_G8R8_G8B8_UNORM:
+	case DXGI_FORMAT_B8G8R8A8_UNORM:
+	case DXGI_FORMAT_B8G8R8X8_UNORM:
+	case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:
+	case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+	case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+	case DXGI_FORMAT_B8G8R8X8_TYPELESS:
+	case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+	case DXGI_FORMAT_AYUV:
+	case DXGI_FORMAT_Y410:
+	case DXGI_FORMAT_YUY2:
+		return 32;
+
+	case DXGI_FORMAT_P010:
+	case DXGI_FORMAT_P016:
+		return 24;
+
+	case DXGI_FORMAT_R8G8_TYPELESS:
+	case DXGI_FORMAT_R8G8_UNORM:
+	case DXGI_FORMAT_R8G8_UINT:
+	case DXGI_FORMAT_R8G8_SNORM:
+	case DXGI_FORMAT_R8G8_SINT:
+	case DXGI_FORMAT_R16_TYPELESS:
+	case DXGI_FORMAT_R16_FLOAT:
+	case DXGI_FORMAT_D16_UNORM:
+	case DXGI_FORMAT_R16_UNORM:
+	case DXGI_FORMAT_R16_UINT:
+	case DXGI_FORMAT_R16_SNORM:
+	case DXGI_FORMAT_R16_SINT:
+	case DXGI_FORMAT_B5G6R5_UNORM:
+	case DXGI_FORMAT_B5G5R5A1_UNORM:
+	case DXGI_FORMAT_A8P8:
+	case DXGI_FORMAT_B4G4R4A4_UNORM:
+		return 16;
+
+	case DXGI_FORMAT_NV12:
+	case DXGI_FORMAT_420_OPAQUE:
+	case DXGI_FORMAT_NV11:
+		return 12;
+
+	case DXGI_FORMAT_R8_TYPELESS:
+	case DXGI_FORMAT_R8_UNORM:
+	case DXGI_FORMAT_R8_UINT:
+	case DXGI_FORMAT_R8_SNORM:
+	case DXGI_FORMAT_R8_SINT:
+	case DXGI_FORMAT_A8_UNORM:
+	case DXGI_FORMAT_AI44:
+	case DXGI_FORMAT_IA44:
+	case DXGI_FORMAT_P8:
+		return 8;
+
+	case DXGI_FORMAT_R1_UNORM:
+		return 1;
+
+	case DXGI_FORMAT_BC1_TYPELESS:
+	case DXGI_FORMAT_BC1_UNORM:
+	case DXGI_FORMAT_BC1_UNORM_SRGB:
+	case DXGI_FORMAT_BC4_TYPELESS:
+	case DXGI_FORMAT_BC4_UNORM:
+	case DXGI_FORMAT_BC4_SNORM:
+		return 4;
+
+	case DXGI_FORMAT_BC2_TYPELESS:
+	case DXGI_FORMAT_BC2_UNORM:
+	case DXGI_FORMAT_BC2_UNORM_SRGB:
+	case DXGI_FORMAT_BC3_TYPELESS:
+	case DXGI_FORMAT_BC3_UNORM:
+	case DXGI_FORMAT_BC3_UNORM_SRGB:
+	case DXGI_FORMAT_BC5_TYPELESS:
+	case DXGI_FORMAT_BC5_UNORM:
+	case DXGI_FORMAT_BC5_SNORM:
+	case DXGI_FORMAT_BC6H_TYPELESS:
+	case DXGI_FORMAT_BC6H_UF16:
+	case DXGI_FORMAT_BC6H_SF16:
+	case DXGI_FORMAT_BC7_TYPELESS:
+	case DXGI_FORMAT_BC7_UNORM:
+	case DXGI_FORMAT_BC7_UNORM_SRGB:
+		return 8;
+
+	default:
+		return 0;
+	}
+}
+
+
 
 DARKSDK void ImageDestructorD3D ( void )
 {
@@ -696,14 +1158,26 @@ DARKSDK LPGGTEXTURE GetTextureCore ( char* szFilename, GGIMAGE_INFO* info, int i
 			}
 			else
 			{
-				// to conform to internal BGRA format (DX9 to DX11 nonesense)
-				D3DX11_IMAGE_LOAD_INFO loadinfo;
-				loadinfo.Format = DXGI_FORMAT_B8G8R8A8_UNORM; 
-				(*info).Format = loadinfo.Format;
-				loadinfo.MipLevels = m_iMipMapNum; // set using SetMipmapNum when want no mipmaps (i.e. vegmask)
-				loadinfo.Width = (*info).Width;
-				loadinfo.Height = (*info).Height;
-				hRes = D3DX11CreateTextureFromFile(	m_pD3D, szFilename, &loadinfo, NULL, &lpTexture, NULL );
+				//PE: Make sure we keep current compression,  if we just need to generate mipmaps.
+				if( m_iMipMapNum == -1 && (*info).MipLevels == 1 && strnicmp(szFilename + strlen(szFilename) - 4, ".dds", 4) == NULL ) {
+					//Only need to generate mipmaps so keep original compression.
+					D3DX11_IMAGE_LOAD_INFO loadinfo;
+					loadinfo.Format = (*info).Format;
+					loadinfo.MipLevels = m_iMipMapNum; // set using SetMipmapNum when want no mipmaps (i.e. vegmask)
+					loadinfo.Width = (*info).Width;
+					loadinfo.Height = (*info).Height;
+					hRes = D3DX11CreateTextureFromFile(m_pD3D, szFilename, &loadinfo, NULL, &lpTexture, NULL);
+				}
+				else {
+					// to conform to internal BGRA format (DX9 to DX11 nonesense)
+					D3DX11_IMAGE_LOAD_INFO loadinfo;
+					loadinfo.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+					(*info).Format = loadinfo.Format;
+					loadinfo.MipLevels = m_iMipMapNum; // set using SetMipmapNum when want no mipmaps (i.e. vegmask)
+					loadinfo.Width = (*info).Width;
+					loadinfo.Height = (*info).Height;
+					hRes = D3DX11CreateTextureFromFile(m_pD3D, szFilename, &loadinfo, NULL, &lpTexture, NULL);
+				}
 			}
 		}
 
@@ -953,6 +1427,8 @@ DARKSDK bool LoadImageCore ( char* szFilename, LPGGTEXTURE* pImage, GGIMAGE_INFO
 	return LoadImageCoreFullTex ( szFilename, pImage, info, 0, 0 );
 }
 
+//PE: 50000+ to be used for internal images inside dbo's.
+
 DARKSDK bool FindInternalImage ( char* szFilename, int* pImageID )
 {
 	if ( szFilename && szFilename[0] )
@@ -960,7 +1436,7 @@ DARKSDK bool FindInternalImage ( char* szFilename, int* pImageID )
     	int iFindFilenameLength = strlen(szFilename);
 
 		ImagePtr pCheck = m_List.begin();
-		while ( pCheck != m_List.end() && pCheck->first < 0)
+		while ( pCheck != m_List.end() ) //PE: scan everything. && pCheck->first < 0
 		{
             // get a pointer to the actual data
 		    tagImgData* ptr = pCheck->second;
@@ -976,23 +1452,37 @@ DARKSDK bool FindInternalImage ( char* szFilename, int* pImageID )
 		}
 	}
 
-    // Static, so not reset between function calls - almost guaranteed to find the
-    // next free image that way.
-	static int iTry=-1;
+	//PE: We need + imageID if we are going to reuse them there is a lot of ID > 0 around the code.
 
-    // Check to see if the image id is in use
-    ImagePtr pCheck = m_List.find(iTry);
-    while (pCheck != m_List.end())
-    {
-        // Is in use, check for the next number, but make sure that underflow is dealt with correctly
-        // ie, iTry MUST stay negative. Note that this is not too likely to happen anyway.
-        --iTry;
-        if (iTry > 0)
-            iTry = -1;
+	static int iTry = 50000;
+	ImagePtr pCheck = m_List.find(iTry);
+	while (pCheck != m_List.end())
+	{
+		pCheck = m_List.find(iTry++);
+		if (iTry > 58000) break;
+	}
 
-        pCheck = m_List.find(iTry);
-    }
+	if (iTry > 58000) {
 
+		//PE: None positive found or MAX , use the old way.
+
+		// Static, so not reset between function calls - almost guaranteed to find the
+		// next free image that way.
+		static int iTry = -1;
+
+		// Check to see if the image id is in use
+		ImagePtr pCheck = m_List.find(iTry);
+		while (pCheck != m_List.end())
+		{
+			// Is in use, check for the next number, but make sure that underflow is dealt with correctly
+			// ie, iTry MUST stay negative. Note that this is not too likely to happen anyway.
+			--iTry;
+			if (iTry > 0)
+				iTry = -1;
+
+			pCheck = m_List.find(iTry);
+		}
+	}
 	// this image can be used = new slot
 	*pImageID = iTry;
 
@@ -1000,34 +1490,86 @@ DARKSDK bool FindInternalImage ( char* szFilename, int* pImageID )
 	return false;
 }
 
+
+extern int addinternaltexture(char* tfile_s);
+extern int findinternaltexture(char* tfile_s);
+extern void removeinternaltexture(int teximg);
+extern void deleteinternaltexture(char* tfile_s);
+
 DARKSDK void ClearAnyLightMapInternalTextures ( void )
 {
 	ImagePtr pCheck = m_List.begin();
-	while ( pCheck != m_List.end() && pCheck->first < 0)
+	while ( pCheck != m_List.end() ) //PE: removed scan everything. && pCheck->first < 0
 	{
         // get a pointer to the actual data
 		tagImgData* ptr = pCheck->second;
 		int iFoundID = 0;
+		char *shortname;
         if ( ptr && ptr->szShortFilename && ptr->lpTexture )
 		{
 			if ( ptr->szShortFilename!=NULL )
 			{
 				if ( strlen(ptr->szShortFilename)>11 )
 				{
-					for ( int n=0; n<(int)strlen(ptr->szShortFilename)-11; n++ )
-						if ( strnicmp ( ptr->szShortFilename + n, "lightmaps\\", 10 )==NULL )
+					for (int n = 0; n < (int)strlen(ptr->szShortFilename) - 11; n++) {
+						if (strnicmp(ptr->szShortFilename + n, "lightmaps\\", 10) == NULL) {
+							shortname = ptr->szShortFilename;
 							iFoundID = pCheck->first;
+							break;
+						}
+					}
 				}
 			}
         }
 		if ( iFoundID!=0 ) 
 		{
+			//PE: Also need to be removed from internal list.
+			deleteinternaltexture(shortname);
 			RemoveImage( iFoundID );
 			pCheck = m_List.begin();
 		}
 		else
 		{
 	        ++pCheck;
+		}
+	}
+}
+//PE:
+DARKSDK void ClearAnyEntitybankInternalTextures(void)
+{
+	ImagePtr pCheck = m_List.begin();
+	while (pCheck != m_List.end()) //PE: removed scan everything. && pCheck->first < 0
+	{
+		// get a pointer to the actual data
+		tagImgData* ptr = pCheck->second;
+		int iFoundID = 0;
+		char *shortname;
+		if (ptr && ptr->szShortFilename && ptr->lpTexture)
+		{
+			if (ptr->szShortFilename != NULL)
+			{
+				if (strlen(ptr->szShortFilename)>11)
+				{
+					for (int n = 0; n < (int)strlen(ptr->szShortFilename) - 11; n++) {
+						if (strnicmp(ptr->szShortFilename + n, "entitybank\\", 10) == NULL) {
+							shortname = ptr->szShortFilename;
+							iFoundID = pCheck->first;
+							break;
+						}
+					}
+				}
+			}
+		}
+		if (iFoundID != 0)
+		{
+			//PE: Also need to be removed from internal list.
+			deleteinternaltexture(shortname);
+			RemoveImage(iFoundID);
+			pCheck = m_List.begin();
+		}
+		else
+		{
+			++pCheck;
 		}
 	}
 }
@@ -1039,6 +1581,14 @@ DARKSDK int LoadImageCoreInternal ( char* szFilename, int iDivideTextureSize )
 	int iImageID = 0;
 	if ( !FindInternalImage ( szFilename, &iImageID ) )
 	{
+		//PE: Check if we have it in the internal list.
+		int tmpid = findinternaltexture(szFilename);
+		if (tmpid > 0) {
+			//char mdebug[2048];
+			//sprintf(mdebug, "findinternaltexture: %s, return: %d ", szFilename, tmpid );
+			//timestampactivity(0, mdebug);
+			return(tmpid);
+		}
 		// copy of filename to attempt to load
 		char VirtualFilename[MAX_PATH];
 		strcpy ( VirtualFilename, szFilename );
@@ -1047,6 +1597,13 @@ DARKSDK int LoadImageCoreInternal ( char* szFilename, int iDivideTextureSize )
 
 		// no, use standard loader
 		g_pGlob->Decrypt( (DWORD)VirtualFilename );
+
+		//PE: Add to list so it can be reused.
+		tmpid = addinternaltexture(szFilename);
+		if ( tmpid > 0 ) {
+			iImageID = tmpid;
+		}
+
 		if ( LoadImageCoreRetainName ( szFilename, (LPSTR)VirtualFilename, iImageID, 0, true, iDivideTextureSize ) )
 		{
 			// new image returned
@@ -1054,6 +1611,8 @@ DARKSDK int LoadImageCoreInternal ( char* szFilename, int iDivideTextureSize )
 		else
 		{
 			// load failed
+			//PE: Remove entry again.
+			removeinternaltexture(iImageID);
 			iImageID=0;
 		}
 		g_pGlob->Encrypt( (DWORD)VirtualFilename );
@@ -1093,8 +1652,13 @@ DARKSDK LPGGTEXTURE GetImagePointer ( int iID )
 	if ( !UpdatePtrImage ( iID ) )
 		return NULL;
 
-	if ( m_imgptr->lpTexture )
+	if (m_imgptr->lpTexture) {
+
+#ifdef PETESTIMAGEUSAGE
+		m_imgptr->AccessCountCPU++;
+#endif
 		return m_imgptr->lpTexture;
+	}
 	else
 		return NULL;
 }
@@ -1106,8 +1670,12 @@ DARKSDK LPGGTEXTUREREF GetImagePointerView ( int iID )
 	if ( !UpdatePtrImage ( iID ) )
 		return NULL;
 
-	if ( m_imgptr->lpTextureView )
+	if (m_imgptr->lpTextureView) {
+#ifdef PETESTIMAGEUSAGE
+		m_imgptr->AccessCountGPU++;
+#endif
 		return m_imgptr->lpTextureView;
+	}
 	else
 		return NULL;
 	#else
@@ -1587,6 +2155,12 @@ DARKSDK bool LoadImageCoreRetainName ( char* szRealName, char* szFilename, int i
 		}
 	}
 
+	//PE: Debug , show list of combination checked.,
+	//char mdebug[2048];
+	//sprintf(mdebug, "TEST: %s (%s), %d ", szFilename, szRealName, iID);
+	//timestampactivity(0, mdebug);
+
+	
     RemoveImage( iID );
 
 	// loads in image into the bank
@@ -1731,6 +2305,11 @@ DARKSDK bool LoadImageCoreRetainName ( char* szRealName, char* szFilename, int i
 
 	// fill out rest of structure
 	test->bLocked = false;
+
+#ifdef PETESTIMAGEUSAGE
+	test->AccessCountGPU = 0;
+	test->AccessCountCPU = 0;
+#endif
 
 	// add to the list
     m_List.insert( std::make_pair(iID, test) );
@@ -2662,9 +3241,6 @@ DARKSDK void DeleteImageCore ( int iID )
 // Command Functions
 //
 
-//Forward declclaration of timestampactivity since it is housed elsewhere
-void timestampactivity ( int i, char* desc_s );
-
 DARKSDK void LoadImage ( LPSTR szFilename, int iID, int iTextureFlag, int iDivideTextureSize, int iSilentError )
 {
 	if(LoadImageCore( szFilename, iID, iTextureFlag, false, iDivideTextureSize )==false)
@@ -3393,4 +3969,31 @@ int GetImageFileExist ( LPSTR pFilename )
 	// success, it exists
 	CloseHandle(hfile);
 	return 1;
+}
+
+bool LoadAndSaveUsingDirectXTex ( LPSTR pLoadFile, LPSTR pSaveFile )
+{
+	HRESULT hRes;
+
+	// load image
+	wchar_t wTexLoadFilename[512];
+	MultiByteToWideChar(CP_ACP, 0, pLoadFile, -1, wTexLoadFilename, sizeof(wTexLoadFilename));
+	DirectX::TexMetadata imageData;
+	DirectX::ScratchImage imageTexture;
+	if ( strnicmp ( pLoadFile + strlen(pLoadFile) - 4, ".tga", 4 ) == NULL )
+		hRes = DirectX::LoadFromTGAFile( wTexLoadFilename, &imageData, imageTexture );
+	else
+		hRes = DirectX::LoadFromWICFile( wTexLoadFilename, 0, &imageData, imageTexture );
+
+	// save DDS image
+	wchar_t wTexSaveFilename[512];
+	MultiByteToWideChar(CP_ACP, 0, pSaveFile, -1, wTexSaveFilename, sizeof(wTexSaveFilename));
+	const DirectX::Image* img = imageTexture.GetImages();
+	hRes = SaveToDDSFile( img, imageTexture.GetImageCount(), imageTexture.GetMetadata(), DirectX::DDS_FLAGS_NONE, wTexSaveFilename );
+
+	// result
+	if ( FileExist ( pSaveFile ) == 1 )
+		return 1;
+	else
+		return 0;
 }

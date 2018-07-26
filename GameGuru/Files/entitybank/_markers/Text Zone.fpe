@@ -1,0 +1,28 @@
+;Entity Spec
+
+;Header
+desc          = Text Zone
+
+;AI For Trigger
+aimain        = markers\textinzone.lua
+
+;AIUsed
+ifused        = 
+
+;Sound
+soundset      = Hello World!
+
+;Orientation
+model         = triggerzone.x
+textured      = triggerzone.dds
+scale         = 100
+fixnewy       = 0
+defaultheight = 5
+
+;Marker Extras
+ismarker      = 3
+markerindex   = 2
+isobjective   = 2
+
+;Trigger data
+stylecolor    = 1

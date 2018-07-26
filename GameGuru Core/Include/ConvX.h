@@ -90,7 +90,7 @@ DARKSDK bool	ConvXDelete ( void );
 
 DARKSDK bool    ParseXFileData ( IDirectXFileData* pDataObj, sFrame* pParentFrame, char* szTexturePath, sAnimationSet *pParentAnim, sAnimation *pCurrentAnim, bool bAnim );
 DARKSDK bool    MapFramesToBones ( sMesh** pMesh, sFrame *Frame, int iCount );
-DARKSDK bool    MapFramesToAnimations ( sObject* pObject );
+DARKSDK bool    MapFramesToAnimations ( sObject* pObject, bool bCostlySort );
 DARKSDK void    SetupTextures ( sMesh* pMesh, D3DMATERIAL9* pMaterials, DWORD dwCount, DWORD* pAttribute, DWORD dwIndexCount );
 DARKSDK sFrame* FindFrame ( char* szName, sFrame* pFrame );
 DARKSDK bool    UpdateAnimation ( sObject* pObject, float fTime );

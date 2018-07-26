@@ -65,16 +65,6 @@ void mapeditorexecutable ( void )
 	timestampactivity(0,"memory states");
 	g.gamememactuallyusedstart=SMEMAvailable(1);
 
-	//  if being restarted, provide a help prompt
-	//if ( g.grestoreeditorsettings == 1 ) 
-	//{
-		//timestampactivity(0,"RESUMING FROM PREVIOUS SESSION");
-		//timestampactivity(0,"session status update");
-		//version_splashtext_statusupdate ( );
-		//timestampactivity(0,"popup states");
-		//popup_text(t.tsplashstatusprogress_s.Get());
-	//}
-
 	//  Early editor only inits
 	timestampactivity(0,"pre widget init state");
 	t.tsplashstatusprogress_s="WIDGET INIT";
@@ -189,7 +179,7 @@ void mapeditorexecutable ( void )
 	{
 		// Welcome quick start page
 		g.quickstartmenumode = 0;
-		if ( g.gshowonstartup == 1 ) 
+		if ( g.gshowonstartup == 1 || g.iTriggerSoftwareToQuit != 0 ) 
 			editor_showquickstart ( 0 );
 		else
 			welcome_free();
@@ -305,6 +295,7 @@ void mapeditorexecutable ( void )
 						}
 					}
 				}
+
 				editor_overallfunctionality ( );
 				terrain_detectendofterraintexturesystempainter ( );
 
@@ -892,7 +883,7 @@ void editor_showquickstart ( int iForceMainOpen )
 	}
 
 	// can stay here forever if quit triggered
-	if ( g.vrqTriggerSoftwareToQuit == 1 ) welcome_show(WELCOME_EXITAPP);
+	if ( g.iTriggerSoftwareToQuit != 0 ) welcome_show(WELCOME_EXITAPP);
 
 	// if first time run
 	if ( g.gfirsttimerun == 1 ) welcome_show(WELCOME_WHATYOUGET);
@@ -1872,10 +1863,10 @@ void editor_previewmapormultiplayer ( void )
 	//  restore mouse pos and visbility
 	game_showmouse ( );
 
-	//  prompt informing user we are saving the level changes
-	if (  t.conkit.modified == 1 ) 
+	// prompt informing user we are saving the level changes
+	if ( t.conkit.modified == 1 ) 
 	{
-		popup_text("saving g.level changes");
+		popup_text("Saving level changes");
 	}
 
 	//  show all waypoints and zones
@@ -1933,6 +1924,12 @@ void editor_previewmapormultiplayer ( void )
 					PositionObject (  t.obj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );
 					RotateObject (  t.obj,t.entityelement[t.e].rx,t.entityelement[t.e].ry,t.entityelement[t.e].rz );
 					ShowObject (  t.obj );
+
+					//PE: Still problems with bNewZLayerObject , this will hide clip objects.
+					//PE: Not sure what changed from DX9 version to DX11 with bNewZLayerObject , you remember Lee ?
+					//PE: Anyway we need pObject->bNewZLayerObject = false;
+
+					EnableObjectZDepth(t.obj);
 				}
 				if (  t.entityprofile[t.entid].addhandlelimb>0 ) 
 				{
@@ -1968,7 +1965,6 @@ void editor_previewmapormultiplayer ( void )
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetFileMapDWORD (  1, 970, 1 );
 	SetEventAndWait (  1 );
-	//CloseFileMap (  1 );
 
 	//  wait until all mouse activity over and escape key released
 	while ( MouseClick() != 0 ) {}
@@ -2014,9 +2010,9 @@ void editor_previewmapormultiplayer ( void )
 	SetWindowModeOn (  );
 
 	//  Close popup message
-	if (  t.conkit.modified == 1 ) 
+	if ( t.conkit.modified == 1 ) 
 	{
-		SleepNow (  1000 );
+		SleepNow ( 1000 );
 		popup_text_close();
 		t.conkit.modified=0;
 	}
@@ -2033,6 +2029,10 @@ void editor_previewmapormultiplayer ( void )
 	g.projectmodified = t.storeprojectmodified ; if ( g.projectmodified == 1 ) gridedit_changemodifiedflag ( );
 	g.projectmodifiedstatic = tstoreprojectmodifiedstatic; 
 	t.tignoreinvalidateobstacles=0;
+
+	//PE: Something is clipping objects when returning to editor.
+	editor_loadcfg();
+	editor_refreshcamerarange();
 }
 
 void editor_multiplayermode ( void )
@@ -2176,6 +2176,10 @@ void input_getfilemapcontrols ( void )
 			{
 				// When click non-Builder tab, should leave builder mode
 				ebe_hide();
+
+				//PE: If first entity, shader have not yet had constant set , so update shaders.
+				//PE: Prevent new created ebe from disappering when clicking away from "builder".
+				visuals_justshaderupdate();
 			}
 			SetFileMapDWORD (  1, 546, 0 );
 		}
@@ -2216,23 +2220,6 @@ void input_getfilemapcontrols ( void )
 				//CloseFileMap (  1 );
 			}
 		}
-
-		// VRQ can terminate app if no serial code
-		/* does not work
-		if ( g.vrqTriggerSoftwareToQuit == 1 ) 
-		{
-			// go ahead, confirmed, end interface program
-			OpenFileMap (  1,"FPSEXCHANGE" );
-			SetFileMapDWORD (  1, 912, 1 );
-			SetEventAndWait (  1 );
-			// close down Steam hook
-			steam_free ( );
-			// end editor program
-			timestampactivity(0,"Terminated because triggered a quit");
-			common_justbeforeend();
-			ExitProcess ( 0 );
-		}				
-		*/
 
 		//  EDIT MENU
 		if (  GetFileMapDWORD( 1, 446 ) == 1 ) {  t.inputsys.doundo = 1  ; SetFileMapDWORD (  1, 446, 0 ); }
@@ -3077,26 +3064,26 @@ void input_calculatelocalcursor ( void )
 		t.tz_f=t.tz_f/t.tt_f;
 		t.tstep=10000;
 		t.tdiststep_f=t.gridzoom_f;
-		while (  t.tstep>0 ) 
+		while ( t.tstep>0 ) 
 		{
 			t.fx_f=t.fx_f+(t.tx_f*t.tdiststep_f);
 			t.fy_f=t.fy_f+(t.ty_f*t.tdiststep_f);
 			t.fz_f=t.fz_f+(t.tz_f*t.tdiststep_f);
-			//  hit ground at
-			if (  t.terrain.TerrainID>0 ) 
+			// hit ground at
+			if ( t.terrain.TerrainID>0 ) 
 			{
-				if (  BT_GetGroundHeight(t.terrain.TerrainID,t.fx_f,t.fz_f)>t.fy_f  )  break;
+				if ( BT_GetGroundHeight(t.terrain.TerrainID,t.fx_f,t.fz_f) > t.fy_f )  break;
 			}
 			else
 			{
-				if (  1000.0>t.fy_f  )  break;
+				if ( 1000.0 > t.fy_f )  break;
 			}
 			--t.tstep;
 		}
-		if (  t.tstep == 0 ) 
+		if ( t.tstep == 0 ) 
 		{
-			//  no floor to target, have to get coordinate from pick system
-			PickScreen2D23D (  t.inputsys.xmouse,t.inputsys.ymouse,500 );
+			// no floor to target, have to get coordinate from pick system
+			PickScreen2D23D ( t.inputsys.xmouse, t.inputsys.ymouse, 500 );
 			t.fx_f=GetPickVectorX();
 			t.fy_f=GetPickVectorY();
 			t.fz_f=GetPickVectorZ();
@@ -3228,6 +3215,7 @@ void editor_enableafterzoom ( void )
 void editor_init ( void )
 {
 	//  Load editor images
+	SetMipmapNum(1); //PE: mipmaps not needed.
 	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\quick-help.png";
 	LoadImage (  t.strwork.Get() ,g.editorimagesoffset+1 );
 	LoadImage (  "editors\\gfx\\memorymeter.png",g.editorimagesoffset+2 );
@@ -3280,7 +3268,7 @@ void editor_init ( void )
 	{
 		LoadImage (  "editors\\gfx\\resourcesworking.png",g.editordrawlastimagesoffset+4 );
 	}
-
+	SetMipmapNum(-1);
 	//  Work area entity cursor (placeholder for instance of target expanded by 1.05 to make shell highligher)
 	MakeObjectPlane (  t.editor.objectstartindex+5,150,150  ); 
 	XRotateObject (  t.editor.objectstartindex+5,90 );
@@ -3289,7 +3277,7 @@ void editor_init ( void )
 	SetObjectTransparency (  t.editor.objectstartindex+5,2 );
 	modifyplaneimagestrip(5,8,1);
 	SetObjectCollisionOff (  t.editor.objectstartindex+5 );
-	DisableObjectZDepth (  t.editor.objectstartindex+5 );
+	//DisableObjectZDepth (  t.editor.objectstartindex+5 ); //PE: UpdateLayerInner layer 4 do not render bNewZLayerObject in pass 0 so is clipped.
 	SetObjectLight (  t.editor.objectstartindex+5,0 );
 	HideObject (  t.editor.objectstartindex+5 );
 	OffsetLimb (  t.editor.objectstartindex+5,0,0,0,-1 );
@@ -3657,13 +3645,16 @@ void editor_clearlibrary ( void )
 	// MARKERS TAB
 	t.tadd=2;
 
-	//  Determine if STORY ZONE / FLOOR ZONE included
-	t.tstoryzoneincluded=13;
-	if (  FileExist("entitybank\\_markers\\story zone.bmp") == 1 ) 
-		t.tstoryzoneincluded=15;
+	//  Determine if extra ZONES included
+	t.tstoryzoneincluded=25;
+	//if ( g.vrqcontrolmode != 0 )
+	//{
+	//	// if VRQ, also add extra zones
+	//	t.tstoryzoneincluded=18;
+	//}
 
 	//  Default markers
-	for ( t.tt = 0 ; t.tt<=  t.tstoryzoneincluded; t.tt++ )
+	for ( t.tt = 0 ; t.tt <= t.tstoryzoneincluded; t.tt++ )
 	{
 		if (  t.tt == 0 ) { t.t1_s = t.strarr_s[349]  ; t.t2_s = "files\\entitybank\\_markers\\player start.bmp"; }
 		if (  t.tt == 1 ) { t.t1_s = t.strarr_s[350]  ; t.t2_s = "files\\entitybank\\_markers\\player checkpoint.bmp"; }
@@ -3678,9 +3669,27 @@ void editor_clearlibrary ( void )
 		if (  t.tt == 10 ) { t.t1_s = t.strarr_s[357]  ; t.t2_s = "files\\entitybank\\_markers\\cyan light.bmp"; }
 		if (  t.tt == 11 ) { t.t1_s = t.strarr_s[360]  ; t.t2_s = "files\\entitybank\\_markers\\win zone.bmp"; }
 		if (  t.tt == 12 ) { t.t1_s = t.strarr_s[361]  ; t.t2_s = "files\\entitybank\\_markers\\trigger zone.bmp"; }
-		if (  t.tt == 13 ) { t.t1_s = t.strarr_s[362]  ; t.t2_s = "files\\entitybank\\_markers\\sound zone.bmp"; }
-		if (  t.tt == 14 ) { t.t1_s = t.strarr_s[607]  ; t.t2_s = "files\\entitybank\\_markers\\story zone.bmp"; }
+		if ( g.vrqcontrolmode != 0 )
+		{
+			if (  t.tt == 13 ) { t.t1_s = "Audio Zone"  ; t.t2_s = "files\\entitybank\\_markers\\audio zone.bmp"; }
+			if (  t.tt == 14 ) { t.t1_s = "Video Zone"  ; t.t2_s = "files\\entitybank\\_markers\\video zone.bmp"; }
+		}
+		else
+		{
+			if (  t.tt == 13 ) { t.t1_s = t.strarr_s[362]  ; t.t2_s = "files\\entitybank\\_markers\\sound zone.bmp"; }
+			if (  t.tt == 14 ) { t.t1_s = t.strarr_s[607]  ; t.t2_s = "files\\entitybank\\_markers\\story zone.bmp"; }
+		}
 		if (  t.tt == 15 ) { t.t1_s = "Floor Zone"; t.t2_s = "files\\entitybank\\_markers\\floor zone.bmp"; }
+		if (  t.tt == 16 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
+		if (  t.tt == 17 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
+		if (  t.tt == 18 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
+		if (  t.tt == 19 ) { t.t1_s = "White Spotlight"; t.t2_s = "files\\entitybank\\_markers\\white light spot.bmp"; }
+		if (  t.tt == 20 ) { t.t1_s = "Red Spotlight"; t.t2_s = "files\\entitybank\\_markers\\red light spot.bmp"; }
+		if (  t.tt == 21 ) { t.t1_s = "Green Spotlight"; t.t2_s = "files\\entitybank\\_markers\\green light spot.bmp"; }
+		if (  t.tt == 22 ) { t.t1_s = "Blue Spotlight"; t.t2_s = "files\\entitybank\\_markers\\blue light spot.bmp"; }
+		if (  t.tt == 23 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
+		if (  t.tt == 24 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
+		if (  t.tt == 25 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
 		SetFileMapDWORD (  1, 508, t.tadd );
 		SetFileMapString (  1, 1000, t.t2_s.Get() );
 		SetFileMapString (  1, 1256, t.t1_s.Get() );
@@ -3693,7 +3702,7 @@ void editor_clearlibrary ( void )
 	}
 
 	//  actual entity names of the markers
-	Dim ( t.markerentitybank_s, 17 );
+	Dim ( t.markerentitybank_s, 30 );
 	t.markerentitybank_s[1]="_markers\\player start.fpe";
 	t.markerentitybank_s[2]="_markers\\player checkpoint.fpe";
 	t.markerentitybank_s[3]="_markers\\cover zone.fpe";
@@ -3707,12 +3716,27 @@ void editor_clearlibrary ( void )
 	t.markerentitybank_s[11]="_markers\\cyan light.fpe";
 	t.markerentitybank_s[12]="_markers\\win zone.fpe";
 	t.markerentitybank_s[13]="_markers\\trigger zone.fpe";
-	t.markerentitybank_s[14]="_markers\\sound zone.fpe";
-	if ( t.tstoryzoneincluded >= 14  )  
+	t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
+	if ( g.vrqcontrolmode != 0 )
 	{
-		t.markerentitybank_s[15] = "_markers\\story zone.fpe";
-		t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
+		t.markerentitybank_s[14] = "_markers\\audio zone.fpe";
+		t.markerentitybank_s[15] = "_markers\\video zone.fpe";
 	}
+	else
+	{
+		t.markerentitybank_s[14] = "_markers\\sound zone.fpe";
+		t.markerentitybank_s[15] = "_markers\\story zone.fpe";
+	}
+	t.markerentitybank_s[17] = "_markers\\image zone.fpe";
+	t.markerentitybank_s[18] = "_markers\\text zone.fpe";
+	t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
+	t.markerentitybank_s[20] = "_markers\\white light spot.fpe";
+	t.markerentitybank_s[21] = "_markers\\red light spot.fpe";
+	t.markerentitybank_s[22] = "_markers\\green light spot.fpe";
+	t.markerentitybank_s[23] = "_markers\\blue light spot.fpe";
+	t.markerentitybank_s[24] = "_markers\\yellow light spot.fpe";
+	t.markerentitybank_s[25] = "_markers\\purple light spot.fpe";
+	t.markerentitybank_s[26] = "_markers\\cyan light spot.fpe";
 
 	// only if EBE enabled
 	if ( g.globals.hideebe == 0 )
@@ -4371,11 +4395,11 @@ if (  t.updatezoom == 1 )
 			{
 				if (  t.gridnearcameraclip == -1 ) 
 				{
-					SetVector4 (  g.terrainvectorindex,500000,0,0,0 );
+					SetVector4 ( g.terrainvectorindex, 500000, 1, 0, 0 );
 				}
 				else
 				{
-					SetVector4 (  g.terrainvectorindex,t.gridtrueslicey_f,0,0,0 );
+					SetVector4 ( g.terrainvectorindex, t.gridtrueslicey_f, 1, 0, 0 );
 				}
 				SetEffectConstantV (  t.effectid,"EntityEffectControl",g.terrainvectorindex );
 			}
@@ -4493,7 +4517,8 @@ void editor_mainfunctionality ( void )
 if (  t.grideditselect == 5 ) 
 {
 	//  do not rotate light or trigger entity
-	if (  t.entityprofile[t.gridentity].ismarker != 2 && t.entityprofile[t.gridentity].ismarker != 3 ) 
+	//PE: Allow light rotation rem: t.entityprofile[t.gridentity].ismarker != 2 &&  t.entityprofile[t.gridentity].ismarker != 3
+	if (   t.entityprofile[t.gridentity].ismarker != 3 ) 
 	{
 		if (  t.inputsys.keyshift == 1 ) 
 		{
@@ -4527,6 +4552,11 @@ if (  t.grideditselect == 5 )
 				if (  t.inputsys.doentityrotate == 4  )  t.entityelement[t.widget.pickedEntityIndex].ry = t.entityelement[t.widget.pickedEntityIndex].ry+t.tspeedofrot_f;
 				if (  t.inputsys.doentityrotate == 5  )  t.entityelement[t.widget.pickedEntityIndex].rz = t.entityelement[t.widget.pickedEntityIndex].rz-t.tspeedofrot_f;
 				if (  t.inputsys.doentityrotate == 6  )  t.entityelement[t.widget.pickedEntityIndex].rz = t.entityelement[t.widget.pickedEntityIndex].rz+t.tspeedofrot_f;
+
+				//PE: Update light data for spot.
+				if(t.entityelement[t.widget.pickedEntityIndex].eleprof.usespotlighting)
+					lighting_refresh();
+
 				if (  t.entityelement[t.widget.pickedEntityIndex].obj>0 ) 
 				{
 					int iTargetCenterObject = t.entityelement[t.widget.pickedEntityIndex].obj;
@@ -4595,7 +4625,7 @@ if (  t.grideditselect == 5 )
 
 //  Load and Save
 if ( t.inputsys.doload == 1 ) gridedit_load_map ( );
-if (  t.inputsys.dosave == 1 ) 
+if ( t.inputsys.dosave == 1 ) 
 {
 	if (  g.galwaysconfirmsave == 1 ) 
 	{
@@ -4846,7 +4876,8 @@ void editor_viewfunctionality ( void )
 			if (  t.inputsys.dozoomviewmovez == 2  )  t.zoomviewtargetz_f += t.tposadjspeed_f;
 
 			//  rotation adjustment
-			if (  t.entityprofile[t.gridentity].ismarker != 2 && t.entityprofile[t.gridentity].ismarker != 3 ) 
+			//PE: rotate lights rem: t.entityprofile[t.gridentity].ismarker != 2 &&
+			if (  t.entityprofile[t.gridentity].ismarker != 3 ) 
 			{
 				if (  t.inputsys.keyshift == 1 ) 
 				{
@@ -6417,6 +6448,7 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 			{
 				HideObject (  t.editor.objectstartindex+5 );
 			}
+
 			editor_refreshentitycursor ( );
 
 			//  prompt when over locked entity
@@ -7374,6 +7406,9 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 
 									// update latest entity position
 									PositionObject ( tobj, t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z );
+									//PE: Update light data for spot.
+									if (t.entityelement[e].eleprof.usespotlighting)
+										lighting_refresh();
 
 									// move zones and lights if in group
 									//widget_movezonesandlights ( e );
@@ -7555,7 +7590,8 @@ void gridedit_save_map ( void )
 	}
 
 	// Use large prompt
-	t.statusbar_s=t.strarr_s[365] ; popup_text(t.statusbar_s.Get());
+	t.statusbar_s=t.strarr_s[365]; 
+	popup_text(t.statusbar_s.Get());
 
 	// Save only to TESTMAP area (for map testing)
 	gridedit_save_test_map ( );
@@ -7789,7 +7825,7 @@ void gridedit_new_map ( void )
 	timestampactivity(0,"NEWMAP: Finish t.terrain generation");
 
 	//  Generate heightmap texture for cheap shadows (if required)
-	t.terrain.terraintriggercheapshadowrefresh=2;
+	//t.terrain.terraintriggercheapshadowrefresh=2;
 
 	//  Set standard start height for camera
 	t.gridzoom_f=3.0 ; t.clipheight_f=655 ; t.updatezoom=1;
@@ -7838,7 +7874,8 @@ void gridedit_load_map ( void )
 	terrain_paintselector_hide(); Sync();
 
 	//  Use large prompt
-	t.statusbar_s=t.strarr_s[367] ; popup_text(t.statusbar_s.Get());
+	t.statusbar_s=t.strarr_s[367]; 
+	popup_text(t.statusbar_s.Get());
 
 	//  Reset visual settings for new map
 	if (  t.skipfpmloading == 0 ) 
@@ -7891,9 +7928,6 @@ void gridedit_load_map ( void )
 		entity_loadbank ( );
 		entity_loadelementsdata ( );
 		t.editor.replacefilepresent_s="";
-
-		//  attempt to load conkit objects if they exists
-		///conkit_saveload_load ( );
 
 		//  Load waypoints
 		popup_text_change(t.strarr_s[612].Get());
@@ -8013,7 +8047,7 @@ void gridedit_load_map ( void )
 	visuals_justshaderupdate ( );
 
 	//  Generate heightmap texture for cheap shadows (if required)
-	t.terrain.terraintriggercheapshadowrefresh=2;
+	//t.terrain.terraintriggercheapshadowrefresh=2;
 
 	//  Ensure editor zoom refreshes
 	t.updatezoom=1;
@@ -8415,6 +8449,7 @@ void gridedit_moveentityrubberband ( void )
 
 void gridedit_updateentityobj ( void )
 {
+
 	//  moved to m-entity
 	entity_updateentityobj ( );
 }
@@ -8528,7 +8563,8 @@ void gridedit_recreateentitycursor ( void )
 			MakeObjectCube (  t.obj,25 );
 		}
 		//  ensure new object ONLY interacts with main camera and shadow camera
-		if (  t.entityprofile[t.gridentity].ismarker != 0 ) 
+		//PE: 130217 added t.entityprofile[t.gridentity].zdepth == 0 to prevent decals from calling technique11 DepthMap
+		if (  t.entityprofile[t.gridentity].ismarker != 0 || t.entityprofile[t.gridentity].zdepth == 0 )
 		{
 			SetObjectMask (  t.obj, 1 );
 		}
@@ -8677,14 +8713,12 @@ void modifyplaneimagestrip ( int objno, int texmax, int texindex )
 
 void interface_openpropertywindow ( void )
 {
-
 	//  Open proprty window
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetFileMapDWORD (  1, 978, 1 );
 	SetFileMapDWORD (  1, 458, 0 );
 	SetEventAndWait (  1 );
 	t.editorinterfaceactive=t.e;
-	//CloseFileMap (  1 );
 
 	//  open the entity file map
 	OpenFileMap (  2, "FPSENTITY" );
@@ -8693,8 +8727,22 @@ void interface_openpropertywindow ( void )
 	//  wait until the entity window is read
 	if (  GetFileMapDWORD( 2, ENTITY_SETUP )  ==  1 ) 
 	{
+		//  Setup usage flags
+		t.tsimplecharview=0;
+		t.tflaglives=0 ; t.tflaglight=0 ; t.tflagobjective=0 ; t.tflagtdecal=0 ; t.tflagdecalparticle=0 ; t.tflagspawn=0 ; t.tflagifused=0;
+		t.tflagvis=0 ; t.tflagchar=0 ; t.tflagweap=0 ; t.tflagammo=0 ; t.tflagai=1 ; t.tflagsound=0 ; t.tflagsoundset=0 ; t.tflagnosecond=0;
+		t.tflagmobile=0 ; t.tflaghurtfall=0 ; t.tflaghasweapon=0 ; t.tflagammoclip=0 ; t.tflagstats=0 ; t.tflagquantity=0;
+		t.tflagvideo=0;
+		t.tflagplayersettings=0;
+		t.tflagusekey=0;
+		t.tflagteamfield=0;
+		int tflagtext=0;
+		int tflagimage=0;
 
-		//  FPGC - 070510 - simplified character properties
+		//  If its static and arena mode, only do optional visuals, ignore rest
+		t.tstatic=0;
+
+		// 070510 - simplified character properties
 		if (  g.gsimplifiedcharacterediting == 1 && t.entityprofile[t.gridentity].ischaracter == 1 ) 
 		{
 			//  flag the simple character properties layout (FPGC)
@@ -8702,17 +8750,6 @@ void interface_openpropertywindow ( void )
 		}
 		else
 		{
-			//  Setup usage flags
-			t.tsimplecharview=0;
-			t.tflaglives=0 ; t.tflaglight=0 ; t.tflagobjective=0 ; t.tflagtdecal=0 ; t.tflagdecalparticle=0 ; t.tflagspawn=0 ; t.tflagifused=0;
-			t.tflagvis=0 ; t.tflagchar=0 ; t.tflagweap=0 ; t.tflagammo=0 ; t.tflagai=1 ; t.tflagsound=0 ; t.tflagsoundset=0 ; t.tflagnosecond=0;
-			t.tflagmobile=0 ; t.tflaghurtfall=0 ; t.tflaghasweapon=0 ; t.tflagammoclip=0 ; t.tflagstats=0 ; t.tflagquantity=0;
-			t.tflagvideo=0;
-			t.tflagplayersettings=0;
-			t.tflagusekey=0;
-			t.tflagteamfield=0;
-			//  If its static and arena mode, only do optional visuals, ignore rest
-			t.tstatic=0;
 			//  FPGC - 260310 - new entitylight indicated with new flag
 			if (  t.entityprofile[t.gridentity].islightmarker == 1 ) 
 			{
@@ -8771,15 +8808,23 @@ void interface_openpropertywindow ( void )
 					if (  t.entityprofile[t.gridentity].ismarker == 4 ) { t.tflagtdecal = 1  ; t.tflagdecalparticle = 1; }
 					if (  t.entityprofile[t.gridentity].ismarker == 3 ) 
 					{
-						if (  t.entityprofile[t.gridentity].markerindex == 1 ) 
+						if (  t.entityprofile[t.gridentity].markerindex <= 1 ) 
 						{
-							//  video
-							t.tflagvideo=1;
+							if (  t.entityprofile[t.gridentity].markerindex == 1 ) 
+							{
+								// video
+								t.tflagvideo=1;
+							}
+							else
+							{
+								// sound
+								t.tflagsound=1;
+							}
 						}
 						else
 						{
-							//  sound
-							t.tflagsound=1;
+							if ( t.entityprofile[t.gridentity].markerindex == 2 ) tflagtext=1;
+							if ( t.entityprofile[t.gridentity].markerindex == 3 ) tflagimage=1;
 						}
 					}
 					if (  t.entityprofile[t.gridentity].ismarker == 7 ) 
@@ -8855,6 +8900,7 @@ void interface_openpropertywindow ( void )
 					}
 					if (  t.tokay == 1 ) 
 					{
+						//PE: 414=Static Mode
 						setpropertylist2(t.group,t.controlindex,Str(t.gridentitystaticmode),t.strarr_s[414].Get(),t.strarr_s[205].Get(),0) ; ++t.controlindex;
 					}
 				}
@@ -8928,7 +8974,7 @@ void interface_openpropertywindow ( void )
 					setpropertystring2(t.group,Str(t.grideleprof.bounceqty),t.strarr_s[427].Get(),t.strarr_s[217].Get()) ; ++t.controlindex;
 					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodeonhit),t.strarr_s[428].Get(),t.strarr_s[218].Get(),0) ; ++t.controlindex;
 				}
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.usespotlighting),"Spot Lighting","Set whether weapon emits dynamic spot lighting",0) ; ++t.controlindex;
+				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.usespotlighting),"Spot Lighting","Set whether emits dynamic spot lighting",0) ; ++t.controlindex;
 			}
 
 			//  Is Character
@@ -9110,9 +9156,12 @@ void interface_openpropertywindow ( void )
 			if (  t.tflaglight == 1 ) 
 			{
 				t.propfield[t.group]=t.controlindex;
-				++t.group ; startgroup(t.strarr_s[461].Get()) ; t.controlindex=0;
-				setpropertystring2(t.group,Str(t.grideleprof.light.range),t.strarr_s[462].Get(),t.strarr_s[250].Get()) ; ++t.controlindex;
-				setpropertycolor2(t.group,t.grideleprof.light.color,t.strarr_s[463].Get(),t.strarr_s[251].Get()) ; ++t.controlindex;
+				++t.group ; startgroup(t.strarr_s[461].Get()) ; t.controlindex=0; //PE: 461=Light
+				setpropertystring2(t.group,Str(t.grideleprof.light.range),t.strarr_s[462].Get(),t.strarr_s[250].Get()) ; ++t.controlindex; //PE: 462=Light Range
+				setpropertycolor2(t.group,t.grideleprof.light.color,t.strarr_s[463].Get(),t.strarr_s[251].Get()) ; ++t.controlindex; //PE: 463=Light Color
+				//PE: Add Spot light setting.
+				setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0); ++t.controlindex;
+
 			}
 
 			//  Decal data
@@ -9148,23 +9197,40 @@ void interface_openpropertywindow ( void )
 					//  V118 - 060810 - knxrb - Decal animation setting (Added animation choice setting).
 					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.particle.animated),"Animated Text (  ( ure","Sets whether the t.particle t.decal Texture is animated or static.", 0)  ; ++t.controlindex;
 				}
-
 			}
 
-			//  Sound or Video data
-			if (  t.tflagsound == 1 || t.tflagsoundset == 1 ) 
+			// Sound
+			if ( t.tflagsound == 1 || t.tflagsoundset == 1 || tflagtext == 1 || tflagimage == 1 ) 
 			{
 				t.propfield[t.group]=t.controlindex;
-				++t.group ; startgroup(t.strarr_s[466].Get()) ; t.controlindex=0;
-				//  FPGC - 280809 - filtered fpgcgenre=1 is shooter genre
-				if (  g.fpgcgenre == 1 ) 
+				++t.group ;
+				if ( tflagtext == 1 || tflagimage == 1 )
 				{
-					if (  t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[467].Get(),t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
-					if (  t.tflagsoundset == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[255].Get(),"audiobank\\voices\\")  ; ++t.controlindex; }
-					if (  t.tflagnosecond == 0 ) 
+					 if ( tflagtext == 1 ) startgroup("Text");
+					 if ( tflagimage == 1 ) startgroup("Image");
+				}
+				else
+				{
+					//startgroup(t.strarr_s[466].Get());
+					startgroup("Media");
+				}
+				t.controlindex=0;
+				if ( g.fpgcgenre == 1 ) 
+				{
+					if ( g.vrqcontrolmode != 0 )
 					{
-						//  V118 - 040210 - allow secondary $1 even for soundset users (characters) - so can use the $1 for TALK
-						if (  t.tflagsound == 1 || t.tflagsoundset == 1 )
+						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Audio",t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
+					}
+					else
+					{
+						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[467].Get(),t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
+					}
+					if ( t.tflagsoundset == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[255].Get(),"audiobank\\voices\\")  ; ++t.controlindex; }
+					if ( tflagtext == 1 ) { setpropertystring2(t.group,t.grideleprof.soundset_s.Get(),"Text String","Enter text to appear in-game") ; ++t.controlindex; }
+					if ( tflagimage == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Image File","Select image to appear in-game","scriptbank\\images\\imagesinzone\\") ; ++t.controlindex; }
+					if ( t.tflagnosecond == 0 ) 
+					{
+						if ( t.tflagsound == 1 || t.tflagsoundset == 1 )
 						{ 
 							setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),t.strarr_s[468].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
 							setpropertyfile2(t.group,t.grideleprof.soundset2_s.Get(),"Sound2",t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
@@ -9175,8 +9241,7 @@ void interface_openpropertywindow ( void )
 				}
 				else
 				{
-					//  Allow full access to both SCRIPT $0 and $1 when not specifically a shooter genre
-					if (  t.tflagsoundset == 1 ) 
+					if ( t.tflagsoundset == 1 ) 
 					{
 						setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[255].Get(),"audiobank\\voices\\") ; ++t.controlindex;
 					}
@@ -9187,12 +9252,14 @@ void interface_openpropertywindow ( void )
 					setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),t.strarr_s[468].Get(),t.strarr_s[254].Get(),"audiobank\\") ; ++t.controlindex;
 				}
 			}
-			if (  t.tflagvideo == 1 ) 
+
+			// Video
+			if ( t.tflagvideo == 1 ) 
 			{
 				t.propfield[t.group]=t.controlindex;
 				++t.group ; startgroup(t.strarr_s[597].Get()) ; t.controlindex=0;
-				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[598].Get(),t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
-				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),t.strarr_s[600].Get(),t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
+				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Audio",t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
+				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Video",t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
 			}
 
 			//  Third person settings
@@ -9446,6 +9513,10 @@ void interface_copydatatoentity ( void )
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[600].Get()) ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , "voiceover"  ) == 0 ) t.grideleprof.soundset1_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[462].Get()) ) == 0 )  t.grideleprof.light.range = ValF(t.tdata_s.Get());
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Text String") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Image File") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Audio") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Video") ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
 
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[580].Get()) ) == 0 )  t.grideleprof.physics = ValF(t.tdata_s.Get());
 			if (  t.grideleprof.physics != 1  )  t.grideleprof.physics = 2;
@@ -10406,51 +10477,7 @@ char* get_control_description ( int  group, int  control )
 	return t.szreturn;
 }
 
-void popup_text ( char* statusbar_s )
-{
-	t.strwork = "" ; t.strwork = t.strwork + "1:popup_text "+statusbar_s;
-	timestampactivity(0, t.strwork.Get() );
-	OpenFileMap (  1,"FPSEXCHANGE" );
-	SetFileMapDWORD (  1, 750, 1 );
-	SetEventAndWait (  1 );
-	while (  1 ) 
-	{
-		OpenFileMap (  2, "FPSPOPUP" );
-		SetEventAndWait (  2 );
-		if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
-		{
-			SetFileMapString (  2, 1000, statusbar_s );
-			SetFileMapDWORD (  2, 4, 1 );
-			SetEventAndWait (  2 );
-			while (  GetFileMapDWORD( 2, 4 )  ==  1 ) 
-			{
-				SetEventAndWait (  2 );
-			}
-			return;
-		}
-		Sync (  );
-	}
-}
-
-void popup_text_change ( char* statusbar_s )
-{
-	OpenFileMap (  2, "FPSPOPUP" );
-	SetEventAndWait (  2 );
-	if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
-	{
-		SetFileMapString (  2, 1000, statusbar_s );
-		SetFileMapDWORD (  2, 4, 1 );
-		SetEventAndWait (  2 );
-		while (  GetFileMapDWORD( 2, 4 )  ==  1 ) 
-		{
-			SetEventAndWait (  2 );
-		}
-	}
-}
-
-
 //Memory check behaviour for MAP EDITOR / TEST GAME
-
 
 void checkmemoryforgracefulexit ( void )
 {

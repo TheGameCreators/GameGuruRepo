@@ -77,6 +77,13 @@ float4 g_lights_diffuse0;
 float4 g_lights_diffuse1;
 float4 g_lights_diffuse2;
 
+float dl_lights;
+float dl_lightsVS;
+float4 dl_pos[40];
+float4 dl_diffuse[40];
+float4 dl_angle[40];
+
+
 Texture2D DiffuseMap : register( t0 );
 Texture2D OcclusionMap : register( t1 );
 Texture2D NormalMap : register( t2 );
@@ -92,7 +99,12 @@ Texture2D MaskMap : register( t11 );
 
 SamplerState SampleWrap
 {
+#ifdef TRILINEAR
     Filter = MIN_MAG_MIP_LINEAR;
+#else
+	Filter = ANISOTROPIC;
+    MaxAnisotropy = MAXANISOTROPY;
+#endif
     AddressU = Wrap;
     AddressV = Wrap;
 };
@@ -128,6 +140,7 @@ struct vertexOutput
     float  clip         : TEXCOORD7;
     float2 vDepth       : TEXCOORD8;
     float3 WorldEyeVec  : TEXCOORD9;
+    float3 VertexLight  : TEXCOORD10;
 };
 
 struct vertexOutput_low
@@ -140,7 +153,59 @@ struct vertexOutput_low
     float2 vegshadowuv  : TEXCOORD4;
     float  clip         : TEXCOORD6;
     float  vDepth       : TEXCOORD7;
+    float3 VertexLight  : TEXCOORD8;
 };
+
+
+float3 CalcExtSpot( float3 worldNormal, float3 worldPos , float3 SpotPos , float3 SpotColor , float range, float3 angle,float3 diffusemap)
+{
+    float conewidth = 24;
+	float toLight = length(SpotPos.xyz - worldPos) * 2.0;
+	float4 local_lights_atten = float4(1.0, 1.0/range, 1.0/(range*range), 0.0);
+	float intensity = 1.0/dot( local_lights_atten, float4(1,toLight,toLight*toLight,0) );
+    float3 V  = SpotPos.xyz - worldPos;  
+    float3 Vn  = normalize(V); 
+    float3 lightvector = Vn;
+    //float3 lightdir = (2.0/(360.0/angle)) - 1.0;
+    //float3 lightdir = normalize(  SpotPos.xyz -(SpotPos.xyz+angle+angle) );
+    float3 lightdir = normalize(float3(angle.x,angle.y*2.0,angle.z));
+    intensity = clamp(intensity * (dot(-lightdir,worldNormal)),0.0,1.0);
+    return (SpotColor.xyz * pow(max(dot(-lightvector, lightdir ),0),conewidth) * 2.5 ) * intensity * diffusemap;
+}
+
+
+float3 CalcExtLightingVS(float3 Nb, float3 worldPos, float3 Vn )
+{
+	float3 output = float3(0,0,0);
+    float3 toLight;
+    float lightDist;
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float4 local_lights_atten;
+	
+	//dl_pos[i].w = range.
+
+	for( int i=dl_lights ; i < dl_lightsVS+dl_lights ; i++ )
+	{
+		if( dl_diffuse[i].w == 3.0 ) {
+			output += CalcExtSpot(Nb,worldPos,dl_pos[i].xyz,dl_diffuse[i].xyz,dl_pos[i].w,dl_angle[i].xyz, float3(0.75,0.75,0.75));
+		} else {
+
+			toLight = dl_pos[i].xyz - worldPos;
+			lightDist = length( toLight ) * 2.0;
+			local_lights_atten = float4(1.0, 1.0/dl_pos[i].w, 1.0/(dl_pos[i].w*dl_pos[i].w), 0.0);
+			fAtten = 1.0/dot( local_lights_atten, float4(1,lightDist,lightDist*lightDist,0) );
+			lightDir = normalize( toLight );
+			halfvec = normalize(Vn + lightDir);
+			lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+			lit0.z = clamp( ( lit0.z * GlobalSpecular) ,0.0,1.0);
+			output+= (lit0.y *dl_diffuse[i].xyz * fAtten ); //PE: no spec + (lit0.z * dl_diffuse[i].xyz * fAtten );   
+		}
+	}
+	return output;
+}
 
 /*******Main Vertex Shader***************************/
 
@@ -175,24 +240,38 @@ vertexOutput mainVS_highest(appdata IN)
    
    float4 worldSpacePos = mul(float4(netPosition,1), World);
    OUT.WPos =   worldSpacePos; 
-      
+
+
+   //PE: better tangent / binormal calculation.
+   if ( abs(netNormal.y) > 0.999 ) netTangent = float3( netNormal.y,0.0,0.0 );
+   else netTangent = normalize( float3(-netNormal.z, 0.0, netNormal.x) );
+   netBinormal = normalize( float3(netNormal.y*netTangent.z, netNormal.z*netTangent.x-netNormal.x*netTangent.z, -netNormal.y*netTangent.x) );
+
    OUT.WorldNormal = normalize(mul(float4(netNormal,1), WorldIT).xyz);
-   //OUT.WorldTangent = normalize(mul(float4(netTangent,1), WorldIT).xyz); //?Wrong
-   float3 c1 = cross(OUT.WorldNormal, float3(0.0, 0.0, 1.0)); 
-   float3 c2 = cross(OUT.WorldNormal, float3(0.0, 1.0, 0.0)); 
-   if (length(c1) > length(c2)) {
-     OUT.WorldTangent = c1;   
-   } else {
-     OUT.WorldTangent = c2;   
-   }
-   OUT.WorldTangent = normalize(OUT.WorldTangent); 
-   OUT.WorldBinorm = cross(OUT.WorldNormal,OUT.WorldTangent); 
-   //OUT.WorldBinorm = normalize(mul(float4(netBinormal,1), WorldIT).xyz);
+   OUT.WorldTangent = normalize(mul(float4(netTangent,1), WorldIT).xyz);
+   OUT.WorldBinorm = normalize(mul(float4(netBinormal,1), WorldIT).xyz);
+
+//   OUT.WorldNormal = normalize(mul(float4(netNormal,1), WorldIT).xyz);
+//   //OUT.WorldTangent = normalize(mul(float4(netTangent,1), WorldIT).xyz); //?Wrong
+//   float3 c1 = cross(OUT.WorldNormal, float3(0.0, 0.0, 1.0)); 
+//   float3 c2 = cross(OUT.WorldNormal, float3(0.0, 1.0, 0.0)); 
+//   if (length(c1) > length(c2)) {
+//     OUT.WorldTangent = c1;   
+//   } else {
+//     OUT.WorldTangent = c2;   
+//   }
+//   OUT.WorldTangent = normalize(OUT.WorldTangent); 
+//    OUT.WorldBinorm = cross(OUT.WorldNormal,OUT.WorldTangent); 
+//   //OUT.WorldBinorm = normalize(mul(float4(netBinormal,1), WorldIT).xyz);
       
    OUT.LightVec = normalize(LightSource.xyz);
    OUT.Position = mul(float4(netPosition,1), WorldViewProjection);
    OUT.TexCoord  = IN.UV; 
    OUT.WorldEyeVec = (ViewInverse[3].xyz - worldSpacePos.xyz);   
+
+
+	OUT.VertexLight.xyz = CalcExtLightingVS(OUT.WorldNormal.xyz, worldSpacePos.xyz, OUT.WorldEyeVec );
+
                  
    // all shaders should send the clip value to the pixel shader (for refr/refl)                                                                     
    #ifdef NOCLIPPINGPLANE
@@ -246,6 +325,9 @@ vertexOutput_low mainVS_lowest(appdata IN)
    #endif
    OUT.vDepth = mul( float4(netPosition,1), WorldViewProjection ).z; 
 
+	float3 WorldEyeVec = (ViewInverse[3].xyz - worldSpacePos.xyz);
+	OUT.VertexLight.xyz = CalcExtLightingVS(OUT.WorldNormal.xyz, worldSpacePos.xyz, WorldEyeVec );
+
    // push position of geometry by lightdirection (creates depth bias and slope bias) - not needed as bias code in effect
    //OUT.Position = mul(float4(netPosition,1), World);
    //OUT.Position -= (float4(OUT.LightVec.xyz,0)*0.5);
@@ -272,6 +354,39 @@ float4 CalcSpotFlash( float3 worldNormal, float3 worldPos )
     output += (float4(SpotFlashColor.xyz,1)) *fAtten * (fSpotFlashPosW) * max(0,dot(worldNormal,lightDir));
         
     return output;
+}
+
+float3 CalcExtLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap )
+{
+	float3 output = GlowIntensity.xyz;
+    float3 toLight;
+    float lightDist;
+    float fAtten;
+    float3 lightDir;
+    float3 halfvec;
+    float4 lit0;
+	float4 local_lights_atten;
+	
+	//dl_pos[i].w = range.
+
+	for( int i=0 ; i < dl_lights ; i++ ) {
+
+		if( dl_diffuse[i].w == 3.0 ) {
+			output += CalcExtSpot(Nb,worldPos,dl_pos[i].xyz,dl_diffuse[i].xyz,dl_pos[i].w,dl_angle[i].xyz,diffusemap);
+		} else {
+		
+			toLight = dl_pos[i].xyz - worldPos;
+			lightDist = length( toLight ) * 2.0;
+			local_lights_atten = float4(1.0, 1.0/dl_pos[i].w, 1.0/(dl_pos[i].w*dl_pos[i].w), 0.0);
+			fAtten = 1.0/dot( local_lights_atten, float4(1,lightDist,lightDist*lightDist,0) );
+			lightDir = normalize( toLight );
+			halfvec = normalize(Vn + lightDir);
+			lit0 = lit(dot(lightDir,Nb),dot(halfvec,Nb),24); 
+			lit0.z = clamp( ( lit0.z * GlobalSpecular) ,0.0,1.0);
+			output+= (lit0.y *dl_diffuse[i].xyz * fAtten * 1.25 * diffusemap) + (lit0.z * dl_diffuse[i].xyz * fAtten * 0.5 );
+		}
+	}
+	return output;
 }
 
 float4 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float4 diffusemap, float4 specmap)
@@ -395,9 +510,12 @@ float4 mainPS_highest(vertexOutput IN) : COLOR
     lighting.y = lerp(0.65,lighting.y,SurfaceSunFactor);
    
     // dynamic lighting
-    float4 spotflashlighting = CalcSpotFlash (Nb,IN.WPos.xyz);   
-    float4 dynamicContrib = CalcLighting (Nb,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
-   
+//    float4 spotflashlighting = CalcSpotFlash (Nb,IN.WPos.xyz);   
+	float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+
+//    float4 dynamicContrib = CalcLighting (Nb,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+    float4 dynamicContrib = float4( CalcExtLighting (Nb.xyz,IN.WPos.xyz,Vn.xyz,diffusemap.xyz,float3(0,0,0)) + spotflashlighting.xyz + (IN.VertexLight.xyz * 1.25 * diffusemap.xyz) , 1.0 );  
+
     // flash light system (flash light control carried in SpotFlashColor.w )
     float conewidth = 24;
     float4 viewspacePos = mul(IN.WPos, View);
@@ -623,7 +741,7 @@ float4 mainPS_medium(vertexOutput_low IN) : COLOR
    #ifdef WITHCHARACTERCREATORMASK
     diffusemap = CharacterCreatorDiffuse(diffusemap,IN.TexCoord.xy);
    #endif
-	
+
    // lighting
    float3 Ln = normalize(IN.LightVec);
    float3 V  = (eyePos.xyz - IN.WPos.xyz);  
@@ -633,8 +751,11 @@ float4 mainPS_medium(vertexOutput_low IN) : COLOR
    lighting.y = lerp(0.65,lighting.y,SurfaceSunFactor);
 
    // dynamic lighting
-   float4 spotflashlighting = CalcSpotFlash (IN.WorldNormal,IN.WPos.xyz);   
-   float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+   //float4 spotflashlighting = CalcSpotFlash (IN.WorldNormal,IN.WPos.xyz);   
+   float4 spotflashlighting = float4(0.0,0.0,0.0,0.0);
+
+//   float4 dynamicContrib = CalcLighting (IN.WorldNormal,IN.WPos.xyz,Vn,diffusemap,float4(0,0,0,0)) + spotflashlighting;  
+   float4 dynamicContrib = float4( CalcExtLighting (IN.WorldNormal.xyz,IN.WPos.xyz,Vn,diffusemap.xyz,float3(0,0,0)) + spotflashlighting.xyz + (IN.VertexLight.xyz * 1.25 * diffusemap.xyz) , 1.0 ); 
    
    // flash light system (flash light control carried in SpotFlashColor.w )
    float4 viewspacePos = mul(IN.WPos, View);
@@ -994,8 +1115,11 @@ technique11 Medium
 {
     pass MainPass
     {
-        SetVertexShader(CompileShader(vs_5_0, mainVS_lowest()));
-        SetPixelShader(CompileShader(ps_5_0, mainPS_medium()));
+		//PE: We dont really have any difference now, speed is controlled in code by lowering cascades.
+        SetVertexShader(CompileShader(vs_5_0, mainVS_highest()));
+        SetPixelShader(CompileShader(ps_5_0, mainPS_highest()));
+        //SetVertexShader(CompileShader(vs_5_0, mainVS_lowest()));
+        //SetPixelShader(CompileShader(ps_5_0, mainPS_medium()));
         SetGeometryShader(NULL);
 		#ifdef ALPHATOCOVERAGE
 		 SetBlendState(CoverageAdd, float4( 0.0f, 0.0f, 0.0f, 0.0f ), 0xFFFFFFFF);

@@ -123,6 +123,7 @@ void GuruMain ( void )
 	Dim ( t.entitybank_s, 1000 );
 	Dim2 ( t.entityphysicsbox, 1000, MAX_ENTITY_PHYSICS_BOXES );
 	Dim2 ( t.entitybodypart, 1000, 100 );
+	Dim2 ( t.entityappendanim, 1000, 100 );
 	Dim2 ( t.entityanim, 1000, g.animmax );
 	Dim2 ( t.entityfootfall, 1000, g.footfallmax );
 	Dim ( t.entityprofileheader, 1000 );
@@ -217,7 +218,7 @@ void GuruMain ( void )
 				SetEffectConstantV ( effectid,"SurfColor", g.terrainvectorindex );
 				SetVector4 ( g.terrainvectorindex,100,100,100,0.0 );
 				SetEffectConstantV ( effectid,"LightSource", g.terrainvectorindex );
-				SetVector4 ( g.terrainvectorindex, 500000, 0, 0, 0 ); // 500000 Y high before alpha fading on entity
+				SetVector4 ( g.terrainvectorindex, 500000, 1, 0, 0 ); // 500000 Y high before alpha fading on entity
 				SetEffectConstantV ( effectid,"EntityEffectControl", g.terrainvectorindex );
 				SetEffectConstantF ( effectid,"GlobalSpecular", 0.25f );
 				SetEffectConstantF ( effectid,"GlobalSurfaceIntensity", 0.5f );
@@ -266,7 +267,7 @@ void GuruMain ( void )
 					SetEffectConstantV ( effectid,"SurfColor", g.terrainvectorindex );
 					SetVector4 ( g.terrainvectorindex,30000,10000,50000,0 );
 					SetEffectConstantV ( effectid,"LightSource", g.terrainvectorindex );
-					SetVector4 ( g.terrainvectorindex,500000,0,0,0 ); // 500000 Y high before alpha fading on entity
+					SetVector4 ( g.terrainvectorindex,500000, 1, 0, 0 ); // 500000 Y high before alpha fading on entity
 					SetEffectConstantV ( effectid,"EntityEffectControl", g.terrainvectorindex );
 				}
 			}

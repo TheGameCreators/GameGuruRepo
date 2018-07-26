@@ -63,10 +63,13 @@ void ravey_particles_load_images ( void )
 {
 	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
 
+	//  Stock Particles (1400-1599 - most are custom loaded)
+	//  Used for flare trails
+	t.tImgID = RAVEY_PARTICLES_IMAGETYPE_FLARE + g.particlesimageoffset;
+	if (  ImageExist(t.tImgID)  ==  0  )  LoadImage (  "effectbank\\particles\\flare.dds",t.tImgID );
 	//  Used for rocket smoke trails
 	t.tImgID = RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
 	if (  ImageExist(t.tImgID)  ==  0  )  LoadImage (  "effectbank\\particles\\64smoke2.dds",t.tImgID );
-
 	//  Used for fireball projectile
 	t.tImgID = RAVEY_PARTICLES_IMAGETYPE_FLAME + g.particlesimageoffset;
 	if (  ImageExist(t.tImgID)  ==  0  )  LoadImage (  "effectbank\\particles\\flame.dds",t.tImgID );
@@ -128,13 +131,22 @@ void ravey_particles_update_emitters ( void )
 						//  Is there a parent object? if so use its position, if not use emitters xyz
 						if (  t.ravey_particle_emitters[t.c].parentObject > 0 ) 
 						{
-							t.ravey_particles[t.tfound].x = LimbPositionX(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinX + Rnd(t.distx_f) / 1000.0;
 							t.disty_f = (t.ravey_particle_emitters[t.c].offsetMinY - t.ravey_particle_emitters[t.c].offsetMaxY);
 							t.disty_f = Sqrt(abs(t.disty_f*t.disty_f)) * 1000.0;
-							t.ravey_particles[t.tfound].y = LimbPositionY(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinY + Rnd(t.disty_f) / 1000.0;
 							t.distz_f = (t.ravey_particle_emitters[t.c].offsetMinZ - t.ravey_particle_emitters[t.c].offsetMaxZ);
 							t.distz_f = Sqrt(abs(t.distz_f*t.distz_f) ) * 1000.0;
-							t.ravey_particles[t.tfound].z = LimbPositionZ(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinZ + Rnd(t.distz_f) / 1000.0;
+							if ( t.ravey_particle_emitters[t.c].parentLimb == 0 )
+							{
+								t.ravey_particles[t.tfound].x = ObjectPositionX(t.ravey_particle_emitters[t.c].parentObject) + (t.ravey_particle_emitters[t.c].offsetMinX + Rnd(t.distx_f) / 1000.0);
+								t.ravey_particles[t.tfound].y = ObjectPositionY(t.ravey_particle_emitters[t.c].parentObject) + (t.ravey_particle_emitters[t.c].offsetMinY + Rnd(t.disty_f) / 1000.0);
+								t.ravey_particles[t.tfound].z = ObjectPositionZ(t.ravey_particle_emitters[t.c].parentObject) + (t.ravey_particle_emitters[t.c].offsetMinZ + Rnd(t.distz_f) / 1000.0);
+							}
+							else
+							{
+								t.ravey_particles[t.tfound].x = LimbPositionX(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinX + Rnd(t.distx_f) / 1000.0;
+								t.ravey_particles[t.tfound].y = LimbPositionY(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinY + Rnd(t.disty_f) / 1000.0;
+								t.ravey_particles[t.tfound].z = LimbPositionZ(t.ravey_particle_emitters[t.c].parentObject, t.ravey_particle_emitters[t.c].parentLimb) + t.ravey_particle_emitters[t.c].offsetMinZ + Rnd(t.distz_f) / 1000.0;
+							}
 						}
 						else
 						{

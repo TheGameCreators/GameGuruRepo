@@ -12,6 +12,8 @@ function ai_fantasycharacter_init(e)
  ai_soldier_state[e] = "patrol"
  ai_soldier_pathindex[e] = -1
  CharacterControlLimbo(e)
+ AIObjNo = g_Entity[e]['obj']
+ AISetEntityControl(AIObjNo,AI_MANUAL)
  SetAnimationFrames(236,265) 
  LoopAnimation(e)
  ModulateSpeed(e,1.0)
@@ -24,6 +26,7 @@ function ai_fantasycharacter_init(e)
  lastswipe[e] = 0
  ai_old_health[e] = -1
  SetCharacterSoundSet(e)
+ ai_bot_substate[e] = 0
 end
 
 function ai_fantasycharacter_main(e)
@@ -108,7 +111,8 @@ function ai_fantasycharacter_main(e)
    end
   end
   if ai_soldier_state[e] == "charge" then
-   AIEntityGoToPosition(EntObjNo,g_PlayerPosX,g_PlayerPosZ)
+   ai_fantasycharacter_moveandavoid(e,EntObjNo,PlayerDist,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+   --AIEntityGoToPosition(EntObjNo,g_PlayerPosX,g_PlayerPosZ)
    --AIEntityGoToPosition(EntObjNo,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
    --SetRotation(e,0,AIGetEntityAngleY(EntObjNo),0)
    --MoveForward(e,AIGetEntitySpeed(EntObjNo)/2.0)
@@ -146,6 +150,56 @@ function ai_fantasycharacter_main(e)
  if string.find(string.lower(g_Entity[e]['limbhit']), "head") ~= nil then
   SetEntityHealth(e,0)
   ResetLimbHit(e)
+ end
+end
+
+function ai_fantasycharacter_moveandavoid(e,AIObjNo,PlayerDist,x,y,z)
+ movementfrozen = 0
+ if ai_bot_substate[e] == 0 then
+  if PlayerDist < 100 then
+   tDistX = x - g_Entity[e]['x']
+   tDistZ = z - g_Entity[e]['z']
+   tDA = math.atan2(tDistX,tDistZ)
+   x = x + (math.sin(tDA) * 50)
+   z = z + (math.cos(tDA) * 50)
+  end
+  AIEntityGoToPosition(AIObjNo,x,y,z)
+  SetRotation(e,0,AIGetEntityAngleY(AIObjNo),0)
+  if movementfrozen == 0 then
+   if AIGetEntityIsMoving(AIObjNo) == 1 then
+    MoveForward(e,AIGetEntitySpeed(AIObjNo))
+   else
+    MoveForward(e,0.0)
+   end
+   AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
+  end
+  if g_Entity[e]['avoid'] == 2 then
+   ai_bot_substate[e] = math.random(1,2)
+   if ai_bot_substate[e] == 1 then
+    tAvoidAngle = AIGetEntityAngleY(AIObjNo)-95
+   else
+    tAvoidAngle = AIGetEntityAngleY(AIObjNo)+95
+   end
+   tAvoidAngle = (tAvoidAngle / 360.0) * 6.28
+   tAvoidX = GetEntityPositionX(e) + (math.sin(tAvoidAngle) * 30)
+   tAvoidZ = GetEntityPositionZ(e) + (math.cos(tAvoidAngle) * 30)
+   AIEntityGoToPosition(AIObjNo,tAvoidX,GetEntityPositionY(e),tAvoidZ)
+   StartTimer(e)
+  end
+ end
+ if ai_bot_substate[e] > 0 then
+  SetRotation(e,0,AIGetEntityAngleY(AIObjNo),0)
+  if movementfrozen == 0 then
+   if AIGetEntityIsMoving(AIObjNo) == 1 then
+    MoveForward(e,AIGetEntitySpeed(AIObjNo))
+   else
+    MoveForward(e,0.0)
+   end
+   AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
+  end
+  if GetTimer(e) > 1000 then
+   ai_bot_substate[e] = 0
+  end
  end
 end
 

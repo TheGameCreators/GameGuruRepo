@@ -1,0 +1,45 @@
+;Saved by GameGuru Object Importer v1.000
+;header
+desc             = Concrete Cylinder
+
+;visualinfo
+textured         = Concrete Cylinder_color.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+castshadow       = 0
+transparency     = 0
+
+;orientation
+model            = Concrete Cylinder.dbo
+rotx             = 0
+roty             = 0
+rotz             = 0
+scale            = 33
+collisionmode    = 1
+defaultstatic    = 1
+materialindex    = 0
+matrixmode       = 0
+cullmode         = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 2
+cantakeweapon    = 0
+
+;statistics
+strength         = 25
+explodable       = 0
+debrisshape      = 0
+
+;ai
+aimain           = default.lua
+
+;spawn
+spawnmax         = 0
+spawndelay       = 0
+spawnqty         = 0
+
+;anim
+animmax          = 0
+anim0            = 0,0
+playanimineditor = 0

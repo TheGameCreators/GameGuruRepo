@@ -1108,8 +1108,11 @@ DARKSDK bool XFILE_NEW_GetVertexColors ( IDirectXFileData* pSubData, sFrame* pFr
 
 	// copy vertex data into global store for combining later
 	SAFE_DELETE(g_pVertexColorList);
-	g_pVertexColorList = new sVertexColor [ g_dwVertexColorCount ];
-	memcpy ( g_pVertexColorList, pVColor, g_dwVertexColorCount*sizeof(sVertexColor) );
+	if ( 0 ) // need flag so VERTEX COLOR info is ignored during X file load (PBR shader not support this)
+	{
+		g_pVertexColorList = new sVertexColor [ g_dwVertexColorCount ];
+		memcpy ( g_pVertexColorList, pVColor, g_dwVertexColorCount*sizeof(sVertexColor) );
+	}
 
 	// finished
 	return true;
@@ -1175,7 +1178,7 @@ DARKSDK bool XFILE_NEW_GetMaterialName ( IDirectXFileData* pSubData, sNewMateria
 	return true;
 }
 
-DARKSDK bool XFILE_NEW_GetMaterialData ( IDirectXFileData* pSubDataMaterial )
+DARKSDK bool XFILE_NEW_GetMaterialData ( IDirectXFileData* pSubDataMaterial, char* szNameMaterial )
 {
 	// locals
 	DWORD*			pData    = NULL;	// pointer to data
@@ -1197,6 +1200,54 @@ DARKSDK bool XFILE_NEW_GetMaterialData ( IDirectXFileData* pSubDataMaterial )
 
 	// look for a name
 	XFILE_NEW_GetMaterialName ( pSubDataMaterial, &material );
+
+	// 090618 - ensure no TGA is converted over (default is PNG)
+	if ( material.szFilename != NULL )
+	{
+		if ( strnicmp ( material.szFilename + strlen(material.szFilename) - 4, ".tga", 4 ) == NULL )
+		{
+			// chop TGA
+			material.szFilename[strlen(material.szFilename)-4] = 0;
+
+			// check if _ALB used, instead use _COLOR
+			if ( strnicmp ( material.szFilename + strlen(material.szFilename) - 4, "_ALB", 4 ) == NULL )
+			{
+				LPSTR pNewMaterialFilename = new char[strlen(material.szFilename)+10];
+				strcpy ( pNewMaterialFilename, material.szFilename );
+				SAFE_DELETE ( material.szFilename );
+				material.szFilename = pNewMaterialFilename;
+				material.szFilename[strlen(material.szFilename)-4] = 0;
+				strcat ( material.szFilename, "_color" );
+			}
+
+			// add correct default image extension
+			strcat ( material.szFilename, ".png" );
+		}
+	}
+
+	// lee - 300518 - if texture is blank or NULL, pass in material name (can assemble texture name from this later)
+	if ( material.szFilename == NULL || strlen(material.szFilename) == 0 || stricmp ( material.szFilename, "null" ) == NULL )
+	{
+		// assemble a texture name that is likely to be found (typical FBX conversion to X)
+		SAFE_DELETE( material.szFilename );
+		if ( material.szFilename == NULL ) material.szFilename = new char[1024];
+		strcpy ( material.szFilename, szNameMaterial );
+
+		// adjust material name to texture name (from known material names to known texture name conventions)
+		char pNewTextureName[1024];
+		if ( strnicmp ( material.szFilename, "M_", 2 ) == NULL )
+		{
+			// material name starts with M_, cut this and add PBR texture designation
+			strcpy ( pNewTextureName, material.szFilename+2 );
+		}
+		else
+		{
+			// material name has no prefix, so treat material name as suggested texture name
+			strcpy ( pNewTextureName, material.szFilename );
+		}
+		strcat ( pNewTextureName, "_Color.png" );
+		strcpy ( material.szFilename, pNewTextureName );
+	}
 
 	// send data to back of list
 	g_NewMaterialList.push_back ( material );
@@ -1246,10 +1297,10 @@ DARKSDK bool XFILE_NEW_GetOptionalMaterialData ( IDirectXFileData* pSubData )
 					// do we have a material
 					if ( *guidTypeMaterial == TID_D3DRMMaterial )
 					{
-						XFILE_NEW_GetMaterialData ( pSubDataMaterial );
+						XFILE_NEW_GetMaterialData ( pSubDataMaterial, szNameMaterial );
 					}
 
-					// MIKE - 311003
+					// free material name
 					SAFE_DELETE_ARRAY ( szNameMaterial );
 				}
 

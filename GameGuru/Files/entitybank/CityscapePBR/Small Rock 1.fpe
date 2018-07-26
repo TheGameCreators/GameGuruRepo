@@ -1,0 +1,36 @@
+;header
+desc             = Small Rock 1
+
+;visualinfo
+textured         = Small Rock_color.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+castshadow       = 0
+transparency     = 0
+
+;orientation
+model            = Small Rock 1.dbo
+offx             = 0
+offy             = 0
+offz             = 0
+rotx             = 0
+roty             = 0
+rotz             = 0
+scale            = 100
+collisionmode    = 1
+defaultstatic    = 1
+materialindex    = 1
+matrixmode       = 0
+cullmode         = 0
+
+;identity details
+ischaracter      = 0
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 25
+explodable       = 0
+debrisshape      = 0
+
+;ai
+aimain           = default.lua

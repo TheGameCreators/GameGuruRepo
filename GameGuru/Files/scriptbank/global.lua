@@ -3,7 +3,7 @@
 --
 
 -- Constants
-AI_MANUAL = 0 -- Preferred Mode With Direct Script Control 
+AI_MANUAL    = 0 -- Preferred Mode With Direct Script Control 
 AI_AUTOMATIC = 1 -- Discontinued Legacy Mode
 
 -- Globals (built-in)
@@ -12,7 +12,7 @@ g_EntityExtra = {}
 g_DebugStringPeek = ""
 
 -- New AI Globals
-ai_state_startidle, ai_state_idle, ai_state_findpatrolpath, ai_state_startpatrol, ai_state_patrol, ai_state_startmove, ai_state_move, ai_state_avoid, ai_state_hurt, ai_state_punch, ai_state_recoverstart, ai_state_recover, ai_state_startfireonspot, ai_state_fireonspot, ai_state_startreload, ai_state_reload, ai_state_disable = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+ai_state_startidle, ai_state_idle, ai_state_findpatrolpath, ai_state_startpatrol, ai_state_patrol, ai_state_startmove, ai_state_move, ai_state_avoid, ai_state_hurt, ai_state_punch, ai_state_recoverstart, ai_state_recover, ai_state_startfireonspot, ai_state_fireonspot, ai_state_startreload, ai_state_reload, ai_state_reloadsettle, ai_state_disable = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
 ai_state_debug = { "startidle", "idle", "findpatrolpath", "startpatrol", "patrol", "startmove", "move", "avoid", "hurt", "punch", "recoverstart", "recover", "startfireonspot", "fireonspot", "startreload", "reload", "disable" }
 ai_combattype_regular, ai_combattype_patrol, ai_combattype_guard, ai_combattype_freezermelee, ai_combattype_bashmelee = 0, 1, 2, 3, 4
 ai_movetype_usespeed, ai_movetype_useanim = 0, 1
@@ -84,6 +84,7 @@ g_MouseY = 0
 g_MouseWheel = 0
 g_MouseClick = 0
 g_EntityElementMax = 0
+g_PlayerUnderwaterMode = 0
 
 -- Mappable in-game keys
 g_PlrKeyW = 0
@@ -131,11 +132,20 @@ mp_coop = 0;
 mp_enemiesLeftToKill = 100;
 
 -- GameLoop Globals, Init and Loop
-
 g_gameloop_StartHealth = 0
 g_gameloop_RegenRate = 0
 g_gameloop_RegenSpeed = 0
 g_gameloop_RegenDelay = 0
+
+-- Globals to track projectile explosion event
+g_projectileevent_explosion = 0
+g_projectileevent_name = ""
+g_projectileevent_x = 0
+g_projectileevent_y = 0
+g_projectileevent_z = 0
+g_projectileevent_radius = 0
+g_projectileevent_damage = 0
+g_projectileevent_entityhit = 0
 
 function GameLoopInit(sth,rra,rsp,rde)
  g_gameloop_StartHealth = sth
@@ -222,19 +232,21 @@ function UpdateWeaponStatsItem(mode,index,value)
 end
 
 -- Macro Functions
+local sqrt = math.sqrt
+local abs  = math.abs
 
-function GetPlayerDistance(e)
-  tPlayerDX = (g_Entity[e]['x'] - g_PlayerPosX)
-  tPlayerDY = (g_Entity[e]['y'] - g_PlayerPosY)
-  tPlayerDZ = (g_Entity[e]['z'] - g_PlayerPosZ)
-  if math.abs(tPlayerDY) > 100 then 
-   tPlayerDY = tPlayerDY * 4
-  end
-  return math.sqrt(math.abs(tPlayerDX*tPlayerDX)+math.abs(tPlayerDY*tPlayerDY)+math.abs(tPlayerDZ*tPlayerDZ));
+function GetPlayerDistance( e )
+    local Ent = g_Entity[ e ]
+    local PDX, PDY, PDZ = Ent.x - g_PlayerPosX, 
+                          Ent.y - g_PlayerPosY,
+						  Ent.z - g_PlayerPosZ;
+  
+    if abs( PDY ) > 100 then PDY = PDY * 4 end
+  
+    return sqrt( PDX*PDX + PDY*PDY + PDZ*PDZ )
 end
 
 -- Common Action Functions (called by LUA)
-
 function Prompt(str)
  SendMessageS("prompt",str);
 end
@@ -247,7 +259,8 @@ end
 function PromptLocal(e,str)
  SendMessageS("promptlocal",e,str);
 end
-function PromptLocalForVR(e,str)
+function PromptLocalForVR(e,str,vrmode)
+ SendMessageF("promptlocalforvrmode",vrmode);
  SendMessageS("promptlocalforvr",e,str);
 end
 
@@ -465,6 +478,9 @@ function SetPlayerLives(v)
 end
 function SetEntityHealth(e,v)
  SendMessageI("setentityhealth",e,v)
+end
+function SetEntityHealthSilent(e,v)
+ SendMessageI("setentityhealthsilent",e,v)
 end
 function SetEntityRagdollForce(e,limb,x,y,z,v)
  SendMessageF("setforcex",x);
@@ -724,6 +740,9 @@ end
 function PlayNon3DSound(e,v)
  SendMessageI("playnon3dsound",e,v);
 end
+function LoopNon3DSound(e,v)
+ SendMessageI("loopnon3dsound",e,v);
+end
 function LoopSound(e,v)
  SendMessageI("loopsound",e,v);
 end
@@ -834,6 +853,9 @@ function Panel(x,y,x2,y2)
  SendMessageF("panely",y);
  SendMessageF("panelx2",x2);
  SendMessageF("panely2",y2);
+end
+function SetSkyTo(str)
+ SendMessageS("setskyto",str);
 end
 
 -- Common Multiplayer
@@ -1003,7 +1025,9 @@ Direct call LUA Commands:
 
 UpdateWeaponStats: UpdateWeaponStats() -- Call this to instantly update all g_Weapon* data
 ResetWeaponSystems: ResetWeaponSystems ( ) -- resets any projectiles currently active in game
-SetWeaponSlot: SetWeaponSlot ( index, got flag, preference flag ) -- Sets the weapon data directly, index is 1 through 10
+
+SetWeaponSlot: SetWeaponSlot ( index, got flag, preference flag ) -- Sets the weapon data directly, index is 1 through 10. The got flag value is the weapon ID of the weapon you have in that slot. By setting it, you can effectively grant the player that weapon without them having to pick it up, but you should ensure that weapon is placed somewhere in the level so it can load it the particulars.  The preference flag value also takes a Weapon ID and is used when you want to make sure when a weapon is collected, it will go to that slot, so  SetWeaponSlot ( 9, 0, 12 ) will make sure that when you collect Weapon ID 12 it will automatically be assigned to slot 9.
+
 GetWeaponAmmo: quantity = GetWeaponAmmo ( index ) -- Sets the weapon data directly, index is 1 through 10
 SetWeaponAmmo: SetWeaponAmmo ( index, ammo quantity ) -- Sets the weapon data directly, index is 1 through 10
 GetWeaponClipAmmo: quantity = GetWeaponClipAmmo ( index ) -- Sets the weapon data directly, index is 1 through 10
@@ -1058,6 +1082,9 @@ GetAnimationSpeed : speed = GetAnimationSpeed ( e ) -- where e is the entity num
 SetAnimationSpeedModulation : SetAnimationSpeedModulation ( e, speed ) -- where e is the entity number and speed is animation speed modulator
 GetAnimationSpeedModulation : speed = GetAnimationSpeedModulation ( e ) -- where e is the entity number and speed is the animation speed modulator
 GetMovementDelta : delta = GetMovementDelta ( e ) -- where e is the entity number and delta is the movement distance since the last cycle
+
+SetEntityString : SetEntityString ( e, slot, string ) -- where e is the entity number and slot (0-4) to write the string into
+GetEntityString : GetEntityString ( e, slot ) -- where e is the entity number and slot (0-4) is the sound slot index
 
 GetEntitySpawnAtStart : state = GetEntitySpawnAtStart ( e ) -- returns the state of the spawn (0-dont spawn at start, 1-spawn at start, 2-spawned during game)
 GetEntityFilePath : string = GetEntityFilePath ( e ) -- returns the entity file path to be used for helping inventory image systems
@@ -1172,6 +1199,7 @@ GetDesktopHeight: GetDesktopHeight() -- returns the current desktop height
 CurveValue: x=CurveValue(dest,current,smooth) -- returns the smoothed value based on the smooth factor
 CurveAngle: a=CurveAngle(dest,current,smooth) -- as CurveValue but handles angles from 0-360 degrees
 PositionMouse: PositionMouse(x,y) -- repositions the hardware mouse pointer in real-time (screen size coords)
+GetDynamicCharacterControllerDidJump: x=GetDynamicCharacterControllerDidJump() -- returns 1 if controller jumped
 GetCharacterControllerDucking: x=GetCharacterControllerDucking() -- returns 1 if the player has been forced to duck
 WrapValue: x=WrapValue(y) -- takes the value y and wraps it to an angle between 0-360 degrees
 GetElapsedTime: x=GetElapsedTime() -- returns the elapsed delta time since the last game cycle
@@ -1290,6 +1318,7 @@ GetGamePlayerControlWobbleHeight: GetGamePlayerControlWobbleHeight() -- command 
 GetGamePlayerControlJumpmax: GetGamePlayerControlJumpmax() -- command used by the default player control mechanism
 GetGamePlayerControlPushangle: GetGamePlayerControlPushangle() -- command used by the default player control mechanism
 GetGamePlayerControlPushforce: GetGamePlayerControlPushforce() -- command used by the default player control mechanism
+GetGamePlayerControlFootfallPace : GetGamePlayerControlFootfallPace() -- command used by the default player control mechanism
 GetGamePlayerControlFinalCameraAngley: GetGamePlayerControlFinalCameraAngley() -- command used by the default player control mechanism
 GetGamePlayerControlLockAtHeight: GetGamePlayerControlLockAtHeight() -- command used by the default player control mechanism
 GetGamePlayerControlControlHeight: GetGamePlayerControlControlHeight() -- command used by the default player control mechanism
@@ -1374,6 +1403,7 @@ SetGamePlayerControlWobbleHeight: SetGamePlayerControlWobbleHeight() -- command 
 SetGamePlayerControlJumpmax: SetGamePlayerControlJumpmax() -- command used by the default player control mechanism
 SetGamePlayerControlPushangle: SetGamePlayerControlPushangle() -- command used by the default player control mechanism
 SetGamePlayerControlPushforce: SetGamePlayerControlPushforce() -- command used by the default player control mechanism
+SetGamePlayerControlFootfallPace: SetGamePlayerControlFootfallPace() -- command used by the default player control mechanism
 SetGamePlayerControlFinalCameraAngley: SetGamePlayerControlFinalCameraAngley() -- command used by the default player control mechanism
 SetGamePlayerControlLockAtHeight: SetGamePlayerControlLockAtHeight() -- command used by the default player control mechanism
 SetGamePlayerControlControlHeight: SetGamePlayerControlControlHeight() -- command used by the default player control mechanism
@@ -1438,9 +1468,9 @@ SetGamePlayerStateRightMouseHold: SetGamePlayerStateRightMouseHold() -- command 
 GetGamePlayerStateRightMouseHold: GetGamePlayerStateRightMouseHold() -- command used by the default player control mechanism
 SetGamePlayerStateXBOX: SetGamePlayerStateXBOX() -- command used by the default player control mechanism
 GetGamePlayerStateXBOX: GetGamePlayerStateXBOX() -- command used by the default player control mechanism
-JoystickX: JoystickY() -- command used by the default player control mechanism
-JoystickY: JoystickX() -- command used by the default player control mechanism
-JoystickZ: JoystickZ() -- command used by the default player control mechanism
+JoystickX: JoystickX() -- returns a value between -1000 and +1000 representing X axis of controller
+JoystickY: JoystickY() -- returns a value between -1000 and +1000 representing Y axis of controller
+JoystickZ: JoystickZ() -- returns a value between -1000 and +1000 representing Trigger of controller
 SetGamePlayerStateGunZoomMode: SetGamePlayerStateGunZoomMode() -- command used by the default player control mechanism
 GetGamePlayerStateGunZoomMode: GetGamePlayerStateGunZoomMode() -- command used by the default player control mechanism
 SetGamePlayerStateGunZoomMag: SetGamePlayerStateGunZoomMag() -- command used by the default player control mechanism
@@ -1468,6 +1498,7 @@ GetGamePlayerStateGunBurst: GetGamePlayerStateGunBurst() -- command used by the 
 JoystickHatAngle: JoystickHatAngle() -- command used by the default player control mechanism
 JoystickFireXL: JoystickFireXL() -- command used by the default player control mechanism
 JoystickTwistX: JoystickTwistX() -- command used by the default player control mechanism
+JoystickTwistY: JoystickTwistY() -- command used by the default player control mechanism
 JoystickTwistZ: JoystickTwistZ() -- command used by the default player control mechanism
 SetGamePlayerStatePlrZoomInChange: SetGamePlayerStatePlrZoomInChange() -- command used by the default player control mechanism
 GetGamePlayerStatePlrZoomInChange: GetGamePlayerStatePlrZoomInChange() -- command used by the default player control mechanism
@@ -1589,67 +1620,69 @@ SetGamePlayerStateImmunity: SetGamePlayerStateImmunity() -- command used by the 
 GetGamePlayerStateImmunity: GetGamePlayerStateImmunity() -- command used by the default player control mechanism
 SetGamePlayerStateCharAnimIndex: SetGamePlayerStateCharAnimIndex() -- command used by the default player control mechanism
 GetGamePlayerStateCharAnimIndex: GetGamePlayerStateCharAnimIndex() -- command used by the default player control mechanism
-SetGamePlayerStateIsMelee: SetGamePlayerStateIsMelee() -- command used by the default player control mechanism
+
+SetGamePlayerStateIsMelee: SetGamePlayerStateIsMelee() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateIsMelee: GetGamePlayerStateIsMelee() -- command used by the default player control mechanism
-SetGamePlayerStateAlternate: SetGamePlayerStateAlternate() -- command used by the default player control mechanism
+SetGamePlayerStateAlternate: SetGamePlayerStateAlternate() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateAlternate: GetGamePlayerStateAlternate() -- command used by the default player control mechanism
-SetGamePlayerStateModeShareMags: SetGamePlayerStateModeShareMags() -- command used by the default player control mechanism
+SetGamePlayerStateModeShareMags: SetGamePlayerStateModeShareMags() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateModeShareMags: GetGamePlayerStateModeShareMags() -- command used by the default player control mechanism
-SetGamePlayerStateAlternateIsFlak: SetGamePlayerStateAlternateIsFlak() -- command used by the default player control mechanism
+SetGamePlayerStateAlternateIsFlak: SetGamePlayerStateAlternateIsFlak() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateAlternateIsFlak: GetGamePlayerStateAlternateIsFlak() -- command used by the default player control mechanism
-SetGamePlayerStateAlternateIsRay: SetGamePlayerStateAlternateIsRay() -- command used by the default player control mechanism
+SetGamePlayerStateAlternateIsRay: SetGamePlayerStateAlternateIsRay() -- by default sets current weapon, can specify optional gunid and firemode
 GetGamePlayerStateAlternateIsRay: GetGamePlayerStateAlternateIsRay() -- command used by the default player control mechanism
-SetFireModeSettingsReloadQty: SetFireModeSettingsReloadQty() -- command used by the default player control mechanism
+SetFireModeSettingsReloadQty: SetFireModeSettingsReloadQty() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsReloadQty: GetFireModeSettingsReloadQty() -- command used by the default player control mechanism
-SetFireModeSettingsIsEmpty: SetFireModeSettingsIsEmpty() -- command used by the default player control mechanism
+SetFireModeSettingsIsEmpty: SetFireModeSettingsIsEmpty() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsIsEmpty: GetFireModeSettingsIsEmpty() -- command used by the default player control mechanism
-SetFireModeSettingsJammed: SetFireModeSettingsJammed() -- command used by the default player control mechanism
+SetFireModeSettingsJammed: SetFireModeSettingsJammed() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsJammed: GetFireModeSettingsJammed() -- command used by the default player control mechanism
-SetFireModeSettingsJamChance: SetFireModeSettingsJamChance() -- command used by the default player control mechanism
+SetFireModeSettingsJamChance: SetFireModeSettingsJamChance() -- by default sets current weapon, can specify optional gunid and firemodem
 GetFireModeSettingsJamChance: GetFireModeSettingsJamChance() -- command used by the default player control mechanism
-SetFireModeSettingsMinTimer: SetFireModeSettingsMinTimer() -- command used by the default player control mechanism
+SetFireModeSettingsMinTimer: SetFireModeSettingsMinTimer() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsMinTimer: GetFireModeSettingsMinTimer() -- command used by the default player control mechanism
-SetFireModeSettingsAddTimer: SetFireModeSettingsAddTimer() -- command used by the default player control mechanism
+SetFireModeSettingsAddTimer: SetFireModeSettingsAddTimer() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsAddTimer: GetFireModeSettingsAddTimer() -- command used by the default player control mechanism
-SetFireModeSettingsShotsFired: SetFireModeSettingsShotsFired() -- command used by the default player control mechanism
+SetFireModeSettingsShotsFired: SetFireModeSettingsShotsFired() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsShotsFired: GetFireModeSettingsShotsFired() -- command used by the default player control mechanism
-SetFireModeSettingsCoolTimer: SetFireModeSettingsCoolTimer() -- command used by the default player control mechanism
+SetFireModeSettingsCoolTimer: SetFireModeSettingsCoolTimer() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsCoolTimer: GetFireModeSettingsCoolTimer() -- command used by the default player control mechanism
-SetFireModeSettingsOverheatAfter: SetFireModeSettingsOverheatAfter() -- command used by the default player control mechanism
+SetFireModeSettingsOverheatAfter: SetFireModeSettingsOverheatAfter() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsOverheatAfter: GetFireModeSettingsOverheatAfter() -- command used by the default player control mechanism
-SetFireModeSettingsJamChanceTime: SetFireModeSettingsJamChanceTime() -- command used by the default player control mechanism
+SetFireModeSettingsJamChanceTime: SetFireModeSettingsJamChanceTime() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsJamChanceTime: GetFireModeSettingsJamChanceTime() -- command used by the default player control mechanism
-SetFireModeSettingsCoolDown: SetFireModeSettingsCoolDown() -- command used by the default player control mechanism
+SetFireModeSettingsCoolDown: SetFireModeSettingsCoolDown() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsCoolDown: GetFireModeSettingsCoolDown() -- command used by the default player control mechanism
-SetFireModeSettingsNoSubmergedFire: SetFireModeSettingsNoSubmergedFire() -- command used by the default player control mechanism
+SetFireModeSettingsNoSubmergedFire: SetFireModeSettingsNoSubmergedFire() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsNoSubmergedFire: GetFireModeSettingsNoSubmergedFire() -- command used by the default player control mechanism
-SetFireModeSettingsSimpleZoom: SetFireModeSettingsSimpleZoom() -- command used by the default player control mechanism
+SetFireModeSettingsSimpleZoom: SetFireModeSettingsSimpleZoom() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsSimpleZoom: GetFireModeSettingsSimpleZoom() -- command used by the default player control mechanism
-SetFireModeSettingsForceZoomOut: SetFireModeSettingsForceZoomOut() -- command used by the default player control mechanism
+SetFireModeSettingsForceZoomOut: SetFireModeSettingsForceZoomOut() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsForceZoomOut: GetFireModeSettingsForceZoomOut() -- command used by the default player control mechanism
-SetFireModeSettingsZoomMode: SetFireModeSettingsZoomMode() -- command used by the default player control mechanism
+SetFireModeSettingsZoomMode: SetFireModeSettingsZoomMode() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsZoomMode: GetFireModeSettingsZoomMode() -- command used by the default player control mechanism
-SetFireModeSettingsSimpleZoomAnim: SetFireModeSettingsSimpleZoomAnim() -- command used by the default player control mechanism
+SetFireModeSettingsSimpleZoomAnim: SetFireModeSettingsSimpleZoomAnim() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsSimpleZoomAnim: GetFireModeSettingsSimpleZoomAnim() -- command used by the default player control mechanism
-SetFireModeSettingsPoolIndex: SetFireModeSettingsPoolIndex() -- command used by the default player control mechanism
+SetFireModeSettingsPoolIndex: SetFireModeSettingsPoolIndex() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPoolIndex: GetFireModeSettingsPoolIndex() -- command used by the default player control mechanism
-SetFireModeSettingsPlrTurnSpeedMod: SetFireModeSettingsPlrTurnSpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrTurnSpeedMod: SetFireModeSettingsPlrTurnSpeedMod() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrTurnSpeedMod: GetFireModeSettingsPlrTurnSpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsZoomTurnSpeed: SetFireModeSettingsZoomTurnSpeed() -- command used by the default player control mechanism
+SetFireModeSettingsZoomTurnSpeed: SetFireModeSettingsZoomTurnSpeed() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsZoomTurnSpeed: GetFireModeSettingsZoomTurnSpeed() -- command used by the default player control mechanism
-SetFireModeSettingsPlrJumpSpeedMod: SetFireModeSettingsPlrJumpSpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrJumpSpeedMod: SetFireModeSettingsPlrJumpSpeedMod() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrJumpSpeedMod: GetFireModeSettingsPlrJumpSpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsPlrEmptySpeedMod: SetFireModeSettingsPlrEmptySpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrEmptySpeedMod: SetFireModeSettingsPlrEmptySpeedMod() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrEmptySpeedMod: GetFireModeSettingsPlrEmptySpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsPlrMoveSpeedMod: SetFireModeSettingsPlrMoveSpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrMoveSpeedMod: SetFireModeSettingsPlrMoveSpeedMod() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrMoveSpeedMod: GetFireModeSettingsPlrMoveSpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsZoomWalkSpeed: SetFireModeSettingsZoomWalkSpeed() -- command used by the default player control mechanism
+SetFireModeSettingsZoomWalkSpeed: SetFireModeSettingsZoomWalkSpeed() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsZoomWalkSpeed: GetFireModeSettingsZoomWalkSpeed() -- command used by the default player control mechanism
-SetFireModeSettingsPlrReloadSpeedMod: SetFireModeSettingsPlrReloadSpeedMod() -- command used by the default player control mechanism
+SetFireModeSettingsPlrReloadSpeedMod: SetFireModeSettingsPlrReloadSpeedMod() -- default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsPlrReloadSpeedMod: GetFireModeSettingsPlrReloadSpeedMod() -- command used by the default player control mechanism
-SetFireModeSettingsHasEmpty: SetFireModeSettingsHasEmpty() -- command used by the default player control mechanism
+SetFireModeSettingsHasEmpty: SetFireModeSettingsHasEmpty() -- by default sets current weapon, can specify optional gunid and firemode
 GetFireModeSettingsHasEmpty: GetFireModeSettingsHasEmpty() -- command used by the default player control mechanism
 GetFireModeSettingsActionBlockStart: GetFireModeSettingsActionBlockStart() -- command used by the default player control mechanism
+
 SetGamePlayerStateGunSound: SetGamePlayerStateGunSound() -- command used by the default player control mechanism
 GetGamePlayerStateGunSound: GetGamePlayerStateGunSound() -- command used by the default player control mechanism
 SetGamePlayerStateGunAltSound: SetGamePlayerStateGunAltSound() -- command used by the default player control mechanism
@@ -1724,5 +1757,57 @@ GetHeadTrackerRoll : GetHeadTrackerRoll() - returns the roll of the head tracker
 
 Prompt3D : Prompt3D(text,duration) -- renders a 3D text panel in front of camera showing 'text'
 PositionPrompt3D : PositionPrompt3D(x,y,z,angle) -- repositions 3D text panel to any XYZ world coordinate
+
+ScaleObject : ScaleObject( obj, x, y, z ) -- Scales object in all axis (Note: uses object id not entity!)
+
+SetSkyTo : SetSkyTo ( str ) -- where str is the folder name of the sky you want to change to
+
+***** The following five functions return multiple values, if you do not need them all just replace 
+***** the ones you don't need with '_' for example : _, _, _, Ax, Ay, Az = GetEntityPosAng( e ) would
+***** just give you last three of the 6 values returned
+GetObjectPosAng : x, y, z, Ax, Ay, Az = GetObjectPosAng( obj ) -- returns position and Euler angles of object
+GetEntityPosAng : x, y, z, Ax, Ay, Az = GetEntityPosAng( e )   -- returns position and Euler angles of entity
+GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of object in all axis (Note: uses object id not entity!)
+GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
+
+***** Collision box is defined by coordinates of two opposing corners, from these it is easy to calculate the size of the object
+GetObjectColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox( obj ) -- returns collision cube of object
+GetEntityColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityColBox( e )   -- returns collision cube of entity
+
+***** Lua control of dynamic light, you get the light number using entity e number then use that in the other light functions
+***** for example; lightNum = GetEntityLightNumber( e )  then  x, y, z = GetLightPosition( lightNum )
+GetEntityLightNumber : lightNum = GetEntityLightNumber( e ) -- returns the internal light number held by the entity
+GetLightPosition : x, y, z = GetLightPosition( lightNum ) -- returns the XYZ position of the dynamic light specified
+GetLightAngle : xv, yv, zv = GetLightAngle( LightNum ) -- returns the angle vector of the dynamic light specified
+GetLightRGB : r, g, b = GetLightRGB( lightNum ) -- returns the RGB color of the dynamic light specified
+GetLightRange : range = GetLightRange ( lightNum ) -- returns the range value of the dynamic light specified
+SetLightPosition : SetLightPosition ( lightNum, x, y, z ) -- sets the new position of the specified dynamic light
+SetLightAngle : SetLightAngle( lightNum, xv, yv, zv ) -- sets the angle vector of the specified light ( e.g. 0, 0, 1 would be 'North' or +Z axis )
+SetLightRGB : SetLightRGB ( lightNum, r, g, b ) -- sets the new color of the specified dynamic light
+SetLightRange : SetLightRange ( lightNum, range ) -- sets the new range (1 to 10000) of the specified light
+
+***Water Shader Settings*** Look into the shader for informations about these values(open effectbank/reloaded/water_basic.fx with i.e. notepad)
+SetWaterHeight(value) -- sets water setting attributes
+SetWaterColor(red,green,blue) -- sets water setting attributes
+SetWaterWaveIntensity(value) -- sets water setting attributes
+SetWaterTransparancy(value) -- sets water setting attributes
+SetWaterReflection(value) -- sets water setting attributes
+SetWaterReflectionSparkleIntensity(value) -- sets water setting attributes
+SetWaterFlowDirection(x,y,speed) small tip: -1 =east/north; 1=west/south - speed is a multiplier of the flowdirection(higher => fast flow)
+SetWaterDistortionWaves(value) -- sets water setting attributes
+SetRippleWaterSpeed(value) -- sets water setting attributes
+GetWaterHeight() -- gets water setting attributes
+GetWaterWaveIntensity() -- gets water setting attributes
+GetWaterShaderColorRed() -- gets water setting attributes
+GetWaterShaderColorGreen() -- gets water setting attributes
+GetWaterShaderColorBlue() -- gets water setting attributes
+GetWaterTransparancy() -- gets water setting attributes
+GetWaterReflection() -- gets water setting attributes
+GetWaterReflectionSparkleIntensity() -- gets water setting attributes
+GetWaterFlowDirectionX() -- gets water setting attributes
+GetWaterFlowDirectionY() -- gets water setting attributes
+GetWaterFlowSpeed() -- gets water setting attributes
+GetWaterDistortionWaves() -- gets water setting attributes
+GetRippleWaterSpeed() -- gets water setting attributes
 
 --]]

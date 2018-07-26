@@ -99,17 +99,15 @@ void entity_init ( void )
 					entity_getgunidandflakid ( );
 					if (  t.tgunid>0 ) 
 					{
-						for ( int firemode = 0; firemode < 2; firemode++ )
-						{
-							g.firemodes[t.tgunid][firemode].settings.damage=t.entityelement[t.e].eleprof.damage;
-							g.firemodes[t.tgunid][firemode].settings.accuracy=t.entityelement[t.e].eleprof.accuracy;
-							g.firemodes[t.tgunid][firemode].settings.reloadqty=t.entityelement[t.e].eleprof.reloadqty;
-							g.firemodes[t.tgunid][firemode].settings.iterate=t.entityelement[t.e].eleprof.fireiterations;
-							g.firemodes[t.tgunid][firemode].settings.range=t.entityelement[t.e].eleprof.range;
-							g.firemodes[t.tgunid][firemode].settings.dropoff=t.entityelement[t.e].eleprof.dropoff;
-							g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.entityelement[t.e].eleprof.usespotlighting;
-							//  FLAK TODO
-						}
+						int firemode = 0; // 110718 - entity properties should only edit first primary gun settings (so we dont mess up enhanced weapons)
+						//for ( int firemode = 0; firemode < 2; firemode++ )
+						g.firemodes[t.tgunid][firemode].settings.damage=t.entityelement[t.e].eleprof.damage;
+						g.firemodes[t.tgunid][firemode].settings.accuracy=t.entityelement[t.e].eleprof.accuracy;
+						g.firemodes[t.tgunid][firemode].settings.reloadqty=t.entityelement[t.e].eleprof.reloadqty;
+						g.firemodes[t.tgunid][firemode].settings.iterate=t.entityelement[t.e].eleprof.fireiterations;
+						g.firemodes[t.tgunid][firemode].settings.range=t.entityelement[t.e].eleprof.range;
+						g.firemodes[t.tgunid][firemode].settings.dropoff=t.entityelement[t.e].eleprof.dropoff;
+						g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.entityelement[t.e].eleprof.usespotlighting;
 					}
 				}
 			}
@@ -702,6 +700,7 @@ void entity_loop ( void )
 					t.ttte = t.ee ; entity_applydamage() ; t.ee=t.ttte;
 					// create a huge bang
 					t.entityelement[t.ee].destroyme=1;
+					t.tProjectileName_s = "";
 					t.tProjectileResult = WEAPON_PROJECTILERESULT_EXPLODE;
 					t.tx_f=t.entityelement[t.ee].x ; t.ty_f=t.entityelement[t.ee].y ; t.tz_f=t.entityelement[t.ee].z;
 					t.tDamage_f = t.entityelement[t.ee].eleprof.explodedamage; 
@@ -1571,6 +1570,7 @@ void entity_hasbulletrayhit(void)
 	t.brayx2_f = t.x2_f; t.brayy2_f = t.y2_f; t.brayz2_f = t.z2_f;
 	t.bulletrayhit = 0; t.bulletraylimbhit = -1; t.tttriggerdecalimpact = 0;
 	t.tfoundentityindexhit = -1;
+	t.tmaterialvalue = -1;
 	
 	// first cast a ray at any terrain
 	if (ODERayTerrain(t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f) == 1)
@@ -1681,20 +1681,26 @@ void entity_hasbulletrayhit(void)
 		}
 		else
 		{
-			//  shorten ray to reflect hit coordinate
+			// shorten ray to reflect hit coordinate
 			t.brayx2_f=ChecklistFValueA(6);
 			t.brayy2_f=ChecklistFValueB(6);
 			t.brayz2_f=ChecklistFValueC(6);
-			//  get limb we hit (for flinch effect when we hit enemy limb)
+
+			// get limb we hit (for flinch effect when we hit enemy limb)
 			t.tlimbhit=ChecklistValueB(1);
 
-			//Check if we hit character creator head and adjust limbhit to the head of the character
+			// return material index and use to trigger decal
+			t.tmaterialvalue=ChecklistValueA(9);
+
+			// check if we hit character creator head and adjust limbhit to the head of the character
 			if ( t.ccLimbHitOverride )
 			{
 				t.tlimbhit = t.ccLimbHitOverrideLimb;
 				t.ccLimbHitOverride = false;
+				t.tmaterialvalue = t.entityprofile[t.tentid].materialindex;
 			}
 
+			// reset and assign detectedlimbhit flag for script
 			if ( t.tfoundentityindexhit != -1 ) 
 			{
 				t.entityelement[t.tfoundentityindexhit].detectedlimbhit = 0;
@@ -1718,11 +1724,12 @@ void entity_hasbulletrayhit(void)
 					}
 				}
 			}
-			//  return material index and use to trigger decal
-			t.tmaterialvalue=ChecklistValueA(9);
 		}
-		if (  t.tmaterialvalue>0  )  t.tttriggerdecalimpact = 10+t.tmaterialvalue;
+		if (  t.tmaterialvalue >= 0  ) t.tttriggerdecalimpact = 10+t.tmaterialvalue;
 	}
+
+	// ensure material index never goes negative
+	if ( t.tmaterialvalue < 0 ) t.tmaterialvalue = 0;
 
 	//  calculate increment along ray
 	t.tbix_f=t.brayx2_f-t.brayx1_f;
@@ -1754,7 +1761,7 @@ void entity_hasbulletrayhit(void)
 				t.tmatindex=17 ; t.tsoundtrigger=t.material[t.tmatindex].impactid;
 				t.tspd_f=(t.material[t.tmatindex].freq*1.5)+Rnd(t.material[t.tmatindex].freq)*0.5;
 				t.tsx_f=g.decalx ; t.tsy_f=g.decaly ; t.tsz_f=g.decalz;
-				t.tvol_f = 6 ;  material_triggersound ( );
+				t.tvol_f = 6 ;  material_triggersound ( 0 );
 				t.tsoundtrigger=0;
 			}
 		}
@@ -1965,14 +1972,13 @@ void entity_triggerdecalatimpact ( float fX, float fY, float fZ )
 		t.tsoundtrigger=t.material[t.tmatindex].impactid;
 		t.tspd_f=t.material[t.tmatindex].freq;
 		t.tsx_f=g.decalx ; t.tsy_f=g.decaly ; t.tsz_f=g.decalz;
-		t.tvol_f = 100.0f ; material_triggersound ( );
+		t.tvol_f = 100.0f ; material_triggersound ( 0 );
 		t.tsoundtrigger=0;
 	}
 }
 
 void entity_createattachment ( void )
 {
-
 	//  Single player character must HOLD the weapon before attaching it
 	t.tischaracterholdingweapon=0;
 	if (  t.entityprofile[t.entid].ischaracter == 1 && t.entityelement[t.e].eleprof.hasweapon>0 ) 
@@ -1984,13 +1990,11 @@ void entity_createattachment ( void )
 	t.entid=t.entityelement[t.e].bankindex;
 	if (  (t.tischaracterholdingweapon == 1 || t.entityprofile[t.entid].ismultiplayercharacter == 1) && t.entityelement[t.e].obj>0 ) 
 	{
-
 		//  Make attachment if warranted
 		if (  ObjectExist(t.entityelement[t.e].obj) == 1 && t.entityelement[t.e].attachmentobj == 0 ) 
 		{
 			if (  t.entityprofile[t.entid].firespotlimb>-1 ) 
 			{
-
 				//  all vweaps (that are active)
 				for ( t.tgindex = 1 ; t.tgindex<=  g.gunmax; t.tgindex++ )
 				{
@@ -1999,13 +2003,11 @@ void entity_createattachment ( void )
 						t.tweaponname_s=t.gun[t.tgindex].name_s;
 						if (  t.tweaponname_s != "" ) 
 						{
-
 							//  entity has this gun in their hands
 							t.tthasweapon_s=Lower(t.entityprofile[t.entid].hasweapon_s.Get());
 							// Dave - added .Lower() as Uzi was being compared to uzi
 							if (  t.tthasweapon_s == t.tweaponname_s.Lower() ) 
 							{
-
 								//  go and load this gun (attached to calling entity instance)
 								++g.entityattachmentindex;
 								t.ttobj=g.entityattachmentsoffset+g.entityattachmentindex;
@@ -2051,6 +2053,7 @@ void entity_createattachment ( void )
 								SetObjectTransparency (  t.ttobj,1 );
 								SetObjectCollisionOff (  t.ttobj );
 								SetObjectMask (  t.ttobj, 1 );
+								EnableObjectZDepth(t.ttobj); // PE:
 
 								//  VWEAP is NOT part of collision universe (prevents rocket hitting launcher)
 								SetObjectCollisionProperty (  t.ttobj,1 );
@@ -2071,14 +2074,28 @@ void entity_createattachment ( void )
 								{
 									sprintf ( t.szwork , "gamecore\\guns\\%s\\%s_D.dds" , t.tweaponname_s.Get() , t.tvweaptex_s.Get() );
 									t.texuseid=loadinternaltexture(t.szwork);
+									if (t.texuseid == 0) {
+										sprintf(t.szwork, "gamecore\\guns\\%s\\%s_color.dds", t.tweaponname_s.Get(), t.tvweaptex_s.Get());
+										t.texuseid = loadinternaltexture(t.szwork);
+									}
 								}
 								TextureObject (  t.ttobj,0,t.texuseid );
 								TextureObject (  t.ttobj,1,loadinternaltexture("effectbank\\reloaded\\media\\blank_O.dds") );
 								sprintf ( t.szwork , "gamecore\\guns\\%s\\%s_N.dds" ,t.tweaponname_s.Get() , t.tvweaptex_s.Get() );
 								t.texuseid=loadinternaltexture(t.szwork);
+								if (t.texuseid == 0) {
+									sprintf(t.szwork, "gamecore\\guns\\%s\\%s_normal.dds", t.tweaponname_s.Get(), t.tvweaptex_s.Get());
+									t.texuseid = loadinternaltexture(t.szwork);
+								}
 								TextureObject (  t.ttobj,2,t.texuseid );
 								sprintf ( t.szwork ,  "gamecore\\guns\\%s\\%s_S.dds" ,t.tweaponname_s.Get() , t.tvweaptex_s.Get()  );
 								t.texuseid=loadinternaltexture(t.szwork);
+								if (t.texuseid == 0) {
+									//PE: we need a gray_d for a little less specular on guns.
+									//PE: blank_medium_S.DDS dont work yet.
+									t.texuseid = loadinternaltexture("effectbank\\reloaded\\media\\white_D.dds");
+								}			
+
 								TextureObject (  t.ttobj,3,t.texuseid );
 								TextureObject (  t.ttobj,4,t.terrain.imagestartindex );
 								TextureObject (  t.ttobj,5,g.postprocessimageoffset+5 );
@@ -2129,6 +2146,7 @@ void entity_freeattachment ( void )
 void entity_controlattachments ( void )
 {
 	// ensure attachments are updated and visible
+
 	t.tcharacterobj=t.entityelement[t.e].obj;
 	t.tobj=t.entityelement[t.e].attachmentobj;
 	if ( t.tobj>0 && t.tcharacterobj>0 ) 
@@ -2167,8 +2185,12 @@ void entity_controlattachments ( void )
 						}
 					}
 				}
+
 				PositionObject (  t.tobj,t.limbpx_f,t.limbpy_f,t.limbpz_f );
 				ShowObject (  t.tobj );
+				//PE: fix t.entityelement[t.e].attachmentobj;
+				//PE: https://forum.game-guru.com/thread/219491.
+				EnableObjectZDepth(t.tobj);
 			}
 		}
 	}
@@ -2287,7 +2309,7 @@ void entity_converttoclonetransparent ( void )
 	// used in IDE editor to show locked entities
 	entity_converttoclone ( );
 	SetAlphaMappingOn ( t.tobj, 110 ); // special semi-transparent mode with draw first rendering
-	//DisableObjectZWrite ( t.tobj );
+	DisableObjectZWrite ( t.tobj );
 }
 
 bool entity_isuniquespecularoruv ( int ee )
@@ -2540,6 +2562,7 @@ void entity_prepareobj ( void )
 			SetObjectSpecularPower ( t.tobj, t.entityelement[t.tte].eleprof.specularperc / 100.0f );
 		}
 
+
 		// apply the scrolls cale uv data values for the shader use later on
 		if ( t.entityprofile[t.tentid].uvscrollu != 0.0f 
 		||   t.entityprofile[t.tentid].uvscrollv != 0.0f 
@@ -2548,6 +2571,12 @@ void entity_prepareobj ( void )
 		{
 			SetObjectScrollScaleUV ( t.tobj, t.entityprofile[t.tentid].uvscrollu, t.entityprofile[t.tentid].uvscrollv, t.entityprofile[t.tentid].uvscaleu, t.entityprofile[t.tentid].uvscalev );
 		}
+
+		// Set art flags for object (can use 32 bit flags here eventually)
+		DWORD dwArtFlags = 0;
+		if ( t.entityprofile[t.tentid].invertnormal == 1 ) dwArtFlags = 1;
+		if ( t.entityprofile[t.tentid].preservetangents == 1 ) dwArtFlags |= 1<<1;
+		SetObjectArtFlags ( t.tobj, dwArtFlags, 0.0f );
 	}
 }
 

@@ -10,8 +10,8 @@ int g_iBlackListMax = 0;
 bool g_bBlackListRemovedSomeEntities = false;
 
 // Externs
-extern int g_iFBXGeometryToggleMode;
-extern int g_iFBXGeometryCenterMesh;
+//extern int g_iFBXGeometryToggleMode;
+//extern int g_iFBXGeometryCenterMesh;
 
 // prototypes
 void LoadFBX ( LPSTR szFilename, int iID );
@@ -22,6 +22,7 @@ void LoadFBX ( LPSTR szFilename, int iID );
 
 void entity_addtoselection_core ( void )
 {
+
 	//  ensure ENT$ does not contain duplicate \ symbols
 	t.tnewent_s="";
 	for ( t.n = 1 ; t.n<=  Len(t.ent_s.Get()); t.n++ )
@@ -86,16 +87,19 @@ void entity_addtoselection_core ( void )
 			t.entid=t.tfoundid;
 		}
 	}
+
 }
 
 void entity_addtoselection ( void )
 {
+
 	//  Load entity from file requester
 	SetDir (  g.currententitydir_s.Get() );
 	t.ent_s=browseropen_s(9);
 	g.currententitydir_s=GetDir();
 	SetDir (  g.rootdir_s.Get() );
 	entity_addtoselection_core ( );
+
 }
 
 void entity_adduniqueentity ( bool bAllowDuplicates )
@@ -156,6 +160,7 @@ void entity_validatearraysize ( void )
 	{
 		g.entidmastermax=g.entidmaster+32;
 		Dim2(  t.entitybodypart,g.entidmastermax, 100   );
+		Dim2(  t.entityappendanim,g.entidmastermax, 100  );
 		Dim2(  t.entityanim,g.entidmastermax, g.animmax   );
 		Dim2(  t.entityfootfall,g.entidmastermax, g.footfallmax  );
 		Dim (  t.entityprofileheader,g.entidmastermax   );
@@ -167,6 +172,233 @@ void entity_validatearraysize ( void )
 		Dim (  t.entitybank_s,g.entidmastermax  );
 	}
 }
+
+
+//PE: GenerateD3D9ForMesh - make sure semantic is stored in old D3D9 format.
+//PE: Without get fvf offset can fail , and original skin weight is not used but generated , this can give animation problems.
+//PE: This is not a problem when using the importer, as it will save everything in the old D3D9 format into the dbo.
+void GenerateD3D9ForMesh(sMesh* pMesh, BOOL bNormals, BOOL bTangents, BOOL bBinormals, BOOL bDiffuse, BOOL bBones)
+{
+	// get FVF details
+	sOffsetMap offsetMap;
+	GetFVFValueOffsetMap(pMesh->dwFVF, &offsetMap);
+
+	// deactivate bone flag if no bones in source mesh
+	if (pMesh->dwBoneCount == 0) bBones = FALSE;
+
+	// valid mesh (no longer using DXMESH)
+	if (pMesh->dwFVF > 0)
+	{
+		// extract vertex size from mesh
+		WORD wNumBytesPerVertex = (WORD)pMesh->dwFVFSize;
+
+		// Starting declaration
+		int iDeclarationIndex = 0;
+		D3D11_INPUT_ELEMENT_DESC pDeclaration[12];
+
+		// check if mesh already has a component (and build declaration)
+		BOOL bHasNormals = FALSE;
+		BOOL bHasDiffuse = FALSE;
+		BOOL bHasTangents = FALSE;
+		BOOL bHasBinormals = FALSE;
+		BOOL bHasBlendWeights = FALSE;
+		BOOL bHasBlendIndices = FALSE;
+		BOOL bHasSecondaryUVs = FALSE;
+		if (pMesh->dwFVF & GGFVF_XYZ)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "POSITION";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = 0;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+		}
+		if (pMesh->dwFVF & GGFVF_NORMAL)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "NORMAL";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			bHasNormals = TRUE;
+		}
+		if (pMesh->dwFVF & GGFVF_TEX1)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			bHasDiffuse = TRUE;
+		}
+		if (pMesh->dwFVF & GGFVF_DIFFUSE)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "COLOR";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			bHasDiffuse = TRUE;
+		}
+		if (pMesh->dwFVF & offsetMap.dwTU[1] > 0)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 1;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			bHasSecondaryUVs = TRUE;
+		}
+
+		if (!bHasNormals && bNormals)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "NORMAL";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 12;
+		}
+		if (!bHasDiffuse && bDiffuse)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "COLOR";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 4;
+		}
+		if (!bHasTangents && bTangents)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TANGENT";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 12;
+		}
+		if (!bHasBinormals && bBinormals)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "BINORMAL";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 0;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 12;
+		}
+		DWORD dwOffsetToWeights = wNumBytesPerVertex;
+		if (!bHasBlendWeights && bBones)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 1;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 16;
+		}
+		DWORD dwOffsetToIndices = wNumBytesPerVertex;
+		if (!bHasBlendIndices && bBones)
+		{
+			pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+			pDeclaration[iDeclarationIndex].SemanticIndex = 2;
+			pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			pDeclaration[iDeclarationIndex].InputSlot = 0;
+			pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+			iDeclarationIndex++;
+			wNumBytesPerVertex += 16;
+		}
+
+		// copy declaration into old D3D9 format (as DBO relies on this data in the binary!)
+		int iDecIndex = 0;
+		int iByteOffset = 0;
+		for (; iDecIndex < iDeclarationIndex; iDecIndex++)
+		{
+			int iEntryByteSize = 0;
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "POSITION") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_POSITION;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT3;
+				iEntryByteSize = 12;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "NORMAL") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_NORMAL;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT3;
+				iEntryByteSize = 12;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "COLOR") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_COLOR;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT2;
+				iEntryByteSize = 4;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "TANGENT") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_TANGENT;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT3;
+				iEntryByteSize = 12;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "BINORMAL") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_BINORMAL;
+				pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT3;
+				iEntryByteSize = 12;
+			}
+			if (stricmp(pDeclaration[iDecIndex].SemanticName, "TEXCOORD") == NULL)
+			{
+				pMesh->pVertexDeclaration[iDecIndex].Usage = GGDECLUSAGE_TEXCOORD;
+				if (pDeclaration[iDecIndex].Format == DXGI_FORMAT_R32G32B32A32_FLOAT)
+				{
+					pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT4;
+					iEntryByteSize = 16;
+				}
+				else
+				{
+					pMesh->pVertexDeclaration[iDecIndex].Type = GGDECLTYPE_FLOAT2;
+					iEntryByteSize = 8;
+				}
+			}
+			pMesh->pVertexDeclaration[iDecIndex].Stream = 0;
+			pMesh->pVertexDeclaration[iDecIndex].Method = GGDECLMETHOD_DEFAULT;
+			pMesh->pVertexDeclaration[iDecIndex].UsageIndex = pDeclaration[iDecIndex].SemanticIndex;
+			pMesh->pVertexDeclaration[iDecIndex].Offset = iByteOffset;
+			iByteOffset += iEntryByteSize;
+		}
+		pMesh->pVertexDeclaration[iDecIndex].Stream = 255;
+	}
+}
+
 
 void entity_load ( void )
 {
@@ -250,6 +482,33 @@ void entity_load ( void )
 				}
 			}
 		}
+		// get path to original model
+		char pModelPath[10248];
+		strcpy ( pModelPath, "" );
+		LPSTR pOrigModelFilename = t.tfile_s.Get();
+		for ( int n = strlen(pOrigModelFilename) ; n > 0; n-- )
+		{
+			if ( pOrigModelFilename[n] == '\\' || pOrigModelFilename[n] == '/' )
+			{
+				strcpy ( pModelPath, pOrigModelFilename );
+				pModelPath[n+1] = 0;
+				break;
+			}
+		}
+		// 070718 - if append final file exists, use that
+		bool bUsingAppendAnimFileModel = false;
+		cstr pAppendFinalModelFilename = t.entityappendanim[t.entid][0].filename;
+		if ( strlen(pAppendFinalModelFilename.Get()) > 0 )
+		{
+			pAppendFinalModelFilename = cstr(pModelPath) + pAppendFinalModelFilename;
+			if ( FileExist(pAppendFinalModelFilename.Get()) == 1 ) 
+			{
+				bUsingAppendAnimFileModel = true;
+				t.tfile_s = pAppendFinalModelFilename;
+				pAppendFinalModelFilename = "";
+				t.tdbofile_s = "";
+			}
+		}
 		if ( FileExist(t.tfile_s.Get()) == 0 )
 		{
 			t.tfile_s=t.entityprofile[t.entid].model_s;
@@ -280,16 +539,33 @@ void entity_load ( void )
 					if (  t.entityprofile[t.entid].fullbounds == 1  )  SetFastBoundsCalculation (  0 );
 					if ( strnicmp ( t.tfile_s.Get() + strlen(t.tfile_s.Get()) - 4, ".fbx", 4 )==NULL )
 					{
-						int iStoreFBXGeometryToggleMode = g_iFBXGeometryToggleMode;
-						int iStoreFBXGeometryCenterMesh = g_iFBXGeometryCenterMesh;
-						g_iFBXGeometryToggleMode = 0;
-						g_iFBXGeometryCenterMesh = 0;
+						//int iStoreFBXGeometryToggleMode = g_iFBXGeometryToggleMode;
+						//int iStoreFBXGeometryCenterMesh = g_iFBXGeometryCenterMesh;
+						//g_iFBXGeometryToggleMode = 0;
+						//g_iFBXGeometryCenterMesh = 0;
 						LoadFBX ( t.tfile_s.Get(), t.entobj );
-						g_iFBXGeometryToggleMode = iStoreFBXGeometryToggleMode;
-						g_iFBXGeometryCenterMesh = iStoreFBXGeometryCenterMesh;
+						//g_iFBXGeometryToggleMode = iStoreFBXGeometryToggleMode;
+						//g_iFBXGeometryCenterMesh = iStoreFBXGeometryCenterMesh;
 					}
 					else
 						LoadObject ( t.tfile_s.Get(), t.entobj );
+
+					// 060718 - append animation data from other DBO files
+					if ( bUsingAppendAnimFileModel == false )
+					{
+						if ( Len(t.tdbofile_s.Get()) == 0 )
+						{
+							if ( t.entityprofile[t.entid].appendanimmax > 0 )
+							{
+								for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
+								{
+									cstr pAppendModelFilename = cstr(pModelPath) + t.entityappendanim[t.entid][aa].filename;
+									int iStartFrame = t.entityappendanim[t.entid][aa].startframe;
+									AppendObject ( (DWORD)(LPSTR)pAppendModelFilename.Get(), t.entobj, iStartFrame );
+								}
+							}
+						}
+					}
 
 					// wipe ANY material emission colors
 					SetObjectEmissive ( t.entobj, 0 );
@@ -337,8 +613,13 @@ void entity_load ( void )
 			//  loaded okay
 			if (  ObjectExist(t.entobj) == 1 ) 
 			{
-				//  Save if DBO not exist for entity (for fast loading)
-				if (  Len(t.tdbofile_s.Get())>1 ) 
+				// 070718 - if append final model needs to be created, prefer that
+				if ( strlen(pAppendFinalModelFilename.Get()) > 0 )
+					if ( FileExist(pAppendFinalModelFilename.Get()) == 0 ) 
+						t.tdbofile_s = pAppendFinalModelFilename;
+
+				// Save if DBO not exist for entity (for fast loading)
+				if ( Len(t.tdbofile_s.Get()) > 1 ) 
 				{
 					// ensure legacy compatibility (avoids new mapedito crashing build process)
 					if ( FileExist(t.tdbofile_s.Get()) == 1 )  DeleteFile ( t.tdbofile_s.Get() );
@@ -351,7 +632,8 @@ void entity_load ( void )
 						SetObjectCollisionOff (  t.entobj );
 					}
 				}
-				
+
+		
 				// 300817 - if an EBE object with no .EBE file, remove handle from entity
 				if ( t.entityprofile[t.entid].isebe == 2 )
 					if ( ObjectExist ( t.entobj ) == 1 )
@@ -364,8 +646,33 @@ void entity_load ( void )
 				//  XYZ=0x002 and NORMAL=0x010 and 1UV=0x100
 				if (  t.entityprofile[t.entid].skipfvfconvert == 0 ) 
 				{
-					//  lee - 300714 - seems to screw up Zombie models somehow, does it screw up rest of engine commenting it out?
-					CloneMeshToNewFormat (  t.entobj,0x002+0x010+0x100 );
+					// lee - 300714 - seems to screw up Zombie models somehow, does it screw up rest of engine commenting it out?
+					// PE: zombie problems could be the missing skin weight like below, did not test this.
+					// PE: perhaps we can streamline this now , so skipfvfconvert is not needed :)
+
+					CloneMeshToNewFormat(t.entobj, 0x002 + 0x010 + 0x100);
+				}
+				else {
+					//PE: make sure we use the correct FVF. even when using skipfvfconvert=1
+					DWORD dwRequiredFVF = 0x002 + 0x010 + 0x100;
+					sObject* pObject = g_ObjectList[t.entobj];
+					for (int iMeshIndex = 0; iMeshIndex<pObject->iMeshCount; iMeshIndex++)
+					{
+						sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+						if (pMesh->dwFVF != dwRequiredFVF)
+						{
+							ConvertToFVF(pMesh, dwRequiredFVF);
+						}
+					}
+				}
+
+				//PE: We are missing skin weight/others in old DX9 DBO setup. needed for some functions.
+				//PE: prevent generation of vertex weight that screw up some animations.
+				sObject* pObject = g_ObjectList[t.entobj];
+				for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+				{
+					sMesh* pMesh = pObject->ppMeshList[iMesh];
+					GenerateD3D9ForMesh(pMesh, true, true, true, true, true);
 				}
 
 				// 131115 - fixes issue of some models not being able to detect with intersectall
@@ -660,7 +967,7 @@ void entity_load ( void )
 
 void entity_loaddata ( void )
 {
-	//  Protect BIN file if no FPE backup (standalone run)
+    //  Protect BIN file if no FPE backup (standalone run)
 	t.tprotectBINfile=0;
 	t.tFPEName_s=t.entdir_s+t.ent_s;
 	if (  FileExist(t.tFPEName_s.Get()) == 0 ) 
@@ -704,6 +1011,7 @@ void entity_loaddata ( void )
 		//  Must be reset before parse
 		t.entityprofile[t.entid].limbmax=0;
 		t.entityprofile[t.entid].animmax=0;
+		t.entityprofile[t.entid].appendanimmax=0; //PE: sometimes , caused endless loop, was never set anywhere.
 		t.entityprofile[t.entid].footfallmax=0;
 		t.entityprofile[t.entid].headlimb=-1;
 		t.entityprofile[t.entid].firespotlimb=-1;
@@ -779,6 +1087,8 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].uvscrollv=0;
 		t.entityprofile[t.entid].uvscaleu=1.0f;
 		t.entityprofile[t.entid].uvscalev=1.0f;
+		t.entityprofile[t.entid].invertnormal=0;
+		t.entityprofile[t.entid].preservetangents=0;		
 		t.entityprofile[t.entid].colondeath=1;
 		t.entityprofile[t.entid].parententityindex=0;
 		t.entityprofile[t.entid].parentlimbindex=0;
@@ -798,11 +1108,16 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].forcesimpleobstacle=0;
 		t.entityprofile[t.entid].forceobstaclepolysize=30.0f;
 		t.entityprofile[t.entid].forceobstaclesliceheight=14.0f;
+		t.entityprofile[t.entid].forceobstaclesliceminsize=5.0f;
 		t.entityprofile[t.entid].effectprofile=0;
 
 		//  Starter animation counts
 		t.tnewanimmax=0 ; t.entityprofile[t.entid].animmax=t.tnewanimmax;
 		t.tstartofaianim=-1 ; t.entityprofile[t.entid].startofaianim=t.tstartofaianim;
+
+		// other resets
+		t.entityappendanim[t.entid][0].filename = "";
+		t.entityappendanim[t.entid][0].startframe = 0;
 
 		//  temp variable to hold which physics object we are on from the importer
 		t.tPhysObjCount = 0;
@@ -931,22 +1246,29 @@ void entity_loaddata ( void )
 					t.tryfield_s="autoflatten";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].autoflatten = t.value1;
 
-					//  collisionmode
-					//  0 ; default Box (  )
-					//  1 ; polygon shape
-					//  2 ; sphere??legacy
-					//  3 ; cylinder??legacy
-					//  9 ; convex hull reduction
+					//  collisionmode (see GameGuru\Docs\collisionmodevalues.txt)
+					//  0  ; box shape (default)
+					//  1  ; polygon shape
+					//  2  ; sphere shape
+					//  3  ; cylinder shape
+					//  9  ; convex hull reduction shape
 					//  11 ; no physics
-					//  12 ; no physics but can still be shot with intersectall check
-					//  21 ; player repell feature (for characters and other beasts/zombies)
-					//  40 ; collision boxes
-					//  41-49 ; reserved (collision poly list, spehere list, cylinder list)
-					//  50 
-					//  51 
-					//  52-59 
-					//  1000-2000 ; only one limb has collision Box (1000=limb zero)
-					//  2000-3000 ; only one limb has collision polygons (2000=limb zero)
+					//  12 ; no physics but can still be detected with IntersectAll command
+					//  21 ; player repel feature (for characters and other beasts/zombies)
+					//  40 ; collision boxes (defined in Import Model feature)
+					//  41-49 ; reserved (collision polylist, sphere list, cylinder list)
+					//  50 ; generate obstacle and cylinder from 1/64th up from base of model
+					//  51 ; generate obstacle and cylinder from 1/32th down from base of model
+					//  52 ; generate obstacle and cylinder from 8/16th up from base of model
+					//  53 ; generate obstacle and cylinder from 7/16th up from base of model
+					//  54 ; generate obstacle and cylinder from 6/16th up from base of model
+					//  55 ; generate obstacle and cylinder from 5/16th up from base of model
+					//  56 ; generate obstacle and cylinder from 4/16th up from base of model
+					//  57 ; generate obstacle and cylinder from 3/16th up from base of model
+					//  58 ; generate obstacle and cylinder from 2/16th up from base of model
+					//  59 ; generate obstacle and cylinder from 1/16th up from base of model
+					//  1000-2000 ; only one limb has collision Box Shape (1000=limb zero,1001=limb one,etc)
+					//  2000-3000 ; only one limb has collision Polygons Shape (2000=limb zero,2001=limb one,etc)					
 					t.tryfield_s="collisionmode";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].collisionmode = t.value1;
 					t.tryfield_s="collisionscaling";
@@ -972,6 +1294,8 @@ void entity_loaddata ( void )
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclepolysize = t.value1;
 					t.tryfield_s="forceobstaclesliceheight";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclesliceheight = t.value1;
+					t.tryfield_s="forceobstaclesliceminsize";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].forceobstaclesliceminsize = t.value1;
 
 					t.tryfield_s="notanoccluder";
 					if (  t.field_s == t.tryfield_s  )  
@@ -1134,6 +1458,14 @@ void entity_loaddata ( void )
 					t.tryfield_s="uvscale";
 					if (  t.field_s == t.tryfield_s  ) { t.entityprofile[t.entid].uvscaleu = t.value1/100.0f; t.entityprofile[t.entid].uvscalev = t.value2/100.0f; }
 
+					// can invert the normal, or set to zero to not invert (not inverted by default)
+					t.tryfield_s="invertnormal";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].invertnormal = t.value1;
+
+					// can choose whether to generate tangent/binormal in the shader
+					t.tryfield_s="preservetangents";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].preservetangents = t.value1;
+					
 					t.tryfield_s="zdepth";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].zdepth = t.value1;
 
@@ -1281,6 +1613,10 @@ void entity_loaddata ( void )
 					t.tryfield_s="lightoffsetz";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].light.offsetz = t.value1;
 
+					// light type flags
+					t.tryfield_s="usespotlighting";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].usespotlighting = t.value1;
+
 					//  trigger extras
 					t.tryfield_s="stylecolor";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].trigger.stylecolor = t.value1;
@@ -1331,6 +1667,34 @@ void entity_loaddata ( void )
 						{
 							t.tryfield_s = cstr((cstr("decal")+Str(t.q)) );
 							if (  t.field_s == t.tryfield_s  )  t.entitydecal_s[t.entid][t.q] = t.value_s;
+						}
+					}
+
+					// 060718 - entity append anim system
+					t.tryfield_s=cstr("appendanimfinal");
+					if (  t.field_s == t.tryfield_s )
+					{ 
+						t.entityappendanim[t.entid][0].filename = t.value_s; 
+						t.entityappendanim[t.entid][0].startframe = 0;
+					}
+					t.tryfield_s="appendanimmax";
+					if ( t.field_s == t.tryfield_s ) 
+					{
+						t.entityprofile[t.entid].appendanimmax = t.value1; 
+						if ( t.entityprofile[t.entid].appendanimmax > 99 ) 
+							t.entityprofile[t.entid].appendanimmax = 99;
+					}
+
+					//PE: Hanging, in my case: appendanimmax=573444874 value_s=road_straight01.x
+					//PE: Hang if you are unlucky and get mem that "appendanimmax" are not already set to zero.
+					if ( t.entityprofile[t.entid].appendanimmax > 0 && t.entityprofile[t.entid].appendanimmax <= 99 )
+					{
+						for ( int aa = 1 ; aa <= t.entityprofile[t.entid].appendanimmax; aa++ )
+						{
+							t.tryfield_s=cstr("appendanim")+Str(aa);
+							if (  t.field_s == t.tryfield_s ) { t.entityappendanim[t.entid][aa].filename = t.value_s; }
+							t.tryfield_s=cstr("appendanimframe")+Str(aa);
+							if (  t.field_s == t.tryfield_s ) { t.entityappendanim[t.entid][aa].startframe = t.value1; }
 						}
 					}
 
@@ -1727,6 +2091,102 @@ void entity_loaddata ( void )
 				if ( iReplaceMode == 4 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\apbr_treea.fx";
 			}
 		}
+		else
+		{
+			// 120418 - conversely, if PBR override not active, and have new PBR asset entities that still 
+			// have old DNS textures, switch them back to classic non-PBR (this allows new PBR assets to 
+			// replace older legacy assets but still allow backwards compatibility for users who want the
+			// old shaders and old textures to remain in effect using PBR override of zero)
+			char pEntityItemPath[1024];
+			strcpy ( pEntityItemPath, t.ent_s.Get() );
+			int n = 0;
+			for ( n = strlen(pEntityItemPath)-1; n > 0; n-- )
+			{
+				if ( pEntityItemPath[n] == '\\' || pEntityItemPath[n] == '/' )
+				{
+					pEntityItemPath[n+1] = 0;
+					break;
+				}
+			}
+			if ( n <= 0 ) strcpy ( pEntityItemPath, "" );
+			char pJustTextureName[1024];
+			strcpy ( pJustTextureName, t.entityprofile[t.entid].texd_s.Get() );
+			if ( strlen ( pJustTextureName ) > 4 )
+			{
+				pJustTextureName[strlen(pJustTextureName)-4]=0;
+				if ( stricmp ( pJustTextureName+strlen(pJustTextureName)-6, "_color" ) == NULL )
+				{
+					pJustTextureName[strlen(pJustTextureName)-6]=0;
+					strcat ( pJustTextureName, "_D" );
+				}
+				strcat ( pJustTextureName, ".png" );
+			}
+			char pReplaceWithDNS[1024];
+			strcpy ( pReplaceWithDNS, pEntityItemPath );
+			strcat ( pReplaceWithDNS, pJustTextureName );
+			bool bReplacePBRWithNonPBRDNS = false;
+			LPSTR pPBREffectMatch = "effectbank\\reloaded\\apbr";
+			if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pPBREffectMatch, strlen(pPBREffectMatch) ) == NULL ) 
+			{
+				// entity effect specifies PBR, do we have the DNS files available
+				if ( strlen ( pJustTextureName ) > 4 )
+				{
+					cstr pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+					if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+					{
+						pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
+						strcat ( pReplaceWithDNS, ".dds" );
+						pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+						if ( FileExist ( pFindDNSFile.Get() ) == 0 )
+						{
+							pReplaceWithDNS[strlen(pReplaceWithDNS)-4]=0;
+							strcat ( pReplaceWithDNS, ".jpg" );
+							pFindDNSFile = t.entdir_s + pReplaceWithDNS;
+							if ( FileExist ( pFindDNSFile.Get() ) == 1 )
+							{
+								bReplacePBRWithNonPBRDNS = true;
+							}
+						}
+						else
+						{
+							bReplacePBRWithNonPBRDNS = true;
+						}
+					}
+					else
+					{
+						bReplacePBRWithNonPBRDNS = true;
+					}
+				}
+				else
+				{
+					// no texture specified, but can still switch to classic shaders (legacy behavior)
+					bReplacePBRWithNonPBRDNS = true;
+				}
+			}
+			if ( bReplacePBRWithNonPBRDNS == true )
+			{
+				// replace the shader used
+				int iReplaceMode = 0;
+				LPSTR pTryMatch = "effectbank\\reloaded\\apbr_basic.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 1;
+				pTryMatch = "effectbank\\reloaded\\apbr_anim.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 2;
+				pTryMatch = "effectbank\\reloaded\\apbr_tree.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 3;
+				pTryMatch = "effectbank\\reloaded\\apbr_treea.fx";
+				if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 4;
+				if ( iReplaceMode > 0 )
+				{
+					if ( iReplaceMode == 1 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\entity_basic.fx";
+					if ( iReplaceMode == 2 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\character_basic.fx";
+					if ( iReplaceMode == 3 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\tree_basic.fx";
+					if ( iReplaceMode == 4 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\treea_basic.fx";
+				}
+
+				// replace the texture specified (from _color to _D)
+				t.entityprofile[t.entid].texd_s = pJustTextureName;
+			}
+		}
 
 		// if effect shader starts with APBR, auto shift effectprofile from zero to one
 		LPSTR pPBREffectMatch = "effectbank\\reloaded\\apbr";
@@ -1975,6 +2435,7 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.markerindex=t.entityprofile[t.entid].markerindex;
 	t.grideleprof.light=t.entityprofile[t.entid].light;
 	t.grideleprof.trigger=t.entityprofile[t.entid].trigger;
+	t.grideleprof.usespotlighting=t.entityprofile[t.entid].usespotlighting;
 
 	//  Data Extracted From GUN and FLAK
 	t.tgunid_s=t.entityprofile[t.entid].isweapon_s;
@@ -2100,7 +2561,6 @@ void entity_updatetextureandeffectfromgrideleprof ( void )
 
 void entity_getgunidandflakid ( void )
 {
-
 	//  Use Weapon Name to get GUNID and FLAKID
 	if (  t.tgunid_s != "" ) 
 	{
@@ -2108,18 +2568,8 @@ void entity_getgunidandflakid ( void )
 		t.findgun_s=Lower(t.tgunid_s.Get());
 		gun_findweaponindexbyname ( );
 		t.tgunid=t.foundgunid;
-		//  get flak
-//   `tflakid$=firemode(tgunid,0).settings.flakname$
-
-//   `if tflakid$<>""
-
-		//t.flak_s=Lower_s(t.tflakid_s.Get()) ; flak_findindex ( );
-		//tflakid=tindex
-//   `else
-
-			t.tflakid=0;
-//   `endif
-
+		//  no flak - old system
+		t.tflakid=0;
 	}
 	else
 	{
@@ -2287,6 +2737,34 @@ void entity_loadtexturesandeffect ( void )
 	// Texture and apply effect
 	if ( t.entobj>0 ) 
 	{
+		// lee - 300518 - added extra code in LoadObject to detect DNS and PBR texture file sets and set the mesh, so 
+		// skip the override code below if the object has a good texture in place
+		//bool bGotAO = false - replaced this with a later scan to add AO only when missing
+		bool bGotNormal = false, bGotMetalness = false, bGotGloss = false;
+		sObject* pObject = GetObjectData ( t.entobj );
+		if ( pObject )
+		{
+			for ( int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++ )
+			{
+				sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+				if ( pMesh )
+				{
+					for ( int iTextureIndex = 2; iTextureIndex < pMesh->dwTextureCount; iTextureIndex++ )
+					{
+						if ( pMesh->pTextures[iTextureIndex].iImageID > 0 )
+						{
+							//if ( iTextureIndex == 1 ) bGotAO = true;
+							if ( iTextureIndex == 2 ) bGotNormal = true;
+							if ( iTextureIndex == 3 ) bGotMetalness = true;
+							if ( iTextureIndex == 4 ) bGotGloss = true;
+						}
+					}
+				}
+			}
+		}
+
+		// detect if using an effect or not
+		int use_illumination = false;
 		if ( t.entityprofile[t.entid].usingeffect == 0 ) 
 		{
 			//  No effect
@@ -2303,6 +2781,8 @@ void entity_loadtexturesandeffect ( void )
 				char pNoExtFilename[1024];
 				strcpy ( pNoExtFilename, t.texdir_s.Get() );
 				pNoExtFilename[strlen(pNoExtFilename)-4] = 0;
+				//PE: Some textures do not have _d,_color,_albedo , so always reset.
+				t.texdirnoext_s = "";
 				if ( strnicmp ( pNoExtFilename+strlen(pNoExtFilename)-2, "_d", 2 ) == NULL )
 				{
 					t.texdirnoext_s=Left(pNoExtFilename,Len(pNoExtFilename)-Len("_d"));
@@ -2320,11 +2800,17 @@ void entity_loadtexturesandeffect ( void )
 				t.entityprofile[t.entid].texdid = t.texuseid;
 
 				// Assign NORMAL
-				t.texdirN_s = t.texdirnoext_s+"_n.dds";
+				if ( iEffectProfile == 1 )
+					t.texdirN_s = t.texdirnoext_s+"_normal.dds";
+				else
+					t.texdirN_s = t.texdirnoext_s+"_n.dds";
 				t.texuseid = loadinternaltextureex(t.texdirN_s.Get(),1,t.tfullorhalfdivide);
 				if ( t.texuseid == 0 ) 
 				{
-					t.texdirN_s = t.texdirnoext_s+"_normal.dds";
+					if ( iEffectProfile == 1 )
+						t.texdirN_s = t.texdirnoext_s+"_n.dds";
+					else
+						t.texdirN_s = t.texdirnoext_s+"_normal.dds";
 					t.texuseid = loadinternaltextureex(t.texdirN_s.Get(),1,t.tfullorhalfdivide);
 					if ( t.texuseid == 0 ) 
 					{
@@ -2376,20 +2862,36 @@ void entity_loadtexturesandeffect ( void )
 				t.entityprofile[t.entid].texsid = t.texuseid;
 
 				// Assign ILLUMINATION or CUBE (or real-time 'ENVCUBE for PBR' later)
-				t.texdirI_s = t.texdirnoext_s+"_i.dds";
-				t.texuseid = loadinternaltextureex(t.texdirI_s.Get(),1,t.tfullorhalfdivide);
-				if ( t.texuseid == 0 )
+				if ( iEffectProfile == 0 )
 				{
-					// if no _I file, try to find and load _CUBE file (load mode 2 = cube)
+					// non-PBR legacy behaviour
+					t.texdirI_s = t.texdirnoext_s+"_i.dds";
+					t.texuseid = loadinternaltextureex(t.texdirI_s.Get(),1,t.tfullorhalfdivide);
+					if ( t.texuseid == 0 )
+					{
+						// if no _I file, try to find and load _CUBE file (load mode 2 = cube)
+						t.texdirI_s = t.texdirnoext_s+"_cube.dds";
+						t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
+						if ( t.texuseid == 0 )
+						{
+							// if no local CUBE, see if the level has generated one (matches sky and terrain)
+							t.texuseid = t.terrain.imagestartindex+31;
+						}
+					}
+					t.entityprofiletexiid = t.texuseid;
+				}
+				else
+				{
+					// PBR behaviour only allow _CUBE to override PBR reflection
 					t.texdirI_s = t.texdirnoext_s+"_cube.dds";
 					t.texuseid = loadinternaltexturemode(t.texdirI_s.Get(),2);
-					if ( t.texuseid == 0 && iEffectProfile == 1 )
+					if ( t.texuseid == 0 )
 					{
 						// if no local CUBE, see if the level has generated one (matches sky and terrain)
 						t.texuseid = t.terrain.imagestartindex+31;
 					}
+					t.entityprofiletexiid = t.texuseid;
 				}
-				t.entityprofiletexiid = t.texuseid;
 				t.entityprofile[t.entid].texiid = t.entityprofiletexiid;
 
 				// Assign AMBIENT OCCLUSION MAP
@@ -2403,8 +2905,20 @@ void entity_loadtexturesandeffect ( void )
 					{
 						t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_O.dds",1,t.tfullorhalfdivide);
 					}
+					else
+					{
+						// disable override to AO that exists can be used
+						if ( strlen ( t.entityprofile[t.entid].texd_s.Get() ) > 0 )
+						{
+							// but only if texture was specified in FPE, not if we assume model based textures
+							//bGotAO = false; // see replacement solution below
+						}
+					}
 				}
 				t.entityprofiletexoid = t.texuseid;
+
+				//PE: IBR old t7 is now t8 , detail/illum t8 is now t7. Done so we can skip t8, we still need the correct order of textures.
+				//PE: IBR was not large but generate tons of stage changes.
 
 				// Assign textures for PBR
 				if ( iEffectProfile == 1 )
@@ -2437,14 +2951,40 @@ void entity_loadtexturesandeffect ( void )
 					t.entityprofile[t.entid].texhid = t.texuseid;
 
 					// IBR texture
-					t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
-
-					// Detail texture
-					cstr pDetailtex_s = t.texdirnoext_s+"_detail.dds";
-					t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(),1,t.tfullorhalfdivide);
-					if ( t.entityprofile[t.entid].texlid == 0 ) 
+					if (g.memskipibr == 0) 
 					{
-						t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds",1,t.tfullorhalfdivide);
+						t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+					}
+
+					//PE: Use illumination instead of detail if found.
+					//PE: Illumination overwrite detail.
+					use_illumination = true;
+					cstr pDetailtex_s = t.texdirnoext_s + "_illumination.dds";
+					t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
+					if (t.entityprofile[t.entid].texlid == 0)
+					{
+						cstr pDetailtex_s = t.texdirnoext_s + "_emissive.dds"; // _emissive
+						t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
+						if (t.entityprofile[t.entid].texlid == 0)
+						{
+							if (g.gpbroverride == 1) 
+							{
+								// PE: Also support _i when using gpbroverride == 1.
+								t.texdirI_s = t.texdirnoext_s + "_i.dds";
+								t.entityprofile[t.entid].texlid = loadinternaltextureex(t.texdirI_s.Get(), 1, t.tfullorhalfdivide);
+							}
+							if (t.entityprofile[t.entid].texlid == 0) 
+							{
+								// Detail texture
+								cstr pDetailtex_s = t.texdirnoext_s + "_detail.dds";
+								t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
+								if (t.entityprofile[t.entid].texlid == 0)
+								{
+									t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
+								}
+								use_illumination = false;
+							}
+						}
 					}
 				}
 
@@ -2460,10 +3000,10 @@ void entity_loadtexturesandeffect ( void )
 				// Additional texture assignments required for PBR mode
 				if ( iEffectProfile == 1 )
 				{
-					TextureObject ( t.entobj, 8, t.entityprofile[t.entid].texlid );
+					if (g.memskipibr == 0) TextureObject ( t.entobj, 8, t.entityprofiletexibrid );
+					TextureObject ( t.entobj, 7, t.entityprofile[t.entid].texlid );
 					TextureObject ( t.entobj, 4, t.entityprofile[t.entid].texgid );
 					TextureObject ( t.entobj, 5, t.entityprofile[t.entid].texhid );
-					TextureObject ( t.entobj, 7, t.entityprofiletexibrid );
 				}
 			}
 			else
@@ -2472,32 +3012,86 @@ void entity_loadtexturesandeffect ( void )
 				// and already loaded D N and S into 0, 2 and 3
 				t.entityprofile[t.entid].texiid = 0;
 
-				//PE 240118: not always if missing texture= in fpe , normal/spec is not always in the objects texture lists. ( we must have normal maps on all objects ).
-				//Fix: https://github.com/LeeBamberTGC/GameGuruRepo/issues/10
+				// PE 240118: not always if missing texture= in fpe , normal/spec is not always in the objects texture lists. ( we must have normal maps on all objects ).
+				// Fix: https://github.com/LeeBamberTGC/GameGuruRepo/issues/10
+				// lee - 300518 - added extra code in LoadObject to detect DNS and PBR texture file sets and set the mesh, so 
+				// skip the override code below if the object has a good texture in place
 
-				if (t.entityprofile[t.entid].texnid == 0)
+				if (t.entityprofile[t.entid].texnid == 0 && bGotNormal == false )
 				{
 					t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_N.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texnid = t.texuseid;
 					TextureObject(t.entobj, 2, t.entityprofile[t.entid].texnid);
 				}
-				if (t.entityprofile[t.entid].texsid == 0)
+				if (t.entityprofile[t.entid].texsid == 0 && bGotMetalness == false )
 				{
 					t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
 					t.entityprofile[t.entid].texsid = t.texuseid;
 					TextureObject(t.entobj, 3, t.entityprofile[t.entid].texsid);
 				}
+				// PE: iEffectProfile != 1 for this type of objects at this point in code.
+				if (t.entityprofile[t.entid].texiid == 0)
+				{
+					if (g.gpbroverride == 1) // iEffectProfile == 1
+					{
+						// if no local CUBE, see if the level has generated one (matches sky and terrain)
+						t.entityprofile[t.entid].texiid = t.terrain.imagestartindex + 31;
+					}
+				}
 
+				// Not set anywhere, so just use blank_o.
+				t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_O.dds", 1, t.tfullorhalfdivide);
+				t.entityprofiletexoid = t.texuseid; // must always be set.
+
+				// PE: PBR shader support for old media with no texture in fpe.
+				if (g.gpbroverride == 1) 
+				{
+					// None of the below will be in old media , so setup using fallback textures.
+					t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
+					t.entityprofile[t.entid].texgid = loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds", 1, t.tfullorhalfdivide);
+					t.entityprofile[t.entid].texhid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds", 1, t.tfullorhalfdivide);
+					if (g.memskipibr == 0) TextureObject(t.entobj, 8, t.entityprofiletexibrid);
+					TextureObject(t.entobj, 7, t.entityprofile[t.entid].texlid);
+					if ( bGotGloss == false ) TextureObject(t.entobj, 4, t.entityprofile[t.entid].texgid);
+					TextureObject(t.entobj, 5, t.entityprofile[t.entid].texhid);
+				}
 			}
 
-			//  Apply all textures to REMAINING entity parent object (V C I)
-			TextureObject ( t.entobj, 1, t.entityprofiletexoid );
+			// 230618 - apply AO texture ONLY when missing
+			// if ( bGotAO == false ) TextureObject ( t.entobj, 1, t.entityprofiletexoid );
+			sObject* pObject = GetObjectData ( t.entobj );
+			if ( pObject )
+			{
+				for ( int iFrameIndex = 0; iFrameIndex < pObject->iFrameCount; iFrameIndex++ )
+				{
+					sFrame* pFrame = pObject->ppFrameList[iFrameIndex];
+					if ( pFrame )
+					{
+						sMesh* pMesh = pFrame->pMesh;
+						if ( pMesh )
+						{
+							for ( int iTextureIndex = 1; iTextureIndex < pMesh->dwTextureCount; iTextureIndex++ )
+							{
+								if ( pMesh->pTextures[iTextureIndex].iImageID == 0 )
+								{
+									if ( iTextureIndex == 1 ) TextureLimbStage ( t.entobj, iFrameIndex, iTextureIndex, t.entityprofiletexoid );
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Apply all textures to REMAINING entity parent object (V C I)
 			TextureObject ( t.entobj, 6, t.entityprofile[t.entid].texiid );
 
 			// PBR or non-PBR modes
 			LPSTR pEntityBasic = "effectbank\\reloaded\\entity_basic.fx";
 			LPSTR pEntityAnim = "effectbank\\reloaded\\entity_anim.fx";
 			LPSTR pCharacterBasic = "effectbank\\reloaded\\character_basic.fx";
+			LPSTR pEntityBasicIllum = "effectbank\\reloaded\\apbr_illum.fx";
+			LPSTR pCharacterBasicIllum = "effectbank\\reloaded\\apbr_illum_anim.fx";
+
 			if ( g.gpbroverride == 1 )
 			{
 				pEntityBasic = "effectbank\\reloaded\\apbr_basic.fx";
@@ -2505,10 +3099,24 @@ void entity_loadtexturesandeffect ( void )
 				pCharacterBasic = "effectbank\\reloaded\\apbr_anim.fx";
 			}
 			
+			// 100718 - fix issue where old effect (non-illum) is retained for non-bone shader
+			if ( stricmp ( EffectFile_s.Get(), pEntityBasic)==NULL ) 
+			{
+				if ( g.gpbroverride == 1 && use_illumination )
+				{
+					t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityBasicIllum);
+				}
+			}
+
 			// Special case for character_basic shader, when has meshes with no bones, use entity_basic instead
 			t.teffectid2=0;
-			if ( stricmp ( EffectFile_s.Get(), pCharacterBasic)==NULL ) 
-				t.teffectid2=loadinternaleffect(pEntityBasic);
+			if ( stricmp(EffectFile_s.Get(), pCharacterBasic) == NULL )  
+			{
+				if ( g.gpbroverride == 1 && use_illumination)
+					t.teffectid2 = loadinternaleffect(pEntityBasicIllum);
+				else
+					t.teffectid2 = loadinternaleffect(pEntityBasic);
+			}
 
 			// 010917 - or if using entity_basic shader, and HAS anim meshes with bones, use entity_anim instead
 			if ( stricmp ( EffectFile_s.Get(), pEntityBasic)==NULL ) 
@@ -2516,12 +3124,34 @@ void entity_loadtexturesandeffect ( void )
 				if ( t.entityprofile[t.entid].animmax > 0 )
 				{
 					t.teffectid2 = t.entityprofile[t.entid].usingeffect;
-					t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityAnim);
+					if (g.gpbroverride == 1 && use_illumination)
+						t.entityprofile[t.entid].usingeffect = loadinternaleffect(pCharacterBasicIllum);
+					else
+						t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityAnim);
+				}
+				else 
+				{
+					// PE: Change basic effect to use illumination
+					if ( g.gpbroverride == 1 && use_illumination )
+						t.entityprofile[t.entid].usingeffect = loadinternaleffect(pEntityBasicIllum);
+				}
+			}
+
+			if (stricmp(EffectFile_s.Get(), pCharacterBasic) == NULL) 
+			{
+				// PE: Change character effect to use illumination
+				if (g.gpbroverride == 1 && use_illumination) 
+				{
+					t.entityprofile[t.entid].usingeffect = loadinternaleffect(pCharacterBasicIllum);
 				}
 			}
 
 			// Apply effect and textures
-			SetObjectEffectCore (  t.entobj,t.entityprofile[t.entid].usingeffect,t.teffectid2,t.entityprofile[t.entid].cpuanims );
+			if ( t.lightmapper.onlyloadstaticentitiesduringlightmapper == 0 )
+			{
+				// don't use shader effects when lightmapping
+				SetObjectEffectCore ( t.entobj, t.entityprofile[t.entid].usingeffect, t.teffectid2, t.entityprofile[t.entid].cpuanims );
+			}
 		}
 	}
 
@@ -3946,18 +4576,12 @@ void entity_addentitytomap_core ( void )
 
 void entity_addentitytomap ( void )
 {
-	//  Entity To Add
+	// Entity To Add
 	t.entitymaintype=1;
 	t.entitybankindex=t.gridentity;
 	entity_addentitytomap_core ( );
 
-	//  update infinilight list with addition
-	if (  t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5 ) 
-	{
-		lighting_refresh ( );
-	}
-
-	//  transfer waypoint zone index to entityelement
+	// transfer waypoint zone index to entityelement
 	t.waypointindex=t.grideleprof.trigger.waypointzoneindex;
 	t.entityelement[t.e].eleprof.trigger.waypointzoneindex=t.waypointindex;
 	t.waypoint[t.waypointindex].linkedtoentityindex=t.e;
@@ -3972,17 +4596,16 @@ void entity_addentitytomap ( void )
 	entity_getgunidandflakid ( );
 	if (  t.tgunid>0 ) 
 	{
-		//  populate the actual gun and flak settings (for further weapon entity creations)
-		for ( int firemode = 0; firemode < 2; firemode++ )
-		{
-			g.firemodes[t.tgunid][firemode].settings.damage=t.grideleprof.damage;
-			g.firemodes[t.tgunid][firemode].settings.accuracy=t.grideleprof.accuracy;
-			g.firemodes[t.tgunid][firemode].settings.reloadqty=t.grideleprof.reloadqty;
-			g.firemodes[t.tgunid][firemode].settings.iterate=t.grideleprof.fireiterations;
-			g.firemodes[t.tgunid][firemode].settings.range=t.grideleprof.range;
-			g.firemodes[t.tgunid][firemode].settings.dropoff=t.grideleprof.dropoff;
-			g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.grideleprof.usespotlighting;
-		}
+		// populate the actual gun and flak settings (for further weapon entity creations)
+		int firemode = 0; // 110718 - entity properties should only edit first primary gun settings (so we dont mess up enhanced weapons)
+		//for ( int firemode = 0; firemode < 2; firemode++ )
+		g.firemodes[t.tgunid][firemode].settings.damage=t.grideleprof.damage;
+		g.firemodes[t.tgunid][firemode].settings.accuracy=t.grideleprof.accuracy;
+		g.firemodes[t.tgunid][firemode].settings.reloadqty=t.grideleprof.reloadqty;
+		g.firemodes[t.tgunid][firemode].settings.iterate=t.grideleprof.fireiterations;
+		g.firemodes[t.tgunid][firemode].settings.range=t.grideleprof.range;
+		g.firemodes[t.tgunid][firemode].settings.dropoff=t.grideleprof.dropoff;
+		g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.grideleprof.usespotlighting;
 		if (  t.tflakid>0 ) 
 		{
 			// flak to follow
@@ -4076,6 +4699,15 @@ void entity_addentitytomap ( void )
 			// Selected an existing EBE entity from library
 		}
 	}
+
+	//PE: Moved here as we use the object direction vector for spot lights.
+	// update infinilight list with addition
+	if (t.entityprofile[t.entitybankindex].ismarker == 2 || t.entityprofile[t.entitybankindex].ismarker == 5 || t.entityelement[t.e].eleprof.usespotlighting)
+	{
+		lighting_refresh();
+	}
+
+
 }
 
 void entity_deleteentityfrommap ( void )
@@ -4085,6 +4717,9 @@ void entity_deleteentityfrommap ( void )
 
 	//  Use entity coord to find tile
 	t.tupdatee=t.tentitytoselect;
+
+	// remember entity bank index for later light refresh
+	int iWasEntID = t.entityelement[t.tupdatee].bankindex;
 
 	//  cleanup character creator
 	t.ccobjToDelete = t.tupdatee;
@@ -4118,14 +4753,14 @@ void entity_deleteentityfrommap ( void )
 	}
 	t.tDontDeleteWPFlag = 0;
 
-	//  update infinilight list with removal
-	if (  t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5 ) 
+	// update infinilight list with removal
+	if ( t.entityprofile[iWasEntID].ismarker == 2 || t.entityprofile[iWasEntID].ismarker == 5 ) 
 	{
 		//  refresh existing lights
 		lighting_refresh ( );
 	}
 
-	//  update real ent obj (.obj=0 inside)
+	// update real ent obj (.obj=0 inside)
 	entity_updateentityobj ( );
 }
 

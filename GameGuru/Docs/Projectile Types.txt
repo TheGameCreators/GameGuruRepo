@@ -1,0 +1,10 @@
+; particleType
+; 0  - None
+; 1  - Smoke
+; 2  - Flare
+; 3  - Fire
+; 99 - Custom ( use particleName )
+
+; explosionType
+; 0  - Default
+; 99 - Custom ( use explosionName )

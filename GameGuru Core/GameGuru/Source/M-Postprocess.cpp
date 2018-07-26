@@ -52,6 +52,11 @@ void postprocess_init ( void )
 				SetObjectMask (  g.postprocessobjectoffset+0,(1 << g.gfinalrendercameraid) );
 				SetCameraToImage ( 0, g.postprocessimageoffset+0, GetDisplayWidth(), GetDisplayHeight(), 2 );
 				TextureObject ( g.postprocessobjectoffset+0,0,g.postprocessimageoffset+0 );
+				if( g.underwatermode == 1 ) {
+					//PE:Underwater normal texture for wave.
+					TextureObject(g.postprocessobjectoffset + 0, 1, t.terrain.imagestartindex + 7);
+				}
+
 				//  special code to instruct this post process shader to generate depth texture
 				//  from the main camera zero and pass into the shader as 'DepthMapTex' texture slot
 				SetVector4 (  g.terrainvectorindex,0,0,0,0 );
@@ -177,6 +182,7 @@ void postprocess_init ( void )
 		postprocess_reset_fade();
 
 		//  generate terrain heightmap image to feed into this shader EVERY RUN
+		/* completely remove old dynamic cheap shadow
 		if (  t.gdynamicterrainshadowcameraid>0 ) 
 		{
 			t.terrain.terrainregionupdate=0;
@@ -184,6 +190,7 @@ void postprocess_init ( void )
 			terrain_createheightmapfromheightdata ( );
 			postprocess_applycheapshadow ( );
 		}
+		*/
 	}
 
 	//  restore cam id when done
@@ -221,8 +228,9 @@ void postprocess_general_init ( void )
 
 void postprocess_forcheapshadows ( void )
 {
-	//  Called ahead of IDE editor usage (cheap shadows)
-	if (  1 ) 
+	// Called ahead of IDE editor usage (cheap shadows)
+	/* completely remove old dynamic cheap shadow
+	if ( 1 ) 
 	{
 		//  Dynamic terrain shadow camera shader setup
 		t.gdynamicterrainshadowcameraid=5;
@@ -260,10 +268,12 @@ void postprocess_forcheapshadows ( void )
 			t.gdynamicterrainshadowcameratimer=0;
 		}
 	}
+	*/
 }
 
 void postprocess_applycheapshadow ( void )
 {
+	/* completely remove old dynamic cheap shadow
 	//  Select technique based on superflat terrain mode
 	if (  t.terrain.TerrainID == 0 ) 
 	{
@@ -326,6 +336,7 @@ void postprocess_applycheapshadow ( void )
 			}
 		}
 	}
+	*/
 }
 
 void postprocess_free ( void )
@@ -422,8 +433,9 @@ void postprocess_preterrain ( void )
 			if (  GetEffectExist(t.terrain.vegetationshaderindex) == 1  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"blacktextured" );
 		}
 		if (  GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex,"blacktextured" );
-		for ( t.t = -3 ; t.t<=  g.effectbankmax; t.t++ )
+		for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
 		{
+			if ( t.t == -4  )  t.teffectid = g.lightmappbreffect;
 			if ( t.t == -3  )  t.teffectid = g.thirdpersonentityeffect;
 			if ( t.t == -2  )  t.teffectid = g.thirdpersoncharactereffect;
 			if ( t.t == -1  )  t.teffectid = g.staticlightmapeffectoffset;

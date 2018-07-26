@@ -55,6 +55,7 @@ bool						g_VR920RenderStereoNow = false;
 float						g_fVR920TrackingYaw	= 0;
 float						g_fVR920TrackingPitch = 0;
 float						g_fVR920TrackingRoll = 0;
+float						g_fVR920Sensitivity = 1.0f;
 float						g_fDriverCompensationPitch = 0;
 float						g_fDriverCompensationYaw = 0;
 float						g_fDriverCompensationRoll = 0;
@@ -615,7 +616,7 @@ HRESULT	IWRSyncronizeEye( int Eye )
 			return EXIT_STEREOSCOPIC_MODE;
 	return S_OK;
 }
-bool SetupGetTracking ( float* pfYaw, float* pfPitch, float* pfRoll )
+bool SetupGetTracking ( float* pfYaw, float* pfPitch, float* pfRoll, float fSensitivity )
 {
 	// tracking status
 	bool bTracking = true;
@@ -636,6 +637,16 @@ bool SetupGetTracking ( float* pfYaw, float* pfPitch, float* pfRoll )
 
 		// iWear tracker could be OFFLine: just inform user or wait until plugged in...
 		Yaw = Pitch = Roll = 0;
+	}
+
+	// See if we cannot add sensitivity controls to head tracking
+	if ( fSensitivity != 1.0f )
+	{
+		if ( fSensitivity < 0.75f ) fSensitivity = 0.75f;
+		if ( fSensitivity > 3.0f ) fSensitivity = 3.0f;
+		Yaw *= fSensitivity;
+		Pitch *= fSensitivity;
+		Roll *= fSensitivity;
 	}
 
 	// Always provide for a means to disable filtering;
@@ -2079,7 +2090,7 @@ DARKSDK bool GetBackBufferAndDepthBuffer ( void )
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
 	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
 	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;//DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;//DXGI_FORMAT_R24_UNORM_X8_TYPELESS; (DXGI_FORMAT_R32_FLOAT)
 	shaderResourceViewDesc.Texture2D.MipLevels = 1;
 	hr = m_pD3D->CreateShaderResourceView ( m_pDepthStencil, &shaderResourceViewDesc, &m_pDepthStencilResourceView );
 
@@ -2202,8 +2213,8 @@ DARKSDK bool SetupDX11 ( void )
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 	depthStencilDesc.DepthEnable = true;
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-	//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS; // when did this, terrain in cubemap stopped working (suggests no depth values being used!)
+	//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS; // when did this, terrain in cubemap stopped working (suggests no depth values being used!) // PE: works now.
 	depthStencilDesc.StencilEnable = false;//true;
 	depthStencilDesc.StencilReadMask = 0xFF;
 	depthStencilDesc.StencilWriteMask = 0xFF;
@@ -4512,11 +4523,14 @@ DARKSDK int GetChildWindowHeight()
 #ifdef DX11
 DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iShaderIndex )
 {
-	// check if this index already has a shader inside it
-	if ( g_sShaders[iShaderIndex].pEffect )
+	// check if this index already has a shader inside it (zero just loads the shader to nowhere to create blob)
+	if ( iShaderIndex > 0 )
 	{
-		// return existing shader (likely when LoadEffect command used)
-		return g_sShaders[iShaderIndex].pEffect;
+		if ( g_sShaders[iShaderIndex].pEffect )
+		{
+			// return existing shader (likely when LoadEffect command used)
+			return g_sShaders[iShaderIndex].pEffect;
+		}
 	}
 
 	// get wchar of blobfilename
@@ -4527,7 +4541,7 @@ DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iSh
 	mbstowcs_s(&convertedChars, wcstringBlobFilename, origsize, szBlobFile, _TRUNCATE);
 
 	// if special flag, delete any blob file (editing shaders mode)
-	if ( gbAlwaysIgnoreShaderBlobFile == true )
+	if ( gbAlwaysIgnoreShaderBlobFile == true || iShaderIndex == 0 )
 		if ( DoesFileExist ( szBlobFile ) == true ) 
 			DeleteFile ( szBlobFile );
 
@@ -4543,7 +4557,7 @@ DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iSh
 	}
 	if ( pErrorBlob != NULL )
 	{
-		if ( g_iShowDetailedShaderErrorMessage == 0 )
+		if ( g_iShowDetailedShaderErrorMessage == 0 && iShaderIndex > 0 )
 		{
 			char pErrorDesc[1024];
 			sprintf ( pErrorDesc, "Failed to load the shader '%s'. All GameGuru shaders need to be HLSL level 5.0 or above.", szFile ); 
@@ -4565,8 +4579,18 @@ DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iSh
 			D3DWriteBlobToFile ( g_sShaders[iShaderIndex].pBlob, wcstringBlobFilename, FALSE );
 		}
 	}
-	ID3DBlob* pFXBlob = g_sShaders[iShaderIndex].pBlob;
-	D3DX11CreateEffectFromMemory(pFXBlob->GetBufferPointer(), pFXBlob->GetBufferSize(), 0, m_pD3D, &g_sShaders[iShaderIndex].pEffect);
+
+	// only if loading shader for real
+	if ( iShaderIndex > 0 )
+	{
+		ID3DBlob* pFXBlob = g_sShaders[iShaderIndex].pBlob;
+		D3DX11CreateEffectFromMemory(pFXBlob->GetBufferPointer(), pFXBlob->GetBufferSize(), 0, m_pD3D, &g_sShaders[iShaderIndex].pEffect);
+	}
+	else
+	{
+		// iShaderIndex of zero is just to create a new shader blob file
+		g_sShaders[iShaderIndex].pEffect = NULL;
+	}
 
 	// copy name into record
 	strcpy ( g_sShaders[iShaderIndex].pName, szFile );

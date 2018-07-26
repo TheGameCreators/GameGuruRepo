@@ -16,6 +16,7 @@
 #include "..\..\..\..\Guru-MapEditor\Encryptor.h"
 #include ".\..\Core\SteamCheckForWorkshop.h"
 #include "SteamCommands.h"
+#include "DarkLUA.h"
 
 // Internal Includes
 #include "DBDLLCore.h"
@@ -88,6 +89,7 @@ DBPRO_GLOBAL bool			g_bSyncOff					= true;
 DBPRO_GLOBAL bool			g_bSceneStarted				= false;
 DBPRO_GLOBAL bool			g_bCanRenderNow				= true;
 DBPRO_GLOBAL DWORD			g_dwSyncMask				= 0xFFFFFFFF;
+DBPRO_GLOBAL DWORD			g_dwSyncMaskOverride		= 0xFFFFFFFF;
 
 // Global Sync Settings
 DBPRO_GLOBAL DWORD			g_dwManualSuperStepSetting	= 0;
@@ -1206,6 +1208,9 @@ DARKSDK void EncryptAllFiles(char* dwStringAddress)
 	// add first directory into the listing
 	directoryListStack.push ( folderToCheck );
 
+	// Added Code to pre-compile Lua scripts
+	LoadLua("ggprecompile.lua");
+
 	// keep going until we have emptied the directory stack
 	while ( !directoryListStack.empty ( ) )
 	{
@@ -1244,7 +1249,14 @@ DARKSDK void EncryptAllFiles(char* dwStringAddress)
 				}
 				else
 				{
-					if ( strstr(data.cFileName, ".fpe") != NULL || strstr(data.cFileName, ".dds") != NULL ||  strstr(data.cFileName, ".png") != NULL ||  strstr(data.cFileName, ".jpg") != NULL || strstr(data.cFileName, ".x") != NULL || strstr(data.cFileName, ".dbo") != NULL ||  strstr(data.cFileName, ".wav") != NULL ||  strstr(data.cFileName, ".mp3") != NULL )
+					if ( strstr(data.cFileName, ".fpe") != NULL || 
+						 strstr(data.cFileName, ".dds") != NULL ||  
+						 strstr(data.cFileName, ".png") != NULL || 
+						 strstr(data.cFileName, ".jpg") != NULL ||
+						 strstr(data.cFileName, ".x")   != NULL ||
+						 strstr(data.cFileName, ".dbo") != NULL ||
+						 strstr(data.cFileName, ".wav") != NULL ||
+						 strstr(data.cFileName, ".mp3") != NULL )
 					{
 						// dont encrypt a file if it already is
 						if ( strstr ( data.cFileName, "_e_" )  !=  data.cFileName )
@@ -1264,6 +1276,22 @@ DARKSDK void EncryptAllFiles(char* dwStringAddress)
 							UpdateWindow ( NULL );
 							sprintf ( p, "%s\\%s", szCurrentDirectory , f );
 							if ( bEncryptedOkay==true ) DeleteFile ( p );
+						}
+					}
+					else 
+					{
+						if ( strstr(data.cFileName, ".lua") != NULL &&
+							 strstr(data.cFileName, "multiplayer") == NULL )
+						{
+							// Precompile lua script, note: overwrites file, in theory if the call
+							// fails for any reason the file should remain uncompiled.
+							char p[MAX_PATH];
+
+							sprintf(p, "%s\\%s", szCurrentDirectory, data.cFileName);
+
+							LuaSetFunction("ggprecompile", 1, 0);
+							LuaPushString(p);
+							LuaCall();
 						}
 					}
 				}
@@ -1451,7 +1479,33 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	// Appname
 	char pAppName[256];
 	char pAppNameUnique[256];
-	strcpy(pAppName, "Game Guru");
+
+	//PE: Use the exe filenane as the title in the game.
+	//PE: So if you use Test-my-Game_name.exe as the standalone
+	//PE: the windows title will be "Test my Game name".
+
+	char workstring[1024];
+	GetModuleFileName(NULL, workstring, 1024);
+
+	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0 )
+	{
+		strcpy(pAppName, "Game Guru");
+	}
+	else {
+		strcpy(pAppName, "Game Guru");
+		TCHAR * out;
+		out = PathFindFileName(workstring);
+		if (out != NULL) {
+			*(PathFindExtension(out)) = 0;
+			for (int i = strlen(out); i > 0; i--) {
+				if (out[i] == '-') out[i] = ' ';
+				if (out[i] == '_') out[i] = ' ';
+			}
+			if (strlen(out) > 0)
+				strcpy(pAppName, out);
+		}
+	}
+
 
 	// this ensures no conflict between window class name and application class name
 	strcpy ( pAppNameUnique, pAppName );
@@ -4333,6 +4387,12 @@ DARKSDK void SyncMask ( DWORD dwMask )
 {
 	// copy to master sync mask
 	g_dwSyncMask = dwMask;
+}
+
+DARKSDK void SyncMaskOverride ( DWORD dwMask )
+{
+	// used to override ALL camera rendering (for a loading sequence)
+	g_dwSyncMaskOverride = dwMask;
 }
 
 DARKSDK DWORD GetArrayType(DWORD dwArrayPtr)

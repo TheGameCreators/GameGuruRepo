@@ -46,19 +46,19 @@ function weapon_main(e)
 		if g_PlayerGunCount < 9 then
 			if g_PlayerGunID > 0 then
 				if g_PlayerController==0 then
-					PromptLocalForVR(e,"Press E to pick up the " .. weapon_name[e] .. " or T to replace" )
+					Prompt("Press E to pick up the " .. weapon_name[e] .. " or T to replace" )
 				else
-					PromptLocalForVR(e,"Press Y Button to pick up the " .. weapon_name[e] )
+					Prompt("Press Y Button to pick up the " .. weapon_name[e] )
 				end
 			else
 				if g_PlayerController==0 then
-					PromptLocalForVR(e,"Press E To pick up the " .. weapon_name[e] )
+					Prompt("Press E To pick up the " .. weapon_name[e] )
 				else
-					PromptLocalForVR(e,"Press Y Button to pick up the " .. weapon_name[e] )
+					Prompt("Press Y Button to pick up the " .. weapon_name[e] )
 				end
 			end
 			if g_KeyPressE == 1 then
-			   PromptLocalForVR(e,"Collected the " .. weapon_name[e])
+			   Prompt("Collected the " .. weapon_name[e])
 			   PlaySound(e,0)
 			   AddPlayerWeapon(e)
 			   Destroy(e)
@@ -68,16 +68,16 @@ function weapon_main(e)
 		else
 			if g_PlayerController==0 then
 				if g_PlayerGunID > 0 then
-					PromptLocalForVR(e,"Press T to replace with " .. weapon_name[e] )
+					Prompt("Press T to replace with " .. weapon_name[e] )
 				else
-					PromptLocalForVR(e,"Cannot collect any more weapons" )
+					Prompt("Cannot collect any more weapons" )
 				end
 			else
-				PromptLocalForVR(e,"Cannot collect any more weapons" )
+				Prompt("Cannot collect any more weapons" )
 			end
 		end
 		if g_InKey == "t" and g_PlayerGunID > 0 then
-		   PromptLocalForVR(e,"Replaced with " .. weapon_name[e])
+		   Prompt("Replaced with " .. weapon_name[e])
 		   PlaySound(e,0)
 		   ReplacePlayerWeapon(e)
 		   Destroy(e)

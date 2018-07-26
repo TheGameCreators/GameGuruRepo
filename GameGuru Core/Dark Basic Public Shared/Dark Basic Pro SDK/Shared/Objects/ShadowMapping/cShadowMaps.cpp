@@ -1,7 +1,7 @@
 //
 // Shadow Mapping Control Object
 //
-
+#include "..\..\GameGuru\Include\gameguru.h"
 #include "cShadowMaps.h"
 #include "CLightC.h"
 
@@ -140,7 +140,12 @@ HRESULT CascadedShadowsManager::ReleaseAndAllocateNewShadowResources( LPGGEFFECT
 		for ( int c = 0; c < m_CopyOfCascadeConfig.m_nCascadeLevels; c++ )
 		{
 			m_depthTexture[c] = new DepthTexture(m_pDX);
-			m_depthTexture[c]->createTexture(m_pD3D, dwSurfaceWidth, dwSurfaceHeight);
+			if ( g.globals.realshadowsize[c] > 0) {
+				m_depthTexture[c]->createTexture(m_pD3D, g.globals.realshadowsize[c], g.globals.realshadowsize[c]);
+			}
+			else {
+				m_depthTexture[c]->createTexture(m_pD3D, dwSurfaceWidth, dwSurfaceHeight);
+			}
 		}
 
 		// get handles to this shader to place shadow ptrs
@@ -545,7 +550,7 @@ HRESULT CascadedShadowsManager::InitFrame ( LPGGEFFECT pEffectPtr  )
     GGMATRIX matViewCameraView;
 	GGGetTransform ( GGTS_VIEW, &matViewCameraView );
 	m_pViewerCamera->m_fNear = 0.0f;
-	m_pViewerCamera->m_fFar = 5000.0f;//3000.0f;
+	m_pViewerCamera->m_fFar = g.globals.realshadowdistance; //PE: 5000.0f;//3000.0f;
 	m_pViewerCamera->m_mCameraView = matViewCameraView;
 	GGMatrixInverse ( &m_pViewerCamera->m_mCameraWorld, &fDeterminant, &matViewCameraView );
 
@@ -559,6 +564,7 @@ HRESULT CascadedShadowsManager::InitFrame ( LPGGEFFECT pEffectPtr  )
 	vecAt.x += vecEye.x;
 	vecAt.y += vecEye.y;
 	vecAt.z += vecEye.z;
+
 	GGMATRIX matLightCameraLookAt;
 	GGMatrixLookAtLH ( &matLightCameraLookAt, (GGVECTOR3*)&vecEye, (GGVECTOR3*)&vecAt, &GGVECTOR3(0,1,0) );
 	GGMATRIX matLightCameraView;
@@ -569,8 +575,10 @@ HRESULT CascadedShadowsManager::InitFrame ( LPGGEFFECT pEffectPtr  )
 	// feed in DX11 values to trace math of code below:
 	GGGetTransform ( GGTS_PROJECTION, &matViewCameraProjection );
 	GGGetTransform ( GGTS_VIEW, &matViewCameraView );
-	m_vSceneAABBMin.w = 1.0000000;
+
+	//m_vSceneAABBMin.w = 1.0000000; //PE: not needed.
 	m_vSceneAABBMax.w = 1.0000000;
+
 
     GGMATRIX matInverseViewCamera;
 	GGMatrixInverse( &matInverseViewCamera, &fDeterminant, &matViewCameraView );
@@ -685,8 +693,9 @@ HRESULT CascadedShadowsManager::InitFrame ( LPGGEFFECT pEffectPtr  )
             // The world units per texel are used to snap the shadow the orthographic projection
             // to texel sized increments.  This keeps the edges of the shadows from shimmering.
             FLOAT fWorldUnitsPerTexel = fCascadeBound / (float)m_CopyOfCascadeConfig.m_iBufferSize;
+			if (g.globals.realshadowsize[iCascadeIndex] > 0) fWorldUnitsPerTexel = fCascadeBound / (float)g.globals.realshadowsize[iCascadeIndex];
             vWorldUnitsPerTexel = XMVectorSet( fWorldUnitsPerTexel, fWorldUnitsPerTexel, 0.0f, 0.0f ); 
-        } 
+        }
 		else
 		{
             // The world units per texel are used to snap the shadow the orthographic projection
@@ -694,11 +703,12 @@ HRESULT CascadedShadowsManager::InitFrame ( LPGGEFFECT pEffectPtr  )
             GGVECTOR4 vDiagonal = vFrustumPoints[0] - vFrustumPoints[6];
             FLOAT fCascadeBound = GGVec4Length( &vDiagonal );
             FLOAT fWorldUnitsPerTexel = fCascadeBound / (float)m_CopyOfCascadeConfig.m_iBufferSize;
-            vWorldUnitsPerTexel = XMVectorSet( fWorldUnitsPerTexel, fWorldUnitsPerTexel, 0.0f, 0.0f ); 
+			if (g.globals.realshadowsize[iCascadeIndex] > 0) fWorldUnitsPerTexel = fCascadeBound / (float)g.globals.realshadowsize[iCascadeIndex];
+			vWorldUnitsPerTexel = XMVectorSet( fWorldUnitsPerTexel, fWorldUnitsPerTexel, 0.0f, 0.0f );
 		}
         float fLightCameraOrthographicMinZ = XMVectorGetZ( vLightCameraOrthographicMin );
 
-        if( m_bMoveLightTexelSize ) 
+		if( m_bMoveLightTexelSize ) 
         {
             // We snape the camera to 1 pixel increments so that moving the camera does not cause the shadows to jitter.
             // This is a matter of integer dividing by the world space size of a texel
@@ -775,7 +785,7 @@ std::vector< sObject* > vVisibleObjectStandardCopy;
 //--------------------------------------------------------------------------------------
 // Render the cascades into a texture atlas.
 //--------------------------------------------------------------------------------------
-HRESULT CascadedShadowsManager::RenderShadowsForAllCascades ( LPGGEFFECT pEffectPtr ) 
+HRESULT CascadedShadowsManager::RenderShadowsForAllCascades ( LPGGEFFECT pEffectPtr )
 {
 	// temp
     HRESULT hr = S_OK;
@@ -923,6 +933,9 @@ HRESULT CascadedShadowsManager::RenderShadowsForAllCascades ( LPGGEFFECT pEffect
 				// render one cascade
 				DWORD dwStoredRenderCamera = g_pGlob->dwRenderCameraID;
 				g_pGlob->dwRenderCameraID = 31+currentCascade; // ensure shadow cameras (internal marked with camera index 31 for occlusion arrays)
+
+				//PE: Only albedo needed , no other textures. special mode could be added.
+
 				m_ObjectManager.UpdateLayer ( 0 ); // solid objects
 				m_ObjectManager.UpdateLayer ( 3 ); // transparent objects
 				g_pGlob->dwRenderCameraID = dwStoredRenderCamera;

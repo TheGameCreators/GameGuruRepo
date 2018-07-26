@@ -131,6 +131,8 @@ DARKSDK void SetObjectAmbience		( int iID, DWORD dwRGB );
 DARKSDK void SetObjectSpecular		( int iID, DWORD dwRGB );
 DARKSDK void SetObjectSpecularPower	( int iID, float fPower );
 DARKSDK void SetObjectScrollScaleUV ( int iID, float fScrU, float fScrV, float fScaU, float fScaV );
+DARKSDK void SetObjectArtFlags		( int iID, DWORD dwArtFlags, float fBoostIntensity );
+
 DARKSDK void SetObjectSpecular		( int iID, DWORD dwRGB, float fPower );
 DARKSDK void SetObjectEmissive		( int iID, DWORD dwRGB );
 DARKSDK void SetObjectArbitaryValue			( int iID, DWORD dwArbValue );
@@ -189,6 +191,7 @@ DARKSDK void DeleteEffectCore			( int iEffectID, bool bAlsoEraseObjReferences );
 DARKSDK void DeleteEffect				( int iEffectID );
 DARKSDK void ChangeShadowMappingPrimary ( int iEffectID );
 DARKSDK void SetEffectToShadowMappingEx	( int iEffectID, int iDebugObjStart, int iDebugEffectIndex, int iHideDistantShadows, int iRealShadowResolution, int iRealShadowCascadeCount, int iC0, int iC1, int iC2, int iC3, int iC4, int iC5, int iC6, int iC7 );
+DARKSDK void SetShadowTexelSize			( int isize );
 DARKSDK void SetEffectToShadowMapping	( int iEffectID );
 DARKSDK void SetEffectShadowMappingMode	( int iMode );
 DARKSDK void RenderEffectShadowMapping	( int iEffectID );
