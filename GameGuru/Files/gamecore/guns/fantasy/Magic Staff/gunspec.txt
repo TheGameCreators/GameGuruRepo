@@ -27,6 +27,8 @@ zoomaccuracybreath	= 5000
 zoomaccuracybreathhold  = 1
 zoomaccuracyheld	= 1
 zoomholdbreath		= 16
+melee range 	= 80
+melee damage 	= 100
 
 ;// HUD handling characteristics
 zoomwalkspeed       = 1.0
@@ -60,6 +62,8 @@ vweaptex            = staff
 effect				= effectbank\reloaded\weapon_bone.fx
 transparency		= 4
 minpolytrim			= 32
+invertnormal		= 1	;flag for -Y axis normal maps
+preservetangents	= 1	;disable normal tangent shifting
 
 ; GUN HUD (0-colt,1-magnum,2-uzi,3-shotgun,4-rifle,5-rpg,6-grenade,7-bow,8-mace,9-stone,10-sword,11-staff)
 statuspanelcode		= 11
@@ -97,12 +101,16 @@ zoomalignz			= 50
 brass				= 0
 
 ;HUD animation frames list
-keyframe ratio = 1
-select         = 10,20
-Idle           = 100,195
-Move           = 240,319
-Fire           = 414,426
-putaway	       = 80,89
+keyframe ratio  = 1
+select          = 127,155
+Idle            = 51,100
+Move            = 1,31
+run		= 185,230
+start fire      = 31,45
+end fire        = 45,51
+putaway	        = 156,180
+melee start     = 105,117
+melee end       = 117,125
 
 ;// GUN Sounds (0-zoom,1-fire,2-reload,3-dryfire,4-putaway)
 sound0			= zoom.wav
