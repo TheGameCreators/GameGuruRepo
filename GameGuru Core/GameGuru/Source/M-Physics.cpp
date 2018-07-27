@@ -660,15 +660,23 @@ void physics_setupobject ( void )
 				{
 					ODECreateStaticBox (  t.tphyobj,t.tshape-1000 );
 				}
-				if ( t.tshape >= 2000 && t.tshape<3000 ) 
+				else if ( t.tshape >= 2000 && t.tshape<3000 ) 
 				{
 					ODECreateStaticTriangleMesh (  t.tphyobj,t.tshape-2000 );
 				}
-				if ( t.tshape == 1 ) 
+				else if ( t.tshape == 1 ) 
 				{
-					ODECreateStaticBox (  t.tphyobj );
+					ODECreateStaticBox ( t.tphyobj );
 				}
-				if ( t.tshape == 2 || t.tshape == 9 ) 
+				else if (t.tshape == 6)
+				{
+					ODECreateStaticSphere ( t.tphyobj );
+				}
+				else if (t.tshape == 7)
+				{
+					ODECreateStaticCylinder ( t.tphyobj );
+				}
+				else if ( t.tshape == 2 || t.tshape == 9 ) 
 				{
 					if (  t.tshape == 2 ) 
 					{
@@ -686,12 +694,12 @@ void physics_setupobject ( void )
 						ODECreateStaticTriangleMesh (  t.tphyobj,-1,t.tcollisionscaling,1 );
 					}
 				}
-				if ( t.tshape == 3 ) 
+				else if ( t.tshape == 3 ) 
 				{
 					physics_setuptreecylinder ( );
 				}
 				// tshape 4 is a list of physics objects from the importer
-				if ( t.tshape == 4 ) 
+				else if ( t.tshape == 4 ) 
 				{
 					physics_setupimportershapes ( );
 				}
