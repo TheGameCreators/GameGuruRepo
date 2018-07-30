@@ -1844,6 +1844,15 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 //				*piImageAOIndex = 0;
 //				*piImageGlossIndex = 0;
 //			}
+
+			//PE: illumination was also missing.
+			//Lee: reported on github but not tested, should be fine.
+			strcpy(pTmpName, pTextureName);
+			strcat(pTmpName, "i.png");
+			strcpy(pMesh->pTextures[7].pName, pTmpName);
+			*piImageIlluminationIndex = LoadOrFindTextureAsImage(pTmpName, TexturePath, iDivideTextureSize);
+			if (*piImageIlluminationIndex == 0) *piImageIlluminationIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\blank_none_S.dds", TexturePath, iDivideTextureSize);
+
 		}
 		if ( iTextureType == 2 ) // PBR - use color,normal,metalness,gloss,illumination
 		{
