@@ -885,6 +885,7 @@ void physics_loop ( void )
 		if ( t.tphysicsadvance_f>0.05f ) t.tphysicsadvance_f = 0.05f;
 		t.machineindependentphysicsupdate = timeGetSecond();
 		ODEUpdate ( );//t.tphysicsadvance_f );
+		ODEUpdate ( t.tphysicsadvance_f );
 	}
 }
 
