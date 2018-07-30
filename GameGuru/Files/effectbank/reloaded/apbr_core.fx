@@ -1551,19 +1551,19 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	
 	// can boost 
 	#ifdef BOOSTINTENSITY
-	ambientIntensity *= (1.0f+ArtFlagControl1.z);
-	lightIntensity *= (1.0f+ArtFlagControl1.z);
+	 ambientIntensity *= (1.0f+ArtFlagControl1.z);
+	 lightIntensity *= (1.0f+ArtFlagControl1.z);
 	#endif
 
 	// work out contributions
 	float3 flashlightContrib = rawdiffusemap.xyz * flashlight;
-#ifndef PBRTERRAIN
-	ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
-#endif
-	//float3 albedoContrib = texColor.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
+	#ifndef PBRTERRAIN
+	 ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
+	#endif
 	float3 albedoContrib = originalrawdiffusemap.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
 	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
+
 
 #ifdef PBRTERRAIN
    litColor.rgb = albedoContrib + lightContrib + reflectiveContrib;
@@ -1572,13 +1572,12 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    litColor.rgb = albedoContrib + lightContrib + reflectiveContrib;
 #else
 
-
 #ifdef ILLUMINATIONMAP
 	//PE: i use * here to prepare for baking textures like illum.
     albedoContrib += (texColor.rgb*(addillum));
     //PE: Illum kind of lost in PBR , so boost a bit.
     lightContrib += (texColor.rgb*(addillum));
-#endif     
+#endif    
 
 #if K_MODEL_PE
 

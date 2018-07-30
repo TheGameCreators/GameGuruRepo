@@ -3721,7 +3721,14 @@ void gun_load ( void )
 	}
 
 	// If no effect, use global weapon shader (new weapons)
-	if ( Len(t.gun[t.gunid].effect_s.Get())<3 ) t.gun[t.gunid].effect_s = "effectbank\\reloaded\\weapon_basic.fx";
+	if ( Len(t.gun[t.gunid].effect_s.Get())<3 ) 
+	{
+		// standard shader
+		t.gun[t.gunid].effect_s = "effectbank\\reloaded\\weapon_basic.fx";
+
+		// 300718 - also OLD weapons did not specify shader, so boost diffuse as they are DNS textures in PBR shader
+		t.gun[t.gunid].boostintensity = 1.0f;
+	}
 
 	// If weapon used old entity shader, use new weapon one
 	if ( t.gun[t.gunid].effect_s == "effectbank\\reloaded\\entity_basic.fx" ) t.gun[t.gunid].effect_s = "effectbank\\reloaded\\weapon_basic.fx";
@@ -3893,6 +3900,46 @@ void gun_load ( void )
 			// only apply cube map to model with pre-existing textures loaded
 			int iPBRCubeImg = t.terrain.imagestartindex+31;
 			TextureObject ( t.currentgunobj, 6, iPBRCubeImg );
+
+			// some legacy weapons have multi-texture diffuse references, but need other textures populating
+			// for new PBR shader
+			if ( pObject )
+			{
+				for ( int iFrameIndex = 0; iFrameIndex < pObject->iFrameCount; iFrameIndex++ )
+				{
+					sFrame* pFrame = pObject->ppFrameList[iFrameIndex];
+					if ( pFrame ) 
+					{
+						sMesh* pMesh = pFrame->pMesh;
+						if ( pMesh )
+						{
+							if ( pMesh->dwTextureCount > 0 )
+							{
+								for ( int tt = pMesh->dwTextureCount-1; tt > 0; tt-- )
+								{
+									if ( pMesh->pTextures[tt].iImageID == 0 )
+									{
+										if ( tt == 8 )
+										{
+											if (g.memskipibr == 0) 
+											{
+												t.entityprofiletexibrid = t.terrain.imagestartindex + 32;
+												TextureLimbStage ( t.currentgunobj, iFrameIndex, 8, t.entityprofiletexibrid );
+											}
+										}
+										if ( tt == 7 ) TextureLimbStage ( t.currentgunobj, iFrameIndex, 7, t.imgIid );
+										if ( tt == 5 ) TextureLimbStage ( t.currentgunobj, iFrameIndex, 5, imgHeightid );
+										if ( tt == 4 ) TextureLimbStage ( t.currentgunobj, iFrameIndex, 4, imgGlossid );
+										if ( tt == 3 ) TextureLimbStage ( t.currentgunobj, iFrameIndex, 3, t.imgSid );
+										if ( tt == 2 ) TextureLimbStage ( t.currentgunobj, iFrameIndex, 2, t.imgNid );
+										if ( tt == 1 ) TextureLimbStage ( t.currentgunobj, iFrameIndex, 1, imgAOid );
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 
 		//  Apply effect to object (special extra parameter to specify both BONE and NON-BONE effect types)

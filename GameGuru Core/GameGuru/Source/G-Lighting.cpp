@@ -159,9 +159,12 @@ bool update_mesh_light(sMesh* pMesh, sObject* pObject, sFrame* pFrame)
 	if(pObject) 
 	{
 		//PE: find closest to object.
-		float f_oPosX = pObject->position.vecPosition.x;
-		float f_oPosY = pObject->position.vecPosition.y;
-		float f_oPosZ = pObject->position.vecPosition.z;
+		//float f_oPosX = pObject->position.vecPosition.x; // 300718 - excludes weapons and locked screen objects (HUD objects)
+		//float f_oPosY = pObject->position.vecPosition.y;
+		//float f_oPosZ = pObject->position.vecPosition.z;
+		float f_oPosX = pObject->position.matWorld._41;
+		float f_oPosY = pObject->position.matWorld._42;
+		float f_oPosZ = pObject->position.matWorld._43;
 		float fXSize = fabs(pObject->collision.vecMax.x - pObject->collision.vecMin.x) * pObject->position.vecScale.x;
 		float fYSize = fabs(pObject->collision.vecMax.y - pObject->collision.vecMin.y) * pObject->position.vecScale.y;
 		float fZSize = fabs(pObject->collision.vecMax.z - pObject->collision.vecMin.z) * pObject->position.vecScale.z;

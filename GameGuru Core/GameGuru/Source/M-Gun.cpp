@@ -15,6 +15,7 @@ void gun_loaddata ( void )
 	t.gun[t.gunid].projectile_s="";
 	t.gun[t.gunid].projectileframe=0;
 	t.gun[t.gunid].vweaptex_s="";
+	t.gun[t.gunid].boostintensity = 0.0f;
 
 	//  two basic firemodes (i.e semi+full auto or shotgun+grenade)
 	for ( t.i = 0 ; t.i <= 1; t.i++ )
