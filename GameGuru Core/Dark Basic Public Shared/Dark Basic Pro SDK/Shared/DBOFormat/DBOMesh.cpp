@@ -1834,8 +1834,16 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 			if ( *piImageSpecularIndex == 0 ) *piImageSpecularIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_none_S.dds", TexturePath, iDivideTextureSize );
 
 			// no AO or gloss in DNS system
-			*piImageAOIndex = 0;
-			*piImageGlossIndex = 0;
+
+			//PE: We should check g.gpbroverride == 1 but...
+//			if( g.gpbroverride == 1 ) {
+				*piImageAOIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\blank_O.dds", TexturePath, iDivideTextureSize);
+				*piImageGlossIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\materials\\0_Gloss.dds", TexturePath, iDivideTextureSize);
+//			}
+//			else {
+//				*piImageAOIndex = 0;
+//				*piImageGlossIndex = 0;
+//			}
 		}
 		if ( iTextureType == 2 ) // PBR - use color,normal,metalness,gloss,illumination
 		{
