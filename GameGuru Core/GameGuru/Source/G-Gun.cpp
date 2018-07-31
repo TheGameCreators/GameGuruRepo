@@ -3727,7 +3727,8 @@ void gun_load ( void )
 		t.gun[t.gunid].effect_s = "effectbank\\reloaded\\weapon_basic.fx";
 
 		// 300718 - also OLD weapons did not specify shader, so boost diffuse as they are DNS textures in PBR shader
-		t.gun[t.gunid].boostintensity = 1.0f;
+		// but some other weapons are PBR but don't specify shader, so tone down this auto correction!
+		t.gun[t.gunid].boostintensity = 0.1f;
 	}
 
 	// If weapon used old entity shader, use new weapon one
