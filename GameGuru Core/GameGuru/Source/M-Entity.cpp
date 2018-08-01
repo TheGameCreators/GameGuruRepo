@@ -842,7 +842,8 @@ void entity_load ( void )
 			t.entityprofile[t.entid].hasweapon=0;
 		}
 
-		//  see if we can find head automatically
+		// see if we can find head automatically
+		// 010818 - expanded to find mixamo_xx or bip01_xx or anything_xx
 		if (  t.entityprofile[t.entid].ischaracter == 1 ) 
 		{
 			if (  t.entityprofile[t.entid].headlimb == -1 ) 
@@ -852,7 +853,9 @@ void entity_load ( void )
 					PerformCheckListForLimbs (  t.entobj );
 					for ( t.tc = 1 ; t.tc<=  ChecklistQuantity(); t.tc++ )
 					{
-						if (  cstr(Lower(ChecklistString(t.tc))) == "bip01_head" ) 
+						cstr sChecklistFound = Lower(ChecklistString(t.tc));
+						LPSTR pChecklistFound = sChecklistFound.Get();
+						if ( strnicmp ( pChecklistFound + strlen(pChecklistFound) - 5, "_head", 5 ) == NULL ) 
 						{
 							t.entityprofile[t.entid].headlimb=t.tc-1;
 							t.tc=ChecklistQuantity()+1;
@@ -882,7 +885,10 @@ void entity_load ( void )
 					PerformCheckListForLimbs (  t.entobj );
 					for ( t.tc = 1 ; t.tc<=  ChecklistQuantity(); t.tc++ )
 					{
-						if (  cstr(Lower(ChecklistString(t.tc))) == "bip01_spine1" ) 
+						//if (  cstr(Lower(ChecklistString(t.tc))) == "bip01_spine1" ) 
+						cstr sChecklistFound = Lower(ChecklistString(t.tc));
+						LPSTR pChecklistFound = sChecklistFound.Get();
+						if ( strnicmp ( pChecklistFound + strlen(pChecklistFound) - 7, "_spine1", 7 ) == NULL ) 
 						{
 							t.entityprofile[t.entid].spine=t.tc-1;
 							break;
@@ -897,7 +903,10 @@ void entity_load ( void )
 					PerformCheckListForLimbs (  t.entobj );
 					for ( t.tc = 1 ; t.tc<=  ChecklistQuantity(); t.tc++ )
 					{
-						if (  cstr(Lower(ChecklistString(t.tc))) == "bip01_spine2" ) 
+						//if (  cstr(Lower(ChecklistString(t.tc))) == "bip01_spine2" ) 
+						cstr sChecklistFound = Lower(ChecklistString(t.tc));
+						LPSTR pChecklistFound = sChecklistFound.Get();
+						if ( strnicmp ( pChecklistFound + strlen(pChecklistFound) - 7, "_spine2", 7 ) == NULL ) 
 						{
 							t.entityprofile[t.entid].spine2=t.tc-1;
 							break;
@@ -908,7 +917,7 @@ void entity_load ( void )
 		}
 
 		// 090217 - new feature for some characters (Fuse FBX) to have perfect foot planting
-		if ( t.entityprofile[t.entid].ischaracter == 1 && t.entityprofile[t.entid].isspinetracker == 1 )
+		if ( t.entityprofile[t.entid].ischaracter == 1 && t.entityprofile[t.entid].isspinetracker == 1 && t.entityprofile[t.entid].spine != -1 )
 		{
 			sObject* pObject = GetObjectData ( t.entobj );
 			pObject->bUseSpineCenterSystem = true;
