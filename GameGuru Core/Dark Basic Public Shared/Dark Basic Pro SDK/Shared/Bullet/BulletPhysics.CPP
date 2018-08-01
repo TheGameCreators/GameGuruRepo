@@ -2745,9 +2745,9 @@ int BPhys_DeleteRagdoll(int ragdollID)
 	if ( ragdollManager )
 	{
 		DBProRagDoll* ragdoll = ragdollManager->GetRagdoll(ragdollID);
-		char data[2048];
-		sprintf(data, "BPhys_DeleteRagdoll: Ragdoll %d does not exist", ragdollID);
-		DBProRagdollManager::AssertRagdollExist(ragdollID, data);
+		//char data[2048];
+		//sprintf(data, "BPhys_DeleteRagdoll: Ragdoll %d does not exist", ragdollID);
+		//DBProRagdollManager::AssertRagdollExist(ragdollID, data);
 		if(ragdoll)
 		{
 			ragdollManager->DeleteRagdoll(ragdollID);

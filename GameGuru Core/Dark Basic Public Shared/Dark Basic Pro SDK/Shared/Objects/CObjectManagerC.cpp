@@ -1845,10 +1845,13 @@ void CObjectManager::UpdateAnimationCyclePerObject ( sObject* pObject )
 				pObject->collision.fRadius = pObject->pAnimationSet->pfBoundRadius [ iThisKeyFrame ];
 			}
 		}
-		pObject->ppMeshList [ 0 ]->Collision.vecMin = pObject->collision.vecMin;
-		pObject->ppMeshList [ 0 ]->Collision.vecMax = pObject->collision.vecMax;
-		pObject->ppMeshList [ 0 ]->Collision.vecCentre = pObject->collision.vecCentre;
-		pObject->ppMeshList [ 0 ]->Collision.fRadius = pObject->collision.fRadius;
+		if ( pObject->ppMeshList )
+		{
+			pObject->ppMeshList [ 0 ]->Collision.vecMin = pObject->collision.vecMin;
+			pObject->ppMeshList [ 0 ]->Collision.vecMax = pObject->collision.vecMax;
+			pObject->ppMeshList [ 0 ]->Collision.vecCentre = pObject->collision.vecCentre;
+			pObject->ppMeshList [ 0 ]->Collision.fRadius = pObject->collision.fRadius;
+		}
 	}
 }
 

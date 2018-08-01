@@ -378,8 +378,9 @@ DARKSDK_DLL void LoadCore ( SDK_LPSTR szFilename, SDK_LPSTR szOrgFilename, int i
 	if ( !SetNewObjectFinalProperties ( iID, -1.0f ) )
 		return;
 
-	if ( g_ObjectList [ iID ]->iMeshCount == 0 )
-		return;
+	// 010818 - DBO can be just animation data now
+	// if ( g_ObjectList [ iID ]->iMeshCount == 0 )
+	//	return;
 
 	// add object id to shortlist
 	AddObjectToObjectListRef ( iID );

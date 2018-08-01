@@ -231,7 +231,8 @@ DARKSDK bool ConvXLoad ( char* szFilename )
 	g_dwNormalCount = 0;
 
 	// object must have mesh and frame list
-	if ( g_pObjectX->ppFrameList && g_pObjectX->ppMeshList )
+	// 010818 - but can have no mehses (for DBP that carry just animation data)
+	if ( g_pObjectX->ppFrameList ) //&& g_pObjectX->ppMeshList )
 	{
 		// everything went okay
 		return true;
