@@ -4902,10 +4902,14 @@ int SetFont ( lua_State *L )
 
 	if ( strcmp ( finalPath , "" ) == 0 ) return 0;
 
-	if ( finalPath[strlen(finalPath)-4] == '.' )
-		finalPath[strlen(finalPath)-4] = '\0';
+	if (finalPath[strlen(finalPath) - 4] == '.')
+		// this is a c style string terminator, so alternative to fix custom fonts for Cogwheel
+		//finalPath[strlen(finalPath)-4] = '\0';
+	{
+		finalPath[strlen(finalPath) - 4] = 0;
+	}
 
-	changebitmapfont ( finalPath , lua_tointeger(L, 2) );
+	changebitmapfont(finalPath, lua_tointeger(L, 2));
 
 	return 0;
 }
