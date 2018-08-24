@@ -896,6 +896,9 @@ void mapfile_savestandalone ( void )
 				}
 				t.tmodelfile_s=t.tfile_s;
 				addtocollection(t.tmodelfile_s.Get());
+				// if entity did not specify texture it is multi-texture, so interogate model file
+				// do it for every model
+				findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
 			}
 
 			// entity characterpose file (if any)
@@ -972,8 +975,6 @@ void mapfile_savestandalone ( void )
 				addtocollection(t.tfile_s.Get());
 			}
 
-			//  if entity did not specify texture it is multi-texture, so interogate model file
-			findalltexturesinmodelfile(t.tmodelfile_s.Get(),t.tentityfolder_s.Get(),t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
 			//  shader file
 			t.tfile_s=t.entityelement[t.e].eleprof.effect_s ; addtocollection(t.tfile_s.Get());
 			//  script files
