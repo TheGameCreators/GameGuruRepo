@@ -3632,6 +3632,18 @@ int GetRippleWaterSpeed(lua_State *L)
 	return 1;
 }
 
+int GetIsTestgame(lua_State *L) {
+	lua = L;
+	if ((t.game.gameisexe == 0 || g.gprofileinstandalone == 1) && t.game.runasmultiplayer == 0) 
+	{
+		lua_pushnumber(L, 1);
+	}
+	else 
+	{
+		lua_pushnumber(L, 0);
+	}
+	return 1;
+}
 
 // Game Player Control/State Set/Get commands
 
@@ -5830,6 +5842,7 @@ void addFunctions()
 	
 	// utility
 	lua_register(lua, "MsgBox" , MsgBox );
+	lua_register(lua, "IsTestGame", GetIsTestgame);
 
 	//Water Shader
 	//setter
