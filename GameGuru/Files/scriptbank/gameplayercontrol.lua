@@ -712,20 +712,19 @@ function gameplayercontrol.lookmove()
 			if ( g_PlrKeyA == 1 ) then 
 				SetGamePlayerControlMovement(1)
 				SetGamePlayerControlMovey(GetGamePlayerControlCy()-90)
-				if ( g_PlrKeyW == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()-45) end
-				if ( g_PlrKeyS == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()-45-90) end
+				if ( g_PlrKeyW == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()-45)
+				elseif ( g_PlrKeyS == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()-45-90) end
 			else
 				if ( g_PlrKeyD == 1 ) then 
 					SetGamePlayerControlMovement(1)
 					SetGamePlayerControlMovey(GetGamePlayerControlCy()+90)
-					if ( g_PlrKeyW == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()+45) end
-					if ( g_PlrKeyS == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()+45+90) end
+					if ( g_PlrKeyW == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()+45)
+					elseif ( g_PlrKeyS == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()+45+90) end
 				else
-					if ( g_PlrKeyW == 1 ) then 
+					if ( g_PlrKeyW == 1 and g_PlrKeyS==0 ) then 
 						SetGamePlayerControlMovement(1)  
 						SetGamePlayerControlMovey(GetGamePlayerControlCy())
-					end
-					if ( g_PlrKeyS == 1 ) then 
+					elseif ( g_PlrKeyS == 1 and g_PlrKeyW == 0 ) then 
 						SetGamePlayerControlMovement(1)  
 						SetGamePlayerControlMovey(GetGamePlayerControlCy()+180) 
 					end
