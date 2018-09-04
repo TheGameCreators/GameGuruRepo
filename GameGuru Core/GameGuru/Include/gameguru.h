@@ -648,6 +648,7 @@ struct Sglobals
 	cstr vrqcontrolmodeserialcode;
 	int vrqTriggerSerialCodeEntrySystem;
 	int iTriggerSoftwareToQuit;
+	int iFreeVersionModeActive;
 	int videoMenuPlayed[10];
 	int reviewRequestReminder;
 	int reviewRequestMinuteCounter;

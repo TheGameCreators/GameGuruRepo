@@ -2980,7 +2980,9 @@ void FPSC_Setup ( void )
 		}
 	
 		//  New security requires Steam client to be running (for ownership check)
+		g.iFreeVersionModeActive = 0;
 		#ifdef STEAMOWNERSHIPCHECKFREEWEEKEND
+		g.iFreeVersionModeActive = 1;
 		bool bSteamRunningAndGameGuruOwned = false;
 		if ( g.steamworks.isRunning == 1 )
 		{

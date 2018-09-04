@@ -30,6 +30,7 @@ struct welcomebuttontype
 welcomebuttontype g_welcomebutton[20];
 int g_welcomebuttoncount = 0;
 bool gbWelcomeSystemActive = false;
+int g_welcomeCycle = 0;
 
 void welcome_loadasset ( cstr welcomePath, LPSTR pImageFilename, int iImageID )
 {
@@ -106,6 +107,16 @@ void welcome_init ( int iLoadingPart )
 
 		// screenshot thumb for sample level
 		welcome_loadasset ( welcomePath, "welcome-assets\\product-example.png", g.editorimagesoffset+59 );
+
+		// image if free weekend used
+		if ( g.iFreeVersionModeActive == 1 )
+		{
+			// only used for free weekend build version
+			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend.png", g.editorimagesoffset+60 );
+			// reserved  g.editorimagesoffset+61  test game loaded arrow
+			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend-prompt.png", g.editorimagesoffset+62 );
+			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend-click.png", g.editorimagesoffset+63 );
+		}
 	}
 
 	// calculate page dimensions and useful vars
@@ -249,7 +260,7 @@ void welcome_converttopagecoords ( float& fX1, float& fY1, float& fX2, float& fY
 	fY2 *= g_welcome.fPercToPageY;
 }
 
-void welcome_drawbox ( int iButtonID, float fX1, float fY1, float fX2, float fY2 )
+void welcome_drawbox_core ( int iButtonID, float fX1, float fY1, float fX2, float fY2, int iVisible )
 {
 	// use 3x3 pieces to form a variable sized box
 	welcome_converttopagecoords ( fX1, fY1, fX2, fY2 );
@@ -257,20 +268,23 @@ void welcome_drawbox ( int iButtonID, float fX1, float fY1, float fX2, float fY2
 	int iBoxY1 = (g_welcome.iTopLeftY + fY1)-8;
 	int iBoxX2 = (g_welcome.iTopLeftX + fX2);
 	int iBoxY2 = (g_welcome.iTopLeftY + fY2);
-	PasteImage ( g.editorimagesoffset+31, iBoxX1, iBoxY1, 1 );
-	for ( int iX = iBoxX1+8; iX < iBoxX2; iX+=8 )
+	if ( iVisible == 1 )
 	{
-		PasteImage ( g.editorimagesoffset+32, iX, iBoxY1, 1 );
-		PasteImage ( g.editorimagesoffset+38, iX, iBoxY2, 1 );
+		PasteImage ( g.editorimagesoffset+31, iBoxX1, iBoxY1, 1 );
+		for ( int iX = iBoxX1+8; iX < iBoxX2; iX+=8 )
+		{
+			PasteImage ( g.editorimagesoffset+32, iX, iBoxY1, 1 );
+			PasteImage ( g.editorimagesoffset+38, iX, iBoxY2, 1 );
+		}
+		PasteImage ( g.editorimagesoffset+33, iBoxX2, iBoxY1, 1 );
+		for ( int iY = iBoxY1+8; iY < iBoxY2; iY+=8 )
+		{
+			PasteImage ( g.editorimagesoffset+34, iBoxX1, iY, 1 );
+			PasteImage ( g.editorimagesoffset+36, iBoxX2, iY, 1 );
+		}
+		PasteImage ( g.editorimagesoffset+37, iBoxX1, iBoxY2, 1 );
+		PasteImage ( g.editorimagesoffset+39, iBoxX2, iBoxY2, 1 );
 	}
-	PasteImage ( g.editorimagesoffset+33, iBoxX2, iBoxY1, 1 );
-	for ( int iY = iBoxY1+8; iY < iBoxY2; iY+=8 )
-	{
-		PasteImage ( g.editorimagesoffset+34, iBoxX1, iY, 1 );
-		PasteImage ( g.editorimagesoffset+36, iBoxX2, iY, 1 );
-	}
-	PasteImage ( g.editorimagesoffset+37, iBoxX1, iBoxY2, 1 );
-	PasteImage ( g.editorimagesoffset+39, iBoxX2, iBoxY2, 1 );
 
 	// assign button if one
 	if ( iButtonID > 0 )
@@ -282,6 +296,16 @@ void welcome_drawbox ( int iButtonID, float fX1, float fY1, float fX2, float fY2
 		g_welcomebutton[iButtonID].y2 = iBoxY2;
 		g_welcomebutton[iButtonID].alpha = 192;
 	}
+}
+
+void welcome_drawbox ( int iButtonID, float fX1, float fY1, float fX2, float fY2 )
+{
+	welcome_drawbox_core ( iButtonID, fX1, fY1, fX2, fY2, 1 );
+}
+
+void welcome_drawbox_hide ( int iButtonID, float fX1, float fY1, float fX2, float fY2 )
+{
+	welcome_drawbox_core ( iButtonID, fX1, fY1, fX2, fY2, 0 );
 }
 
 void welcome_text ( LPSTR pText, int iFontType, float fX, float fY, float fAlpha, bool bMultiline, bool bLeftAligned )
@@ -333,7 +357,13 @@ void welcome_textinbox ( int iButtonID, LPSTR pText, int iFontType, float fX, fl
 	float fY1 = fY - (fTextHeight/2);
 	float fX2 = fX + fTextWidth;
 	float fY2 = fY + (fTextHeight/2);
-	welcome_drawbox ( iButtonID, fX1, fY1, fX2, fY2 );
+	if ( fAlpha >= 0 )
+		welcome_drawbox ( iButtonID, fX1, fY1, fX2, fY2 );
+	else
+	{
+		welcome_drawbox_hide ( iButtonID, fX1, fY1, fX2, fY2 );
+		fAlpha = 0.0f;
+	}
 	if ( iButtonID == 0 ) fAlpha = 32;
 	welcome_text ( pText, iFontType, fX, fY, fAlpha, false, false );
 }
@@ -709,16 +739,66 @@ void welcome_exitapp_page ( int iHighlightingButton )
 	welcome_drawbox ( 0, 10, 23, 90, 81 );
 	if ( g.iTriggerSoftwareToQuit == 2 )
 	{
-		welcome_text ( "Steam not running or ownership not verified", 1, 50, 28+(2*5), 192, true, false );
+		welcome_text ( "Steam not running or free weekend is over", 1, 50, 2+(2*5), 192, true, false );
+		if ( g_welcomeCycle >=0 )
+		{
+			g_welcomeCycle++; if ( g_welcomeCycle > 50 ) g_welcomeCycle = 0;
+		}
+		if ( g_welcomeCycle > 25 )
+			welcome_drawimage ( g.editorimagesoffset+60, 50, 30, false );
+		else
+			welcome_drawimage ( g.editorimagesoffset+63, 50, 30, false );
+		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 15+(15*5), 192, true, false );
+		welcome_textinbox ( 1, "GET YOUR VERY OWN VERSION HERE", 3, 50, 66, -1 );
 	}
 	if ( g.iTriggerSoftwareToQuit == 3 )
 	{
 		welcome_text ( "All DirectX 11 Shaders Updated", 1, 50, 28+(2*5), 192, true, false );
 		welcome_text ( "You may change 'forceloadtestgameshaders' back to zero", 1, 50, 28+(3*5), 192, true, false );
+		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(6*5), 192, true, false );
 	}
-	welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(6*5), 192, true, false );
+
+	// control page
+	if ( t.inputsys.mclick == 1 ) 
+	{
+		if ( iHighlightingButton == 1 && g_welcomeCycle >= 0 ) 
+		{
+			// go to Steam's GameGuru Page
+			ExecuteFile ( "https://store.steampowered.com/app/266310/GameGuru/","","",0 );
+			g_welcomeCycle = -1;
+		}
+	}
 }
 
+void welcome_freeintroapp_init ( void )
+{
+	g_welcomeCycle = 0;
+}
+
+void welcome_freeintroapp_page ( int iHighlightingButton )
+{
+	// draw page
+	welcome_drawimage ( g.editorimagesoffset+62, 50, 30, false );
+	welcome_text ( "Steam Free Weekend Version", 5, 50, 15, 192, true, false );
+	welcome_textinbox ( 1, "CONTINUE CONTINUE", 3, 50, 69-10, -1 );
+	welcome_textinbox ( 2, "GET YOUR OWN VERZ", 3, 50, 69, -1 );
+
+	// control page
+	if ( t.inputsys.mclick == 1 ) 
+	{
+		if ( iHighlightingButton == 1 ) 
+		{
+			t.tclosequick = 1;
+		}
+		if ( iHighlightingButton == 2 && g_welcomeCycle == 0 ) 
+		{
+			// go to Steam's GameGuru Page
+			ExecuteFile ( "https://store.steampowered.com/app/266310/GameGuru/","","",0 );
+			g_welcomeCycle = -1;
+			t.tclosequick = 1;
+		}
+	}
+}
 
 // WORKER FUNCTIONS
 
@@ -735,6 +815,7 @@ void welcome_setuppage ( int iPageIndex )
 	if ( iPageIndex == WELCOME_MAIN ) welcome_main_init();
 	if ( iPageIndex == WELCOME_PLAY ) welcome_play_init();
 	if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_init();
+	if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_init();
 }
 
 void welcome_runloop ( int iPageIndex )
@@ -775,7 +856,10 @@ void welcome_runloop ( int iPageIndex )
 			t.inputsys.kscancode=ScanCode();
 			t.inputsys.mclick=MouseClick();
 			if ( t.inputsys.mclick == 0 ) t.inputsys.mclickreleasestate = 0;
-			if ( GetFileMapDWORD( 1, 908 ) == 1 )  break;
+			if ( t.inputsys.ignoreeditorintermination == 0 )
+			{
+				if ( GetFileMapDWORD( 1, 908 ) == 1 )  break;
+			}
 			if ( GetFileMapDWORD( 1, 516 ) > 0 )  break;
 			if ( GetFileMapDWORD( 1, 400 ) == 1 ) { t.interactive.active = 0  ; break; }
 			if ( GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
@@ -819,6 +903,7 @@ void welcome_runloop ( int iPageIndex )
 			if ( iPageIndex == WELCOME_MAIN ) welcome_main_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_PLAY ) g_welcomesystemclosedown = welcome_play_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_page ( iHighlightingButton );
+			if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_page ( iHighlightingButton );
 
 			// update screen
 			Sync();

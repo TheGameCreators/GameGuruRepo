@@ -179,10 +179,17 @@ void mapeditorexecutable ( void )
 	{
 		// Welcome quick start page
 		g.quickstartmenumode = 0;
-		if ( g.gshowonstartup == 1 || g.iTriggerSoftwareToQuit != 0 ) 
+		if ( g.iFreeVersionModeActive == 1 )
+		{
 			editor_showquickstart ( 0 );
+		}
 		else
-			welcome_free();
+		{
+			if ( g.gshowonstartup == 1 || g.iTriggerSoftwareToQuit != 0 ) 
+				editor_showquickstart ( 0 );
+			else
+				welcome_free();
+		}
 	}
 	else
 	{
@@ -883,7 +890,17 @@ void editor_showquickstart ( int iForceMainOpen )
 	}
 
 	// can stay here forever if quit triggered
-	if ( g.iTriggerSoftwareToQuit != 0 ) welcome_show(WELCOME_EXITAPP);
+	if ( g.iTriggerSoftwareToQuit != 0 ) 
+	{
+		welcome_show(WELCOME_EXITAPP);
+	}
+	else
+	{
+		if ( g.iFreeVersionModeActive == 1 )
+		{
+			welcome_show(WELCOME_FREEINTROAPP);
+		}
+	}
 
 	// if first time run
 	if ( g.gfirsttimerun == 1 ) welcome_show(WELCOME_WHATYOUGET);
@@ -2196,8 +2213,17 @@ void input_getfilemapcontrols ( void )
 		//  termination trigger
 		if (  GetFileMapDWORD( 1, 908 ) == 1 ) 
 		{
-			//  Here we ask if changes should be saved, etc
-			//CloseFileMap (  1 );
+			// show outtro message if free version mode
+			if ( g.iFreeVersionModeActive == 1 )
+			{
+				t.inputsys.ignoreeditorintermination = 1;
+				welcome_init(1);
+				welcome_init(0);
+				welcome_show(WELCOME_FREEINTROAPP);
+				t.inputsys.ignoreeditorintermination = 0;
+			}
+
+			// Here we ask if changes should be saved, etc
 			gridedit_intercept_savefirst_noreload ( );
 			OpenFileMap (  1,"FPSEXCHANGE" );
 			if (  t.editorcanceltask == 0 ) 

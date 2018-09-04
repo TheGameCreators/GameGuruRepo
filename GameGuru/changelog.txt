@@ -1,3 +1,26 @@
+AUGUST WORK
+
+BETA FOR 21/08/18:
+* Added GetLightAngle and SetLightAngle Lua commands
+* Added light script which can switched on and off with a switch entity (over if used field)
+* Fixes for explosions, now damages surrounding entities again
+* Added LUA commands to rotate spotlights dynamically
+* Fixed issue of invisible wall no longer working
+* Replaced hand model with proper magic staff models and PBR textures (to match the name of the weapon)
+* Finished adding visible staffs to HUD weapons for Fireball and Magic Staff
+* Physics system is fixed to allow non-60 FPS physics simulations
+* Fixed black weapons if using DNS and in PBR mode.
+* Fixed issue of multi-texture weapons turning black, now correctly assigns default AO and boost intensity value
+* Uses proper world matrix position so weapons can pick up dynamic light influences
+* Added default behavior which boosts albedo of old weapons denoted by them not specifying a shader
+* Now allows models with no meshes to be imported and DBO saved containing JUST animation data (Fuse)
+* Better detection for 8-system bone weights so irregular 1-system bone weights don't corrupt model
+* Prevent ragdoll delete function showing error when no ragdoll system to delete in-game
+* Detection of spine and spine1 limb names now extended to autodetect Mixamo(Fuse) bone structures
+* NOTE: Above fix allows Fuse characters to use "isspinetracker" field in FPE with MoveWithAnimation LUA command
+* Added second light script (light2.lua) to toggle dynamic light on and off using remote IFUSED field
+
+
 V 2018.02.XX DX11 PREVIEW AND ABOVE - SEE REVISION HISTORY FOR CHANGE LOG 
 
 V 2018.01.XX DX11 PREVIEW PRE-FEB-2018

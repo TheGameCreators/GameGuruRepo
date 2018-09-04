@@ -7653,6 +7653,7 @@ struct inputsystemtype
 	int wheelmousemove;
 	int mclick;
 	int mclickreleasestate;
+	int ignoreeditorintermination;
 	int picksystemused;
 	int lockdown;
 	cstr k_s;
@@ -7740,6 +7741,7 @@ struct inputsystemtype
 	// Constructor
 	inputsystemtype ( )
 	{
+		ignoreeditorintermination = 0;
 		rubberbandy = 0;
 		rubberbandx = 0;
 		spacekeynotreleased = 0;
