@@ -661,10 +661,14 @@ void entity_lua_playnon3Dsound_core ( int iLoopMode )
 		{
 			PositionSound (  t.tsnd,CameraPositionX(0),CameraPositionY(0),CameraPositionZ(0) );
 			SetSoundVolume (  t.tsnd,soundtruevolume(100.0) );
-			if ( iLoopMode == 0 )
-				PlaySound (  t.tsnd );
-			else
-				LoopSound (  t.tsnd );
+			if (iLoopMode == 0) {
+				PlaySound(t.tsnd);
+			}
+			else {
+				if (SoundLooping(t.tsnd) == 0) {
+					LoopSound(t.tsnd);
+				}
+			}
 			t.entityelement[t.e].soundisnonthreedee=1;
 		}
 	}

@@ -3632,6 +3632,18 @@ int GetRippleWaterSpeed(lua_State *L)
 	return 1;
 }
 
+int GetIsTestgame(lua_State *L) {
+	lua = L;
+	if ((t.game.gameisexe == 0 || g.gprofileinstandalone == 1) && t.game.runasmultiplayer == 0) 
+	{
+		lua_pushnumber(L, 1);
+	}
+	else 
+	{
+		lua_pushnumber(L, 0);
+	}
+	return 1;
+}
 
 // Game Player Control/State Set/Get commands
 
@@ -4902,10 +4914,14 @@ int SetFont ( lua_State *L )
 
 	if ( strcmp ( finalPath , "" ) == 0 ) return 0;
 
-	if ( finalPath[strlen(finalPath)-4] == '.' )
-		finalPath[strlen(finalPath)-4] = '\0';
+	if (finalPath[strlen(finalPath) - 4] == '.')
+		// this is a c style string terminator, so alternative to fix custom fonts for Cogwheel
+		//finalPath[strlen(finalPath)-4] = '\0';
+	{
+		finalPath[strlen(finalPath) - 4] = 0;
+	}
 
-	changebitmapfont ( finalPath , lua_tointeger(L, 2) );
+	changebitmapfont(finalPath, lua_tointeger(L, 2));
 
 	return 0;
 }
@@ -5830,6 +5846,7 @@ void addFunctions()
 	
 	// utility
 	lua_register(lua, "MsgBox" , MsgBox );
+	lua_register(lua, "IsTestGame", GetIsTestgame);
 
 	//Water Shader
 	//setter
