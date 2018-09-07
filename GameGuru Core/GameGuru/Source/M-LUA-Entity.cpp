@@ -144,7 +144,7 @@ void entity_lua_getentityplrvisible ( void )
 			t.ty1_f=t.tcamerapositiony_f;
 			t.tz1_f=t.tcamerapositionz_f;
 			t.tx2_f=ObjectPositionX(t.tobj);
-			t.ty2_f=ObjectPositionY(t.tobj);
+			t.ty2_f=ObjectPositionY(t.tobj)+20;//070918 - extra for getting to eye position
 			t.tz2_f=ObjectPositionZ(t.tobj);
 			t.tsrcobj=g.entitybankoffset+t.entityelement[t.e].bankindex;
 			if (  ObjectExist(t.tsrcobj) == 1 ) 
@@ -253,6 +253,7 @@ void entity_lua_spawn_core ( void )
 	if ( Len(t.entityelement[t.e].eleprof.aimainname_s.Get())>1 ) 
 	{
 		t.entityelement[t.e].eleprof.aimain=1;
+		t.entityelement[t.e].eleprof.aipreexit=0;
 	}
 
 	//  restore object of entity
@@ -1407,8 +1408,8 @@ void entity_lua_setanimationspeed ( void )
 
 void entity_lua_setentityhealth_core ( int iSilent )
 {
-	//  if new health is zero, apply damage to entity directly
-	if (  t.v <= 0 && iSilent == 0 ) 
+	// if new health is zero, apply damage to entity directly
+	if ( t.v <= 0 && iSilent == 0 ) 
 	{
 		//  set an entities health
 		if ( t.entityelement[t.e].briefimmunity == 0 )

@@ -3633,6 +3633,7 @@ struct visualstype
 	int promptstatetimer;
 	int showpromptssavestate;
 	int refreshshaders;
+	int refreshmaincameras;
 	int refreshvegetation;
 	int refreshskysettings;
 	int refreshterraintexture;
@@ -5376,6 +5377,7 @@ struct entityeleproftype
 	cstr aimain_s;
 	cstr aimainname_s;
 	int aimain;
+	int aipreexit;
 	cstr aidestroy_s;
 	cstr aidestroyname_s;
 	int aidestroy;
@@ -5576,6 +5578,7 @@ struct entityeleproftype
 		 aidestroyname_s = "";
 		 aidestroy_s = "";
 		 aimain = 0;
+		 aipreexit = 0;
 		 aimainname_s = "";
 		 aimain_s = "";
 		 aiinit = 0;

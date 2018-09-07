@@ -4,12 +4,15 @@
 -- anim2 : Punch/Kick/Bite 
 -- anim3 : Hurt
 -- anim4 : Reload
+-- anim5 : Punch/Kick/Bite Damage Frames
+-- anim6 : Dying
 -- sound0 : Start moving A
 -- sound1 : Start strike
 -- sound2 : Start moving B
 -- sound3 : Get hurt A
 -- sound4 : Get hurt B
 
+module_core = require "scriptbank\\ai\\module_core"
 module_agro = require "scriptbank\\ai\\module_agro"
 module_cameraoverride = require "scriptbank\\ai\\module_cameraoverride"
 module_combateffects = require "scriptbank\\ai\\module_combateffects"
@@ -30,6 +33,9 @@ function module_combatcore.init(e,startstate,coverstate)
  ai_bot_targetx[e] = g_Entity[e]['x']
  ai_bot_targety[e] = g_Entity[e]['y']
  ai_bot_targetz[e] = g_Entity[e]['z']
+ ai_bot_closeenoughx[e] = 0
+ ai_bot_closeenoughy[e] = 0
+ ai_bot_closeenoughz[e] = 0
 end
 
 function module_combatcore.findcover(e,x,y,z)
@@ -105,25 +111,38 @@ function module_combatcore.detectplayer(e,AIObjNo,PlayerDist,CanFire,detectstate
   end
   if ai_bot_targetx[e] ~= nil then
    if ai_bot_substate[e] == 0 then
-    AIEntityGoToPosition(AIObjNo,ai_bot_targetx[e],ai_bot_targety[e],ai_bot_targetz[e])
-    if AIGetEntityIsMoving(AIObjNo) == 1 then
-     ai_bot_state[e] = detectstate
-     PlaySound(e,0+(math.random(0,1)*2))
-    else 
-     if g_Entity[e]['plrvisible'] == 1 then
-      RotateToPlayer(e)
-      if CanFire == 1 then
-       module_combatcore.fireweapon(e)
-      end
-      ai_bot_targetx[e] = g_PlayerPosX
-      ai_bot_targety[e] = g_PlayerPosY
-      ai_bot_targetz[e] = g_PlayerPosZ
-      AIEntityGoToPosition(AIObjNo,ai_bot_targetx[e],ai_bot_targety[e],ai_bot_targetz[e])
-	 end
+    if module_combatcore.getcomfortdistance(e) < 25 then
+	 -- happy to wait until player makes a moveandavoid
+	 RotateToPlayerSlowly(e,1.0)
+	else
+     AIEntityGoToPosition(AIObjNo,ai_bot_targetx[e],ai_bot_targety[e],ai_bot_targetz[e])
+     if AIGetEntityIsMoving(AIObjNo) == 1 then
+      ai_bot_state[e] = detectstate
+      PlaySound(e,0+(math.random(0,1)*2))
+     else 
+      if g_Entity[e]['plrvisible'] == 1 then
+       RotateToPlayer(e)
+       if CanFire == 1 then
+        module_combatcore.fireweapon(e)
+       end
+       ai_bot_targetx[e] = g_PlayerPosX
+       ai_bot_targety[e] = g_PlayerPosY
+       ai_bot_targetz[e] = g_PlayerPosZ
+       AIEntityGoToPosition(AIObjNo,ai_bot_targetx[e],ai_bot_targety[e],ai_bot_targetz[e])
+	  end
+     end
     end
    end
   end
  end
+end
+
+function module_combatcore.getcomfortdistance(e)
+ dx = ai_bot_closeenoughx[e] - g_PlayerPosX
+ dy = ai_bot_closeenoughy[e] - g_PlayerPosY
+ dz = ai_bot_closeenoughz[e] - g_PlayerPosZ
+ checkdistancefromcomfort = math.sqrt(math.abs(dx*dx)+math.abs(dy*dy)+math.abs(dz*dz))
+ return checkdistancefromcomfort
 end
 
 function module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,detectstate)
@@ -290,10 +309,15 @@ end
 
 function module_combatcore.homein(e,AIObjNo,PlayerDist,MoveType,CanFire,stopstate)
  if ai_bot_state[e] == ai_state_startmove then
-  ai_bot_state[e] = ai_state_move
-  SetAnimation(1)
-  LoopAnimation(e)
-  SetAnimationSpeedModulation(e,1.0)
+  if module_combatcore.getcomfortdistance(e) < 25 then
+   -- no need to go to target, happy with close location determined by player position
+   ai_bot_state[e] = stopstate
+  else
+   ai_bot_state[e] = ai_state_move
+   SetAnimation(1)
+   LoopAnimation(e)
+   SetAnimationSpeedModulation(e,1.0)
+  end
  end
  if ai_bot_state[e] == ai_state_move then
   -- scan if another bot is crowding player
@@ -326,16 +350,40 @@ function module_combatcore.moveandavoid(e,AIObjNo,PlayerDist,MoveType,x,y,z,stop
  movementfrozen = module_combateffects.ismovementfrozen(e)
  if ai_bot_substate[e] == 0 then
   if PlayerDist < 100 then
-   tDistX = x - g_Entity[e]['x']
-   tDistZ = z - g_Entity[e]['z']
-   tDA = math.atan2(tDistX,tDistZ)
-   x = x + (math.sin(tDA) * 50)
-   z = z + (math.cos(tDA) * 50)
+   if module_core.countaiaroundplayer() > 1 then
+    tDistX = x - g_Entity[e]['x']
+    tDistZ = z - g_Entity[e]['z']
+    tDA = math.atan2(tDistX,tDistZ)
+    x = x + (math.sin(tDA) * 50)
+    z = z + (math.cos(tDA) * 50)
+   end
   end
   AIEntityGoToPosition(AIObjNo,x,y,z)
   SetRotation(e,0,AIGetEntityAngleY(AIObjNo),0)
   if movementfrozen == 0 then
-   if AIGetEntityIsMoving(AIObjNo) == 1 then
+   dy = ai_bot_targety[e] - (g_Entity[e]['y']+50)
+   stopifclosetofinaldest = math.sqrt(math.abs(dy*dy))
+   if stopifclosetofinaldest < 75 then
+    dx = ai_bot_targetx[e] - g_Entity[e]['x']
+    dz = ai_bot_targetz[e] - g_Entity[e]['z']
+    stopifclosetofinaldest = math.sqrt(math.abs(dx*dx)+math.abs(dz*dz))
+    if stopifclosetofinaldest < 35 then
+	 ai_bot_closeenoughx[e] = g_PlayerPosX
+	 ai_bot_closeenoughy[e] = g_PlayerPosY
+	 ai_bot_closeenoughz[e] = g_PlayerPosZ
+     AIEntityGoToPosition(AIObjNo,ai_bot_closeenoughx[e],ai_bot_closeenoughy[e],ai_bot_closeenoughz[e])
+	 RotateToPlayer(e)
+	 stopifclosetofinaldest = 1
+	else 
+	 stopifclosetofinaldest = 0 
+	end
+   else
+    stopifclosetofinaldest = 0
+   end
+   if AIGetEntityIsMoving(AIObjNo) == 1 and stopifclosetofinaldest == 0 then
+    ai_bot_closeenoughx[e] = 0
+    ai_bot_closeenoughy[e] = 0
+    ai_bot_closeenoughz[e] = 0
     if MoveType == ai_movetype_useanim then
      MoveWithAnimation(e,1)
     else
@@ -389,9 +437,12 @@ function module_combatcore.donotmove(e)
 end
 
 function module_combatcore.sensepunch(e,AIObjNo,PlayerDist,combattype)
+ if PlayerDist < 150 and combattype == ai_combattype_freezermelee and ai_bot_state[e] ~= ai_state_move then
+  RotateToPlayer(e)
+ end
  if ai_bot_state[e] == ai_state_move or ai_bot_state[e] == ai_state_fireonspot then
-  if PlayerDist < 70 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+70 then
-   if combattype ~= ai_combattype_freezermelee or (combattype == ai_combattype_freezermelee and module_cameraoverride.hasowner() == 0) then
+  if PlayerDist < 55 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+70 then
+   --if combattype ~= ai_combattype_freezermelee or combattype == ai_combattype_freezermelee then
     -- must also check for line of sight (i.e not through walls) (first and third person)
 	thaslineofsight = 0
 	tthitvalue = IntersectAll(g_Entity[e]['x'],g_Entity[e]['y']+50,g_Entity[e]['z'],g_PlayerPosX,g_PlayerPosY+50,g_PlayerPosZ,AIObjNo)
@@ -417,9 +468,9 @@ function module_combatcore.sensepunch(e,AIObjNo,PlayerDist,combattype)
 	  module_cameraoverride.beingattackedby(e,60.0)
 	 end
 	end
-   else
-    ai_bot_state[e] = ai_state_recoverstart
-   end  
+   --else
+   -- ai_bot_state[e] = ai_state_recoverstart
+   --end  
   end
  end
 end
@@ -467,8 +518,8 @@ function module_combatcore.soundawareness(e,AIObjNo)
   end
  end
 end
- 
-function module_combatcore.punch(e,PlayerDist,combattype,afterstate)
+
+function module_combatcore.punch(e,AIObjNo,PlayerDist,combattype,afterstate)
  if ai_bot_state[e] == ai_state_punch then
   wemoved = 0
   if combattype == ai_combattype_freezermelee then
@@ -480,6 +531,23 @@ function module_combatcore.punch(e,PlayerDist,combattype,afterstate)
   tFrame = GetAnimationFrame(e)
   tStart = GetEntityAnimationStart(e,2)
   tFinish = GetEntityAnimationFinish(e,2)
+  tDamageFramesStart = GetEntityAnimationStart(e,5)
+  tDamageFramesFinish = GetEntityAnimationFinish(e,5)
+  if tDamageFramesStart > 0 and tDamageFramesFinish > 0 then
+   -- override defaults if anim5 specifies specific damage frame range
+   tStart = tDamageFramesStart
+   tFinish = tDamageFramesFinish
+   if combattype == ai_combattype_freezermelee then
+    tStart = tStart - 10
+    tFinish = tFinish + 30
+   else
+    if combattype == ai_combattype_bashmelee then
+     tStart = tStart - 25
+    else
+     tStart = tStart - 10
+	end
+   end
+  end
   if PlayerDist < 90 then
    if combattype == ai_combattype_freezermelee then
     if tFrame >= tStart+10 and tFrame <= tFinish-30 then
@@ -503,7 +571,13 @@ function module_combatcore.punch(e,PlayerDist,combattype,afterstate)
   end
   if combattype == ai_combattype_freezermelee then
    if tFrame >= tFinish-30 then
-    module_cameraoverride.finishbeingattacked(e)
+    if module_cameraoverride.finishbeingattacked(e) == 1 then
+     ForcePlayer ( g_Entity[e]['angley'], 3.0 )
+	end
+   else
+    if module_cameraoverride.hasowner() == 0 then
+	 ai_bot_state[e] = ai_state_recoverstart
+    end
    end
   end
   if tFrame >= tFinish then
@@ -606,6 +680,36 @@ function module_combatcore.reloadweapon(e)
    end
   end
  end
+end
+
+function module_combatcore.preexit(e,MoveType)
+ tFrame = GetAnimationFrame(e)
+ tDyingAnimStart = GetEntityAnimationStart(e,6)
+ tDyingAnimFinish = GetEntityAnimationFinish(e,6)
+ if tDyingAnimStart > 0 and tDyingAnimFinish > 0 then
+  if ai_bot_state[e] ~= ai_state_preexit then
+   ai_bot_state[e] = ai_state_preexit
+   CharacterControlLimbo(e)
+   StopAnimation(e)
+   SetAnimation(6)
+   PlayAnimation(e)
+   SetAnimationFrame(e,tDyingAnimStart)
+   SetAnimationSpeedModulation(e,1.0)
+  end
+ else 
+  return 1
+ end
+ if tFrame >= tDyingAnimFinish-2 then
+  return 1
+ else
+  return 0
+ end 
+end
+
+function module_combatcore.exit(e)
+ StopSound(e,0)
+ StopSound(e,1)
+ CollisionOff(e)
 end
 
 return module_combatcore

@@ -1166,8 +1166,6 @@ void entity_find_charanimindex_fromttte ( void )
 			}
 		}
 	}
-return;
-
 }
 
 void entity_applydamage ( void )
@@ -1359,7 +1357,20 @@ void entity_applydamage ( void )
 		}
 	}
 
-	//  when health drops to zero
+	// when health drops to zero, and have a preexit LUA function for this entity, keep 
+	// entity alive long enough to run the logic in the preexit function
+	if ( t.entityelement[t.ttte].health <= 0 ) 
+	{
+		if ( t.entityelement[t.ttte].eleprof.aipreexit == 0 )
+		{
+			t.entityelement[t.ttte].health = 1;
+			t.entityelement[t.ttte].eleprof.aipreexit = 1;
+		}
+	}
+	if ( t.entityelement[t.ttte].eleprof.aipreexit == 1 ) t.entityelement[t.ttte].health = 1;
+	if ( t.entityelement[t.ttte].eleprof.aipreexit == 2 ) t.entityelement[t.ttte].health = 0;
+
+	// when health drops to zero
 	if ( t.entityelement[t.ttte].health <= 0 ) 
 	{
 		//  if explodble, have a delayed reaction
@@ -1542,7 +1553,6 @@ void entity_applydamage ( void )
 			t.entityelement[t.ttte].ragdollifiedforcelimb=t.bulletraylimbhit;
 			t.bulletraylimbhit=-1;
 		}
-
 	}
 }
 

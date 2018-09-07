@@ -2360,7 +2360,6 @@ return;
 
 void entity_fillgrideleproffromprofile ( void )
 {
-
 	//  Name
 	t.grideleprof.name_s=t.entityprofileheader[t.entid].desc_s;
 

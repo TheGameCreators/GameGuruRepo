@@ -1,0 +1,72 @@
+;Saved by GameGuru Object Importer v1.000
+;header
+desc             = smartzombie
+
+;visualinfo
+textured         = 
+effect           = effectbank\reloaded\apbr_anim.fx
+castshadow       = 0
+transparency     = 0
+
+;orientation
+model            = smartzombie.dbo
+offx             = 0
+offy             = 0
+offz             = 0
+rotx             = 0
+roty             = 0
+rotz             = 0
+scale            = 100
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 0
+matrixmode       = 0
+cullmode         = 0
+
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 1
+isspinetracker   = 1
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 25
+explodable       = 0
+debrisshape      = 0
+
+;ai
+aimain           = ai_melee_animmove.lua
+
+;spawn
+spawnmax         = 0
+spawndelay       = 0
+spawnqty         = 0
+
+;append anim will add animation sets to base model
+appendanimfinal  = smartzombie-final.dbo
+appendanimmax    = 5
+appendanim1      = smartzombie-idle.dbo
+appendanimframe1 = 0
+appendanim2      = smartzombie-run.dbo
+appendanimframe2 = 127
+appendanim3      = smartzombie-neckbite.dbo
+appendanimframe3 = 151
+appendanim4      = smartzombie-hit.dbo
+appendanimframe4 = 276
+appendanim5      = smartzombie-dying.dbo
+appendanimframe5 = 336
+
+;anim
+animmax          = 7
+playanimineditor = 1
+anim0            = 0,126     ;idle
+anim1            = 127,150   ;move
+anim2            = 151,275   ;bite
+anim3            = 296,330   ;hurt
+anim4            = 0,126     ;reload
+anim5            = 190,245   ;bite damage frames
+anim6            = 336,436   ;dying

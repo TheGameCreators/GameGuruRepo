@@ -8,6 +8,24 @@ function module_core.getplayerdist(e)
  return PlayerDist
 end
 
+function module_core.countaiaroundplayer()
+ tcountai = 0
+ for ee = 1 , g_EntityElementMax, 1 do
+  if g_Entity[ee] ~= nil then
+   if ai_bot_state[ee] ~= nil then
+    pDX = g_Entity[ee]['x'] - g_PlayerPosX
+    pDY = g_Entity[ee]['y'] - g_PlayerPosY
+    pDZ = g_Entity[ee]['z'] - g_PlayerPosZ
+    pDist = math.sqrt(math.abs(pDX*pDX)+math.abs(pDY*pDY)+math.abs(pDZ*pDZ));
+    if pDist < 100 then
+     tcountai = tcountai + 1
+    end
+   end
+  end
+ end
+ return tcountai
+end
+
 function module_core.debug(e,AIObjNo,PlayerDist,combattype)
  if ai_bot_state ~= nil then
   if ai_bot_state[e] ~= nil then

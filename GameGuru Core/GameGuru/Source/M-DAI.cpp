@@ -904,7 +904,8 @@ void darkai_setupcharacter ( void )
 		t.tz_f = ObjectPositionZ(t.i);
 		AISetEntityPosition (  t.i,t.tx_f,t.ty_f,t.tz_f );
 		t.tconeangle=t.entityelement[t.charanimstates[g.charanimindex].e].eleprof.coneangle;
-		if (  t.tconeangle == 0  )  t.tconeangle = 90;
+		//if (  t.tconeangle == 0  )  t.tconeangle = 90;
+		if (  t.tconeangle == 0  )  t.tconeangle = 179; // change default so characters more responsive (can see behind them)
 		AISetEntityFireArc (  t.i,t.tconeangle );
 		AISetEntityViewArc (  t.i,t.tconeangle,t.tconeangle*2 );
 		t.tconerange=t.entityelement[t.charanimstates[g.charanimindex].e].eleprof.conerange;
@@ -1401,9 +1402,6 @@ void darkai_killai ( void )
 			StopSound (  t.ttsnd );
 		}
 	}
-
-return;
-
 }
 
 void darkai_shootcharacter ( void )
@@ -1428,10 +1426,10 @@ void darkai_shootcharacter ( void )
 
 void darkai_calcplrvisible ( void )
 {
-	//  if the ai is controlled by another player, we can just set as visible here
-	if (  t.game.runasmultiplayer  ==  1 ) 
+	// if the ai is controlled by another player, we can just set as visible here
+	if ( t.game.runasmultiplayer  ==  1 ) 
 	{
-		if (  t.entityelement[t.charanimstate.e].mp_coopControlledByPlayer  !=  g.steamworks.me ) 
+		if ( t.entityelement[t.charanimstate.e].mp_coopControlledByPlayer != g.steamworks.me ) 
 		{
 			t.entityelement[t.charanimstate.e].plrvisible=0;
 			t.entityelement[t.charanimstate.e].lua.flagschanged=1;
@@ -1439,13 +1437,13 @@ void darkai_calcplrvisible ( void )
 		}
 	}
 
-	//  takes tcharanimindex
-	//  work out if entity A.I can see (stored until recalculated) (called from _darkai_loop and _darkai_shootplayer)
+	// takes tcharanimindex
+	// work out if entity A.I can see (stored until recalculated) (called from _darkai_loop and _darkai_shootplayer)
 	t.entityelement[t.charanimstate.e].plrvisible=0;
 	t.entityelement[t.charanimstate.e].lua.flagschanged=1;
-	if (  t.player[t.plrid].health>0 ) 
+	if ( t.player[t.plrid].health > 0 ) 
 	{
-		//  work out distance between player and entity
+		// work out distance between player and entity
 		t.ttdx_f=ObjectPositionX(t.aisystem.objectstartindex)-ObjectPositionX(t.charanimstate.obj);
 		t.ttdz_f=ObjectPositionZ(t.aisystem.objectstartindex)-ObjectPositionZ(t.charanimstate.obj);
 		t.ttdd_f=Sqrt(abs(t.ttdx_f*t.ttdx_f)+abs(t.ttdz_f*t.ttdz_f));
@@ -1454,23 +1452,23 @@ void darkai_calcplrvisible ( void )
 			//  player within 1500 units, otherwise skip further vis checking
 			t.ttda_f=atan2deg(t.ttdx_f,t.ttdz_f);
 			t.ttdiff_f=WrapValue(t.ttda_f)-WrapValue(ObjectAngleY(t.charanimstate.obj));
-			if (  t.ttdiff_f<-180  )  t.ttdiff_f = t.ttdiff_f+360;
-			if (  t.ttdiff_f>180  )  t.ttdiff_f = t.ttdiff_f-360;
+			if ( t.ttdiff_f<-180 ) t.ttdiff_f = t.ttdiff_f+360;
+			if ( t.ttdiff_f>180 ) t.ttdiff_f = t.ttdiff_f-360;
 			t.tconeangle=t.entityelement[t.charanimstate.e].eleprof.coneangle;
-			if (  t.tconeangle == 0  )  t.tconeangle = 90;
-			if (  abs(t.ttdiff_f) <= t.tconeangle ) 
+			if ( t.tconeangle == 0  ) t.tconeangle = 179; // new default
+			if ( abs(t.ttdiff_f) <= t.tconeangle ) 
 			{
-				//  and player is within hemisphere of entity look angle
+				// and player is within hemisphere of entity look angle
 				t.tgetentcanseevalue=AIGetEntityCanSee(t.charanimstate.obj,ObjectPositionX(t.aisystem.objectstartindex),ObjectPositionY(t.aisystem.objectstartindex),ObjectPositionZ(t.aisystem.objectstartindex),1);
-				if (  t.tgetentcanseevalue>0 ) 
+				if ( t.tgetentcanseevalue>0 )
 				{
-					//  player can be seen within inner arc
+					// player can be seen within inner arc
 					t.ttokay=1;
 					t.tthavegunobject=0;
 					t.tgunobj=t.entityelement[t.charanimstate.e].attachmentobj;
-					if (  t.tgunobj>0 ) 
+					if ( t.tgunobj>0 ) 
 					{
-						if (  ObjectExist(t.tgunobj) == 1 ) 
+						if ( ObjectExist(t.tgunobj) == 1 ) 
 						{
 							t.brayx1_f=ObjectPositionX(t.tgunobj);
 							t.brayy1_f=ObjectPositionY(t.tgunobj);
@@ -1478,17 +1476,16 @@ void darkai_calcplrvisible ( void )
 							t.tthavegunobject=1;
 						}
 					}
-					if (  t.tthavegunobject == 0 ) 
+					if ( t.tthavegunobject == 0 ) 
 					{
 						t.brayx1_f=ObjectPositionX(t.charanimstate.obj);
-						t.brayy1_f=ObjectPositionY(t.charanimstate.obj)+50;
+						t.brayy1_f=ObjectPositionY(t.charanimstate.obj)+20; // 070918 - raised a bit closer to character eyes 
 						t.brayz1_f=ObjectPositionZ(t.charanimstate.obj);
+						t.tsrcobj=g.entitybankoffset+t.entityelement[t.charanimstate.e].bankindex;
+						if ( ObjectExist(t.tsrcobj) == 1 ) t.brayy1_f = t.brayy1_f + (ObjectSizeY(t.tsrcobj,1)*0.5f);
 					}
 
 					// 090417 - improve accuracy of enemy plr detection (was putting player at waste level)
-					//t.brayx2_f=ObjectPositionX(t.aisystem.objectstartindex);
-					//t.brayy2_f=ObjectPositionY(t.aisystem.objectstartindex);
-					//t.brayz2_f=ObjectPositionZ(t.aisystem.objectstartindex);
 					entity_gettruecamera ( );
 					t.brayx2_f = t.tcamerapositionx_f;
 					t.brayy2_f = t.tcamerapositiony_f;

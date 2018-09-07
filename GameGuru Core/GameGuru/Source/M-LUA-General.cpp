@@ -466,13 +466,13 @@ void lua_setoptionocclusion ( void )
 void lua_setcameradistance ( void )
 {
 	t.visuals.CameraFAR_f=t.v_f;
-	visuals_justshaderupdate ( );
+	t.visuals.refreshmaincameras = 1;
 }
 
 void lua_setcamerafov ( void )
 {
 	t.visuals.CameraFOV_f=t.v_f;
-	visuals_justshaderupdate ( );
+	t.visuals.refreshmaincameras = 1;
 }
 
 void lua_setcamerazoompercentage ( void )

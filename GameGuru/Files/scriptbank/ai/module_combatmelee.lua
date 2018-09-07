@@ -56,7 +56,7 @@ function module_combatmelee.main(e,combattype,movetype)
  end 
  
  -- handle attack
- module_combatcore.punch(e,PlayerDist,combattype,ai_state_startidle) 
+ module_combatcore.punch(e,AIObjNo,PlayerDist,combattype,ai_state_startidle) 
  module_combatcore.recover(e,ai_state_startidle)
 
  -- handle debugging
@@ -64,4 +64,12 @@ function module_combatmelee.main(e,combattype,movetype)
 
 end
 
+function module_combatmelee.preexit(e,movetype)
+ return module_combatcore.preexit(e,movetype)
+end
+
+function module_combatmelee.exit(e)
+ module_combatcore.exit(e)
+end
+ 
 return module_combatmelee

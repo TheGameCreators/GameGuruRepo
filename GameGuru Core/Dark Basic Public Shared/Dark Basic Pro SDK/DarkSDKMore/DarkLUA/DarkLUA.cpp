@@ -1055,6 +1055,16 @@ luaMessage** ppLuaMessages = NULL;
 	return 1;
  }
 
+ int SetPreExitValue(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 2 ) return 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	t.entityelement[iEntityIndex].eleprof.aipreexit = lua_tonumber(L, 2);
+	return 0;
+ }
+
  int RawSetEntityData ( lua_State *L, int iDataMode )
  {
 	lua = L;
@@ -5166,6 +5176,8 @@ void addFunctions()
 	lua_register(lua, "SetEntitySpawnAtStart", SetEntitySpawnAtStart);
 	lua_register(lua, "GetEntitySpawnAtStart", GetEntitySpawnAtStart);
 	lua_register(lua, "GetEntityFilePath", GetEntityFilePath);
+	lua_register(lua, "SetPreExitValue", SetPreExitValue);
+
 	lua_register(lua, "GetEntityAnimationStart", GetEntityAnimationStart);
 	lua_register(lua, "GetEntityAnimationFinish", GetEntityAnimationFinish);
 	lua_register(lua, "GetAmmoClipMax", GetAmmoClipMax);

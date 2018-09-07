@@ -1,4 +1,5 @@
 -- GameLoop module
+module_cameraoverride = require "scriptbank\\ai\\module_cameraoverride"
 
 gameloop_RegenTickTime = 0
 
@@ -28,6 +29,10 @@ function gameloop.main()
   end
  end
  -- more externalised mechanics to come..
+end
+
+function gameloop.quit()
+ module_cameraoverride.restoreandreset()
 end
 
 return gameloop

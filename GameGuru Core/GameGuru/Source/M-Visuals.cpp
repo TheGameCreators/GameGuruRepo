@@ -1349,25 +1349,7 @@ void visuals_loop ( void )
 		visuals_justshaderupdate ( );
 
 		//  Calculate 'reasonable' camera FOV (void zero and 100)
-		g.greasonableCameraFOV_f=t.visuals.CameraFOV_f;
 		g.greasonableWeaponFOV_f=t.visuals.WeaponFOV_f;
-
-		//  Set camera settings
-		for ( t.tcamid = 0 ; t.tcamid<=  4; t.tcamid++ )
-		{
-			if (  CameraExist(t.tcamid) == 1 && t.tcamid != 3 ) 
-			{
-				// 311017 - solve Z clash issues by adjusting near depth based on far depth
-				//PE: removes flickering on "old bridge" in TBE.
-				//PE: 8+ seams wo work without near geo disappering.
-				//PE: 14 seams to be the largest possible when directly up to a flat wall.
-				//PE: Default range 8-14 . use setup.ini lowestnearcamera to go lower then 8.
-				float fFinalNearDepth = g.lowestnearcamera + t.visuals.CameraNEAR_f + ((t.visuals.CameraFAR_f/70000.0f)*6.0f); // PE: range 8-14
-				SetCameraRange ( t.tcamid, fFinalNearDepth, t.visuals.CameraFAR_f );
-				SetCameraAspect ( t.tcamid,t.visuals.CameraASPECT_f );
-				SetCameraFOV ( t.tcamid,g.greasonableCameraFOV_f );
-			}
-		}
 
 		//  Set selected object FOV's
 		for ( t.tgunid = 1 ; t.tgunid<=  g.gunmax; t.tgunid++ )
@@ -1427,6 +1409,31 @@ void visuals_loop ( void )
 		//  Ensures LOW FPS detector not fooled by setting changes
 		g.lowfpstarttimer=Timer();
 
+		// and trigger camera refresh (but flag can be triggered elsewhere, like LUA command to change camera)
+		t.visuals.refreshmaincameras = 1;
+	}
+
+	// 070918 - have separate control of camera refresh
+	if ( t.visuals.refreshmaincameras == 1 )
+	{
+		//  Set camera settings
+		g.greasonableCameraFOV_f=t.visuals.CameraFOV_f;
+		for ( t.tcamid = 0 ; t.tcamid <= 4; t.tcamid++ )
+		{
+			if ( CameraExist(t.tcamid) == 1 && t.tcamid != 3 ) 
+			{
+				// 311017 - solve Z clash issues by adjusting near depth based on far depth
+				//PE: removes flickering on "old bridge" in TBE.
+				//PE: 8+ seams wo work without near geo disappering.
+				//PE: 14 seams to be the largest possible when directly up to a flat wall.
+				//PE: Default range 8-14 . use setup.ini lowestnearcamera to go lower then 8.
+				float fFinalNearDepth = g.lowestnearcamera + t.visuals.CameraNEAR_f + ((t.visuals.CameraFAR_f/70000.0f)*6.0f); // PE: range 8-14
+				SetCameraRange ( t.tcamid, fFinalNearDepth, t.visuals.CameraFAR_f );
+				SetCameraAspect ( t.tcamid,t.visuals.CameraASPECT_f );
+				SetCameraFOV ( t.tcamid,g.greasonableCameraFOV_f );
+			}
+		}
+		t.visuals.refreshmaincameras = 0;
 	}
 
 	//  Update vegetation when required. Wait for mouse release because it takes a long time when updating during a drag

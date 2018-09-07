@@ -119,6 +119,7 @@ void lua_loadscriptin ( void )
 				{
 					t.entityelement[t.e].eleprof.aimainname_s=Left(t.tscriptname_s.Get(),Len(t.tscriptname_s.Get())-4);
 					t.entityelement[t.e].eleprof.aimain=1;
+					t.entityelement[t.e].eleprof.aipreexit=0;
 					t.entityelement[t.e].lua.plrinzone=-1;
 					t.entityelement[t.e].lua.entityinzone=0;
 					t.entityelement[t.e].lua.flagschanged=1;
@@ -132,12 +133,12 @@ void lua_loadscriptin ( void )
 
 void lua_scanandloadactivescripts ( void )
 {
-
 	//  Scan all active entities and load in used scripts
 	//  no nesting as cannot resolve folder nests with global naming convention
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
 		t.entityelement[t.e].eleprof.aimain=0;
+		t.entityelement[t.e].eleprof.aipreexit=0;
 		if (  t.entityelement[t.e].bankindex>0 && t.entityelement[t.e].staticflag == 0 ) 
 		{
 			//  AI MAIN SCRIPT
@@ -352,6 +353,14 @@ void lua_loop_begin ( void )
 	LuaSetInt("g_projectileevent_radius", g.projectileEventType_radius);
 	LuaSetInt("g_projectileevent_damage", g.projectileEventType_damage);
 	LuaSetInt("g_projectileevent_entityhit", g.projectileEventType_entityhit);
+}
+
+void lua_quitting ( void )
+{
+	lua_loop_begin();
+	LuaSetFunction ( "GameLoopQuit", 0, 0 );
+	LuaCall();
+	lua_loop_finish();
 }
 
 void lua_updateweaponstats ( void )
@@ -733,11 +742,30 @@ void lua_loop_allentities ( void )
 									}
 								}
 								if ( t.entityelement[t.e].eleprof.aimainname_s.Lower() == "default" ) t.tcall = 0;		
-								if (  t.tcall  ==  1 ) 
+								if ( t.tcall == 1 ) 
 								{
-									t.strwork = cstr(cstr(Lower(t.entityelement[t.e].eleprof.aimainname_s.Get()))+"_main");
-									LuaSetFunction ( t.strwork.Get() ,1,0 );
-									LuaPushInt (  t.e  ); LuaCall (  );
+									if ( t.entityelement[t.e].eleprof.aipreexit >= 1 )
+									{
+										if ( t.entityelement[t.e].eleprof.aipreexit == 1 )
+										{
+											t.entityelement[t.e].eleprof.aipreexit = 2;
+											t.strwork = cstr(cstr(Lower(t.entityelement[t.e].eleprof.aimainname_s.Get()))+"_preexit");
+											LuaSetFunction ( t.strwork.Get(), 1, 0 );
+											LuaPushInt ( t.e ); LuaCall ( );
+											if ( t.entityelement[t.e].eleprof.aipreexit == 2 )
+											{
+												t.v = 0.0f;
+												entity_lua_setentityhealth();
+												//t.entityelement[t.e].destroyme = 1;
+											}
+										}
+									}
+									else
+									{
+										t.strwork = cstr(cstr(Lower(t.entityelement[t.e].eleprof.aimainname_s.Get()))+"_main");
+										LuaSetFunction ( t.strwork.Get() ,1,0 );
+										LuaPushInt (  t.e  ); LuaCall (  );
+									}
 								}
 							}
 						}

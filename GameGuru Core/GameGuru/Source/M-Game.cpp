@@ -879,13 +879,11 @@ void game_masterroot ( void )
 
 			} //  Game cycle loop end
 
+			// free any lua activity (restore FOV if ingame activity there)
+			timestampactivity(0,"finalising LUA system before reset");
+			lua_quitting(); 
 
-//			if (g.memgeneratedump == 1) {
-//				timestampactivity(0, "DumpImageList before freeing level data.");
-//				DumpImageList(); // PE:
-//			}
-
-			  //  Rest any internal game variables
+			// Rest any internal game variables
 			game_main_stop ( );
 
 			//  Free any level resources
@@ -2722,16 +2720,11 @@ void game_sync ( void )
 
 void game_main_stop ( void )
 {
-
-	//  Rest any ingame variables
-	if (  t.conkit.entityeditmode != 0 || t.conkit.editmodeactive == 1 ) 
+	// Rest any ingame variables
+	if ( t.conkit.entityeditmode != 0 || t.conkit.editmodeactive == 1 ) 
 	{
 		conkitedit_switchoff ( );
 	}
-
-return;
-
-//  called from a lua script to finish current level
 }
 
 void game_jump_to_level_from_lua ( void )

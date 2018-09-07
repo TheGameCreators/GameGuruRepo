@@ -75,7 +75,7 @@ function module_combatshoot.main(e,combattype,movetype,attacktype)
  
  -- handle events
  module_combatcore.headshot(e)
- module_combatcore.punch(e,PlayerDist,combattype,ai_state_startfireonspot)
+ module_combatcore.punch(e,AIObjNo,PlayerDist,combattype,ai_state_startfireonspot)
  module_combatcore.recover(e,ai_state_startpatrol)
  module_combatcore.fireonspot(e,AIObjNo)
  module_combatcore.reloadweapon(e)
@@ -83,6 +83,14 @@ function module_combatshoot.main(e,combattype,movetype,attacktype)
  -- handle debugging
  -- module_core.debug(e,AIObjNo,PlayerDist,combattype)
 
+end
+
+function module_combatshoot.preexit(e,movetype)
+ return module_combatcore.preexit(e,movetype)
+end
+
+function module_combatshoot.exit(e)
+ module_combatcore.exit(e)
 end
 
 return module_combatshoot
