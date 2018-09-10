@@ -756,7 +756,6 @@ void lua_loop_allentities ( void )
 											{
 												t.v = 0.0f;
 												entity_lua_setentityhealth();
-												//t.entityelement[t.e].destroyme = 1;
 											}
 										}
 									}

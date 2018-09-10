@@ -361,24 +361,26 @@ function module_combatcore.moveandavoid(e,AIObjNo,PlayerDist,MoveType,x,y,z,stop
   AIEntityGoToPosition(AIObjNo,x,y,z)
   SetRotation(e,0,AIGetEntityAngleY(AIObjNo),0)
   if movementfrozen == 0 then
-   dy = ai_bot_targety[e] - (g_Entity[e]['y']+50)
-   stopifclosetofinaldest = math.sqrt(math.abs(dy*dy))
-   if stopifclosetofinaldest < 75 then
-    dx = ai_bot_targetx[e] - g_Entity[e]['x']
-    dz = ai_bot_targetz[e] - g_Entity[e]['z']
-    stopifclosetofinaldest = math.sqrt(math.abs(dx*dx)+math.abs(dz*dz))
-    if stopifclosetofinaldest < 35 then
-	 ai_bot_closeenoughx[e] = g_PlayerPosX
-	 ai_bot_closeenoughy[e] = g_PlayerPosY
-	 ai_bot_closeenoughz[e] = g_PlayerPosZ
-     AIEntityGoToPosition(AIObjNo,ai_bot_closeenoughx[e],ai_bot_closeenoughy[e],ai_bot_closeenoughz[e])
-	 RotateToPlayer(e)
-	 stopifclosetofinaldest = 1
-	else 
-	 stopifclosetofinaldest = 0 
-	end
-   else
-    stopifclosetofinaldest = 0
+   if ai_bot_targetx[e] ~= nil then
+    dy = ai_bot_targety[e] - (g_Entity[e]['y']+50)
+    stopifclosetofinaldest = math.sqrt(math.abs(dy*dy))
+    if stopifclosetofinaldest < 75 then
+     dx = ai_bot_targetx[e] - g_Entity[e]['x']
+     dz = ai_bot_targetz[e] - g_Entity[e]['z']
+     stopifclosetofinaldest = math.sqrt(math.abs(dx*dx)+math.abs(dz*dz))
+     if stopifclosetofinaldest < 35 then
+ 	  ai_bot_closeenoughx[e] = g_PlayerPosX 
+	  ai_bot_closeenoughy[e] = g_PlayerPosY
+	  ai_bot_closeenoughz[e] = g_PlayerPosZ
+      AIEntityGoToPosition(AIObjNo,ai_bot_closeenoughx[e],ai_bot_closeenoughy[e],ai_bot_closeenoughz[e])
+	  RotateToPlayer(e)
+	  stopifclosetofinaldest = 1
+	 else 
+	  stopifclosetofinaldest = 0 
+	 end
+    else
+     stopifclosetofinaldest = 0
+    end
    end
    if AIGetEntityIsMoving(AIObjNo) == 1 and stopifclosetofinaldest == 0 then
     ai_bot_closeenoughx[e] = 0
