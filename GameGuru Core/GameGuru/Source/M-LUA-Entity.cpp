@@ -1682,11 +1682,9 @@ void entity_lua_lookatplayer ( void )
 			t.entityelement[t.e].mp_rotateTimer = Timer();
 		}
 	}
-return;
-
 }
 
-void entity_lua_rotatetocore ( void )
+void entity_lua_rotatetocore ( float fAngleOffset )
 {
 	entity_lua_findcharanimstate ( );
 	t.tdx_f=t.tcamerapositionx_f-t.entityelement[t.e].x;
@@ -1735,14 +1733,22 @@ void entity_lua_rotatetoplayer ( void )
 	t.tcamerapositionx_f=CameraPositionX(t.terrain.gameplaycamera);
 	t.tcamerapositiony_f=CameraPositionY(t.terrain.gameplaycamera);
 	t.tcamerapositionz_f=CameraPositionZ(t.terrain.gameplaycamera);
-	entity_lua_rotatetocore ( );
+	entity_lua_rotatetocore ( 0.0f );
 }
 
 void entity_lua_rotatetocamera ( void )
 {
 	//  for when we want the REAL camera (for decals)
 	entity_gettruecamera ( );
-	entity_lua_rotatetocore ( );
+	entity_lua_rotatetocore ( 0.0f );
+}
+
+void entity_lua_rotatetoplayerwithoffset ( void )
+{
+	t.tcamerapositionx_f=CameraPositionX(t.terrain.gameplaycamera);
+	t.tcamerapositiony_f=CameraPositionY(t.terrain.gameplaycamera);
+	t.tcamerapositionz_f=CameraPositionZ(t.terrain.gameplaycamera);
+	entity_lua_rotatetocore ( t.v );
 }
 
 void entity_lua_set_gravity ( void )

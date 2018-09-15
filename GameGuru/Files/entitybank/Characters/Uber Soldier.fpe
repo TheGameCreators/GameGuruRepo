@@ -43,13 +43,20 @@ jumpmodifier  = 100
 jumpvaulttrim = 1
 
 ;anim
-animmax          = 5
+animmax          = 12
 playanimineditor = 1
 anim0            = 100,205   ;idle
 anim1            = 685,707   ;move
 anim2            = 5511,5553 ;kick
 anim3            = 4812,4850 ;hurt
 anim4            = 515,605   ;reload
+anim5            = 0,0       ;hit frames default
+anim6            = 0,0       ;dying default
+anim7            = 1630,1646 ;duck
+anim8            = 1670,1819 ;duck idle
+anim9            = 1646,1663 ;unduck
+anim10           = 795,811   ;run
+anim11           = 2160,2218 ;roll to duck
 
 ;character animation (reference only)
 csi_relaxed1 				= 900,999

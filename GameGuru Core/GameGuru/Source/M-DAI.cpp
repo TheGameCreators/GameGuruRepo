@@ -905,7 +905,7 @@ void darkai_setupcharacter ( void )
 		AISetEntityPosition (  t.i,t.tx_f,t.ty_f,t.tz_f );
 		t.tconeangle=t.entityelement[t.charanimstates[g.charanimindex].e].eleprof.coneangle;
 		//if (  t.tconeangle == 0  )  t.tconeangle = 90;
-		if (  t.tconeangle == 0  )  t.tconeangle = 179; // change default so characters more responsive (can see behind them)
+		if (  t.tconeangle == 0  )  t.tconeangle = 135; // change default so characters more responsive (can see extreme sides!)
 		AISetEntityFireArc (  t.i,t.tconeangle );
 		AISetEntityViewArc (  t.i,t.tconeangle,t.tconeangle*2 );
 		t.tconerange=t.entityelement[t.charanimstates[g.charanimindex].e].eleprof.conerange;

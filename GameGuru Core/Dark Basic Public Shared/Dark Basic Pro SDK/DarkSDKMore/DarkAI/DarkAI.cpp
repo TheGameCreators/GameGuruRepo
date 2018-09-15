@@ -2935,6 +2935,14 @@ void AISetEntityControl ( int iObjID, int iMode )
 	pEntity->ChangeState ( cWorld.pEntityStates->pStateManual );
 }
 
+void AISetEntityMoveBoostPriority ( int iObjID )
+{
+	if ( CheckAIInit ( )==0 ) return;
+	Entity *pEntity = CheckEntity ( iObjID );
+	if ( !pEntity ) return;
+	// does nothing yet
+}
+
 void AIEntityGoToPosition ( int iObjID, float x, float z, int container )
 {
 	if ( CheckAIInit ( )==0 ) return;

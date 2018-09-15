@@ -13,6 +13,9 @@ end
 
 function module_combatshoot.main(e,combattype,movetype,attacktype)
  
+ -- DEBUG OPTION - make player undetectable so can test AI waypoints
+ --g_Entity[e]['plrvisible'] = 0
+ 
  -- common vars
  AIObjNo = g_Entity[e]['obj']
  PlayerDist = module_core.getplayerdist(e)
@@ -36,6 +39,7 @@ function module_combatshoot.main(e,combattype,movetype,attacktype)
  if combattype == ai_combattype_regular or combattype == ai_combattype_patrol then
   module_combatcore.patrol(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_startmove,ai_state_startpatrol)
   module_combatcore.hunt(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_startidle)
+  module_combatcore.handleducking(e,AIObjNo,PlayerDist)
   module_combatcore.soundawareness(e,AIObjNo)
  end
  
@@ -47,8 +51,8 @@ function module_combatshoot.main(e,combattype,movetype,attacktype)
     ai_bot_patroltime[e] = g_Time
    end
    if g_Time > ai_bot_patroltime[e] + 5000 then
-    -- after 20 seconds elapsed, return to patrol
-    -- PE: only if a ai_bot_pathindex exist , otherwise this will just flicker the idle animation.
+    -- after X seconds elapsed, return to patrol
+    -- only if a ai_bot_pathindex exist , otherwise this will just flicker the idle animation.
     if ai_bot_pathindex[e] ~= -1 then
 		ai_bot_state[e] = ai_state_startpatrol
 		ai_bot_coverindex[e] = -1
@@ -68,9 +72,9 @@ function module_combatshoot.main(e,combattype,movetype,attacktype)
  
  -- handle hurt response
  if combattype == ai_combattype_guard then
-  module_combatcore.hurt(e,ai_state_startfireonspot)
+  module_combatcore.hurt(e,PlayerDist,ai_state_startfireonspot)
  else
-  module_combatcore.hurt(e,ai_state_startidle)
+  module_combatcore.hurt(e,PlayerDist,ai_state_startidle)
  end
  
  -- handle events
@@ -81,7 +85,7 @@ function module_combatshoot.main(e,combattype,movetype,attacktype)
  module_combatcore.reloadweapon(e)
  
  -- handle debugging
- -- module_core.debug(e,AIObjNo,PlayerDist,combattype)
+ --module_core.debug(e,AIObjNo,PlayerDist,combattype)
 
 end
 

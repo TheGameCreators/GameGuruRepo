@@ -1610,6 +1610,15 @@ int MsgBox(lua_State *L)
 	return 0;
 }
 
+int AISetEntityMoveBoostPriority(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 3 ) return 0;
+	int iObj = lua_tointeger(L, 1);
+	AISetEntityMoveBoostPriority ( iObj );
+}
+
 int AIEntityGoToPosition(lua_State *L)
 {
 	// can pass in 3 or 4 params
@@ -1655,6 +1664,7 @@ int AIEntityGoToPosition(lua_State *L)
 	}
 	return 0;
 }
+
 
 int AIGetEntityHeardSound(lua_State *L )
 {
@@ -5204,6 +5214,7 @@ void addFunctions()
 	lua_register(lua, "AIGetEntityCanSee" , AIGetEntityCanSee );
 	lua_register(lua, "AIGetEntityViewRange" , AIGetEntityViewRange );
 	lua_register(lua, "AIGetEntitySpeed" , AIGetEntitySpeed );
+	lua_register(lua, "AISetEntityMoveBoostPriority" , AISetEntityMoveBoostPriority );
 	lua_register(lua, "AIEntityGoToPosition" , AIEntityGoToPosition );
 	lua_register(lua, "AIGetEntityHeardSound" , AIGetEntityHeardSound );
 	lua_register(lua, "AICouldSee" , AICouldSee );

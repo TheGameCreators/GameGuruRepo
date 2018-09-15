@@ -221,6 +221,7 @@ DLLEXPORT void		AICreateSound ( float x, float z, int iType, float fSize, int iC
 DLLEXPORT void		AICreateSound ( float x, float y, float z, int iType, float fSize );
 DLLEXPORT void		AICreateSound ( float x, float y, float z, int iType, float fSize, int iContainerID );
 DLLEXPORT void		AISetEntityControl ( int iObjID, int iMode );
+DLLEXPORT void		AISetEntityMoveBoostPriority ( int iObjID );
 DLLEXPORT void		AIEntityGoToPosition ( int iObjID, float x, float z );
 DLLEXPORT void		AIEntityGoToPosition ( int iObjID, float x, float z, int container );
 DLLEXPORT void		AIEntitySearchArea ( int iObjID );

@@ -447,7 +447,8 @@ void lua_loop_allentities ( void )
 	//  Go through all entities with active LUA scripts
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
-		if ( t.entityelement[t.e].bankindex>0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].eleprof.spawnatstart==0) ) 
+		int thisentid = t.entityelement[t.e].bankindex;
+		if ( thisentid>0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].eleprof.spawnatstart==0) ) 
 		{
 			//  Update entity coordinates with real object coordinates
 			t.tfrm=0 ; t.tobj=t.entityelement[t.e].obj;
@@ -610,10 +611,11 @@ void lua_loop_allentities ( void )
 					bSkipLUAScriptEntityRefreshOnly = true;
 
 				//  Update each cycle as entity position, health and GetFrame (  change constantly )
-				if (  t.entityelement[t.e].plrdist<t.maximumnonefreezedistance/4 ) 
+				if ( t.entityelement[t.e].plrdist<t.maximumnonefreezedistance/4 || t.entityprofile[thisentid].ischaracter == 1 || t.entityelement[t.e].eleprof.phyalways != 0 ) 
 				{
-					//  first quarter of freeze range get full updates - no matter what
-					t.entityelement[t.e].lua.flagschanged=1;
+					//  first quarter of freeze range get full updates - also characters and those with alwaysactive flags
+					if ( t.entityelement[t.e].plrdist<t.maximumnonefreezedistance || t.entityelement[t.e].eleprof.phyalways != 0 ) 
+						t.entityelement[t.e].lua.flagschanged=1;
 				}
 				else
 				{
@@ -956,7 +958,8 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrolducked" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrolducked() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrolstand" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrolstand() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "lookatplayer" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_lookatplayer() ; }
-		if ( strcmp ( t.luaaction_s.Get() , "rotatetoplayer" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_rotatetoplayer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatetoplayer" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_rotatetoplayer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatetoplayerwithoffset" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageFloat() ; entity_lua_rotatetoplayerwithoffset() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "rotatetocamera" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_rotatetocamera() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setanimationframe" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setanimationframe() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setanimationspeed" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setanimationspeed() ; }

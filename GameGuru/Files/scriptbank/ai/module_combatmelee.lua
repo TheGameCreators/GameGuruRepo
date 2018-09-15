@@ -29,7 +29,7 @@ function module_combatmelee.main(e,combattype,movetype)
  -- handle moves
  module_combatcore.homein(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_recoverstart)
  module_combatcore.sensepunch(e,AIObjNo,PlayerDist,combattype)
- module_combatcore.hurt(e,ai_state_startmove)
+ module_combatcore.hurt(e,PlayerDist,ai_state_startmove)
  module_combatcore.headshot(e)
  module_combatcore.soundawareness(e,AIObjNo)
 
