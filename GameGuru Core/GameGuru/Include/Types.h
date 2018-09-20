@@ -5726,6 +5726,7 @@ struct entitytype
 	float lastz;
 	int norotate;
 	int nogravity;
+	int hoverfactoroverride;
 	float dry;
 	float floorposy;
 	int colr;
@@ -6035,6 +6036,7 @@ struct entitytype
 		 colr = 0;
 		 floorposy = 0.0f;
 		 dry = 0.0f;
+		 hoverfactoroverride = 0;
 		 nogravity = 0;
 		 norotate = 0;
 		 scalez = 0.0f;

@@ -908,6 +908,7 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "moveup" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_moveup() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "moveforward" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_moveforward() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "movebackward" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_movebackward() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "sethoverfactor" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_sethoverfactor() ; }
 
 		else if ( strcmp ( t.luaaction_s.Get() , "setpositionx" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setpositionx() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setpositiony" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setpositiony() ; }

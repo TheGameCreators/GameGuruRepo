@@ -1040,12 +1040,18 @@ void entity_updatepos ( void )
 					float fHoverFactor = t.entityprofile[entid].hoverfactor;
 					if ( fHoverFactor > 0.0f )
 					{
+						if ( t.entityelement[t.te].hoverfactoroverride > 0.0f )
+						{
+							// allows hover factor value to be changed in LUA script
+							fHoverFactor = t.entityelement[t.te].hoverfactoroverride;
+						}
 						int iCollisionMode = (1<<(0)) | (1<<(1)); //COL_TERRAIN | COL_OBJECT;
 						if ( ODERayTerrainEx ( t.entityelement[t.te].x, t.entityelement[t.te].y + 75.0f, t.entityelement[t.te].z, t.entityelement[t.te].x, t.entityelement[t.te].y - 75.0f, t.entityelement[t.te].z, iCollisionMode ) == 1 )
 						{
 							t.entityelement[t.te].y = ODEGetRayCollisionY();
 							float tvy = (t.entityelement[t.te].y + fHoverFactor) - ObjectPositionY(t.tobj);
-							ODESetLinearVelocity ( t.tobj, t.tvx_f, tvy*2.0f, t.tvz_f );
+							//ODESetLinearVelocity ( t.tobj, t.tvx_f, tvy*2.0f, t.tvz_f );
+							ODESetLinearVelocity ( t.tobj, t.tvx_f, tvy, t.tvz_f );
 						}
 						else
 						{

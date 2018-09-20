@@ -20,12 +20,12 @@ void ravey_particles_init ( void )
 		DisableObjectZWrite (  t.tParticleObj );
 		SetObjectTextureMode (  t.tParticleObj,0,0 );
 		SetObjectLight (  t.tParticleObj,0 );
-		SetObjectCull (  t.tParticleObj,1 );
+		///SetObjectCull (  t.tParticleObj,1 );
 		SetObjectMask (  t.tParticleObj,1 );
 		HideObject (  t.tParticleObj );
 		TextureObject (  t.tParticleObj,RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset );
 		SetObjectEffect (  t.tParticleObj, g.decaleffectoffset );
-		SetObjectCull ( t.tParticleObj, 0 );
+		///SetObjectCull ( t.tParticleObj, 0 );
 		DisableObjectZWrite ( t.tParticleObj );
 		SetObjectMask ( t.tParticleObj, 1 );
 
@@ -248,6 +248,18 @@ void ravey_particles_update_emitters ( void )
 
 						if (  t.ravey_particles[t.tfound].isAnimated  ==  1 ) 
 						{
+							// 200918 - lock UV here and fill with UV grid ref (copied from init as particles can specify different grid sizes)
+							t.uvwidth_f=1.0/t.ravey_particles[t.c].frameDivide;
+							t.uvheight_f=1.0/t.ravey_particles[t.c].frameDivide;
+							LockVertexDataForLimbCore ( t.tobj, 0, 1 );
+							SetVertexDataUV (  0, t.uvwidth_f, 0 );
+							SetVertexDataUV (  1, 0, 0 );
+							SetVertexDataUV (  2, t.uvwidth_f, t.uvheight_f );
+							SetVertexDataUV (  3, 0, 0 );
+							SetVertexDataUV (  4, 0, t.uvheight_f );
+							SetVertexDataUV (  5, t.uvwidth_f, t.uvheight_f );
+							UnlockVertexData (  );
+
 							t.line_f = Floor(t.ravey_particles[t.c].frame/t.ravey_particles[t.c].frameDivide) ;
 							t.line_f = t.line_f * t.ravey_particles[t.c].frameDivide;
 							t.left_f = (Floor(t.ravey_particles[t.c].frame)-t.line_f) * t.ravey_particles[t.c].frameMulti ;
@@ -408,8 +420,8 @@ void ravey_particles_add_emitter ( void )
 	t.ravey_particle_emitters[g.tEmitter.id].endGravity = g.tEmitter.endGravity;
 	t.ravey_particle_emitters[g.tEmitter.id].endFrame = g.tEmitter.endFrame;
 	t.ravey_particle_emitters[g.tEmitter.id].frameDivide = 8;
-	if (  t.ravey_particle_emitters[g.tEmitter.id].frameCount  ==  32  )  t.ravey_particle_emitters[g.tEmitter.id].frameDivide  =  4;
-	if (  t.ravey_particle_emitters[g.tEmitter.id].frameCount  ==  16  )  t.ravey_particle_emitters[g.tEmitter.id].frameDivide  =  2;
+	if (  t.ravey_particle_emitters[g.tEmitter.id].frameCount  ==  16  )  t.ravey_particle_emitters[g.tEmitter.id].frameDivide  =  4;
+	if (  t.ravey_particle_emitters[g.tEmitter.id].frameCount  ==  4  )  t.ravey_particle_emitters[g.tEmitter.id].frameDivide  =  2;
 	t.ravey_particle_emitters[g.tEmitter.id].frameMulti = 1.0 / t.ravey_particle_emitters[g.tEmitter.id].frameDivide;
 
 	t.ravey_particle_emitters[g.tEmitter.id].isLooping = g.tEmitter.isLooping;

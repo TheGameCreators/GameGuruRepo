@@ -42,6 +42,7 @@ void entity_lua_scaleupdate ( void );
 void entity_lua_moveup ( void );
 void entity_lua_moveforward ( void );
 void entity_lua_movebackward ( void );
+void entity_lua_sethoverfactor ( void );
 void entity_lua_setpositionx ( void );
 void entity_lua_setpositiony ( void );
 void entity_lua_setpositionz ( void );

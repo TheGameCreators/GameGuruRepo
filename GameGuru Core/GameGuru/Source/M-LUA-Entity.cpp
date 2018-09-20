@@ -878,6 +878,12 @@ void entity_lua_moveup ( void )
 	entity_lua_moveupdate ( );
 }
 
+void entity_lua_sethoverfactor ( void )
+{
+	t.entityelement[t.e].hoverfactoroverride = t.v_f;
+	entity_lua_moveupdate ( );
+}
+
 void entity_lua_moveforward_core_nooverlap ( int te, float* pNX, float* pNZ )
 {
 	float fPlrDistOfMovingEntity = t.entityelement[te].plrdist;

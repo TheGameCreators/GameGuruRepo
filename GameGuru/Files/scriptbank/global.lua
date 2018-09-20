@@ -568,6 +568,10 @@ end
 function MoveBackward(e,v)
  SendMessageF("movebackward",e,v);
 end
+function SetHoverFactor(e,v)
+ SendMessageF("sethoverfactor",e,v);
+end
+
 function SetPosition(e,x,y,z)
  SendMessageF("setpositionx",e,x);
  SendMessageF("setpositiony",e,y);
@@ -1185,6 +1189,7 @@ GetGamePlayerControlJetpackThrust: iValue = GetGamePlayerControlJetpackThrust() 
 
 ParticlesGetFreeEmitter:  iEmitterID = ParticlesGetFreeEmitter() -- returns the index of a free particle emitter object
 ParticlesAddEmitter: ParticlesAddEmitter(animationSpeed,startsOffRandomAngle,offsetMinX,offsetMinY,offsetMinZ,offsetMaxX,offsetMaxY,offsetMaxZ,scaleStartMin,scaleStartMax,scaleEndMin,scaleEndMax,movementSpeedMinX,movementSpeedMinY,movementSpeedMinZ,movementSpeedMaxX,movementSpeedMaxY,movementSpeedMaxZ,rotateSpeedMinZ,rotateSpeedMaxZ,lifeMin,lifeMax,alphaStartMin,alphaStartMax,alphaEndMin,alphaEndMax,frequency) -- create a particle emitter under the index iEmitterID and specified parameters
+ParticleAddEmitterEx: (as above with additional parameters) e, limbindex, particle image ID, particle frame count -- where e is the entity to assign particle to
 ParticlesDeleteEmitter: ParticlesDeleteEmitter ( iEmitterID ) -- delete a particle emitter under index iEmitterID
 
 SetPlayerWeapons: SetPlayerWeapons(0) disabled player weapons, SetPlayerWeapons(1) restores them

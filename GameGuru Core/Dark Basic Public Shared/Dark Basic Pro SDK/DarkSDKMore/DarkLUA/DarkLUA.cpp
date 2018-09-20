@@ -4705,11 +4705,18 @@ int ParticlesGetFreeEmitter ( lua_State *L )
 	return 1;
 }
 
-int ParticlesAddEmitter( lua_State *L )
+int ParticlesAddEmitterCore( lua_State *L, int iExtended )
 {
 	lua = L;
 	int n = lua_gettop(L);
-	if ( n < 28 ) return 0;
+	if ( iExtended == 0 )
+	{
+		if ( n < 28 ) return 0;
+	}
+	else
+	{
+		if ( n < 32 ) return 0;
+	}
 
 	// populate emitter data
 	t.tResult = lua_tonumber(L, 1);
@@ -4740,10 +4747,33 @@ int ParticlesAddEmitter( lua_State *L )
 	float alphaEndMin = lua_tonumber(L, 26);
 	float alphaEndMax = lua_tonumber(L, 27);
 	float frequency = lua_tonumber(L, 28);
+	int entID = -1;
+	int entLimbIndex = -1;
+	int particleImage = RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
+	int particleFrameCount = 64;
+	if ( iExtended == 1 )
+	{
+		entID = lua_tonumber(L, 29);
+		entLimbIndex = lua_tonumber(L, 30);
+		int tCheckParticleImage = lua_tonumber(L, 31);
+		if ( tCheckParticleImage > 0 ) 
+		{
+			particleImage = tCheckParticleImage;
+			particleFrameCount = lua_tonumber(L, 32);
+		}
+	}
 	g.tEmitter.id = t.tResult;
 	g.tEmitter.emitterLife = 0;
-	g.tEmitter.parentObject = t.aisystem.objectstartindex;
-	g.tEmitter.parentLimb = 0;
+	if ( entID == -1 )
+	{
+		g.tEmitter.parentObject = t.aisystem.objectstartindex;
+		g.tEmitter.parentLimb = 0;
+	}
+	else
+	{
+		g.tEmitter.parentObject = t.entityelement[entID].obj;
+		g.tEmitter.parentLimb = entLimbIndex;
+	}
 	g.tEmitter.isAnObjectEmitter = 0;
 	g.tEmitter.startsOffRandomAngle = startsOffRandomAngle;
 	g.tEmitter.offsetMinX = offsetMinX;
@@ -4775,18 +4805,28 @@ int ParticlesAddEmitter( lua_State *L )
 	g.tEmitter.frequency = frequency;
 
 	// fixed animation for smoke
-	g.tEmitter.imageNumber = RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
+	g.tEmitter.imageNumber = particleImage;//RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
 	g.tEmitter.isAnimated = 1;
 	g.tEmitter.animationSpeed = animationSpeed;
 	g.tEmitter.isLooping = 1;
-	g.tEmitter.frameCount = 64;
+	g.tEmitter.frameCount = particleFrameCount;
 	g.tEmitter.startFrame = 0;
-	g.tEmitter.endFrame = 63;
+	g.tEmitter.endFrame = g.tEmitter.frameCount-1;
 
 	// create emitter
 	ravey_particles_add_emitter ( );
 
 	return 0;
+}
+
+int ParticlesAddEmitter( lua_State *L )
+{
+	return ParticlesAddEmitterCore ( L, 0 );
+}
+
+int ParticlesAddEmitterEx( lua_State *L )
+{
+	return ParticlesAddEmitterCore ( L, 1 );
 }
 
 int ParticlesDeleteEmitter( lua_State *L )
@@ -5841,6 +5881,7 @@ void addFunctions()
 
 	lua_register(lua, "ParticlesGetFreeEmitter" , ParticlesGetFreeEmitter );
 	lua_register(lua, "ParticlesAddEmitter" , ParticlesAddEmitter );
+	lua_register(lua, "ParticlesAddEmitterEx" , ParticlesAddEmitterEx );
 	lua_register(lua, "ParticlesDeleteEmitter" , ParticlesDeleteEmitter );
 
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	
