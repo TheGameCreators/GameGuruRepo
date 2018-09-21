@@ -303,9 +303,13 @@ end
 function module_combatcore.hunt(e,AIObjNo,PlayerDist,MoveType,CanFire,stopstate)
  if ai_bot_state[e] == ai_state_startmove then
   ai_bot_state[e] = ai_state_move
-  tdX = g_Entity[e]['x'] - ai_bot_targetx[e]
-  tdZ = g_Entity[e]['z'] - ai_bot_targetz[e]
-  tdist = math.sqrt(math.abs(tdX*tdX)+math.abs(tdZ*tdZ))
+  if ai_bot_targetx[e] ~= nil then
+   tdX = g_Entity[e]['x'] - ai_bot_targetx[e]
+   tdZ = g_Entity[e]['z'] - ai_bot_targetz[e]
+   tdist = math.sqrt(math.abs(tdX*tdX)+math.abs(tdZ*tdZ))
+  else 
+   tdist = 0
+  end
   if tdist > 200 then 
    ai_bot_gofast[e] = Timer()
   else
