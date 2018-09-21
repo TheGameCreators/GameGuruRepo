@@ -1690,12 +1690,10 @@ void entity_lua_lookatplayer ( void )
 	}
 }
 
-void entity_lua_rotatetocore ( float fAngleOffset )
+void entity_lua_rotatetoanglecore ( float fDestAngle, float fAngleOffset )
 {
 	entity_lua_findcharanimstate ( );
-	t.tdx_f=t.tcamerapositionx_f-t.entityelement[t.e].x;
-	t.tdz_f=t.tcamerapositionz_f-t.entityelement[t.e].z;
-	if (  t.v == 100 ) 
+	if ( t.v == 100 ) 
 	{
 		t.tsmooth_f=1.0;
 	}
@@ -1706,19 +1704,26 @@ void entity_lua_rotatetocore ( float fAngleOffset )
 	if (  t.tcharanimindex == -1 ) 
 	{
 		//  regular entity
-		t.tnewangley_f=CurveAngle(atan2deg(t.tdx_f,t.tdz_f),t.entityelement[t.e].ry,t.tsmooth_f);
+		t.tnewangley_f=CurveAngle(fDestAngle,t.entityelement[t.e].ry,t.tsmooth_f);
 		t.entityelement[t.e].ry=t.tnewangley_f;
 		entity_lua_rotateupdate ( );
 	}
 	else
 	{
+		// need to factor in entity speed for AI characters
+		//t.tsmooth_f *= (AIGetEntitySpeed(t.charanimstate.obj)/100.0f);
+		t.tsmooth_f /= (t.entityelement[t.charanimstate.e].eleprof.speed/100.0f);
+
 		//  character subsystem
-		t.tnewangley_f=CurveAngle(atan2deg(t.tdx_f,t.tdz_f),t.charanimstate.currentangle_f,t.tsmooth_f);
+		t.tnewangley_f=CurveAngle(fDestAngle,t.charanimstate.currentangle_f,t.tsmooth_f);
 		t.charanimstate.currentangle_f=t.tnewangley_f;
 		t.charanimstate.updatemoveangle=1;
-		AISetEntityAngleY (  t.charanimstate.obj,t.charanimstate.currentangle_f );
 		t.charanimstates[t.tcharanimindex] = t.charanimstate;
 		t.entityelement[t.e].ry=t.tnewangley_f;
+
+		//this overwrites angle assigned by pathfinder (causing circular paths at high speed with smoothing on)
+		//AISetEntityAngleY (  t.charanimstate.obj,t.charanimstate.currentangle_f );
+		AISetEntityAngleY ( t.charanimstate.obj, fDestAngle );
 
 		// 240217 - and update visually
 		entity_lua_rotateupdate ( );
@@ -1731,6 +1736,14 @@ void entity_lua_rotatetocore ( float fAngleOffset )
 			t.entityelement[t.e].mp_rotateTimer = Timer();
 		}
 	}
+}
+
+void entity_lua_rotatetocore ( float fAngleOffset )
+{
+	t.tdx_f=t.tcamerapositionx_f-t.entityelement[t.e].x;
+	t.tdz_f=t.tcamerapositionz_f-t.entityelement[t.e].z;
+	float fDestAngle = atan2deg(t.tdx_f,t.tdz_f);
+	entity_lua_rotatetoanglecore ( fDestAngle, fAngleOffset );
 }
 
 void entity_lua_rotatetoplayer ( void )
@@ -1762,12 +1775,6 @@ void entity_lua_set_gravity ( void )
 	t.entityelement[t.e].nogravity=t.v;
 	//  commented out for now due to not working anyway
 	//BPhys_SetNoGravity entityelement(e).obj,v;
-return;
-
-
-//AI
-
-
 }
 
 void entity_lua_fireweapon ( void )

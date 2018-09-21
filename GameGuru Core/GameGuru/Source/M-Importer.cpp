@@ -6,9 +6,6 @@
 #include "gameguru.h"
 
 // Globals
-//int g_iTriggerReloadOfImportModel = 0;
-//int g_iFBXGeometryToggleMode = 0;
-//int g_iFBXGeometryCenterMesh = 0;
 bool g_bLoadedFBXModel = false;
 int g_iFirstTimeFBXImport = 0;
 int g_iPreferPBR = 0;
@@ -4374,6 +4371,7 @@ void importer_load_fpe ( void )
 	t.tTotalFrames_s = "0";
 	t.importer.objectFPE.anim0 = ""; t.importer.objectFPE.anim0 = t.importer.objectFPE.anim0+"0," + t.tTotalFrames_s;
 	t.importer.objectFPE.playanimineditor = "0";
+	t.importer.objectFPE.ignorecsirefs = "1";
 
 	//  Check if an FPE exists, if so load it in
 	if (  FileOpen(1) ) CloseFile (1);
@@ -4888,6 +4886,7 @@ void importer_save_fpe ( void )
 	t.tString = "" ; t.tString = t.tString + importerPadString("animmax") + "= " + t.importer.objectFPE.animmax ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("anim0") + "= " + t.importer.objectFPE.anim0 ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("playanimineditor") + "= " + t.importer.objectFPE.playanimineditor ;WriteString (  1 , t.tString.Get() );
+	t.tString = "" ; t.tString = t.tString + importerPadString("ignorecsirefs") + "= " + t.importer.objectFPE.ignorecsirefs ;WriteString (  1 , t.tString.Get() );
 
 	//  Save any lines that were not understand when the initial FPE was loaded in
 	//  add a blank Line (  (  if there are extra Lines to add ) )

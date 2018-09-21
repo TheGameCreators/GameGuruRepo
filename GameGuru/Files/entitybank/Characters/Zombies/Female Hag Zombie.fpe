@@ -43,11 +43,12 @@ headlimbs     = 32,54
 strength      = 100
 explodable    = 0
 debrisshape   = 0
-speed         = 600
+speed         = 300
 
 ;anim
-playanimineditor = 1
 animmax          = 4
+playanimineditor = 1
+ignorecsirefs    = 1
 anim0            = 2552,2603;idle
 anim1            = 300,318  ;move
 anim2            = 2981,3034;bite

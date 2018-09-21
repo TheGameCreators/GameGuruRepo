@@ -59,8 +59,9 @@ meleedamagest = 30
 meleedamagefn = 40
 
 ;anim
-playanimineditor = 1
 animmax          = 4
+playanimineditor = 1
+ignorecsirefs    = 1
 anim0            = 210,234  ;idle
 anim1            = 533,603  ;move
 anim2            = 683,722  ;bite

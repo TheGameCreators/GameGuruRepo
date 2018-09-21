@@ -1047,7 +1047,7 @@ void Entity::SetIdlePos ( float x, float y, float z, int container = -1 )
 void Entity::SetAngleY( float angY )
 {
 	fAngY = angY;
-	if ( pObject ) YRotateObject( iID, fAngY );
+	//if ( pObject ) YRotateObject( iID, fAngY ); // 210918 - decouple forcing angle to object (so script can smooth it)
 }
 
 void Entity::SetHeight( float height )
@@ -2949,19 +2949,22 @@ void Entity::TurnToAngle ( float fTimeDelta, bool bMoving )
 		if ( x < 0.0f ) fDestAngY = 360.0f - fDestAngY;
 	}
 	
+	// 210918 - decouple forcing angle to object (so script can smooth it)
+	//if ( pObject ) YRotateObject ( iID, fDestAngY );
+	//else fAngY = fDestAngY;
+	fAngY = fDestAngY;
+	/*
 	float fDifference = fabs ( fDestAngY - GetAngleY( ) );
 	if ( fDifference > 180.0f ) fDifference = 360.0f - fDifference;
 	if ( fDifference <= fCurrTurnSpeed || bMoving == false )
 	{
 		// 080517 - when movement slowed/stopped, use actual object angle for 
-		// viewing angle (so cone of sight lines up with model)
-		//if ( pObject ) YRotateObject ( iID, fDestAngY );
-		//else fAngY = fDestAngY;
 		if ( GetVisible ( dwObjectNumberRef ) == 1 )
 			fAngY = ObjectAngleY(dwObjectNumberRef);
 	}
 	else
 	{
+		// need to report exact angle as this function not called quickly enough for gradual de/increments of angle
 		float fDir = sin ( ( fDestAngY - GetAngleY ( ) ) * DEGTORAD );
 		if ( fDir > 0.0f )
 		{
@@ -2973,8 +2976,9 @@ void Entity::TurnToAngle ( float fTimeDelta, bool bMoving )
 			if ( pObject ) YRotateObject ( iID, GetAngleY ( ) - fCurrTurnSpeed );
 			else fAngY -= fCurrTurnSpeed;
 		}
-		fLookAroundTimer = ( (float) rand( ) ) / RAND_MAX + 1.0f;
 	}
+	*/
+	fLookAroundTimer = ( (float) rand( ) ) / RAND_MAX + 1.0f;
 }
 
 void Entity::FireWeapon ( )

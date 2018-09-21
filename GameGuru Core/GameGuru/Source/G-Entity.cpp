@@ -998,8 +998,10 @@ void entity_updatepos ( void )
 			// accelerate physics to reach entity X Y Z quickly
 			int entid = t.entityelement[t.te].bankindex;
 			//if ( t.tvd_f>24.0*t.tentspeed_f ) // 080317 - very fast AI movement gets capped so never exceeds speed modifier result
-			if ( t.tvd_f*t.tentspeed_f > 24.0*t.tentspeed_f ) 
+			if ( 0 ) //t.tvd_f*t.tentspeed_f > 24.0*t.tentspeed_f ) // 210918 - stops FAST AI bots, no need for this at the moment
 			{
+				// basically stops a physics object getting ahead of AI entity position (not happened with latest AI scripts)
+
 				// no velocity while we adjst dest to current stood location (possible vibrate fix)
 				ODESetLinearVelocity ( t.tobj,0,0,0 );
 
@@ -1050,7 +1052,6 @@ void entity_updatepos ( void )
 						{
 							t.entityelement[t.te].y = ODEGetRayCollisionY();
 							float tvy = (t.entityelement[t.te].y + fHoverFactor) - ObjectPositionY(t.tobj);
-							//ODESetLinearVelocity ( t.tobj, t.tvx_f, tvy*2.0f, t.tvz_f );
 							ODESetLinearVelocity ( t.tobj, t.tvx_f, tvy, t.tvz_f );
 						}
 						else

@@ -2714,11 +2714,12 @@ struct importerFPEtype
 	cstr animmax;
 	cstr anim0;
 	cstr playanimineditor;
-
+	cstr ignorecsirefs;
 
 	// Constructor
 	importerFPEtype ( )
 	{
+		 ignorecsirefs = "";
 		 playanimineditor = "";
 		 anim0 = "";
 		 animmax = "";
@@ -5128,6 +5129,7 @@ struct entityprofiletype
 	unsigned char custombiped;
 	int approxmemused;
 	int playanimineditor;
+	int ignorecsirefs;
 	int autoflatten;
 	int physicsobjectcount;
 	int fatness;
@@ -5190,6 +5192,7 @@ struct entityprofiletype
 		 fatness = 0;
 		 physicsobjectcount = 0;
 		 autoflatten = 0;
+		 ignorecsirefs = 0;
 		 playanimineditor = 0;
 		 approxmemused = 0;
 		 custombiped = 0;

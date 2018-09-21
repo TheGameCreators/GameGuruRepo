@@ -1123,6 +1123,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].forceobstaclesliceheight=14.0f;
 		t.entityprofile[t.entid].forceobstaclesliceminsize=5.0f;
 		t.entityprofile[t.entid].effectprofile=0;
+		t.entityprofile[t.entid].ignorecsirefs=0;
 
 		//  Starter animation counts
 		t.tnewanimmax=0 ; t.entityprofile[t.entid].animmax=t.tnewanimmax;
@@ -1712,6 +1713,8 @@ void entity_loaddata ( void )
 					}
 
 					//  entity animation sets
+					t.tryfield_s="ignorecsirefs";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].ignorecsirefs = t.value1;
 					t.tryfield_s="playanimineditor";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].playanimineditor = t.value1;
 					t.tryfield_s="animstyle";
@@ -1732,7 +1735,11 @@ void entity_loaddata ( void )
 					}
 
 					// 291014 - AI system animation sets (takes field$ and value1/value2)
-					// darkai_assignanimtofield ( ); 200918 - externalised internal AI system into scripts
+					if ( t.entityprofile[t.entid].ignorecsirefs == 0 )
+					{
+						// 200918 - externalised internal AI system into scripts, but keeping for legacy support
+						darkai_assignanimtofield ( );
+					}
 
 					//  V110 BETA5 - 080608 - get foot fall data (optional)
 					t.tryfield_s="footfallmax";
@@ -1836,107 +1843,109 @@ void entity_loaddata ( void )
 		}
 		UnDim (  t.data_s );
 
-		/* 200918 - no longer use internal AI system
-		// if No AI anim sets, fill with hard defaults from official template character
-		if (  t.entityprofile[t.entid].ischaracter == 1 ) 
+		// 200918 - no longer use internal AI system, but keep for legacy compatibility
+		if ( t.entityprofile[t.entid].ignorecsirefs == 0 )
 		{
-			// 010917 - but only if a character, so as not to force non-anim entities to use entity_anim
-			for ( t.n = 1 ; t.n<=  90; t.n++ )
+			// if No AI anim sets, fill with hard defaults from official template character
+			if (  t.entityprofile[t.entid].ischaracter == 1 ) 
 			{
-				if (  t.n == 1 ) { t.field_s = "csi_relaxed1"  ; t.value1 = 900 ; t.value2 = 999; }
-				if (  t.n == 2 ) { t.field_s = "csi_relaxed2"  ; t.value1 = 1000 ; t.value2 = 1282; }
-				if (  t.n == 3 ) { t.field_s = "csi_relaxedmovefore"  ; t.value1 = 1290 ; t.value2 = 1419; }
-				if (  t.n == 4 ) { t.field_s = "csi_cautious"  ; t.value1 = 900 ; t.value2 = 999; }
-				if (  t.n == 5 ) { t.field_s = "csi_cautiousmovefore"  ; t.value1 = 1325 ; t.value2 = 1419; }
-				if (  t.n == 6 ) { t.field_s = "csi_unarmed1"  ; t.value1 = 3000 ; t.value2 = 3100; }
-				if (  t.n == 7 ) { t.field_s = "csi_unarmed2"  ; t.value1 = 3430 ; t.value2 = 3697; }
-				if (  t.n == 8 ) { t.field_s = "csi_unarmedconversation"  ; t.value1 = 3110 ; t.value2 = 3420; }
-				if (  t.n == 10 ) { t.field_s = "csi_unarmedexplain"  ; t.value1 = 4260 ; t.value2 = 4464; }
-				if (  t.n == 11 ) { t.field_s = "csi_unarmedpointfore"  ; t.value1 = 4470 ; t.value2 = 4535; }
-				if (  t.n == 12 ) { t.field_s = "csi_unarmedpointback"  ; t.value1 = 4680 ; t.value2 = 4745; }
-				if (  t.n == 13 ) { t.field_s = "csi_unarmedpointleft"  ; t.value1 = 4610 ; t.value2 = 4675; }
-				if (  t.n == 14 ) { t.field_s = "csi_unarmedpointright"  ; t.value1 = 4540 ; t.value2 = 4605; }
-				if (  t.n == 15 ) { t.field_s = "csi_unarmedmovefore"  ; t.value1 = 3870 ; t.value2 = 3900; }
-				if (  t.n == 16 ) { t.field_s = "csi_unarmedmoverun"  ; t.value1 = 3905 ; t.value2 = 3925; }
-				if (  t.n == 17 ) { t.field_s = "csi_unarmedstairascend"  ; t.value1 = 5600 ; t.value2 = 5768; }
-				if (  t.n == 18 ) { t.field_s = "csi_unarmedstairdecend"  ; t.value1 = 5800 ; t.value2 = 5965; }
-				if (  t.n == 19 ) { t.field_s = "csi_unarmedladderascend1"  ; t.value1 = 4148 ; t.value2 = 4110; }
-				if (  t.n == 20 ) { t.field_s = "csi_unarmedladderascend2"  ; t.value1 = 4148 ; t.value2 = 4255; }
-				if (  t.n == 21 ) { t.field_s = "csi_unarmedladderascend3"  ; t.value1 = 4225 ; t.value2 = 4255; }
-				if (  t.n == 22 ) { t.field_s = "csi_unarmedladderdecend1"  ; t.value1 = 4255 ; t.value2 = 4225; }
-				if (  t.n == 23 ) { t.field_s = "csi_unarmedladderdecend2"  ; t.value1 = 4225 ; t.value2 = 4148; }
-				if (  t.n == 24 ) { t.field_s = "csi_unarmeddeath"  ; t.value1 = 4800 ; t.value2 = 4958; }
-				if (  t.n == 25 ) { t.field_s = "csi_unarmedimpactfore"  ; t.value1 = 4971 ; t.value2 = 5021; }
-				if (  t.n == 26 ) { t.field_s = "csi_unarmedimpactback"  ; t.value1 = 5031 ; t.value2 = 5090; }
-				if (  t.n == 27 ) { t.field_s = "csi_unarmedimpactleft"  ; t.value1 = 5171 ; t.value2 = 5229; }
-				if (  t.n == 28 ) { t.field_s = "csi_unarmedimpactright"  ; t.value1 = 5101 ; t.value2 = 5160; }
-				if (  t.n == 29 ) { t.field_s = "csi_inchair"  ; t.value1 = 3744 ; t.value2 = 3828; }
-				if (  t.n == 30 ) { t.field_s = "csi_inchairsit"  ; t.value1 = 3710 ; t.value2 = 3744; }
-				if (  t.n == 31 ) { t.field_s = "csi_inchairgetup"  ; t.value1 = 3828 ; t.value2 = 3862; }
-				if (  t.n == 32 ) { t.field_s = "csi_swim"  ; t.value1 = 3930 ; t.value2 = 4015; }
-				if (  t.n == 33 ) { t.field_s = "csi_swimmovefore"  ; t.value1 = 4030 ; t.value2 = 4072; }
-				if (  t.n == 34 ) { t.field_s = "csi_stoodnormal"  ; t.value1 = 100 ; t.value2 = 205; }
-				if (  t.n == 35 ) { t.field_s = "csi_stoodrocket"  ; t.value1 = 6133 ; t.value2 = 6206; }
-				if (  t.n == 36 ) { t.field_s = "csi_stoodfidget1"  ; t.value1 = 100 ; t.value2 = 205; }
-				if (  t.n == 37 ) { t.field_s = "csi_stoodfidget2"  ; t.value1 = 210 ; t.value2 = 318; }
-				if (  t.n == 38 ) { t.field_s = "csi_stoodfidget3"  ; t.value1 = 325 ; t.value2 = 431; }
-				if (  t.n == 39 ) { t.field_s = "csi_stoodfidget4"  ; t.value1 = 440 ; t.value2 = 511; }
-				if (  t.n == 40 ) { t.field_s = "csi_stoodstartled"  ; t.value1 = 1425 ; t.value2 = 1465; }
-				if (  t.n == 41 ) { t.field_s = "csi_stoodpunch"  ; t.value1 = 0 ; t.value2 = 0; }
-				if (  t.n == 42 ) { t.field_s = "csi_stoodkick"  ; t.value1 = 5511 ; t.value2 = 5553; }
-				if (  t.n == 43 ) { t.field_s = "csi_stoodmovefore"  ; t.value1 = 685 ; t.value2 = 707; }
-				if (  t.n == 44 ) { t.field_s = "csi_stoodmoveback"  ; t.value1 = 710 ; t.value2 = 735; }
-				if (  t.n == 45 ) { t.field_s = "csi_stoodmoveleft"  ; t.value1 = 740 ; t.value2 = 762; }
-				if (  t.n == 46 ) { t.field_s = "csi_stoodmoveright"  ; t.value1 = 765 ; t.value2 = 789; }
-				if (  t.n == 47 ) { t.field_s = "csi_stoodstepleft"  ; t.value1 = 610 ; t.value2 = 640; }
-				if (  t.n == 48 ) { t.field_s = "csi_stoodstepright"  ; t.value1 = 645 ; t.value2 = 676; }
-				if (  t.n == 49 ) { t.field_s = "csi_stoodstrafeleft"  ; t.value1 = 855 ; t.value2 = 871; }
-				if (  t.n == 50 ) { t.field_s = "csi_stoodstraferight"  ; t.value1 = 875 ; t.value2 = 892; }
-				//  51 see below
-				//  reserved 52
-				if (  t.n == 53 ) { t.field_s = "csi_stoodvault"  ; t.value1 = 0 ; t.value2 = 0; } // 220217 - these now need to come from FPE
-				if (  t.n == 54 ) { t.field_s = "csi_stoodmoverun"  ; t.value1 = 795 ; t.value2 = 811; }
-				if (  t.n == 55 ) { t.field_s = "csi_stoodmoverunleft"  ; t.value1 = 815 ; t.value2 = 830; }
-				if (  t.n == 56 ) { t.field_s = "csi_stoodmoverunright"  ; t.value1 = 835 ; t.value2 = 850; }
-				if (  t.n == 57 ) { t.field_s = "csi_stoodreload"  ; t.value1 = 515 ; t.value2 = 605; }
-				if (  t.n == 58 ) { t.field_s = "csi_stoodreloadrocket"  ; t.value1 = 6233 ; t.value2 = 6315; }
-				if (  t.n == 59 ) { t.field_s = "csi_stoodwave"  ; t.value1 = 1470 ; t.value2 = 1520; }
-				if (  t.n == 60 ) { t.field_s = "csi_stoodtoss"  ; t.value1 = 2390 ; t.value2 = 2444; }
-				if (  t.n == 61 ) { t.field_s = "csi_stoodfirerocket"  ; t.value1 = 6207 ; t.value2 = 6232; }
-				if (  t.n == 62 ) { t.field_s = "csi_stoodincoverleft"  ; t.value1 = 1580 ; t.value2 = 1580; }
-				if (  t.n == 63 ) { t.field_s = "csi_stoodincoverpeekleft"  ; t.value1 = 1581 ; t.value2 = 1581; }
-				if (  t.n == 64 ) { t.field_s = "csi_stoodincoverthrowleft"  ; t.value1 = 2680 ; t.value2 = 2680; }
-				if (  t.n == 65 ) { t.field_s = "csi_stoodincoverright"  ; t.value1 = 1525 ; t.value2 = 1525; }
-				if (  t.n == 66 ) { t.field_s = "csi_stoodincoverpeekright"  ; t.value1 = 1526 ; t.value2 = 1526; }
-				if (  t.n == 67 ) { t.field_s = "csi_stoodincoverthrowright"  ; t.value1 = 2570 ; t.value2 = 2570; }
-				if (  t.n == 51 ) { t.field_s = "csi_stoodandturn"  ; t.value1 = 0 ; t.value2 = 0; }
-				if (  t.n == 68 ) { t.field_s = "csi_crouchidlenormal1"  ; t.value1 = 1670 ; t.value2 = 1819; }
-				if (  t.n == 69 ) { t.field_s = "csi_crouchidlenormal2"  ; t.value1 = 1825 ; t.value2 = 1914; }
-				if (  t.n == 70 ) { t.field_s = "csi_crouchidlerocket"  ; t.value1 = 6472 ; t.value2 = 6545; }
-				if (  t.n == 71 ) { t.field_s = "csi_crouchdown"  ; t.value1 = 1630 ; t.value2 = 1646; }
-				if (  t.n == 72 ) { t.field_s = "csi_crouchdownrocket"  ; t.value1 = 6316 ; t.value2 = 6356; }
-				if (  t.n == 73 ) { t.field_s = "csi_crouchrolldown"  ; t.value1 = 2160 ; t.value2 = 2216; }
-				if (  t.n == 74 ) { t.field_s = "csi_crouchrollup"  ; t.value1 = 2225 ; t.value2 = 2281; }
-				if (  t.n == 75 ) { t.field_s = "csi_crouchmovefore"  ; t.value1 = 2075 ; t.value2 = 2102; }
-				if (  t.n == 76 ) { t.field_s = "csi_crouchmoveback"  ; t.value1 = 2102 ; t.value2 = 2131; }
-				if (  t.n == 77 ) { t.field_s = "csi_crouchmoveleft"  ; t.value1 = 2015 ; t.value2 = 2043; }
-				if (  t.n == 78 ) { t.field_s = "csi_crouchmoveright"  ; t.value1 = 2043 ; t.value2 = 2072; }
-				if (  t.n == 79 ) { t.field_s = "csi_crouchmoverun"  ; t.value1 = 2135 ; t.value2 = 2153; }
-				if (  t.n == 80 ) { t.field_s = "csi_crouchreload"  ; t.value1 = 1920 ; t.value2 = 2010; }
-				if (  t.n == 81 ) { t.field_s = "csi_crouchreloadrocket"  ; t.value1 = 6380 ; t.value2 = 6471; }
-				if (  t.n == 82 ) { t.field_s = "csi_crouchwave"  ; t.value1 = 2460 ; t.value2 = 2510; }
-				if (  t.n == 83 ) { t.field_s = "csi_crouchtoss"  ; t.value1 = 2520 ; t.value2 = 2555; }
-				if (  t.n == 84 ) { t.field_s = "csi_crouchfirerocket"  ; t.value1 = 6357 ; t.value2 = 6379; }
-				if (  t.n == 85 ) { t.field_s = "csi_crouchimpactfore"  ; t.value1 = 5240 ; t.value2 = 5277; }
-				if (  t.n == 86 ) { t.field_s = "csi_crouchimpactback"  ; t.value1 = 5290 ; t.value2 = 5339; }
-				if (  t.n == 87 ) { t.field_s = "csi_crouchimpactleft"  ; t.value1 = 5409 ; t.value2 = 5466; }
-				if (  t.n == 88 ) { t.field_s = "csi_crouchimpactright"  ; t.value1 = 5350 ; t.value2 = 5395; }
-				if (  t.n == 89 ) { t.field_s = "csi_crouchgetup"  ; t.value1 = 1646 ; t.value2 = 1663; }
-				if (  t.n == 90 ) { t.field_s = "csi_crouchgetuprocket"  ; t.value1 = 6573 ; t.value2 = 6607; }
-				darkai_assignanimtofield ( );
+				// 010917 - but only if a character, so as not to force non-anim entities to use entity_anim
+				for ( t.n = 1 ; t.n<=  90; t.n++ )
+				{
+					if (  t.n == 1 ) { t.field_s = "csi_relaxed1"  ; t.value1 = 900 ; t.value2 = 999; }
+					if (  t.n == 2 ) { t.field_s = "csi_relaxed2"  ; t.value1 = 1000 ; t.value2 = 1282; }
+					if (  t.n == 3 ) { t.field_s = "csi_relaxedmovefore"  ; t.value1 = 1290 ; t.value2 = 1419; }
+					if (  t.n == 4 ) { t.field_s = "csi_cautious"  ; t.value1 = 900 ; t.value2 = 999; }
+					if (  t.n == 5 ) { t.field_s = "csi_cautiousmovefore"  ; t.value1 = 1325 ; t.value2 = 1419; }
+					if (  t.n == 6 ) { t.field_s = "csi_unarmed1"  ; t.value1 = 3000 ; t.value2 = 3100; }
+					if (  t.n == 7 ) { t.field_s = "csi_unarmed2"  ; t.value1 = 3430 ; t.value2 = 3697; }
+					if (  t.n == 8 ) { t.field_s = "csi_unarmedconversation"  ; t.value1 = 3110 ; t.value2 = 3420; }
+					if (  t.n == 10 ) { t.field_s = "csi_unarmedexplain"  ; t.value1 = 4260 ; t.value2 = 4464; }
+					if (  t.n == 11 ) { t.field_s = "csi_unarmedpointfore"  ; t.value1 = 4470 ; t.value2 = 4535; }
+					if (  t.n == 12 ) { t.field_s = "csi_unarmedpointback"  ; t.value1 = 4680 ; t.value2 = 4745; }
+					if (  t.n == 13 ) { t.field_s = "csi_unarmedpointleft"  ; t.value1 = 4610 ; t.value2 = 4675; }
+					if (  t.n == 14 ) { t.field_s = "csi_unarmedpointright"  ; t.value1 = 4540 ; t.value2 = 4605; }
+					if (  t.n == 15 ) { t.field_s = "csi_unarmedmovefore"  ; t.value1 = 3870 ; t.value2 = 3900; }
+					if (  t.n == 16 ) { t.field_s = "csi_unarmedmoverun"  ; t.value1 = 3905 ; t.value2 = 3925; }
+					if (  t.n == 17 ) { t.field_s = "csi_unarmedstairascend"  ; t.value1 = 5600 ; t.value2 = 5768; }
+					if (  t.n == 18 ) { t.field_s = "csi_unarmedstairdecend"  ; t.value1 = 5800 ; t.value2 = 5965; }
+					if (  t.n == 19 ) { t.field_s = "csi_unarmedladderascend1"  ; t.value1 = 4148 ; t.value2 = 4110; }
+					if (  t.n == 20 ) { t.field_s = "csi_unarmedladderascend2"  ; t.value1 = 4148 ; t.value2 = 4255; }
+					if (  t.n == 21 ) { t.field_s = "csi_unarmedladderascend3"  ; t.value1 = 4225 ; t.value2 = 4255; }
+					if (  t.n == 22 ) { t.field_s = "csi_unarmedladderdecend1"  ; t.value1 = 4255 ; t.value2 = 4225; }
+					if (  t.n == 23 ) { t.field_s = "csi_unarmedladderdecend2"  ; t.value1 = 4225 ; t.value2 = 4148; }
+					if (  t.n == 24 ) { t.field_s = "csi_unarmeddeath"  ; t.value1 = 4800 ; t.value2 = 4958; }
+					if (  t.n == 25 ) { t.field_s = "csi_unarmedimpactfore"  ; t.value1 = 4971 ; t.value2 = 5021; }
+					if (  t.n == 26 ) { t.field_s = "csi_unarmedimpactback"  ; t.value1 = 5031 ; t.value2 = 5090; }
+					if (  t.n == 27 ) { t.field_s = "csi_unarmedimpactleft"  ; t.value1 = 5171 ; t.value2 = 5229; }
+					if (  t.n == 28 ) { t.field_s = "csi_unarmedimpactright"  ; t.value1 = 5101 ; t.value2 = 5160; }
+					if (  t.n == 29 ) { t.field_s = "csi_inchair"  ; t.value1 = 3744 ; t.value2 = 3828; }
+					if (  t.n == 30 ) { t.field_s = "csi_inchairsit"  ; t.value1 = 3710 ; t.value2 = 3744; }
+					if (  t.n == 31 ) { t.field_s = "csi_inchairgetup"  ; t.value1 = 3828 ; t.value2 = 3862; }
+					if (  t.n == 32 ) { t.field_s = "csi_swim"  ; t.value1 = 3930 ; t.value2 = 4015; }
+					if (  t.n == 33 ) { t.field_s = "csi_swimmovefore"  ; t.value1 = 4030 ; t.value2 = 4072; }
+					if (  t.n == 34 ) { t.field_s = "csi_stoodnormal"  ; t.value1 = 100 ; t.value2 = 205; }
+					if (  t.n == 35 ) { t.field_s = "csi_stoodrocket"  ; t.value1 = 6133 ; t.value2 = 6206; }
+					if (  t.n == 36 ) { t.field_s = "csi_stoodfidget1"  ; t.value1 = 100 ; t.value2 = 205; }
+					if (  t.n == 37 ) { t.field_s = "csi_stoodfidget2"  ; t.value1 = 210 ; t.value2 = 318; }
+					if (  t.n == 38 ) { t.field_s = "csi_stoodfidget3"  ; t.value1 = 325 ; t.value2 = 431; }
+					if (  t.n == 39 ) { t.field_s = "csi_stoodfidget4"  ; t.value1 = 440 ; t.value2 = 511; }
+					if (  t.n == 40 ) { t.field_s = "csi_stoodstartled"  ; t.value1 = 1425 ; t.value2 = 1465; }
+					if (  t.n == 41 ) { t.field_s = "csi_stoodpunch"  ; t.value1 = 0 ; t.value2 = 0; }
+					if (  t.n == 42 ) { t.field_s = "csi_stoodkick"  ; t.value1 = 5511 ; t.value2 = 5553; }
+					if (  t.n == 43 ) { t.field_s = "csi_stoodmovefore"  ; t.value1 = 685 ; t.value2 = 707; }
+					if (  t.n == 44 ) { t.field_s = "csi_stoodmoveback"  ; t.value1 = 710 ; t.value2 = 735; }
+					if (  t.n == 45 ) { t.field_s = "csi_stoodmoveleft"  ; t.value1 = 740 ; t.value2 = 762; }
+					if (  t.n == 46 ) { t.field_s = "csi_stoodmoveright"  ; t.value1 = 765 ; t.value2 = 789; }
+					if (  t.n == 47 ) { t.field_s = "csi_stoodstepleft"  ; t.value1 = 610 ; t.value2 = 640; }
+					if (  t.n == 48 ) { t.field_s = "csi_stoodstepright"  ; t.value1 = 645 ; t.value2 = 676; }
+					if (  t.n == 49 ) { t.field_s = "csi_stoodstrafeleft"  ; t.value1 = 855 ; t.value2 = 871; }
+					if (  t.n == 50 ) { t.field_s = "csi_stoodstraferight"  ; t.value1 = 875 ; t.value2 = 892; }
+					//  51 see below
+					//  reserved 52
+					if (  t.n == 53 ) { t.field_s = "csi_stoodvault"  ; t.value1 = 0 ; t.value2 = 0; } // 220217 - these now need to come from FPE
+					if (  t.n == 54 ) { t.field_s = "csi_stoodmoverun"  ; t.value1 = 795 ; t.value2 = 811; }
+					if (  t.n == 55 ) { t.field_s = "csi_stoodmoverunleft"  ; t.value1 = 815 ; t.value2 = 830; }
+					if (  t.n == 56 ) { t.field_s = "csi_stoodmoverunright"  ; t.value1 = 835 ; t.value2 = 850; }
+					if (  t.n == 57 ) { t.field_s = "csi_stoodreload"  ; t.value1 = 515 ; t.value2 = 605; }
+					if (  t.n == 58 ) { t.field_s = "csi_stoodreloadrocket"  ; t.value1 = 6233 ; t.value2 = 6315; }
+					if (  t.n == 59 ) { t.field_s = "csi_stoodwave"  ; t.value1 = 1470 ; t.value2 = 1520; }
+					if (  t.n == 60 ) { t.field_s = "csi_stoodtoss"  ; t.value1 = 2390 ; t.value2 = 2444; }
+					if (  t.n == 61 ) { t.field_s = "csi_stoodfirerocket"  ; t.value1 = 6207 ; t.value2 = 6232; }
+					if (  t.n == 62 ) { t.field_s = "csi_stoodincoverleft"  ; t.value1 = 1580 ; t.value2 = 1580; }
+					if (  t.n == 63 ) { t.field_s = "csi_stoodincoverpeekleft"  ; t.value1 = 1581 ; t.value2 = 1581; }
+					if (  t.n == 64 ) { t.field_s = "csi_stoodincoverthrowleft"  ; t.value1 = 2680 ; t.value2 = 2680; }
+					if (  t.n == 65 ) { t.field_s = "csi_stoodincoverright"  ; t.value1 = 1525 ; t.value2 = 1525; }
+					if (  t.n == 66 ) { t.field_s = "csi_stoodincoverpeekright"  ; t.value1 = 1526 ; t.value2 = 1526; }
+					if (  t.n == 67 ) { t.field_s = "csi_stoodincoverthrowright"  ; t.value1 = 2570 ; t.value2 = 2570; }
+					if (  t.n == 51 ) { t.field_s = "csi_stoodandturn"  ; t.value1 = 0 ; t.value2 = 0; }
+					if (  t.n == 68 ) { t.field_s = "csi_crouchidlenormal1"  ; t.value1 = 1670 ; t.value2 = 1819; }
+					if (  t.n == 69 ) { t.field_s = "csi_crouchidlenormal2"  ; t.value1 = 1825 ; t.value2 = 1914; }
+					if (  t.n == 70 ) { t.field_s = "csi_crouchidlerocket"  ; t.value1 = 6472 ; t.value2 = 6545; }
+					if (  t.n == 71 ) { t.field_s = "csi_crouchdown"  ; t.value1 = 1630 ; t.value2 = 1646; }
+					if (  t.n == 72 ) { t.field_s = "csi_crouchdownrocket"  ; t.value1 = 6316 ; t.value2 = 6356; }
+					if (  t.n == 73 ) { t.field_s = "csi_crouchrolldown"  ; t.value1 = 2160 ; t.value2 = 2216; }
+					if (  t.n == 74 ) { t.field_s = "csi_crouchrollup"  ; t.value1 = 2225 ; t.value2 = 2281; }
+					if (  t.n == 75 ) { t.field_s = "csi_crouchmovefore"  ; t.value1 = 2075 ; t.value2 = 2102; }
+					if (  t.n == 76 ) { t.field_s = "csi_crouchmoveback"  ; t.value1 = 2102 ; t.value2 = 2131; }
+					if (  t.n == 77 ) { t.field_s = "csi_crouchmoveleft"  ; t.value1 = 2015 ; t.value2 = 2043; }
+					if (  t.n == 78 ) { t.field_s = "csi_crouchmoveright"  ; t.value1 = 2043 ; t.value2 = 2072; }
+					if (  t.n == 79 ) { t.field_s = "csi_crouchmoverun"  ; t.value1 = 2135 ; t.value2 = 2153; }
+					if (  t.n == 80 ) { t.field_s = "csi_crouchreload"  ; t.value1 = 1920 ; t.value2 = 2010; }
+					if (  t.n == 81 ) { t.field_s = "csi_crouchreloadrocket"  ; t.value1 = 6380 ; t.value2 = 6471; }
+					if (  t.n == 82 ) { t.field_s = "csi_crouchwave"  ; t.value1 = 2460 ; t.value2 = 2510; }
+					if (  t.n == 83 ) { t.field_s = "csi_crouchtoss"  ; t.value1 = 2520 ; t.value2 = 2555; }
+					if (  t.n == 84 ) { t.field_s = "csi_crouchfirerocket"  ; t.value1 = 6357 ; t.value2 = 6379; }
+					if (  t.n == 85 ) { t.field_s = "csi_crouchimpactfore"  ; t.value1 = 5240 ; t.value2 = 5277; }
+					if (  t.n == 86 ) { t.field_s = "csi_crouchimpactback"  ; t.value1 = 5290 ; t.value2 = 5339; }
+					if (  t.n == 87 ) { t.field_s = "csi_crouchimpactleft"  ; t.value1 = 5409 ; t.value2 = 5466; }
+					if (  t.n == 88 ) { t.field_s = "csi_crouchimpactright"  ; t.value1 = 5350 ; t.value2 = 5395; }
+					if (  t.n == 89 ) { t.field_s = "csi_crouchgetup"  ; t.value1 = 1646 ; t.value2 = 1663; }
+					if (  t.n == 90 ) { t.field_s = "csi_crouchgetuprocket"  ; t.value1 = 6573 ; t.value2 = 6607; }
+					darkai_assignanimtofield ( );
+				}
 			}
 		}
-		*/
 
 		//  Finish animation quantities
 		t.entityprofile[t.entid].animmax=t.tnewanimmax;

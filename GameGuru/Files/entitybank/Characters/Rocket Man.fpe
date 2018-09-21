@@ -44,8 +44,9 @@ spawndelay    = 0
 spawnqty      = 0
 
 ;anim
-animmax       = 5
+animmax          = 5
 playanimineditor = 1
+ignorecsirefs    = 1
 anim0            = 100,205   ;idle
 anim1            = 685,707   ;move
 anim2            = 5511,5553 ;kick

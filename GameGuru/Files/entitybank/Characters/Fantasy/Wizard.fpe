@@ -46,6 +46,7 @@ headlimbs     = 32,54
 ;anim
 animmax          = 4
 playanimineditor = 1
+ignorecsirefs    = 1
 anim0            = 20,293    ;idle
 anim1            = 300,335   ;move
 anim2            = 872,878   ;kick

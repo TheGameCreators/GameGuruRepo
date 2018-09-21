@@ -45,6 +45,7 @@ jumpvaulttrim = 1
 ;anim
 animmax          = 13
 playanimineditor = 1
+ignorecsirefs    = 1
 anim0            = 100,205   ;idle
 anim1            = 685,707   ;move
 anim2            = 5511,5553 ;kick

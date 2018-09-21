@@ -647,48 +647,7 @@ end
 function GetAnimationFrame(e)
  return g_Entity[e]['frame']
 end
-function CharacterControlManual(e)
- SendMessageI("charactercontrolmanual",e);
-end
-function CharacterControlLimbo(e)
- SendMessageI("charactercontrollimbo",e);
-end
-function CharacterControlUnarmed(e)
- SendMessageI("charactercontrolunarmed",e);
-end
-function CharacterControlArmed(e)
- SendMessageI("charactercontrolarmed",e);
-end
-function CharacterControlFidget(e)
- SendMessageI("charactercontrolfidget",e);
-end
-function CharacterControlDucked(e)
- SendMessageI("charactercontrolducked",e);
-end
-function CharacterControlStand(e)
- SendMessageI("charactercontrolstand",e);
-end
-function SetCharacterToWalk(e)
- SendMessageI("setcharactertowalkrun",e,0);
-end
-function SetCharacterToRun(e)
- SendMessageI("setcharactertowalkrun",e,1);
-end
-function SetCharacterToStrafeLeft(e)
- SendMessageI("setcharactertostrafe",e,0);
-end
-function SetCharacterToStrafeRight(e)
- SendMessageI("setcharactertostrafe",e,1);
-end
-function SetCharacterVisionDelay(e,v)
- SendMessageI("setcharactervisiondelay",e,v);
-end
-function LockCharacterPosition(e,v)
- SendMessageI("setlockcharacter",e,1);
-end
-function UnlockCharacterPosition(e,v)
- SendMessageI("setlockcharacter",e,0);
-end
+
 function GravityOff(e)
  SendMessageI("setnogravity",e,1);
 end
@@ -997,6 +956,50 @@ function SetGameMusicVolume(v)
 end
 function SetLoadingResource(i,v)
  SendMessageI("setloadingresource",i,v);
+end
+
+-- Ancient LUA commands (superseded by removing hard coded systems)
+function CharacterControlManual(e)
+ SendMessageI("charactercontrolmanual",e);
+end
+function CharacterControlLimbo(e)
+ SendMessageI("charactercontrollimbo",e);
+end
+function CharacterControlUnarmed(e)
+ SendMessageI("charactercontrolunarmed",e);
+end
+function CharacterControlArmed(e)
+ SendMessageI("charactercontrolarmed",e);
+end
+function CharacterControlFidget(e)
+ SendMessageI("charactercontrolfidget",e);
+end
+function CharacterControlDucked(e)
+ SendMessageI("charactercontrolducked",e);
+end
+function CharacterControlStand(e)
+ SendMessageI("charactercontrolstand",e);
+end
+function SetCharacterToWalk(e)
+ SendMessageI("setcharactertowalkrun",e,0);
+end
+function SetCharacterToRun(e)
+ SendMessageI("setcharactertowalkrun",e,1);
+end
+function SetCharacterToStrafeLeft(e)
+ SendMessageI("setcharactertostrafe",e,0);
+end
+function SetCharacterToStrafeRight(e)
+ SendMessageI("setcharactertostrafe",e,1);
+end
+function SetCharacterVisionDelay(e,v)
+ SendMessageI("setcharactervisiondelay",e,v);
+end
+function LockCharacterPosition(e,v)
+ SendMessageI("setlockcharacter",e,1);
+end
+function UnlockCharacterPosition(e,v)
+ SendMessageI("setlockcharacter",e,0);
 end
 
 --Ancient AI Globals (old legacy globals no longer supported with newer scripts)
@@ -1776,6 +1779,8 @@ AICoverGetPointY: AICoverGetPointY(coverindex) -- where coverindex is the index 
 AICoverGetPointZ: AICoverGetPointZ(coverindex) -- where coverindex is the index of the cover marker and returns the Z position
 AICoverGetAngle: AICoverGetAngle(coverindex) -- where coverindex is the index of the cover marker and returns the Y angle position
 AICoverGetIfUsed : AICoverGetIfUsed(coverindex) -- where coverindex is the index of the cover marker and returns string from IFUSED field
+
+SetRotationYSlowly : SetRotationYSlowly(e,destangle,smoothvalue) -- where e is the entity and a smooth value of 100 is immediate, where 50 takes twice as long to rotate to destangle
 
 OLD LEGACY AUTOMATIC COMMANDS
 AIEntityAssignPatrolPath AIEntityAssignPatrolPath(obj,pathid) -- where obj is the object number of the entity. See DarkAI docs for parameter descriptions

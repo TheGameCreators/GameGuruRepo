@@ -92,6 +92,7 @@ void entity_lua_setlockcharacter ( void );
 void entity_lua_setcharactertostrafe ( void );
 void entity_lua_setcharactervisiondelay ( void );
 void entity_lua_lookatplayer ( void );
+void entity_lua_rotatetoanglecore ( float fDestAngle, float fAngleOffset );
 void entity_lua_rotatetocore ( float fAngleOffset );
 void entity_lua_rotatetoplayerwithoffset ( void );
 void entity_lua_rotatetoplayer ( void );

@@ -4742,6 +4742,23 @@ int GetEntityProfileJumpResume ( lua_State *L ) { return GetGamePlayerControlDat
 int GetEntityAnimStart ( lua_State *L ) { return GetGamePlayerControlData ( L, 1001 ); }
 int GetEntityAnimFinish ( lua_State *L ) { return GetGamePlayerControlData ( L, 1002 ); }
 
+int SetRotationYSlowly ( lua_State *L ) 
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 3 ) return 0;
+	int iEntityID = lua_tonumber( L, 1 );
+	float fDestAngle = lua_tonumber( L, 2 );
+	float fSlowlyRate = lua_tonumber( L, 3 );
+	int iStoreE = t.e; t.e = iEntityID;
+	float fStoreV = t.v; t.v = fSlowlyRate;
+	entity_lua_rotatetoanglecore ( fDestAngle, 0.0f );
+	t.e = iStoreE;
+	t.v = fStoreV;
+	return 1;
+}
+
+
 // Particle commands
 
 int ParticlesGetFreeEmitter ( lua_State *L )
@@ -5927,6 +5944,8 @@ void addFunctions()
 	
 	lua_register(lua, "GetEntityAnimStart" , GetEntityAnimStart );
 	lua_register(lua, "GetEntityAnimFinish" , GetEntityAnimFinish );
+
+	lua_register(lua, "SetRotationYSlowly" , SetRotationYSlowly );
 
 	lua_register(lua, "ParticlesGetFreeEmitter" , ParticlesGetFreeEmitter );
 	lua_register(lua, "ParticlesAddEmitter" , ParticlesAddEmitter );

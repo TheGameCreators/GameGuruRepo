@@ -1248,6 +1248,7 @@ void characterkit_save_entity ( void )
 		// profile controls the animation sets exported
 		if ( cstr(Lower(Left(t.ts_s.Get(),7))) == "animmax" 
 		||   cstr(Lower(Left(t.ts_s.Get(),16))) == "playanimineditor" 
+		||   cstr(Lower(Left(t.ts_s.Get(),13))) == "ignorecsirefs" 			
 		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "anim0" 
 		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "anim1" 
 		||   cstr(Lower(Left(t.ts_s.Get(),5))) == "anim2" 
@@ -1629,6 +1630,7 @@ void characterkit_save_fpe ( void )
 		t.tString = cstr(CharacterKitPadString("animmax")) + "= " + t.importer.objectFPE.animmax ; WriteString (  1 , t.tString.Get() );
 		t.tString = cstr(CharacterKitPadString("anim0")) + "= " + t.importer.objectFPE.anim0 ; WriteString (  1 , t.tString.Get() );
 		t.tString = cstr(CharacterKitPadString("playanimineditor")) + "= " + t.importer.objectFPE.playanimineditor ; WriteString (  1 , t.tString.Get() );
+		t.tString = cstr(CharacterKitPadString("ignorecsirefs")) + "= " + t.importer.objectFPE.ignorecsirefs ; WriteString (  1 , t.tString.Get() );
 		//  Save any lines that were not understand when the initial FPE was loaded in
 		//  add a blank line if there are extra lines to add
 		if (  t.importer.unknownFPELineCount > 0 ) 

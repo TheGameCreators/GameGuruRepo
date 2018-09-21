@@ -616,7 +616,7 @@ function module_combatcore.moveandavoid(e,AIObjNo,PlayerDist,MoveType,x,y,z,stop
    end
   end
   AIEntityGoToPosition(AIObjNo,x,y,z)
-  SetRotation(e,0,AIGetEntityAngleY(AIObjNo),0)
+  SetRotationYSlowly(e,AIGetEntityAngleY(AIObjNo),10.0)
   if movementfrozen == 0 then
    dy = g_PlayerPosY - (g_Entity[e]['y']+50)
    if ai_bot_state[e] == ai_state_patrol then

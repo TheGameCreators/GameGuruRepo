@@ -67,10 +67,6 @@ function ai_fantasycharacter_main(e)
    ai_patrol_x[e] = AIPathGetPointX(ai_soldier_pathindex[e],ai_path_point_index[e])
    ai_patrol_z[e] = AIPathGetPointZ(ai_soldier_pathindex[e],ai_path_point_index[e])
    AIEntityGoToPosition(EntObjNo,ai_patrol_x[e],ai_patrol_z[e])
-   --AIEntityGoToPosition(EntObjNo,ai_patrol_x[e],g_PlayerPosY,ai_patrol_z[e])
-   --SetRotation(e,0,AIGetEntityAngleY(EntObjNo),0)
-   --MoveForward(e,AIGetEntitySpeed(EntObjNo)/2.0)
-   --AISetEntityPosition(EntObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))   
    tDistX = g_Entity[e]['x'] - ai_patrol_x[e]
    tDistZ = g_Entity[e]['z'] - ai_patrol_z[e]
    DistFromPath = math.sqrt(math.abs(tDistX*tDistX)+math.abs(tDistZ*tDistZ))	
@@ -112,11 +108,6 @@ function ai_fantasycharacter_main(e)
   end
   if ai_soldier_state[e] == "charge" then
    ai_fantasycharacter_moveandavoid(e,EntObjNo,PlayerDist,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-   --AIEntityGoToPosition(EntObjNo,g_PlayerPosX,g_PlayerPosZ)
-   --AIEntityGoToPosition(EntObjNo,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-   --SetRotation(e,0,AIGetEntityAngleY(EntObjNo),0)
-   --MoveForward(e,AIGetEntitySpeed(EntObjNo)/2.0)
-   --AISetEntityPosition(EntObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
   end
   if ai_soldier_state[e] == "attack" then
    RotateToPlayer(e)  
