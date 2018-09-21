@@ -3196,6 +3196,17 @@ void gun_shoot ( void )
 			//  shot over
 			t.gunshoot=0;
 		}
+
+		// 200918 - trigger ai sound so enemies can pick up the shot
+		if ( 1 )
+		{
+			t.tradius_f=2000;
+			AICreateSound ( CameraPositionX(), CameraPositionY(), CameraPositionZ(),t.tradius_f,t.tradius_f,-1 );
+			g.aidetectnearbymode = 1;
+			g.aidetectnearbycount = 60*4;
+			g.aidetectnearbymodeX_f = CameraPositionX();
+			g.aidetectnearbymodeZ_f = CameraPositionZ();
+		}
 	}
 
 	//  And can iterate more gunshoot rays if required

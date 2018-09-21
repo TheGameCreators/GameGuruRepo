@@ -76,7 +76,7 @@ alt zoomholdbreath	= 16
 
 overheatafter		= 1
 cooldown		= 1000
-jamchance		= 80
+jamchance		= 0
 
 alt overheatafter	= 1
 alt cooldown		= 100

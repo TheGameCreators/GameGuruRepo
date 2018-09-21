@@ -5724,6 +5724,9 @@ struct entitytype
 	float lastx;
 	float lasty;
 	float lastz;
+	float customlastx;
+	float customlasty;
+	float customlastz;
 	int norotate;
 	int nogravity;
 	int hoverfactoroverride;
@@ -6051,6 +6054,9 @@ struct entitytype
 		 lastx = 0.0f;
 		 lasty = 0.0f;
 		 lastz = 0.0f;
+		 customlastx = 0.0f;
+		 customlasty = 0.0f;
+		 customlastz = 0.0f;
 		 attachmentblobobj = 0;
 		 attachmentobjfirespotlimb = 0;
 		 attachmentweapontype = 0;

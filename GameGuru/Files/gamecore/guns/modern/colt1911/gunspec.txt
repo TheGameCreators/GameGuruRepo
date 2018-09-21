@@ -22,7 +22,7 @@ npcignorereload		= 0
 
 damage			= 35
 range			= 7000
-force           	= 50
+force           = 50
 scorchtype		= 1
 noscorch		= 0
 

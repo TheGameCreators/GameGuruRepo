@@ -253,7 +253,7 @@ void entity_lua_spawn_core ( void )
 	if ( Len(t.entityelement[t.e].eleprof.aimainname_s.Get())>1 ) 
 	{
 		t.entityelement[t.e].eleprof.aimain=1;
-		t.entityelement[t.e].eleprof.aipreexit=0;
+		t.entityelement[t.e].eleprof.aipreexit=-1;
 	}
 
 	//  restore object of entity
@@ -1422,11 +1422,11 @@ void entity_lua_setentityhealth_core ( int iSilent )
 		{
 			t.ttte = t.e;
 			t.tdamage = t.entityelement[t.e].health;
-			t.tdamageforce = 0;
+			t.tdamageforce = 700.0f; // 210918 - so headshots have better ragdoll reaction
 			t.tdamagesource = 0;
 			t.brayx1_f=t.entityelement[t.e].x;
 			t.brayx2_f=t.entityelement[t.e].x;
-			t.brayy1_f=t.entityelement[t.e].y-20.0;
+			t.brayy1_f=t.entityelement[t.e].y-500.0;
 			t.brayy2_f=t.entityelement[t.e].y;
 			t.brayz1_f=t.entityelement[t.e].z;
 			t.brayz2_f=t.entityelement[t.e].z;

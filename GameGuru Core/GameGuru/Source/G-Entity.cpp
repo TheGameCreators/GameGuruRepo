@@ -1367,6 +1367,7 @@ void entity_applydamage ( void )
 	// entity alive long enough to run the logic in the preexit function
 	if ( t.entityelement[t.ttte].health <= 0 ) 
 	{
+		// this is only set to zero if the init call cleared it ready for preexit usage, otherwise ignore
 		if ( t.entityelement[t.ttte].eleprof.aipreexit == 0 )
 		{
 			t.entityelement[t.ttte].health = 1;
@@ -1469,8 +1470,16 @@ void entity_applydamage ( void )
 				t.entityelement[t.ttte].eleprof.aimain = 0;
 
 				//  Prepare character for eventual fade out
-				t.charanimstates[iCharacterIndexToUse].timetofadeout=Timer()+AICORPSETIME;
-				t.charanimstates[iCharacterIndexToUse].fadeoutvalue_f=1.0;
+				if ( t.entityprofile[t.ttentid].ragdoll == 1 ) 
+				{
+					t.charanimstates[iCharacterIndexToUse].timetofadeout=Timer()+AICORPSETIME;
+					t.charanimstates[iCharacterIndexToUse].fadeoutvalue_f=1.0;
+				}
+				else
+				{
+					// if not ragdoll, used own die anim, remove right away
+					t.entityelement[t.ttte].destroyme = 1;
+				}
 			}
 
 			//  Convert to clone so can operate independent of parent object
@@ -1972,6 +1981,7 @@ void entity_triggerdecalatimpact ( float fX, float fY, float fZ )
 			}
 		}
 
+		/* instead of beacon sound at impact site, its the players GUN which makes the LOUD sound - moved to player gun code
 		//  trigger ai sound so enemies can pick up the shot
 		if ( t.gunid > 0 )
 		{
@@ -1982,6 +1992,7 @@ void entity_triggerdecalatimpact ( float fX, float fY, float fZ )
 			g.aidetectnearbymodeX_f = t.brayx2_f;
 			g.aidetectnearbymodeZ_f = t.brayz2_f;
 		}
+		*/
 
 		//  play material impact sound
 		t.tmatindex = 0 ; if (  t.tttriggerdecalimpact >= 10  )  t.tmatindex = t.tttriggerdecalimpact-10;

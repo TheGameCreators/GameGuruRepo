@@ -34,7 +34,7 @@ speed         = 200
 headlimbs     = 32,54
 
 ;statistics
-strength      = 100
+strength      = 250
 explodable    = 0
 debrisshape   = 0
 
@@ -43,7 +43,7 @@ jumpmodifier  = 100
 jumpvaulttrim = 1
 
 ;anim
-animmax          = 12
+animmax          = 13
 playanimineditor = 1
 anim0            = 100,205   ;idle
 anim1            = 685,707   ;move
@@ -57,6 +57,7 @@ anim8            = 1670,1819 ;duck idle
 anim9            = 1646,1663 ;unduck
 anim10           = 795,811   ;run
 anim11           = 2160,2218 ;roll to duck
+anim12           = 2135,2153 ;crouch dash
 
 ;character animation (reference only)
 csi_relaxed1 				= 900,999

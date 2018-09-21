@@ -1015,7 +1015,11 @@ void entity_loaddata ( void )
 	{
 		// 061115 - reset entity anim start value (so can be filled further down)
 		for ( int n = 0; n < g.animmax; n++ )
+		{
 			t.entityanim[t.entid][n].start = 0;
+			t.entityanim[t.entid][n].finish = 0;
+			t.entityanim[t.entid][n].found = 0;
+		}
 
 		//  Must be reset before parse
 		t.entityprofile[t.entid].limbmax=0;
@@ -1727,8 +1731,8 @@ void entity_loaddata ( void )
 						}
 					}
 
-					//  291014 - AI system animation sets (takes field$ and value1/value2)
-					darkai_assignanimtofield ( );
+					// 291014 - AI system animation sets (takes field$ and value1/value2)
+					// darkai_assignanimtofield ( ); 200918 - externalised internal AI system into scripts
 
 					//  V110 BETA5 - 080608 - get foot fall data (optional)
 					t.tryfield_s="footfallmax";
@@ -1832,7 +1836,8 @@ void entity_loaddata ( void )
 		}
 		UnDim (  t.data_s );
 
-		//  if No AI anim sets, fill with hard defaults from official template character
+		/* 200918 - no longer use internal AI system
+		// if No AI anim sets, fill with hard defaults from official template character
 		if (  t.entityprofile[t.entid].ischaracter == 1 ) 
 		{
 			// 010917 - but only if a character, so as not to force non-anim entities to use entity_anim
@@ -1931,6 +1936,7 @@ void entity_loaddata ( void )
 				darkai_assignanimtofield ( );
 			}
 		}
+		*/
 
 		//  Finish animation quantities
 		t.entityprofile[t.entid].animmax=t.tnewanimmax;

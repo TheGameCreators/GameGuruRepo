@@ -119,7 +119,7 @@ void lua_loadscriptin ( void )
 				{
 					t.entityelement[t.e].eleprof.aimainname_s=Left(t.tscriptname_s.Get(),Len(t.tscriptname_s.Get())-4);
 					t.entityelement[t.e].eleprof.aimain=1;
-					t.entityelement[t.e].eleprof.aipreexit=0;
+					t.entityelement[t.e].eleprof.aipreexit=-1;
 					t.entityelement[t.e].lua.plrinzone=-1;
 					t.entityelement[t.e].lua.entityinzone=0;
 					t.entityelement[t.e].lua.flagschanged=1;
@@ -138,7 +138,7 @@ void lua_scanandloadactivescripts ( void )
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
 		t.entityelement[t.e].eleprof.aimain=0;
-		t.entityelement[t.e].eleprof.aipreexit=0;
+		t.entityelement[t.e].eleprof.aipreexit=-1;
 		if (  t.entityelement[t.e].bankindex>0 && t.entityelement[t.e].staticflag == 0 ) 
 		{
 			//  AI MAIN SCRIPT
@@ -750,7 +750,7 @@ void lua_loop_allentities ( void )
 									{
 										if ( t.entityelement[t.e].eleprof.aipreexit == 1 )
 										{
-											t.entityelement[t.e].eleprof.aipreexit = 2;
+											t.entityelement[t.e].eleprof.aipreexit = 3;
 											t.strwork = cstr(cstr(Lower(t.entityelement[t.e].eleprof.aimainname_s.Get()))+"_preexit");
 											LuaSetFunction ( t.strwork.Get(), 1, 0 );
 											LuaPushInt ( t.e ); LuaCall ( );

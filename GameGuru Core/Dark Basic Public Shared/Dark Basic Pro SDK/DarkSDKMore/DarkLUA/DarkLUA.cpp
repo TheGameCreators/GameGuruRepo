@@ -1094,7 +1094,14 @@ luaMessage** ppLuaMessages = NULL;
  {
 	lua = L;
 	int n = lua_gettop(L);
-	if ( n < 1 ) return 0;
+	if ( iDataMode == 19 )
+	{
+		if ( n < 4 ) return 0;
+	}
+	else
+	{
+		if ( n < 1 ) return 0;
+	}
 	int iEntityIndex = lua_tonumber(L, 1);
 	if ( iEntityIndex > 0 )
 	{
@@ -1162,6 +1169,21 @@ luaMessage** ppLuaMessages = NULL;
 							lua_pushstring(L, t.entityelement[iEntityIndex].eleprof.name_s.Get() );
 							return 1;
 						}
+						case 19 : 
+						{
+							// as above, but done manually with no outside assistance from neighboring systems
+							float fThisPosX = lua_tonumber(L, 2);
+							float fThisPosY = lua_tonumber(L, 3);
+							float fThisPosZ = lua_tonumber(L, 4);
+							float fDX = fThisPosX - t.entityelement[iEntityIndex].customlastx;
+							float fDY = fThisPosY - t.entityelement[iEntityIndex].customlasty;
+							float fDZ = fThisPosZ - t.entityelement[iEntityIndex].customlastz;
+							t.entityelement[iEntityIndex].customlastx = fThisPosX;
+							t.entityelement[iEntityIndex].customlasty = fThisPosY;
+							t.entityelement[iEntityIndex].customlastz = fThisPosZ;
+							fReturnValue = sqrt ( fabs(fDX*fDX)+fabs(fDY*fDY)+fabs(fDZ*fDZ) );
+							break;
+						}
 					}
 				}
 			}
@@ -1199,6 +1221,7 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityWeight(lua_State *L)  { return GetEntityData ( L, 16 ); }
  int GetEntityScales(lua_State *L)  { return GetEntityData ( L, 17 ); }
  int GetEntityName(lua_State *L)    { return GetEntityData ( L, 18 ); }
+ int GetMovementDeltaManually(lua_State *L) { return GetEntityData ( L, 19 ); }
 
  int SetEntityString(lua_State *L)
  {
@@ -1241,6 +1264,30 @@ luaMessage** ppLuaMessages = NULL;
  }
 
  // Entity Animation
+ int SetEntityAnimation(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 4 ) return 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iAnimationSetIndex = lua_tonumber(L, 2);
+	int iAnimationSetStart = lua_tonumber(L, 3);
+	int iAnimationSetFinish = lua_tonumber(L, 4);
+	if ( iEntityIndex > 0 )
+	{
+		int iEntID = t.entityelement[iEntityIndex].bankindex;
+		if ( iEntID > 0 )
+		{
+			t.entityanim[iEntID][iAnimationSetIndex].start = iAnimationSetStart;
+			t.entityanim[iEntID][iAnimationSetIndex].finish = iAnimationSetFinish;
+			if ( iAnimationSetStart == -1 && iAnimationSetFinish == -1 )
+				t.entityanim[iEntID][iAnimationSetIndex].found = 0;
+			else
+				t.entityanim[iEntID][iAnimationSetIndex].found = 1;
+		}
+	}
+	return 1;
+ }
  int GetEntityAnimationStart(lua_State *L)
  {
 	lua = L;
@@ -5219,6 +5266,7 @@ void addFunctions()
 	lua_register(lua, "SetAnimationSpeedModulation", SetAnimationSpeedModulation);
 	lua_register(lua, "GetAnimationSpeedModulation", GetAnimationSpeedModulation);
 	lua_register(lua, "GetMovementDelta", GetMovementDelta);
+	lua_register(lua, "GetMovementDeltaManually", GetMovementDeltaManually);
 
 	lua_register(lua, "SetEntityString", SetEntityString);
 	lua_register(lua, "GetEntityString", GetEntityString);
@@ -5228,6 +5276,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityFilePath", GetEntityFilePath);
 	lua_register(lua, "SetPreExitValue", SetPreExitValue);
 
+	lua_register(lua, "SetEntityAnimation", SetEntityAnimation);
 	lua_register(lua, "GetEntityAnimationStart", GetEntityAnimationStart);
 	lua_register(lua, "GetEntityAnimationFinish", GetEntityAnimationFinish);
 	lua_register(lua, "GetAmmoClipMax", GetAmmoClipMax);

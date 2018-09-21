@@ -2381,13 +2381,11 @@ void darkai_character_freezeall ( void )
 			}
 		}
 	}
-
-return;
-
 }
 
 void darkai_assignanimtofield ( void )
 {
+	/* no longer used as externalised AI logic in script
 	//  291014 - AI system animation sets
 	if (  t.tstartofaianim >= 0 ) 
 	{
@@ -2523,6 +2521,7 @@ void darkai_assignanimtofield ( void )
 			}
 		}
 	}
+	*/
 }
 
 void char_init ( void )
