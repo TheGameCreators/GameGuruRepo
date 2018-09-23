@@ -929,20 +929,23 @@ void entity_updatepos ( void )
 		t.tvz_f=t.entityelement[t.te].z-ObjectPositionZ(t.tobj);
 		t.tvd_f=Sqrt(abs(t.tvx_f*t.tvx_f)+abs(t.tvz_f*t.tvz_f));
 
+		// cap relative to speed of entity
+		t.tentspeed_f = (t.entityelement[t.te].eleprof.speed+0.0)/100.0;
+		float fDistCap = 25.0f * t.tentspeed_f;
+
 		//  ensure it is capped for max physics object movement
 		if ( t.tvd_f > 0.0f )
 		{
 			t.tvx_f=t.tvx_f/t.tvd_f;
 			t.tvz_f=t.tvz_f/t.tvd_f;
 		}
-		if ( t.tvd_f>25.0  )  t.tvd_f = 25.0;
+		if ( t.tvd_f > fDistCap ) t.tvd_f = fDistCap;
 		t.tvx_f=t.tvx_f*t.tvd_f;
 		t.tvz_f=t.tvz_f*t.tvd_f;
 		t.tvx_f=t.tvx_f*15.0;
 		t.tvz_f=t.tvz_f*15.0;
 
 		// entity speed modifier
-		t.tentspeed_f=(t.entityelement[t.te].eleprof.speed+0.0)/100.0;
 		t.tentinvspeed_f=100.0/(t.entityelement[t.te].eleprof.speed+0.0);
 
 		// special method for characters to climb 'stairs/ramps'
@@ -998,10 +1001,11 @@ void entity_updatepos ( void )
 			// accelerate physics to reach entity X Y Z quickly
 			int entid = t.entityelement[t.te].bankindex;
 			//if ( t.tvd_f>24.0*t.tentspeed_f ) // 080317 - very fast AI movement gets capped so never exceeds speed modifier result
-			if ( 0 ) //t.tvd_f*t.tentspeed_f > 24.0*t.tentspeed_f ) // 210918 - stops FAST AI bots, no need for this at the moment
+			//if ( t.tvd_f*t.tentspeed_f > 24.0*t.tentspeed_f ) // 210918 - stops FAST AI bots, no need for this at the moment
+			if ( t.tvd_f > 24.0*t.tentspeed_f ) // 220918 - use this to align AI bot position with physics object
 			{
-				// basically stops a physics object getting ahead of AI entity position (not happened with latest AI scripts)
-
+				// basically stops a physics object getting ahead of AI entity position
+				
 				// no velocity while we adjst dest to current stood location (possible vibrate fix)
 				ODESetLinearVelocity ( t.tobj,0,0,0 );
 
