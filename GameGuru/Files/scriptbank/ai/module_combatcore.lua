@@ -45,17 +45,17 @@ function module_combatcore.init(e,startstate,coverstate)
  ai_bot_gofast[e] = 0
  ai_bot_sighting[e] = 0
  -- populate animation data if entity file does not provide it (except 5 and 6 which are melee)
- if GetEntityAnimationFinish(e,0) <= 0 then SetEntityAnimation(e,0,100,205) end
- if GetEntityAnimationStart(e,1) <= 0 then SetEntityAnimation(e,1,685,707) end
- if GetEntityAnimationStart(e,2) <= 0 then SetEntityAnimation(e,2,5511,5553) end
- if GetEntityAnimationStart(e,3) <= 0 then SetEntityAnimation(e,3,4812,4850) end
- if GetEntityAnimationStart(e,4) <= 0 then SetEntityAnimation(e,4,515,605) end
- if GetEntityAnimationStart(e,7) <= 0 then SetEntityAnimation(e,7,1630,1646) end
- if GetEntityAnimationStart(e,8) <= 0 then SetEntityAnimation(e,8,1670,1819) end
- if GetEntityAnimationStart(e,9) <= 0 then SetEntityAnimation(e,9,1646,1663) end
- if GetEntityAnimationStart(e,10) <= 0 then SetEntityAnimation(e,10,795,811) end
- if GetEntityAnimationStart(e,11) <= 0 then SetEntityAnimation(e,11,2160,2218) end
- if GetEntityAnimationStart(e,12) <= 0 then SetEntityAnimation(e,12,2135,2153) end
+ if GetEntityAnimationFound(e,0) == 0 then SetEntityAnimation(e,0,100,205) end
+ if GetEntityAnimationFound(e,1) == 0 then SetEntityAnimation(e,1,685,707) end
+ if GetEntityAnimationFound(e,2) == 0 then SetEntityAnimation(e,2,5511,5553) end
+ if GetEntityAnimationFound(e,3) == 0 then SetEntityAnimation(e,3,4812,4850) end
+ if GetEntityAnimationFound(e,4) == 0 then SetEntityAnimation(e,4,515,605) end
+ if GetEntityAnimationFound(e,7) == 0 then SetEntityAnimation(e,7,1630,1646) end
+ if GetEntityAnimationFound(e,8) == 0 then SetEntityAnimation(e,8,1670,1819) end
+ if GetEntityAnimationFound(e,9) == 0 then SetEntityAnimation(e,9,1646,1663) end
+ if GetEntityAnimationFound(e,10) == 0 then SetEntityAnimation(e,10,795,811) end
+ if GetEntityAnimationFound(e,11) == 0 then SetEntityAnimation(e,11,2160,2218) end
+ if GetEntityAnimationFound(e,12) == 0 then SetEntityAnimation(e,12,2135,2153) end
 end
 
 function module_combatcore.findcover(e,x,y,z)

@@ -1735,7 +1735,7 @@ void entity_loaddata ( void )
 					}
 
 					// 291014 - AI system animation sets (takes field$ and value1/value2)
-					if ( t.entityprofile[t.entid].ignorecsirefs == 0 )
+					if ( 1 ) // t.entityprofile[t.entid].ignorecsirefs == 0 ) // for now, still need these for THIRD PERSON which uses old CSI system
 					{
 						// 200918 - externalised internal AI system into scripts, but keeping for legacy support
 						darkai_assignanimtofield ( );
@@ -1844,7 +1844,7 @@ void entity_loaddata ( void )
 		UnDim (  t.data_s );
 
 		// 200918 - no longer use internal AI system, but keep for legacy compatibility
-		if ( t.entityprofile[t.entid].ignorecsirefs == 0 )
+		if ( 1 ) //t.entityprofile[t.entid].ignorecsirefs == 0 ) // for now, still need these for THIRD PERSON which uses old CSI system
 		{
 			// if No AI anim sets, fill with hard defaults from official template character
 			if (  t.entityprofile[t.entid].ischaracter == 1 ) 

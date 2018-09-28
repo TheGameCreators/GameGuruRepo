@@ -1,0 +1,147 @@
+;header
+desc          = Einstein
+
+;ai
+aimain        = people\stand_and_speak.lua
+soundset      = male
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+;orientation
+model         = Einstein.X
+offx          = 0
+offsety       = 5
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+scale         = 80
+
+; basic attributes to convert OLD characters for GameGuru
+fixnewy        = 0
+effect         = effectbank\reloaded\character_basic.fx
+ragdoll        = 1
+skipfvfconvert = 1
+
+;cone of sight
+coneheight    = 53
+coneangle     = 50
+
+;visualinfo
+textured      = Einstein_D2.dds
+castshadow    = 0
+
+;decals
+decalmax      = 0
+
+;identity details
+strength      = 100
+ischaracter   = 1
+hasweapon     = 
+isobjective   = 0
+cantakeweapon = 1
+isflak        = 1
+
+;bodypartslimbinfo (1=head/2=body/3+4=armslr/5+6=legslr)
+limbmax       = 0
+headlimbs     = 59,139
+
+;anim
+animspeed     = 100
+animmax       = 1
+anim0         = 211,232
+playanimineditor = 1
+
+;AIAnims
+csi_relaxed1 			= 211,232
+csi_relaxed2 			= 211,232
+csi_relaxedmovefore 	= 235,259
+csi_cautious 			= 211,232
+csi_cautiousmovefore 	= 235,259
+csi_unarmed1 			= 211,232
+csi_unarmed2 			= 211,232
+csi_unarmedconversation	= 
+csi_unarmedexplain 		= 
+csi_unarmedpointfore 	= 
+csi_unarmedpointback 	= 
+csi_unarmedpointleft 	= 
+csi_unarmedpointright 	= 
+csi_unarmedmovefore 	= 235,259
+csi_unarmedmoverun 		= 300,318
+csi_unarmedstairascend 	= 
+csi_unarmedstairdecend 	= 
+csi_unarmedladderascend1= 160,189
+csi_unarmedladderascend2= 160,189
+csi_unarmedladderascend3= 160,189
+csi_unarmedladderdecend1= 160,189
+csi_unarmedladderdecend2= 160,189
+csi_unarmeddeath 		= 0,19
+csi_unarmedimpactfore 	= 40,59 
+csi_unarmedimpactback 	= 0,19
+csi_unarmedimpactleft 	= 120,139
+csi_unarmedimpactright 	= 80,99 
+csi_inchair 			= 
+csi_inchairsit 			= 
+csi_inchairgetup 		= 
+csi_swim 				= 832,851
+csi_swimmovefore 		= 852,881
+csi_stoodnormal			= 573,597
+csi_stoodrocket 		= 
+csi_stoodfidget1 		= 573,597
+csi_stoodfidget2 		= 573,597
+csi_stoodfidget3 		= 573,597
+csi_stoodfidget4 		= 573,597
+csi_stoodstartled 		= 
+csi_stoodpunch 			= 
+csi_stoodkick 			= 
+csi_stoodmovefore 		= 598,622
+csi_stoodmoveback 		= 598,622
+csi_stoodmoveleft 		= 598,622
+csi_stoodmoveright 		= 598,622
+csi_stoodstepleft 		= 
+csi_stoodstepright 		= 
+csi_stoodstrafeleft 	= 623,642
+csi_stoodstraferight 	= 643,662 
+csi_stoodturnleft 		= 
+csi_stoodsubtleturnleft = 
+csi_stoodvault 			= 
+csi_stoodmoverun 		= 663,681
+csi_stoodmoverunleft 	= 663,681
+csi_stoodmoverunright 	= 663,681
+csi_stoodreload 		= 682,731
+csi_stoodreloadrocket 	= 
+csi_stoodwave 			= 
+csi_stoodtoss 			= 319,355
+csi_stoodfirerocket 	= 
+csi_stoodincoverleft 	= 
+csi_stoodincoverpeekleft	= 
+csi_stoodincoverthrowleft 	= 
+csi_stoodincoverright 	= 
+csi_stoodincoverpeekright 	= 
+csi_stoodincoverthrowright 	= 
+csi_crouchidlenormal1 	= 732,756
+csi_crouchidlenormal2 	= 732,756
+csi_crouchidlerocket 	= 
+csi_crouchdown 			= 
+csi_crouchdownrocket 	= 
+csi_crouchrolldown 		= 
+csi_crouchrollup		= 
+csi_crouchmovefore 		= 757,781
+csi_crouchmoveback 		= 757,781
+csi_crouchmoveleft 		= 757,781
+csi_crouchmoveright 	= 757,781
+csi_crouchmoverun 		= 757,781
+csi_crouchreload 		= 782,831 
+csi_crouchreloadrocket 	= 
+csi_crouchwave 			= 
+csi_crouchtoss 			= 406,442
+csi_crouchfirerocket 	= 
+csi_crouchimpactfore 	= 40,59 
+csi_crouchimpactback 	= 0,19
+csi_crouchimpactleft 	= 120,139
+csi_crouchimpactright 	= 80,99 
+csi_crouchgetup 		= 
+csi_crouchgetuprocket 	= 

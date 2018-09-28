@@ -1111,6 +1111,7 @@ GetEntitySpawnAtStart : state = GetEntitySpawnAtStart ( e ) -- returns the state
 GetEntityFilePath : string = GetEntityFilePath ( e ) -- returns the entity file path to be used for helping inventory image systems
 GetEntityAnimationStart : frame = GetEntityAnimationStart ( e, animsetindex ) -- returns frame (Y) stored in FPE under animX = Y,Z where X is animsetindex
 GetEntityAnimationFinish : frame = GetEntityAnimationFinish ( e, animsetindex ) -- returns frame (Z) stored in FPE under animX = Y,Z where X is animsetindex
+GetEntityAnimationFound : flag = GetEntityAnimationFound ( e, animsetindex ) -- returns a 1 if this value was set in FPE anim system (not CSI)
 GetAmmoClipMax : ammoclipmax = GetAmmoClipMax ( e ) -- returns the maximum units per ammo clip for the held weapon of the entity
 GetAmmoClip : ammoclip = GetAmmoClip ( e ) -- returns the current ammo in clip for the held weapon of the entity
 SetAmmoClip : SetAmmoClip ( e, ammoquantity ) -- sets the ammo clip quantity for the held weapon of the entity

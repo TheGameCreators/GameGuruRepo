@@ -1326,6 +1326,25 @@ luaMessage** ppLuaMessages = NULL;
 	lua_pushinteger ( L, iReturnValue );
 	return 1;
  }
+ int GetEntityAnimationFound(lua_State *L)
+ {
+	lua = L;
+	int n = lua_gettop(L);
+	if ( n < 1 ) return 0;
+	int iReturnValue = 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iAnimationSetIndex = lua_tonumber(L, 2);
+	if ( iEntityIndex > 0 )
+	{
+		int iEntID = t.entityelement[iEntityIndex].bankindex;
+		if ( iEntID > 0 )
+		{
+			iReturnValue = t.entityanim[iEntID][iAnimationSetIndex].found;
+		}
+	}
+	lua_pushinteger ( L, iReturnValue );
+	return 1;
+ }
 
  int GetAmmoClipMax(lua_State *L)
  {
@@ -5296,6 +5315,7 @@ void addFunctions()
 	lua_register(lua, "SetEntityAnimation", SetEntityAnimation);
 	lua_register(lua, "GetEntityAnimationStart", GetEntityAnimationStart);
 	lua_register(lua, "GetEntityAnimationFinish", GetEntityAnimationFinish);
+	lua_register(lua, "GetEntityAnimationFound", GetEntityAnimationFound);
 	lua_register(lua, "GetAmmoClipMax", GetAmmoClipMax);
 	lua_register(lua, "GetAmmoClip", GetAmmoClip);
 	lua_register(lua, "SetAmmoClip", SetAmmoClip);
