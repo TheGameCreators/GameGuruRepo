@@ -1228,6 +1228,7 @@ luaMessage** ppLuaMessages = NULL;
 	lua = L;
 	int n = lua_gettop( L );
 	if ( n < 3 ) return 0;
+	bool setSound = ( n == 4 ) && lua_tonumber( L, 4 ) == 1;
 	int iReturnValue = 0;
 	int iEntityIndex    = lua_tonumber( L, 1 );
 	int iSlotIndex      = lua_tonumber( L, 2 );
@@ -1236,40 +1237,55 @@ luaMessage** ppLuaMessages = NULL;
 	{
 		if ( iSlotIndex == 0 ) {
 			t.entityelement[ iEntityIndex ].eleprof.soundset_s = pString;
-			if (t.entityelement[ iEntityIndex ].soundset > 0) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset );
-			t.entityelement[ iEntityIndex ].soundset =
-				loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset_s.Get(), 1 );
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset );
+				t.entityelement[ iEntityIndex ].soundset =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset_s.Get(), 1 );
+			}
 		}
 		if ( iSlotIndex == 1 )
 		{
 			t.entityelement[ iEntityIndex ].eleprof.soundset1_s = pString;
-			if (t.entityelement[ iEntityIndex ].soundset1 > 0) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset1 );
-			t.entityelement[ iEntityIndex ].soundset1 =
-				loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset1_s.Get(), 1 );
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset1 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset1 );
+				t.entityelement[ iEntityIndex ].soundset1 =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset1_s.Get(), 1 );
+			}
 		}
 		if ( iSlotIndex == 2 ) 
 		{ 
 			t.entityelement[ iEntityIndex ].eleprof.soundset2_s = pString; 
-			if (t.entityelement[ iEntityIndex ].soundset2 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset2 );
-			t.entityelement[ iEntityIndex ].soundset2 =
-				loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset2_s.Get(), 1 );
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset2 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset2 );
+				t.entityelement[ iEntityIndex ].soundset2 =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset2_s.Get(), 1 );
+			}
 		}
 		if ( iSlotIndex == 3 ) 
 		{ 
 			t.entityelement[ iEntityIndex ].eleprof.soundset3_s = pString; 
-			if (t.entityelement[ iEntityIndex ].soundset3 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset3 );
-			t.entityelement[ iEntityIndex ].soundset3 =
-				loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset3_s.Get(), 1 );
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset3 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset3 );
+				t.entityelement[ iEntityIndex ].soundset3 =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset3_s.Get(), 1 );
+			}
 		}
 		if ( iSlotIndex == 4 )
 		{
 			t.entityelement[ iEntityIndex ].eleprof.soundset4_s = pString; 
-			if (t.entityelement[ iEntityIndex ].soundset4 > 0) deleteinternalsound(t.entityelement[ iEntityIndex ].soundset4 );
-			t.entityelement[ iEntityIndex ].soundset4 =
-				loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset4_s.Get(), 1 );
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset4 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset4 );
+				t.entityelement[ iEntityIndex ].soundset4 =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset4_s.Get(), 1 );
+			}
 		}
 	}
-	return 1;
+	return 0;
  }
  int GetEntityString(lua_State *L)
  {

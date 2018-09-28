@@ -1104,7 +1104,9 @@ SetAnimationSpeedModulation : SetAnimationSpeedModulation ( e, speed ) -- where 
 GetAnimationSpeedModulation : speed = GetAnimationSpeedModulation ( e ) -- where e is the entity number and speed is the animation speed modulator
 GetMovementDelta : delta = GetMovementDelta ( e ) -- where e is the entity number and delta is the movement distance since the last cycle
 
-SetEntityString : SetEntityString ( e, slot, string ) -- where e is the entity number and slot (0-4) to write the string into
+SetEntityString : SetEntityString ( e, slot, string, loadSound ) -- where e is the entity number and slot (0-4) to write the string into
+                                                                 -- set loadSound to 1 to also relplace the sound sample in the specified
+																 -- slot with the one pointed to by 'string'
 GetEntityString : GetEntityString ( e, slot ) -- where e is the entity number and slot (0-4) is the sound slot index
 
 GetEntitySpawnAtStart : state = GetEntitySpawnAtStart ( e ) -- returns the state of the spawn (0-dont spawn at start, 1-spawn at start, 2-spawned during game)
