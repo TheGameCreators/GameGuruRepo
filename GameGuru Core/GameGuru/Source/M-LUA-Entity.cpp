@@ -139,7 +139,7 @@ void entity_lua_getentityplrvisible ( void )
 	{
 		if (  ObjectExist(t.tobj) == 1 ) 
 		{
-			entity_gettruecamera ( );
+			entity_gettrueplayerpos( );
 			t.tx1_f=t.tcamerapositionx_f;
 			t.ty1_f=t.tcamerapositiony_f;
 			t.tz1_f=t.tcamerapositionz_f;

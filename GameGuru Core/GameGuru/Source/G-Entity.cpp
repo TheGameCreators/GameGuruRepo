@@ -1593,6 +1593,23 @@ void entity_gettruecamera ( void )
 	}
 }
 
+void entity_gettrueplayerpos(void)
+{
+	//  True camera position
+	if (t.playercontrol.thirdperson.enabled == 1)
+	{
+		t.tcamerapositionx_f = ObjectPositionX(t.aisystem.objectstartindex);
+		t.tcamerapositiony_f = ObjectPositionY(t.aisystem.objectstartindex);
+		t.tcamerapositionz_f = ObjectPositionZ(t.aisystem.objectstartindex);
+	}
+	else
+	{
+		t.tcamerapositionx_f = CameraPositionX(t.terrain.gameplaycamera);
+		t.tcamerapositiony_f = CameraPositionY(t.terrain.gameplaycamera);
+		t.tcamerapositionz_f = CameraPositionZ(t.terrain.gameplaycamera);
+	}
+}
+
 void entity_hasbulletrayhit(void)
 {
 	// bulletray is x1#,y1#,z1#,x2#,y2#,z2#,bulletrayhit,gunrange#

@@ -1486,7 +1486,7 @@ void darkai_calcplrvisible ( void )
 					}
 
 					// 090417 - improve accuracy of enemy plr detection (was putting player at waste level)
-					entity_gettruecamera ( );
+					entity_gettrueplayerpos( );
 					t.brayx2_f = t.tcamerapositionx_f;
 					t.brayy2_f = t.tcamerapositiony_f;
 					t.brayz2_f = t.tcamerapositionz_f;
