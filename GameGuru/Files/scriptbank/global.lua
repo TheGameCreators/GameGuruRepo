@@ -1197,11 +1197,6 @@ GetGamePlayerControlJetpackParticleEmitterIndex: iValue = GetGamePlayerControlJe
 SetGamePlayerControlJetpackThrust: SetGamePlayerControlJetpackThrust ( iValue ) -- sets the player control data to specified value
 GetGamePlayerControlJetpackThrust: iValue = GetGamePlayerControlJetpackThrust() -- gets the specified player control data value
 
-ParticlesGetFreeEmitter:  iEmitterID = ParticlesGetFreeEmitter() -- returns the index of a free particle emitter object
-ParticlesAddEmitter: ParticlesAddEmitter(animationSpeed,startsOffRandomAngle,offsetMinX,offsetMinY,offsetMinZ,offsetMaxX,offsetMaxY,offsetMaxZ,scaleStartMin,scaleStartMax,scaleEndMin,scaleEndMax,movementSpeedMinX,movementSpeedMinY,movementSpeedMinZ,movementSpeedMaxX,movementSpeedMaxY,movementSpeedMaxZ,rotateSpeedMinZ,rotateSpeedMaxZ,lifeMin,lifeMax,alphaStartMin,alphaStartMax,alphaEndMin,alphaEndMax,frequency) -- create a particle emitter under the index iEmitterID and specified parameters
-ParticleAddEmitterEx: (as above with additional parameters) e, limbindex, particle image ID, particle frame count -- where e is the entity to assign particle to
-ParticlesDeleteEmitter: ParticlesDeleteEmitter ( iEmitterID ) -- delete a particle emitter under index iEmitterID
-
 SetPlayerWeapons: SetPlayerWeapons(0) disabled player weapons, SetPlayerWeapons(1) restores them
 SetAttachmentVisible: SetAttachmentVisible(e,1). 1 sets the entities attachment to be visible (such as their weapon), 0 switches it off
 SetFlashLight: SetFlashLight(1), 1 switches the flash light on, 0 off
@@ -1279,20 +1274,19 @@ ResetUnderwaterState: ResetUnderwaterState() -- resets the underwater sub-system
 SetUnderwaterOn: SetUnderwaterOn() -- use this when the player goes underwater for visual changes
 SetUnderwaterOff: SetUnderwaterOff() -- use this when the player goes above water for visual changes
 
-
 ------- Particle system commands --------- 
-ParticlesGetFreeEmitter: emitterid = ParticlesGetFreeEmitter() -- where particleid is the index of the particle emitter
+ParticlesGetFreeEmitter: particleid = ParticlesGetFreeEmitter() -- where particleid is the index of the particle emitter
 
 ParticlesAddEmitter: 
-	ParticlesAddEmitter(emitterid,                             -- create a particle emitter with the following parameters..
+	ParticlesAddEmitter(particleid,                             -- create a particle emitter with the following parameters..
 						animationSpeed,          -- 
 						startsOffRandomAngle,    -- 0 no, 1 yes
 						offsetMinX,              -- All these look really daunting if you aren't aware of how particles systems work
-						offsetMinY,              -- but basically they are all ranges of values between which the created poarticles 
+						offsetMinY,              -- but basically they are all ranges of values between which the created particles 
 						offsetMinZ,              -- will spawn with or end with, so for example if you specify a minimum x offset of 
 						offsetMaxX,              -- -100 and a maximum x offset of +100 then all particles generated will be given a
 						offsetMaxY,              -- random starting position within that range of either the player position or an 
-						offsetMaxZ,              -- entitiy position (if using the ParticlesAddEmitterEx variant, see below)
+						offsetMaxZ,              -- entity position (if using the ParticlesAddEmitterEx variant, see below)
 						scaleStartMin,           --
 						scaleStartMax,           --
 						scaleEndMin,             --
@@ -1317,7 +1311,7 @@ ParticlesAddEmitter:
 ParticlesAddEmitterEx:  Same as ParticlesAddEmitter with 4 extra parameters (i.e. following the frequency parameter)
 						entityid,				 -- particles will be spawned at the location of the given entity ( or -1 )
 						limbindex,			     -- particles spawned at limb if applicable ( or 0 )
-						particleimage,			 -- specified particle image will be used ( see ParticlesLoadImage )
+						particleimage,			 -- specified imageFile value will be used ( see ParticlesLoadImage )
 						imageframe               -- for custom images specifies number of frames ( 64, 16 or 4 )
 						
 ParticlesDeleteEmitter: ParticlesDeleteEmitter(particleid) -- where particleid is the index of the particle emitter
@@ -1326,17 +1320,17 @@ ParticlesLoadImage;  Example imageFile = ParticlesLoadImage( "effectbank\\partic
 					Allows dynamic loading of custom image files which can then be passed into ParticlesAddEmitterEx
 					
 -- the following commands allow on-the-fly altering of specific particle creation parameters
-ParticlesSetFrames:  	ParticlesSetFrames( emitterid, animationSpeed, startFrame, endFrame )
-ParticlesSetSpeed:   	ParticlesSetSpeed( emitterid, movementSpeedMinX, movementSpeedMinY, movementSpeedMinZ,
+ParticlesSetFrames:  	ParticlesSetFrames( particleid, animationSpeed, startFrame, endFrame )
+ParticlesSetSpeed:   	ParticlesSetSpeed( particleid, movementSpeedMinX, movementSpeedMinY, movementSpeedMinZ,
 													  movementSpeedMaxX, movementSpeedMaxY, movementSpeedMaxZ )
-ParticlesSetOffset:  	ParticlesSetOffset( emitterid,  offsetMinX, offsetMinY, offsetMinZ,
+ParticlesSetOffset:  	ParticlesSetOffset( particleid,  offsetMinX, offsetMinY, offsetMinZ,
                                                         offsetMaxX, offsetMaxY, offsetMaxZ ) 
-ParticlesSetScale:		ParticlesSetScale( emitterid, scaleStartMin, scaleStartMax, scaleEndMin, scaleEndMax )  
-ParticlesSetAlpha:		ParticlesSetAlpha( emitterid, alphaStartMin, alphaStartMax, alphaEndMin, alphaEndMax )
+ParticlesSetScale:		ParticlesSetScale( particleid, scaleStartMin, scaleStartMax, scaleEndMin, scaleEndMax )  
+ParticlesSetAlpha:		ParticlesSetAlpha( particleid, alphaStartMin, alphaStartMax, alphaEndMin, alphaEndMax )
 
 -- the '0' parameters below are not yet fully implemented in the engine, basically they are placeholders for the future
-ParticlesSetRotation:   ParticlesSetRotation( emitterid, 0, 0, rotateSpeedMinZ, 0, 0, rotateSpeedMaxZ )
-ParticlesSetLife:		ParticlesSetLife( emitterid, lifeMin, lifeMax, maxParticles, 0 )
+ParticlesSetRotation:   ParticlesSetRotation( particleid, 0, 0, rotateSpeedMinZ, 0, 0, rotateSpeedMaxZ )
+ParticlesSetLife:		ParticlesSetLife( particleid, lifeMin, lifeMax, maxParticles, 0 ) -- maxParticles default is 100
 
 -- This command mimics a basic wind effect, all particles will be effected by this
 ParticlesSetWindVector: ParticlesSetWindVector( windX, windZ )
