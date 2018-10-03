@@ -1226,21 +1226,66 @@ luaMessage** ppLuaMessages = NULL;
  int SetEntityString(lua_State *L)
  {
 	lua = L;
-	int n = lua_gettop(L);
+	int n = lua_gettop( L );
 	if ( n < 3 ) return 0;
+	bool setSound = ( n == 4 ) && lua_tonumber( L, 4 ) == 1;
 	int iReturnValue = 0;
-	int iEntityIndex = lua_tonumber(L, 1);
-	int iSlotIndex = lua_tonumber(L, 2);
-	const char* pString = lua_tostring(L, 3);
+	int iEntityIndex    = lua_tonumber( L, 1 );
+	int iSlotIndex      = lua_tonumber( L, 2 );
+	const char* pString = lua_tostring( L, 3 );
 	if ( iEntityIndex > 0 )
 	{
-		if ( iSlotIndex == 0 ) t.entityelement[iEntityIndex].eleprof.soundset_s = pString;
-		if ( iSlotIndex == 1 ) t.entityelement[iEntityIndex].eleprof.soundset1_s = pString;
-		if ( iSlotIndex == 2 ) t.entityelement[iEntityIndex].eleprof.soundset2_s = pString;
-		if ( iSlotIndex == 3 ) t.entityelement[iEntityIndex].eleprof.soundset3_s = pString;
-		if ( iSlotIndex == 4 ) t.entityelement[iEntityIndex].eleprof.soundset4_s = pString;
+		if ( iSlotIndex == 0 ) {
+			t.entityelement[ iEntityIndex ].eleprof.soundset_s = pString;
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset );
+				t.entityelement[ iEntityIndex ].soundset =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset_s.Get(), 1 );
+			}
+		}
+		if ( iSlotIndex == 1 )
+		{
+			t.entityelement[ iEntityIndex ].eleprof.soundset1_s = pString;
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset1 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset1 );
+				t.entityelement[ iEntityIndex ].soundset1 =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset1_s.Get(), 1 );
+			}
+		}
+		if ( iSlotIndex == 2 ) 
+		{ 
+			t.entityelement[ iEntityIndex ].eleprof.soundset2_s = pString; 
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset2 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset2 );
+				t.entityelement[ iEntityIndex ].soundset2 =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset2_s.Get(), 1 );
+			}
+		}
+		if ( iSlotIndex == 3 ) 
+		{ 
+			t.entityelement[ iEntityIndex ].eleprof.soundset3_s = pString; 
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset3 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset3 );
+				t.entityelement[ iEntityIndex ].soundset3 =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset3_s.Get(), 1 );
+			}
+		}
+		if ( iSlotIndex == 4 )
+		{
+			t.entityelement[ iEntityIndex ].eleprof.soundset4_s = pString; 
+			if ( setSound )
+			{
+				if ( t.entityelement[ iEntityIndex ].soundset4 > 0 ) deleteinternalsound( t.entityelement[ iEntityIndex ].soundset4 );
+				t.entityelement[ iEntityIndex ].soundset4 =
+					loadinternalsoundcore( t.entityelement[ iEntityIndex ].eleprof.soundset4_s.Get(), 1 );
+			}
+		}
 	}
-	return 1;
+	return 0;
  }
  int GetEntityString(lua_State *L)
  {
@@ -4788,6 +4833,112 @@ int ParticlesGetFreeEmitter ( lua_State *L )
 	return 1;
 }
 
+int ParticlesLoadImage(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+
+	int iID = 0;
+	if (n == 2) iID = lua_tonumber(L, 2);
+
+	char pFileName[256];
+	strcpy(pFileName, lua_tostring(L, 1));
+
+	iID = ravey_particles_load_image(pFileName, iID);
+
+	if (iID == -1) return 0;
+
+	lua_pushnumber(L, iID);
+	return 1;
+}
+
+int ParticlesSetFrames(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+
+	ravey_particles_set_frames(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+	return 0;
+}
+
+int ParticlesSetSpeed(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 7) return 0;
+
+	ravey_particles_set_speed(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7));
+	return 0;
+}
+
+int ParticlesSetOffset(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 7) return 0;
+
+	ravey_particles_set_offset(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7));
+	return 0;
+}
+
+int ParticlesSetRotation(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 8) return 0;
+
+	ravey_particles_set_rotate(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+	return 0;
+}
+
+int ParticlesSetScale(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 5) return 0;
+
+	ravey_particles_set_scale(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		lua_tonumber(L, 5));
+	return 0;
+}
+
+int ParticlesSetAlpha(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 5) return 0;
+
+	ravey_particles_set_alpha(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		lua_tonumber(L, 5));
+	return 0;
+}
+
+int ParticlesSetLife(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 6) return 0;
+
+	ravey_particles_set_life(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
+		lua_tonumber(L, 5), lua_tonumber(L, 6));
+	return 0;
+}
+
+int ParticlesSetWindVector(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	ravey_particles_set_wind_vector(lua_tonumber(L, 1), lua_tonumber(L, 2));
+	return 0;
+}
+
 int ParticlesAddEmitterCore( lua_State *L, int iExtended )
 {
 	lua = L;
@@ -4841,7 +4992,7 @@ int ParticlesAddEmitterCore( lua_State *L, int iExtended )
 		int tCheckParticleImage = lua_tonumber(L, 31);
 		if ( tCheckParticleImage > 0 ) 
 		{
-			particleImage = tCheckParticleImage;
+			particleImage = tCheckParticleImage + g.particlesimageoffset;
 			particleFrameCount = lua_tonumber(L, 32);
 		}
 	}
@@ -4890,11 +5041,20 @@ int ParticlesAddEmitterCore( lua_State *L, int iExtended )
 	// fixed animation for smoke
 	g.tEmitter.imageNumber = particleImage;//RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
 	g.tEmitter.isAnimated = 1;
-	g.tEmitter.animationSpeed = animationSpeed;
-	g.tEmitter.isLooping = 1;
 	g.tEmitter.frameCount = particleFrameCount;
-	g.tEmitter.startFrame = 0;
-	g.tEmitter.endFrame = g.tEmitter.frameCount-1;
+
+	if (animationSpeed > 0)
+	{
+		g.tEmitter.animationSpeed = animationSpeed;
+		g.tEmitter.isLooping = 1;
+		g.tEmitter.startFrame = 0;
+		g.tEmitter.endFrame = g.tEmitter.frameCount - 1;
+	}
+	else
+	{
+		g.tEmitter.animationSpeed = 0;
+		g.tEmitter.isLooping = 0;
+	}
 
 	// create emitter
 	ravey_particles_add_emitter ( );
@@ -5968,9 +6128,18 @@ void addFunctions()
 	lua_register(lua, "SetRotationYSlowly" , SetRotationYSlowly );
 
 	lua_register(lua, "ParticlesGetFreeEmitter" , ParticlesGetFreeEmitter );
-	lua_register(lua, "ParticlesAddEmitter" , ParticlesAddEmitter );
-	lua_register(lua, "ParticlesAddEmitterEx" , ParticlesAddEmitterEx );
-	lua_register(lua, "ParticlesDeleteEmitter" , ParticlesDeleteEmitter );
+	lua_register(lua, "ParticlesAddEmitter" ,     ParticlesAddEmitter );
+	lua_register(lua, "ParticlesAddEmitterEx" ,   ParticlesAddEmitterEx );
+	lua_register(lua, "ParticlesDeleteEmitter" ,  ParticlesDeleteEmitter );
+	lua_register(lua, "ParticlesLoadImage",       ParticlesLoadImage);
+	lua_register(lua, "ParticlesSetFrames",       ParticlesSetFrames);
+	lua_register(lua, "ParticlesSetSpeed",        ParticlesSetSpeed);
+	lua_register(lua, "ParticlesSetOffset",       ParticlesSetOffset);
+	lua_register(lua, "ParticlesSetRotation",     ParticlesSetRotation);
+	lua_register(lua, "ParticlesSetScale",        ParticlesSetScale);
+	lua_register(lua, "ParticlesSetAlpha",        ParticlesSetAlpha);
+	lua_register(lua, "ParticlesSetLife",         ParticlesSetLife);
+	lua_register(lua, "ParticlesSetWindVector",   ParticlesSetWindVector);
 
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	
 	lua_register(lua, "SetAttachmentVisible" , SetAttachmentVisible );

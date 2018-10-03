@@ -111,13 +111,14 @@
 #define WEAPON_PARTICLETYPE_FIRE         3
 
 //  Ravey Particles constants
-#define RAVEY_PARTICLE_EMITTERS_MAX 10
-#define RAVEY_PARTICLES_MAX 100
-#define RAVEY_PARTICLES_MAX_SPAWNED_AT_ONCE_BY_AN_EMITTER 20
+#define RAVEY_PARTICLE_EMITTERS_MAX 100
+#define RAVEY_PARTICLES_MAX 1000
+#define RAVEY_PARTICLES_MAX_SPAWNED_AT_ONCE_BY_AN_EMITTER 50
 #define RAVEY_PARTICLES_IMAGETYPE_FLARE      0
 #define RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE 1
 #define RAVEY_PARTICLES_IMAGETYPE_FLAME      2
 #define RAVEY_PARTICLES_IMAGETYPE_LASTONE    3
+#define RAVEY_PARTICLES_IMAGETYPE_MAX       25
 
 //  Widget keys
 #define WIDGET_KEY_TRANSLATE 88
@@ -9713,8 +9714,11 @@ struct travey_particle_emitter
 	float alphaEndMax;
 
 	int frequency;
+	int numParticles;
+	int maxParticles;
+	int onDeathAction;  // 0 - default, 1 - 'split'
 	float timePassed;
-
+	bool firstParticle;
 
 	// Constructor
 	travey_particle_emitter ( )
@@ -9777,6 +9781,10 @@ struct travey_particle_emitter
 		 hasLife = 0;
 		 inUse = 0;
 		 id = 0;
+		 numParticles = 0;
+		 maxParticles = 0;
+		 onDeathAction = 0;
+		 firstParticle = TRUE;
 	}
 	// End of Constructor
 
@@ -9789,11 +9797,11 @@ struct travey_particle
 	float x;
 	float y;
 	float z;
-	float moveSpeedX;
-	float moveSpeedY;
-	float moveSpeedZ;
-	float rotateSpeedX;
-	float rotateSpeedY;
+	//float moveSpeedX;
+	//float moveSpeedY;
+	//float moveSpeedZ;
+	//float rotateSpeedX;
+	//float rotateSpeedY;
 	float rotateSpeedZ;
 	float rotz;
 	float alpha;
@@ -9850,11 +9858,11 @@ struct travey_particle
 		 alpha = 0.0f;
 		 rotz = 0.0f;
 		 rotateSpeedZ = 0.0f;
-		 rotateSpeedY = 0.0f;
-		 rotateSpeedX = 0.0f;
-		 moveSpeedZ = 0.0f;
-		 moveSpeedY = 0.0f;
-		 moveSpeedX = 0.0f;
+		 //rotateSpeedY = 0.0f;
+		 //rotateSpeedX = 0.0f;
+		 //moveSpeedZ = 0.0f;
+		 //moveSpeedY = 0.0f;
+		 //moveSpeedX = 0.0f;
 		 z = 0.0f;
 		 y = 0.0f;
 		 x = 0.0f;

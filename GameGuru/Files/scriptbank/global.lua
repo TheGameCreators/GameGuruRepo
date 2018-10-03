@@ -1107,7 +1107,9 @@ SetAnimationSpeedModulation : SetAnimationSpeedModulation ( e, speed ) -- where 
 GetAnimationSpeedModulation : speed = GetAnimationSpeedModulation ( e ) -- where e is the entity number and speed is the animation speed modulator
 GetMovementDelta : delta = GetMovementDelta ( e ) -- where e is the entity number and delta is the movement distance since the last cycle
 
-SetEntityString : SetEntityString ( e, slot, string ) -- where e is the entity number and slot (0-4) to write the string into
+SetEntityString : SetEntityString ( e, slot, string, loadSound ) -- where e is the entity number and slot (0-4) to write the string into
+                                                                 -- set loadSound to 1 to also relplace the sound sample in the specified
+																 -- slot with the one pointed to by 'string'
 GetEntityString : GetEntityString ( e, slot ) -- where e is the entity number and slot (0-4) is the sound slot index
 
 GetEntitySpawnAtStart : state = GetEntitySpawnAtStart ( e ) -- returns the state of the spawn (0-dont spawn at start, 1-spawn at start, 2-spawned during game)
@@ -1277,36 +1279,69 @@ ResetUnderwaterState: ResetUnderwaterState() -- resets the underwater sub-system
 SetUnderwaterOn: SetUnderwaterOn() -- use this when the player goes underwater for visual changes
 SetUnderwaterOff: SetUnderwaterOff() -- use this when the player goes above water for visual changes
 
-ParticlesGetFreeEmitter: particleid = ParticlesGetFreeEmitter() -- where particleid is the index of the particle emitter
-ParticlesAddEmitter: ParticlesAddEmitter(particleid, -- create a particle emitter with the following parameters..
- animationSpeed
- startsOffRandomAngle
- offsetMinX
- offsetMinY
- offsetMinZ
- offsetMaxX
- offsetMaxY
- offsetMaxZ
- scaleStartMin
- scaleStartMax
- scaleEndMin
- scaleEndMax
- movementSpeedMinX
- movementSpeedMinY
- movementSpeedMinZ
- movementSpeedMaxX
- movementSpeedMaxY
- movementSpeedMaxZ
- rotateSpeedMinZ
- rotateSpeedMaxZ
- lifeMin
- lifeMax
- alphaStartMin
- alphaStartMax
- alphaEndMin
- alphaEndMax
- frequency)
+
+------- Particle system commands --------- 
+ParticlesGetFreeEmitter: emitterid = ParticlesGetFreeEmitter() -- where particleid is the index of the particle emitter
+
+ParticlesAddEmitter: 
+	ParticlesAddEmitter(emitterid,                             -- create a particle emitter with the following parameters..
+						animationSpeed,          -- 
+						startsOffRandomAngle,    -- 0 no, 1 yes
+						offsetMinX,              -- All these look really daunting if you aren't aware of how particles systems work
+						offsetMinY,              -- but basically they are all ranges of values between which the created poarticles 
+						offsetMinZ,              -- will spawn with or end with, so for example if you specify a minimum x offset of 
+						offsetMaxX,              -- -100 and a maximum x offset of +100 then all particles generated will be given a
+						offsetMaxY,              -- random starting position within that range of either the player position or an 
+						offsetMaxZ,              -- entitiy position (if using the ParticlesAddEmitterEx variant, see below)
+						scaleStartMin,           --
+						scaleStartMax,           --
+						scaleEndMin,             --
+						scaleEndMax,             --
+						movementSpeedMinX,       --
+						movementSpeedMinY,       --
+						movementSpeedMinZ,       --
+						movementSpeedMaxX,       --
+						movementSpeedMaxY,       --
+						movementSpeedMaxZ,       --
+						rotateSpeedMinZ,         --
+						rotateSpeedMaxZ,         --
+						lifeMin,                 --
+						lifeMax,                 --
+						alphaStartMin,           --
+						alphaStartMax,           --
+						alphaEndMin,             --
+						alphaEndMax,             --
+						frequency                -- frequency with which particles are spawned in milliseconds
+					   )
+ 
+ParticlesAddEmitterEx:  Same as ParticlesAddEmitter with 4 extra parameters (i.e. following the frequency parameter)
+						entityid,				 -- particles will be spawned at the location of the given entity ( or -1 )
+						limbindex,			     -- particles spawned at limb if applicable ( or 0 )
+						particleimage,			 -- specified particle image will be used ( see ParticlesLoadImage )
+						imageframe               -- for custom images specifies number of frames ( 64, 16 or 4 )
+						
 ParticlesDeleteEmitter: ParticlesDeleteEmitter(particleid) -- where particleid is the index of the particle emitter
+
+ParticlesLoadImage;  Example imageFile = ParticlesLoadImage( "effectbank\\particles\\flowerpuff.dds" )
+					Allows dynamic loading of custom image files which can then be passed into ParticlesAddEmitterEx
+					
+-- the following commands allow on-the-fly altering of specific particle creation parameters
+ParticlesSetFrames:  	ParticlesSetFrames( emitterid, animationSpeed, startFrame, endFrame )
+ParticlesSetSpeed:   	ParticlesSetSpeed( emitterid, movementSpeedMinX, movementSpeedMinY, movementSpeedMinZ,
+													  movementSpeedMaxX, movementSpeedMaxY, movementSpeedMaxZ )
+ParticlesSetOffset:  	ParticlesSetOffset( emitterid,  offsetMinX, offsetMinY, offsetMinZ,
+                                                        offsetMaxX, offsetMaxY, offsetMaxZ ) 
+ParticlesSetScale:		ParticlesSetScale( emitterid, scaleStartMin, scaleStartMax, scaleEndMin, scaleEndMax )  
+ParticlesSetAlpha:		ParticlesSetAlpha( emitterid, alphaStartMin, alphaStartMax, alphaEndMin, alphaEndMax )
+
+-- the '0' parameters below are not yet fully implemented in the engine, basically they are placeholders for the future
+ParticlesSetRotation:   ParticlesSetRotation( emitterid, 0, 0, rotateSpeedMinZ, 0, 0, rotateSpeedMaxZ )
+ParticlesSetLife:		ParticlesSetLife( emitterid, lifeMin, lifeMax, maxParticles, 0 )
+
+-- This command mimics a basic wind effect, all particles will be effected by this
+ParticlesSetWindVector: ParticlesSetWindVector( windX, windZ )
+
+-----------------------------------------
 
 GetGamePlayerControlJetpackMode: GetGamePlayerControlJetpackMode() -- command used by the default player control mechanism
 GetGamePlayerControlJetpackFuel: GetGamePlayerControlJetpackFuel() -- command used by the default player control mechanism
