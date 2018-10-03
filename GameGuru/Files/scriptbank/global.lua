@@ -12,8 +12,8 @@ g_EntityExtra = {}
 g_DebugStringPeek = ""
 
 -- New AI Globals
-ai_state_startidle, ai_state_idle, ai_state_findpatrolpath, ai_state_startpatrol, ai_state_patrol, ai_state_startmove, ai_state_move, ai_state_avoid, ai_state_hurt, ai_state_punch, ai_state_recoverstart, ai_state_recover, ai_state_startfireonspot, ai_state_fireonspot, ai_state_startreload, ai_state_reload, ai_state_reloadsettle, ai_state_disable, ai_state_duckstart, ai_state_duck, ai_state_unduckstart, ai_state_unduck, ai_state_rollstart, ai_state_roll, ai_state_crouchdashstart, ai_state_crouchdash, ai_state_checkforcover, ai_state_preexit = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27
-ai_state_debug = { "startidle", "idle", "findpatrolpath", "startpatrol", "patrol", "startmove", "move", "avoid", "hurt", "punch", "recoverstart", "recover", "startfireonspot", "fireonspot", "startreload", "reload", "reloadsettle", "disable", "duckstart", "duck", "unduckstart", "unduck",  "rollstart", "roll", "crouchdashstart", "crouchdash", "ai_state_checkforcover", "preexit" }
+ai_state_startidle, ai_state_idle, ai_state_findpatrolpath, ai_state_startpatrol, ai_state_patrol, ai_state_startmove, ai_state_move, ai_state_avoid, ai_state_hurt, ai_state_punch, ai_state_recoverstart, ai_state_recover, ai_state_startfireonspot, ai_state_fireonspot, ai_state_startreload, ai_state_reload, ai_state_reloadsettle, ai_state_disable, ai_state_duckstart, ai_state_duck, ai_state_unduckstart, ai_state_unduck, ai_state_rollstart, ai_state_roll, ai_state_crouchdashstart, ai_state_crouchdash, ai_state_checkforcover, ai_state_strafeleftstart, ai_state_strafeleft, ai_state_straferightstart, ai_state_straferight, ai_state_preexit = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+ai_state_debug = { "startidle", "idle", "findpatrolpath", "startpatrol", "patrol", "startmove", "move", "avoid", "hurt", "punch", "recoverstart", "recover", "startfireonspot", "fireonspot", "startreload", "reload", "reloadsettle", "disable", "duckstart", "duck", "unduckstart", "unduck",  "rollstart", "roll", "crouchdashstart", "crouchdash", "ai_state_checkforcover", "strafeleftstart", "strafeleft", "straferightstart", "straferight", "preexit" }
 ai_combattype_regular, ai_combattype_patrol, ai_combattype_guard, ai_combattype_freezermelee, ai_combattype_bashmelee = 0, 1, 2, 3, 4
 ai_movetype_usespeed, ai_movetype_useanim = 0, 1
 ai_attacktype_nofire, ai_attacktype_canfire = 0, 1
@@ -37,6 +37,9 @@ ai_bot_patroltime = {}
 ai_bot_hunttime = {}
 ai_bot_gofast = {}
 ai_bot_sighting = {}
+ai_bot_roty = {}
+ai_bot_last_sidestep = {}
+ai_bot_last_fired = {}
 ai_cover_slot = {}
 
 -- Weapon name global

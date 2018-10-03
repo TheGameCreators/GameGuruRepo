@@ -12,6 +12,10 @@
 -- anim10 : Run/Dash
 -- anim11 : Roll to Duck
 -- anim12 : Fast Crouch Dash
+-- anim13 : idle sentry
+-- anim14 : relaxed move
+-- anim15 : strafe left
+-- anim16 : strafe right
 -- sound0 : Start moving A
 -- sound1 : Start strike
 -- sound2 : Start moving B
@@ -995,6 +999,23 @@ function module_combatcore.exit(e)
  StopSound(e,0)
  StopSound(e,1)
  CollisionOff(e)
+end
+
+function module_combatcore.evasiveactions(e,AIObjNo,PlayerDist)
+end
+function module_combatcore.strafeleft(e,speedmod)
+end
+function module_combatcore.straferight(e,speedmod)
+end
+function module_combatcore.getangletopoint(e,x,z)
+end
+function module_combatcore.checkfiredrecently(e,window)
+end
+function module_combatcore.checkentityrays(e,dist,ang,obj,yoff)
+end
+function module_combatcore.checkplayertoentityrays(dist,ang,obj,yoff)
+end
+function module_combatcore.playerlooking(e,dis,v)
 end
 
 return module_combatcore
