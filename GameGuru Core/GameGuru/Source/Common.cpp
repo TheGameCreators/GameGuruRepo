@@ -2017,6 +2017,7 @@ void FPSC_LoadSETUPINI ( void )
 					// 1 - generate new .BLOB files when a shader is loaded
 					// 2 - scan effectbank folder and generate ALL NEW .BLOB files
 					t.tryfield_s = "forceloadtestgameshaders" ; if (  t.field_s == t.tryfield_s  )  g.gforceloadtestgameshaders = t.value1;				
+					t.tryfield_s = "reloadweapongunspecs"; if (t.field_s == t.tryfield_s)  g.reloadWeaponGunspecs = t.value1;
 
 					t.tryfield_s = "usesky" ; if (  t.field_s == t.tryfield_s  )  g.guseskystate = t.value1;
 					t.tryfield_s = "usefloor" ; if (  t.field_s == t.tryfield_s  )  g.gusefloorstate = t.value1;
