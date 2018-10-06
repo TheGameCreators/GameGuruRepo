@@ -1002,6 +1002,7 @@ void mapfile_savestandalone ( void )
 				gun_findweaponindexbyname ( );
 				if ( t.foundgunid > 0 ) 
 				{
+					// ammo and brass
 					for ( t.x = 0; t.x <= 1; t.x++ )
 					{
 						// ammo files
@@ -1020,6 +1021,14 @@ void mapfile_savestandalone ( void )
 							if ( PathExist ( t.tfile_s.Get() ) )
 								addfoldertocollection(t.tfile_s.Get());
 						}
+					}
+
+					// and any projectile files associated with it
+					cstr pProjectilePresent = t.gun[t.foundgunid].projectile_s;
+					if ( Len(pProjectilePresent.Get()) > 1 )
+					{
+						t.tfile_s=cstr("gamecore\\projectiletypes\\")+pProjectilePresent; 
+						addfoldertocollection(t.tfile_s.Get());
 					}
 				}
 			}

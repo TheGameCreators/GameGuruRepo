@@ -1418,6 +1418,7 @@ void entity_applydamage ( void )
 		t.tapplyragdollforce=0;
 		int iCharacterIndexToUse = t.tcharanimindex;
 		if ( iThirdPersonCharacter > 0 ) iCharacterIndexToUse = iThirdPersonCharacter;
+		if ( t.entityelement[t.ttte].eleprof.explodable != 0 ) iCharacterIndexToUse = 0;
 		if ( iCharacterIndexToUse > 0 ) 
 		{
 			//  CHARACTER
@@ -1469,6 +1470,7 @@ void entity_applydamage ( void )
 			// only for regular characters
 			if ( iThirdPersonCharacter==0 )
 			{
+				// wipt out health
 				t.entityelement[t.charanimstates[iCharacterIndexToUse].e].health=0;
 
 				//  setting main to 0 so the main lua won't be called for this object
@@ -1529,7 +1531,6 @@ void entity_applydamage ( void )
 				//  and make attachment object a physics object
 				t.tattobj=t.entityelement[t.ttte].attachmentobj;
 				if (  t.tattobj>0  )  ODECreateDynamicBox (  t.tattobj,-1,1 );
-
 			}
 		}
 

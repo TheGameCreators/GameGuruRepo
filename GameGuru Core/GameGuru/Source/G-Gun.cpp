@@ -1202,7 +1202,9 @@ void gun_control ( void )
 	// player must be at top speed before transitioning to run animation
 	// when fire weapon, t.playercontrol.isrunningtime is updated with timer so does not trigger immediate run after firing
 	bool bReallyRunning = false;
-	if ( t.playercontrol.isrunning == 1 && t.player[t.plrid].state.firingmode == 0 && t.gun[t.gunid].settings.ismelee == 0 ) 
+	bool bTrueFiring = false;
+	if ( t.player[t.plrid].state.firingmode == 1 && t.weaponammo[g.weaponammoindex+g.ammooffset] > 0 ) bTrueFiring = true;
+	if ( t.playercontrol.isrunning == 1 && bTrueFiring == false && t.gun[t.gunid].settings.ismelee == 0 ) 
 	{
 		// also ensure player is not reloading, meleeing, firing but is moving
 		if ( t.playercontrol.movement != 0 && (t.gunmode < 121 || t.gunmode > 126) && (t.gunmode < 700 || t.gunmode > 707) )
@@ -2400,10 +2402,12 @@ void gun_control ( void )
 		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gfinish.e  )  t.gunmode = 107;
 	}
-	if (  t.gunmode == 109 ) 
+	if ( t.gunmode == 109 ) 
 	{
-		//  dryfire animation control
-		if (  GetFrame(t.currentgunobj) >= t.gdryfire.e ) 
+		// dryfire animation control
+		t.currentgunanimspeed_f=g.timeelapsed_f*t.genericgunanimspeed_f;
+		SetObjectSpeed ( t.currentgunobj,t.currentgunanimspeed_f );
+		if ( GetFrame(t.currentgunobj) >= t.gdryfire.e ) 
 		{
 			t.gunmode=107;
 		}

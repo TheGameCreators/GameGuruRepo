@@ -43,7 +43,7 @@ jumpmodifier  = 100
 jumpvaulttrim = 1
 
 ;anim
-animmax          = 13
+animmax          = 17
 playanimineditor = 1
 ignorecsirefs    = 1
 anim0            = 100,205   ;idle
@@ -59,6 +59,10 @@ anim9            = 1646,1663 ;unduck
 anim10           = 795,811   ;run
 anim11           = 2160,2218 ;roll to duck
 anim12           = 2135,2153 ;crouch dash
+anim13 	         = 3430,3697 ;idle sentry
+anim14           = 12290,12320 ;relaxed move
+anim15           = 610,640
+anim16           = 645,676
 
 ;character animation (reference only)
 csi_relaxed1 				= 900,999
