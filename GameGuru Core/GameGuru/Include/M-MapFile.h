@@ -16,5 +16,6 @@ void mapfile_savestandalone ( void );
 void scanscriptfileandaddtocollection ( char* tfile_s );
 void addtocollection ( char* file_s );
 void removefromcollection ( char* file_s );
+void removeanymatchingfromcollection ( char* folderorfile_s );
 void addfoldertocollection ( char* path_s );
 void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s );

@@ -737,21 +737,94 @@ void mapfile_savestandalone ( void )
 		}
 	}
 
-	//  Stage 2 - collect all files (from all levels)
+	// Pre-Stage 2 - clear a list which will collect all folders/files to REMOVE from the final standalone file transfer
+	// list, courtesy of the special FPP file which controls the final files to be used for standalone creation
+	// (eventually to be controlled from a nice UI)
+	std::vector<cstr> fppFoldersToRemoveList;
+	std::vector<cstr> fppFilesToRemoveList;
+	fppFoldersToRemoveList.clear();
+	fppFilesToRemoveList.clear();
+
+	// Stage 2 - collect all files (from all levels)
 	t.levelindex=0;
-	Dim (  t.levellist_s,100  );
+	Dim ( t.levellist_s, 100  );
 	t.tlevelstoprocess = 1;
 	t.tlevelfile_s="";
 	g.projectfilename_s=t.tmasterlevelfile_s;
 	while ( t.tlevelstoprocess == 1 ) 
 	{
-	//  load in level FPM
-	if (  Len(t.tlevelfile_s.Get())>1 ) 
+	// load in level FPM
+	if ( Len(t.tlevelfile_s.Get())>1 ) 
 	{
 		g.projectfilename_s=t.tlevelfile_s;
 		mapfile_loadproject_fpm ( );
 		game_loadinentitiesdatainlevel ( );
 	}
+
+	// 061018 - check if an FPP file exists for this level file
+	cstr pFPPFile = cstr(Left(g.projectfilename_s.Get(),strlen(g.projectfilename_s.Get())-4)) + ".fpp";
+	if ( FileExist( pFPPFile.Get() ) == 1 ) 
+	{
+		// used to specify additional files required for standalone executable
+		// handy as a workaround until reported issue resolved
+		int iFPPStandaloneExtraFilesMode = 0;
+		Dim ( t.data_s, 999 );
+		LoadArray ( pFPPFile.Get(), t.data_s );
+		for ( t.l = 0 ; t.l <= 999; t.l++ )
+		{
+			t.line_s = t.data_s[t.l];
+			LPSTR pLine = t.line_s.Get();
+			if ( Len(pLine) > 0 ) 
+			{
+				if ( strnicmp ( pLine, "[standalone add files]", 22 ) == NULL )
+				{
+					// denotes our standalone extra files
+					iFPPStandaloneExtraFilesMode = 1;
+				}
+				else
+				{
+					if ( strnicmp ( pLine, "[standalone delete files]", 25 ) == NULL )
+					{
+						// denotes our standalone remove files
+						iFPPStandaloneExtraFilesMode = 2;
+					}
+					else
+					{
+						// this prevents newer FPP files from getting confused with this original simple method
+						if ( iFPPStandaloneExtraFilesMode == 1 )
+						{
+							// add
+							if ( pLine[strlen(pLine)-1] == '\\' )
+							{
+								// include whole folder
+								addfoldertocollection(pLine);
+							}
+							else
+							{
+								// include specific file
+								addtocollection(pLine);
+							}
+						}
+						if ( iFPPStandaloneExtraFilesMode == 2 )
+						{
+							// remove
+							if ( pLine[strlen(pLine)-1] == '\\' )
+							{
+								// remove whole folder
+								fppFoldersToRemoveList.push_back(cstr(pLine));
+							}
+							else
+							{
+								// remove specific file
+								fppFilesToRemoveList.push_back(cstr(pLine));
+							}
+						}
+					}
+				}
+			}
+		}
+		UnDim(t.data_s);
+	}	
 
 	//  chosen sky, terrain and veg
 	addtocollection("skybank\\cloudportal.dds");
@@ -1218,6 +1291,21 @@ void mapfile_savestandalone ( void )
 		}
 	}
 
+	// also remove folders/files marked by FPP file
+	if ( fppFoldersToRemoveList.size() > 0 || fppFilesToRemoveList.size() > 0 )
+	{
+		for ( int n = 0; n < fppFoldersToRemoveList.size(); n++ )
+		{
+			cstr pRemoveFolder = fppFoldersToRemoveList[n];
+			removeanymatchingfromcollection ( pRemoveFolder.Get() );
+		}
+		for ( int n = 0; n < fppFilesToRemoveList.size(); n++ )
+		{
+			cstr pRemoveFile = fppFilesToRemoveList[n];
+			removeanymatchingfromcollection ( pRemoveFile.Get() );
+		}
+	}
+
 	// prompt
 	popup_text_change("Saving Standalone Game : Copying Files");
 
@@ -1654,6 +1742,20 @@ void removefromcollection ( char* file_s )
 	{
 		// remove from consideration
 		t.filecollection_s[tfound] = "";
+	}
+}
+
+void removeanymatchingfromcollection ( char* folderorfile_s )
+{
+	int tfound = 0;
+	folderorfile_s = Lower(folderorfile_s);
+	for ( int f = 1; f <= g.filecollectionmax; f++ )
+	{
+		if ( strnicmp ( t.filecollection_s[f].Get(), folderorfile_s, strlen(folderorfile_s) ) == NULL )
+		{
+			// remove from consideration
+			t.filecollection_s[f] = "";
+		}
 	}
 }
 
