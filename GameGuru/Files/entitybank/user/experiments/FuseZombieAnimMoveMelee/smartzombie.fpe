@@ -61,7 +61,7 @@ appendanim5      = smartzombie-dying.dbo
 appendanimframe5 = 336
 
 ;anim
-animmax          = 7
+animmax          = 17
 playanimineditor = 1
 anim0            = 0,126     ;idle
 anim1            = 127,150   ;move
@@ -70,3 +70,13 @@ anim3            = 296,330   ;hurt
 anim4            = 0,126     ;reload
 anim5            = 190,245   ;bite damage frames
 anim6            = 336,436   ;dying
+anim7            = 0,0       ;duck
+anim8            = 0,0       ;duck idle
+anim9            = 0,0       ;unduck
+anim10           = 127,150   ;run
+anim11           = 0,0       ;roll to duck
+anim12           = 0,0       ;crouch dash
+anim13 	         = 0,0       ;idle sentry
+anim14           = 0,0       ;relaxed move
+anim15           = 0,0       ;strafe left
+anim16           = 0,0       ;strafe right

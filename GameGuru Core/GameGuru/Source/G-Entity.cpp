@@ -1470,7 +1470,7 @@ void entity_applydamage ( void )
 			// only for regular characters
 			if ( iThirdPersonCharacter==0 )
 			{
-				// wipt out health
+				// wipe out health
 				t.entityelement[t.charanimstates[iCharacterIndexToUse].e].health=0;
 
 				//  setting main to 0 so the main lua won't be called for this object
@@ -1485,7 +1485,8 @@ void entity_applydamage ( void )
 				else
 				{
 					// if not ragdoll, used own die anim, remove right away
-					t.entityelement[t.ttte].destroyme = 1;
+					// 071018 - caused legacy nonragdoll characters not to play their exit animations
+					// t.entityelement[t.ttte].destroyme = 1;
 				}
 			}
 
