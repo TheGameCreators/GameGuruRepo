@@ -27,6 +27,8 @@ module_agro = require "scriptbank\\ai\\module_agro"
 module_cameraoverride = require "scriptbank\\ai\\module_cameraoverride"
 module_combateffects = require "scriptbank\\ai\\module_combateffects"
 
+
+ai_bot_newroty = {}
 local module_combatcore = {}
 
 function module_combatcore.init(e,startstate,coverstate)
@@ -446,8 +448,9 @@ function module_combatcore.handleducking(e,AIObjNo,PlayerDist)
   end
  end 
  module_combatcore.evasiveactions(e,AIObjNo,PlayerDist)
- module_combatcore.strafeleft(e,1)
- module_combatcore.straferight(e,1)
+ module_combatcore.strafeleft(e,0.5)
+ module_combatcore.straferight(e,0.5)
+ module_combatcore.fireweapon(e)
  if ai_bot_state[e] == ai_state_rollstart then
   randomevade = math.random(65,90)
   if math.random(1,2) == 1 then randomevade=randomevade*-1 end
@@ -493,11 +496,7 @@ function module_combatcore.handleducking(e,AIObjNo,PlayerDist)
    ai_bot_state[e] = ai_state_startmove
    ai_bot_substate[e] = 0
   else
-   ai_bot_state[e] = ai_state_duck
-   ai_bot_substate[e] = 1
-   SetAnimation(8)
-   SetAnimationFrame(e,GetEntityAnimationStart(e,8))
-   LoopAnimation(e)
+   ai_bot_state[e] = ai_state_duckstart
   end
  end
  if ai_bot_state[e] == ai_state_duckstart then
@@ -515,7 +514,7 @@ function module_combatcore.handleducking(e,AIObjNo,PlayerDist)
     if tFrame >= tFinish then
      ai_bot_substate[e] = 1
      SetAnimation(8)
-     LoopAnimation(e)
+     PlayAnimation(e)
     end
    end
    -- while ducking
@@ -533,7 +532,7 @@ function module_combatcore.handleducking(e,AIObjNo,PlayerDist)
     end
 	-- if player at distance and in cover, pop head up and shoot at random
 	if ai_bot_coverindex[e] > 0 and math.random(1,30) == 1 then
-	 ai_bot_substate[e] = 2
+	 ai_bot_state[e] = ai_state_unduckstart
 	end
    end
    -- while ducking-popupshoot
@@ -567,7 +566,7 @@ function module_combatcore.handleducking(e,AIObjNo,PlayerDist)
        StopAnimation(e)
        SetAnimationFrame(e,GetEntityAnimationStart(e,8))
        SetAnimation(8)
-       LoopAnimation(e)
+       PlayAnimation(e)
       end
      end   
 	end   
@@ -581,7 +580,7 @@ function module_combatcore.handleducking(e,AIObjNo,PlayerDist)
    if ai_bot_state[e] == ai_state_unduck then
     tFrame = GetAnimationFrame(e)
     tFinish = GetEntityAnimationFinish(e,9)
-    if tFrame >= tFinish then
+    if tFrame >= tFinish-1 and tFrame <= tFinish then
      ai_bot_state[e] = ai_state_startidle
      module_combatcore.releasecover(e)
      ai_bot_substate[e] = 0
@@ -939,7 +938,9 @@ function module_combatcore.fireonspot(e,AIObjNo)
  end
  if ai_bot_state[e] == ai_state_fireonspot then
   if g_Entity[e]['plrvisible'] == 0 and GetTimer(e) > 500 then
-   ai_bot_state[e] = ai_state_startidle
+		if ai_bot_state[e] ~= ai_state_startidle then 
+			ai_bot_state[e] = ai_state_startidle
+		end 
   else
    RotateToPlayer(e)
    module_combatcore.fireweapon(e)
@@ -1030,18 +1031,23 @@ function module_combatcore.exit(e)
 end
 
 function module_combatcore.evasiveactions(e,AIObjNo,PlayerDist)
-	if ai_bot_state[e] ~= ai_state_idle and ai_bot_state[e] ~= ai_state_roll and ai_bot_state[e] ~= ai_state_strafeleft and ai_bot_state[e] ~= ai_state_straferight then 
-		if math.random(1,10) == 1 then 
+	if ai_bot_state[e] ~= ai_state_idle and ai_bot_state[e] ~= ai_state_roll and ai_bot_state[e] ~= ai_state_strafeleft and ai_bot_state[e] ~= ai_state_strafeleftstart and ai_bot_state[e] ~= ai_state_straferightstart and ai_bot_state[e] ~= ai_state_straferight and ai_bot_state[e] ~= ai_state_duckstart and ai_bot_state[e] ~= ai_state_duck and ai_bot_state[e] ~= ai_state_unduckstart then 
+		if math.random(1,2) == 1 then 
 			local pdist = GetPlayerDistance(e)
-			if pdist > 300 then 
+			if pdist > 200 then 
 				if module_combatcore.playerlooking(e,pdist,10) == 1 then 
-					local rays = module_combatcore.checkplayertoentityrays(pdist+50,0,0,5)
-					if rays == g_Entity[e]['obj'] then 
+					local rays = module_combatcore.checkplayertoentityrays(pdist+5,0,0,60)
+					if rays == g_Entity[e]['obj'] or rays == 0 then 
 						local temp = math.random(1,6) --set max to 7 or higher to add a chance to roll
+						if temp < 7 then 
+							if module_combatcore.entitylookingatplayer(e,PlayerDist,10) ~= 1 then 
+								temp = 99
+							end 
+						end 
 						if ai_bot_last_sidestep[e] == nil then ai_bot_last_sidestep[e] = 0 end 
 						if temp < 4 then 
 							if ai_bot_last_sidestep[e] == 0 then 
-								ai_bot_last_sidestep[e] = -1
+								ai_bot_last_sidestep[e] = -15
 								ai_bot_state[e] = ai_state_strafeleftstart
 							else 
 								if ai_bot_last_sidestep[e] < 0 then 
@@ -1052,7 +1058,7 @@ function module_combatcore.evasiveactions(e,AIObjNo,PlayerDist)
 							end 
 						elseif temp < 7 then 
 							if ai_bot_last_sidestep[e] == 0 then 
-								ai_bot_last_sidestep[e] = 1 
+								ai_bot_last_sidestep[e] = 15 
 								ai_bot_state[e] = ai_state_straferightstart
 							else 
 								if ai_bot_last_sidestep[e] < 0 then 
@@ -1061,7 +1067,7 @@ function module_combatcore.evasiveactions(e,AIObjNo,PlayerDist)
 									ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] - 1
 								end 
 							end 
-						else 
+						elseif temp < 8 then 
 							ai_bot_state[e] = ai_state_rollstart							
 						end 												
 					end 
@@ -1079,40 +1085,34 @@ function module_combatcore.strafeleft(e,speedmod)
 		local rays = module_combatcore.checkentityrays(e,dist,randomevade,g_Entity[e]['obj'],20)
 		--PromptLocal(e,rays)
 		if rays == 0 then 
-			--debugmode = 1 --to show a marker on screen in new roll-to location
-			if debugmode ~= nil then 
-				for k,v in pairs (assigned) do 
-					if assigned[k] == e then
-						new_y = math.rad(AIGetEntityAngleY(AIObjNo)+randomevade)
-						x1 = g_Entity[e]['x'] + (math.sin(new_y) * dist)
-						z1 = g_Entity[e]['z'] + (math.cos(new_y) * dist)
-						SetPosition(k,x1,g_Entity[k]['y'],z1)
-					end 
-				end 
-			end 
 			ai_bot_state[e] = ai_state_strafeleft
 			ai_bot_substate[e] = 0
 			SetAnimationFrame(e,GetEntityAnimationStart(e,15))
 			SetAnimation(15)
 			PlayAnimation(e)
-			ModulateSpeed(e,1.25)
-			SetAnimationSpeedModulation(e,1.25)
+			g_Entity[e]['animating'] = 15
+			ModulateSpeed(e,1)
+			SetAnimationSpeedModulation(e,1.5)
+			ai_bot_roty[e] = AIGetEntityAngleY(AIObjNo)
 			local temprot = AIGetEntityAngleY(AIObjNo)+randomevade
 			SetRotation(e,0,temprot,0)
-			ai_bot_roty[e] = temprot
+			ai_bot_newroty[e] = temprot
 		end 
-	elseif ai_bot_state[e] == ai_state_strafeleft then
+	end 
+	if ai_bot_state[e] == ai_state_strafeleft then
 		tFrame = GetAnimationFrame(e)
 		tStart = GetEntityAnimationStart(e,15)
 		tFinish = GetEntityAnimationFinish(e,15)
-		if tFrame >= tStart and tFrame < tFinish then
-			SetRotation(e,0,ai_bot_roty[e],0)
+		if tFrame >= tStart+5 and tFrame < tFinish-8 and g_Entity[e]['animating'] == 15 then
+			SetRotation(e,0,ai_bot_newroty[e],0)
 			MoveForward(e,AIGetEntitySpeed(AIObjNo)*speedmod)
-			AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
-			RotateToPlayer(e)
 		end
-		if tFrame >= tFinish then
-			ai_bot_state[e] = ai_state_checkforcover
+		SetRotation(e,0,ai_bot_roty[e],0)
+		AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
+		if tFrame >= tFinish-2 and tFrame <= tFinish then
+			--ai_bot_state[e] = ai_state_startidle
+			ai_bot_state[e] = ai_state_startfireonspot
+			SetAnimationSpeedModulation(e,1)
 		end
 	end
 end
@@ -1125,40 +1125,34 @@ function module_combatcore.straferight(e,speedmod)
 		local rays = module_combatcore.checkentityrays(e,dist,randomevade,g_Entity[e]['obj'],20)
 		--PromptLocal(e,rays)
 		if rays == 0 then 
-			--debugmode = 1 --to show a marker on screen in new roll-to location
-			if debugmode ~= nil then 
-				for k,v in pairs (assigned) do 
-					if assigned[k] == e then
-						new_y = math.rad(AIGetEntityAngleY(AIObjNo)+randomevade)
-						x1 = g_Entity[e]['x'] + (math.sin(new_y) * dist)
-						z1 = g_Entity[e]['z'] + (math.cos(new_y) * dist)
-						SetPosition(k,x1,g_Entity[k]['y'],z1)
-					end 
-				end 
-			end 
 			ai_bot_state[e] = ai_state_straferight
 			ai_bot_substate[e] = 0
 			SetAnimationFrame(e,GetEntityAnimationStart(e,16))
 			SetAnimation(16)
 			PlayAnimation(e)
-			ModulateSpeed(e,1.25)
-			SetAnimationSpeedModulation(e,1.25)
+			g_Entity[e]['animating'] = 16
+			ModulateSpeed(e,1)
+			SetAnimationSpeedModulation(e,1.5)
+			ai_bot_roty[e] = AIGetEntityAngleY(AIObjNo)
 			local temprot = AIGetEntityAngleY(AIObjNo)+randomevade
 			SetRotation(e,0,temprot,0)
-			ai_bot_roty[e] = temprot
+			ai_bot_newroty[e] = temprot
 		end 
-	elseif ai_bot_state[e] == ai_state_straferight then
+	end
+	if ai_bot_state[e] == ai_state_straferight then
 		tFrame = GetAnimationFrame(e)
 		tStart = GetEntityAnimationStart(e,16)
 		tFinish = GetEntityAnimationFinish(e,16)
-		if tFrame >= tStart and tFrame < tFinish then
-			SetRotation(e,0,ai_bot_roty[e],0)
+		if tFrame >= tStart+5 and tFrame < tFinish-8 then
+			SetRotation(e,0,ai_bot_newroty[e],0)
 			MoveForward(e,AIGetEntitySpeed(AIObjNo)*speedmod)
-			AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
-			RotateToPlayer(e)
 		end
-		if tFrame >= tFinish then
-			ai_bot_state[e] = ai_state_checkforcover
+		SetRotation(e,0,ai_bot_roty[e],0)
+		AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
+		if tFrame >= tFinish-2 and tFrame <= tFinish and g_Entity[e]['animating'] == 16 then
+			--ai_bot_state[e] = ai_state_startidle
+			ai_bot_state[e] = ai_state_startfireonspot
+			SetAnimationSpeedModulation(e,1)
 		end
 	end
 end
@@ -1270,6 +1264,61 @@ function module_combatcore.playerlooking(e,dis,v)
 			if (L < R and math.abs(g_PlayerAngY) > L and math.abs(g_PlayerAngY) < R) then
 				return 1
 			elseif (L > R and (math.abs(g_PlayerAngY) > L or math.abs(g_PlayerAngY) < R)) then
+				return 1
+			else
+				return 0
+			end
+		else
+			return 0
+		end
+	end
+end
+function module_combatcore.entitylookingatplayer(e,dis,v)
+	if g_Entity[e] ~= nil then
+		if dis == nil then
+			dis = 3000
+		end
+		if v == nil then
+			v = 0.5
+		end
+		local distx = g_PlayerPosX - g_Entity[e]['x']
+		local disty = g_PlayerPosY - g_Entity[e]['y']
+		local distz = g_PlayerPosZ - g_Entity[e]['z']
+		local tdist = math.sqrt((distx^2)+(disty^2)+(distz^2))
+		if tdist <= dis then
+			local destx = distx
+			local destz = distz
+			local angle = math.atan2(destx,destz)
+			angle = angle * (180.0 / math.pi)
+
+			if angle <= 0 then
+				angle = 360 + angle
+			elseif angle > 360 then
+				angle = angle - 360
+			end
+			while g_Entity[e]['angley'] < 0 or g_Entity[e]['angley'] > 360 do
+				if g_Entity[e]['angley'] <= 0 then
+					g_Entity[e]['angley'] = 360 + g_Entity[e]['angley']
+				elseif g_Entity[e]['angley'] > 360 then
+					g_Entity[e]['angley'] = g_Entity[e]['angley'] - 360
+				end
+			end
+			local L = angle - v
+			local R = angle + v
+			if L <= 0 then
+				L = 360 + L 
+			elseif L > 360 then
+				L = L - 360
+			end
+			if R <= 0 then
+				R = 360 + R
+			elseif R > 360 then
+				R = R - 360
+			end
+
+			if (L < R and math.abs(g_Entity[e]['angley']) > L and math.abs(g_Entity[e]['angley']) < R) then
+				return 1
+			elseif (L > R and (math.abs(g_Entity[e]['angley']) > L or math.abs(g_Entity[e]['angley']) < R)) then
 				return 1
 			else
 				return 0
