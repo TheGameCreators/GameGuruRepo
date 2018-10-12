@@ -1275,10 +1275,10 @@ SetUnderwaterOn: SetUnderwaterOn() -- use this when the player goes underwater f
 SetUnderwaterOff: SetUnderwaterOff() -- use this when the player goes above water for visual changes
 
 ------- Particle system commands --------- 
-ParticlesGetFreeEmitter: particleid = ParticlesGetFreeEmitter() -- where particleid is the index of the particle emitter
+ParticlesGetFreeEmitter: emitterId = ParticlesGetFreeEmitter() -- where emitterId is the index of the particle emitter
 
 ParticlesAddEmitter: 
-	ParticlesAddEmitter(particleid,                             -- create a particle emitter with the following parameters..
+	ParticlesAddEmitter(emitterId,                             -- create a particle emitter with the following parameters..
 						animationSpeed,          -- 
 						startsOffRandomAngle,    -- 0 no, 1 yes
 						offsetMinX,              -- All these look really daunting if you aren't aware of how particles systems work
@@ -1314,23 +1314,24 @@ ParticlesAddEmitterEx:  Same as ParticlesAddEmitter with 4 extra parameters (i.e
 						particleimage,			 -- specified imageFile value will be used ( see ParticlesLoadImage )
 						imageframe               -- for custom images specifies number of frames ( 64, 16 or 4 )
 						
-ParticlesDeleteEmitter: ParticlesDeleteEmitter(particleid) -- where particleid is the index of the particle emitter
+ParticlesDeleteEmitter: ParticlesDeleteEmitter(emitterId) -- where emitterId is the index of the particle emitter
 
 ParticlesLoadImage;  Example imageFile = ParticlesLoadImage( "effectbank\\particles\\flowerpuff.dds" )
 					Allows dynamic loading of custom image files which can then be passed into ParticlesAddEmitterEx
 					
 -- the following commands allow on-the-fly altering of specific particle creation parameters
-ParticlesSetFrames:  	ParticlesSetFrames( particleid, animationSpeed, startFrame, endFrame )
-ParticlesSetSpeed:   	ParticlesSetSpeed( particleid, movementSpeedMinX, movementSpeedMinY, movementSpeedMinZ,
+ParticlesSetFrames:  	ParticlesSetFrames( emitterId, animationSpeed, startFrame, endFrame )
+ParticlesSetSpeed:   	ParticlesSetSpeed( emitterId, movementSpeedMinX, movementSpeedMinY, movementSpeedMinZ,
 													  movementSpeedMaxX, movementSpeedMaxY, movementSpeedMaxZ )
-ParticlesSetOffset:  	ParticlesSetOffset( particleid,  offsetMinX, offsetMinY, offsetMinZ,
+ParticlesSetGravity:    ParticlesSetGravity( emitterId, startGravity, endGravity )													  
+ParticlesSetOffset:  	ParticlesSetOffset( emitterId,  offsetMinX, offsetMinY, offsetMinZ,
                                                         offsetMaxX, offsetMaxY, offsetMaxZ ) 
-ParticlesSetScale:		ParticlesSetScale( particleid, scaleStartMin, scaleStartMax, scaleEndMin, scaleEndMax )  
-ParticlesSetAlpha:		ParticlesSetAlpha( particleid, alphaStartMin, alphaStartMax, alphaEndMin, alphaEndMax )
+ParticlesSetScale:		ParticlesSetScale( emitterId, scaleStartMin, scaleStartMax, scaleEndMin, scaleEndMax )  
+ParticlesSetAlpha:		ParticlesSetAlpha( emitterId, alphaStartMin, alphaStartMax, alphaEndMin, alphaEndMax )
 
 -- the '0' parameters below are not yet fully implemented in the engine, basically they are placeholders for the future
-ParticlesSetRotation:   ParticlesSetRotation( particleid, 0, 0, rotateSpeedMinZ, 0, 0, rotateSpeedMaxZ )
-ParticlesSetLife:		ParticlesSetLife( particleid, lifeMin, lifeMax, maxParticles, 0 ) -- maxParticles default is 100
+ParticlesSetRotation:   ParticlesSetRotation( emitterId, 0, 0, rotateSpeedMinZ, 0, 0, rotateSpeedMaxZ )
+ParticlesSetLife:		ParticlesSetLife( emitterId, freqency, lifeMin, lifeMax, maxParticles, 0 ) -- maxParticles default is 100
 
 -- This command mimics a basic wind effect, all particles will be effected by this
 ParticlesSetWindVector: ParticlesSetWindVector( windX, windZ )
