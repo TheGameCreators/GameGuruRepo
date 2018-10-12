@@ -17,6 +17,7 @@ void ravey_particles_delete_all_emitters(void);
 void ravey_particles_get_free_emitter(void);
 void ravey_particles_set_frames(int iID, int iAnimSpeed, int iStartFrame, int iEndFrame);
 void ravey_particles_set_speed(int iID, float fMinX, float fMinY, float fMinZ, float fMaxX, float fMaxY, float fMaxZ);
+void ravey_particles_set_gravity(int iID, float fStartG, float fEndG);
 void ravey_particles_set_offset(int iID, float fMinX, float fMinY, float fMinZ, float fMaxX, float fMaxY, float fMaxZ);
 void ravey_particles_set_rotate(int iID, float fMinXRot, float fMaxXRot, float fMinYRot, float fMaxYRot, float fMinZRot, float fMaxZRot, int bStartsOffRandom);
 void ravey_particles_set_scale(int iID, float fStartMin, float fStartMax, float fEndMin, float fEndMax);

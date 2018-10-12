@@ -4874,6 +4874,16 @@ int ParticlesSetSpeed(lua_State *L)
 	return 0;
 }
 
+int ParticlesSetGravity(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+
+	ravey_particles_set_gravity(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3));
+	return 0;
+}
+
 int ParticlesSetOffset(lua_State *L)
 {
 	lua = L;
@@ -6134,6 +6144,7 @@ void addFunctions()
 	lua_register(lua, "ParticlesLoadImage",       ParticlesLoadImage);
 	lua_register(lua, "ParticlesSetFrames",       ParticlesSetFrames);
 	lua_register(lua, "ParticlesSetSpeed",        ParticlesSetSpeed);
+	lua_register(lua, "ParticlesSetGravity",      ParticlesSetGravity);
 	lua_register(lua, "ParticlesSetOffset",       ParticlesSetOffset);
 	lua_register(lua, "ParticlesSetRotation",     ParticlesSetRotation);
 	lua_register(lua, "ParticlesSetScale",        ParticlesSetScale);

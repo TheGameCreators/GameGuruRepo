@@ -136,6 +136,15 @@ void ravey_particles_set_speed( int iID, float fMinX, float fMinY, float fMinZ, 
 	}
 }
 
+void ravey_particles_set_gravity( int iID, float fStartG, float fEndG )
+{
+	if ( t.ravey_particle_emitters[ iID ].inUse == 1 )
+	{
+		t.ravey_particle_emitters[ iID ].startGravity = fStartG;
+		t.ravey_particle_emitters[ iID ].endGravity = fEndG;
+	}
+}
+
 void ravey_particles_set_offset( int iID, float fMinX, float fMinY, float fMinZ, float fMaxX, float fMaxY, float fMaxZ )
 {
 	if ( t.ravey_particle_emitters[ iID ].inUse == 1)
@@ -379,14 +388,18 @@ void ravey_particles_update_emitters ( void )
 						SetVertexDataUV (  4, 0, t.uvheight_f );
 						SetVertexDataUV (  5, t.uvwidth_f, t.uvheight_f );
 						UnlockVertexData (  );
-						
-						t.line_f = Floor( this_particle->frame / this_particle->frameDivide );
-						t.line_f = t.line_f * this_particle->frameDivide;
-						t.left_f = ( Floor( this_particle->frame ) - t.line_f ) * this_particle->frameMulti;
-						t.right_f = t.left_f + this_particle->frameMulti;
-						t.top_f = Floor( this_particle->frame / this_particle->frameDivide ) * this_particle->frameMulti;
-						t.bottom_f = t.top_f + this_particle->frameMulti;
+
+						float fa = Floor( this_particle->frame / this_particle->frameDivide );
+
+						t.line_f = fa * this_particle->frameDivide;
+
+						t.left_f = Floor( this_particle->frame - t.line_f ) * this_particle->frameMulti;
+
+
+						t.top_f = fa * this_particle->frameMulti;
+
 						ScaleObjectTexture( t.tobj, t.left_f, t.top_f );
+						
 					}
 
 					ShowObject ( t.tobj );
@@ -467,8 +480,8 @@ bool ravey_particles_update_particles ( void )
 				}
 				ScaleObject ( t.tobj, t.tAmount_f, t.tAmount_f, t.tAmount_f );
 
-				t.tAmount_f = this_particle->startGravity + ( t.perc_f * ( this_particle->endGravity - this_particle->startGravity ) );
-				t.gravity_f = t.tAmount_f;
+				t.gravity_f = this_particle->startGravity + ( t.perc_f * ( this_particle->endGravity - this_particle->startGravity ) );
+
 				if ( t.gravity_f < 0.0 ) t.gravity_f = 0.0;
 
 				//  animation
@@ -490,13 +503,16 @@ bool ravey_particles_update_particles ( void )
 
 					if ( int( this_particle->frame ) !=  this_particle->previousFrame ) 
 					{
-						t.line_f = Floor( this_particle->frame / this_particle->frameDivide );
-						t.line_f = t.line_f * this_particle->frameDivide;
-						t.left_f = ( Floor( this_particle->frame ) - t.line_f ) * this_particle->frameMulti ;
-						t.right_f = t.left_f + this_particle->frameMulti;
-						t.top_f = Floor( this_particle->frame / this_particle->frameDivide ) * this_particle->frameMulti;
-						t.bottom_f = t.top_f + this_particle->frameMulti;
-						ScaleObjectTexture( t.tobj, t.left_f, t.top_f );
+						float fa = Floor(this_particle->frame / this_particle->frameDivide);
+
+						t.line_f = fa * this_particle->frameDivide;
+
+						t.left_f = Floor(this_particle->frame - t.line_f) * this_particle->frameMulti;
+
+						t.top_f = fa * this_particle->frameMulti;
+
+						ScaleObjectTexture(t.tobj, t.left_f, t.top_f);
+
 						this_particle->previousFrame = int( this_particle->frame );
 					}
 				}
@@ -574,16 +590,23 @@ void ravey_particles_add_emitter ( void )
 	this_emitter->animationSpeed = g.tEmitter.animationSpeed * 0.06f;
 	this_emitter->frameCount = g.tEmitter.frameCount;
 	this_emitter->startFrame = g.tEmitter.startFrame;
-	this_emitter->startGravity = g.tEmitter.startGravity;
-	this_emitter->endGravity = g.tEmitter.endGravity;
 	this_emitter->endFrame = g.tEmitter.endFrame;
 	this_emitter->frameDivide = 8;
-	if ( this_emitter->frameCount  ==  16 )  this_emitter->frameDivide  =  4;
-	if ( this_emitter->frameCount  ==  4 )   this_emitter->frameDivide  =  2;
+
+	if ( this_emitter->frameCount == 49 )  this_emitter->frameDivide = 7;
+	if ( this_emitter->frameCount == 36 )  this_emitter->frameDivide = 6;
+	if ( this_emitter->frameCount == 25 )  this_emitter->frameDivide = 5;
+	if ( this_emitter->frameCount == 16 )  this_emitter->frameDivide = 4;
+	if ( this_emitter->frameCount == 9 )   this_emitter->frameDivide = 3;
+	if ( this_emitter->frameCount == 4 )   this_emitter->frameDivide = 2;
+
 	this_emitter->frameMulti = 1.0f / this_emitter->frameDivide;
 
 	this_emitter->isLooping = g.tEmitter.isLooping;
 	this_emitter->startsOffRandomAngle = g.tEmitter.startsOffRandomAngle;
+
+	this_emitter->startGravity = g.tEmitter.startGravity;
+	this_emitter->endGravity   = g.tEmitter.endGravity;
 
 	this_emitter->offsetMinX = g.tEmitter.offsetMinX;
 	this_emitter->offsetMinY = g.tEmitter.offsetMinY;
@@ -629,7 +652,7 @@ void ravey_particles_add_emitter ( void )
 
 void ravey_particles_delete_emitter ( void )
 {
-	t.ravey_particle_emitters[t.tRaveyParticlesEmitterID].inUse = 0;
+	t.ravey_particle_emitters[ t.tRaveyParticlesEmitterID ].inUse = 0;
 }
 
 void ravey_particles_delete_all_emitters ( void )
