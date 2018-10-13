@@ -1398,6 +1398,7 @@ DARKSDK_DLL void CreateNewOrSharedEffect ( sMesh* pMesh, bool bChangeMesh )
 			m_EffectList [ iEffectIDFound ]->pEffectObj = new cExternalEffect;
 			m_EffectList [ iEffectIDFound ]->pEffectObj->m_dwEffectIndex = iEffectIDFound;
 			m_EffectList [ iEffectIDFound ]->pEffectObj->m_bDoNotGenerateExtraData = 0;
+			m_EffectList [ iEffectIDFound ]->pEffectObj->m_bNeed8BonesPerVertex = false;
 			m_EffectList [ iEffectIDFound ]->pEffectObj->Load ( iEffectIDFound, (LPSTR)pMesh->pEffectName, false, false );
 			SetSpecialEffect ( pMesh, m_EffectList [ iEffectIDFound ]->pEffectObj );
 		}

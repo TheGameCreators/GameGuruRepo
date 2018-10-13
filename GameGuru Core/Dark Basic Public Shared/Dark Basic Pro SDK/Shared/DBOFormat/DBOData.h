@@ -146,9 +146,8 @@ class cSpecialEffect
 		DWORD				m_dwUseDynamicTextureMask;					// leeadd - 180107 - Whether dynamic effect from TEXTURE OBJECT should apply to an effect that is using its own textures
 		bool				m_bUsesAtLeastOneRT;						// leeadd - 200310 - support for RTs in shader
 		bool				m_bPrimaryEffectForCascadeShadowMapping;	// leeadd - 250913 - cascade shadow mapping (texture slots 4,5,6,7 overwritten)
-		//bool				m_bRes3c;									// reserved - maintain plugin compat.
 		bool				m_bCharacterCreatorTonesOn;
-		bool				m_bRes3d;									// reserved - maintain plugin compat.
+		bool				m_bNeed8BonesPerVertex;						// leeadd - 131018 - needed for large bone models!
 		DWORD				m_dwCreatedRTTextureMask;					// leeadd - 200310 - support for RTs in shader
 
 		// additional information on shader

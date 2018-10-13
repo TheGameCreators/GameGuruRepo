@@ -57,9 +57,8 @@ float4 dl_pos[40];
 float4 dl_diffuse[40];
 float4 dl_angle[40];
 
-
 #ifdef WITHANIMATION
-float4x4 boneMatrix[60] : BoneMatrixPalette;
+ float4x4 boneMatrix[170] : BoneMatrixPalette;
 #endif
 
 #ifdef PBRVEGETATION
@@ -86,8 +85,15 @@ struct appdata
 	  float3 tangent      : TANGENT0;
 	  float3 binormal     : BINORMAL0;
 	  #ifdef WITHANIMATION
-	   float4 Blendweight  : TEXCOORD1;
-	   float4 Blendindices : TEXCOORD2;   
+	   #ifdef WITHANIMATION8BONE
+	    float4 Blendweight       : TEXCOORD1;
+	    float4 Blendindices      : TEXCOORD2;   
+	    float4 BlendweightExtra  : TEXCOORD3;
+	    float4 BlendindicesExtra : TEXCOORD4;   
+	   #else
+	    float4 Blendweight  : TEXCOORD1;
+	    float4 Blendindices : TEXCOORD2;   
+	   #endif
 	  #endif
 	 #endif
 	#endif
@@ -200,6 +206,23 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
         float3 bino3 = mul(model, float4(input.binormal, 0));
         inputBinormal += bino3.xyz * input.Blendweight[i];
        }
+	   #ifdef WITHANIMATION8BONE
+	   // extra for models with 8 bones per vertex (MakeHuman/iClone)
+       for (int ii = 0; ii < 4; ii++)
+       {
+        float index = input.BlendindicesExtra[ii];
+        float3x4 model = float3x4(boneMatrix[index][0], boneMatrix[index][1], boneMatrix[index][2]);     
+        float3 vec3 = mul(model, float4(input.position, 1));
+        vec3 = vec3 + boneMatrix[index][3].xyz;
+        inputPosition += vec3.xyz * input.BlendweightExtra[ii];
+        float3 norm3 = mul(model, float4(input.normal, 0));
+        inputNormal += norm3.xyz * input.BlendweightExtra[ii];
+        float3 tang3 = mul(model, float4(input.tangent, 0));
+        inputTangent += tang3.xyz * input.BlendweightExtra[ii];
+        float3 bino3 = mul(model, float4(input.binormal, 0));
+        inputBinormal += bino3.xyz * input.BlendweightExtra[ii];
+       }  
+	   #endif
 	  }
 	  else
 	  {

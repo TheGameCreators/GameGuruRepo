@@ -91,6 +91,7 @@ DARKSDK void		GenerateExtraDataForMeshEx			( sMesh* pMesh, BOOL bNormals, BOOL b
 DARKSDK void		GenerateExtraDataForMesh			( sMesh* pMesh, BOOL bNormals, BOOL bTangents, BOOL bDiffuse, BOOL bBones );
 DARKSDK void		CopyReferencesToShaderEffects		( sMesh* pNewMesh, sMesh* pMesh );
 DARKSDK void		CloneShaderEffects					( sMesh* pNewMesh, sMesh* pMesh );
+DARKSDK bool		CheckIfNeedExtraBonesPerVertices	( sMesh* pMesh );
 
 DARKSDK bool		SetupShortVertex					( DWORD dwFVF, BYTE* pVertex, int iOffset, float x, float y, float z, float tu, float tv );
 DARKSDK bool		SetupStandardVertex					( DWORD dwFVF, BYTE* pVertex, int iOffset, float x, float y, float z, float nx, float ny, float nz, DWORD dwDiffuseColour, float tu, float tv );

@@ -4496,6 +4496,7 @@ DARKSDK_DLL void LoadEffectEx ( LPSTR pFilename, int iEffectID, int iUseDefaultT
 		// assign generate extra data flag then load the effect
 		m_EffectList [ iEffectID ]->pEffectObj->m_dwEffectIndex = iEffectID;
 		m_EffectList [ iEffectID ]->pEffectObj->m_bDoNotGenerateExtraData = (DWORD)iDoNotGenerateExtraData;
+		m_EffectList [ iEffectID ]->pEffectObj->m_bNeed8BonesPerVertex = false;
 		if ( !m_EffectList [ iEffectID ]->pEffectObj->Load ( iEffectID, (char*)pFilename, false, bUseDefaultTextures ) )
 		{
 			// leefix - 200906 - u63 - if effect failed, still keep it in mem for delete effect clearup (can still checklist for errors on it)
@@ -4787,6 +4788,19 @@ DARKSDK_DLL void SetObjectEffectCore ( int iID, int iEffectID, int iEffectNoBone
 
 		sEffectItem* pEffectNoBoneItem = NULL;
 		if ( iEffectNoBoneID>0 ) pEffectNoBoneItem = m_EffectList [ iEffectNoBoneID ];
+
+		// 131018 - check if any of the meshes require 8 bones per vertex
+		// if they do, the whole model needs to use the 8 bone system
+		bool bUses8BonePerVertexSystem = false;
+		for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+		{
+			sMesh* pMesh = pObject->ppMeshList [ iMesh ];
+			if ( bUses8BonePerVertexSystem == false )
+				if ( CheckIfNeedExtraBonesPerVertices ( pMesh ) == true )
+					bUses8BonePerVertexSystem = true;
+		}
+		pEffectItem->pEffectObj->m_bNeed8BonesPerVertex = bUses8BonePerVertexSystem;
+		if ( pEffectNoBoneItem != NULL ) pEffectNoBoneItem->pEffectObj->m_bNeed8BonesPerVertex = bUses8BonePerVertexSystem;
 
 		// apply setting to all meshes
 		for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )

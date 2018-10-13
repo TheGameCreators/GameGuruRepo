@@ -1357,7 +1357,7 @@ void cSpecialEffect::ApplyEffect ( sMesh* pMesh )
 		{
 			// update all bone matrices
 			DWORD dwBoneMax = pMesh->dwBoneCount;
-			if ( dwBoneMax > 60 ) dwBoneMax = 60;
+			if ( dwBoneMax > 170 ) dwBoneMax = 170; // 121018 - was 60 from old Shader Model 3.0 days
 			// send bone count to shader (so can skip bone anim if nothing in palette)
 			///g_EffectConstant.fBoneCount = (float)dwBoneMax;
 			///GGSetEffectFloat( m_BoneCountHandle, g_EffectConstant.fBoneCount );
@@ -3282,7 +3282,54 @@ DARKSDK_DLL LPGGMESH ComputeTangentBasis( LPGGMESH gMesh, bool bFixTangents, boo
 	return ComputeTangentBasisEx ( gMesh, true, true, true, bFixTangents, bCylTexGen, bWeightNormalsByFace );
 }
 
-DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexShaderMesh, DWORD dwWeightOffsetInBytes, DWORD dwIndicesOffsetInBytes, DWORD dwVertSizeInBytes )
+DARKSDK_DLL bool CheckIfNeedExtraBonesPerVertices ( sMesh* pMesh )
+{
+	if ( pMesh->dwBoneCount==0 ) return false;
+	DWORD dwNumVertices = pMesh->dwVertexCount;
+	DWORD dwNumBones = pMesh->dwBoneCount;
+	float* pfWorkWeight = new float [ dwNumVertices * dwNumBones ];
+	memset ( pfWorkWeight, 0, sizeof( float ) * dwNumVertices * dwNumBones );
+	for ( int iBone = 0; iBone < ( int ) dwNumBones; iBone++ )
+	{
+		for ( int iVert = 0; iVert < ( int ) pMesh->pBones [ iBone ].dwNumInfluences; iVert++ )
+		{
+			int iIndexToVertex = pMesh->pBones [ iBone ].pVertices [ iVert ];
+			float fWeight = pMesh->pBones [ iBone ].pWeights [ iVert ];
+			pfWorkWeight [ (iIndexToVertex*dwNumBones)+iBone ] = fWeight;
+		}
+	}
+	int maxBonesAttachedToVertexOfMesh = 0;
+	for ( DWORD iIndexToVertex = 0; iIndexToVertex < dwNumVertices; iIndexToVertex++ )
+	{
+		int countBonesAttachedToVertex = 0;
+		for (int iTryEightBones = 0; iTryEightBones < 8; iTryEightBones++ )
+		{
+			int iBestBone = -1;
+			float fBest = 0.0f;
+			for ( int iBone = 0; iBone < ( int ) dwNumBones; iBone++ )
+			{
+				float fWeight = pfWorkWeight [ (iIndexToVertex*dwNumBones)+iBone ];
+				if ( fWeight>fBest ) { fBest=fWeight; iBestBone=iBone; }
+			}
+			if ( iBestBone!=-1)
+			{
+				pfWorkWeight [ (iIndexToVertex*dwNumBones)+iBestBone ]=0.0f;
+				countBonesAttachedToVertex++;
+			}
+			else
+				break;
+		}
+		if ( countBonesAttachedToVertex > maxBonesAttachedToVertexOfMesh ) 
+			maxBonesAttachedToVertexOfMesh = countBonesAttachedToVertex;
+	}
+	SAFE_DELETE(pfWorkWeight);
+	if ( maxBonesAttachedToVertexOfMesh > 4 )
+		return true;
+	else
+		return false;
+}
+
+DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexShaderMesh, DWORD dwWeightOffsetInBytes, DWORD dwIndicesOffsetInBytes, DWORD dwExtraWeightOffsetInBytes, DWORD dwExtraIndicesOffsetInBytes, DWORD dwVertSizeInBytes )
 {
 	// do not do if no bones (catched earlier when making bonedata in declaration)
 	if ( pMesh->dwBoneCount==0 )
@@ -3305,7 +3352,7 @@ DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexSha
 	// collect bonesdata for all verts
 	for ( int iBone = 0; iBone < ( int ) dwNumBones; iBone++ )
 	{
-		// go through all influenced bones
+		// go through all influences in bone
 		for ( int iVert = 0; iVert < ( int ) pMesh->pBones [ iBone ].dwNumInfluences; iVert++ )
 		{
 			// get the vertex and weight
@@ -3321,15 +3368,23 @@ DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexSha
 	int* piUseBone = new int [ dwNumVertices * 4 ];
 	memset ( piUseBone, 0, sizeof( int ) * dwNumVertices * 4 );
 
+	// 121018 - also prepare an array for next best four (for eight bone-per-vertex models)
+	int* piUseBoneExtra = new int [ dwNumVertices * 4 ];
+	memset ( piUseBoneExtra, 0, sizeof( int ) * dwNumVertices * 4 );
+
 	// work out the best four per vertex
+	int maxBonesAttachedToVertex = 0;
 	for ( DWORD iIndexToVertex = 0; iIndexToVertex < dwNumVertices; iIndexToVertex++ )
 	{
 		// fill with minus ones to indicate no bone at all
 		for ( int iFillFlag = 0; iFillFlag<4; iFillFlag++ )
 			piUseBone [ (iIndexToVertex*4)+iFillFlag ] = -1;
+		for ( int iFillFlag = 0; iFillFlag<4; iFillFlag++ )
+			piUseBoneExtra [ (iIndexToVertex*4)+iFillFlag ] = -1;
 
 		// mark out best four
-		for ( int iBestFour = 0; iBestFour<4; iBestFour++ )
+		int iBestFour = 0;
+		for (; iBestFour<4; iBestFour++ )
 		{
 			// find best
 			int iBestBone = -1;
@@ -3357,10 +3412,38 @@ DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexSha
 				break;
 			}
 		}
+		if ( iBestFour == 4 )
+		{
+			// and add extra four one influences if flagged
+			int iNextFour = 0;
+			for (; iNextFour<4; iNextFour++ )
+			{
+				int iExtraBestBone = -1;
+				float fExtraBest = 0.0f;
+				for ( int iBone = 0; iBone < ( int ) dwNumBones; iBone++ )
+				{
+					// get weight and compare for best one
+					float fWeight = pBFVI [ (iIndexToVertex*dwNumBones)+iBone ].fWorkWeight;
+					if ( fWeight>fExtraBest ) { fExtraBest=fWeight; iExtraBestBone=iBone; }
+				}
+				if ( iExtraBestBone!=-1)
+				{
+					pBFVI [ (iIndexToVertex*dwNumBones)+iExtraBestBone ].fFinalWeight=fExtraBest;
+					piUseBoneExtra [ (iIndexToVertex*4)+iNextFour ] = iExtraBestBone;
+					pBFVI [ (iIndexToVertex*dwNumBones)+iExtraBestBone ].fWorkWeight=0.0f;
+				}
+				else
+				{
+					// no more extra weights, can break out
+					break;
+				}
+			}
+		}
 	}
 
 	// create new vertex data to include bone data
 	DWORD dwNewFVFSize = pMesh->dwFVFSize+16+16;
+	if ( dwExtraWeightOffsetInBytes > 0 ) dwNewFVFSize = dwNewFVFSize+16+16;
 	DWORD dwNewSize = dwNumVertices * dwNewFVFSize;
 	BYTE* pNewVertexData = new BYTE[dwNewSize];
 	memset ( pNewVertexData, 0, sizeof(pNewVertexData) );
@@ -3370,6 +3453,7 @@ DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexSha
 	{
 		memcpy ( pWritePtr, pReadPtr, pMesh->dwFVFSize );
 		pWritePtr += pMesh->dwFVFSize + 16 + 16;
+		if ( dwExtraWeightOffsetInBytes > 0 ) pWritePtr += 16 + 16;
 		pReadPtr += pMesh->dwFVFSize;
 	}
 
@@ -3379,6 +3463,8 @@ DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexSha
 		// get actual DWORD offsets
 		DWORD dwWeightOffset = dwWeightOffsetInBytes/4;
 		DWORD dwIndicesOffset = dwIndicesOffsetInBytes/4;
+		DWORD dwExtraWeightOffset = dwExtraWeightOffsetInBytes/4;
+		DWORD dwExtraIndicesOffset = dwExtraIndicesOffsetInBytes/4;
 
 		// go through vertex data
 		for ( DWORD v = 0; v < dwNumVertices; v++ )
@@ -3406,6 +3492,24 @@ DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexSha
 			if ( iBoneB>=0 ) *(float*)(pVertexPtr+dwWeightOffset+1) = pBFVI [ (v*dwNumBones)+iBoneB ].fFinalWeight;
 			if ( iBoneC>=0 ) *(float*)(pVertexPtr+dwWeightOffset+2) = pBFVI [ (v*dwNumBones)+iBoneC ].fFinalWeight;
 			if ( iBoneD>=0 ) *(float*)(pVertexPtr+dwWeightOffset+3) = pBFVI [ (v*dwNumBones)+iBoneD ].fFinalWeight;
+
+			// 121018 - and also add extra indices and weights if present
+			if ( dwExtraWeightOffset > 0 )
+			{
+				memset ( pVertexPtr+dwExtraWeightOffset, 0, sizeof ( float ) * 8 );
+				int iBoneE = piUseBoneExtra [ (v*4)+0 ];
+				int iBoneF = piUseBoneExtra [ (v*4)+1 ];
+				int iBoneG = piUseBoneExtra [ (v*4)+2 ];
+				int iBoneH = piUseBoneExtra [ (v*4)+3 ];
+				if ( iBoneE>=0 ) *(float*)(pVertexPtr+dwExtraIndicesOffset+0) = (float)iBoneE;
+				if ( iBoneF>=0 ) *(float*)(pVertexPtr+dwExtraIndicesOffset+1) = (float)iBoneF;
+				if ( iBoneG>=0 ) *(float*)(pVertexPtr+dwExtraIndicesOffset+2) = (float)iBoneG;
+				if ( iBoneH>=0 ) *(float*)(pVertexPtr+dwExtraIndicesOffset+3) = (float)iBoneH;
+				if ( iBoneE>=0 ) *(float*)(pVertexPtr+dwExtraWeightOffset+0) = pBFVI [ (v*dwNumBones)+iBoneE ].fFinalWeight;
+				if ( iBoneF>=0 ) *(float*)(pVertexPtr+dwExtraWeightOffset+1) = pBFVI [ (v*dwNumBones)+iBoneF ].fFinalWeight;
+				if ( iBoneG>=0 ) *(float*)(pVertexPtr+dwExtraWeightOffset+2) = pBFVI [ (v*dwNumBones)+iBoneG ].fFinalWeight;
+				if ( iBoneH>=0 ) *(float*)(pVertexPtr+dwExtraWeightOffset+3) = pBFVI [ (v*dwNumBones)+iBoneH ].fFinalWeight;
+			}
 		}
 	}
 
@@ -3417,6 +3521,7 @@ DARKSDK_DLL void ComputeBoneDataInsideVertex ( sMesh* pMesh, LPGGMESH pVertexSha
 	// free usages
 	SAFE_DELETE ( pBFVI );
 	SAFE_DELETE ( piUseBone );
+	SAFE_DELETE ( piUseBoneExtra );
 	#else
 	// leeadd - 200204 - put animation bone data ( weights and indices ) into the vertex data (for VS skinning)
 	DWORD dwNumVertices = pVertexShaderMesh->GetNumVertices();
@@ -3842,6 +3947,42 @@ DARKSDK_DLL void GenerateExtraDataForMeshEx ( sMesh* pMesh, BOOL bNormals, BOOL 
 			wNumBytesPerVertex+=16;
 		}
 
+		// 121018 - add extra weights if required
+		DWORD dwOffsetToExtraWeights = 0;
+		DWORD dwOffsetToExtraIndices = 0;
+		if ( pMesh->pVertexShaderEffect )
+		{
+			if ( pMesh->pVertexShaderEffect->m_bNeed8BonesPerVertex == true )
+			{
+				dwOffsetToExtraWeights = wNumBytesPerVertex;
+				if( !bHasBlendWeights && bBones ) 
+				{
+					pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+					pDeclaration[iDeclarationIndex].SemanticIndex = 3;
+					pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+					pDeclaration[iDeclarationIndex].InputSlot = 0;
+					pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+					pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+					pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+					iDeclarationIndex++;
+					wNumBytesPerVertex+=16;
+				}
+				dwOffsetToExtraIndices = wNumBytesPerVertex;
+				if( !bHasBlendIndices && bBones ) 
+				{
+					pDeclaration[iDeclarationIndex].SemanticName = "TEXCOORD";
+					pDeclaration[iDeclarationIndex].SemanticIndex = 4;
+					pDeclaration[iDeclarationIndex].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+					pDeclaration[iDeclarationIndex].InputSlot = 0;
+					pDeclaration[iDeclarationIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+					pDeclaration[iDeclarationIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+					pDeclaration[iDeclarationIndex].InstanceDataStepRate = 0;
+					iDeclarationIndex++;
+					wNumBytesPerVertex+=16;
+				}
+			}
+		}
+
 		// Compute any tangent basis data (no not attempt to correct mesh too much)
 		if ( bGiveMeNormals || bGiveMeTangents || bGiveMeBinormals )
 		{
@@ -3858,7 +3999,7 @@ DARKSDK_DLL void GenerateExtraDataForMeshEx ( sMesh* pMesh, BOOL bNormals, BOOL 
 		if ( bGiveMeBlendWeights || bGiveMeBlendIndices )
 		{
 			// fills mesh with additional data
-			ComputeBoneDataInsideVertex ( pMesh, pMesh, dwOffsetToWeights, dwOffsetToIndices, wNumBytesPerVertex );
+			ComputeBoneDataInsideVertex ( pMesh, pMesh, dwOffsetToWeights, dwOffsetToIndices, dwOffsetToExtraWeights, dwOffsetToExtraIndices, wNumBytesPerVertex );
 
 			// flag mesh as now being vertex skinned by a shader
 			pMesh->bShaderBoneSkinning = true;
