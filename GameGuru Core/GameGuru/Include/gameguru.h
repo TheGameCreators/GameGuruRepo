@@ -1135,7 +1135,7 @@ struct Sglobals
 	int projectileEventType_radius;
 	int projectileEventType_damage;
 	int projectileEventType_entityhit;
-
+	int reloadWeaponGunspecs;
 	// Constructor
 	Sglobals ( )
 	{
@@ -2078,6 +2078,7 @@ struct Sglobals
 		 gtestgamemodefromeditorokaypressed = 0;
 		 characterSoundCurrentPlayingType_s = "";
 		 characterSoundCurrentPlayingNumber = 0;
+		 reloadWeaponGunspecs = 0;
 	}
 	// End of Constructor
 

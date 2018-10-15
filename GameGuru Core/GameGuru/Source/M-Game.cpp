@@ -225,6 +225,12 @@ void game_masterroot ( void )
 				}
 			}
 
+			//reload gunspecs
+			if (g.reloadWeaponGunspecs == 1)
+			{
+				gun_scaninall_dataonly();
+			}
+
 			//  we first load extra guns into gun array EARLY (ahead of entity data load which assigns gunids to isweapon hasweapon)
 			gun_tagmpgunstolist ( );
 
