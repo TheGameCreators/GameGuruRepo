@@ -96,6 +96,7 @@ void LoadFBX ( LPSTR szFilename, int iID )
 	{
 		// success, now load X file into object passed in (for eventualy saving as DBO)
 		if ( ObjectExist ( iID ) == 1 ) DeleteObject ( iID );
+		SetDir ( sOldDir.Get() ); // 151018 - back to default root so can load in stock textures if needed (reloaded\media\blank_N.dds)
 		LoadObject ( sNewXFile.Get(), iID );
 
 		// 220618 - some FBX models are EXTREMELY small, so boost them by 100x if too small for GameGuru
@@ -392,6 +393,7 @@ void LoadFBX ( LPSTR szFilename, int iID )
 		}
 
 		// if texture file moved/renamed, reload textures
+		SetDir ( sOldDir.Get() ); // 151018 - back to default root so can load in stock textures if needed (reloaded\media\blank_N.dds)
 		pObject = GetObjectData ( iID );
 		for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
 			LoadInternalTextures ( pObject->ppMeshList [ iMesh ], sTempFolder.Get(), 0, 0 );

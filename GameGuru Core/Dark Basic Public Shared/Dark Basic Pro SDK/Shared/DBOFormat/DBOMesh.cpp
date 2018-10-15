@@ -1811,7 +1811,7 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 		}
 
 		// act on texture type
-		if ( iTextureType == 1 ) // non-PBR - use DNS
+		if ( iTextureType == 0 || iTextureType == 1 ) // non-PBR - use DNS or 'diffuse only if not DNS'
 		{
 			// diffuse
 			strcpy ( pTmpName, pTextureName );
@@ -1819,40 +1819,40 @@ void LoadColorNormalSpecGloss ( sMesh* pMesh, LPSTR pName, LPSTR TexturePath, in
 			strcat ( pTmpName, ".png" );
 			strcpy ( pMesh->pTextures [ 0 ].pName, pTmpName );
 
-			// normal
-			strcpy ( pTmpName, pTextureName );
-			strcat ( pTmpName, "n.png" );
-			strcpy ( pMesh->pTextures [ 2 ].pName, pTmpName );
-			*piImageNormalIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
-			if ( *piImageNormalIndex == 0 ) *piImageNormalIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_N.dds", TexturePath, iDivideTextureSize );
+			// use diffuse only (0) or DNS (1)
+			if ( iTextureType == 0 )
+			{
+				// 151018 - when model has no PBR or DNS namings, just use diffuse for importer to expand on later
+				*piImageNormalIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\blank_N.dds", TexturePath, iDivideTextureSize);
+				*piImageSpecularIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\blank_none_S.dds", TexturePath, iDivideTextureSize);
+			}
+			else
+			{
+				// normal
+				strcpy ( pTmpName, pTextureName );
+				strcat ( pTmpName, "n.png" );
+				strcpy ( pMesh->pTextures [ 2 ].pName, pTmpName );
+				*piImageNormalIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+				if ( *piImageNormalIndex == 0 ) *piImageNormalIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_N.dds", TexturePath, iDivideTextureSize );
 
-			// specular
-			strcpy ( pTmpName, pTextureName );
-			strcat ( pTmpName, "s.png" );
-			strcpy ( pMesh->pTextures [ 3 ].pName, pTmpName );
-			*piImageSpecularIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
-			if ( *piImageSpecularIndex == 0 ) *piImageSpecularIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_none_S.dds", TexturePath, iDivideTextureSize );
+				// specular
+				strcpy ( pTmpName, pTextureName );
+				strcat ( pTmpName, "s.png" );
+				strcpy ( pMesh->pTextures [ 3 ].pName, pTmpName );
+				*piImageSpecularIndex = LoadOrFindTextureAsImage ( pTmpName, TexturePath, iDivideTextureSize );
+				if ( *piImageSpecularIndex == 0 ) *piImageSpecularIndex = LoadOrFindTextureAsImage ( "effectbank\\reloaded\\media\\blank_none_S.dds", TexturePath, iDivideTextureSize );
+			}
 
 			// no AO or gloss in DNS system
-
-			//PE: We should check g.gpbroverride == 1 but...
-//			if( g.gpbroverride == 1 ) {
-				*piImageAOIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\blank_O.dds", TexturePath, iDivideTextureSize);
-				*piImageGlossIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\materials\\0_Gloss.dds", TexturePath, iDivideTextureSize);
-//			}
-//			else {
-//				*piImageAOIndex = 0;
-//				*piImageGlossIndex = 0;
-//			}
+			*piImageAOIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\blank_O.dds", TexturePath, iDivideTextureSize);
+			*piImageGlossIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\materials\\0_Gloss.dds", TexturePath, iDivideTextureSize);
 
 			//PE: illumination was also missing.
-			//Lee: reported on github but not tested, should be fine.
 			strcpy(pTmpName, pTextureName);
 			strcat(pTmpName, "i.png");
 			strcpy(pMesh->pTextures[7].pName, pTmpName);
 			*piImageIlluminationIndex = LoadOrFindTextureAsImage(pTmpName, TexturePath, iDivideTextureSize);
 			if (*piImageIlluminationIndex == 0) *piImageIlluminationIndex = LoadOrFindTextureAsImage("effectbank\\reloaded\\media\\blank_none_S.dds", TexturePath, iDivideTextureSize);
-
 		}
 		if ( iTextureType == 2 ) // PBR - use color,normal,metalness,gloss,illumination
 		{
