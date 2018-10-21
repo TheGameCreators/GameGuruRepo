@@ -1,0 +1,10 @@
+Congratulations on discovering a new way to create your own 3D games;
+
+Sculpt and texture your terrain, with vegetation
+Drag and drop game objects to populate your level 
+Craft your own simple buildings and structures
+Over 7GB of free game making assets
+Use LUA scripting to create your own game logic
+Supports DirectX 11 and Physically Based Rendering
+
+Now let's start your journey into the wonderful world of game making!
