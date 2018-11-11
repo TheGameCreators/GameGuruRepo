@@ -294,8 +294,8 @@ void steam_loop ( void )
 
 	if (  g.steamworks.mode  ==  STEAM_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP ) 
 	{
-		steam_text(-1,30,3,"This g.level contains custom content.");
-		steam_text(-1,35,3,"To share this g.level with others you will need to create t.a workshop item.");
+		steam_text(-1,30,3,"This level contains custom content.");
+		steam_text(-1,35,3,"To share this level with others you will need to create a workshop item.");
 		steam_text(-1,40,3,"(This is done automatically for you)");
 		steam_text(-1,50,3,"Once your level is a workshop item other players can play your level.");
 		steam_text(-1,60,3,"Do you wish to create (or update if you have share this level before)");

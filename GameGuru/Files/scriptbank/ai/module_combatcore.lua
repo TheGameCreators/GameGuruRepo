@@ -62,10 +62,10 @@ function module_combatcore.init(e,startstate,coverstate)
  if GetEntityAnimationFound(e,10) == 0 then SetEntityAnimation(e,10,795,811) end
  if GetEntityAnimationFound(e,11) == 0 then SetEntityAnimation(e,11,2160,2218) end
  if GetEntityAnimationFound(e,12) == 0 then SetEntityAnimation(e,12,2135,2153) end
- if GetEntityAnimationFound(e,13) == 0 then SetEntityAnimation(e,13,3430,3697) end
- if GetEntityAnimationFound(e,14) == 0 then SetEntityAnimation(e,14,12290,12320) end
- if GetEntityAnimationFound(e,15) == 0 then SetEntityAnimation(e,15,855,871) end
- if GetEntityAnimationFound(e,16) == 0 then SetEntityAnimation(e,16,875,892) end
+ if GetEntityAnimationFound(e,13) == 0 then SetEntityAnimation(e,13,900,999) end
+ if GetEntityAnimationFound(e,14) == 0 then SetEntityAnimation(e,14,1290,1320) end
+ if GetEntityAnimationFound(e,15) == 0 then SetEntityAnimation(e,15,610,640) end
+ if GetEntityAnimationFound(e,16) == 0 then SetEntityAnimation(e,16,645,676) end
 end
 
 function module_combatcore.findcover(e,x,y,z)
@@ -170,7 +170,11 @@ function module_combatcore.detectplayer(e,AIObjNo,PlayerDist,CanFire,detectstate
    ai_bot_substate[e] = 0
    SetActivated(e,0)
   else
-   module_combatcore.findandassigncover(e,AIObjNo,PlayerDist)
+   if module_combatcore.findandassigncover(e,AIObjNo,PlayerDist) == 1 then
+    AIEntityGoToPosition(AIObjNo,ai_bot_targetx[e],ai_bot_targety[e],ai_bot_targetz[e])
+    ai_bot_state[e] = ai_state_startmove
+    ai_bot_substate[e] = 0
+   end
   end
   if ai_bot_targetx[e] ~= nil then
    if ai_bot_substate[e] == 0 then
@@ -207,12 +211,16 @@ function module_combatcore.getcomfortdistance(e)
  return checkdistancefromcomfort
 end
 
-function module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,detectstate)
+function module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,detectstate,combattype)
  CharacterControlManual(e)
  AISetEntityControl(AIObjNo,AI_MANUAL)
  if ai_bot_state[e] == ai_state_startidle then
   ai_bot_state[e] = ai_state_idle
-  SetAnimation(13)
+  if combattype == ai_combattype_regular then
+   SetAnimation(13)
+  else
+   SetAnimation(0)
+  end
   LoopAnimation(e)
   SetAnimationSpeedModulation(e,1.0)
  end
@@ -222,7 +230,7 @@ function module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,detectstate)
  end 
 end
 
-function module_combatcore.patrol(e,AIObjNo,PlayerDist,MoveType,CanFire,detectstate,stopstate)
+function module_combatcore.patrol(e,AIObjNo,PlayerDist,MoveType,CanFire,detectstate,stopstate,combattype)
  if ai_bot_pointtime[e] == -1 then
   ai_bot_pointtime[e] = 0
   StartTimer(e)
@@ -260,10 +268,20 @@ function module_combatcore.patrol(e,AIObjNo,PlayerDist,MoveType,CanFire,detectst
    ai_bot_pointtime[e] = g_Time + 100
    AISetEntityMoveBoostPriority(AIObjNo)
    SetAnimationSpeedModulation(e,0.0)
+   if combattype == ai_combattype_regular then
+    SetAnimation(14)
+   else
+    SetAnimation(1)
+   end
+   LoopAnimation(e)
    StartTimer(e)
   else
    ai_bot_state[e] = ai_state_idle
-   SetAnimation(14)
+   if combattype == ai_combattype_regular then
+    SetAnimation(13)
+   else
+    SetAnimation(0)
+   end
    LoopAnimation(e)
    SetAnimationSpeedModulation(e,1.0)  
   end
@@ -275,8 +293,6 @@ function module_combatcore.patrol(e,AIObjNo,PlayerDist,MoveType,CanFire,detectst
   module_combatcore.moveandavoid(e,AIObjNo,PlayerDist,MoveType,patrolx,patroly,patrolz,stopstate)
   if AIGetEntityIsMoving(AIObjNo) == 1 then
    if GetAnimationSpeedModulation(e) == 0.0 then
-    SetAnimation(13)
-    LoopAnimation(e)
     SetAnimationSpeedModulation(e,0.1)
    else
     tWalkDelta = GetMovementDelta(e) * 2.0
@@ -1031,7 +1047,7 @@ function module_combatcore.exit(e)
 end
 
 function module_combatcore.evasiveactions(e,AIObjNo,PlayerDist)
-	if ai_bot_state[e] ~= ai_state_idle and ai_bot_state[e] ~= ai_state_roll and ai_bot_state[e] ~= ai_state_strafeleft and ai_bot_state[e] ~= ai_state_strafeleftstart and ai_bot_state[e] ~= ai_state_straferightstart and ai_bot_state[e] ~= ai_state_straferight and ai_bot_state[e] ~= ai_state_duckstart and ai_bot_state[e] ~= ai_state_duck and ai_bot_state[e] ~= ai_state_unduckstart then 
+	if ai_bot_state[e] ~= ai_state_idle and ai_bot_state[e] ~= ai_state_move and ai_bot_state[e] ~= ai_state_startmove and ai_bot_state[e] ~= ai_state_roll and ai_bot_state[e] ~= ai_state_strafeleft and ai_bot_state[e] ~= ai_state_strafeleftstart and ai_bot_state[e] ~= ai_state_straferightstart and ai_bot_state[e] ~= ai_state_straferight and ai_bot_state[e] ~= ai_state_duckstart and ai_bot_state[e] ~= ai_state_duck and ai_bot_state[e] ~= ai_state_unduckstart then 
 		if math.random(1,2) == 1 then 
 			local pdist = GetPlayerDistance(e)
 			if pdist > 200 then 
@@ -1076,14 +1092,13 @@ function module_combatcore.evasiveactions(e,AIObjNo,PlayerDist)
 		end 
 	end 
 end
+
 function module_combatcore.strafeleft(e,speedmod)
 	if ai_bot_state[e] == ai_state_strafeleftstart then 
 		ai_bot_state[e] = ai_state_checkforcover
 		randomevade = math.random(45,90)*-1
-		--if math.random(1,2) == 1 then randomevade=randomevade*-1 end
 		local dist = 120
 		local rays = module_combatcore.checkentityrays(e,dist,randomevade,g_Entity[e]['obj'],20)
-		--PromptLocal(e,rays)
 		if rays == 0 then 
 			ai_bot_state[e] = ai_state_strafeleft
 			ai_bot_substate[e] = 0
@@ -1110,7 +1125,6 @@ function module_combatcore.strafeleft(e,speedmod)
 		SetRotation(e,0,ai_bot_roty[e],0)
 		AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
 		if tFrame >= tFinish-2 and tFrame <= tFinish then
-			--ai_bot_state[e] = ai_state_startidle
 			ai_bot_state[e] = ai_state_startfireonspot
 			SetAnimationSpeedModulation(e,1)
 		end
@@ -1120,10 +1134,8 @@ function module_combatcore.straferight(e,speedmod)
 	if ai_bot_state[e] == ai_state_straferightstart then 
 		ai_bot_state[e] = ai_state_checkforcover
 		randomevade = math.random(45,90)
-		--if math.random(1,2) == 1 then randomevade=randomevade*-1 end
 		local dist = 120
 		local rays = module_combatcore.checkentityrays(e,dist,randomevade,g_Entity[e]['obj'],20)
-		--PromptLocal(e,rays)
 		if rays == 0 then 
 			ai_bot_state[e] = ai_state_straferight
 			ai_bot_substate[e] = 0
@@ -1150,7 +1162,6 @@ function module_combatcore.straferight(e,speedmod)
 		SetRotation(e,0,ai_bot_roty[e],0)
 		AISetEntityPosition(AIObjNo,GetEntityPositionX(e),GetEntityPositionY(e),GetEntityPositionZ(e))
 		if tFrame >= tFinish-2 and tFrame <= tFinish and g_Entity[e]['animating'] == 16 then
-			--ai_bot_state[e] = ai_state_startidle
 			ai_bot_state[e] = ai_state_startfireonspot
 			SetAnimationSpeedModulation(e,1)
 		end

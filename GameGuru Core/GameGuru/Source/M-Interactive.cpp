@@ -248,9 +248,9 @@ void interactive_welcome ( void )
 	pastebitmapfont("INTERACTIVE TUTORIAL",t.tcenterx+669,t.tcentery+42,7,t.interactive.alphafade);
 	pastebitmapfont("Don't show t.interactive tutorial again",t.tcenterx+76,t.tcentery+522,7,t.interactive.alphafade);
 	pastebitmapfontcenter("Welcome to the Game Guru Interactive Tutorial",t.tcenterx+460,t.tcentery+200,7,t.interactive.alphafade);
-	t.t=0 ; t.t_s="To help you get the most out of Game Guru this short t.interactive tutorial will guide" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+250+(t.t*30),7,t.interactive.alphafade);
-	t.t=1 ; t.t_s="you through the creation and editing of t.a simple scene, and walk you through t.a quick" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+250+(t.t*30),7,t.interactive.alphafade);
-	t.t=2 ; t.t_s="play test of the g.level you created." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+250+(t.t*30),7,t.interactive.alphafade);
+	t.t=0 ; t.t_s="To help you get the most out of Game Guru this short interactive tutorial will guide" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+250+(t.t*30),7,t.interactive.alphafade);
+	t.t=1 ; t.t_s="you through the creation and editing of a simple scene, and walk you through a quick" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+250+(t.t*30),7,t.interactive.alphafade);
+	t.t=2 ; t.t_s="play test of the level you created." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+250+(t.t*30),7,t.interactive.alphafade);
 
 	//  handle button controls
 	if (  t.inputsys.mclick == 1 ) 
@@ -418,7 +418,7 @@ void interactive_entitywork ( void )
 		//  Choose and Place Entity
 		t.t=0 ; t.t_s="On the left you will see a button for adding new entities and beneath" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
 		t.t=1 ; t.t_s="a list of entities already loaded as part of the scene you selected." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
-		t.t=2 ; t.t_s="Entities are t.game objects used to populate your g.level." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
+		t.t=2 ; t.t_s="Entities are game objects used to populate your level." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
 		t.t=3 ; t.t_s="" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
 		t.interactive.sequencemax=2;
 		t.t_s = ""; t.t_s=t.t_s+Str(t.interactive.sequenceindex)+" of "+Str(t.interactive.sequencemax)+" : ";
@@ -455,10 +455,10 @@ void interactive_entitywork ( void )
 	{
 
 		//  Test The Game
-		t.t=0 ; t.t_s="You can test your t.game g.level at any time by clicking the TEST GAME button" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
+		t.t=0 ; t.t_s="You can test your game level at any time by clicking the TEST GAME button" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
 		t.t=1 ; t.t_s="from the main toolbar. During the test, all A.I will become active and" ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
-		t.t=2 ; t.t_s="player controls enabled so you can play the current state of your t.game." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
-		t.t=3 ; t.t_s="You can leave test t.game at any time by pressing the ESCAPE key." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
+		t.t=2 ; t.t_s="player controls enabled so you can play the current state of your game." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
+		t.t=3 ; t.t_s="You can leave test game at any time by pressing the ESCAPE key." ; pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+35+(t.t*30),7,255);
 		t.interactive.sequencemax=2;
 		t.t_s = ""; t.t_s=t.t_s+Str(t.interactive.sequenceindex)+" of "+Str(t.interactive.sequencemax)+" : ";
 		switch (  t.interactive.sequenceindex ) 

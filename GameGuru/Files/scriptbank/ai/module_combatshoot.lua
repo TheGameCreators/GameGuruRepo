@@ -30,14 +30,14 @@ function module_combatshoot.main(e,combattype,movetype,attacktype)
  -- handle idle
  if ai_bot_angryhurt[e] ~= nil then combattype = ai_combattype_regular end
  if combattype == ai_combattype_guard then
-  module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,ai_state_startfireonspot)
+  module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,ai_state_startfireonspot,combattype)
  else
-  module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,ai_state_startmove)
+  module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,ai_state_startmove,combattype)
  end
  
  -- handle AI that moves
  if combattype == ai_combattype_regular or combattype == ai_combattype_patrol then
-  module_combatcore.patrol(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_startmove,ai_state_startpatrol)
+  module_combatcore.patrol(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_startmove,ai_state_startpatrol,combattype)
   module_combatcore.hunt(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_startidle)
   module_combatcore.handleducking(e,AIObjNo,PlayerDist)
   module_combatcore.soundawareness(e,AIObjNo)

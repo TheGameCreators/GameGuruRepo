@@ -234,7 +234,9 @@ function UpdateEntityRT(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,
 end
 
 function UpdateEntityAnimatingFlag(e,ani)
- g_Entity[e]['animating'] = ani;
+ if g_Entity[e] ~= nil then
+  g_Entity[e]['animating'] = ani
+ end
 end
 
 function UpdateWeaponStatsItem(mode,index,value)

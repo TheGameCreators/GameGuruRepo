@@ -33,7 +33,7 @@ void mapfile_saveproject_fpm ( void )
 	}
 
 	//  log prompts
-	timestampactivity(0, cstr(cstr("Saving FPM g.level file: ")+t.ttempprojfilename_s).Get() );
+	timestampactivity(0, cstr(cstr("Saving FPM level file: ")+t.ttempprojfilename_s).Get() );
 
 	//  Switch visuals to gamevisuals as this is what we want to save
 	t.editorvisuals=t.visuals ; t.visuals=t.gamevisuals  ; visuals_save ( );
@@ -181,7 +181,7 @@ void mapfile_saveproject_fpm ( void )
 	steam_save_workshop_files_needed ( );
 
 	//  log prompts
-	timestampactivity(0,"Saving FPM g.level file complete");
+	timestampactivity(0,"Saving FPM level file complete");
 }
 
 void mapfile_emptyebesfromtestmapfolder ( bool bIgnoreValidTextureFiles )
@@ -1048,6 +1048,34 @@ void mapfile_savestandalone ( void )
 				addtocollection(t.tfile_s.Get());
 			}
 
+			// also include textures specified by textureref entries (from importer export)
+			cstr tFPEFilePath = g.fpscrootdir_s+"\\Files\\";
+			tFPEFilePath += t.tentityname1_s;
+			FILE* tFPEFile = fopen ( tFPEFilePath.Get() , "r" );
+			if ( tFPEFile )
+			{
+				char tTempLine[2048];
+				while ( !feof(tFPEFile) )
+				{
+					fgets ( tTempLine , 2047 , tFPEFile );
+					if ( strstr ( tTempLine , "textureref" ) )
+					{
+						char* pToFilename = strstr ( tTempLine , "=" );
+						if ( pToFilename )
+						{
+							while ( *pToFilename == '=' || *pToFilename == 32 ) pToFilename++;
+							if ( pToFilename[strlen(pToFilename)-1] == 13 ) pToFilename[strlen(pToFilename)-1] = 0;
+							if ( pToFilename[strlen(pToFilename)-1] == 10 ) pToFilename[strlen(pToFilename)-1] = 0;
+							if ( pToFilename[strlen(pToFilename)-1] == 13 ) pToFilename[strlen(pToFilename)-1] = 0;
+							if ( pToFilename[strlen(pToFilename)-1] == 10 ) pToFilename[strlen(pToFilename)-1] = 0;
+							cstr tTextureFile = cstr( t.tentityfolder_s + cstr(pToFilename) );
+							addtocollection ( tTextureFile.Get() );
+						}
+					}
+				}
+				fclose ( tFPEFile );
+			}
+
 			//  shader file
 			t.tfile_s=t.entityelement[t.e].eleprof.effect_s ; addtocollection(t.tfile_s.Get());
 			//  script files
@@ -1875,14 +1903,53 @@ void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s 
 						texfile_s=texfile_s+Chr(ReadMemblockByte(mbi,d));
 					}
 					texfile_s=Lower(texfile_s.Get());
-					addtocollection(cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
-					addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
-					if (  cstr(Right(texfile_s.Get(),4)) != ".dds" ) 
+					if ( strnicmp ( texfile_s.Get(), "effectbank\\", 11 ) == NULL )
 					{
-						//  also convert to DDS and add those too
-						texfile_s=cstr(Left(texfile_s.Get(),Len(texfile_s.Get())-4))+".dds";
+						addtocollection(texfile_s.Get() );
+					}
+					else
+					{
+						// detect PBR texture set
+						bool bDetectedPBRTextureSetName = false;
+						cstr texfilenoext_s=cstr(Left(texfile_s.Get(),Len(texfile_s.Get())-4));
+						if ( strnicmp ( texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 6 , "_color", 6 ) == NULL ) { texfilenoext_s = Left(texfilenoext_s.Get(),strlen(texfilenoext_s.Get())-6); bDetectedPBRTextureSetName = true; }
+						if ( strnicmp ( texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 7 , "_normal", 7 ) == NULL ) { texfilenoext_s = Left(texfilenoext_s.Get(),strlen(texfilenoext_s.Get())-7); bDetectedPBRTextureSetName = true; }
+						if ( strnicmp ( texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 10 , "_metalness", 10 ) == NULL ) { texfilenoext_s = Left(texfilenoext_s.Get(),strlen(texfilenoext_s.Get())-10); bDetectedPBRTextureSetName = true; }
+						if ( strnicmp ( texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 10 , "_roughness", 10 ) == NULL ) { texfilenoext_s = Left(texfilenoext_s.Get(),strlen(texfilenoext_s.Get())-10); bDetectedPBRTextureSetName = true; }
+						if ( strnicmp ( texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 6 , "_gloss", 6 ) == NULL ) { texfilenoext_s = Left(texfilenoext_s.Get(),strlen(texfilenoext_s.Get())-6); bDetectedPBRTextureSetName = true; }
+						if ( strnicmp ( texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 3 , "_ao", 3 ) == NULL ) { texfilenoext_s = Left(texfilenoext_s.Get(),strlen(texfilenoext_s.Get())-3); bDetectedPBRTextureSetName = true; }
+						if ( bDetectedPBRTextureSetName == true )
+						{
+							// add other PBR textures just in case not detected in model data
+							cstr texfileColor_s = texfilenoext_s + "_color.dds";
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileColor_s).Get() );
+							addtocollection( cstr(cstr(folder_s)+texfileColor_s).Get() );
+							cstr texfileNormal_s = texfilenoext_s + "_normal.dds";
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileNormal_s).Get() );
+							addtocollection( cstr(cstr(folder_s)+texfileNormal_s).Get() );
+							cstr texfileMetalness_s = texfilenoext_s + "_metalness.dds";
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileMetalness_s).Get() );
+							addtocollection( cstr(cstr(folder_s)+texfileMetalness_s).Get() );
+							cstr texfileGloss_s = texfilenoext_s + "_gloss.dds";
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileGloss_s).Get() );
+							addtocollection( cstr(cstr(folder_s)+texfileGloss_s).Get() );
+							cstr texfileAO_s = texfilenoext_s + "_ao.dds";
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileAO_s).Get() );
+							addtocollection( cstr(cstr(folder_s)+texfileAO_s).Get() );
+							cstr texfileIllumination_s = texfilenoext_s + "_illumination.dds";
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileIllumination_s).Get() );
+							addtocollection( cstr(cstr(folder_s)+texfileIllumination_s).Get() );
+						}
 						addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
 						addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
+						if (  cstr(Right(texfile_s.Get(),4)) != ".dds" ) 
+						{
+							//  also convert to DDS and add those too
+							addtocollection( cstr(cstr(folder_s)+texfile_s+".png").Get() );
+							texfile_s=cstr(Left(texfile_s.Get(),Len(texfile_s.Get())-4))+".dds";
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
+							addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
+						}
 					}
 					b += 4;
 				}

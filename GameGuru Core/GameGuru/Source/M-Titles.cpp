@@ -1054,7 +1054,7 @@ void titles_steamchoosetypeoflevel ( void )
 void titles_steamchoosefpmtouse ( void )
 {
 	t.titlespage=15;
-	t.titlesname_s="Choose t.a g.level to play";
+	t.titlesname_s="Choose a level to play";
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
 	g.titlesbuttonmax=0;

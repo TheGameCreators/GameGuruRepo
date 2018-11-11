@@ -59,15 +59,15 @@ anim9            = 1646,1663 ;unduck
 anim10           = 795,811   ;run
 anim11           = 2160,2218 ;roll to duck
 anim12           = 2135,2153 ;crouch dash
-anim13 	         = 3430,3697 ;idle sentry
-anim14           = 12290,12320 ;relaxed move
-anim15           = 610,640
-anim16           = 645,676
+anim13 	         = 900,999 ;idle sentry
+anim14           = 1290,1320 ;relaxed move
+anim15           = 610,640 ; strafe left
+anim16           = 645,676 ; strafe right
 
 ;character animation (reference only)
 csi_relaxed1 				= 900,999
 csi_relaxed2 				= 1000,1282
-csi_relaxedmovefore 		= 1290,1419
+csi_relaxedmovefore 		= 1290,1319
 csi_cautious 				= 900,999
 csi_cautiousmovefore 		= 1325,1419
 csi_unarmed1 				= 3000,3100

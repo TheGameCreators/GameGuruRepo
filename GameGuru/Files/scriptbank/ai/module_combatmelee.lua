@@ -19,11 +19,11 @@ function module_combatmelee.main(e,combattype,movetype)
  CanFire = 0
  
  -- handle idle
- module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,ai_state_startmove)
+ module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,ai_state_startmove,combattype)
  
  -- handle patrol
  if combattype == ai_combattype_regular or combattype == ai_combattype_patrol then
-  module_combatcore.patrol(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_startmove,ai_state_startpatrol)
+  module_combatcore.patrol(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_startmove,ai_state_startpatrol,combattype)
  end
  
  -- handle moves

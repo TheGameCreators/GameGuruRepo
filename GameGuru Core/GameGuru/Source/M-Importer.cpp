@@ -1477,6 +1477,12 @@ void importer_loadmodel ( void )
 		}
 	}
 
+	// 111118 - if import fails for any reason, ensure no crash
+	if ( ObjectExist ( t.importer.objectnumber ) == 0 )
+	{
+		MakeObjectCube (  t.importer.objectnumber,100 );
+	}
+
 	// Position imported object at center
 	LockObjectOn (  t.importer.objectnumber );
 	PositionObject (  t.importer.objectnumber , 0 , 0 , 0 );
@@ -4807,6 +4813,27 @@ void importer_save_fpe ( void )
 
 	t.tString = ";visualinfo" ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("textured") + "= " + t.importer.objectFPE.textured ;WriteString (  1 , t.tString.Get() );
+
+	// a new system to record texture references in FPE so can save standalone better
+	for ( int tCount = 1 ; tCount <= IMPORTERTEXTURESMAX; tCount++ )
+	{
+		if ( strlen ( t.importerTextures[tCount].fileName.Get() ) > 0 ) 
+		{
+			char pFileOnly[2048];
+			strcpy ( pFileOnly, t.importerTextures[tCount].fileName.Get() );
+			for ( int n = strlen(pFileOnly)-1; n > 0; n-- )
+			{
+				if ( pFileOnly[n] == '\\' || pFileOnly[n] == '/' )
+				{
+					strcpy ( pFileOnly, pFileOnly+n+1 );
+					break;
+				}
+			}
+			t.tString = "" ; t.tString = t.tString + importerPadString(cstr(cstr("textureref")+cstr(tCount)).Get()) + " = " + cstr(pFileOnly);
+			WriteString (  1 , t.tString.Get() );
+		}
+	}
+
 	t.tString = "" ; t.tString = t.tString + importerPadString("effect") + "= " + t.importer.objectFPE.effect ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("castshadow") + "= " + t.importer.objectFPE.castshadow ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("transparency") + "= " + t.importer.objectFPE.transparency ;WriteString (  1 , t.tString.Get() );

@@ -69,3 +69,13 @@ GameGuru/Files/mapbank/Issues/ISSUE142-Test-Waypoint.fpm
 GameGuru/Files/mapbank/_A_TEST_MAP2.fpm
 GameGuru/Files/mapbank/_A_TEST_MAP2.dat
 GameGuru/Files/mapbank/Custom Export.dat
+*.log
+*.pdb
+*.obj
+*.sbr
+*.pch
+*.exe
+*.suo
+*.user
+*.bak
+*.db

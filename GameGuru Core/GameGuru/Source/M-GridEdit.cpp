@@ -2068,7 +2068,7 @@ void editor_multiplayermode ( void )
 	t.tfile_s="editors\\gridedit\\cfg.cfg";
 	if (  FileExist(t.tfile_s.Get()) == 1 ) 
 	{
-		timestampactivity(0,"reloading your g.level after MM button");
+		timestampactivity(0,"reloading your level after MM button");
 		t.skipfpmloading=0;
 		g.projectfilename_s=g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
 		editor_loadcfg ( );
