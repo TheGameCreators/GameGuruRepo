@@ -241,6 +241,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;DBDLLCORE_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="..\..\Shared\Core\DBDLLCoreEncryptCall.cpp" />
     <ClCompile Include="..\..\Shared\Core\DBDLLCoreInternal.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">Disabled</Optimization>

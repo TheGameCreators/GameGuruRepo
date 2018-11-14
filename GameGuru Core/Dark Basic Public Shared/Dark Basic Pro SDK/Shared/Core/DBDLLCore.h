@@ -124,5 +124,8 @@ DARKSDK void Cls(void);
 DARKSDK void EncryptWorkshopDBPro ( char* dwStringAddress );
 DARKSDK void EncryptAllFiles(char* dwStringAddress);
 
+DARKSDK bool COREDoesFileExist(LPSTR Filename);
+DARKSDK LPSTR ReadFileData(LPSTR FilenameString, DWORD* dwDataSize);
+DARKSDK void WriteFileData(LPSTR pFilename, LPSTR pData, DWORD dwDataSize);
 
 #endif
