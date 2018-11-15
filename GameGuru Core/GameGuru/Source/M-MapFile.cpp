@@ -1882,6 +1882,16 @@ void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s 
 						}
 					}
 				}
+				if (ReadMemblockByte(mbi, b + 1) == Asc("P") || ReadMemblockByte(mbi, b + 1) == Asc("p"))
+				{
+					if (ReadMemblockByte(mbi, b + 2) == Asc("N") || ReadMemblockByte(mbi, b + 2) == Asc("n"))
+					{
+						if (ReadMemblockByte(mbi, b + 3) == Asc("G") || ReadMemblockByte(mbi, b + 3) == Asc("g"))
+						{
+							tfoundpiccy = 1;
+						}
+					}
+				}
 				if (  tfoundpiccy == 1 ) 
 				{
 					//  track back
