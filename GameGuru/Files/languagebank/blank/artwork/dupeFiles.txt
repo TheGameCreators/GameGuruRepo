@@ -1,0 +1,31 @@
+testgamelayout-1920x1200
+from this, create
+testgamelayout-640x480
+testgamelayout-1024x768
+testgamelayout-1152x864
+testgamelayout-1280x720
+testgamelayout-1280x800
+testgamelayout-1280x960
+testgamelayout-1366x768
+testgamelayout-1440x900
+testgamelayout-1600x900
+testgamelayout-1600x1200
+testgamelayout-1680x1050
+testgamelayout-1920x1080
+
+testgamelayoutmp-1920x1200
+from this, create
+testgamelayoutmp-640x480
+testgamelayoutmp-1024x768
+testgamelayoutmp-1152x864
+testgamelayoutmp-1280x720
+testgamelayoutmp-1280x800
+testgamelayoutmp-1280x960
+testgamelayoutmp-1366x768
+testgamelayoutmp-1440x900
+testgamelayoutmp-1600x900
+testgamelayoutmp-1600x1200
+testgamelayoutmp-1680x1050
+testgamelayoutmp-1920x1080
+
+
