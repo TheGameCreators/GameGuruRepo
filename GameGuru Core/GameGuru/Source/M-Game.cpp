@@ -158,7 +158,7 @@ void game_masterroot ( void )
 			if (  t.game.runasmultiplayer == 1 ) 
 			{
 				//  Multiplayer FPM loading
-				g.projectfilename_s=g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm";
+				g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"__multiplayerlevel__.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm";
 				t.trerfeshvisualsassets=1;
 				mapfile_loadproject_fpm ( );
 				t.game.jumplevel_s="";
@@ -176,8 +176,10 @@ void game_masterroot ( void )
 					}
 
 					// work out first level from exe name (copied to jumplevel_s)
-					g.projectfilename_s = ""; 
-					g.projectfilename_s = g.projectfilename_s + "mapbank\\" + t.game.jumplevel_s;
+					//g.projectfilename_s = ""; 
+					//g.projectfilename_s = g.projectfilename_s + "mapbank\\" + t.game.jumplevel_s;
+					g.projectfilename_s = g.mysystem.mapbank_s + t.game.jumplevel_s;
+					
 					if ( cstr(Lower(Right(g.projectfilename_s.Get(),4))) != ".fpm" )
 						g.projectfilename_s=g.projectfilename_s+".fpm";
 
@@ -187,7 +189,8 @@ void game_masterroot ( void )
 						// go into mapbank folder
 						cstr tthisold_s =  "";
 						tthisold_s=GetDir();
-						SetDir ( cstr(g.fpscrootdir_s+"\\Files\\mapbank\\").Get() );
+						//SetDir ( cstr(g.fpscrootdir_s+"\\Files\\mapbank\\").Get() );
+						SetDir ( g.mysystem.mapbankAbs_s.Get() );
 
 						// scan for ALL files/folders
 						ChecklistForFiles (  );
@@ -200,8 +203,9 @@ void game_masterroot ( void )
 								if ( tfolder_s != "." && tfolder_s != ".." ) 
 								{
 									// skip . and .. folders
-									cstr newlevellocation = "";
-									newlevellocation = newlevellocation + "mapbank\\" + tfolder_s + "\\" + t.game.jumplevel_s;
+									//cstr newlevellocation = "";
+									//newlevellocation = newlevellocation + "mapbank\\" + tfolder_s + "\\" + t.game.jumplevel_s;
+									cstr newlevellocation = g.mysystem.mapbank_s + tfolder_s + "\\" + t.game.jumplevel_s;
 									if ( cstr(Lower(Right(newlevellocation.Get(),4))) != ".fpm" )
 										newlevellocation = newlevellocation + ".fpm";
 
@@ -2128,7 +2132,8 @@ void game_main_loop ( void )
 					g.lightmappedterrainoffset=-1;
 					g.lightmappedterrainoffsetfinish=-1;
 					//  launch external lightmapper
-					SetDir (  ".." );
+					//SetDir (  ".." );
+					SetDir ( g.lightmapperexefolder_s.Get() );
 					timestampactivity(0,"launch external lightmapper") ; t.twas=Timer();
 					t.tdisableLMprogressreading=1;
 					for ( t.n = 0 ; t.n<=  1; t.n++ )
@@ -2142,7 +2147,7 @@ void game_main_loop ( void )
 					ExecuteFile (  "Guru-Lightmapper.exe", t.strwork.Get() ,"",1 );
 					t.strwork = ""; t.strwork = t.strwork + "returned from t.lightmapper - baked in "+Str((Timer()-t.twas)/1000)+" seconds";
 					timestampactivity(0, t.strwork.Get() );
-					SetDir (  "Files" );
+					SetDir ( g.rootdir_s.Get() );//"Files" );
 					//  Wait for all input to cease
 					t.tdisableLMprogressreading=1;
 					while (  ScanCode() != 0 || MouseClick() != 0 ) 

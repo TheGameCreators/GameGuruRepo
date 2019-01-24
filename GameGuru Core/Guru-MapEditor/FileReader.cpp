@@ -157,7 +157,7 @@ bool CFileReader::CreateVirtualFileTable(LPSTR pPCKFilename)
 	getcwd(pOldDir, _MAX_PATH);
 
 	// Switch to unpack folder
-	chdir(gUnpackDirectory);
+	_chdir(gUnpackDirectory);
 
 	// First file flag
 	bool bFirstFile=true;
@@ -281,7 +281,7 @@ bool CFileReader::CreateVirtualFileTable(LPSTR pPCKFilename)
 	}
 
 	// Switch back to previous folder
-	chdir(pOldDir);
+	_chdir(pOldDir);
 
 	// Error message
 	if(bCompressedMediaFound)
@@ -312,9 +312,9 @@ bool CFileReader::PathExists(LPSTR pPathname)
 {
 	char oldone[_MAX_PATH];
 	getcwd(oldone, 256);
-	if(chdir(pPathname)==0)
+	if(_chdir(pPathname)==0)
 	{
-		chdir(oldone);
+		_chdir(oldone);
 		return true;
 	}
 	return false;
@@ -374,7 +374,7 @@ bool CFileReader::CreateInstallerFolder(LPSTR ActualEXEFilename)
 	}
 
 	// Restore Folder
-	chdir(pOldDir);
+	_chdir(pOldDir);
 
 	// Load Data segment into memory
 	HANDLE hfile = CreateFile(ActualEXEFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -550,10 +550,10 @@ void CFileReader::RecreatePathFolders(LPSTR pPath)
 				pFolderName[dwThisLength]=0;
 
 				// Check Folder, else Create Folder
-				if(chdir(pFolderName)==-1)
+				if(_chdir(pFolderName)==-1)
 				{
 					mkdir(pFolderName);
-					chdir(pFolderName);
+					_chdir(pFolderName);
 				}
 
 				// Free folder name string
@@ -571,7 +571,7 @@ void CFileReader::RecreatePathFolders(LPSTR pPath)
 	}
 
 	// Restore directory
-	chdir(pOldDir);
+	_chdir(pOldDir);
 }
 
 void CFileReader::GoodDeleteFile(LPSTR filename)
@@ -611,7 +611,7 @@ bool CFileReader::RemoveVirtualFileTable(void)
 	getcwd(pOldDir, _MAX_PATH);
 
 	// Switch to unpack folder
-	chdir(gUnpackDirectory);
+	_chdir(gUnpackDirectory);
 
 	// Delete all files referenced by virtual table
 	DWORD dwCountFiles=0;
@@ -662,7 +662,7 @@ bool CFileReader::RemoveVirtualFileTable(void)
 	}
 
 	// Switch back to previous folder
-	chdir(pOldDir);
+	_chdir(pOldDir);
 
 	// Successfully completed
 	return true;

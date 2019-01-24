@@ -617,12 +617,6 @@ void steam_loop ( void )
 		g.steamworks.dontDrawTitles = 1;
 		if (  SteamIsServerRunning()  ==  1 ) 
 		{
-//    `print "======================================"
-
-//    `print "Server started"
-
-//    `print "======================================"
-
 			steam_textDots(-1,10,3,"Server Started");
 			if (  SteamIsGameRunning()  ==  1 ) 
 			{
@@ -632,17 +626,6 @@ void steam_loop ( void )
 				SetDir (  cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 				t.tPlayerIndex = SteamGetMyPlayerIndex();
 				SteamSetSendFileCount (  1 );
-				if (  t.tPlayerIndex  >=  0 && t.tPlayerIndex < STEAM_MAX_NUMBER_OF_PLAYERS ) 
-				{
-//      `position camera ObjectPositionX(entityelement(steamworks_playerEntityID(tPlayerIndex)).obj),ObjectPositionY(entityelement(steamworks_playerEntityID(tPlayerIndex)).obj)+50,ObjectPositionZ(entityelement(steamworks_playerEntityID(tPlayerIndex)).obj)
-
-//      `rotate camera 0,0,0
-
-//      `a = MouseMoveX() + MouseMoveY()
-
-//      `hide object entityelement(steamworks_playerEntityID(tPlayerIndex)).obj
-
-				}
 			}
 			else
 			{
@@ -659,9 +642,6 @@ void steam_loop ( void )
 		}
 		else
 		{
-			//  some .... on screen to show progress being made making server
-//    `print "======================================"
-
 			if (  Timer() - g.steamworks.oldtime > 150 ) 
 			{
 				g.steamworks.oldtime = Timer();
@@ -671,38 +651,23 @@ void steam_loop ( void )
 			t.tstring_s = t.tStartingServerCount_s + "Starting server" + t.tStartingServerCount_s;
 			steam_text(-1,15,3,t.tstring_s.Get());
 			t.tstring_s = "";
-//    `print "======================================"
-
 		}
 	}
 
 	if (  g.steamworks.mode  ==  STEAM_IN_GAME_SERVER ) 
 	{
 			g.steamworks.dontDrawTitles = 1;
-//    `print "======================================"
-
-//    `print "GAME RUNNING - You are the server"
-
-//    `print "Player number " + Str(SteamGetMyPlayerIndex())
-
-//    `print "======================================"
-
-
 			if (  g.steamworks.iHaveSaidIAmReady  ==  0 ) 
 			{
 				SteamSendIAmLoadedAndReady (  );
 				g.steamworks.iHaveSaidIAmReady = 1;
 				t.tempsteamingameinitialwaitingdelay = Timer();
-//     `sync
-
 				while (  Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 				{
 					g.steamworks.syncedWithServerMode = 0;
 					g.steamworks.okayToLoadLevel = 0;
 					SteamLoop (  );
 					steam_textDots(-1,20,3,"Waiting for other players");
-//      `sync
-
 					if (  Timer() - t.tsteamiseveryoneloadedandreadytime > 1000 ) 
 					{
 						t.tsteamiseveryoneloadedandreadytime = Timer();
@@ -710,38 +675,22 @@ void steam_loop ( void )
 					}
 				}
 				t.tskipLevelSync = Timer();
-//     `tmsg$ = "Game is starting!"
-
-				/*      
-				tdelay = Timer();
-				while (  Timer() - tdelay < 4000 ) 
-				{
-					SteamLoop (  );
-					SetCursor (  0,300 );
-					Print (  "Preparing to load" );
-					Sync (  );
-				}
-				*/    
 			}
 
-		//wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
+			//wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
 			if (  g.steamworks.okayToLoadLevel  ==  0 && g.steamworks.syncedWithServerMode  ==  99 ) 
 			{
-//     `if SteamIsEveryoneLoadedAndReady() = 1
+				t.game.titleloop=0;
+				t.game.levelloop=1;
+				t.game.runasmultiplayer=1;
+				t.game.levelloadprogress=0;
+				t.game.cancelmultiplayer=0;
+				t.game.quitflag=0;
+				t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 
-					t.game.titleloop=0;
-					t.game.levelloop=1;
-					t.game.runasmultiplayer=1;
-					t.game.levelloadprogress=0;
-					t.game.cancelmultiplayer=0;
-					t.game.quitflag=0;
-					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
-
-					g.steamworks.playGame = 1;
-					g.steamworks.okayToLoadLevel = 1;
-					t.tskipLevelSync = Timer();
-//     `endif
-
+				g.steamworks.playGame = 1;
+				g.steamworks.okayToLoadLevel = 1;
+				t.tskipLevelSync = Timer();
 			}
 			else
 			{
@@ -776,29 +725,15 @@ void steam_loop ( void )
 				g.steamworks.dontDrawTitles = 1;
 			}
 			g.steamworks.dontDrawTitles = 1;
-//    `print "======================================"
-
-//    `print "GAME RUNNING - You are a client"
-
-//    `print "Player number " + Str(SteamGetMyPlayerIndex())
-
-//    `print "======================================"
-
-
 			if (  g.steamworks.iHaveSaidIAmReady  ==  0 ) 
 			{
 				SteamSendIAmLoadedAndReady (  );
 				g.steamworks.iHaveSaidIAmReady = 1;
 				t.tempsteamingameinitialwaitingdelay = Timer();
-//     `sync
-
 				while (  Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 				{
 					g.steamworks.syncedWithServerMode = 0;
 					g.steamworks.okayToLoadLevel = 0;
-//      `tmsg$ = "Waiting for other players"
-
-//steam_setMessage ( );
 					steam_textDots(-1,50,3,"Waiting for other players");
 					SteamLoop (  );
 					if (  Timer() - t.tsteamtimeoutongamerunning > 16000 ) 
@@ -811,35 +746,13 @@ void steam_loop ( void )
 						}
 					}
 					t.tskipLevelSync = Timer();
-//      `sync
-
-//      `if Timer() - tsteamiseveryoneloadedandreadytime > 1000
-
-//       `tsteamiseveryoneloadedandreadytime = Timer()
-
-						if (  SteamIsEveryoneLoadedAndReady()  ==  1  )  t.tempsteamingameinitialwaitingdelay  =  -30000;
-//      `endif
-
-				}
-				/*      
-				tdelay = Timer();
-				while (  Timer() - tdelay < 4000 ) 
-				{
-					SteamLoop (  );
-					SetCursor (  0,300 );
-					Print (  "Preparing to load" );
-					Sync (  );
-				}
-				*/    
+					if (  SteamIsEveryoneLoadedAndReady()  ==  1  )  t.tempsteamingameinitialwaitingdelay  =  -30000;
+				}   
 			}
 
-		//wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
+			//wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
 			if (  g.steamworks.okayToLoadLevel  ==  0 && g.steamworks.syncedWithServerMode  ==  99 ) 
 			{
-//     `steam_livelog("Setting okay to play now")
-
-//     `if SteamIsEveryoneLoadedAndReady() = 1
-
 					t.game.titleloop=0;
 					t.game.levelloop=1;
 					t.game.runasmultiplayer=1;
@@ -851,8 +764,6 @@ void steam_loop ( void )
 					g.steamworks.playGame = 1;
 					g.steamworks.okayToLoadLevel = 1;
 					t.tskipLevelSync = Timer();
-//     `endif
-
 			}
 			else
 			{
@@ -879,21 +790,11 @@ void steam_loop ( void )
 
 	steam_message ( );
 	steam_messageDots ( );
-
-
-return;
-
-//  Shutdown Steam
 }
 
 void steam_free ( void )
 {
-
 	SteamFree (  );
-
-return;
-
-//  Check if voicechat is enabled
 }
 
 void steam_checkVoiceChat ( void )
@@ -902,7 +803,6 @@ void steam_checkVoiceChat ( void )
 
 void steam_spawn_objects ( void )
 {
-
 	//  Grab the list of spawned objects from the server
 	//  TO DO - find out how entities are spawned in FPSC and call those routines
 	//  LEE - AGREED, no need to repeat code but we can do that during clean-up ;)
@@ -1338,7 +1238,7 @@ if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 )
 			}
 			else
 			{
-				t.tempsteamfiletosend_s = g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
+				t.tempsteamfiletosend_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
 				if (  FileExist (t.tempsteamfiletosend_s.Get())  ==  1  )  DeleteAFile (  t.tempsteamfiletosend_s.Get() );
 				if (  FileOpen(1)  )  CloseFile (  1 );
 				OpenToWrite (  1,t.tempsteamfiletosend_s.Get() );
@@ -1481,14 +1381,15 @@ switch (  g.steamworks.syncedWithServerMode )
 //        `load image "ds2.png" , 2
 
 	
-							t.tempsteamworkshopidfile_s = g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
+							t.tempsteamworkshopidfile_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
 							if (  FileExist(t.tempsteamworkshopidfile_s.Get()) ) 
 							{
 								if (  FileOpen(10)  ==  1  )  CloseFile (  10 );
 								OpenToRead (  10,t.tempsteamworkshopidfile_s.Get() );
 								g.steamworks.workshopid = ReadString ( 10 );
 								CloseFile (  10 );
-								if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() ) )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
+								cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
+								if (  FileExist( mlevel_s.Get() ) )  DeleteAFile ( mlevel_s.Get() );
 								SteamDownloadWorkshopItem (  g.steamworks.workshopid.Get() );
 								g.steamworks.syncedWithServerMode = 2;
 							}
@@ -1555,7 +1456,8 @@ switch (  g.steamworks.syncedWithServerMode )
 			}
 			if (  SteamIsWorkshopItemDownloaded()  ==  1 ) 
 			{
-				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() ) ) 
+				cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
+				if ( FileExist( mlevel_s.Get() ) ) 
 				{
 					g.steamworks.fileLoaded = 1;
 					SteamSendIAmLoadedAndReady (  );
@@ -3853,24 +3755,22 @@ return;
 
 void steam_nukeTestmap ( void )
 {
-		steam_deleteFile ("levelbank\\cfg.cfg");
-		steam_deleteFile ("levelbank\\conkit.dat");
-		steam_deleteFile ("levelbank\\header.dat");
-		steam_deleteFile ("levelbank\\m.dat");
-		steam_deleteFile ("levelbank\\map.ele");
-		steam_deleteFile ("levelbank\\map.ent");
-		steam_deleteFile ("levelbank\\map.way");
-		steam_deleteFile ("levelbank\\playerconfig.dat");
-		steam_deleteFile ("levelbank\\temparea.txt");
-		steam_deleteFile ("levelbank\\vegmaskgrass.dat");
-		steam_deleteFile ("levelbank\\visuals.ini");
-		steam_deleteFile ("levelbank\\watermask.dds");
-	
-		steam_deleteFile ("editors\\gridedit\\__multiplayerlevel__.fpm");
-		steam_deleteFile ("editors\\gridedit\\__multiplayerworkshopitemid__.dat");
-	
-return;
-
+	steam_deleteFile ("levelbank\\cfg.cfg");
+	steam_deleteFile ("levelbank\\conkit.dat");
+	steam_deleteFile ("levelbank\\header.dat");
+	steam_deleteFile ("levelbank\\m.dat");
+	steam_deleteFile ("levelbank\\map.ele");
+	steam_deleteFile ("levelbank\\map.ent");
+	steam_deleteFile ("levelbank\\map.way");
+	steam_deleteFile ("levelbank\\playerconfig.dat");
+	steam_deleteFile ("levelbank\\temparea.txt");
+	steam_deleteFile ("levelbank\\vegmaskgrass.dat");
+	steam_deleteFile ("levelbank\\visuals.ini");
+	steam_deleteFile ("levelbank\\watermask.dds");
+	//steam_deleteFile ("editors\\gridedit\\__multiplayerlevel__.fpm");
+	//steam_deleteFile ("editors\\gridedit\\__multiplayerworkshopitemid__.dat");
+	steam_deleteFile (cstr(g.mysystem.editorsGridedit_s+"__multiplayerlevel__.fpm").Get());
+	steam_deleteFile (cstr(g.mysystem.editorsGridedit_s+"__multiplayerworkshopitemid__.dat").Get());
 }
 
 void steam_respawnEntities ( void )
@@ -5117,8 +5017,12 @@ void steam_resetGameStats ( void )
 {
 
 	steam_nukeTestmap ( );
-	if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
-	if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get() );
+	//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
+	//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get() );
+	cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
+	if ( FileExist( mlevel_s.Get())  )  DeleteAFile ( mlevel_s.Get() );
+	cstr mlevelworkshop_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerworkshopitemid__.dat";
+	if ( FileExist( mlevelworkshop_s.Get())  )  DeleteAFile ( mlevelworkshop_s.Get() );
 
 	//  empty messages
 	for ( t.tloop = 0 ; t.tloop<=  STEAM_MAX_CHAT_LINES-1; t.tloop++ )
@@ -6056,11 +5960,13 @@ void steam_createLobby ( void )
 	//  grab version number
 	if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
 	{
-		t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s + "worklevel.dat";		
 	}
 	else
 	{
-		t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
 	}
 
 	t.tsteamworkshopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
@@ -6088,19 +5994,11 @@ void steam_searchForFpms ( void )
 {
 	g.steamworks.mode = STEAM_SERVER_CHOOSING_FPM_TO_USE;
 	t.told_s=GetDir();
-	SetDir (  cstr(g.fpscrootdir_s + "\\Files\\mapbank").Get() );
+	//SetDir (  cstr(g.fpscrootdir_s + "\\Files\\mapbank").Get() );
+	SetDir ( g.mysystem.mapbankAbs_s.Get() );
 	ChecklistForFiles (  );
 	Dim (  t.tfpmfilelist_s,ChecklistQuantity( ) );
 	t.tempsteamhowmanyfpmsarethere = 0;
-
-	if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm").Get()) ) 
-	{
-//   `tempsteamhowmanyfpmsarethere = 1
-
-//   `tfpmfilelist$(0) = "Level I just worked on"
-
-	}
-
 	for ( t.c = 1 ; t.c<=  ChecklistQuantity(); t.c++ )
 	{
 		if (  ChecklistValueA(t.c) == 0 ) 
@@ -6117,48 +6015,46 @@ void steam_searchForFpms ( void )
 		}
 	}
 	SetDir (  t.told_s.Get() );
-return;
-
 }
 
 void steam_launchGame ( void )
 {
 	g.steamworks.launchServer = 1;
-return;
-
 }
 
 void steam_backToStart ( void )
 {
 	steam_resetGameStats ( );
-return;
-
 }
 
 void steam_selectedALevel ( void )
 {
-
-	if (  FileExist( cstr( g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
+	cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
+	if ( FileExist( mlevel_s.Get())  ) DeleteAFile ( mlevel_s.Get() );
 	g.steamworks.fpmpicked = t.tfpmfilelist_s[g.steamworks.selectedLobby];
 	steam_checkIfLevelHasCustomContent ( );
 	if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
 	{
-		CopyAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm" ).Get(),cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
+		cstr worklevel_s = g.mysystem.editorsGridedit_s + "worklevel.fpm";
+		CopyAFile ( worklevel_s.Get(),mlevel_s.Get() );
 	}
 	else
 	{
-		CopyAFile (  cstr(g.fpscrootdir_s+"\\Files\\mapbank\\"+g.steamworks.fpmpicked).Get(),cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
+		//CopyAFile (  cstr(g.fpscrootdir_s+"\\Files\\mapbank\\"+g.steamworks.fpmpicked).Get(),cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
+		CopyAFile ( cstr(g.mysystem.mapbankAbs_s+g.steamworks.fpmpicked).Get(), cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
 	}
 	if (  g.steamworks.levelContainsCustomContent  ==  1 ) 
 	{
 		//  first we check if the changed flag is set (they have saved since hosting) if not, we dont need to upload to steam
 		if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
 		{
-			t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+			//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+			t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s + "worklevel.dat";
 		}
 		else
 		{
-			t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+			//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+			t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
 		}
 
 		t.tsteamworkshopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
@@ -6183,11 +6079,13 @@ void steam_checkIfLevelHasCustomContent ( void )
 
 	if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
 	{
-		t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+"worklevel.dat";
 	}
 	else
 	{
-		t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
 	}
 
 	if (  FileExist(t.tempsteammaptocheck_s.Get()) ) 
@@ -6237,13 +6135,13 @@ void steam_buildWorkShopItem ( void )
 
 			if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
 			{
-				t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
-				t.tempsteamleveltocopy_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.fpm";
+				t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+"worklevel.dat";//g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+				t.tempsteamleveltocopy_s = g.mysystem.mapbankAbs_s+"worklevel.fpm";//g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.fpm";
 			}
 			else
 			{
-				t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
-				t.tempsteamleveltocopy_s = g.fpscrootdir_s+"\\Files\\mapbank\\" + g.steamworks.fpmpicked;
+				t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";//g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+				t.tempsteamleveltocopy_s = g.mysystem.mapbankAbs_s+g.steamworks.fpmpicked;//g.fpscrootdir_s+"\\Files\\mapbank\\" + g.steamworks.fpmpicked;
 			}
 
 			t.tempsteamdestworkshopfolder_s = g.fpscrootdir_s + "\\Files\\editors\\workshopItem\\";
@@ -6352,11 +6250,13 @@ void steam_buildWorkShopItem ( void )
 				//  set changed flag to 0
 				if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
 				{
-					t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+					//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
+					t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+"worklevel.dat";
 				}
 				else
 				{
-					t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+					//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+					t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
 				}
 				if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
 				//  Work out how many lines there are so we can Dim (  the right amount )
@@ -6906,8 +6806,6 @@ void steam_save_workshop_files_needed ( void )
 					if (  Len(t.tlevelfile_s.Get())>1 ) 
 					{
 						t.tlevelfile_s=cstr("mapbank\\")+t.tlevelfile_s+".fpm";
-						//++t.levelmax; // 130318 - not used for steam_save_workshop_files_needed function
-						//t.levellist_s[t.levelmax]=t.tlevelfile_s;
 						addtocollection(t.tlevelfile_s.Get());
 					}
 				}

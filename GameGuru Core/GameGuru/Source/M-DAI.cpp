@@ -105,7 +105,7 @@ void darkai_preparedata ( void )
 	t.aisystem.obs=0;
 
 	//  If MAP.OBS file exists, load instead of generate
-	t.tobsfile_s="levelbank\\testmap\\map.obs";
+	t.tobsfile_s=g.mysystem.levelBankTestMap_s+"map.obs"; //"levelbank\\testmap\\map.obs";
 	if (  FileExist(t.tobsfile_s.Get()) == 1 ) 
 	{
 		// NOTE: gridedit_changemodifiedflag deletes this file if static entity altered
@@ -261,7 +261,7 @@ void darkai_invalidateobstacles ( void )
 	// Remove container zero obstacles file
 	if ( t.tignoreinvalidateobstacles == 0 ) 
 	{
-		t.tobsfile_s = g.fpscrootdir_s+"\\Files\\levelbank\\testmap\\map.obs";
+		t.tobsfile_s = g.mysystem.levelBankTestMapAbs_s+"map.obs"; //g.fpscrootdir_s+"\\Files\\levelbank\\testmap\\map.obs";
 		if ( FileExist(t.tobsfile_s.Get()) == 1 ) DeleteAFile ( t.tobsfile_s.Get() );
 		t.aisystem.generateobs=1;
 	}
@@ -270,7 +270,7 @@ void darkai_invalidateobstacles ( void )
 void darkai_saveobstacles ( void )
 {
 	//  Save container zero obstacles
-	t.tobsfile_s="levelbank\\testmap\\map.obs";
+	t.tobsfile_s=g.mysystem.levelBankTestMap_s+"map.obs"; //"levelbank\\testmap\\map.obs";
 	if (  FileExist(t.tobsfile_s.Get()) == 1  )  DeleteAFile (  t.tobsfile_s.Get() );
 	//C++ISSUE - hope this works :D
 	AISaveObstacleData (  0, (unsigned long) t.tobsfile_s.Get() );
@@ -280,7 +280,7 @@ void darkai_saveobstacles ( void )
 void darkai_loadobstacles ( void )
 {
 	//  Load container zero obstacles
-	t.tobsfile_s="levelbank\\testmap\\map.obs";
+	t.tobsfile_s=g.mysystem.levelBankTestMap_s+"map.obs"; //"levelbank\\testmap\\map.obs";
 	if (  FileExist(t.tobsfile_s.Get()) == 1 ) 
 	{
 		AILoadObstacleData (  0, (unsigned long) t.tobsfile_s.Get() );
@@ -2535,9 +2535,6 @@ void char_init ( void )
 
 	//  Create state engine database for character animations
 	char_createseqdata ( );
-
-return;
-
 }
 
 void char_createseqdata ( void )

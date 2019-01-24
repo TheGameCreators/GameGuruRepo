@@ -18,4 +18,6 @@ void addtocollection ( char* file_s );
 void removefromcollection ( char* file_s );
 void removeanymatchingfromcollection ( char* folderorfile_s );
 void addfoldertocollection ( char* path_s );
+void addallinfoldertocollection ( cstr subThisFolder_s, cstr subFolder_s );
+void createallfoldersincollection ( void );
 void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s );

@@ -10,6 +10,8 @@
 
 void mapfile_saveproject_fpm ( void )
 {
+	LPSTR pOldDir = GetDir();
+
 	//  use default or special worklevel stored
 	if (  t.goverridefpmdestination_s != "" ) 
 	{
@@ -20,9 +22,9 @@ void mapfile_saveproject_fpm ( void )
 		t.ttempprojfilename_s=g.projectfilename_s;
 	}
 
-	//75593 : Saving FPM g.level file: D:\github\GameGuruRepo\GameGuru\Files\mapbank\my-test-map.fpm S:0MB   V: (579,0) 
-	
-	if (g.editorsavebak == 1) {
+	//75593 : Saving FPM g.level file: D:\github\GameGuruRepo\GameGuru\Files\map bank\my-test-map.fpm S:0MB   V: (579,0) 
+	if (g.editorsavebak == 1) 
+	{
 		//PE: Make a backup before overwriting a fpm level.
 		char backupname[1024];
 		strcpy(backupname, t.ttempprojfilename_s.Get());
@@ -42,7 +44,7 @@ void mapfile_saveproject_fpm ( void )
 	t.tincludevisualsfile=0;
 	if (  FileExist( cstr(g.fpscrootdir_s+"\\visuals.ini").Get() ) == 1 ) 
 	{
-		t.tvisfile_s="levelbank\\testmap\\visuals.ini";
+		t.tvisfile_s=g.mysystem.levelBankTestMap_s+"visuals.ini"; //"levelbank\\testmap\\visuals.ini";
 		if (  FileExist(t.tvisfile_s.Get()) == 1  )  DeleteAFile (  t.tvisfile_s.Get() );
 		CopyAFile (  cstr(g.fpscrootdir_s+"\\visuals.ini").Get(),t.tvisfile_s.Get() );
 		t.tincludevisualsfile=1;
@@ -56,16 +58,18 @@ void mapfile_saveproject_fpm ( void )
 
 	//  Copy CFG to testgame area for saving with other files
 	t.tttfile_s="cfg.cfg";
-	if (  FileExist( cstr(cstr(GetDir())+"\\editors\\gridedit\\"+t.tttfile_s).Get() ) == 1 ) 
+	cstr cfgfile_s = g.mysystem.editorsGridedit_s + t.tttfile_s;
+	if (  FileExist( cfgfile_s.Get() ) == 1 ) 
 	{
-		if (  FileExist( cstr(cstr("levelbank\\testmap\\")+t.tttfile_s).Get() ) == 1  )  DeleteAFile ( cstr(cstr("levelbank\\testmap\\")+t.tttfile_s).Get() );
-		CopyAFile (  cstr(cstr(GetDir())+"\\editors\\gridedit\\"+t.tttfile_s).Get(), cstr(cstr("levelbank\\testmap\\")+t.tttfile_s).Get() );
+		cstr cfginlevelbank_s = g.mysystem.levelBankTestMap_s+t.tttfile_s;
+		if ( FileExist( cfginlevelbank_s.Get() ) == 1 ) DeleteAFile ( cfginlevelbank_s.Get() );
+		CopyAFile ( cfgfile_s.Get(), cfginlevelbank_s.Get() );
 	}
 
 	//  Create a FPM (zipfile)
 	CreateFileBlock (  1, t.ttempprojfilename_s.Get() );
 	SetFileBlockKey (  1, "mypassword" );
-	SetDir (  "levelbank\\testmap\\" );
+	SetDir ( g.mysystem.levelBankTestMap_s.Get() ); // "levelbank\\testmap\\" );
 	AddFileToBlock (  1, "header.dat" );
 	AddFileToBlock (  1, "playerconfig.dat" );
 	AddFileToBlock (  1, "cfg.cfg" );
@@ -173,7 +177,8 @@ void mapfile_saveproject_fpm ( void )
 		}
 	}
 
-	SetDir (  "..\\.." );
+	//SetDir (  "..\\.." );
+	SetDir ( pOldDir );
 	SaveFileBlock ( 1 );
 
 	//  does crazy cool stuff
@@ -237,7 +242,7 @@ void mapfile_loadproject_fpm ( void )
 		lm_emptylightmapfolder ( );
 
 		//  Store and switch folders
-		t.tdirst_s=GetDir() ; SetDir (  "levelbank\\testmap\\" );
+		t.tdirst_s=GetDir() ; SetDir ( g.mysystem.levelBankTestMap_s.Get() ); // "levelbank\\testmap\\" );
 
 		//  Delete key testmap file (if any)
 		if (  FileExist("header.dat") == 1  )  DeleteAFile (  "header.dat" );
@@ -264,7 +269,8 @@ void mapfile_loadproject_fpm ( void )
 		timestampactivity(0,"LOADMAP: read FPM block");
 		OpenFileBlock (  g.projectfilename_s.Get(),1,"mypassword" );
 		PerformCheckListForFileBlockData (  1 );
-		t.tpath_s=t.rootpath_s+"levelbank\\testmap\\";
+		//t.tpath_s=t.rootpath_s+"levelbank\\testmap\\";
+		t.tpath_s=g.mysystem.levelBankTestMap_s.Get(); //"levelbank\\testmap\\";
 		for ( t.i = 1 ; t.i<=  ChecklistQuantity( ); t.i++ )
 		{
 			ExtractFileFromBlock (  1, ChecklistString( t.i ), t.tpath_s.Get() );
@@ -272,7 +278,8 @@ void mapfile_loadproject_fpm ( void )
 		CloseFileBlock (  1 );
 
 		//  If file still not present, extraction failed
-		SetDir (  cstr(t.tdirst_s+"\\levelbank\\testmap\\").Get() );
+		//SetDir (  cstr(t.tdirst_s+"\\levelbank\\testmap\\").Get() );
+		SetDir ( g.mysystem.levelBankTestMapAbs_s.Get() );
 		if (  FileExist("header.dat") == 0 ) 
 		{
 			//  inform user the FPM could not be loaded (corrupt file)
@@ -280,7 +287,8 @@ void mapfile_loadproject_fpm ( void )
 		}
 
 		//  If file still not present, extraction failed
-		SetDir (  cstr(t.tdirst_s+"\\levelbank\\testmap\\").Get() );
+		//SetDir (  cstr(t.tdirst_s+"\\levelbank\\testmap\\").Get() );
+		SetDir ( g.mysystem.levelBankTestMapAbs_s.Get() );		
 		if ( g.memskipwatermask == 0  && FileExist("watermask.dds") == 0 )
 		{
 			//  Only Reloaded Formats have this texture file, so fail load if not there (Classic FPM)
@@ -336,8 +344,11 @@ void mapfile_loadproject_fpm ( void )
 				t.tttfile_s="cfg.cfg";
 				if (  FileExist(t.tttfile_s.Get()) == 1 ) 
 				{
-					if (  FileExist( cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() ) == 1  )  DeleteAFile (  cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() );
-					CopyAFile ( t.tttfile_s.Get() ,cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() );
+					//if ( FileExist( cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() ) == 1  )  DeleteAFile (  cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() );
+					//CopyAFile ( t.tttfile_s.Get() ,cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() );
+					cstr cfgfile_s = g.mysystem.editorsGridedit_s + t.tttfile_s;
+					if ( FileExist( cfgfile_s.Get() ) == 1  )  DeleteAFile ( cfgfile_s.Get() );
+					CopyAFile ( t.tttfile_s.Get(), cfgfile_s.Get() );
 				}
 			}
 		}
@@ -390,8 +401,10 @@ void mapfile_loadmap ( void )
 	if ( t.versionmajor < 1 )
 	{
 		LPSTR pOldDir = GetDir();
-		LPSTR pObstacleWaypointData = "levelbank\\testmap\\map.obs";
-		if ( FileExist ( pObstacleWaypointData ) == 1 ) DeleteFile ( pObstacleWaypointData );
+		//LPSTR pObstacleWaypointData = "levelbank\\testmap\\map.obs";
+		//if ( FileExist ( pObstacleWaypointData ) == 1 ) DeleteFile ( pObstacleWaypointData );
+		cstr obstacleWaypointData_s = g.mysystem.levelBankTestMap_s+"map.obs";
+		if ( FileExist ( obstacleWaypointData_s.Get() ) == 1 ) DeleteFile ( obstacleWaypointData_s.Get() );
 	}
 }
 
@@ -401,7 +414,7 @@ void mapfile_savemap ( void )
 	t.old_s=GetDir();
 
 	// Enter folder
-	SetDir ( "levelbank\\testmap\\" );
+	SetDir ( g.mysystem.levelBankTestMap_s.Get() ); //"levelbank\\testmap\\" );
 
 	// Clear old files out (TEMP)
 	if (  FileExist("header.dat") == 1  )  DeleteAFile (  "header.dat" );
@@ -484,7 +497,7 @@ void mapfile_saveplayerconfig ( void )
 	t.old_s=GetDir();
 
 	//  Enter folder
-	SetDir (  "levelbank\\testmap\\" );
+	SetDir ( g.mysystem.levelBankTestMap_s.Get() ); // "levelbank\\testmap\\" );
 
 	//  Version for player config has minor value (between betas)
 	t.gtweakversion=20100653;
@@ -549,7 +562,7 @@ void mapfile_savestandalone ( void )
 	//  check for character creator usage
 	characterkit_checkForCharacters ( );
 
-	// 040316 - v1.13b1 - find the nested folder structure of the level (could be in mapbank\Easter\level1.fpm)
+	// 040316 - v1.13b1 - find the nested folder structure of the level (could be in map bank\Easter\level1.fpm)
 	t.told_s=GetDir();
 	cstr mapbankpath, levelpathfolder;
 	if ( g.projectfilename_s.Get()[1] != ':' )
@@ -561,7 +574,8 @@ void mapfile_savestandalone ( void )
 	else
 	{
 		// absolute project path
-		mapbankpath = t.told_s + cstr("\\mapbank\\");
+		//mapbankpath = t.told_s + cstr("\\mapbank\\");
+		mapbankpath = g.mysystem.mapbankAbs_s;
 		levelpathfolder = Right ( g.projectfilename_s.Get(), strlen(g.projectfilename_s.Get()) - strlen(mapbankpath.Get()) );
 	}
 
@@ -628,8 +642,9 @@ void mapfile_savestandalone ( void )
 	if (  cstr(Right(t.exepath_s.Get(),1)) != "\\"  )  t.exepath_s = t.exepath_s+"\\";
 
 	//  Collect ALL files in string array list
+	Undim ( t.filecollection_s );
 	g.filecollectionmax = 0;
-	Dim (  t.filecollection_s,500  );
+	Dim ( t.filecollection_s, 500 );
 
 	//  Stage 1 - specify all common files
 	addtocollection("editors\\gfx\\guru-forexe.ico");
@@ -1228,6 +1243,8 @@ void mapfile_savestandalone ( void )
 	}
 
 	//  Ensure file path exists (by creating folders)
+	createallfoldersincollection();
+	/*
 	t.filesmax=g.filecollectionmax;
 	t.strwork = ""; t.strwork = t.strwork + "Create full path structure ("+Str(t.filesmax)+") for standalone executable";
 	timestampactivity(0, t.strwork.Get() );
@@ -1266,6 +1283,7 @@ void mapfile_savestandalone ( void )
 		}
 		SetDir (  t.olddir_s.Get() );
 	}
+	*/
 
 	//  If not copying levelbank files, must still create the folder
 	if (  t.tignorelevelbankfiles == 1 ) 
@@ -1349,11 +1367,13 @@ void mapfile_savestandalone ( void )
 		}
 	}
 
+	// switch to original root to copy exe files and dependencies
+	SetDir ( g.originalrootdir_s.Get() );
+
 	//  Copy game engine and rename it
-	SetDir (  g.fpscrootdir_s.Get() );
 	t.dest_s=t.exepath_s+t.exename_s+"\\"+t.exename_s+".exe";
 	if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
-	CopyAFile (  "Guru-MapEditor.exe",t.dest_s.Get() );
+	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
 	for ( int iCritDLLs = 1; iCritDLLs <= 6; iCritDLLs++ )
@@ -1372,21 +1392,11 @@ void mapfile_savestandalone ( void )
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
 		CopyAFile ( pCritDLLFilename, t.dest_s.Get() );
 	}
+
 	// Copy steam files (see above)
-	//t.dest_s=t.exepath_s+t.exename_s+"\\steam_api.dll";
-	//if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
-	//CopyAFile (  "steam_api.dll",t.dest_s.Get() );
-	//t.dest_s=t.exepath_s+t.exename_s+"\\sdkencryptedappticket.dll";
-	//if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
-	//CopyAFile (  "sdkencryptedappticket.dll",t.dest_s.Get() );
 	t.dest_s=t.exepath_s+t.exename_s+"\\steam_appid.txt";
 	if ( FileExist(t.dest_s.Get()) == 1  ) DeleteAFile (  t.dest_s.Get() );
 	if ( FileExist("steam_appid.txt") == 1  ) CopyAFile ( "steam_appid.txt",t.dest_s.Get() );
-
-	// not required for EXE
-	//t.dest_s=t.exepath_s+t.exename_s+"\\parentalcontrolmode.ini";
-	//if ( FileExist(t.dest_s.Get()) == 1  ) DeleteAFile (  t.dest_s.Get() );
-	//if ( FileExist("parentalcontrolmode.ini") == 1  ) CopyAFile ( "parentalcontrolmode.ini",t.dest_s.Get() );
 
 	//  Copy visuals settings file
 	t.visuals=t.gamevisuals ; visuals_save ( );
@@ -1730,8 +1740,6 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 		}
 	}
 	UnDim (  t.scriptpage_s );
-//endfunction
-
 }
 
 void addtocollection ( char* file_s )
@@ -1813,6 +1821,94 @@ void addfoldertocollection ( char* path_s )
 	else
 	{
 		timestampactivity(0, cstr(cstr("Tried adding path that does not exist: ")+path_s).Get() );
+	}
+}
+
+void addallinfoldertocollection ( cstr subThisFolder_s, cstr subFolder_s )
+{
+	// into folder
+	if ( subThisFolder_s.Len() > 0 ) SetDir ( subThisFolder_s.Get() );
+
+	// first scan and record all files and folders - store folders locally
+	ChecklistForFiles();
+	int iFoldersCount = ChecklistQuantity();
+	cstr* pFolders = new cstr[iFoldersCount+1];
+	for ( int c = 1; c <= iFoldersCount; c++ )
+	{
+		pFolders[c] = "";
+		LPSTR pFileFolderName = ChecklistString(c);
+		if ( strcmp ( pFileFolderName, "." ) != NULL && strcmp ( pFileFolderName, ".." ) !=NULL )
+		{
+			if ( ChecklistValueA(c) == 1 )
+			{
+				pFolders[c] = pFileFolderName;
+			}
+			else
+			{
+				cstr relativeFilePath_s = subFolder_s + "\\" + pFileFolderName;
+				addtocollection ( relativeFilePath_s.Get() );
+			}
+		}
+	}
+
+	// now use local folder list and investigate each one
+	for ( int f = 1; f <= iFoldersCount; f++ )
+	{
+		cstr pFolderName = pFolders[f];
+		if ( pFolderName.Len() > 0 )
+		{
+			cstr relativeFolderPath_s = pFolderName;
+			if ( subFolder_s.Len() > 0 ) relativeFolderPath_s = subFolder_s + "\\" + pFolderName;
+			addallinfoldertocollection ( pFolderName, relativeFolderPath_s );
+		}
+	}
+
+	// back out of folder
+	if ( subThisFolder_s.Len() > 0 ) SetDir ( ".." );
+
+	// finally free resources
+	delete[] pFolders;
+}
+
+void createallfoldersincollection ( void )
+{
+	t.filesmax=g.filecollectionmax;
+	t.strwork = ""; t.strwork = t.strwork + "Create full path structure ("+Str(t.filesmax)+") for standalone executable";
+	timestampactivity(0, t.strwork.Get() );
+	for ( t.fileindex = 1 ; t.fileindex <= t.filesmax; t.fileindex++ )
+	{
+		t.olddir_s=GetDir();
+		t.src_s=t.filecollection_s[t.fileindex];
+		t.srcstring_s=t.src_s;
+		while ( Len(t.srcstring_s.Get())>0 ) 
+		{
+			for ( t.c = 1 ; t.c <= Len(t.srcstring_s.Get()); t.c++ )
+			{
+				if ( cstr(Mid(t.srcstring_s.Get(),t.c)) == "\\" || cstr(Mid(t.srcstring_s.Get(),t.c)) == "/" ) 
+				{
+					t.chunk_s=Left(t.srcstring_s.Get(),t.c-1);
+					if ( Len(t.chunk_s.Get())>0 ) 
+					{
+						if ( PathExist(t.chunk_s.Get()) == 0 )  MakeDirectory ( t.chunk_s.Get() );
+						if ( PathExist(t.chunk_s.Get()) == 0 ) 
+						{
+							timestampactivity(0,cstr(cstr("Path:")+t.src_s).Get() );
+							timestampactivity(0,cstr(cstr("Unable to create folder:'")+t.chunk_s+"' [error code "+Mid(t.srcstring_s.Get(),t.c)+":"+Str(t.c)+":"+Str(Len(t.srcstring_s.Get()))+"]").Get() );
+						}
+						if ( PathExist(t.chunk_s.Get()) == 1 ) 
+						{
+							// sometimes an absolute path can be inserted into path sequence (i.e lee\fred\d;\blob\doug)
+							SetDir ( t.chunk_s.Get() );
+						}
+					}
+					t.srcstring_s=Right(t.srcstring_s.Get(),Len(t.srcstring_s.Get())-t.c);
+					t.c = 1; // start from beginning as string has been cropped
+					break;
+				}
+			}
+			if ( t.c>Len(t.srcstring_s.Get()) ) break;
+		}
+		SetDir ( t.olddir_s.Get() );
 	}
 }
 

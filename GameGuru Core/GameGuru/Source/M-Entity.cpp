@@ -22,7 +22,6 @@ void LoadFBX ( LPSTR szFilename, int iID );
 
 void entity_addtoselection_core ( void )
 {
-
 	//  ensure ENT$ does not contain duplicate \ symbols
 	t.tnewent_s="";
 	for ( t.n = 1 ; t.n<=  Len(t.ent_s.Get()); t.n++ )
@@ -92,14 +91,12 @@ void entity_addtoselection_core ( void )
 
 void entity_addtoselection ( void )
 {
-
 	//  Load entity from file requester
 	SetDir (  g.currententitydir_s.Get() );
 	t.ent_s=browseropen_s(9);
 	g.currententitydir_s=GetDir();
 	SetDir (  g.rootdir_s.Get() );
 	entity_addtoselection_core ( );
-
 }
 
 void entity_adduniqueentity ( bool bAllowDuplicates )
@@ -3238,7 +3235,7 @@ void entity_loadelementsdata ( void )
 	entity_deleteelementsdata ( );
 
 	//  Uses elementfilename$ (element data from test game quick build - not from universe.ele created during full build)
-	if (  t.elementsfilename_s == ""  )  t.elementsfilename_s = "levelbank\\testmap\\map.ele";
+	if (  t.elementsfilename_s == ""  )  t.elementsfilename_s = g.mysystem.levelBankTestMap_s+"map.ele"; //"levelbank\\testmap\\map.ele";
 
 	// load entity element list
 	t.failedtoload=0;
@@ -3749,7 +3746,7 @@ void entity_loadelementsdata ( void )
 void entity_saveelementsdata ( void )
 {
 	//  Uses elementfilename$
-	if (  t.elementsfilename_s == ""  )  t.elementsfilename_s = "levelbank\\testmap\\map.ele";
+	if (  t.elementsfilename_s == ""  )  t.elementsfilename_s = g.mysystem.levelBankTestMap_s+"map.ele"; //"levelbank\\testmap\\map.ele";
 
 	//  Reduce list size if later elements blank
 	t.e=g.entityelementlist;
@@ -4147,9 +4144,12 @@ void entity_savebank ( void )
 	}
 
 	//  Save segment bank
-	if (  FileExist("levelbank\\testmap\\map.ent") == 1  )  DeleteAFile (  "levelbank\\testmap\\map.ent" );
-	OpenToWrite (  1,"levelbank\\testmap\\map.ent" );
-	WriteLong (  1,g.entidmaster );
+	cstr segmentbank_s = g.mysystem.levelBankTestMap_s+"map.ent";
+	//if (  FileExist("levelbank\\testmap\\map.ent") == 1  )  DeleteAFile (  "levelbank\\testmap\\map.ent" );
+	//OpenToWrite (  1,"levelbank\\testmap\\map.ent" );
+	if (  FileExist(segmentbank_s.Get()) == 1 )  DeleteAFile ( segmentbank_s.Get() );
+	OpenToWrite ( 1, segmentbank_s.Get() );
+	WriteLong ( 1,g.entidmaster );
 	if (  g.entidmaster>0 ) 
 	{
 		for ( t.entid = 1 ; t.entid<=  g.entidmaster; t.entid++ )
@@ -4157,7 +4157,7 @@ void entity_savebank ( void )
 			WriteString (  1,t.entitybank_s[t.entid].Get() );
 		}
 	}
-	CloseFile (  1 );
+	CloseFile ( 1 );
 }
 
 void entity_savebank_ebe ( void )
@@ -4166,35 +4166,9 @@ void entity_savebank_ebe ( void )
 	// 190417 - oops, this is deleting perfectly needed textures from testmap folder
 	// when it should leave textures alone that may belong to the level EBEs
 	// so set a flag to protect textures when save
-	cstr pStoreOld = GetDir(); SetDir ( "levelbank\\testmap\\" );
+	cstr pStoreOld = GetDir(); SetDir ( g.mysystem.levelBankTestMap_s.Get() ); //"levelbank\\testmap\\" );
 	mapfile_emptyebesfromtestmapfolder(true);
 	SetDir ( pStoreOld.Get() );
-
-	/* old system removed EBE, but we also need to remove FPEs from old entities
-	// clear ALL ebe in testmap folder
-	LPSTR pOldDir = GetDir();
-	SetDir ( "levelbank\\testmap\\" );
-	FindFirst ( );
-	std::vector<cStr> listToDelete;
-	listToDelete.clear();
-	while ( GetFileType() != -1 ) 
-	{
-		if ( GetFileType() == 0 ) 
-		{
-			cStr pFilename = cstr(Lower(GetFileName()));
-			if ( strcmp ( Right ( pFilename.Get(), 4 ), ".ebe" ) == NULL )
-				listToDelete.push_back(pFilename);
-		}
-		FindNext ( );
-	}
-	// delete any old EBE files we find
-	for ( int n = 0; n < listToDelete.size(); n++ )
-	{
-		DeleteAFile ( listToDelete[n].Get() );
-	}
-	// restore folder
-	SetDir ( pOldDir );
-	*/
 
 	// now save all EBE to testmap folder
 	for ( t.tttentid = 1 ; t.tttentid <= g.entidmaster; t.tttentid++ )
@@ -4204,7 +4178,9 @@ void entity_savebank_ebe ( void )
 			if ( t.entityprofile[t.tttentid].ebe.dwRLESize > 0 )
 			{
 				// Save EBE to represent this creation in the level
-				cStr tSaveFile = cstr("levelbank\\testmap\\ebe") + cstr(t.tttentid) + cstr(".ebe");
+				//cStr tSaveFile = cstr("levelbank\\testmap\\ebe") + cstr(t.tttentid) + cstr(".ebe");
+				cStr tSaveFile = g.mysystem.levelBankTestMap_s + cstr("ebe") + cstr(t.tttentid) + cstr(".ebe");
+				
 				ebe_save_ebefile ( tSaveFile, t.tttentid );
 			}
 		}
@@ -4409,9 +4385,11 @@ void entity_loadentitiesnow ( void )
 			if ( strcmp ( Lower(Right(t.ent_s.Get(),4)), ".fpe" ) != NULL )
 			{
 				// special EBE entity
-				ebe_load_ebefile ( cstr("levelbank\\testmap\\ebe") + cstr(t.entid) + cstr(".ebe"), t.entid );
+				//ebe_load_ebefile ( cstr("levelbank\\testmap\\ebe") + cstr(t.entid) + cstr(".ebe"), t.entid );
+				ebe_load_ebefile ( g.mysystem.levelBankTestMap_s + cstr("ebe") + cstr(t.entid) + cstr(".ebe"), t.entid );
+				
 				t.entityprofileheader[t.entid].desc_s = cstr("EBE") + cstr(t.entid);
-				t.entdir_s = "levelbank\\testmap\\";
+				t.entdir_s = g.mysystem.levelBankTestMap_s; //"levelbank\\testmap\\";
 				t.ent_s = cstr("ebe") + cstr(t.entid) + cstr(".fpe");
 				t.entpath_s = "";
 			}

@@ -60,7 +60,7 @@ void interactive_init ( void )
 	t.strwork = "" ; t.strwork = t.strwork + t.tinteractivepath_s+"finish-highlight.png";
 	LoadImage ( t.strwork.Get() ,g.interactiveimageoffset+34 );
 
-	//  Scan mapbank\tutorialmaps and collect grid of levels
+	//  Scan mapbank\tutorial maps and collect grid of levels
 	t.tindex=1;
 	t.toldd_s=GetDir();
 	SetDir (  "mapbank\\tutorialmaps" );
@@ -309,7 +309,6 @@ return;
 
 void interactive_picktemplate ( void )
 {
-
 	//  buttons
 	interactivedrawimg(t.tcenterx+10,t.tcentery+92,g.interactiveimageoffset+21,1,0);
 	interactivedrawimgalpha(t.tcenterx+30,t.tcentery+510,g.interactiveimageoffset+22,2,1,1);

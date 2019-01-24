@@ -444,7 +444,6 @@ void CSteamUserGeneratedWorkshopItem::DownloadWorkshopitem ( uint64 id )
 		else
 		{
 			isItemDownloaded = 1;
-
 			char from[MAX_PATH];
 			char to[MAX_PATH];
 			sprintf ( from , "%s\\editors_gridedit___multiplayerlevel__.fpm" , WorkshopItemPath );
@@ -464,10 +463,6 @@ void CSteamUserGeneratedWorkshopItem::OnWorkshopItemDownloadDone( DownloadItemRe
 		uint64 unSizeOnDisk = 0;
 		strcpy ( WorkshopItemPath , "" );
 
-		//bool legacySupport = false;
-		//if ( !SteamUGC()->GetItemInstallInfo( WorkshopItemToDownloadID, &unSizeOnDisk, WorkshopItemPath, sizeof(WorkshopItemPath) , &legacySupport ) )
-		//uint32 timestamp;
-		//if ( !SteamUGC()->GetItemInstallInfo( WorkshopItemToDownloadID, &unSizeOnDisk, WorkshopItemPath, sizeof(WorkshopItemPath) , &timestamp ) )
 		if ( pCallback->m_eResult != k_EResultOK )
 		{
 			isItemDownloaded = -1;			

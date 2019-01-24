@@ -8,12 +8,14 @@
 
 void waypoint_savedata ( void )
 {
-
-//  Save list
-if (  FileExist("levelbank\\testmap\\map.way") == 1  )  DeleteAFile (  "levelbank\\testmap\\map.way" );
-OpenToWrite (  1,"levelbank\\testmap\\map.way" );
+	//  Save list
+	//if (  FileExist("levelbank\\testmap\\map.way") == 1  )  DeleteAFile (  "levelbank\\testmap\\map.way" );
+	//OpenToWrite (  1,"levelbank\\testmap\\map.way" );
+	cstr waypointSaveData_s = g.mysystem.levelBankTestMap_s + "map.way";
+	if ( FileExist(waypointSaveData_s.Get()) == 1  )  DeleteAFile ( waypointSaveData_s.Get() );
+	OpenToWrite ( 1, waypointSaveData_s.Get() );
 	//  strands
-	WriteLong (  1,g.waypointmax );
+	WriteLong ( 1, g.waypointmax );
 	if (  g.waypointmax>0 ) 
 	{
 		for ( t.w = 1 ; t.w<=  g.waypointmax; t.w++ )
@@ -43,10 +45,7 @@ OpenToWrite (  1,"levelbank\\testmap\\map.way" );
 			t.a=t.waypointcoord[t.w].index ; WriteLong (  1,t.a );
 		}
 	}
-CloseFile (  1 );
-
-return;
-
+	CloseFile (  1 );
 }
 
 void waypoint_loaddata ( void )

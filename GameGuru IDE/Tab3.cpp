@@ -102,34 +102,6 @@ void CTab3::OnLoadClicked()
 	m_SamplesList.GetFilenameSelected( 256, szFilename );
 	if ( _tcslen( szFilename ) <= 1 ) return;
 	theApp.m_pHelpWizardDlg->ShowWindow( SW_MINIMIZE );
-	/* X9 or X10
-	if ( g_bX9InterfaceMode==true )
-	{
-		// FPGC - 190909 - combo interface
-		char pAbsFilenameToSampleFPM[_MAX_PATH];
-		strcpy ( pAbsFilenameToSampleFPM, theApp.m_szDirectory );
-		// FPGC - 240510 - if no prefabs, this is the FPGC variant, so use tutorials not samples
-		if ( g_bDisablePrefabMode==true )
-			strcat ( pAbsFilenameToSampleFPM, "\\files\\mapbank\\tutorials\\" );
-		else
-			strcat ( pAbsFilenameToSampleFPM, "\\files\\mapbank\\samples\\" );
-		strcat ( pAbsFilenameToSampleFPM, szFilename );
-		theApp.SetFileMapDataString ( 1000, pAbsFilenameToSampleFPM );
-		theApp.SetFileMapData ( 442, 1 );
-		theApp.SetFileMapDataString ( 1000, pAbsFilenameToSampleFPM );
-	}
-	else
-	{
-		// X10 from MyDocs folder
-		char pMyDocumentsFolderFile[_MAX_PATH];
-		SHGetFolderPath( NULL, CSIDL_PERSONAL, NULL, 0, pMyDocumentsFolderFile );
-		strcat ( pMyDocumentsFolderFile, "\\FPSC X10 Files\\mapbank\\samples\\" );
-		strcat ( pMyDocumentsFolderFile, szFilename );
-		theApp.SetFileMapDataString ( 1000, pMyDocumentsFolderFile );
-		theApp.SetFileMapData ( 442, 1 );
-		theApp.SetFileMapDataString ( 1000, pMyDocumentsFolderFile );
-	}
-	*/
 
 	// eventually replace with MyDocs code
 	char pAbsFilenameToSampleFPM[_MAX_PATH];

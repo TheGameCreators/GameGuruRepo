@@ -718,7 +718,8 @@ int welcome_play_page ( int iHighlightingButton )
 		{
 			// load a game level
 			t.tlevelautoload_s="The Big Escape.fpm";
-			t.tlevelautoload_s=g.fpscrootdir_s+"\\Files\\mapbank\\"+t.tlevelautoload_s;
+			//t.tlevelautoload_s=g.fpscrootdir_s+"\\Files\\mapbank\\"+t.tlevelautoload_s;
+			t.tlevelautoload_s=g.mysystem.mapbankAbs_s+t.tlevelautoload_s;
 
 			// force immediate quit of welcome system
 			return 1;

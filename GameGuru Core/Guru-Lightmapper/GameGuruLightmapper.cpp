@@ -18,9 +18,25 @@ void GuruMain ( void )
 	common_init_globals();
 	char_init();
 
+	// My System vars
+	cstr mysystemfolder_s = "My System";
+	g.mysystem.root_s = g.myownrootdir_s + "\\" + mysystemfolder_s + "\\";
+	g.mysystem.levelBankTestMap_s = "levelbank\\testmap\\";
+	g.mysystem.levelBankTestMapAbs_s = g.fpscrootdir_s+"\\Files\\levelbank\\testmap\\";
+	g.mysystem.editorsGridedit_s = "editors\\gridedit\\";
+	g.mysystem.editorsGrideditAbs_s = g.fpscrootdir_s+"\\Files\\editors\\gridedit\\";
+	g.mysystem.mapbank_s = "mapbank\\";
+	g.mysystem.mapbankAbs_s = g.fpscrootdir_s+"\\Files\\mapbank\\";
+
 	// prepare all default values and check SETUP.INI for changes
 	FPSC_SetDefaults();
-	FPSC_LoadSETUPINI();
+	FPSC_LoadSETUPINI(false);
+	if ( g.mysystem.bUsingMySystemFolder == true ) 
+	{
+		FPSC_LoadSETUPINI(true);
+		common_switchtomysystemfolder();
+		SetDir ( g.mysystem.root_s.Get() );
+	}
 
 	// set display mode for lightmapper visual
 	timestampactivity(0,"set display mode");
@@ -58,6 +74,7 @@ void GuruMain ( void )
 
 	// Activate logging
 	g.gproducelogfiles = 1;
+	g.gproducelogfilesdir_s = "";
 	g.trueappname_s = "Guru-Lightmapper";
 	g.timestampactivitymax = 0;
 	g.timestampactivityflagged = 0;
@@ -82,7 +99,7 @@ void GuruMain ( void )
 
 	// Load Terrain 
 	t.tonscreenprompt_s = cstr("Loading Terrain To Lightmap"); lm_flashprompt();
-	t.tfile_s = "levelbank\\testmap\\m.dat";
+	t.tfile_s = g.mysystem.levelBankTestMap_s+"m.dat"; //"levelbank\\testmap\\m.dat";
 	if ( FileExist ( t.tfile_s.Get() ) == 1 ) 
 	{
 		terrain_createactualterrain ( );
@@ -139,7 +156,7 @@ void GuruMain ( void )
 	Dim ( t.storedentityelement, g.entityelementlist );
 	Dim2 ( t.entityphysicsbox, 1000, MAX_ENTITY_PHYSICS_BOXES );
 	for ( int e = 1; e <= g.entityelementlist; e++ ) t.entityelement[e].bankindex = 0;
-	t.levelmapptah_s = cstr("levelbank\\testmap\\");
+	t.levelmapptah_s = g.mysystem.levelBankTestMap_s;//cstr("levelbank\\testmap\\");
 	t.lightmapper.onlyloadstaticentitiesduringlightmapper = 1;
 	entity_loadbank();
 	entity_loadelementsdata();

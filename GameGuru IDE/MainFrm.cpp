@@ -2097,49 +2097,8 @@ void CMainFrame::OnFileSave()
 
 void CMainFrame::OnFileSaveAs() 
 {
-	/*
-	// display a save dialog box
-	OPENFILENAME	ofn;				// common dialog box structure
-	TCHAR			szFile [ 260 ];		// buffer for filename
-	HANDLE			hf;					// file handle
-	int				iLen;				// length of file
-	
-	memset ( szFile,  0, sizeof ( szFile ) );
-	memset ( &ofn,    0, sizeof ( ofn    ) );
-
-	ofn.lStructSize     = sizeof ( ofn );
-	ofn.hwndOwner       = NULL;
-	ofn.lpstrFile       = szFile;
-	ofn.nMaxFile        = sizeof ( szFile );
-	ofn.lpstrFilter     = _T ( "Maps\0*.fpm" );
-	ofn.nFilterIndex    = 1;
-	ofn.lpstrFileTitle  = NULL;
-	ofn.nMaxFileTitle   = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.Flags           = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-	SetCurrentDirectory ( theApp.m_szDirectory );
-
-	SetCurrentDirectory ( _T ( "files\\mapbank" ) );
-	
-	if ( GetSaveFileName ( &ofn ) == TRUE )
-		wcscpy ( szFile, ofn.lpstrFile );
-
-	SetCurrentDirectory ( theApp.m_szDirectory );
-	*/
-
 	theApp.SetFileMapData       ( 434, 1 );
-	//theApp.SetFileMapDataString ( 1000, szFile );
 }
-
-/*
-void CMainFrame::OnLButtonDblClk(UINT nFlags, CPoint point) 
-{
-	// TODO: Add your message handler code here and/or call default
-	
-	CMDIFrameWnd::OnLButtonDblClk(nFlags, point);
-}
-*/
 
 void CMainFrame::OnEditCopy1() 
 {
@@ -2158,16 +2117,6 @@ void CMainFrame::OnEditPaste1()
 	// TODO: Add your command handler code here
 	theApp.SetFileMapData ( 966, 1 );
 }
-
-//void CMainFrame::OnEditRedo1() 
-//{
-//	theApp.SetFileMapData ( 954, 1 );
-//}
-//
-//void CMainFrame::OnEditUndo1() 
-//{
-//	theApp.SetFileMapData ( 950, 1 );
-//}
 
 void CMainFrame::OnHelpIndex() 
 {

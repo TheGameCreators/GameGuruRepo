@@ -334,12 +334,12 @@ DARKSDK void DB_GetWinTemp(LPSTR pWindowsTempDirectory)
 	if(stricmp(pWindowsTempDirectory, CurrentDirectory)!=NULL)
 	{
 		// XP Temp Folder
-		chdir(pWindowsTempDirectory);
+		_chdir(pWindowsTempDirectory);
 		mkdir("dbpdata");
 		// U69 - 050608 - add seperator onyl if not present
 		if ( strncmp ( pWindowsTempDirectory + strlen ( pWindowsTempDirectory ) - 1, "\\", 1 )!=NULL ) strcat ( pWindowsTempDirectory, "\\" );
 		strcat(pWindowsTempDirectory, "dbpdata");
-		chdir(CurrentDirectory);
+		_chdir(CurrentDirectory);
 	}
 	else
 	{
@@ -347,10 +347,10 @@ DARKSDK void DB_GetWinTemp(LPSTR pWindowsTempDirectory)
 		GetWindowsDirectory(pWindowsTempDirectory, _MAX_PATH);
 		_chdir(pWindowsTempDirectory);
 		mkdir("temp");
-		chdir("temp");
+		_chdir("temp");
 		mkdir("dbpdata");
 		strcat(pWindowsTempDirectory, "\\temp\\dbpdata");
-		chdir(CurrentDirectory);
+		_chdir(CurrentDirectory);
 	}
 }
 

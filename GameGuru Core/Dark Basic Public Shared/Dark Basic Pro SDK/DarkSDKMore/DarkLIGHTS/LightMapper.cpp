@@ -854,9 +854,12 @@ DLLEXPORT void LMBuildLightMaps( int iTexSize, float fQuality, int iBlur, int iN
 
 	if ( !bSucceed )
 	{
+		/* need to place it in writable area - g.mysystem.levelBankTestMap_s could have done it
 		char fileStr[256];
 		FILE *pQualityChangeFile;
-		fopen_s( &pQualityChangeFile, "levelbank\\testmap\\lightmaps\\Quality Change.txt","w" );
+		//fopen_s( &pQualityChangeFile, "levelbank\\testmap\\lightmaps\\Quality Change.txt","w" );
+		cstr lightmapQualityFile_s = g.mysystem.levelBankTestMap_s + "lightmaps\\Quality Change.txt";
+		fopen_s( &pQualityChangeFile, lightmapQualityFile_s.Get(), "w" );
 		fputs( "Listed below are object limbs that were too large to fit onto a texture and had their quality reduced\n", pQualityChangeFile);
 		fputs( "To allow the original quality to be used try splitting your object up into limbs and splitting large polygons into several smaller ones\n\n", pQualityChangeFile);
 
@@ -881,6 +884,7 @@ DLLEXPORT void LMBuildLightMaps( int iTexSize, float fQuality, int iBlur, int iN
 		}
 
 		fclose( pQualityChangeFile );
+		*/
 	}
 
 	iCurrentObject = 0;
@@ -1157,6 +1161,7 @@ DLLEXPORT int LMBuildLightMapsCycle( void )
 
 			if ( !g_bBuildLightMapsCycleSucceed )
 			{
+				/* g.mysystem.levelBankTestMap_s could have done it
 				char fileStr[256];
 				FILE *pQualityChangeFile;
 				fopen_s( &pQualityChangeFile, "levelbank\\testmap\\lightmaps\\Quality Change.txt","w" );
@@ -1184,6 +1189,7 @@ DLLEXPORT int LMBuildLightMapsCycle( void )
 				}
 
 				fclose( pQualityChangeFile );
+				*/
 			}
 			g_iBuildLightMapsCycleMode = 2;
 			g_iBuildLightMapsCycleCurrentObject = 0;
@@ -1276,17 +1282,18 @@ DLLEXPORT void LMCompleteLightMaps( )
 		while ( szSlash )
 		{
 			strncpy_s( szFolder, 64, szLast, (szSlash - szLast) );
-		
-			if ( !SetCurrentDirectory( szFolder ) )
+			if ( strlen ( szFolder ) > 0 )
 			{
-				CreateDirectory( szFolder, NULL );
-				if ( !SetCurrentDirectory( szFolder ) ) 
+				if ( !SetCurrentDirectory( szFolder ) )
 				{
-					MessageBox( NULL, "Invalid lightmap folder location, could not create directory", "Lightmapper Error", 0 );
-					return;
+					CreateDirectory( szFolder, NULL );
+					if ( !SetCurrentDirectory( szFolder ) ) 
+					{
+						MessageBox( NULL, "Invalid lightmap folder location, could not create directory", "Lightmapper Error", 0 );
+						return;
+					}
 				}
 			}
-
 			szLast = szSlash+1;
 			szSlash = strchr( szLast, '\\' );
 		}

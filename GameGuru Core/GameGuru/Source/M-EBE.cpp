@@ -287,7 +287,7 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 		if ( FileExist(sDDSFile.Get()) == 0 ) 
 		{
 			// cache in ebebank\default deleted, so copy from
-			cstr tSourceRaw = cstr("levelbank\\testmap\\") + sUniqueFilename;
+			cstr tSourceRaw = g.mysystem.levelBankTestMap_s + sUniqueFilename; //cstr("levelbank\\testmap\\") + sUniqueFilename;
 			tSourceRaw = cstr(Left(tSourceRaw.Get(),strlen(tSourceRaw.Get())-6));
 			cstr tDDSSource = tSourceRaw + "_D.dds";
 			if ( FileExist(tDDSSource.Get()) == 0 ) 
@@ -2248,7 +2248,6 @@ int ebe_save ( int iEntityIndex )
 		return 0;
 
 	// EBE Save Folder
-	//t.strwork = g.fpscrootdir_s + "\\Files\\ebebank\\locallibrary";
 	t.strwork = g.fpscrootdir_s + "\\Files\\entitybank\\user\\ebestructures";
 	if ( PathExist( t.strwork.Get() ) == 0 ) 
 	{
@@ -2504,7 +2503,8 @@ void ebe_save_ebefile ( cStr tSaveFile, int iEntID )
 	{
 		if ( strnicmp ( tRawPath.Get(), "levelbank", 9 ) != NULL )
 		{
-			tDDSSourceRaw = cstr("levelbank\\testmap\\") + Left(t.entityprofile[iEntID].texd_s.Get(),strlen(t.entityprofile[iEntID].texd_s.Get())-6);
+			//tDDSSourceRaw = cstr("levelbank\\testmap\\") + Left(t.entityprofile[iEntID].texd_s.Get(),strlen(t.entityprofile[iEntID].texd_s.Get())-6);
+			tDDSSourceRaw = g.mysystem.levelBankTestMap_s + Left(t.entityprofile[iEntID].texd_s.Get(),strlen(t.entityprofile[iEntID].texd_s.Get())-6);
 			tDDSSourceFilename = tDDSSourceRaw + "_D.dds";
 		}
 	}

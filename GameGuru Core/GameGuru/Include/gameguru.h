@@ -111,9 +111,22 @@ struct sRubberBandType
 	int e, x, y, z;
 };
 
+struct mysystemtype
+{
+	bool bUsingMySystemFolder;
+	cstr root_s;
+	cstr levelBankTestMap_s;
+	cstr levelBankTestMapAbs_s;
+	cstr editorsGridedit_s;
+	cstr editorsGrideditAbs_s;
+	cstr mapbank_s;
+	cstr mapbankAbs_s;
+};
+
 struct Sglobals
 {
 	globalstype globals;
+	mysystemtype mysystem;
 	int characterSoundCurrentPlayingNumber;
 	cstr characterSoundCurrentPlayingType_s;
 	int gtestgamemodefromeditorokaypressed;
@@ -496,6 +509,7 @@ struct Sglobals
 	int gmultiplayergame;
 	int gpretestsavemode;
 	int gproducelogfiles;
+	cstr gproducelogfilesdir_s;
 	int gpbroverride;
 	int underwatermode;
 	int editorsavebak;
@@ -964,6 +978,8 @@ struct Sglobals
 	int playermax;
 	float realfov_f;
 	cstr rootdir_s;
+	cstr originalrootdir_s;
+	cstr lightmapperexefolder_s;
 	int rubbleobj;
 	int talkindex;
 	int totalpart;
@@ -1716,6 +1732,7 @@ struct Sglobals
 		 guniquesignature = 0;
 		 grenadeexplosion = 0;
 		 grawtextsizelast = 0;
+		 gproducelogfilesdir_s = "";
 		 gproducelogfiles = 0;
 		 gpbroverride = 0;
 		 gpretestsavemode = 0;
@@ -2079,11 +2096,19 @@ struct Sglobals
 		 characterSoundCurrentPlayingType_s = "";
 		 characterSoundCurrentPlayingNumber = 0;
 		 reloadWeaponGunspecs = 0;
+
+		 mysystem.mapbankAbs_s = "";
+		 mysystem.mapbank_s = "";
+		 mysystem.editorsGrideditAbs_s = "";
+		 mysystem.editorsGridedit_s = "";
+		 mysystem.levelBankTestMapAbs_s = "";
+		 mysystem.levelBankTestMap_s = "";
+		 mysystem.root_s = "";
+		 mysystem.bUsingMySystemFolder = false;
 	}
 	// End of Constructor
 
 };
-
 
 extern Sglobals g;
 

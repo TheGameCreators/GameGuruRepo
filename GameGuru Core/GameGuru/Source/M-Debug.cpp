@@ -61,7 +61,12 @@ void backuptimestampactivity(void)
 	cstr file_s = "";
 	if ( g.gproducelogfiles == 1 )
 	{
-		file_s = g.fpscrootdir_s + "\\" + g.trueappname_s + ".log"; 
+		cstr logfile_s;
+		if ( g.gproducelogfilesdir_s.Len() > 0 )
+			logfile_s = g.gproducelogfilesdir_s+"\\"+g.trueappname_s+".log";
+		else
+			logfile_s = g.fpscrootdir_s+"\\"+g.trueappname_s+".log";
+		file_s = logfile_s; 
 		if (FileExist(file_s.Get()) == 1)
 		{
 			cstr filedest_s = g.fpscrootdir_s + "\\" + g.trueappname_s + "-last.log";
@@ -123,7 +128,12 @@ void timestampactivity ( int i, char* desc_s )
 		t.timestampactivity_s[i]=tpart1_s;
 		t.timestampactivity_s[i]+=tpart2_s;
 		t.timestampactivity_s[i]+=tpart3_s;
-		file_s = g.fpscrootdir_s+"\\"+g.trueappname_s+".log" ; if (  FileExist(file_s.Get()) == 1  )  DeleteAFile (  file_s.Get() );
+		cstr logfile_s;
+		if ( g.gproducelogfilesdir_s.Len() > 0 )
+			logfile_s = g.gproducelogfilesdir_s+"\\"+g.trueappname_s+".log";
+		else
+			logfile_s = g.fpscrootdir_s+"\\"+g.trueappname_s+".log";
+		file_s = logfile_s; if (  FileExist(file_s.Get()) == 1  )  DeleteAFile (  file_s.Get() );
 		if (  Len(g.trueappname_s.Get())>0 ) 
 		{
 			OpenToWrite (  13,file_s.Get() );

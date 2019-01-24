@@ -116,7 +116,7 @@ void mapeditorexecutable ( void )
 		timestampactivity(0,t.tsplashstatusprogress_s.Get());
 		version_splashtext_statusupdate ( );
 		//popup_text_close();
-		t.tfile_s = "editors\\gridedit\\cfg.cfg";
+		t.tfile_s = g.mysystem.editorsGridedit_s+"cfg.cfg";//"editors\\gridedit\\cfg.cfg";
 		if ( FileExist(t.tfile_s.Get()) == 1 ) 
 		{
 			//  Load last Editor CFG Settings
@@ -141,22 +141,10 @@ void mapeditorexecutable ( void )
 		timestampactivity(0,t.tsplashstatusprogress_s.Get());
 		version_splashtext_statusupdate ( );
 		version_splashtext ( );
-
-		/* not for latest version - adds to load time
-		// 270317 - load more interesting scene than blank green flat world
-		if ( g.gshowonstartup == 1 ) 
-		{
-			// but only when first start GameGuru, as welcome splash is active
-			g.projectfilename_s = g.fpscrootdir_s+"\\Files\\mapbank\\default.fpm";
-			mapfile_loadproject_fpm ( );
-			gridedit_load_map ( );
-			t.bIgnoreFirstCallToNewLevel = true;
-		}
-		*/
 	}
 
 	// Set editor fonts and Text (  style and size )
-	timestampactivity(0,"Prepare t.editor fonts");
+	timestampactivity(0,"Prepare editor fonts");
 	SetTextFont (  "Verdana"  ); SetTextToBold (  );
 	Ink (  Rgb(255,255,225),0  ); SetTextSize (  26 );
 
@@ -442,7 +430,7 @@ void mapeditorexecutable ( void )
 								case 24 : t.tlevelautoload_s = "Sunset Island (MP).fpm" ; break ;
 								case 25 : t.tlevelautoload_s = "The Beach (MP).fpm" ; break ;
 							}
-							t.tlevelautoload_s=g.fpscrootdir_s+"\\Files\\mapbank\\"+t.tlevelautoload_s;
+							t.tlevelautoload_s=g.mysystem.mapbankAbs_s+t.tlevelautoload_s;//g.fpscrootdir_s+"\\Files\\mapbank\\"+t.tlevelautoload_s;
 
 							//  ask to save first if modified project open
 							t.editorcanceltask=0;
@@ -1670,13 +1658,9 @@ void editor_previewmapormultiplayer ( void )
 	if (  t.game.runasmultiplayer == 1 ) 
 	{
 		//  save temp copy of current level
-	//  `goverridefpmdestination$=fpscrootdir$+"\\Files\\editors\\gridedit\\worklevel.fpm"
-
-		g.projectfilename_s=g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
+		g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"worklevel.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
 		editor_savecfg ( );
 		mapfile_saveproject_fpm ( );
-	//  `goverridefpmdestination$=""
-
 	}
 
 	//  GCStore could have assed assets since the last 'test game' so refresh internal lists
@@ -1831,7 +1815,7 @@ void editor_previewmapormultiplayer ( void )
 	{
 		t.terrain.terrainregionupdate=0;
 		terrain_refreshterrainmatrix ( );
-		t.theightfile_s="levelbank\\testmap\\heightmap.dds";
+		t.theightfile_s=g.mysystem.levelBankTestMap_s+"heightmap.dds"; //"levelbank\\testmap\\heightmap.dds";
 		terrain_createheightmapfromheightdata ( );
 	}
 
@@ -2065,12 +2049,12 @@ void editor_multiplayermode ( void )
 	editor_previewmapormultiplayer ( );
 
 	//  As multiplayer can load OTHER things, restore level to state before we clicked MM button
-	t.tfile_s="editors\\gridedit\\cfg.cfg";
+	t.tfile_s=g.mysystem.editorsGridedit_s+"cfg.cfg";//"editors\\gridedit\\cfg.cfg";
 	if (  FileExist(t.tfile_s.Get()) == 1 ) 
 	{
 		timestampactivity(0,"reloading your level after MM button");
 		t.skipfpmloading=0;
-		g.projectfilename_s=g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
+		g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"worklevel.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
 		editor_loadcfg ( );
 		gridedit_load_map ( );
 		//  added to solve fog issue when go in and out of MP menu
@@ -3659,7 +3643,7 @@ void editor_clearlibrary ( void )
 	// And create default NEW icons
 	t.t1_s=t.strarr_s[347] ; t.t2_s="files\\editors\\gfx\\missing.bmp";
 	SetFileMapDWORD ( 1, 508, t.tadd );
-	SetFileMapString ( 1, 1000, t.t2_s.Get() );
+	SetFileMapString ( 1, 1000, cstr(g.mysystem.root_s+t.t2_s).Get() );
 	SetFileMapString ( 1, 1256, t.t1_s.Get() );
 	SetFileMapDWORD ( 1, 500, 1 );
 	SetEventAndWait ( 1 );
@@ -3717,7 +3701,7 @@ void editor_clearlibrary ( void )
 		if (  t.tt == 24 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
 		if (  t.tt == 25 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
 		SetFileMapDWORD (  1, 508, t.tadd );
-		SetFileMapString (  1, 1000, t.t2_s.Get() );
+		SetFileMapString (  1, 1000, cstr(g.mysystem.root_s+t.t2_s).Get() );
 		SetFileMapString (  1, 1256, t.t1_s.Get() );
 		SetFileMapDWORD (  1, 500, 1 );
 		SetEventAndWait (  1 );
@@ -3785,7 +3769,7 @@ void editor_clearlibrary ( void )
 			if ( t.tt == 5 ) { t.t1_s = "Row";				t.t2_s = "files\\ebebank\\_builder\\Row.bmp"; }
 			if ( t.tt == 6 ) { t.t1_s = "Stairs";			t.t2_s = "files\\ebebank\\_builder\\Stairs.bmp"; }
 			SetFileMapDWORD ( 1, 508, t.tadd );
-			SetFileMapString ( 1, 1000, t.t2_s.Get() );
+			SetFileMapString ( 1, 1000, cstr(g.mysystem.root_s+t.t2_s).Get() );
 			SetFileMapString ( 1, 1256, t.t1_s.Get() );
 			SetFileMapDWORD ( 1, 500, 1 );
 			SetEventAndWait ( 1 );
@@ -3889,7 +3873,7 @@ void editor_clearlibrary ( void )
 			t.t1_s = Left(pNameOnly,Len(pNameOnly)-4);
 			t.t2_s = cstr("files\\") + cstr(Left(t.file_s.Get(),Len(t.file_s.Get())-4)) + cstr(".bmp");
 			SetFileMapDWORD ( 1, 508, t.tadd );
-			SetFileMapString ( 1, 1000, t.t2_s.Get() );
+			SetFileMapString ( 1, 1000, cstr(g.mysystem.root_s+t.t2_s).Get() );
 			SetFileMapString ( 1, 1256, t.t1_s.Get() );
 			SetFileMapDWORD ( 1, 500, 1 );
 			SetEventAndWait ( 1 );
@@ -3964,7 +3948,7 @@ void editor_filllibrary ( void )
 				t.t1_s = ""; t.t1_s=t.t1_s + Left(t.tbitmap_s.Get(),Len(t.tbitmap_s.Get())-4)+".bmp";
 				if (  FileExist( cstr(cstr("..\\")+t.t1_s).Get() ) == 0  )  t.t1_s = "files\\editors\\gfx\\missing.bmp";
 				SetFileMapDWORD (  1, 508, 1 );
-				SetFileMapString (  1, 1000, Left(t.t1_s.Get(),254) );
+				SetFileMapString (  1, 1000, Left(cstr(g.mysystem.root_s+t.t1_s).Get(),254) );
 				SetFileMapString (  1, 1256, Left(t.t2_s.Get(),254) );
 				SetFileMapDWORD (  1, 500, 1 );
 				SetEventAndWait (  1 );
@@ -4024,11 +4008,11 @@ void editor_filemapinit ( void )
 
 void editor_loadcfg ( void )
 {
-
 //  Load existing config file
-if (  FileExist("editors\\gridedit\\cfg.cfg") == 1 ) 
+cstr cfgfile_s = g.mysystem.editorsGridedit_s + "cfg.cfg";
+if ( FileExist(cfgfile_s.Get()) == 1 ) 
 {
-	OpenToRead (  1,"editors\\gridedit\\cfg.cfg" );
+	OpenToRead (  1,cfgfile_s.Get() );
 		//  Current Camera Position
 		t.cx_f = ReadFloat ( 1 );
 		t.cy_f = ReadFloat ( 1 );
@@ -4068,7 +4052,8 @@ void editor_savecfg ( void )
 {
 
 //  Delete config file
-	t.strwork = "" ; t.strwork = t.strwork + "editors\\gridedit\\cfg.cfg";
+	//t.strwork = "" ; t.strwork = t.strwork + "editors\\gridedit\\cfg.cfg";
+	t.strwork = g.mysystem.editorsGridedit_s + "cfg.cfg";
 	if (  FileExist( t.strwork.Get() ) == 1  )  DeleteAFile ( t.strwork.Get() );
 
 //  Save config file
@@ -4171,15 +4156,15 @@ void editor_constructionselection ( void )
 						cstr sUniqueFilename = t.entityprofile[t.entid].texd_s;
 						sUniqueFilename = cstr(Left(sUniqueFilename.Get(),strlen(sUniqueFilename.Get())-6));
 						cstr sDDSSourceFile = cstr(pFinalPathOnly) + sUniqueFilename + cstr("_D.dds");
-						cstr sDDSFile = cstr("levelbank\\testmap\\") + sUniqueFilename + cstr("_D.dds");
+						cstr sDDSFile = g.mysystem.levelBankTestMap_s + sUniqueFilename + cstr("_D.dds");
 						if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
 						CopyFile ( sDDSSourceFile.Get(), sDDSFile.Get(), FALSE );
 						sDDSSourceFile = cstr(pFinalPathOnly) + sUniqueFilename + cstr("_N.dds");
-						sDDSFile = cstr("levelbank\\testmap\\") + sUniqueFilename + cstr("_N.dds");
+						sDDSFile = g.mysystem.levelBankTestMap_s + sUniqueFilename + cstr("_N.dds");
 						if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
 						CopyFile ( sDDSSourceFile.Get(), sDDSFile.Get(), FALSE );
 						sDDSSourceFile = cstr(pFinalPathOnly) + sUniqueFilename + cstr("_S.dds");
-						sDDSFile = cstr("levelbank\\testmap\\") + sUniqueFilename + cstr("_S.dds");
+						sDDSFile = g.mysystem.levelBankTestMap_s + sUniqueFilename + cstr("_S.dds");
 						if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
 						CopyFile ( sDDSSourceFile.Get(), sDDSFile.Get(), FALSE );
 					}
@@ -7586,17 +7571,17 @@ void gridedit_save_test_map ( void )
 	editor_savecfg ( );
 
 	//  Save terrain
-	timestampactivity(0,"SAVETESTMAP: Save t.terrain textures");
-	t.tfileveg_s="levelbank\\testmap\\vegmask.dds";
-	t.tfilewater_s="levelbank\\testmap\\watermask.dds";
+	timestampactivity(0,"SAVETESTMAP: Save terrain textures");
+	t.tfileveg_s=g.mysystem.levelBankTestMap_s+"vegmask.dds"; //"levelbank\\testmap\\vegmask.dds";
+	t.tfilewater_s=g.mysystem.levelBankTestMap_s+"watermask.dds"; //"levelbank\\testmap\\watermask.dds";
 	terrain_savetextures ( );
-	t.tfileveggrass_s="levelbank\\testmap\\vegmaskgrass.dat";
-	timestampactivity(0,"SAVETESTMAP: Save t.terrain veg");
+	t.tfileveggrass_s=g.mysystem.levelBankTestMap_s+"vegmaskgrass.dat"; //"levelbank\\testmap\\vegmaskgrass.dat";
+	timestampactivity(0,"SAVETESTMAP: Save terrain veg");
 	terrain_fastveg_savegrass ( );
-	timestampactivity(0,"SAVETESTMAP: Save t.terrain height data");
-	t.tfile_s="levelbank\\testmap\\m.dat";
+	timestampactivity(0,"SAVETESTMAP: Save terrain height data");
+	t.tfile_s=g.mysystem.levelBankTestMap_s+"m.dat"; //"levelbank\\testmap\\m.dat";
 	terrain_save ( );
-
+	
 	//  this ensures change flag does not use filemap port 1 (avoid freeze in build game)
 	t.lastprojectmodified=0;
 
@@ -7784,12 +7769,12 @@ void gridedit_new_map ( void )
 	lm_emptylightmapfolder ( );
 
 	// Empty EBEs from testmap folder
-	cstr pStoreOld = GetDir(); SetDir ( "levelbank\\testmap\\" );
+	cstr pStoreOld = GetDir(); SetDir ( g.mysystem.levelBankTestMap_s.Get() );
 	mapfile_emptyebesfromtestmapfolder(false);
 	SetDir ( pStoreOld.Get() );
 
 	// Empty terraintexture files from testmap folder
-	SetDir ( "levelbank\\testmap\\" );
+	SetDir ( g.mysystem.levelBankTestMap_s.Get() );
 	if ( FileExist ( "superpalette.ter" ) == 1 ) DeleteFile ( "superpalette.ter" );
 	if ( FileExist ( "Texture_D.dds" ) == 1 ) DeleteFile ( "Texture_D.dds" );
 	if ( FileExist ( "Texture_N.dds" ) == 1 ) DeleteFile ( "Texture_N.dds" );
@@ -7838,15 +7823,15 @@ void gridedit_new_map ( void )
 		timestampactivity(0,"NEWMAP: Save newly randomised terrain");
 		terrain_randomiseterrain ( );
 	}
-	t.tfile_s="levelbank\\testmap\\m.dat";
+	t.tfile_s=g.mysystem.levelBankTestMap_s+"m.dat"; //"levelbank\\testmap\\m.dat";
 	terrain_save ( );
-	timestampactivity(0,"NEWMAP: Save t.terrain data");
-	t.tfileveg_s="levelbank\\testmap\\vegmask.dds";
-	t.tfilewater_s="levelbank\\testmap\\watermask.dds";
+	timestampactivity(0,"NEWMAP: Save terrain data");
+	t.tfileveg_s=g.mysystem.levelBankTestMap_s+"vegmask.dds"; //"levelbank\\testmap\\vegmask.dds";
+	t.tfilewater_s=g.mysystem.levelBankTestMap_s+"watermask.dds"; //"levelbank\\testmap\\watermask.dds";
 	t.tgeneratefreshwatermaskflag=1;
 	terrain_generatevegandmaskfromterrain ( );
-	timestampactivity(0,"NEWMAP: Save t.terrain mask data");
-	t.tfileveggrass_s="levelbank\\testmap\\vegmaskgrass.dat";
+	timestampactivity(0,"NEWMAP: Save terrain mask data");
+	t.tfileveggrass_s=g.mysystem.levelBankTestMap_s+"vegmaskgrass.dat"; //"levelbank\\testmap\\vegmaskgrass.dat";
 	terrain_fastveg_buildblankgrass_fornew ( );
 	timestampactivity(0,"NEWMAP: Finish t.terrain generation");
 
@@ -8014,7 +7999,7 @@ void gridedit_load_map ( void )
 		popup_text_change(t.statusbar_s.Get()) ; SleepNow (  2000 );
 		g.timestampactivityflagged=0;
 
-		//  copy time stamp log to mapbank log
+		//  copy time stamp log to map bank log
 		if (  ArrayCount(t.missingmedia_s) >= 0 ) 
 		{
 			t.tmblogfile_s = "" ; t.tmblogfile_s=t.tmblogfile_s + Left(g.projectfilename_s.Get(),Len(g.projectfilename_s.Get())-4)+".log";
@@ -8288,7 +8273,8 @@ void gridedit_open_map_ask ( void )
 	{
 		//  OPEN FPM
 		OpenFileMap (  1,"FPSEXCHANGE" );
-		t.strwork = ""; t.strwork = t.strwork + g.rootdir_s+"mapbank\\";
+		//t.strwork = ""; t.strwork = t.strwork + g.rootdir_s+"mapbank\\";
+		t.strwork = g.mysystem.mapbankAbs_s;		
 		SetFileMapString (  1, 1000, t.strwork.Get() );
 		SetFileMapString (  1, 1256, t.strarr_s[371].Get() );
 		SetFileMapString (  1, 1512, t.strarr_s[372].Get() );
@@ -8357,7 +8343,8 @@ void gridedit_saveas_map ( void )
 {
 	//  SAVE AS DIALOG
 	OpenFileMap (  1,"FPSEXCHANGE" );
-	t.strwork = ""; t.strwork = t.strwork + g.rootdir_s+"mapbank\\";
+	//t.strwork = ""; t.strwork = t.strwork + g.rootdir_s+"mapbank\\";
+	t.strwork = g.mysystem.mapbankAbs_s;
 	SetFileMapString (  1, 1000, t.strwork.Get() );
 	SetFileMapString (  1, 1256, t.strarr_s[373].Get() );
 	SetFileMapString (  1, 1512, t.strarr_s[374].Get() );

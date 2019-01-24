@@ -224,10 +224,10 @@ void DeleteContentsOfDBPDATA ( bool bOnlyIfOlderThan2DAYS )
 					BOOL bResult = RemoveDirectory(file);
 					if(bResult==FALSE)
 					{
-						chdir(file);
+						_chdir(file);
 						FFindCloseFile();
 						DeleteContentsOfDBPDATA ( bOnlyIfOlderThan2DAYS );
-						chdir(old);
+						_chdir(old);
 						BOOL bResult = RemoveDirectory(file);
 						FFindFirstFile();
 					}
@@ -277,13 +277,13 @@ void DeleteAllOldDBPDATAFolders(void)
 	while(dwBuildID<1000000)
 	{
 		// Check if DBPDATA folder exists
-		if(chdir(gpDBPDataName)!=-1 || dwBuildID==2)
+		if(_chdir(gpDBPDataName)!=-1 || dwBuildID==2)
 		{
 			// Delete contents of directory
 			DeleteContentsOfDBPDATA(true);
 
 			// Delete directory (if empty)
-			chdir("..");
+			_chdir("..");
 			rmdir(gpDBPDataName);
 
 			// Create new folder name from build data
@@ -376,6 +376,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	char CurrentDirectory[_MAX_PATH];
 	getcwd(CurrentDirectory, _MAX_PATH);
 
+	//char whereaminow[256];
+	//getcwd(whereaminow, _MAX_PATH);
+
 	// new define for an EXE which uses local exe location for extraction TEMP
 	char WindowsTempDirectory[_MAX_PATH];
 	#ifdef LOCALLYEXTRACTINGEXE
@@ -391,17 +394,39 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	#else
 	// Find temporary directory (C:\WINDOWS\Temp)
 	GetTempPath(_MAX_PATH, WindowsTempDirectory);
+	//getcwd(whereaminow, _MAX_PATH);
 	if(stricmp(WindowsTempDirectory, CurrentDirectory)!=NULL)
 	{
 		// XP Temp Folder
-		chdir(WindowsTempDirectory);
+		_chdir(WindowsTempDirectory);
+		//getcwd(whereaminow, _MAX_PATH);
 		MakeOrEnterUniqueDBPDATA();
+		//getcwd(whereaminow, _MAX_PATH);
 		strcat(WindowsTempDirectory, "\\");
 		strcat(WindowsTempDirectory, gpDBPDataName);
 		strcpy(gUnpackDirectory, WindowsTempDirectory);
-		chdir(gpDBPDataName);
+		_chdir(gpDBPDataName);
+		//getcwd(whereaminow, _MAX_PATH);
 		DeleteContentsOfDBPDATA(false);
-		chdir(CurrentDirectory);
+		//getcwd(whereaminow, _MAX_PATH);
+		_chdir(CurrentDirectory);
+		/*
+		_chdir("C:\\");
+		getcwd(whereaminow, _MAX_PATH);
+		_chdir("Program Files");
+		getcwd(whereaminow, _MAX_PATH);
+		_chdir("WindowsApps");
+		getcwd(whereaminow, _MAX_PATH);
+		//_chdir("GameGuru_0.0.0.1_x86__khk7gqqk5d15p");
+		SetCurrentDirectoryA("New folder");
+		DWORD errorMessageID = GetLastError();
+		LPSTR messageBuffer = nullptr;
+		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+									 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+		MessageBox(NULL,messageBuffer,messageBuffer,MB_OK );
+		LocalFree(messageBuffer);
+		getcwd(whereaminow, _MAX_PATH);
+		*/
 	}
 	else
 	{
@@ -409,16 +434,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		GetWindowsDirectory(WindowsTempDirectory, _MAX_PATH);
 		_chdir(WindowsTempDirectory);
 		mkdir("temp");
-		chdir("temp");
+		_chdir("temp");
 		MakeOrEnterUniqueDBPDATA();
 		strcat(WindowsTempDirectory, "\\temp\\");
 		strcat(WindowsTempDirectory, gpDBPDataName);
 		strcpy(gUnpackDirectory, WindowsTempDirectory);
-		chdir(gpDBPDataName);
+		_chdir(gpDBPDataName);
 		DeleteContentsOfDBPDATA(false);
-		chdir(CurrentDirectory);
+		_chdir(CurrentDirectory);
 	}
 	#endif
+	
+	//getcwd(whereaminow, _MAX_PATH);
+	//MessageBox(NULL,whereaminow,whereaminow,MB_OK );
 
 	// Send critical start info to CEXE
 	CEXE.StartInfo(gUnpackDirectory, gEncryptionKey);
@@ -492,7 +520,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	// use current date to remove
-	chdir(CurrentDirectory);
+	_chdir(CurrentDirectory);
 
 	// Delete temporary unpack directory
 	rmdir(gUnpackDirectory);

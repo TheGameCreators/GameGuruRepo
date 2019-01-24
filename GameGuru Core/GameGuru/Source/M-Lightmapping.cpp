@@ -21,9 +21,9 @@ int GetIsValidShader ( LPSTR pEffectFilename )
 
 void lm_init ( void )
 {
-
 	//  set lightmap path
-	t.lightmapper.lmpath_s = ""; t.lightmapper.lmpath_s=t.lightmapper.lmpath_s+GetDir()+"\\levelbank\\testmap\\lightmaps\\";
+	//t.lightmapper.lmpath_s = ""; t.lightmapper.lmpath_s=t.lightmapper.lmpath_s+GetDir()+"\\levelbank\\testmap\\lightmaps\\";
+	t.lightmapper.lmpath_s = g.mysystem.levelBankTestMapAbs_s+"lightmaps\\";
 	t.lightmapper.lmobjectfile_s=t.lightmapper.lmpath_s+"objectlist.dat";
 
 	//  Load in lightmap shader effect for static geometry

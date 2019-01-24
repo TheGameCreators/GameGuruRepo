@@ -1593,16 +1593,16 @@ DARKSDK void MakePathToThisFolder(char* thepathiwant)
 	{
 		if(strcmp(filepath[m],"")!=0)
 		{
-			if(chdir(filepath[m])==-1)
+			if(_chdir(filepath[m])==-1)
 			{
 				mkdir(filepath[m]);
-				chdir(filepath[m]);
+				_chdir(filepath[m]);
 			}
 		}
 	}
 
 	// Restore directory
-	chdir(olddir);
+	_chdir(olddir);
 }
 
 DARKSDK void ReadFileBlock( int f, DWORD pFilename )
@@ -1633,7 +1633,7 @@ DARKSDK void ReadFileBlock( int f, DWORD pFilename )
 			ReadFileBlockCore(FilenameString, f);
 
 			// Restore directory
-			chdir(olddir);
+			_chdir(olddir);
 		}
 		else
 			RunTimeWarning(RUNTIMEERROR_FILENOTOPEN);
@@ -1687,7 +1687,7 @@ DARKSDK void ReadDirBlock( int f, DWORD pFilename )
 			DWORD dwLength=strlen(pNewDir);
 			if(pNewDir[dwLength-1]!='\\') { pNewDir[dwLength]='\\'; pNewDir[dwLength+1]=0; } 
 			MakePathToThisFolder(pNewDir);
-			chdir(pNewDir);
+			_chdir(pNewDir);
 
 			// Read number of files in dirblock
 			DWORD bytes;
@@ -1731,7 +1731,7 @@ DARKSDK void ReadDirBlock( int f, DWORD pFilename )
 			}
 
 			// Restore directory
-			chdir(olddir);
+			_chdir(olddir);
 		}
 		else
 			RunTimeWarning(RUNTIMEERROR_FILENOTOPEN);
@@ -1930,7 +1930,7 @@ DARKSDK void WriteDirContents(int f, char* newdir, bool bMode, DWORD* pCount, ch
 	getcwd(olddir,256);
 
 	// Switch to new dir
-	chdir(newdir);
+	_chdir(newdir);
 
 	// Go through dir and write out all files
 	int res=-1;
@@ -1981,7 +1981,7 @@ DARKSDK void WriteDirContents(int f, char* newdir, bool bMode, DWORD* pCount, ch
 	_findclose(hLocalFile);
 
 	// Restore old dir
-	chdir(olddir);
+	_chdir(olddir);
 }
 
 DARKSDK void WriteDirBlock( int f, DWORD pFilename )

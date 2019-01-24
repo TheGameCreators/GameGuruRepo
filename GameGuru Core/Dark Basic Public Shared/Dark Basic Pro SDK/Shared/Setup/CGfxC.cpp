@@ -4584,7 +4584,16 @@ DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iSh
 	if ( iShaderIndex > 0 )
 	{
 		ID3DBlob* pFXBlob = g_sShaders[iShaderIndex].pBlob;
-		D3DX11CreateEffectFromMemory(pFXBlob->GetBufferPointer(), pFXBlob->GetBufferSize(), 0, m_pD3D, &g_sShaders[iShaderIndex].pEffect);
+		if ( pFXBlob )
+		{
+			D3DX11CreateEffectFromMemory(pFXBlob->GetBufferPointer(), pFXBlob->GetBufferSize(), 0, m_pD3D, &g_sShaders[iShaderIndex].pEffect);
+		}
+		else
+		{
+			MessageBox ( NULL, "Effect file not found!", "D3DX11CreateEffectFromMemory failure", MB_OK );
+			strcpy ( g_sShaders[iShaderIndex].pName, "" );
+			return NULL;
+		}
 	}
 	else
 	{

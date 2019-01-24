@@ -397,14 +397,9 @@ void common_init ( void )
 	ExitProcess ( 0 );
 }
 
-// C++ CONVERSION: Dave - New function to initialise all globals that were previously set up in types outside of any function/subroutine
+// New function to initialise all globals that were previously set up in types outside of any function/subroutine
 void common_init_globals ( void )
 {
-	// set all variables to 0
-	//C++ISSUE - set all variables to 0 and leave the strings lone, dont do memset coz its nuking the strings too
-	//memset ( &g, 0, sizeof ( g ) );
-	//memset ( &t, 0, sizeof ( t ) );
-
 	//  Grab current folder
 	g.fpscrootdir_s = GetDir();
 	g.mydocumentsdir_s = Mydocdir();
@@ -801,13 +796,6 @@ void common_init_globals ( void )
 	Dim (  t.importerShaderFiles , IMPORTERSHADERFILESMAX  );
 	Dim (  t.importerScriptFiles , IMPORTERSCRIPTFILESMAX  );
 
-	//t.importer as importertype;
-
-	//t.lightmapper as lightmappertype;
-
-	//t.mooreneighborhood as mooreneighborhoodtype;
-	//t.mooreneighborhood.mode=0;
-
 	g.obsmax = 10;
 	g.obsindex = 0;
 	Dim (  t.obs , g.obsmax );
@@ -978,9 +966,6 @@ void common_init_globals ( void )
 	//t.objitem as objofinteresttype;
 	Dim (  t.objinterestlist, 1   );
 	Undim ( t.objinterestlist );
-
-	//  Global data structure to handle real time light mapping control
-	//t.rtlm as realtimelightmappingtype;
 
 	//  Populate Infini Lights On The Fly In The Map Editor (see _realtimelightmapping_refreshinfiniwithe)
 	Dim (  t.infinilight,0 );
@@ -1165,8 +1150,6 @@ void common_init_globals ( void )
 
 	Dim (  t.musictrack,MUSICSYSTEM_MAXTRACKS );
 
-	//t.audioVolume as taudiovolume;
-
 	g.characterSoundCount = 0;
 	g.characterSoundBankCount = 0;
 	
@@ -1180,11 +1163,6 @@ void common_init_globals ( void )
 	Dim3(  t.characterSound,CHARACTERSOUND_MAX_BANK, CHARACTERSOUND_SIZE, CHARACTERSOUND_MAX_BANK_MAX_SOUNDS+1 );
 	Dim (  t.characterSoundStackEntity,CHARACTERSOUND_STACK_SIZE  );
 	Dim (  t.characterSoundStackType_s,CHARACTERSOUND_STACK_SIZE  );
-	
-	// `Explosions and fire
-
-	
-	
 	
 	g.camshake_f = 0.0;
 	
@@ -1203,24 +1181,10 @@ void common_init_globals ( void )
 	//  make and prepare particle and debris objects
 	
 	Dim (  t.ravey_particle_emitters,RAVEY_PARTICLE_EMITTERS_MAX  );
-
 	Dim (  t.ravey_particles,RAVEY_PARTICLES_MAX  );
 	g.ravey_particles_next_particle = 0;
 	g.ravey_particles_old_time = 0;
 	g.ravey_particles_time_passed = 0;
-
-	//Work globals common to all and require early declaration
-	
-
-	//  Setup work floats (for HUD decimal detail)
-	//t.value1 as float;
-	//t.value2 as float;
-	//t.value3 as float;
-	//t.workhudx as float;
-	//t.workhudy as float;
-	//t.workhudz as float;
-
-
 }
 
 //  Subroutine to completely construct FPSCData
@@ -1596,14 +1560,6 @@ Dim (  t.stateraycastpace,g.multiplayermax  );
 
 //  Server Scores
 Dim (  t.frags,g.multiplayermax );
-
-//  End of FULL-DATA-INIT Subroutine
-return;
-
-
-//Initialise using SETUP.INI
-
-
 }
 
 void FPSC_SetDefaults ( void )
@@ -1675,6 +1631,7 @@ void FPSC_SetDefaults ( void )
 	g.guseuniquelynamedentities = 0;
 	g.gexportassets = 0;
 	g.gproducelogfiles = 0;
+	g.gproducelogfilesdir_s = "";
 	g.gpbroverride = 0;
 	g.memskipwatermask = 0;
 
@@ -1765,11 +1722,27 @@ void FPSC_SetDefaults ( void )
 	t.DisableDynamicRes = false;
 }
 
-void FPSC_LoadSETUPINI ( void )
+void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 {
 	//  SETUP Info
-	t.tfile_s=g.setupfilename_s;
-	if (  FileExist(t.tfile_s.Get()) == 1 ) 
+	if ( bUseMySystemFolder == true ) 
+	{
+		// this means we are using the new Windows 10 style write folder in separate location
+		cstr mysystemfolder_s = "My System";
+		t.tfile_s = g.myownrootdir_s + "\\" + mysystemfolder_s + "\\" + g.setupfilename_s;
+		if ( FileExist ( t.tfile_s.Get() ) == 0 )
+		{
+			// we need to copy the original from the read-only location to the new write location before using it
+			CopyFile ( g.setupfilename_s.Get(), t.tfile_s.Get(), FALSE );
+		}
+	}
+	else
+	{
+		// can use the local relative location of SETUP.INI (such as a Steam IDE or standalone game)
+		t.tfile_s = g.setupfilename_s;
+	}
+
+	if ( FileExist(t.tfile_s.Get()) == 1 ) 
 	{
 		//  Load Data from file
 		Dim (  t.data_s,999  );
@@ -1876,6 +1849,7 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "includeonlyname" ; if (  t.field_s == t.tryfield_s  )  g.gincludeonlyname_s = t.value_s;
 					t.tryfield_s = "ignorefastbone" ; if (  t.field_s == t.tryfield_s  )  g.gignorefastbone = t.value1;
 					t.tryfield_s = "loadreport" ; if (  t.field_s == t.tryfield_s  )  g.gloadreportstate = t.value1;
+					t.tryfield_s = "usingmysystemfolder" ; if (  t.field_s == t.tryfield_s  )  g.mysystem.bUsingMySystemFolder = t.value1;
 
 					t.tryfield_s = "optimizemode" ; if (  t.field_s == t.tryfield_s  )  g.goptimizemode = t.value1;
 					t.tryfield_s = "lightmapping" ; if (  t.field_s == t.tryfield_s  )  g.glightmappingstate = t.value1;
@@ -1944,6 +1918,7 @@ void FPSC_LoadSETUPINI ( void )
 					t.tryfield_s = "dynamicshadows" ; if (  t.field_s == t.tryfield_s ) g.gdynamicshadowsstate = t.value1  ; t.newdynamicshadows = t.value1;
 					t.tryfield_s = "dividetexturesize" ; if (  t.field_s == t.tryfield_s ) g.gdividetexturesize = t.value1  ; t.newdividetexturesize = t.value1;
 					t.tryfield_s = "producelogfiles" ; if (  t.field_s == t.tryfield_s  )  g.gproducelogfiles = t.value1;
+					t.tryfield_s = "producelogfilesdir" ; if (  t.field_s == t.tryfield_s  )  g.gproducelogfilesdir_s = t.value_s;
 					t.tryfield_s = "pbroverride" ; if (  t.field_s == t.tryfield_s  )  g.gpbroverride = t.value1;
 					t.tryfield_s = "underwatermode"; if (t.field_s == t.tryfield_s)  g.underwatermode = t.value1;
 					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
@@ -2377,6 +2352,26 @@ void common_writeserialcode ( LPSTR pCode )
 	CloseFile ( 1 );
 }
 
+void common_switchtomysystemfolder ( void )
+{
+	g.fpscrootdir_s = g.mysystem.root_s;
+	g.mysystem.levelBankTestMapAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.levelBankTestMap_s;
+	g.mysystem.editorsGrideditAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.editorsGridedit_s;
+	g.mysystem.mapbankAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.mapbank_s;
+	g.rootdir_s = g.fpscrootdir_s + "\\Files\\";
+	LPSTR pStDir = GetDir();
+	SetDir ( g.rootdir_s.Get() );
+	g.rootdir_s = cstr(GetDir()) + "\\";
+	SetDir ( pStDir );
+	g.currentmeshdir_s = g.rootdir_s+"meshbank\\";
+	g.currententitydir_s = g.rootdir_s+"entitybank\\";
+	g.currenttexdir_s = g.rootdir_s+"texturebank\\";
+	g.currentfxdir_s = g.rootdir_s+"effectbank\\";
+	g.currentpredir_s = g.rootdir_s+"prefabs\\";
+	g.currentsegdir_s = g.rootdir_s+"segments\\";
+	g.currentvideodir_s = g.rootdir_s+"videobank\\";
+}
+
 void FPSC_Setup ( void )
 {
 	// prepare all default values 
@@ -2584,7 +2579,8 @@ void FPSC_Setup ( void )
 		g.iStandaloneIsReloading = 1;
 
 	// Check and load SETUP.INI defaults
-	FPSC_LoadSETUPINI();
+	FPSC_LoadSETUPINI(false);
+	if ( g.mysystem.bUsingMySystemFolder == true ) FPSC_LoadSETUPINI(true);
 	FPSC_LoadKEYMAP();
 
 	// 250917 - set default CPU animation flag for engine
@@ -2677,6 +2673,10 @@ void FPSC_Setup ( void )
 	g.exedir_s += "\\MyGames\\";
 	sprintf ( t.szwork , "The executable folder will be: %s" , g.exedir_s.Get() );
 	timestampactivity(0,t.szwork);
+
+	// record location of lightmapper executable
+	g.originalrootdir_s = GetDir();
+	g.lightmapperexefolder_s = GetDir();
 
 	//  First task for any program is to enter the Files Folder
 	t.tnopathprotomode=0;
@@ -2877,9 +2877,7 @@ void FPSC_Setup ( void )
 		welcome_animbackdrop();
 		welcome_init(2);
 		common_loadfonts();
-		LPSTR pFirstTextToShow = g.version_s.Get();
-		if ( g.grestoreeditorsettings == 1 ) pFirstTextToShow = "RESUMING PREVIOUS SESSION";
-		welcome_updatebackdrop(pFirstTextToShow);
+		welcome_updatebackdrop("");
 	}
 	else
 		common_loadfonts();
@@ -2951,33 +2949,96 @@ void FPSC_Setup ( void )
 	//  Version control on EXE Building
 	version_endofinit ( );
 
-	//  Activate Steam (always so single player can do snapshots and get Steam notifications)
-	steam_init ( );
-
-	// Init default material sounds
-	material_init ( );
-	material_startup ( );
-
-
-	// 
-	//  LEAP POINT (detect if running as Guru-Game.exe or Guru-MapEditor.exe)
-	// 
+	// MapEditor or Standalone Game
+	bool bIsThisMapEditor = false;
 	sprintf ( t.szwork , "trueappname_s=%s" , g.trueappname_s.Get() );
 	timestampactivity(0,t.szwork);
 	if (  g.trueappname_s == "Guru-MapEditor" ) 
+		bIsThisMapEditor = true;
+
+	// Common redirections to new My System write/read folder
+	cstr mysystemfolder_s = "My System";
+	if ( bIsThisMapEditor == false ) g.mysystem.bUsingMySystemFolder = false;
+	g.mysystem.root_s = g.myownrootdir_s + "\\" + mysystemfolder_s + "\\";
+	g.mysystem.levelBankTestMap_s = "levelbank\\testmap\\";
+	g.mysystem.levelBankTestMapAbs_s = g.fpscrootdir_s+"\\Files\\levelbank\\testmap\\";
+	g.mysystem.editorsGridedit_s = "editors\\gridedit\\";
+	g.mysystem.editorsGrideditAbs_s = g.fpscrootdir_s+"\\Files\\editors\\gridedit\\";
+	g.mysystem.mapbank_s = "mapbank\\";
+	g.mysystem.mapbankAbs_s = g.fpscrootdir_s+"\\Files\\mapbank\\";
+
+	//  LEAP POINT (detect if running as Guru-Game.exe or Guru-MapEditor.exe)
+	if ( bIsThisMapEditor == true ) 
 	{
-		//  MAP EDITOR
-		OpenToWrite (  1,"testwrite.dat" );
-		WriteString (  1,"we can write to the Game Guru folder! Good." );
-		CloseFile (  1 );
-		if (  FileExist("testwrite.dat") == 1 ) 
+		// MAP EDITOR
+
+		// For My System mode
+		if ( g.mysystem.bUsingMySystemFolder == true )
+		{
+			// Create My System folder nest
+			cstr mysystemfolder_s = "My System";
+			SetDir ( g.myownrootdir_s.Get() );
+			if ( PathExist(mysystemfolder_s.Get()) == 0  ) MakeDirectory ( mysystemfolder_s.Get() );
+			if ( PathExist(mysystemfolder_s.Get()) == 1 ) 
+			{
+				SetDir ( mysystemfolder_s.Get() );
+				if ( PathExist("Files") == 0  ) MakeDirectory ( "Files" );
+				cstr ggprecompilefile_s = g.fpscrootdir_s + "\\ggprecompile.lua";
+				CopyFile ( ggprecompilefile_s.Get(), "ggprecompile.lua", TRUE );
+			}
+			SetDir ( g.fpscrootdir_s.Get() );
+
+			// Each time GameGuru runs, ensure core files are copied over to writable area (initial run will take a few minutes)
+			welcome_updatebackdrop("Copying files to My System folder");
+
+			// Gather ALL files in original Files folder
+			Undim ( t.filecollection_s );
+			g.filecollectionmax = 0;
+			Dim ( t.filecollection_s, 500 );
+
+			// initial folders in Files
+			SetDir ( g.fpscrootdir_s.Get() );
+			addallinfoldertocollection("Files","");
+
+			// Copy to System folder if file not exist (leave any existing files alone)
+			SetDir ( g.mysystem.root_s.Get() );
+			SetDir ( "Files" );
+			createallfoldersincollection();
+			for ( int f = 1; f <= g.filecollectionmax; f++ )
+			{
+				LPSTR pDestFile = t.filecollection_s[f].Get();
+				cstr pSrcFile = g.fpscrootdir_s + "\\Files\\" + pDestFile;
+				CopyFile ( pSrcFile.Get(), pDestFile, TRUE );
+			}
+
+			// Now switch root folder to new home
+			common_switchtomysystemfolder();
+		}
+
+		// Now display version number and resumer prompt
+		LPSTR pFirstTextToShow = g.version_s.Get();
+		if ( g.grestoreeditorsettings == 1 ) pFirstTextToShow = "RESUMING PREVIOUS SESSION";
+		welcome_updatebackdrop(pFirstTextToShow);
+
+		//  Activate Steam (always so single player can do snapshots and get Steam notifications)
+		steam_init ( );
+
+		// Init default material sounds
+		material_init ( );
+		material_startup ( );
+
+		// Write test!
+		OpenToWrite ( 1,"testwrite.dat" );
+		WriteString ( 1,"we can write to the Game Guru folder! Good." );
+		CloseFile ( 1 );
+		if ( FileExist("testwrite.dat") == 1 ) 
 		{
 			timestampactivity(0,"We can write to the Game Guru folder!");
-			DeleteAFile (  "testwrite.dat" );
+			DeleteAFile ( "testwrite.dat" );
 		}
 		else
 		{
-			ExitPrompt ( "Game Guru cannot write files to the Program Files area. Exit the software, right click on the Game Guru icon, and select 'Run As Administrator'", "Init Error" );
+			ExitPrompt ( "Game Guru cannot write files to the Files area. Exit the software, right click on the Game Guru icon, and select 'Run As Administrator'", "Init Error" );
 		}
 	
 		//  New security requires Steam client to be running (for ownership check)
@@ -3055,6 +3116,13 @@ void FPSC_Setup ( void )
 		//  Debug report status
 		timestampactivity(0,"main game executable");
 	
+		//  Activate Steam (always so single player can do snapshots and get Steam notifications)
+		steam_init ( );
+
+		// Init default material sounds
+		material_init ( );
+		material_startup ( );
+
 		//  Set device to get multisampling AA active in editor
 		t.multisamplingfactor=0 ; t.multimonitormode=0;
 	
@@ -3087,7 +3155,7 @@ void FPSC_Setup ( void )
 		t.screenprompt_s=t.screenprompt_s+".";
 		printscreenprompt(t.screenprompt_s.Get());
 		timestampactivity(0,"_terrain_load");
-		t.tfile_s="levelbank\\testmap\\m.dat";
+		t.tfile_s=g.mysystem.levelBankTestMap_s+"m.dat"; //"levelbank\\testmap\\m.dat";
 		if (  FileExist(t.tfile_s.Get()) == 1 ) 
 		{
 			terrain_load ( );
@@ -3284,7 +3352,7 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 	//Sync (  );
 
 	//  Setup default paths
-	t.levelmapptah_s="levelbank\\testmap\\";
+	t.levelmapptah_s=g.mysystem.levelBankTestMap_s; //"levelbank\\testmap\\";
 	g.projectfilename_s="";
 
 	//  Get list of guns and flak for data
@@ -3747,300 +3815,6 @@ void version_universe_construct ( void )
 {
 }
 
-
-/*       part of old standalone t.game builder
-}
-
-void version_buildgame ( void )
-{
-
-	//  Is called when BUILD GAME selected from file menu
-	interface_openbuildgame ; gosub _interface_handlebuildgame ;  gosub _interface_closebuildgame ( );
-
-return;
-
-}
-
-void version_main_game_buildexe ( void )
-{
-
-//  Despot file collection
-if (  FileExist("..\\buildfiles.ini") == 1  )  DeleteAFile (  "..\\buildfiles.ini" );
-SaveArray (  "..\\buildfiles.ini",t.filecollection_s[] );
-
-//  Store root folder
-t.rootpath_s=GetDir();
-
-//  Name without EXE
-t.exename_s=g.gbuildname_s;
-if (  Lower(Right(t.exename_s,4)) == ".exe" ) 
-{
-	t.exename_s=Left(t.exename_s,Len(t.exename_s)-4);
-}
-
-//  Path to EXE
-if (  Mid(g.gbuildpath_s,2) == " ) :";
-	t.exepath_s=g.gbuildpath_s;
-}
-else
-{
-	t.exepath_s=g.exedir_s;
-}
-if (  Right(t.exepath_s,1) != "\\"  )  t.exepath_s = t.exepath_s+"\\";
-if (  PathExist(t.exepath_s) == 0  )  t.exepath_s = t.rootpath_s+"\\..\\MyGames\\";
-
-//  if (  gimageblockmode == 0  )  GUI_CITF(exepath$, exename$)
-
-//  Despot file collection
-if (  FileExist("..\\buildfiles.ini") == 1  )  DeleteAFile (  "..\\buildfiles.ini" );
-SaveArray (  "..\\buildfiles.ini",t.filecollection_s[] );
-
-//  Store root folder
-t.rootpath_s=GetDir();
-
-//  FPSCV104RC7 - user can delete the MyGames folder?
-if (  PathExist(t.exepath_s) == 0 ) 
-{
-	SetDir (  (  t.rootpath_s  ) ); SetDir "..";
-	MakeDirectory (  "MyGames" );
-}
-
-//  Create game folder
-SetDir (  t.exepath_s );
-MakeDirectory (  t.exename_s );
-SetDir (  t.exename_s );
-MakeDirectory (  "Files" );
-SetDir (  "Files" );
-
-//  FPSCV10X, ensure gamesaves files are removed (if any)
-if (  PathExist("gamesaves") == 1 ) 
-{
-	SetDir (  "gamesaves" );
-	ChecklistForFiles (  );
-	for ( t.c = 1 ; t.c<=  ChecklistQuantity(); t.c++ )
-	{
-		tfile_s=ChecklistString(t.c);
-		if (  Len(tfile_s)>2 ) 
-		{
-			if (  FileExist(tfile_s) == 1  )  DeleteAFile (  tfile_s );
-		}
-	}
-	SetDir (  ".." );
-}
-
-//  V109 BETA4 - 230408 - delete entries that already exist in IMAGEBLOCK
-if (  g.gimageblockmode == 1 ) 
-{
-	for ( imageblock = les;
-t	//~  filesmax=array count(filecollection$())
-	t.filesmax=ArrayCount(t.filecollection_s[]);
-	for ( t.fileindex = 0 ; t.fileindex<=  t.filesmax; t.fileindex++ )
-	{
-		t.srcstring_s=Lower(t.filecollection_s[t.fileindex]);
-		if (  Len(t.srcstring_s)>0 ) 
-		{
-			//  and only if NOT in effectbank (some shaders NEED external image files)
-			if (  Left(t.srcstring_s,11) != "effectbank\\" ) 
-			{
-				//  scan imageblock
-				for ( t.c = 1 ; t.c<=  ChecklistQuantity(); t.c++ )
-				{
-					imageblockfile_s=Lower(ChecklistString(t.c));
-					if (  imageblockfile_s == t.srcstring_s ) 
-					{
-						t.filecollection_s[t.fileindex]="";
-						t.c=ChecklistQuantity()+1;
-					}
-				}
-			}
-		}
-	}
-}
-
-//  V109 BETA5 - 250408 - build image block CLOSE
-if (  g.gcompilestandaloneexe == 1 && g.gimageblockmode == 1  )  close imageblock;
-
-//  ensure file path exists (by creating folders)
-t.filesmax=ArrayCount(t.filecollection_s[]);
-for ( t.fileindex = 0 ; t.fileindex<=  t.filesmax; t.fileindex++ )
-	t.olddir_s=GetDir();
-	t.src_s=t.filecollection_s[t.fileindex];
-	t.srcstring_s=t.src_s;
-	while (  Len(t.srcstring_s)>0 ) 
-	{
-		for ( t.c = 1 ; t.c<=  Len(t.srcstring_s); t.c++ )
-		{
-			if (  Mid(t.srcstring_s,t.c) == "\\" || Mid(t.srcstring_s,t.c) == "/" ) 
-			{
-				t.chunk_s=Left(t.srcstring_s,t.c-1);
-				if (  Len(t.chunk_s)>0 ) 
-				{
-					if (  PathExist(t.chunk_s) == 0  )  MakeDirectory (  t.chunk_s );
-					SetDir (  t.chunk_s );
-				}
-				t.srcstring_s=Right(t.srcstring_s,Len(t.srcstring_s)-t.c);
-				break;
-			}
-		}
-		if (  t.c>Len(t.srcstring_s)  )  break;
-	}
-	SetDir (  t.olddir_s );
-}
-
-//  v107 - 070807 - also detect for any HUD.X copies, and also copy texture files in its folder
-SetDir (  t.rootpath_s );
-for ( t.fileindex = 0 ; t.fileindex<=  t.filesmax; t.fileindex++ )
-	t.src_s=t.filecollection_s[t.fileindex];
-	if (  Right(Lower(t.src_s),6) == "\\hud.x" ) 
-	{
-		//  find all files in the folder that shares this file and add to collection
-		addallfilestocollection(Left(t.src_s,Len(t.src_s)-5));
-	}
-}
-t.filesmax=ArrayCount(t.filecollection_s[]);
-
-//  CopyAFile (  collection to exe folder )
-SetDir (  t.rootpath_s );
-debugviewtext(-1,t.strarr_s[393]);
-for ( t.fileindex = 0 ; t.fileindex<=  t.filesmax; t.fileindex++ )
-	t.src_s=t.filecollection_s[t.fileindex];
-	t.dest_s=t.exepath_s+t.exename_s+"\\Files\\"+t.src_s;
-	if (  FileExist(t.dest_s) == 1  )  DeleteAFile (  t.dest_s );
-	CopyAFile (  t.src_s,t.dest_s );
-}
-
-//  copy game engine and rename it
-SetDir (  (  t.rootpath_s  ) ); SetDir "..";
-t.dest_s=t.exepath_s+t.exename_s+"\\"+t.exename_s+".exe";
-if (  FileExist(t.dest_s) == 1  )  DeleteAFile (  t.dest_s );
-CopyAFile (  "FPSC-Game.exe",t.dest_s );
-
-//  create a setup.ini file here reflecting game
-Dim (  t.setuparr_s,999  );
-t.setupfile_s=t.exepath_s+t.exename_s+"\\setup.ini" ; t.i=0;
-t.setuparr_s[t.i]="gametype=0" ; inc t.i;
-t.setuparr_s[t.i]=" g.serverhostname= FPSC Arena" ; inc t.i;
-for ( t.num = 1 ; t.num<=  30; t.num++ )
-t.setuparr_s[t.i]="taunt"+Str(t.num)+"="+Str(t.listkey[t.num]) ; inc t.i;
-}
-t.setuparr_s[t.i]="[GAMERUN]" ; inc t.i;
-t.setuparr_s[t.i]="realgameview=1" ; inc t.i;
-t.setuparr_s[t.i]="dynamiclighting="+Str(g.gdynamiclightingstate) ; inc t.i;
-t.setuparr_s[t.i]="dynamicshadows="+Str(g.gdynamicshadowsstate) ; inc t.i;
-t.setuparr_s[t.i]="dividetexturesize="+Str( g.gdividetexturesize ) ; inc t.i;
-//  FPGC - 070411 - we can force the standalone games to use VRMODE when using VRQUEST
-if (  g.fpgcgenre == 0 ) 
-{
-	t.setuparr_s[t.i]="vrmode=6" ; inc t.i;
-	t.setuparr_s[t.i]="vrmodemag=100" ; inc t.i;
-}
-else
-{
-	t.setuparr_s[t.i]="vrmode="+Str( g.gvrmode ) ; inc t.i;
-	t.setuparr_s[t.i]="vrmodemag="+Str( g.gvrmodemag ) ; inc t.i;
-}
-t.setuparr_s[t.i]="mousesensitivity="+Str( g.gmousesensitivity ) ; inc t.i;
-t.setuparr_s[t.i]="producelogfiles="+Str( g.gproducelogfiles ) ; inc t.i;
-t.setuparr_s[t.i]="hsrmode="+Str( g.ghsrmode ) ; inc t.i;
-t.setuparr_s[t.i]="aspectratio="+Str( g.gaspectratio ) ; inc t.i;
-t.setuparr_s[t.i]="newblossershaders="+Str( g.gnewblossershaders ) ; inc t.i;
-t.setuparr_s[t.i]="postprocessing="+Str( g.gpostprocessing ) ; inc t.i;
-t.setuparr_s[t.i]="showaioutlines="+Str( g.gshowaioutlines ) ; inc t.i;
-t.setuparr_s[t.i]="airadius="+Str( g.gairadius ) ; inc t.i;
-t.setuparr_s[t.i]="disablepeeking="+Str( g.gdisablepeeking ) ; inc t.i;
-t.setuparr_s[t.i]="disableparticles="+Str( g.gparticlesnotused ) ; inc t.i;
-
-t.setuparr_s[t.i]="" ; inc t.i;
-t.setuparr_s[t.i]="[GAMEMULTIPLAYER]" ; inc t.i;
-t.setuparr_s[t.i]="multiplayergame="+Str(g.gmultiplayergame) ; inc t.i;
-t.setuparr_s[t.i]="gameobjectivetype="+Str(g.ggameobjectivetype) ; inc t.i;
-t.setuparr_s[t.i]="gameobjectivevalue="+Str(g.ggameobjectivevalue) ; inc t.i;
-t.setuparr_s[t.i]="oneshotkills="+Str(g.goneshotkills) ; inc t.i;
-t.setuparr_s[t.i]="maxplayers="+Str(g.numberofplayers) ; inc t.i;
-t.setuparr_s[t.i]="spawnrandom="+Str(g.gspawnrandom) ; inc t.i;
-t.setuparr_s[t.i]="uniquegamecode="+g.guniquegamecode_s ; inc t.i;
-
-t.setuparr_s[t.i]="" ; inc t.i;
-t.setuparr_s[t.i]="[GAMEDEBUG]" ; inc t.i;
-t.setuparr_s[t.i]="usesky=1" ; inc t.i;
-t.setuparr_s[t.i]="usefloor="+Str( g.gusefloorstate ) ; inc t.i;
-t.setuparr_s[t.i]="useenvsounds=1" ; inc t.i;
-t.setuparr_s[t.i]="useweapons=1" ; inc t.i;
-t.setuparr_s[t.i]="" ; inc t.i;
-t.setuparr_s[t.i]="[GAMEPROFILE]" ; inc t.i;
-t.setuparr_s[t.i]="title="+t.titlefpi_s ; inc t.i;
-t.setuparr_s[t.i]="global="+t.setupfpi_s ; inc t.i;
-t.setuparr_s[t.i]="gamewon="+t.gamewonfpi_s ; inc t.i;
-t.setuparr_s[t.i]="gameover="+t.gameoverfpi_s ; inc t.i;
-for ( t.num = 1 ; t.num<=  11; t.num++ )
-	t.setuparr_s[t.i]="key"+Str(t.num)+"="+Str(t.listkey[t.num]) ; inc t.i;
-}
-for ( t.num = 1 ; t.num<=  30; t.num++ )
-	t.setuparr_s[t.i]="taunt"+Str(t.num)+"="+Str(t.listkey[t.num]) ; inc t.i;
-}
-for ( t.num = 1 ; t.num<=  9; t.num++ )
-	t.setuparr_s[t.i]="slot"+Str(t.num)+"="+t.gunslots_s[t.num] ; inc t.i;
-}
-t.setuparr_s[t.i]="levelmax="+Str(g.glevelmax) ; inc t.i;
-for ( t.num = 1 ; t.num<=  g.glevelmax; t.num++ )
-	t.setuparr_s[t.i]="levelfpm"+Str(t.num)+"="+t.level_s[t.num].fpm_s ; inc t.i;
-	t.setuparr_s[t.i]="levelfpi"+Str(t.num)+"="+t.level_s[t.num].fpi_s ; inc t.i;
-}
-if (  FileExist(t.setupfile_s) == 1  )  DeleteAFile (  t.setupfile_s );
-SaveArray (  t.setupfile_s,t.setuparr_s[] );
-UnDim (  t.setuparr_s[] );
-
-//  Also save out the localisation ptr file
-Dim (  t.setuparr_s,2  );
-t.setupfile_s=t.exepath_s+t.exename_s+"\\userdetails.ini";
-t.setuparr_s[0]="[LOCALIZATION]";
-t.setuparr_s[1]="language="+g.language_s;
-SaveArray (  t.setupfile_s,t.setuparr_s[] );
-UnDim (  t.setuparr_s[] );
-
-//  FPGC - also account for missing folders/files required by ZERO-GENRE
-if (  g.fpgcgenre == 0 ) 
-{
-	//  directory tells EXE it is a non-shooter
-	SetDir (  (  (  t.exepath_s  ) ) ); SetDir t.exename_s ; SetDir "Files\\gamecore\\";
-	if (  PathExist("equipment") == 0  )  MakeDirectory (  "equipment" );
-}
-if (  g.fpgcgenre == 1 ) 
-{
-	//  directory tells EXE it is a shooter
-	SetDir (  (  (  t.exepath_s  ) ) ); SetDir t.exename_s ; SetDir "Files\\gamecore\\";
-	if (  PathExist("guns") == 0  )  MakeDirectory (  "guns" );
-}
-
-//  Cannot depend on FPG being preserved, find from file collection
-g.currentFPG_s="mygame";
-for ( t.fileindex = 0 ; t.fileindex<=  t.filesmax; t.fileindex++ )
-	t.src_s=t.filecollection_s[t.fileindex];
-	if (  Right(Lower(t.src_s),14) == "\\titlepage.fpi" ) 
-	{
-		tsrc_s=Left(t.src_s,Len(t.src_s)-14);
-		for ( t.nn = Len(tsrc_s) ; t.nn>=  1 step -1; t.nn+= -1 )
-		{
-			if (  Mid(tsrc_s,t.nn) == "\\" || Mid(tsrc_s,t.nn) == "/" ) 
-			{
-				g.currentFPG_s=Right(tsrc_s,Len(tsrc_s)-t.nn);
-				t.nn=0 ; break;
-			}
-		}
-	}
-}
-
-//  GUI-X9 - knxrb
-//  SetDir (  (  exepath$  ) ); SetDir ".."
-//  CheckBuildScripts(exepath$+exename$,language$)
-
-//  Restore directory
-SetDir (  t.rootpath_s );
-
-return;
-*/    
-
-
 void common_refreshDisplaySize ( void )
 {
 	//  Mode 1 uses GetDisplayWidth (  mostly, or special case child GetWindowWidth (  for some scenarios (res/fontsize) ) )
@@ -4123,7 +3897,7 @@ void loadresource ( void )
 	int n = 0;
 
 	//  Load previously captured resource data
-	memoryusagetable_s=g.rootdir_s+"editors\\gridedit\\memusedtable.dat";
+	memoryusagetable_s=g.mysystem.editorsGrideditAbs_s+"memusedtable.dat";//g.rootdir_s+"editors\\gridedit\\memusedtable.dat";
 	if (  FileExist(memoryusagetable_s.Get()) == 1 ) 
 	{
 		OpenToRead (  1,memoryusagetable_s.Get() );
@@ -4156,7 +3930,7 @@ void saveresource ( void )
 	int n = 0;
 
 	//  Save out resource captures
-	memoryusagetable_s=g.rootdir_s+"editors\\gridedit\\memusedtable.dat";
+	memoryusagetable_s=g.mysystem.editorsGrideditAbs_s+"memusedtable.dat";//g.rootdir_s+"editors\\gridedit\\memusedtable.dat";
 	if (  FileExist(memoryusagetable_s.Get()) == 1  )  DeleteAFile (  memoryusagetable_s.Get() );
 	OpenToWrite (  1,memoryusagetable_s.Get() );
 		numberofitems=1+ArrayCount(t.gamememtable);
@@ -4172,7 +3946,7 @@ void saveresource ( void )
 	CloseFile (  1 );
 	if (  1 ) 
 	{
-		memoryusagetable_s=g.rootdir_s+"editors\\gridedit\\memusedtable.log";
+		memoryusagetable_s=g.mysystem.editorsGrideditAbs_s+"memusedtable.log";//g.rootdir_s+"editors\\gridedit\\memusedtable.log";
 		if (  FileExist(memoryusagetable_s.Get()) == 1  )  DeleteAFile (  memoryusagetable_s.Get() );
 		OpenToWrite (  1,memoryusagetable_s.Get() );
 			numberofitems=1+ArrayCount(t.gamememtable);

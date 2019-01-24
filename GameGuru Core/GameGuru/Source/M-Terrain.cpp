@@ -215,7 +215,7 @@ cstr terrain_getterrainfolder ( void )
 {
 	g.terrainstyle_s = t.terrainstylebank_s[g.terrainstyleindex];
 	cstr sTerrainTextureLocation = cstr(cstr("terrainbank\\")+g.terrainstyle_s);
-	if ( g.terrainstyleindex == 1 ) sTerrainTextureLocation = "levelbank\\testmap";
+	if ( g.terrainstyleindex == 1 ) sTerrainTextureLocation = g.mysystem.levelBankTestMap_s.Get(); //"levelbank\\testmap";
 	return sTerrainTextureLocation;
 }
 
@@ -383,7 +383,7 @@ void terrain_paintselector_control ( void )
 		g.terrainstyle_s = t.terrainstylebank_s[g.terrainstyleindex];
 		char pThisTerrainTexturePath[512];
 		strcpy ( pThisTerrainTexturePath, cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
-		if ( g.terrainstyleindex == 1 ) strcpy ( pThisTerrainTexturePath, "levelbank\\testmap" );
+		if ( g.terrainstyleindex == 1 ) strcpy ( pThisTerrainTexturePath, g.mysystem.levelBankTestMap_s.Get() ); //"levelbank\\testmap" );
 		if ( PathExist( pThisTerrainTexturePath ) == 1 ) 
 		{
 			// check if new terrain texture system file available, and create if not
@@ -399,14 +399,17 @@ void terrain_paintselector_control ( void )
 					g.terrainstyleindex = t.visuals.terrainindex;
 					g.terrainstyle_s = t.visuals.terrain_s;
 					char pNewLocationForFile[512];
-					strcpy ( pNewLocationForFile, "levelbank\\testmap\\Texture_D.dds" );
+					//strcpy ( pNewLocationForFile, "levelbank\\testmap\\Texture_D.dds" );
+					strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+"Texture_D.dds").Get() );
 					if ( FileExist ( pNewLocationForFile ) == 1 ) DeleteFile ( pNewLocationForFile );
 					CopyFile ( pOldTerrainTextureFile, pNewLocationForFile, FALSE );
 					strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\Texture_N.dds")).Get() );
-					strcpy ( pNewLocationForFile, "levelbank\\testmap\\Texture_N.dds" );
+					//strcpy ( pNewLocationForFile, "levelbank\\testmap\\Texture_N.dds" );
+					strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+"Texture_N.dds").Get() );
 					if ( FileExist ( pNewLocationForFile ) == 1 ) DeleteFile ( pNewLocationForFile );
 					CopyFile ( pOldTerrainTextureFile, pNewLocationForFile, FALSE );
-					strcpy ( pOldTerrainTextureFile, "levelbank\\testmap\\Texture_D.dds" );
+					//strcpy ( pOldTerrainTextureFile, "levelbank\\testmap\\Texture_D.dds" );
+					strcpy ( pOldTerrainTextureFile, cstr(g.mysystem.levelBankTestMap_s+"Texture_D.dds").Get() );
 				}
 
 				// change this texture slot with a new one
@@ -874,7 +877,7 @@ void terrain_loadlatesttexture ( void )
 	// determine location of terrain texture
 	char pLocationOfTerrainTexture[512];
 	strcpy ( pLocationOfTerrainTexture, cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
-	if ( g.terrainstyleindex == 1 ) strcpy ( pLocationOfTerrainTexture, "levelbank\\testmap" );
+	if ( g.terrainstyleindex == 1 ) strcpy ( pLocationOfTerrainTexture, g.mysystem.levelBankTestMap_s.Get() ); //"levelbank\\testmap" );
 
 	// load the terrain texture into the terrain object
 	SetImageAutoMipMap ( 1 );
@@ -2321,12 +2324,14 @@ void terrain_make ( void )
 		}
 		else
 		{
-			if (  FileExist("levelbank\\testmap\\vegmask.dds") == 1 ) 
+			//if (  FileExist("levelbank\\testmap\\vegmask.dds") == 1 ) 
+			if (  FileExist(cstr(g.mysystem.levelBankTestMap_s+"vegmask.dds").Get()) == 1 ) 
 			{
 				if (  ImageExist(t.terrain.imagestartindex+2) == 0 ) 
 				{
 					SetMipmapNum(1);
-					LoadImage (  "levelbank\\testmap\\vegmask.dds",t.terrain.imagestartindex+2,10,0 );
+					//LoadImage (  "levelbank\\testmap\\vegmask.dds",t.terrain.imagestartindex+2,10,0 );
+					LoadImage ( cstr(g.mysystem.levelBankTestMap_s+"vegmask.dds").Get(),t.terrain.imagestartindex+2,10,0 );
 					if ( ImageExist ( t.terrain.imagestartindex+2 ) == 0 )
 					{
 						terrain_generatevegandmask_grab ( );
@@ -2415,11 +2420,11 @@ void terrain_save ( void )
 {
 	if (  t.terrain.TerrainID>0 ) 
 	{
-		if (  FileExist(t.tfile_s.Get()) == 1  )  DeleteAFile (  t.tfile_s.Get() );
-		if (  MemblockExist(1) == 0 ) 
+		if ( FileExist(t.tfile_s.Get()) == 1 ) DeleteAFile ( t.tfile_s.Get() );
+		if ( MemblockExist(1) == 0 ) 
 		{
-			MakeMemblock (  1,1024*1024*4 );
-			OpenToWrite (  1,t.tfile_s.Get() );
+			MakeMemblock ( 1,1024*1024*4 );
+			OpenToWrite ( 1, t.tfile_s.Get() );
 			t.mi=0;
 			for ( t.z = 0 ; t.z<=  1023; t.z++ )
 			{
@@ -2431,9 +2436,9 @@ void terrain_save ( void )
 					t.mi += 4;
 				}
 			}
-			WriteMemblock (  1,1 );
-			CloseFile (  1 );
-			DeleteMemblock (  1 );
+			WriteMemblock ( 1,1 );
+			CloseFile ( 1 );
+			DeleteMemblock ( 1 );
 		}
 		else
 		{
@@ -2589,7 +2594,7 @@ void terrain_loaddata ( void )
 
 			// 251017 - moved from actualterrain creation (too soon before)
 			// Load PBR env map - if no local CUBE file, load the global cube file if a PBR
-			cstr texEnvMap = "levelbank\\testmap\\globalenvmap.dds";
+			cstr texEnvMap = g.mysystem.levelBankTestMap_s+"globalenvmap.dds"; //"levelbank\\testmap\\globalenvmap.dds";
 			if ( FileExist ( texEnvMap.Get() ) == 0 ) texEnvMap = "effectbank\\reloaded\\media\\CUBE.dds";
 			LoadImage ( texEnvMap.Get(), t.terrain.imagestartindex+31, 2 );
 			TextureObject ( t.terrain.terrainobjectindex, 6, t.terrain.imagestartindex+31 );
@@ -3489,7 +3494,7 @@ void terrain_deletesupertexturepalette ( void )
 	if ( g.terrainstyleindex == 1 )
 	{
 		// custom from levelbank\testmap
-		t.tfile_s = cstr("levelbank\\testmap\\superpalette.ter");
+		t.tfile_s = g.mysystem.levelBankTestMap_s+"superpalette.ter"; //cstr("levelbank\\testmap\\superpalette.ter");
 	}
 	else
 	{
@@ -3509,7 +3514,7 @@ void terrain_generatesupertexture ( bool bForceRecalcOfPalette )
 	if ( g.terrainstyleindex == 1 )
 	{
 		// custom from levelbank\testmap
-		t.tfile_s = cstr("levelbank\\testmap\\superpalette.ter");
+		t.tfile_s = g.mysystem.levelBankTestMap_s+"superpalette.ter"; //cstr("levelbank\\testmap\\superpalette.ter");
 	}
 	else
 	{
@@ -4550,7 +4555,7 @@ void terrain_water_init ( void )
 	SetCameraToImage (  2,t.terrain.imagestartindex+6,t.terrain.reflsizer,t.terrain.reflsizer );
 
 	//  Re-make water mask if required
-	t.tfilewater_s="levelbank\\testmap\\watermask.dds";
+	t.tfilewater_s=g.mysystem.levelBankTestMap_s+"watermask.dds"; //"levelbank\\testmap\\watermask.dds";
 	t.terrain.terrainregionupdate=0;
 	terrain_refreshterrainmatrix ( );
 	terrain_updatewatermask ( );
@@ -4573,7 +4578,8 @@ void terrain_water_init ( void )
 		}
 		else {
 			SetMipmapNum(1);
-			LoadImage("levelbank\\testmap\\watermask.dds", t.terrain.imagestartindex + 4, 10, 0);
+			//LoadImage("levelbank\\testmap\\watermask.dds", t.terrain.imagestartindex + 4, 10, 0);
+			LoadImage(cstr(g.mysystem.levelBankTestMap_s+"watermask.dds").Get(), t.terrain.imagestartindex + 4, 10, 0);
 			SetMipmapNum(-1);
 		}
 	}
@@ -4888,7 +4894,7 @@ void terrain_fastveg_init ( void )
 
 	//  if the user has updated the grass bitmap in the editor and the init function has been called, we are testing a level
 	//  and a new grass memblock file needs to be made from the bitmap. Otherwise there should be one to load
-	t.tfileveggrass_s="levelbank\\testmap\\vegmaskgrass.dat";
+	t.tfileveggrass_s=g.mysystem.levelBankTestMap_s+"vegmaskgrass.dat"; //"levelbank\\testmap\\vegmaskgrass.dat";
 	if (  t.terrain.grassregionx1 != t.terrain.grassregionx2 || t.terrain.grassregionupdate == 2 || FileExist(t.tfileveggrass_s.Get()) == 0 ) 
 	{
 		terrain_fastveg_updategrassfrombitmap ( );
