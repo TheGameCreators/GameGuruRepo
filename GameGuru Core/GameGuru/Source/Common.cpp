@@ -2960,6 +2960,7 @@ void FPSC_Setup ( void )
 	cstr mysystemfolder_s = "My System";
 	if ( bIsThisMapEditor == false ) g.mysystem.bUsingMySystemFolder = false;
 	g.mysystem.root_s = g.myownrootdir_s + "\\" + mysystemfolder_s + "\\";
+	if ( g.mysystem.bUsingMySystemFolder == false ) g.mysystem.root_s = g.fpscrootdir_s + "\\";;
 	g.mysystem.levelBankTestMap_s = "levelbank\\testmap\\";
 	g.mysystem.levelBankTestMapAbs_s = g.fpscrootdir_s+"\\Files\\levelbank\\testmap\\";
 	g.mysystem.editorsGridedit_s = "editors\\gridedit\\";
