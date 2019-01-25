@@ -3246,6 +3246,29 @@ struct huddamagetype
 
 };
 
+// VR Globals
+struct vrglobalstype
+{
+	int GGVREnabled;
+	float GGVRInitialized;
+	float GGVR_HeadingAngle;
+	float GGVR_XposOffset;
+	float GGVR_YposOffset;
+	float GGVR_ZposOffset;
+	float GGVR_Old_Yangle;
+	float GGVR_Old_XposOffset;
+	float GGVR_Old_YposOffset;
+	float GGVR_Old_ZposOffset;
+	float GGVR_XposOffsetChange;
+	float GGVR_YposOffsetChange;
+	float GGVR_ZposOffsetChange;
+	vrglobalstype ( )
+	{
+		GGVREnabled = 0;
+		GGVRInitialized = 0;
+	}
+};
+
 //  Main game data structure (to avoid globals, place new game globals here)
 struct globalstype
 {

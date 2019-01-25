@@ -2743,7 +2743,111 @@ int ControlDynamicCharacterController ( lua_State *L )
 	float fPushAngle = lua_tonumber(L, 6);
 	float fPushForce = lua_tonumber(L, 7);
 	float fThrustUpwards = lua_tonumber(L, 8);
-	ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, fAngleY, fAngleX, fSpeed, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards );
+	if (g.vrglobals.GGVREnabled == 0 )
+	{
+		ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, fAngleY, fAngleX, fSpeed, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards );
+	}
+	else
+	{
+		//Rotate the offset around the Yaw of the HMD to make it relative to the HMD facing
+		double radian = 0.0174532988888;
+		double modifiedX = 0.0;
+		double modifiedZ = 0.0;
+		double HMDYaw = GGVR_GetHMDYaw();
+		double camL = t.playercontrol.finalcameraangley_f;
+
+		if (HMDYaw < 0.0)
+		{
+			HMDYaw = 360.0 + HMDYaw;
+		}
+		if (HMDYaw > 360.0)
+		{
+			HMDYaw = HMDYaw - 360.0;
+		}
+		if (camL < 0.0)
+		{
+			camL = 360.0 + camL;
+		}
+		if (camL > 360.0)
+		{
+			camL = camL - 360.0;
+		}
+
+		double yl = (camL - HMDYaw);
+
+		if (yl < 0.0f)
+		{
+			yl = 360.0f + yl;
+		}
+		if (yl > 360.0f)
+		{
+			yl = yl - 360.0f;
+		}
+		
+		yl = yl *  radian;
+		double cosYL = cos(yl);  double sinYL = sin(yl); double nsinYL = -sin(yl);
+
+		modifiedX = (sin(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*cosYL) + (g.vrglobals.GGVR_ZposOffsetChange*sinYL));
+		modifiedZ = (cos(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*nsinYL) + (g.vrglobals.GGVR_ZposOffsetChange*cosYL));
+		
+		double norm_XOffset = 0.0;
+		double norm_ZOffset = 0.0;
+		double Modified_fAngleY = 0.0;
+		
+		//Work out the motion angle of the HMD in the play area
+		double norm = sqrt((modifiedX*modifiedX) + (modifiedZ*modifiedZ));
+		if (norm != 0.0)
+		{
+			double XOffset = modifiedX / norm;
+			double ZOffset = modifiedZ / norm;
+			double MovementAngle = 0.0f;
+
+			if (XOffset == 0.0)
+			{
+				if (ZOffset > 0.0f)
+				{
+					MovementAngle = 0.0f;
+				}
+				else
+				{
+					MovementAngle = 180.0f;
+				}
+			}
+			if (XOffset > 0.0)
+			{
+				if (ZOffset >= 0.0f)
+				{
+					MovementAngle = Asin(XOffset);
+				}
+				else
+				{
+					MovementAngle = 180.0f - Asin(XOffset);
+				}
+			}
+			if (XOffset < 0.0)
+			{
+				if (ZOffset >= 0.0)
+				{
+					MovementAngle = 360.0f + Asin(XOffset);
+				}
+				else
+				{
+					MovementAngle = 180.0f - Asin(XOffset);
+				}
+			}
+
+			Modified_fAngleY = MovementAngle;
+
+		}
+		else
+		{
+			norm_XOffset = 0.0;
+			norm_ZOffset = 0.0;
+			norm = 0.0;
+			Modified_fAngleY = fAngleY;
+		}
+		ODEControlDynamicCharacterController(t.aisystem.objectstartindex, Modified_fAngleY, fAngleX, norm, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards);
+	}
 	return 0;
 }
 int GetCharacterHitFloor ( lua_State *L )

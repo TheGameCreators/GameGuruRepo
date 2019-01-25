@@ -59,7 +59,6 @@
 #include "MapEditor.h"
 #include "Types.h"
 
-
 //Engine Includes
 #include "BlitzTerrain.h"
 #include "BulletPhysics.H"
@@ -100,6 +99,7 @@
 #include "SteamCommands.h"
 #include "..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\Core\DBDLLCore.h"
 #include "CSystemC.h"
+#include "GGVR.h"
 
 #endif
 
@@ -126,6 +126,7 @@ struct mysystemtype
 struct Sglobals
 {
 	globalstype globals;
+	vrglobalstype vrglobals;
 	mysystemtype mysystem;
 	int characterSoundCurrentPlayingNumber;
 	cstr characterSoundCurrentPlayingType_s;

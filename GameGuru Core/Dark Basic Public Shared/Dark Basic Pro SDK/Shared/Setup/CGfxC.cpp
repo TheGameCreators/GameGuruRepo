@@ -2116,7 +2116,8 @@ DARKSDK bool SetupDX11 ( void )
 	D3D_DRIVER_TYPE adapterType = D3D_DRIVER_TYPE_HARDWARE;
     std::vector <IDXGIAdapter*> vAdapters; 
     IDXGIFactory* pFactory = NULL; 
-    if(SUCCEEDED(CreateDXGIFactory(__uuidof(IDXGIFactory) ,(void**)&pFactory)))
+    //if(SUCCEEDED(CreateDXGIFactory(__uuidof(IDXGIFactory) ,(void**)&pFactory))) GGVR needs this!
+    if(SUCCEEDED(CreateDXGIFactory1(__uuidof(IDXGIFactory) ,(void**)&pFactory)))
     {
 		if ( pFactory->EnumAdapters(m_uAdapterChoice, &pAdapter) != DXGI_ERROR_NOT_FOUND )
 		{

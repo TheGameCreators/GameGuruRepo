@@ -981,10 +981,19 @@ void visuals_updateobjectmasks ( void )
 	//  can be called from _loop and also from terrain (reflection update when not looking at water pixels)
 	if ( 1 ) 
 	{
-		if (  g.globals.riftmode>0 ) 
+		if ( g.globals.riftmode>0 || g.vrglobals.GGVREnabled > 0 ) 
 		{
-			//  left and right eye cameras too (but not camera zero)
-			t.tmaskforcamerasraw=00000+(1<<t.glefteyecameraid)+(1<<t.grighteyecameraid);
+			if ( g.vrglobals.GGVREnabled > 0 )
+			{
+				// VIVE = left and right eye cameras, and camera zero for editor
+				t.tmaskforcamerasraw=00001+(1<<t.glefteyecameraid)+(1<<t.grighteyecameraid);
+			}
+			else
+			{
+				// RIFT = left and right eye cameras too (but not camera zero)
+				// left and right eye cameras too (but not camera zero)
+				t.tmaskforcamerasraw=00000+(1<<t.glefteyecameraid)+(1<<t.grighteyecameraid);
+			}
 		}
 		else
 		{
@@ -1322,9 +1331,12 @@ void visuals_loop ( void )
 			}
 
 			//  Update in-game objects that only appear in main camera
-			if (  g.globals.riftmode>0 ) 
+			if ( g.globals.riftmode>0 || g.vrglobals.GGVREnabled > 0 )  
 			{
-				t.tmaskmaincamera=0+(1<<t.glefteyecameraid)+(1<<t.grighteyecameraid);
+				if ( g.vrglobals.GGVREnabled > 0 )
+					t.tmaskmaincamera=1+(1<<t.glefteyecameraid)+(1<<t.grighteyecameraid);
+				else
+					t.tmaskmaincamera=0+(1<<t.glefteyecameraid)+(1<<t.grighteyecameraid);
 			}
 			else
 			{

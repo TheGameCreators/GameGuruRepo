@@ -1402,6 +1402,39 @@ void physics_player_gatherkeycontrols ( void )
 		}
 	}
 
+	// VR Support - take extra input from VR controllers
+	if (g.vrglobals.GGVREnabled == 1)
+	{
+		// Intialize the player to the start position and rotation and setup the GGVR Player Object
+		if (g.vrglobals.GGVRInitialized == 0)
+		{
+			GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
+			GGVR_SetPlayerRotation(0, CameraAngleY(t.terrain.gameplaycamera), 0);
+			GGVR_UpdatePlayer();
+			g.vrglobals.GGVR_Old_XposOffset = GGVR_GetHMDOffsetX();
+			g.vrglobals.GGVR_Old_ZposOffset = GGVR_GetHMDOffsetZ();
+			g.vrglobals.GGVR_Old_Yangle = GGVR_GetPlayerAngleY();
+			g.vrglobals.GGVRInitialized = 1;
+		}
+		if (g.walkonkeys == 1)
+		{
+			if ( GGVR_LeftController_JoyY() > 0.25 )  t.plrkeyW = 1;
+			if ( GGVR_LeftController_JoyY() < -0.25)  t.plrkeyS = 1;
+			if ( GGVR_LeftController_JoyX() < -0.25)  t.plrkeyA = 1;
+			if ( GGVR_LeftController_JoyX() > 0.25 )  t.plrkeyD = 1;
+		}
+		if (GGVR_RightController_JoyX() < -0.25 || GGVR_RightController_JoyX() > 0.25)
+		{
+			t.playercontrol.cy_f = t.playercontrol.cy_f + GGVR_RightController_JoyX()*0.2;
+		}
+		g.vrglobals.GGVR_XposOffset = GGVR_GetHMDOffsetX();
+		g.vrglobals.GGVR_ZposOffset = GGVR_GetHMDOffsetZ();
+		g.vrglobals.GGVR_XposOffsetChange = g.vrglobals.GGVR_XposOffset - g.vrglobals.GGVR_Old_XposOffset;
+		g.vrglobals.GGVR_ZposOffsetChange = g.vrglobals.GGVR_ZposOffset - g.vrglobals.GGVR_Old_ZposOffset;
+		g.vrglobals.GGVR_Old_XposOffset = g.vrglobals.GGVR_XposOffset;
+		g.vrglobals.GGVR_Old_ZposOffset = g.vrglobals.GGVR_ZposOffset;
+	}
+
 	// Automated actions (script control)
 	switch ( g.playeraction ) 
 	{
@@ -1593,7 +1626,10 @@ void physics_player_control_F9 ( void )
 		}
 		t.tRotationDivider_f=8.0/t.tturnspeedmodifier_f;
 		t.camangx_f=CameraAngleX(t.terrain.gameplaycamera)+(t.cammousemovey_f/t.tRotationDivider_f);
-		t.camangy_f=t.playercontrol.finalcameraangley_f+(t.cammousemovex_f/t.tRotationDivider_f);
+		if (g.vrglobals.GGVREnabled == 0)
+		{
+			t.camangy_f=t.playercontrol.finalcameraangley_f+(t.cammousemovex_f/t.tRotationDivider_f);
+		}
 	}
 
 	// Cap look up/down angle so cannot wrap around

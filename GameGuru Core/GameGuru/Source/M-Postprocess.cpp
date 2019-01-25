@@ -106,6 +106,16 @@ void postprocess_init ( void )
 					}
 				}
 
+				// VR Support - create VR cameras
+				if (g.vrglobals.GGVREnabled > 0)
+				{
+					// Set camera IDs and initialise GGVR
+					t.glefteyecameraid = 6;
+					t.grighteyecameraid = 7;
+					g.vrglobals.GGVRInitialized = 0;
+					GGVR_Init(g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004);
+				}
+
 				// and new SAO shader which is slower but nicer looking with SAO effect in place
 				if (  GetEffectExist(g.postprocesseffectoffset+4) == 1  )  DeleteEffect ( g.postprocesseffectoffset+4 );
 				t.tshaderchoice_s="effectbank\\reloaded\\post-sao.fx";
@@ -341,6 +351,12 @@ void postprocess_applycheapshadow ( void )
 
 void postprocess_free ( void )
 {
+	// free GGVR if used
+	if (g.vrglobals.GGVREnabled > 0)
+	{
+		GGVR_Shutdown();
+	}
+
 	//  free post processing objects
 	if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  DeleteObject (  g.postprocessobjectoffset+0 );
 	if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  DeleteObject (  g.postprocessobjectoffset+1 );
@@ -563,6 +579,101 @@ void postprocess_preterrain ( void )
 			//  restore camera Sync (  )
 			SyncMask (  0xfffffff9 );
 			BT_SetCurrentCamera (  0 );
+		}
+	}
+
+	// VR Support - render VR cameras
+	if (g.vrglobals.GGVREnabled > 0)
+	{
+		GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
+		GGVR_RotatePlayerLocalY(t.cammousemovex_f / 8.0);
+		GGVR_UpdatePlayer();
+
+		float Yangle;
+
+		if (GGVR_GetPlayerAngleX() == 180.0)
+		{
+			Yangle = 180.0 - GGVR_GetPlayerAngleY();
+		}
+		else
+		{
+			Yangle = GGVR_GetPlayerAngleY();
+		}
+		RotateCamera(t.terrain.gameplaycamera, 0.0, Yangle, 0.0);
+		g.vrglobals.GGVR_HeadingAngle = Yangle;
+		t.playercontrol.finalcameraanglex_f = 0;
+		t.playercontrol.finalcameraangley_f = Yangle;
+		t.playercontrol.finalcameraanglez_f = 0;
+
+		//  render terrains now
+		if (t.hardwareinfoglobals.noterrain == 0)
+		{
+			if (t.terrain.TerrainID > 0)
+			{
+				for (t.leftright = 0; t.leftright <= 1; t.leftright++)
+				{
+					//  left and right camera in turn
+					if (t.leftright == 0)  t.tcamindex = t.glefteyecameraid;
+					if (t.leftright == 1)  t.tcamindex = t.grighteyecameraid;
+
+					//  adjust sky objects to center on this camera
+					if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex), CameraPositionZ(t.tcamindex));
+					if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex), CameraPositionZ(t.tcamindex));
+					if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex) + 7000, CameraPositionZ(t.tcamindex));
+
+					//  render terrain for this camera
+					BT_SetCurrentCamera(t.tcamindex);
+					BT_UpdateTerrainCull(t.terrain.TerrainID);
+					BT_UpdateTerrainLOD(t.terrain.TerrainID);
+					BT_RenderTerrain(t.terrain.TerrainID);
+
+					// The camera perspective matrix needs to be overridden directly inside the camera data structure
+					tagCameraData* pCameraPtr = (tagCameraData*)GetCameraInternalData ( t.tcamindex );
+					if ( pCameraPtr ) 
+					{
+						// get the projection matrix for each eye
+						GGMATRIX Projection;
+						if (t.leftright == 0)
+							Projection = GGVR_GetLeftEyeProjectionMatrix();
+						else
+							Projection = GGVR_GetRightEyeProjectionMatrix();
+
+						// convert matrix from OpenGL to DirectX (invert Z)
+						GGMATRIX newWorkingProj = Projection;
+						newWorkingProj.m[0][2] = -Projection.m[0][2];
+						newWorkingProj.m[1][2] = -Projection.m[1][2];
+						newWorkingProj.m[2][2] = -Projection.m[2][2];
+						newWorkingProj.m[3][2] = -Projection.m[3][2];
+
+						// transpose so compatible with the way our shadow model 5.0 shaders work
+						GGMatrixTranspose ( &newWorkingProj, &newWorkingProj );
+
+						// finally override the camera projection matrix now
+						pCameraPtr->matProjection = newWorkingProj;
+					}
+					SyncMask((1 << t.tcamindex));
+					FastSync();
+				}
+
+				//Submit the rendered images to GGVR
+				GGVR_Submit();
+
+				if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
+				if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
+				if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera) + 7000, CameraPositionZ(t.terrain.gameplaycamera));
+				SetCurrentCamera(0);
+			}
+
+			//  I should use LAST camera pos/angle as the stereo appears in a post process render
+			t.oldoldcamx_f = CameraPositionX(0);
+			t.oldoldcamy_f = CameraPositionY(0);
+			t.oldoldcamz_f = CameraPositionZ(0);
+			t.oldoldcamax_f = CameraAngleX(0);
+			t.oldoldcamay_f = CameraAngleY(0);
+
+			//  restore camera Sync (  )
+			SyncMask(0xfffffff9);
+			BT_SetCurrentCamera(0);
 		}
 	}
 }

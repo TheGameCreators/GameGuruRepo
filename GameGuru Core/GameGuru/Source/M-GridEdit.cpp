@@ -31,6 +31,7 @@ void mapeditorexecutable ( void )
 
 	//  No VR or RIFTMODE in Editor Mode
 	g.globals.riftmode = 0;
+	g.vrglobals.GGVREnabled = 1; 
 
 	//  Set device to get multisampling AA active in editor
 	t.multisamplingfactor=0;

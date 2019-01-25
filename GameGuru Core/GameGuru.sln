@@ -127,6 +127,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Guru-Lightmapper", "Guru-Li
 		{C5451FF8-7264-4300-9F2D-325FE8301E51} = {C5451FF8-7264-4300-9F2D-325FE8301E51}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GGVR", "Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\GGVR\GGVR.vcxproj", "{799101E2-52F4-41AF-A47D-307D1FD8C9C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Build All|Win32 = Debug Build All|Win32
@@ -642,6 +644,24 @@ Global
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.ReleaseEXE|Win32.Build.0 = Release|Win32
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.ReleaseEXE|x64.ActiveCfg = Release|Win32
 		{759C0609-B350-4FC4-8925-E9443484C2A9}.ReleaseEXE|x64.Build.0 = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug Build All|Win32.ActiveCfg = Debug|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug Build All|Win32.Build.0 = Debug|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug Build All|x64.ActiveCfg = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug Build All|x64.Build.0 = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug Game|Win32.ActiveCfg = Debug|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug Game|Win32.Build.0 = Debug|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug Game|x64.ActiveCfg = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug Game|x64.Build.0 = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug|Win32.Build.0 = Debug|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Debug|x64.ActiveCfg = Debug|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Release|Win32.ActiveCfg = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Release|Win32.Build.0 = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.Release|x64.ActiveCfg = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.ReleaseEXE|Win32.ActiveCfg = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.ReleaseEXE|Win32.Build.0 = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.ReleaseEXE|x64.ActiveCfg = Release|Win32
+		{799101E2-52F4-41AF-A47D-307D1FD8C9C8}.ReleaseEXE|x64.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
