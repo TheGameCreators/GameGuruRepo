@@ -9652,6 +9652,11 @@ struct travey_particle_emitter
 	float xPos;
 	float yPos;
 	float zPos;
+	float xAng;
+	float yAng;
+	float zAng;
+	bool useAngle;
+	bool noWind;
 	float xSpeed;
 	float ySpeed;
 	float zSpeed;
@@ -9716,6 +9721,7 @@ struct travey_particle_emitter
 	int frequency;
 	int numParticles;
 	int maxParticles;
+	int maxPerFrame;
 	int onDeathAction;  // 0 - default, 1 - 'split'
 	float timePassed;
 	bool firstParticle;
@@ -9773,6 +9779,10 @@ struct travey_particle_emitter
 		 zPos = 0.0f;
 		 yPos = 0.0f;
 		 xPos = 0.0f;
+		 xAng = 0.0f;
+		 yAng = 0.0f;
+		 zAng = 0.0f;
+		 useAngle = FALSE;
 		 parentLimb = 0;
 		 parentObject = 0;
 		 zclashfixcounter = 0;
@@ -9783,6 +9793,7 @@ struct travey_particle_emitter
 		 id = 0;
 		 numParticles = 0;
 		 maxParticles = 0;
+		 maxPerFrame = RAVEY_PARTICLES_MAX_SPAWNED_AT_ONCE_BY_AN_EMITTER;
 		 onDeathAction = 0;
 		 firstParticle = TRUE;
 	}
@@ -9797,6 +9808,9 @@ struct travey_particle
 	float x;
 	float y;
 	float z;
+	float xa;
+	float ya;
+	float za;
 	//float moveSpeedX;
 	//float moveSpeedY;
 	//float moveSpeedZ;
@@ -9866,6 +9880,9 @@ struct travey_particle
 		 z = 0.0f;
 		 y = 0.0f;
 		 x = 0.0f;
+		 xa = 0.0f;
+		 ya = 0.0f;
+		 za = 0.0f;
 		 emitterID = 0;
 		 inUse = 0;
 	}
