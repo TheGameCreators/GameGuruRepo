@@ -7054,8 +7054,9 @@ DARKLUA_API void LuaCallSilent()
 	return a;
  }
 
-  DARKLUA_API int LuaExecute ( LPSTR pString )
+ DARKLUA_API int LuaExecute ( LPSTR pString )
  {
+	if ( ppLuaStates == NULL ) return 1;
 
 	int id = defaultState;
 

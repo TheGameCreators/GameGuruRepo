@@ -1321,101 +1321,63 @@ return;
 
 void steam_pre_game_file_sync_client ( void )
 {
+	//  if we have lost connection, head back to main menu
+	t.tconnectionStatus = SteamGetClientServerConnectionStatus();
+	if (  t.tconnectionStatus  ==  0 ) 
+	{
+		t.tsteamconnectionlostmessage_s = "Lost Connection";
+		steam_lostConnection ( );
+		return;
+	}
 
-//  if we have lost connection, head back to main menu
-t.tconnectionStatus = SteamGetClientServerConnectionStatus();
-if (  t.tconnectionStatus  ==  0 ) 
-{
-	t.tsteamconnectionlostmessage_s = "Lost Connection";
-	steam_lostConnection ( );
-	return;
-}
+	steam_sendAvatarInfo ( );
+	//  check if we have finished sending and receiving textures with the server
+	//  (the actual process is handled by steam dll)
+	if (  g.steamworks.isGameHost  ==  1 || g.steamworks.me  ==  0  )  return;
+	if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 ) 
+	{
+		t.tstring_s = "Syncing Avatars";
+		steam_textDots(-1,50,3,t.tstring_s.Get());
+		return;
+	}
 
-steam_sendAvatarInfo ( );
-//  check if we have finished sending and receiving textures with the server
-//  (the actual process is handled by steam dll)
-if (  g.steamworks.isGameHost  ==  1 || g.steamworks.me  ==  0  )  return;
-if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 ) 
-{
-	t.tstring_s = "Syncing Avatars";
-	steam_textDots(-1,50,3,t.tstring_s.Get());
-	return;
-}
-
-if (  SteamGetClientServerConnectionStatus()  ==  0 ) 
-{
-	t.tsteamlostconnectioncustommessage_s = "Lost connect to server (Error MP010)";
-	g.steamworks.backtoeditorforyou = 0;
+	if ( SteamGetClientServerConnectionStatus()  ==  0 ) 
+	{
+		t.tsteamlostconnectioncustommessage_s = "Lost connect to server (Error MP010)";
+		g.steamworks.backtoeditorforyou = 0;
 		g.steamworks.mode = 0;
-	steam_lostConnection ( );
-	return;
-}
+		steam_lostConnection ( );
+		return;
+	}
 
-switch (  g.steamworks.syncedWithServerMode ) 
-{
-	case 0:
+	switch (  g.steamworks.syncedWithServerMode ) 
+	{
+		case 0:
 			if (  SteamAmIFileSynced()  ==  1 ) 
 			{
-
-			/*      
-				t.f_s = steam get next server file();
-				while (  t.f_s  !=  "" ) 
+				t.tempsteamworkshopidfile_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
+				if (  FileExist(t.tempsteamworkshopidfile_s.Get()) ) 
 				{
-					LoadImage (  t.f_s , 100 );
-					while (  MouseClick()  ==  0 ) 
-					{
-						PasteImage (  100,0,0 );
-						Sync (  );
-					}
-					t.f_s = steam get next server file();
+					if (  FileOpen(10)  ==  1  )  CloseFile (  10 );
+					OpenToRead (  10,t.tempsteamworkshopidfile_s.Get() );
+					g.steamworks.workshopid = ReadString ( 10 );
+					CloseFile (  10 );
+					cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
+					if (  FileExist( mlevel_s.Get() ) )  DeleteAFile ( mlevel_s.Get() );
+					SteamDownloadWorkshopItem (  g.steamworks.workshopid.Get() );
+					g.steamworks.syncedWithServerMode = 2;
 				}
-				*/    
-	
-				//  Text (  CODE REMOVE!!!!!!!! )
-//     `if steamworks.fileLoaded = 0
-
-//      `if FileExist("ds2.png") = 1
-
-//       `if FileSize("ds2.png") = 1884709
-
-//        `load image "ds2.png" , 2
-
-	
-							t.tempsteamworkshopidfile_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
-							if (  FileExist(t.tempsteamworkshopidfile_s.Get()) ) 
-							{
-								if (  FileOpen(10)  ==  1  )  CloseFile (  10 );
-								OpenToRead (  10,t.tempsteamworkshopidfile_s.Get() );
-								g.steamworks.workshopid = ReadString ( 10 );
-								CloseFile (  10 );
-								cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
-								if (  FileExist( mlevel_s.Get() ) )  DeleteAFile ( mlevel_s.Get() );
-								SteamDownloadWorkshopItem (  g.steamworks.workshopid.Get() );
-								g.steamworks.syncedWithServerMode = 2;
-							}
-							else
-							{
-								g.steamworks.fileLoaded = 1;
-								SteamSendIAmLoadedAndReady (  );
-								g.steamworks.syncedWithServerMode = 1;
-							}
-//       `endif
-
-//      `endif
-
-//     `endif
-
-				//  TEST CODE REMOVE!!!!!!!!
-	
-//     `steam send i am loaded plus ready
-
+				else
+				{
+					g.steamworks.fileLoaded = 1;
+					SteamSendIAmLoadedAndReady (  );
+					g.steamworks.syncedWithServerMode = 1;
+				}
 			}
 			else
 			{
 				t.tProgress = SteamGetFileProgress();
 				t.tstring_s = cstr("Receiving '")+g.steamworks.levelnametojoin+"': " + Str(t.tProgress) + "%";
-//     `text (GetDisplayWidth()/2) - (Text (  width(tstring$)/2), GetDisplayHeight() - 100, tstring$ )
-
 				steam_text(-1,85,3,t.tstring_s.Get());
 			}
 		break;
@@ -1450,13 +1412,13 @@ switch (  g.steamworks.syncedWithServerMode )
 		case 2:
 			if (  SteamIsWorkshopItemDownloaded()  ==  -1 ) 
 			{
-					t.tsteamconnectionlostmessage_s = "Unable to join, Steam does not yet have all the files needed (Error MP011)";
-					steam_lostConnection ( );
-					return;
+				t.tsteamconnectionlostmessage_s = "Unable to join, Steam does not yet have all the files needed (Error MP011)";
+				steam_lostConnection ( );
+				return;
 			}
 			if (  SteamIsWorkshopItemDownloaded()  ==  1 ) 
 			{
-				cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
+				cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
 				if ( FileExist( mlevel_s.Get() ) ) 
 				{
 					g.steamworks.fileLoaded = 1;
@@ -1484,18 +1446,12 @@ switch (  g.steamworks.syncedWithServerMode )
 			}
 		break;
 
-	}//~ ` 
-
-return;
+	} 
+	return;
 }
 
 void steam_sendAvatarInfo ( void )
 {
-//  send avatar info
-//  `if Timer() - tlasttimesentavatar > 500
-
-//   `tlasttimesentavatar = Timer()
-
 		if (  g.steamworks.haveSentMyAvatar  ==  0 ) 
 		{
 			g.steamworks.me = SteamGetMyPlayerIndex();
@@ -6029,13 +5985,13 @@ void steam_backToStart ( void )
 
 void steam_selectedALevel ( void )
 {
-	cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
+	cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
 	if ( FileExist( mlevel_s.Get())  ) DeleteAFile ( mlevel_s.Get() );
 	g.steamworks.fpmpicked = t.tfpmfilelist_s[g.steamworks.selectedLobby];
 	steam_checkIfLevelHasCustomContent ( );
 	if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
 	{
-		cstr worklevel_s = g.mysystem.editorsGridedit_s + "worklevel.fpm";
+		cstr worklevel_s = g.mysystem.editorsGrideditAbs_s + "worklevel.fpm";
 		CopyAFile ( worklevel_s.Get(),mlevel_s.Get() );
 	}
 	else
