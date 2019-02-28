@@ -14,6 +14,7 @@
 #include <vector>
 
 //new includes
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 #include "DarkAI.h"
 #include "CTextC.h"

@@ -31,6 +31,7 @@ extern bool g_bCascadeQuitFlag;
 #include "SoftwareCulling.h"
 #include "DarkLUA.h"
 #include "SimonReloaded.h"
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 #include "LightMapper.h"
 #include "Enchancements.h"

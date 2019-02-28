@@ -18,6 +18,7 @@
 #include "DarkLUA.h"
 
 // Multiplayer Systems
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 
 // Internal Includes
@@ -57,6 +58,7 @@
 #include "SoftwareCulling.h"
 #include "DarkLUA.h"
 #include "SimonReloaded.h"
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 #include "LightMapper.h"
 #include "Enchancements.h"
@@ -1414,6 +1416,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	}
 
 	// Init MP API
+	PhotonInit();
 	SteamInit();
 
 	// Main Setup init
