@@ -230,7 +230,7 @@ void mapeditorexecutable ( void )
 		t.ts_f=(Timer()-t.tsl_f)/50.0 ; t.tsl_f=Timer();
 
 		//  Send SteamID to the editor if needed
-		steam_sendSteamIDToEditor ( );
+		mp_sendSteamIDToEditor ( );
 
 		//  User input calls
 		input_getcontrols ( );
@@ -573,7 +573,7 @@ void editor_detect_invalid_screen ( void )
 			SetFileMapDWORD (  2, 924, 1 );
 			SetEventAndWait (  2 );
 			//  free steam to unload the module in effect
-			steam_free ( );
+			mp_free ( );
 			//  end this old mapeditor
 			common_justbeforeend();
 			ExitProcess ( 0 );
@@ -2216,7 +2216,7 @@ void input_getfilemapcontrols ( void )
 				SetFileMapDWORD (  1, 912, 1 );
 				SetEventAndWait (  1 );
 				//  close down Steam hook
-				steam_free ( );
+				mp_free ( );
 				//  end editor program
 				timestampactivity(0,"Terminated because 908=1");
 				common_justbeforeend();
@@ -7865,7 +7865,7 @@ void gridedit_new_map ( void )
 void gridedit_updatestatusbar ( void )
 {
 	//  020315 - 012 - display in the status bar if multiplayer lobbies are currently available
-	steam_checkIfLobbiesAvailable ( );
+	mp_checkIfLobbiesAvailable ( );
 	if (  t.statusbar_s+t.steamStatusBar_s != t.laststatusbar_s.Get() ) 
 	{
 		OpenFileMap (  1,"FPSEXCHANGE" );

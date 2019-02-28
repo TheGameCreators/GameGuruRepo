@@ -183,7 +183,7 @@ void mapfile_saveproject_fpm ( void )
 
 	//  does crazy cool stuff
 	t.tsteamsavefilename_s = t.ttempprojfilename_s;
-	steam_save_workshop_files_needed ( );
+	mp_save_workshop_files_needed ( );
 
 	//  log prompts
 	timestampactivity(0,"Saving FPM level file complete");
@@ -346,7 +346,7 @@ void mapfile_loadproject_fpm ( void )
 				{
 					//if ( FileExist( cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() ) == 1  )  DeleteAFile (  cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() );
 					//CopyAFile ( t.tttfile_s.Get() ,cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() );
-					cstr cfgfile_s = g.mysystem.editorsGridedit_s + t.tttfile_s;
+					cstr cfgfile_s = g.mysystem.editorsGrideditAbs_s + t.tttfile_s;
 					if ( FileExist( cfgfile_s.Get() ) == 1  )  DeleteAFile ( cfgfile_s.Get() );
 					CopyAFile ( t.tttfile_s.Get(), cfgfile_s.Get() );
 				}

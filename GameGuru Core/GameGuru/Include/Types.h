@@ -208,96 +208,95 @@
 //  Max physics boxes
 #define MAX_ENTITY_PHYSICS_BOXES  100
 
-//  Steam constants
-#define STEAM_MODE_NONE  -1
-#define STEAM_MODE_MAIN_MENU  0
-#define STEAM_MODE_LOBBY_CREATED  1
-#define STEAM_MODE_LOBBY  2
-#define STEAM_WAITING_FOR_LOBBY_CREATION  3
-#define STEAM_WAITING_FOR_SERVER_CREATION  4
-#define STEAM_SERVER_CREATED  5
-#define STEAM_JOINING_LOBBY  6
-#define STEAM_IN_GAME_SERVER  7
-#define STEAM_IN_GAME_CLIENT  8
-#define STEAM_IN_GAME_SERVER_SENDING_OTHER_PLAYERS_INFO  9
-#define STEAM_IN_GAME_CLIENT_WAITING_FOR_OTHER_PLAYERS_INFO  10
-#define STEAM_SERVER_CHOOSING_TYPE_OF_LEVEL  11
-#define STEAM_SERVER_CHOOSING_FPM_TO_USE  12
-#define STEAM_SERVER_CHOOSING_WORKSHOP_TO_USE  13
-#define STEAM_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP  14
-#define STEAM_CREATING_WORKSHOP_ITEM  15
-#define STEAM_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM  16
-#define STEAM_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_WAITING_FOR_RESULTS  17
-#define STEAM_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_RESULTS  18
-#define STEAM_TELLING_THEY_NEED_TO_RESTART  19
+// Multiplayer constants
+#define MP_MODE_NONE  -1
+#define MP_MODE_MAIN_MENU  0
+#define MP_MODE_LOBBY_CREATED  1
+#define MP_MODE_LOBBY  2
+#define MP_WAITING_FOR_LOBBY_CREATION  3
+#define MP_WAITING_FOR_SERVER_CREATION  4
+#define MP_SERVER_CREATED  5
+#define MP_JOINING_LOBBY  6
+#define MP_IN_GAME_SERVER  7
+#define MP_IN_GAME_CLIENT  8
+#define MP_IN_GAME_SERVER_SENDING_OTHER_PLAYERS_INFO  9
+#define MP_IN_GAME_CLIENT_WAITING_FOR_OTHER_PLAYERS_INFO  10
+#define MP_SERVER_CHOOSING_TYPE_OF_LEVEL  11
+#define MP_SERVER_CHOOSING_FPM_TO_USE  12
+#define MP_SERVER_CHOOSING_WORKSHOP_TO_USE  13
+#define MP_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP  14
+#define MP_CREATING_WORKSHOP_ITEM  15
+#define MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM  16
+#define MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_WAITING_FOR_RESULTS  17
+#define MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_RESULTS  18
+#define MP_TELLING_THEY_NEED_TO_RESTART  19
 
-#define STEAM_MAX_NUMBER_OF_LOBBIES  100
-#define STEAM_DESTROYED_OBJECT_LIST_SIZE  1000
-#define STEAM_RESPAWN_TIME_OBJECT_LIST_SIZE  100
-#define STEAM_RESPAWN_TIME_DELAY  10000
+#define MP_MAX_NUMBER_OF_LOBBIES  100
+#define MP_DESTROYED_OBJECT_LIST_SIZE  1000
+#define MP_RESPAWN_TIME_OBJECT_LIST_SIZE  100
+#define MP_RESPAWN_TIME_DELAY  10000
 
-#define STEAM_ANIMATION_NONE  0
-#define STEAM_ANIMATION_IDLE  1
-#define STEAM_ANIMATION_WALKING  2
-#define STEAM_ANIMATION_WALKINGBACKWARDS  3
-#define STEAM_ANIMATION_DUCKING  4
-#define STEAM_ANIMATION_DUCKINGWALKING  5
-#define STEAM_ANIMATION_DUCKINGWALKINGBACKWARDS  6
-#define STEAM_ANIMATION_STRAFELEFT  7
-#define STEAM_ANIMATION_STRAFERIGHT  8
-#define STEAM_ANIMATION_RELOAD  9
+#define MP_ANIMATION_NONE  0
+#define MP_ANIMATION_IDLE  1
+#define MP_ANIMATION_WALKING  2
+#define MP_ANIMATION_WALKINGBACKWARDS  3
+#define MP_ANIMATION_DUCKING  4
+#define MP_ANIMATION_DUCKINGWALKING  5
+#define MP_ANIMATION_DUCKINGWALKINGBACKWARDS  6
+#define MP_ANIMATION_STRAFELEFT  7
+#define MP_ANIMATION_STRAFERIGHT  8
+#define MP_ANIMATION_RELOAD  9
 
-#define STEAM_MAX_NUMBER_OF_PLAYERS  8
-//  we send position data at 60fps but multiplayer dll sends it when it needs to
-#define STEAM_POSITION_UPDATE_DELAY  1000/60
-#define STEAM_INPUT_UPDATE_DELAY  1000/4
-#define STEAM_APPEARANCE_UPDATE_DELAY  1000/1
+#define MP_MAX_NUMBER_OF_PLAYERS  8
+#define MP_POSITION_UPDATE_DELAY  1000/60
+#define MP_INPUT_UPDATE_DELAY  1000/4
+#define MP_APPEARANCE_UPDATE_DELAY  1000/1
 
-#define STEAM_PROJECTILE_UPDATE_DELAY  1000/15
-#define STEAM_ALIVE_UPDATE_DELAY  1000/2
+#define MP_PROJECTILE_UPDATE_DELAY  1000/15
+#define MP_ALIVE_UPDATE_DELAY  1000/2
 
-#define STEAM_JOIN_LOBBY_TIMEOUT  1000*10
-#define STEAM_MESSAGE_TIMOUT  1000*4
+#define MP_JOIN_LOBBY_TIMEOUT  1000*10
+#define MP_MESSAGE_TIMOUT  1000*4
 
-#define STEAM_MAX_CHAT_LINES 5
-#define STEAM_CHAT_DELAY  1000*15
+#define MP_MAX_CHAT_LINES 5
+#define MP_CHAT_DELAY  1000*15
 
-#define STEAM_LUA_SetActivated 1
-#define STEAM_LUA_SetAnimation 2
-#define STEAM_LUA_PlayAnimation 3
-#define STEAM_LUA_ActivateIfUsed 4
-#define STEAM_LUA_PlaySound 5
-#define STEAM_LUA_StartTimer 6
-#define STEAM_LUA_CollisionOff 7
-#define STEAM_LUA_CollisionOn 8
-#define STEAM_LUA_ServerSetLuaGameMode 9
-#define STEAM_LUA_ServerSetPlayerKills 10
-#define STEAM_LUA_ServerSetPlayerDeaths 11
-#define STEAM_LUA_ServerSetPlayerAddKill 12
-#define STEAM_LUA_ServerSetPlayerRemoveKill 13
-#define STEAM_LUA_ServerSetPlayerAddDeath 14
-#define STEAM_LUA_SetServerTimer 15
-#define STEAM_LUA_ServerRespawnAll 16
-#define STEAM_LUA_ServerEndPlay 17
-#define STEAM_LUA_AiGoToX 18
-#define STEAM_LUA_AiGoToZ 19
-#define Steam_LUA_setcharactertowalkrun 20
-#define Steam_LUA_DarkAI_AIEntityStop  21
-#define Steam_LUA_CharacterControlArmed 22
-#define Steam_LUA_LookAtPlayer 23
-#define Steam_LUA_TakenAggro 24
-#define Steam_LUA_FireWeaponEffectOnly 25
-#define Steam_LUA_RotateToPlayer 26
-#define Steam_LUA_CharacterControlLimbo  27
-#define Steam_LUA_CharacterControlUnarmed  28
-#define Steam_LUA_SetAnimationFrames  29
-#define Steam_LUA_AISetEntityControl  30
-#define Steam_LUA_AIMoveX  31
-#define Steam_LUA_AIMoveZ  32
-#define Steam_LUA_SendAvatar  33
-#define Steam_LUA_SendAvatarName  34
-#define Steam_LUA_HaveAggro  35
-#define Steam_LUA_CharacterControlManual  36
+#define MP_LUA_SetActivated 1
+#define MP_LUA_SetAnimation 2
+#define MP_LUA_PlayAnimation 3
+#define MP_LUA_ActivateIfUsed 4
+#define MP_LUA_PlaySound 5
+#define MP_LUA_StartTimer 6
+#define MP_LUA_CollisionOff 7
+#define MP_LUA_CollisionOn 8
+#define MP_LUA_ServerSetLuaGameMode 9
+#define MP_LUA_ServerSetPlayerKills 10
+#define MP_LUA_ServerSetPlayerDeaths 11
+#define MP_LUA_ServerSetPlayerAddKill 12
+#define MP_LUA_ServerSetPlayerRemoveKill 13
+#define MP_LUA_ServerSetPlayerAddDeath 14
+#define MP_LUA_SetServerTimer 15
+#define MP_LUA_ServerRespawnAll 16
+#define MP_LUA_ServerEndPlay 17
+#define MP_LUA_AiGoToX 18
+#define MP_LUA_AiGoToZ 19
+#define MP_LUA_setcharactertowalkrun 20
+#define MP_LUA_DarkAI_AIEntityStop  21
+#define MP_LUA_CharacterControlArmed 22
+#define MP_LUA_LookAtPlayer 23
+#define MP_LUA_TakenAggro 24
+#define MP_LUA_FireWeaponEffectOnly 25
+#define MP_LUA_RotateToPlayer 26
+#define MP_LUA_CharacterControlLimbo  27
+#define MP_LUA_CharacterControlUnarmed  28
+#define MP_LUA_SetAnimationFrames  29
+#define MP_LUA_AISetEntityControl  30
+#define MP_LUA_AIMoveX  31
+#define MP_LUA_AIMoveZ  32
+#define MP_LUA_SendAvatar  33
+#define MP_LUA_SendAvatarName  34
+#define MP_LUA_HaveAggro  35
+#define MP_LUA_CharacterControlManual  36
 
 //  Memblock Resources
 //  NOTE; Importer will DELETE memblocks 1-50!!
@@ -483,7 +482,7 @@ struct characterkitcontroltype
 
 };
 
-struct steamworkstype
+struct mptype
 {
 	int isRunning;
 	cstr playerName;
@@ -505,7 +504,6 @@ struct steamworkstype
 	int gameAlreadySpawnedBefore;
 	int killedByPlayer;
 	cstr previousMessage_s;
-	//int syncedWithServer;
 	int syncedWithServerMode;
 	int oldtime;
 	int me;
@@ -596,7 +594,6 @@ struct steamworkstype
 	int oldchatscancode;
 	int cursoron;
 	int steamdotsoldtime;
-	//int invincibleTimer;
 	int haveshowndeath;
 	int goBackToEditor;
 	int haveSentSteamIDToEditor;
@@ -622,8 +619,7 @@ struct steamworkstype
 	int realfirsttimespawn;
 	int finishedLoadingMap;
 
-	// Constructor
-	steamworkstype ( )
+	mptype ( )
 	{
 		 finishedLoadingMap = 0;
 		 realfirsttimespawn = 0;
@@ -760,12 +756,9 @@ struct steamworkstype
 		 playerName = "";
 		 isRunning = 0;
 	}
-	// End of Constructor
-
 };
 
-
-struct steamworksbullettype
+struct mpbullettype
 {
 	int btype;
 	float x_f;
@@ -779,8 +772,7 @@ struct steamworksbullettype
 	int sound;
 	float soundDistFromPlayer;
 
-	// Constructor
-	steamworksbullettype ( )
+	mpbullettype ( )
 	{
 		 soundDistFromPlayer = 0.0f;
 		 sound = 0;
@@ -794,30 +786,23 @@ struct steamworksbullettype
 		 x_f = 0.0f;
 		 btype = 0;
 	}
-	// End of Constructor
-
 };
 
-
-struct steamworksrespawntype
+struct mprespawntype
 {
 	int inuse;
 	int e;
 	int time;
 
-	// Constructor
-	steamworksrespawntype ( )
+	mprespawntype ( )
 	{
 		 time = 0;
 		 e = 0;
 		 inuse = 0;
 	}
-	// End of Constructor
-
 };
 
-
-struct steamworksmultiplayerstarttype
+struct mpmultiplayerstarttype
 {
 	int active;
 	int ghostentityindex;
@@ -826,8 +811,7 @@ struct steamworksmultiplayerstarttype
 	float z;
 	float angle;
 
-	// Constructor
-	steamworksmultiplayerstarttype ( )
+	mpmultiplayerstarttype ( )
 	{
 		 angle = 0.0f;
 		 z = 0.0f;
@@ -836,8 +820,6 @@ struct steamworksmultiplayerstarttype
 		 ghostentityindex = 0;
 		 active = 0;
 	}
-	// End of Constructor
-
 };
 
 /*

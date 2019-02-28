@@ -133,10 +133,10 @@ void lua_text ( void )
 		t.steamDoDropShadow = 0;
 		pastebitmapfontcolor(t.luaText.txt.Get(),t.luaText.x+2,t.luaText.y+2,t.luaText.size,255,0,0,0);
 	}
-	if (  g.steamworks.steamDoColorText  ==  1 ) 
+	if (  g.mp.steamDoColorText  ==  1 ) 
 	{
-		g.steamworks.steamDoColorText = 0;
-		pastebitmapfontcolor(t.luaText.txt.Get(),t.luaText.x,t.luaText.y,t.luaText.size,t.tluatextalpha,g.steamworks.steamColorRed,g.steamworks.steamColorGreen,g.steamworks.steamColorBlue);
+		g.mp.steamDoColorText = 0;
+		pastebitmapfontcolor(t.luaText.txt.Get(),t.luaText.x,t.luaText.y,t.luaText.size,t.tluatextalpha,g.mp.steamColorRed,g.mp.steamColorGreen,g.mp.steamColorBlue);
 	}
 	else
 	{
@@ -1114,7 +1114,7 @@ void lua_leavegame ( void )
 {
 	t.game.titleloop=0;
 	strcpy ( t.game.pSwitchToPage, "" );
-	steam_quitGame ( );
+	mp_quitGame ( );
 }
 void lua_resumegame ( void )
 {

@@ -680,48 +680,47 @@ void common_init_globals ( void )
 	Dim (  t.ccSamplePointY,3 );
 	Dim (  t.ccSampleSprite,3 );
 
-	Dim (  t.steamworks_respawn_timed,STEAM_RESPAWN_TIME_OBJECT_LIST_SIZE  );
+	Dim (  t.mp_respawn_timed,MP_RESPAWN_TIME_OBJECT_LIST_SIZE  );
 
-	Dim (  t.steamworks_destroyedObjectList,STEAM_DESTROYED_OBJECT_LIST_SIZE  );
-	Dim (  t.steamworks_bullets,160   );
-	Dim (  t.steamworks_bullets_send_time,160  );
-	Dim (  t.steamworks_attachmentobjects,100   );
-	Dim (  t.steamworks_gunobj,100   );
-	Dim (  t.steamworks_gunname,100  );
-	Dim (  t.steamworks_team,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_joined,STEAM_MAX_NUMBER_OF_PLAYERS );
-	Dim (  t.steamworks_kills,STEAM_MAX_NUMBER_OF_PLAYERS   );
-	Dim (  t.steamworks_deaths,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_lastIdleY,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_lastIdleReset,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_reload,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_playerShooting,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_playerAttachmentIndex,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_playerIsRagdoll,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_playerAttachmentObject,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_playerHasSpawned,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_oldAppearance,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_playingAnimation,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_playingRagdoll,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_oldplayerx,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_oldplayery,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_oldplayerz,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_meleePlaying,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_jetpackparticles,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	// `dim steamworks_isIdling(STEAM_MAX_NUMBER_OF_PLAYERS) as integer
+	Dim (  t.mp_destroyedObjectList,MP_DESTROYED_OBJECT_LIST_SIZE  );
+	Dim (  t.mp_bullets,160   );
+	Dim (  t.mp_bullets_send_time,160  );
+	Dim (  t.mp_attachmentobjects,100   );
+	Dim (  t.mp_gunobj,100   );
+	Dim (  t.mp_gunname,100  );
+	Dim (  t.mp_team,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_joined,MP_MAX_NUMBER_OF_PLAYERS );
+	Dim (  t.mp_kills,MP_MAX_NUMBER_OF_PLAYERS   );
+	Dim (  t.mp_deaths,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_lastIdleY,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_lastIdleReset,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_reload,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playerShooting,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playerAttachmentIndex,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playerIsRagdoll,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playerAttachmentObject,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playerHasSpawned,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_oldAppearance,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playingAnimation,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playingRagdoll,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_oldplayerx,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_oldplayery,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_oldplayerz,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_meleePlaying,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_jetpackparticles,MP_MAX_NUMBER_OF_PLAYERS  );
 
-	Dim (  t.steamworks_isDying,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_jetpackOn,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_lobbies_s,STEAM_MAX_NUMBER_OF_LOBBIES  );
-	Dim (  t.steamworks_playerEntityID,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_forcePosition,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_health,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_chat,STEAM_MAX_CHAT_LINES  );
-	Dim (  t.steamworks_subbedItems,20  );
-	Dim (  t.steamworks_playerAvatars_s,STEAM_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.steamworks_playerAvatarOwners_s,STEAM_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_isDying,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_jetpackOn,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_lobbies_s,MP_MAX_NUMBER_OF_LOBBIES  );
+	Dim (  t.mp_playerEntityID,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_forcePosition,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_health,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_chat,MP_MAX_CHAT_LINES  );
+	Dim (  t.mp_subbedItems,20  );
+	Dim (  t.mp_playerAvatars_s,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playerAvatarOwners_s,MP_MAX_NUMBER_OF_PLAYERS  );
 
-	Dim (  t.steamworksmultiplayerstart,STEAM_MAX_NUMBER_OF_PLAYERS );
+	Dim (  t.mpmultiplayerstart,MP_MAX_NUMBER_OF_PLAYERS );
 
 	//  RealSense Constants
 	//-- Note; colour stream currently does nothing and should not be initialised;
@@ -3022,7 +3021,7 @@ void FPSC_Setup ( void )
 		welcome_updatebackdrop(pFirstTextToShow);
 
 		//  Activate Steam (always so single player can do snapshots and get Steam notifications)
-		steam_init ( );
+		mp_init ( );
 
 		// Init default material sounds
 		material_init ( );
@@ -3047,7 +3046,7 @@ void FPSC_Setup ( void )
 		#ifdef STEAMOWNERSHIPCHECKFREEWEEKEND
 		g.iFreeVersionModeActive = 1;
 		bool bSteamRunningAndGameGuruOwned = false;
-		if ( g.steamworks.isRunning == 1 )
+		if ( g.mp.isRunning == 1 )
 		{
 			if ( SteamOwned() == true ) 
 				bSteamRunningAndGameGuruOwned = true;
@@ -3118,7 +3117,7 @@ void FPSC_Setup ( void )
 		timestampactivity(0,"main game executable");
 	
 		//  Activate Steam (always so single player can do snapshots and get Steam notifications)
-		steam_init ( );
+		mp_init ( );
 
 		// Init default material sounds
 		material_init ( );
@@ -3211,7 +3210,7 @@ void FPSC_Setup ( void )
 
 	//  Free before exit app
 	///realsense_free ( );
-	steam_free ( );
+	mp_free ( );
 }
 
 void common_justbeforeend ( void )
@@ -5366,7 +5365,7 @@ void printscreenprompt ( char* screenprompt_s )
 	}
 
 	// steam refresh to keep it live
-	steam_refresh ( );
+	mp_refresh ( );
 
 	//  quickly check contiguous memory (as this gets called every time prompt printed)
 	checkmemoryforgracefulexit();

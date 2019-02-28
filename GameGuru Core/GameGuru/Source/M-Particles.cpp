@@ -66,12 +66,12 @@ void ravey_particles_init ( void )
 
 	g.ravey_particles_old_time = 0;
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 }
 
 void ravey_particles_load_images ( void )
 {
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	// load default images (used by rpg etc )
 	t.tImgID = RAVEY_PARTICLES_IMAGETYPE_FLARE + g.particlesimageoffset;

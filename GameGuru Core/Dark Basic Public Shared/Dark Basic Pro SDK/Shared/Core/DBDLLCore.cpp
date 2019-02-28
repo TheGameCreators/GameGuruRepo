@@ -15,8 +15,10 @@
 #include "..\..\DarkSDK\Core\resource.h"
 #include "..\..\..\..\Guru-MapEditor\Encryptor.h"
 #include ".\..\Core\SteamCheckForWorkshop.h"
-#include "SteamCommands.h"
 #include "DarkLUA.h"
+
+// Multiplayer Systems
+#include "SteamCommands.h"
 
 // Internal Includes
 #include "DBDLLCore.h"
@@ -1411,7 +1413,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 									NULL);
 	}
 
-	// Init Steam API
+	// Init MP API
 	SteamInit();
 
 	// Main Setup init

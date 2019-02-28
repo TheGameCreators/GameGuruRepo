@@ -323,7 +323,7 @@ void blood_damage_init ( void )
 				++t.huddamage.bloodtotal;
 
 				//  keep alive with steam server
-				if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+				if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 			}
 		}
@@ -336,7 +336,7 @@ void blood_damage_init ( void )
 	OffsetSprite (  t.huddamage.indicator,ImageWidth(t.huddamage.indicator)/2,ImageHeight(t.huddamage.indicator)/2 );
 
 	//  keep alive with steam server
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 return;
 

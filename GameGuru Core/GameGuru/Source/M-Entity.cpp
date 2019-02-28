@@ -2336,7 +2336,7 @@ void entity_loadactivesoundsandvideo ( void )
 						t.entityelement[t.e].soundset=t.tvideoid*-1;
 					else
 						t.entityelement[t.e].soundset=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset_s.Get(),1);
-					if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 				if (  t.entityelement[t.e].soundset1 == 0 ) 
 				{
@@ -2345,22 +2345,22 @@ void entity_loadactivesoundsandvideo ( void )
 						t.entityelement[t.e].soundset1=t.tvideoid*-1;
 					else
 						t.entityelement[t.e].soundset1=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset1_s.Get(),1);
-					if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 				if (  t.entityelement[t.e].soundset2 == 0 ) 
 				{
 					t.entityelement[t.e].soundset2=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset2_s.Get(),1);
-					if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 				if (  t.entityelement[t.e].soundset3 == 0 ) 
 				{
 					t.entityelement[t.e].soundset3=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset3_s.Get(),1);
-					if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 				if (  t.entityelement[t.e].soundset4 == 0 ) 
 				{
 					t.entityelement[t.e].soundset4=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset4_s.Get(),1);
-					if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 			}
 		}
@@ -3267,7 +3267,7 @@ void entity_loadelementsdata ( void )
 				Dim (  t.entitydebug_s,g.entityelementmax  );
 				for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 				{
-					if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 					//  actual file data
 					if (  t.versionnumberload >= 101 ) 
 					{
@@ -4395,7 +4395,7 @@ void entity_loadentitiesnow ( void )
 			}
 			// regular FPE entity
 			entity_load ( );
-			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			if (  t.desc_s == "" ) 
 			{
 				// free RLE data in profile

@@ -45,18 +45,8 @@ int functionResults = 0;
 int functionStateID = 0;
 int defaultState = 1;
 
-// Steam Multiplayer DLL functions needed
-/*HMODULE SteamMultiplayerModule = NULL;
-
-typedef void	(*t_SteamGetWorkshopItemPathDLL)(LPSTR);
-typedef int		(*t_SteamIsWorkshopLoadingOnDLL)();
-
-t_SteamGetWorkshopItemPathDLL Steam_SteamGetWorkshopItemPathDLL = NULL;
-t_SteamIsWorkshopLoadingOnDLL Steam_SteamIsWorkshopLoadingOnDLL = NULL;*/
-// End of Steam Multiplayer DLL Functions needed
-
- DARKLUA_API int LoadLua( LPSTR pString );
- bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename);
+DARKLUA_API int LoadLua( LPSTR pString );
+bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename);
 
  struct StringList
  {
@@ -3934,7 +3924,7 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 134 : g.gdisablepeeking = lua_tonumber(L, 1); break;
 		case 135 : t.plrhasfocus = lua_tonumber(L, 1); break;
 		case 136 : t.game.runasmultiplayer = lua_tonumber(L, 1); break;
-		case 137 : g.steamworks.respawnLeft = lua_tonumber(L, 1); break;
+		case 137 : g.mp.respawnLeft = lua_tonumber(L, 1); break;
 		case 138 : g.tabmode = lua_tonumber(L, 1); break;
 		case 139 : g.lowfpswarning = lua_tonumber(L, 1); break;
 		case 140 : t.visuals.CameraFOV_f = lua_tonumber(L, 1); break;
@@ -4228,7 +4218,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 134 : lua_pushnumber ( L, g.gdisablepeeking ); break;	
 		case 135 : lua_pushnumber ( L, t.plrhasfocus ); break;	
 		case 136 : lua_pushnumber ( L, t.game.runasmultiplayer ); break;	
-		case 137 : lua_pushnumber ( L, g.steamworks.respawnLeft ); break;	
+		case 137 : lua_pushnumber ( L, g.mp.respawnLeft ); break;	
 		case 138 : lua_pushnumber ( L, g.tabmode ); break;	
 		case 139 : lua_pushnumber ( L, g.lowfpswarning ); break;	
 		case 140 : lua_pushnumber ( L, t.visuals.CameraFOV_f ); break;	
@@ -4605,6 +4595,8 @@ int SetGamePlayerStateGameRunAsMultiplayer ( lua_State *L ) { return SetGamePlay
 int GetGamePlayerStateGameRunAsMultiplayer ( lua_State *L ) { return GetGamePlayerControlData ( L, 136 ); }
 int SetGamePlayerStateSteamWorksRespawnLeft ( lua_State *L ) { return SetGamePlayerControlData ( L, 137 ); }
 int GetGamePlayerStateSteamWorksRespawnLeft ( lua_State *L ) { return GetGamePlayerControlData ( L, 137 ); }
+int SetGamePlayerStateMPRespawnLeft ( lua_State *L ) { return SetGamePlayerControlData ( L, 137 ); }
+int GetGamePlayerStateMPRespawnLeft ( lua_State *L ) { return GetGamePlayerControlData ( L, 137 ); }
 int SetGamePlayerStateTabMode ( lua_State *L ) { return SetGamePlayerControlData ( L, 138 ); }
 int GetGamePlayerStateTabMode ( lua_State *L ) { return GetGamePlayerControlData ( L, 138 ); }
 int SetGamePlayerStateLowFpsWarning ( lua_State *L ) { return SetGamePlayerControlData ( L, 139 ); }
@@ -5995,6 +5987,8 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateGameRunAsMultiplayer" , GetGamePlayerStateGameRunAsMultiplayer );
 	lua_register(lua, "SetGamePlayerStateSteamWorksRespawnLeft" , SetGamePlayerStateSteamWorksRespawnLeft );
 	lua_register(lua, "GetGamePlayerStateSteamWorksRespawnLeft" , GetGamePlayerStateSteamWorksRespawnLeft );
+	lua_register(lua, "SetGamePlayerStateMPRespawnLeft" , SetGamePlayerStateMPRespawnLeft );
+	lua_register(lua, "GetGamePlayerStateMPRespawnLeft" , GetGamePlayerStateMPRespawnLeft );
 	lua_register(lua, "SetGamePlayerStateTabMode" , SetGamePlayerStateTabMode );
 	lua_register(lua, "GetGamePlayerStateTabMode" , GetGamePlayerStateTabMode );
 	lua_register(lua, "SetGamePlayerStateLowFpsWarning" , SetGamePlayerStateLowFpsWarning );
@@ -8617,29 +8611,6 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 	}
 	// end of encrypted file check
 
-	// Check if the functions pointers exist, if they don't - jolly well make them!
-	/*if ( Steam_SteamIsWorkshopLoadingOnDLL==NULL )
-	{
-		// Setup pointers to Steam functions
-		SteamMultiplayerModule = LoadLibrary ( "SteamMultiplayer.dll" );
-
-		if ( !SteamMultiplayerModule )
-		{
-			//MessageBox(NULL, "Unable to find SteamMultiplayer", "SteamMultiplayer Error", NULL);
-			return false;
-		}
-
-		Steam_SteamGetWorkshopItemPathDLL=(t_SteamGetWorkshopItemPathDLL)GetProcAddress( SteamMultiplayerModule , "?SteamGetWorkshopItemPathDLL@@YAXPAD@Z" );
-		Steam_SteamIsWorkshopLoadingOnDLL=(t_SteamIsWorkshopLoadingOnDLL)GetProcAddress ( SteamMultiplayerModule , "?SteamIsWorkshopLoadingOnDLL@@YAHXZ" );	
-		// End of setup pointers to steam functions
-	}*/
-
-	// CHECK FOR WORKSHOP ITEM
-	//if ( !Steam_SteamIsWorkshopLoadingOnDLL || !Steam_SteamGetWorkshopItemPathDLL ) 
-	//	return false;	
-
-	//if ( Steam_SteamIsWorkshopLoadingOnDLL() == 1 )
-	//{
 		char szWorkshopFilename[_MAX_PATH];
 		char szWorkshopFilenameFolder[_MAX_PATH];
 		char szWorkShopItemPath[_MAX_PATH];
@@ -8760,7 +8731,6 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 				}
 			}
 		}
-	//}
 
 	return false;
 	// END OF CHECK FOR WORKSHOP ITEM

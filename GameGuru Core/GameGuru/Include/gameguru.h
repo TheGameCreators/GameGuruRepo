@@ -49,7 +49,7 @@
 #include "M-Postprocess.h"
 #include "M-Ragdoll.h"
 #include "M-Sliders.h"
-#include "M-Steam.h"
+#include "M-MP.h"
 #include "M-Terrain.h"
 #include "M-Titles.h"
 #include "M-Visuals.h"
@@ -927,7 +927,7 @@ struct Sglobals
 	int smokedecal;
 	int sparkdecal;
 	float speedmod_f;
-	steamworkstype steamworks;
+	mptype mp;
 	int tiltbounce;
 	cstr vegstyle_s;
 	tHingeJoint WaistJoint;
@@ -2120,7 +2120,7 @@ struct Stemps
 	cstr strwork;
 	int loadingresource[10];
 	int tmaskforcamerasnoreflectionlightrayshadowsflag;
-	cstr tsteamworkshopitemtocheckifchangedandversion_s;
+	cstr tmphopitemtocheckifchangedandversion_s;
 	int ttimeToUpdateAllCharacterCreatorEntitiesInMap;
 	float tdistancebetweenentityandfinaldestination_f;
 	int tconsolidatelocallightmapobjectspolylimit;
@@ -2135,16 +2135,16 @@ struct Stemps
 	int toldCursorEntidForCharacterCreator;
 	int toriginalmaximumnonefreezedistance;
 	int tsteamiseveryoneloadedandreadytime;
-	std::vector <int> steamworks_playerAttachmentObject;
+	std::vector <int> mp_playerAttachmentObject;
 	int tempsteamhaveaskedtosubscribeflag;
-	cstr tempSteamworksLobbyNameFromList_s;
-	std::vector <int> steamworks_playerAttachmentIndex;
+	cstr tempMPLobbyNameFromList_s;
+	std::vector <int> mp_playerAttachmentIndex;
 	//int gdynamicterrainshadowcameratimer;
 	float liftshadowstositontopofterrain_f;
 	int tconsolidatelocallightmapobjects;
 	int tmaxcharacterstateengineentities;
-	int tsteamworkshopHasItemChangedFlag;
-	std::vector <cstr> steamworks_playerAvatarOwners_s;
+	int tMPshopHasItemChangedFlag;
+	std::vector <cstr> mp_playerAvatarOwners_s;
 	//int machineindependentphysicsupdate;
 	float machineindependentphysicsupdate;
 	int tgenerateterraindirtyregiononly;
@@ -2152,14 +2152,14 @@ struct Stemps
 	int trevealallinstancestampentities;
 	std::vector <int> csi_stoodincoverthrowrightANIM;
 	std::vector <saveloadgamepositionweaponslottype> saveloadgamepositionweaponslot;
-	std::vector <int> steamworks_destroyedObjectList;
-	std::vector <float> steamworks_oldEntityPositionsX;
-	std::vector <float> steamworks_oldEntityPositionsZ;
+	std::vector <int> mp_destroyedObjectList;
+	std::vector <float> mp_oldEntityPositionsX;
+	std::vector <float> mp_oldEntityPositionsZ;
 	int recoverdonotuseany3dreferences;
 	float tcharanimstaterealheadangley_f;
 	int tentityconverttoclonenotshared;
 	float tforwardoffsettohideshoulder_f;
-	int tsteamworkshopTheVersionNumber;
+	int tMPshopTheVersionNumber;
 	std::vector <int> csi_stoodincoverpeekrightANIM;
 	std::vector <int> csi_stoodincoverthrowleftANIM;
 	std::vector <int> interactivesequencemaxhistory;
@@ -2175,8 +2175,8 @@ struct Stemps
 	cstr tsteamconnectionlostmessage_s;
 	std::vector <cstr> characterkitfacialhairbank_s;
 	std::vector <int> csi_stoodincoverpeekleftANIM;
-	std::vector <int> steamworks_attachmentobjects;
-	std::vector <int> steamworks_bullets_send_time;
+	std::vector <int> mp_attachmentobjects;
+	std::vector <int> mp_bullets_send_time;
 	int absolutelyrequirethistexture;
 	int tempsteamhowmanyfpmsarethere;
 	int tImporterOriginalScreenWidth;
@@ -2184,9 +2184,9 @@ struct Stemps
 	cstr tSteamBuildingWorkshopItem_s;
 	int ttempoverallaiperftimerstamp;
 	std::vector <cstr> characterkitfemalehatbank_s;
-	std::vector <int> steamworks_jetpackparticles;
-	std::vector <int> steamworks_playerHasSpawned;
-	std::vector <int> steamworks_playingAnimation;
+	std::vector <int> mp_jetpackparticles;
+	std::vector <int> mp_playerHasSpawned;
+	std::vector <int> mp_playingAnimation;
 	int slidersmenualternativeindex;
 	int storegridentitydroptoground;
 	int storegridentityposoffground;
@@ -2194,21 +2194,21 @@ struct Stemps
 	int tdisablepickupdropthiscycle;
 	int tDrowning_OldReflectionMode;
 	int tDrowning_OldWobbleHeight;
-	cstr tempsteamworkshopfilename_s;
+	cstr tempMPshopfilename_s;
 	int tgeneratefreshwatermaskflag;
 	float toriginalTranslateClickX1_f;
 	float toriginalTranslateClickZ2_f;
 	int tsteamistheownerpresenttime;
 	int tsteamlastdamagesentcounter;
 	cstr tsteamnamewearelookingfor_s;
-	cstr tsteamworkshopTheIDNumber_s;
+	cstr tMPshopTheIDNumber_s;
 	std::vector <int> characterchoiceentityindex;
 	std::vector <int> csi_crouchreloadrocketANIM;
 	std::vector <int> csi_stoodincoverthrowright;
 	std::vector <saveloadgamepositionentitytype> saveloadgamepositionentity;
-	std::vector <cstr> steamworks_playerAvatars_s;
-	std::vector <int> steamworks_playerIsRagdoll;
-	std::vector <steamworksmultiplayerstarttype> steamworksmultiplayerstart;
+	std::vector <cstr> mp_playerAvatars_s;
+	std::vector <int> mp_playerIsRagdoll;
+	std::vector <mpmultiplayerstarttype> mpmultiplayerstart;
 	float ambientocclusiondistance_f;
 	int autoentityusedtoholdweapon;
 	float charactergunposefraction_f;
@@ -2219,7 +2219,7 @@ struct Stemps
 	float tadjustedtoimporterybase_f;
 	int tattachmentobjfirespotlimb;
 	cstr tempsteamstringlobbyname_s;
-	int tempsteamworkssendingready;
+	int tempMPsendingready;
 	int tfoundvalidinternaltexture;
 	int thowlongbetweenlobbychecks;
 	int tignoreinvalidateobstacles;
@@ -2242,9 +2242,9 @@ struct Stemps
 	std::vector <int> csi_stoodincoverthrowleft;
 	std::vector <int> csi_stoodmoverunrightANIM;
 	std::vector <int> csi_stoodreloadrocketANIM;
-	std::vector <int> steamworks_playerEntityID;
-	std::vector <int> steamworks_playerShooting;
-	std::vector <int> steamworks_playingRagdoll;
+	std::vector <int> mp_playerEntityID;
+	std::vector <int> mp_playerShooting;
+	std::vector <int> mp_playingRagdoll;
 	int characterkitfacialhairmax;
 	//std::vector <cstr> characterSoundStackType_s;
 	int darkaifirerayhitcharacter;
@@ -2256,7 +2256,7 @@ struct Stemps
 	int storegridentityinzoomview;
 	int tdisableLMprogressreading;
 	int tempsteamscrollclicktimer;
-	cstr tempsteamworkshopidfile_s;
+	cstr tempMPshopidfile_s;
 	int thideprojectileinhudmodel;
 	int tischaracterholdingweapon;
 	//int tonlyusingcheapestcascade;
@@ -2278,10 +2278,10 @@ struct Stemps
 	std::vector <int> csi_stoodincoverpeekleft;
 	std::vector <int> csi_stoodmoverunleftANIM;
 	std::vector <int> csi_stoodstraferightANIM;
-	std::vector <int> steamworks_forcePosition;
-	std::vector <int> steamworks_lastIdleReset;
-	std::vector <int> steamworks_oldAppearance;
-	std::vector <steamworksrespawntype> steamworks_respawn_timed;
+	std::vector <int> mp_forcePosition;
+	std::vector <int> mp_lastIdleReset;
+	std::vector <int> mp_oldAppearance;
+	std::vector <mprespawntype> mp_respawn_timed;
 	int characterkitfemalehatmax;
 	cstr currentprojectfilename_s;
 	float gunRecoilCorrectAngleX_f;
@@ -2313,7 +2313,7 @@ struct Stemps
 	std::vector <int> csi_stoodstrafeleftANIM;
 	std::vector <travey_particle_emitter> ravey_particle_emitters;
 	std::vector <entitytype> steamStoreentityelement;
-	std::vector <int> steamworks_meleePlaying;
+	std::vector <int> mp_meleePlaying;
 	float charactergunposeindex_f;
 	int gridentitymodifyelement;
 	int gridentityusingsoftauto;
@@ -2333,7 +2333,7 @@ struct Stemps
 	int tcoopSendPositionUpdate;
 	float tDepthOfFieldDistance_f;
 	float tdistancewecanmovecam_f;
-	cstr tempsteamworkshopname_s;
+	cstr tempMPshopname_s;
 	int tentityworkobjectchoice;
 	int timporterprotectedcheck;
 	int tphysicsterrainobjstart;
@@ -2358,7 +2358,7 @@ struct Stemps
 	std::vector <int> csi_crouchrolldownANIM;
 	std::vector <int> csi_stoodmoverightANIM;
 	std::vector <int> csi_stoodsteprightANIM;
-	std::vector <cstr> steamworks_subbedItems;
+	std::vector <cstr> mp_subbedItems;
 	cstr charactergunposefile_s;
 	int clickeditemonworkspace;
 	int gridentitydroptoground;
@@ -2409,9 +2409,9 @@ struct Stemps
 	std::vector <int> csi_stoodstartledANIM;
 	std::vector <int> csi_stoodstepleftANIM;
 	std::vector <int> selectedObjectMarkers;
-	std::vector <float> steamworks_oldplayerx;
-	std::vector <float> steamworks_oldplayery;
-	std::vector <float> steamworks_oldplayerz;
+	std::vector <float> mp_oldplayerx;
+	std::vector <float> mp_oldplayery;
+	std::vector <float> mp_oldplayerz;
 	int charactergunposeindex;
 	int characterkitavatarmax;
 	int characterkitweaponmax;
@@ -2488,8 +2488,8 @@ struct Stemps
 	std::vector <int> debrisshapeindexused;
 	std::vector <int> infinilightshortlist;
 	std::vector <int> statecolmaterialtype;
-	std::vector <int> steamworks_jetpackOn;
-	std::vector <float> steamworks_lastIdleY;
+	std::vector <int> mp_jetpackOn;
+	std::vector <float> mp_lastIdleY;
 	std::vector <weaponProjectileBaseType> WeaponProjectileBase;
 	int editorinterfaceleave;
 	int gridentityinzoomview;
@@ -2648,10 +2648,10 @@ struct Stemps
 	std::vector <float> phylastfloorstop_f;
 	std::vector <float> phylasttravelled_f;
 	std::vector <float> playermovementstep;
-	std::vector <steamworksbullettype> steamworks_bullets;
-	std::vector <cstr> steamworks_gunname;
-	std::vector <int> steamworks_isDying;
-	std::vector <cstr> steamworks_lobbies_s;
+	std::vector <mpbullettype> mp_bullets;
+	std::vector <cstr> mp_gunname;
+	std::vector <int> mp_isDying;
+	std::vector <cstr> mp_lobbies_s;
 	std::vector <entitytype> storeentityelement;
 	std::vector <cstr> terrainstylebank_s;
 	int characterkithatmax;
@@ -2751,11 +2751,11 @@ struct Stemps
 	std::vector <importerCollisionType> importerCollision;
 	std::vector <int> nearestlightindex;
 	std::vector <int> overlordprocessed;
-	std::vector <int> steamworks_deaths;
-	std::vector <int> steamworks_gunobj;
-	std::vector <int> steamworks_health;
-	std::vector <cstr> steamworks_joined;
-	std::vector <int> steamworks_reload;
+	std::vector <int> mp_deaths;
+	std::vector <int> mp_gunobj;
+	std::vector <int> mp_health;
+	std::vector <cstr> mp_joined;
+	std::vector <int> mp_reload;
 	std::vector< std::vector<float> > terrainredobuffer;
 	std::vector< std::vector<float> > terrainundobuffer;
 	int bulletrayhitentid;
@@ -2873,7 +2873,7 @@ struct Stemps
 	std::vector <cstr> playersoundset_s;
 	std::vector< std::vector<slidersmenuvaluetype> > slidersmenuvalue;
 	std::vector <int> stateraycastpace;
-	std::vector <int> steamworks_kills;
+	std::vector <int> mp_kills;
 	std::vector <cstr> tempentitybank_s;
 	std::vector <weaponProjectileType> WeaponProjectile;
 	int whichmenuitem;
@@ -2915,7 +2915,7 @@ struct Stemps
 	slidersmenunamestype slidersmenunames;
 	float smokerisespeed_f;
 	cstr steamStatusBar_s;
-	int steamworks_build;
+	int mp_build;
 	int stgrideditselect;
 	entityprofiletype storeentdefaults;
 	int taddstaticlegend;
@@ -2985,8 +2985,8 @@ struct Stemps
 	std::vector <float> resourcemeter_f;
 	std::vector <hudtype> saveloadgamehud;
 	std::vector< std::vector<int> > statecodeupdate;
-	std::vector <cstr> steamworks_chat;
-	std::vector <int> steamworks_team;
+	std::vector <cstr> mp_chat;
+	std::vector <int> mp_team;
 	std::vector <int> storeanimspeeds;
 	std::vector <int> talkscriptcount;
 	std::vector< std::vector<weaponAnimationType> > WeaponAnimation;
@@ -8025,7 +8025,7 @@ struct Stemps
 		 tamountforward_f = 0.0f;
 		 taddstaticlegend = 0;
 		 stgrideditselect = 0;
-		 steamworks_build = 0;
+		 mp_build = 0;
 		 steamStatusBar_s = "";
 		 smokerisespeed_f = 0.0f;
 		 slidersmenuindex = 0;
@@ -8435,7 +8435,7 @@ struct Stemps
 		 tphysicsterrainobjstart = 0;
 		 timporterprotectedcheck = 0;
 		 tentityworkobjectchoice = 0;
-		 tempsteamworkshopname_s = "";
+		 tempMPshopname_s = "";
 		 tdistancewecanmovecam_f = 0.0f;
 		 tDepthOfFieldDistance_f = 0.0f;
 		 tcoopSendPositionUpdate = 0;
@@ -8489,7 +8489,7 @@ struct Stemps
 		 //tonlyusingcheapestcascade = 0;
 		 tischaracterholdingweapon = 0;
 		 thideprojectileinhudmodel = 0;
-		 tempsteamworkshopidfile_s = "";
+		 tempMPshopidfile_s = "";
 		 tempsteamscrollclicktimer = 0;
 		 tdisableLMprogressreading = 0;
 		 storegridentityinzoomview = 0;
@@ -8511,7 +8511,7 @@ struct Stemps
 		 tignoreinvalidateobstacles = 0;
 		 thowlongbetweenlobbychecks = 0;
 		 tfoundvalidinternaltexture = 0;
-		 tempsteamworkssendingready = 0;
+		 tempMPsendingready = 0;
 		 tempsteamstringlobbyname_s = "";
 		 tattachmentobjfirespotlimb = 0;
 		 tadjustedtoimporterybase_f = 0.0f;
@@ -8522,14 +8522,14 @@ struct Stemps
 		 charactergunposefraction_f = 0.0f;
 		 autoentityusedtoholdweapon = 0;
 		 ambientocclusiondistance_f = 0.0f;
-		 tsteamworkshopTheIDNumber_s = "";
+		 tMPshopTheIDNumber_s = "";
 		 tsteamnamewearelookingfor_s = "";
 		 tsteamlastdamagesentcounter = 0;
 		 tsteamistheownerpresenttime = 0;
 		 toriginalTranslateClickZ2_f = 0.0f;
 		 toriginalTranslateClickX1_f = 0.0f;
 		 tgeneratefreshwatermaskflag = 0;
-		 tempsteamworkshopfilename_s = "";
+		 tempMPshopfilename_s = "";
 		 tDrowning_OldReflectionMode = 0;
 		 tdisablepickupdropthiscycle = 0;
 		 tcoopyentityupdatetostartat = 0;
@@ -8552,7 +8552,7 @@ struct Stemps
 		 geditorhighlightingtentityobj = 0;
 		 //gdynamicterrainshadowcameraid = 0;
 		 entityorsegmententrieschanged = 0;
-		 tsteamworkshopTheVersionNumber = 0;
+		 tMPshopTheVersionNumber = 0;
 		 tforwardoffsettohideshoulder_f = 0.0f;
 		 tentityconverttoclonenotshared = 0;
 		 tcharanimstaterealheadangley_f = 0.0f;
@@ -8561,12 +8561,12 @@ struct Stemps
 		 tlasttimecheckedforlobbiestimer = 0;
 		 tgenerateterraindirtyregiononly = 0;
 		 machineindependentphysicsupdate = 0.0f;
-		 tsteamworkshopHasItemChangedFlag = 0;
+		 tMPshopHasItemChangedFlag = 0;
 		 tmaxcharacterstateengineentities = 0;
 		 tconsolidatelocallightmapobjects = 0;
 		 liftshadowstositontopofterrain_f = 0.0f;
 		 //gdynamicterrainshadowcameratimer = 0;
-		 tempSteamworksLobbyNameFromList_s = "";
+		 tempMPLobbyNameFromList_s = "";
 		 tempsteamhaveaskedtosubscribeflag = 0;
 		 tsteamiseveryoneloadedandreadytime = 0;
 		 toriginalmaximumnonefreezedistance = 0;
@@ -8580,7 +8580,7 @@ struct Stemps
 		 tconsolidatelocallightmapobjectspolylimit = 0;
 		 tdistancebetweenentityandfinaldestination_f = 0.0f;
 		 ttimeToUpdateAllCharacterCreatorEntitiesInMap = 0;
-		 tsteamworkshopitemtocheckifchangedandversion_s = "";
+		 tmphopitemtocheckifchangedandversion_s = "";
 		 tmaskforcamerasnoreflectionlightrayshadowsflag = 0;
 		 strwork = "";
 	}

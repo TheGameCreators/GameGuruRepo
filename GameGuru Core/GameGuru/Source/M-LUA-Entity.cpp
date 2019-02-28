@@ -20,7 +20,7 @@ void entity_lua_starttimer ( void )
 	t.entityelement[t.e].lua.flagschanged=1;
 	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  STEAM_LUA_StartTimer,t.e,t.v );
+		mp_sendlua (  MP_LUA_StartTimer,t.e,t.v );
 	}
 }
 
@@ -98,7 +98,7 @@ void entity_lua_collisionon ( void )
 	}
 	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  STEAM_LUA_CollisionOn,t.e,t.v );
+		mp_sendlua (  MP_LUA_CollisionOn,t.e,t.v );
 	}
 }
 
@@ -128,7 +128,7 @@ void entity_lua_collisionoff ( void )
 	}
 	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  STEAM_LUA_CollisionOff,t.e,t.v );
+		mp_sendlua (  MP_LUA_CollisionOff,t.e,t.v );
 	}
 }
 
@@ -339,7 +339,7 @@ void entity_lua_spawn ( void )
 {
 	t.tokay=1;
 	t.ttentid=t.entityelement[t.e].bankindex;
-	if ( t.game.runasmultiplayer == 1 && g.steamworks.coop == 0 && ( t.entityprofile[t.ttentid].ischaracter == 1 || t.entityelement[t.e].mp_isLuaChar  ==  1) ) t.tokay = 0;
+	if ( t.game.runasmultiplayer == 1 && g.mp.coop == 0 && ( t.entityprofile[t.ttentid].ischaracter == 1 || t.entityelement[t.e].mp_isLuaChar  ==  1) ) t.tokay = 0;
 	if ( t.tokay == 1 ) 
 	{
 		if ( t.entityelement[t.e].eleprof.spawnatstart == 0 ) 
@@ -375,7 +375,7 @@ void entity_lua_setactivated ( void )
 	t.entityelement[t.e].activated=t.v;
 	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  STEAM_LUA_SetActivated,t.e,t.v );
+		mp_sendlua (  MP_LUA_SetActivated,t.e,t.v );
 	}
 }
 
@@ -389,7 +389,7 @@ void entity_lua_activateifused ( void )
 	t.tstore=t.e;
 	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  STEAM_LUA_ActivateIfUsed,t.e,t.v );
+		mp_sendlua (  MP_LUA_ActivateIfUsed,t.e,t.v );
 	}
 	t.tifused_s=Lower(t.entityelement[t.e].eleprof.ifused_s.Get());
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
@@ -621,7 +621,7 @@ void entity_lua_playsound ( void )
 	t.luaglobal.lastsoundnumber=t.tsnd;
 	if ( t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  STEAM_LUA_PlaySound,t.e,t.v );
+		mp_sendlua (  MP_LUA_PlaySound,t.e,t.v );
 	}
 }
 
@@ -1231,7 +1231,7 @@ void entity_lua_setanimation ( void )
 	t.luaglobal.setanim=t.e;
 	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  STEAM_LUA_SetAnimation,t.e,0 );
+		mp_sendlua (  MP_LUA_SetAnimation,t.e,0 );
 	}
 }
 
@@ -1242,7 +1242,7 @@ void entity_lua_setanimationframes ( void )
 	t.luaglobal.setanimfinish=t.v;
 	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  Steam_LUA_SetAnimationFrames,t.e,t.v );
+		mp_sendlua (  MP_LUA_SetAnimationFrames,t.e,t.v );
 	}
 }
 
@@ -1287,7 +1287,7 @@ void entity_lua_playanimation ( void )
 	entity_lua_playorloopanimation ( );
 	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  STEAM_LUA_PlayAnimation,t.e,t.v );
+		mp_sendlua (  MP_LUA_PlayAnimation,t.e,t.v );
 	}
 }
 
@@ -1481,16 +1481,16 @@ void entity_lua_charactercontrolmanual ( void )
 	{
 		//  check we are not already in that state before sending out lua, so we dont flood
 		if (  t.charanimstates[t.tcharanimindex].playcsi != g.csi_limbo ) 
-			if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 && g.steamworks.endplay  ==  0 ) 
-				SteamSendLua (  Steam_LUA_CharacterControlManual,t.e,t.v );
+			if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 && g.mp.endplay  ==  0 ) 
+				mp_sendlua (  MP_LUA_CharacterControlManual,t.e,t.v );
 
 		//  disable all character control influence 
 		t.charanimstate.playcsi=g.csi_limbo;
 		t.charanimstate.limbomanualmode = 1; // (AND ENTER NEW AI FULL MANUAL MODE)
 		t.charanimstates[t.tcharanimindex]=t.charanimstate;
 	}
-	if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
-		SteamSendLua (  Steam_LUA_CharacterControlManual,t.e,t.v );
+	if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+		mp_sendlua (  MP_LUA_CharacterControlManual,t.e,t.v );
 }
 
 void entity_lua_charactercontrollimbo ( void )
@@ -1501,9 +1501,9 @@ void entity_lua_charactercontrollimbo ( void )
 		//  check we are not already in that state before sending out lua, so we dont flood
 		if (  t.charanimstates[t.tcharanimindex].playcsi  !=  g.csi_limbo ) 
 		{
-			if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 && g.steamworks.endplay  ==  0 ) 
+			if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 && g.mp.endplay  ==  0 ) 
 			{
-				SteamSendLua (  Steam_LUA_CharacterControlLimbo,t.e,t.v );
+				mp_sendlua (  MP_LUA_CharacterControlLimbo,t.e,t.v );
 			}
 		}
 		//  disable all character control influence
@@ -1511,9 +1511,9 @@ void entity_lua_charactercontrollimbo ( void )
 		t.charanimstate.limbomanualmode = 0; // REGULAR LIMBO MODE WITH SOME CONTROL OVER AI OBJECT
 		t.charanimstates[t.tcharanimindex]=t.charanimstate;
 	}
-	if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  Steam_LUA_CharacterControlLimbo,t.e,t.v );
+		mp_sendlua (  MP_LUA_CharacterControlLimbo,t.e,t.v );
 	}
 }
 
@@ -1525,9 +1525,9 @@ void entity_lua_charactercontrolunarmed ( void )
 		//  check we are not already in that state before sending out lua, so we dont flood
 		if ( t.charanimstates[t.tcharanimindex].playcsi != g.csi_unarmed ) 
 		{
-			if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 && g.steamworks.endplay  ==  0 ) 
+			if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 && g.mp.endplay  ==  0 ) 
 			{
-				SteamSendLua (  Steam_LUA_CharacterControlUnarmed,t.e,t.v );
+				mp_sendlua (  MP_LUA_CharacterControlUnarmed,t.e,t.v );
 			}
 		}
 		//  restful no weapon out
@@ -1545,9 +1545,9 @@ void entity_lua_charactercontrolarmed ( void )
 		// check we are not already in that state before sending out lua, so we dont flood
 		if ( t.charanimstates[t.tcharanimindex].playcsi != t.csi_stood[t.charanimstates[t.tcharanimindex].weapstyle] ) 
 		{
-			if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 && g.steamworks.endplay  ==  0 ) 
+			if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 && g.mp.endplay  ==  0 ) 
 			{
-				SteamSendLua (  Steam_LUA_CharacterControlArmed,t.e,t.v );
+				mp_sendlua (  MP_LUA_CharacterControlArmed,t.e,t.v );
 			}
 		}
 		// get weapon out (oh er)
@@ -1611,9 +1611,9 @@ void entity_lua_setcharactertowalkrun ( void )
 		t.charanimstate.strafemode=0;
 		t.charanimstates[t.tcharanimindex]=t.charanimstate;
 	}
-	if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  Steam_LUA_setcharactertowalkrun,t.e,t.v );
+		mp_sendlua (  MP_LUA_setcharactertowalkrun,t.e,t.v );
 	}
 }
 
@@ -1679,12 +1679,12 @@ void entity_lua_lookatplayer ( void )
 		}
 
 	}
-	if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
 		//  only send this max once a second
 		if (  Timer() - t.entityelement[t.e].mp_rotateTimer > 1000 ) 
 		{
-			SteamSendLua (  Steam_LUA_LookAtPlayer,t.e,g.steamworks.me );
+			mp_sendlua (  MP_LUA_LookAtPlayer,t.e,g.mp.me );
 			t.entityelement[t.e].mp_rotateTimer = Timer();
 		}
 	}
@@ -1728,11 +1728,11 @@ void entity_lua_rotatetoanglecore ( float fDestAngle, float fAngleOffset )
 		// 240217 - and update visually
 		entity_lua_rotateupdate ( );
 	}
-	if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
 		if (  Timer() - t.entityelement[t.e].mp_rotateTimer > 1000 ) 
 		{
-			SteamSendLua (  Steam_LUA_RotateToPlayer,t.e,t.tnewangley_f );
+			mp_sendlua (  MP_LUA_RotateToPlayer,t.e,t.tnewangley_f );
 			t.entityelement[t.e].mp_rotateTimer = Timer();
 		}
 	}

@@ -55,7 +55,7 @@ void entity_init ( void )
 							{
 								t.ttreemode=t.entityprofile[t.entid].collisionmode-50;
 								//  dont need to setup ai for multiplayer since it doesnt use any ai - unless coop mode!
-								if (  t.game.runasmultiplayer == 0 || ( g.steamworks.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) 
+								if (  t.game.runasmultiplayer == 0 || ( g.mp.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) 
 								{
 									darkai_setup_tree ( );
 								}
@@ -63,7 +63,7 @@ void entity_init ( void )
 							else
 							{
 								//  dont need to setup ai for multiplayer since it doesnt use any ai
-								if (  t.game.runasmultiplayer == 0 || ( g.steamworks.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) 
+								if (  t.game.runasmultiplayer == 0 || ( g.mp.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) 
 								{
 									 if ( t.entityprofile[t.entid].collisionmode != 11 && t.entityprofile[t.entid].collisionmode != 12 ) darkai_setup_entity ( );
 								}
@@ -581,16 +581,16 @@ void entity_loop ( void )
 					{
 						//  deal with multiplayer issues
 						//  if (  its me,  )  only show me when im dead
-						if (  t.characterkitcontrol.showmyhead == 1 && t.e == t.steamworks_playerEntityID[g.steamworks.me] ) 
+						if (  t.characterkitcontrol.showmyhead == 1 && t.e == t.mp_playerEntityID[g.mp.me] ) 
 						{
 							t.tconstantlygluehead=1;
 						}
 						//  if other players are dead and transitioning to a new spawn postion
-						for ( t.ttemploop = 0 ; t.ttemploop<=  STEAM_MAX_NUMBER_OF_PLAYERS; t.ttemploop++ )
+						for ( t.ttemploop = 0 ; t.ttemploop<=  MP_MAX_NUMBER_OF_PLAYERS; t.ttemploop++ )
 						{
-							if (  t.ttemploop != g.steamworks.me ) 
+							if (  t.ttemploop != g.mp.me ) 
 							{
-								if (  t.e == t.steamworks_playerEntityID[t.ttemploop] && t.steamworks_forcePosition[t.ttemploop]>0 && SteamGetPlayerAlive(t.ttemploop) == 1 ) 
+								if (  t.e == t.mp_playerEntityID[t.ttemploop] && t.mp_forcePosition[t.ttemploop]>0 && SteamGetPlayerAlive(t.ttemploop) == 1 ) 
 								{
 									t.tconstantlygluehead=0;
 								}
@@ -640,7 +640,7 @@ void entity_loop ( void )
 				t.entityelement[t.e].lua.flagschanged = 2;
 				if ( t.game.runasmultiplayer == 1 ) 
 				{
-					steam_addDestroyedObject ( );
+					mp_addDestroyedObject ( );
 				}
 				t.obj=t.entityelement[t.e].obj;
 				if (  t.obj>0 ) 
@@ -1227,12 +1227,12 @@ void entity_applydamage ( void )
 	}
 
 	//  if damaging ai in mp, you will take the aggro of the enemy
-	if (  t.game.runasmultiplayer == 1 && g.steamworks.coop  ==  1 && g.steamworks.ignoreDamageToEntity  ==  0 ) 
+	if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 && g.mp.ignoreDamageToEntity  ==  0 ) 
 	{
 		t.ttentid=t.entityelement[t.ttte].bankindex;
 		if (  t.ttentid>0 ) 
 		{
-			if (  (t.entityprofile[t.ttentid].ischaracter  ==  1 || t.entityelement[t.ttte].mp_isLuaChar  ==  1) && t.entityelement[t.ttte].mp_coopControlledByPlayer  !=  g.steamworks.me && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) 
+			if (  (t.entityprofile[t.ttentid].ischaracter  ==  1 || t.entityelement[t.ttte].mp_isLuaChar  ==  1) && t.entityelement[t.ttte].mp_coopControlledByPlayer  !=  g.mp.me && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) 
 			{
 				if (  t.entityelement[t.ttte].mp_coopControlledByPlayer  ==  -1 ) 
 				{
@@ -1244,9 +1244,9 @@ void entity_applydamage ( void )
 				}
 				if (  Timer() - t.entityelement[t.ttte].mp_coopLastTimeSwitchedTarget > 5000 || t.tsteamplayeralive  ==  0 ) 
 				{
-					t.entityelement[t.ttte].mp_coopControlledByPlayer = g.steamworks.me;
+					t.entityelement[t.ttte].mp_coopControlledByPlayer = g.mp.me;
 					t.entityelement[t.ttte].mp_updateOn = 1;
-					SteamSendLua (  Steam_LUA_TakenAggro,t.ttte,g.steamworks.me );
+					mp_sendlua (  MP_LUA_TakenAggro,t.ttte,g.mp.me );
 					t.entityelement[t.ttte].mp_coopLastTimeSwitchedTarget = Timer()+5000;
 				}
 			}
@@ -1265,7 +1265,7 @@ void entity_applydamage ( void )
 		//  stop force going overboard in multiplayer or if character
 		t.tokay=0;
 		if (  t.entityprofile[t.entityelement[t.ttte].bankindex].ismultiplayercharacter == 1  )  t.tokay = 1;
-		if (  t.game.runasmultiplayer == 1 && g.steamworks.coop == 1 && t.entityprofile[t.entityelement[t.ttte].bankindex].ismultiplayercharacter == 1  )  t.tokay = 1;
+		if (  t.game.runasmultiplayer == 1 && g.mp.coop == 1 && t.entityprofile[t.entityelement[t.ttte].bankindex].ismultiplayercharacter == 1  )  t.tokay = 1;
 		if (  t.tokay == 1 ) 
 		{
 			if (  t.tforce_f>150.0  )  t.tforce_f = 150.0;
@@ -1304,17 +1304,17 @@ void entity_applydamage ( void )
 		//  If not, we appply it and inform everyone else
 		if (  t.entityprofile[t.entityelement[t.ttte].bankindex].ismultiplayercharacter == 1 ) 
 		{
-			for ( int tpindex = 0 ; tpindex<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; tpindex++ )
+			for ( int tpindex = 0 ; tpindex<=  MP_MAX_NUMBER_OF_PLAYERS-1; tpindex++ )
 			{
-				if (  t.steamworks_playerEntityID[tpindex]  ==  t.ttte && tpindex  !=  g.steamworks.me && SteamGetPlayerAlive(tpindex)  ==  1 ) 
+				if (  t.mp_playerEntityID[tpindex]  ==  t.ttte && tpindex  !=  g.mp.me && SteamGetPlayerAlive(tpindex)  ==  1 ) 
 				{
 					t.tSteamForce_f = t.tforce_f;
 					if (  t.tSteamForce_f  ==  150  )  t.tSteamForce_f  =  300;
-					if (  g.steamworks.ignoreDamageToEntity  ==  0 ) 
+					if (  g.mp.ignoreDamageToEntity  ==  0 ) 
 					{
 						t.tsteamlastdamagesentcounter = t.tsteamlastdamagesentcounter + 1;
 						//  13032015 0XX - Team Multiplayer
-						if (  g.steamworks.team  ==  0 || g.steamworks.friendlyfireoff  ==  0 || t.steamworks_team[tpindex]  !=  t.steamworks_team[g.steamworks.me] ) 
+						if (  g.mp.team  ==  0 || g.mp.friendlyfireoff  ==  0 || t.mp_team[tpindex]  !=  t.mp_team[g.mp.me] ) 
 						{
 							// Ignore setentityhealth lua message if it is a player
 							//if ( t.tallowanykindofdamage == 0 )
@@ -1332,24 +1332,24 @@ void entity_applydamage ( void )
 			if (  t.entityelement[t.ttte].health > 0 ) 
 			{
 				t.entityelement[t.ttte].health=t.entityelement[t.ttte].health-t.tdamage;
-				if (  g.steamworks.ignoreDamageToEntity  ==  0 ) 
+				if (  g.mp.ignoreDamageToEntity  ==  0 ) 
 				{
 					if (  t.entityelement[t.ttte].health  <= 0 ) 
 					{
 						//  for coop, we count ai kills and not player kills
-						if (  g.steamworks.coop  ==  1 ) 
+						if (  g.mp.coop  ==  1 ) 
 						{
 							t.tttentid=t.entityelement[t.ttte].bankindex;
 							if (  t.tttentid > 0 ) 
 							{
 								if (  t.entityprofile[t.tttentid].ischaracter  ==  1 || t.entityelement[t.ttte].mp_isLuaChar  ==  1 ) 
 								{
-									steam_IKilledAnAI ( );
+									mp_IKilledAnAI ( );
 								}
 							}
 						}
 						++t.tempsteamdestroycount;
-						steam_destroyentity ( );
+						mp_destroyentity ( );
 					}
 				}
 			}
@@ -1538,7 +1538,7 @@ void entity_applydamage ( void )
 		//  multiplayer undocumented stuff
 		if (  t.game.runasmultiplayer  ==  1 ) 
 		{
-			if (  g.steamworks.ignoreDamageToEntity  ==  1 ) 
+			if (  g.mp.ignoreDamageToEntity  ==  1 ) 
 			{
 				if (  t.tapplyragdollforce == 1 ) 
 				{
@@ -1562,7 +1562,7 @@ void entity_applydamage ( void )
 			else
 			{
 				t.tsteamcoopforcemulti_f = 8000.0;
-				if (  g.steamworks.coop  ==  1 ) 
+				if (  g.mp.coop  ==  1 ) 
 				{
 					if (  t.entityprofile[t.entityelement[t.ttte].bankindex].ismultiplayercharacter == 1 ) 
 					{

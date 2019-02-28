@@ -120,9 +120,6 @@
     <ClCompile Include="..\GameGuru\Source\M-Sliders.cpp">
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClCompile>
-    <ClCompile Include="..\GameGuru\Source\M-Steam.cpp">
-      <Filter>GameGuruEngine\MapEditor</Filter>
-    </ClCompile>
     <ClCompile Include="..\GameGuru\Source\M-Terrain.cpp">
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClCompile>
@@ -203,6 +200,9 @@
     </ClCompile>
     <ClCompile Include="..\GameGuru\Source\M-WelcomeSystem.cpp">
       <Filter>GameGuruEngine\MapEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-MP.cpp">
+      <Filter>GameGuruEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -320,9 +320,6 @@
     <ClInclude Include="..\GameGuru\Include\M-Sliders.h">
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClInclude>
-    <ClInclude Include="..\GameGuru\Include\M-Steam.h">
-      <Filter>GameGuruEngine\MapEditor</Filter>
-    </ClInclude>
     <ClInclude Include="..\GameGuru\Include\M-Terrain.h">
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClInclude>
@@ -388,6 +385,9 @@
     </ClInclude>
     <ClInclude Include="..\GameGuru\Include\M-WelcomeSystem.h">
       <Filter>GameGuruEngine\MapEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-MP.h">
+      <Filter>GameGuruEngine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
