@@ -118,7 +118,7 @@ DARKSDK void InputConstructor ( )
 	if ( FAILED ( hr = DirectInput8Create ( g_pGlob->hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, ( void** ) &m_lpDI, NULL ) ) )
 	{
 		MessageBox ( NULL, "Unable to create DirectInput interface", "Unable to create DirectInput interface", MB_OK );
-		Error ( "Unable to create DirectInput interface" );
+		Error1 ( "Unable to create DirectInput interface" );
 		return;
 	}
 
@@ -219,7 +219,7 @@ DARKSDK void SetupKeyboardEx ( DWORD dwForeOrBackGround )
 	{
 		// if it fails call the destructor and show an error message
 		InputDestructor ( );
-		Error ( "Unable to access keyboard for input library" );
+		Error1 ( "Unable to access keyboard for input library" );
 	}
 	
 	// set the data format
@@ -227,7 +227,7 @@ DARKSDK void SetupKeyboardEx ( DWORD dwForeOrBackGround )
 	{
 		// if it fails call the destructor and show an error message
 		InputDestructor ( );
-		Error ( "Failed to set data format for keyboard in input library" );
+		Error1 ( "Failed to set data format for keyboard in input library" );
 	}
 	
 	// request foregound, non exclusive and disable windows key DISCL_BACKGROUND
@@ -258,7 +258,7 @@ DARKSDK void SetupMouseEx ( DWORD dwForeOrBackGround )
 	// create the device
 	if ( FAILED ( hr = m_lpDI->CreateDevice ( GUID_SysMouse, &m_lpDIMouse, NULL ) ) )
 	{
-		Error("Unable to access mouse for input library");
+		Error1("Unable to access mouse for input library");
 		InputDestructor ( );
 	}
 
@@ -274,7 +274,7 @@ DARKSDK void SetupMouseEx ( DWORD dwForeOrBackGround )
 		if ( FAILED ( hr = m_lpDIMouse->SetDataFormat ( &c_dfDIMouse2 ) ) )
 		{
 			// 091013 - do not kill input device - just silently ignore this attempt Destructor ( );
-			Error ( "Failed to set data format for mouse in input library" );
+			Error1 ( "Failed to set data format for mouse in input library" );
 		}
 	}
 

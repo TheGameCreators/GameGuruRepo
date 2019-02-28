@@ -208,7 +208,7 @@ DARKSDK void TextConstructor (  )
 	memset ( m_pPosText, 0, sizeof ( tagObjectPos ) );
 
 	if ( !m_pPosText )
-		Error ( "Unable to allocate memory for positional data in text library" );
+		Error1 ( "Unable to allocate memory for positional data in text library" );
 
 	// prepare work string
 	ValidateWorkStringBySize ( 256 );

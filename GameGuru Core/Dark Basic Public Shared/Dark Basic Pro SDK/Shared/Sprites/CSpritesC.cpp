@@ -714,7 +714,7 @@ DARKSDK void GetSpritesDiffuse ( int iID, int* piRed, int* piGreen, int* piBlue 
 {
 	// check all of the pointers are valid
 	if ( !piRed || !piGreen || !piBlue )
-		Error ( "Invalid pointers passed to GetDiffuse" );
+		Error1 ( "Invalid pointers passed to GetDiffuse" );
 
 	// now assign the diffuse values
 	*piRed   = m_ptr->iRed;			// copy red

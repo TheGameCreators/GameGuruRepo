@@ -8,7 +8,7 @@
 // Handler Passed into DLL
 extern CRuntimeErrorHandler* g_pErrorHandler;
 
-void Error ( char* szMessage );
+void Error1 ( char* szMessage );
 void Message ( int iID, char* szMessage, char* szTitle );
 
 void			RunTimeError(DWORD dwErrorCode);
