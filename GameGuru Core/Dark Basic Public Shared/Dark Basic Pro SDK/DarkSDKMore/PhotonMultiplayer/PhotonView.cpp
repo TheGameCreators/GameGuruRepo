@@ -1,5 +1,11 @@
 ﻿#include "stdafx.h"
-#include "Photon_lib.h"
+#include "PhotonView.h"
+
+PhotonView::PhotonView ( void )
+{
+}
+
+/*
 #include "limits.h"
 
 static const ExitGames::Common::JString appID = L"f6c9acc6-a6a2-4704-9618-cd4a5ebe4db6";
@@ -10,8 +16,7 @@ static const int MAX_SENDCOUNT = 100;
 
 PhotonLib::PhotonLib()
 	: mState(State::INITIALIZED)
-	, mLoadBalancingClient(*this, appID, appVersion)//, ExitGames::Photon::ConnectionProtocol::UDP, true)
-	//, mpOutputListener(uiListener)
+	, mLoadBalancingClient(*this, appID, appVersion)
 	, mSendCount(0)
 	, mReceiveCount(0)
 {
@@ -20,6 +25,30 @@ PhotonLib::PhotonLib()
 	mLogger.setDebugOutputLevel(DEBUG_RELEASE(ExitGames::Common::DebugLevel::INFO, ExitGames::Common::DebugLevel::WARNINGS));
 	ExitGames::Common::Base::setListener(this);
 	ExitGames::Common::Base::setDebugOutputLevel(DEBUG_RELEASE(ExitGames::Common::DebugLevel::INFO, ExitGames::Common::DebugLevel::WARNINGS));
+}
+
+void PhotonLib::joinOrCreateRoom ( LPSTR gameName )
+{
+	mLoadBalancingClient.opJoinOrCreateRoom(gameName);
+	mState = State::JOINING;
+}
+
+void PhotonLib::sendByte ( int iValue )
+{
+	if ( mState == State::JOINED )
+		sendData();
+
+	//ExitGames::Common::Hashtable event;
+	//event.put(static_cast<nByte>(0), iValue);
+	//int myPlayerNumber = mLoadBalancingClient.getLocalPlayer().getNumber();
+	//mLoadBalancingClient.opRaiseEvent(true, event, 0, ExitGames::LoadBalancing::RaiseEventOptions().setTargetPlayers(&myPlayerNumber, 1));
+	//mState = State::SENT_DATA;
+}
+
+void PhotonLib::leaveRoom ( void )
+{
+	mLoadBalancingClient.opLeaveRoom();
+	mState = State::LEAVING;
 }
 
 void PhotonLib::disconnect ( void )
@@ -40,7 +69,6 @@ void PhotonLib::update(void)
 			mState = State::CONNECTING;
 			break;
 
-		/*
 		case State::CONNECTED:
 			mLoadBalancingClient.opJoinOrCreateRoom(gameName);
 			mState = State::JOINING;
@@ -59,7 +87,6 @@ void PhotonLib::update(void)
 		case State::DISCONNECTED:
 			mState = State::INITIALIZED;
 			break;
-		*/
 
 		default:
 			break;
@@ -102,7 +129,6 @@ void PhotonLib::sendData(void)
 {
 	ExitGames::Common::Hashtable event;
 	event.put(static_cast<nByte>(0), ++mSendCount);
-	// send to ourselves only
 	int myPlayerNumber = mLoadBalancingClient.getLocalPlayer().getNumber();
 	mLoadBalancingClient.opRaiseEvent(true, event, 0, ExitGames::LoadBalancing::RaiseEventOptions().setTargetPlayers(&myPlayerNumber, 1));
 	if(mSendCount >= MAX_SENDCOUNT)
@@ -287,3 +313,4 @@ void PhotonLib::leaveLobbyReturn(void)
 	EGLOG(ExitGames::Common::DebugLevel::INFO, L"");
 	//mpOutputListener->writeString(L"left lobby");
 }
+*/

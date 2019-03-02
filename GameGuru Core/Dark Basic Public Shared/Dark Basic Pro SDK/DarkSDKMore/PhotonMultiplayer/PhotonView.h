@@ -1,8 +1,19 @@
-//#define DBGPRINTF_LEVEL 6
-
 #include "LoadBalancing-cpp/inc/Client.h"
-//#include "UIListener.h"
 
+class PhotonView
+{
+	public:
+		PhotonView ( void );
+
+	public:
+		void setConnectionState ( bool bState ) { bConnected = bState; }
+		bool isConnected() { return bConnected; }
+
+	public:
+		bool bConnected;
+};
+
+/*
 class PhotonLib : private ExitGames::LoadBalancing::Listener
 {
 public:
@@ -69,8 +80,16 @@ private:
 
 public:
 
+	void joinOrCreateRoom ( LPSTR gameName );
+	void sendByte ( int iValue );
+	void leaveRoom ( void );
 	void disconnect ( void );
+
 	bool isConnected ( void ) { if ( mState == State::States::CONNECTED ) return true; else return false; }
+	bool isJoined ( void ) { if ( mState == State::States::JOINED ) return true; else return false; }
+	bool isReceivedData ( void ) { if ( mState == State::States::RECEIVED_DATA ) return true; else return false; }
+	bool isLeft ( void ) { if ( mState == State::States::LEFT ) return true; else return false; }
 	bool isDisconnected ( void ) { if ( mState == State::States::DISCONNECTED ) return true; else return false; }
 
 };
+*/

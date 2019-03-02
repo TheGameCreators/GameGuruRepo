@@ -81,7 +81,10 @@
     <ClInclude Include="..\..\..\..\Include\PhotonCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Photon_lib.h">
+    <ClInclude Include="LoadBalancingListener.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PhotonView.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -131,7 +134,10 @@
     <ClCompile Include="PhotonMultiplayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Photon_lib.cpp">
+    <ClCompile Include="LoadBalancingListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PhotonView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

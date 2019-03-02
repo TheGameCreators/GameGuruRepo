@@ -1552,7 +1552,12 @@ void titles_base ( void )
 					mp_quitGame ( );
 				}
 			}
-			//  STEAM PAGE (Multiplayer Lobby)
+
+			//
+			// MULTIPLAYER SCREENS
+			//
+
+			// MAIN MULTIPLAYER MENU
 			if (  t.titlespagetousehere == 7 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1584,7 +1589,8 @@ void titles_base ( void )
 					characterkit_chooseOnlineAvatar ( );
 				}
 			}
-			//  STEAM PAGE Created Lobby (Multiplayer Lobby)
+
+			// INSIDE MY OWN LOBBY/ROOM SCREEN - READY TO START THE GAME WITH PRESENT PLAYERS
 			if (  t.titlespagetousehere == 8 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1602,7 +1608,8 @@ void titles_base ( void )
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Search for lobbies (Multiplayer Lobby)
+
+			// GAME LIST SCREEN - READY TO SELECT A LOBBY/ROOM TO ENTER
 			if (  t.titlespagetousehere == 9 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1622,7 +1629,8 @@ void titles_base ( void )
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Choose type of level (host)
+
+			// PLAY ONE OF YOUR LEVELS BUTTON SCREEN
 			if (  t.titlespagetousehere == 14 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1633,7 +1641,6 @@ void titles_base ( void )
 					titles_steamchoosefpmtouse ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				} 
-				//  TAKE THIS Line (  OUT BELOW WHEN YOU PUT THE CODE ABOVE BACK! )
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
 					mp_backToStart ( );
@@ -1641,7 +1648,8 @@ void titles_base ( void )
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Choose level from list (host)
+
+			// SELECTED OWN LEVEL - CREATE LOBBY/ROOM FOR IT
 			if (  t.titlespagetousehere == 15 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1666,7 +1674,8 @@ void titles_base ( void )
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE do you want to create/update a workshop item? (host)
+
+			// INSIDE SOMEONE ELSES LOBBY/ROOM SCREEN - WAITING FOR HOST TO START GAME
 			if (  t.titlespagetousehere == 16 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1690,7 +1699,8 @@ void titles_base ( void )
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 			}
-			//  STEAM PAGE in someone elses lobby (Multiplayer Lobby)
+
+			// CAN LEAVE LOBBY/ROOM FROM HERE
 			if (  t.titlespagetousehere == 10 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1701,7 +1711,8 @@ void titles_base ( void )
 					return;
 				}
 			}
-			//  STEAM PAGE do you want to subscribe to this item
+
+			// SUBSCRIBE TO WORKSHOP ITEM (CUSTOM LEVEL) SCREEN
 			if (  t.titlespagetousehere == 18 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1720,7 +1731,8 @@ void titles_base ( void )
 					titles_steamSearchLobbies ( );
 				}
 			}
-			//  STEAM PAGE waiting for subscription results (user does not need to wait if they dont want to)
+
+			// WAITING FOR SUBSCRIPTION RESULTS SCREEN
 			if (  t.titlespagetousehere == 19 ) 
 			{
 				//  back to searching for lobbies
@@ -1733,7 +1745,8 @@ void titles_base ( void )
 					titles_steamSearchLobbies ( );
 				}
 			}
-			//  STEAM PAGE using selected to join a red workshop item
+
+			// BACK TO SEARCH FOR LOBBIES
 			if (  t.titlespagetousehere == 20 ) 
 			{
 				//  back to searching for lobbies
@@ -1746,6 +1759,7 @@ void titles_base ( void )
 					titles_steamSearchLobbies ( );
 				}
 			}
+
 			//  GRAPHICS SETTINGS
 			if (  t.titlespagetousehere == 12 ) 
 			{

@@ -11,24 +11,187 @@
 //#include "voicechat.h"
 //#include <ShellAPI.h>
 //#include "CTextC.h"
+//#include "Photon_lib.h"
+#include "LoadBalancingListener.h"
 
-#include "Photon_lib.h"
+using namespace ExitGames::LoadBalancing;
+using namespace ExitGames::Common;
+using namespace ExitGames::Photon;
 
-PhotonLib* g_pPhoton = NULL;
+static const ExitGames::Common::JString appID = L"f6c9acc6-a6a2-4704-9618-cd4a5ebe4db6";
+static const ExitGames::Common::JString appVersion = L"0.1";
+bool gUseTcp = false;
+
+PhotonView* g_pPhotonView = NULL;
 
 int PhotonInit()
 {
+	// skip Photon for now
+	return 1;
+
+	g_pPhotonView = new PhotonView();
+	LoadBalancingListener lbl(g_pPhotonView);
+	Client lbc(lbl, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
+	lbc.setDebugOutputLevel(DEBUG_RELEASE(ExitGames::Common::DebugLevel::INFO, ExitGames::Common::DebugLevel::WARNINGS));
+	ExitGames::Common::Base::setListener(&lbl);
+	ExitGames::Common::Base::setDebugOutputLevel(DEBUG_RELEASE(ExitGames::Common::DebugLevel::INFO, ExitGames::Common::DebugLevel::WARNINGS));
+	lbl.setLBC(&lbc);
+	lbc.setTrafficStatsEnabled(true);
+	//Console::get().writeLine(L"connecting...");
+	lbl.connect(JString(L"NVC")+GETTIMEMS());
+	while(true)
+	{
+		lbc.serviceBasic();
+		while(lbc.dispatchIncomingCommands());
+		while(lbc.sendOutgoingCommands());
+		lbl.service();
+
+		/*
+		int k = getcharIfKbhit();
+		if(k == 27)
+			break;
+		if(k == 'h')
+			usage();
+		if(k == 'd')
+		{
+			Console::get().writeLine(L"disconnecting...");
+			lbc.disconnect();
+		}
+		if(k == 'c')
+		{
+			Console::get().writeLine(L"connecting...");
+			lbl.connect(JString(L"NVC")+GETTIMEMS());
+		}
+		if(k == '/')
+		{
+			Console::get().writeLine(gSendAcksOnly?L"disabling \"sendAcksOnly\"...":L"enabling \"sendAcksOnly\"...");
+			gSendAcksOnly = !gSendAcksOnly;
+		}
+		if(k == 'g')
+		{
+			lbl.setUseGroups(false); // reset autogroups
+			gUseGroups = !gUseGroups;
+			JVector<nByte> empty;
+			if(gUseGroups)
+			{
+				Console::get().writeLine(L"activating interest groups...");
+				lbc.opChangeGroups(&empty, &gGroups);
+			}
+			else
+			{
+				Console::get().writeLine(L"deactivating interest groups...");
+				lbc.opChangeGroups(&empty, NULL);
+			}
+		}
+		if(k >= '0' && k <= '9')
+		{
+			lbl.setUseGroups(false); // reset autogroups
+			nByte g = k - '0';
+			if(gUseGroups)
+			{
+				JVector<nByte> v;
+				if(gGroups.contains(g))
+				{
+					Console::get().writeLine(JString(L"removing interest group nr ") + g + L" from list of interest groups to receive updates for...");
+					gGroups.removeElement(g);
+					v.addElement(g);
+					lbc.opChangeGroups(&v, NULL);
+				}
+				else
+				{
+					Console::get().writeLine(JString(L"adding interest group nr ") + g + L" to list of interest groups to receive updates for...");
+					gGroups.addElement(g);
+					v.addElement(g);
+					lbc.opChangeGroups(NULL, &v);
+				}
+			}
+			else
+			{
+				Console::get().writeLine(JString(L"setting interest group to send updates to group nr ") + g + L" ...");
+				gSendGroup = g;
+				lbl.setSendGroup(g);
+			}
+			info(lbc);
+		}
+
+		if(k == 'i')
+		{
+			Console::get().writeLine(L"showing info...");
+			info(lbc);
+		}
+		if(k == 's')
+		{
+			Console::get().writeLine(L"showing traffic stats...");
+			trafficStats(lbc);
+		}
+		if(k == 'r')
+		{
+			Console::get().writeLine(L"resetting traffic stats...");
+			lbc.resetTrafficStats();
+			trafficStats(lbc);
+		}
+		if(k == 't')
+		{
+			Console::get().writeLine(lbc.getTrafficStatsEnabled()?L"disabling traffic stats...":L"enabling traffic stats...");
+			lbc.setTrafficStatsEnabled(!lbc.getTrafficStatsEnabled());
+			trafficStats(lbc);
+		}
+		Console::get().update();
+		int t = GETTIMEMS();
+		while(GETTIMEMS() < t + 100);
+		*/
+	}
+
+	//Console::get().writeLine(L"disconnecting...");
+	lbc.disconnect();
+	while ( 1 )
+	{
+		lbc.serviceBasic();
+		while(lbc.dispatchIncomingCommands());
+		while(lbc.sendOutgoingCommands());
+		lbl.service();
+		if ( g_pPhotonView->isConnected() == false ) break;
+	}
+
+	// free any resources
+	SAFE_DELETE ( g_pPhotonView );
+
+	/*
 	// create instance and connect
 	g_pPhoton = new PhotonLib;
 
-	// async connect
+	// connect
 	while ( 1 )
 	{
 		g_pPhoton->update();
 		if ( g_pPhoton->isConnected() == true ) break;
 	}
 
-	// async disconnect
+	// create and join a room
+	g_pPhoton->joinOrCreateRoom("LeesGame");
+	while ( 1 )
+	{
+		g_pPhoton->update();
+		if ( g_pPhoton->isJoined() == true ) break;
+	}
+
+	// send data to room
+	while ( 1 )
+	{
+		g_pPhoton->sendByte(42);
+		g_pPhoton->update();
+		if ( g_pPhoton->isReceivedData() == true ) break;
+	}
+
+	// leave room
+	g_pPhoton->leaveRoom();
+	while ( 1 )
+	{
+		g_pPhoton->update();
+		if ( g_pPhoton->isLeft() == true ) break;
+	}
+
+	// disconnect
 	g_pPhoton->disconnect();
 	while ( 1 )
 	{
@@ -38,6 +201,7 @@ int PhotonInit()
 
 	// free resources
 	SAFE_DELETE(g_pPhoton);
+	*/
 
 	// success
 	return 1;
@@ -62,7 +226,7 @@ int PhotonInit()
 
 void PhotonFree()
 {
-	SAFE_DELETE(g_pPhoton);
+	SAFE_DELETE ( g_pPhotonView );
 	/*
 	if ( !g_SteamRunning ) return;
 	SAFE_DELETE ( g_pClient );
