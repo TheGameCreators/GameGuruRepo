@@ -267,7 +267,7 @@ DARKSDK LPGGSURFACE MakeFormat ( int iID, int iWidth, int iHeight, GGFORMAT form
 		hr = m_pD3D->CreateTexture2D( &StagedOffScreenSurfaceDesc, NULL, &test->lpSurface );
 		if ( FAILED ( hr ) )
 		{
-			if ( g_bSupressErrorMessage==false ) Error ( "Failed to create new bitmap" );
+			if ( g_bSupressErrorMessage==false ) Error1 ( "Failed to create new bitmap" );
 			SAFE_DELETE(test);
 			return NULL;
 		}
@@ -310,7 +310,7 @@ DARKSDK LPGGSURFACE MakeFormat ( int iID, int iWidth, int iHeight, GGFORMAT form
 		//hr = Device->CreateShaderResourceView(_Texture2D, &shaderResourceViewDesc, &_ShaderResourceView);
 		if ( FAILED ( hr ) )
 		{
-			if ( g_bSupressErrorMessage==false ) Error ( "Failed to create new bitmap" );
+			if ( g_bSupressErrorMessage==false ) Error1 ( "Failed to create new bitmap" );
 			SAFE_DELETE(test);
 			return NULL;
 		}

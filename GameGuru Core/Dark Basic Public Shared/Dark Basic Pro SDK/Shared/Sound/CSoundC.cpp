@@ -230,7 +230,7 @@ DARKSDK float SoundPositionX ( int iID )
 	// get data
 	if ( !UpdateSoundPtr ( iID ) )
 	{
-		Error ( "GetSoundPositionX - sound does not exist" );
+		Error1 ( "GetSoundPositionX - sound does not exist" );
 		return 0.0f;
 	}
 
@@ -249,7 +249,7 @@ DARKSDK float SoundPositionY ( int iID )
 	// get data
 	if ( !UpdateSoundPtr ( iID ) )
 	{
-		Error ( "GetSoundPositionY - sound does not exist" );
+		Error1 ( "GetSoundPositionY - sound does not exist" );
 		return 0.0f;
 	}
 
@@ -268,7 +268,7 @@ DARKSDK float SoundPositionZ ( int iID )
 	// get data
 	if ( !UpdateSoundPtr ( iID ) )
 	{
-		Error ( "GetSoundPositionZ - sound does not exist" );
+		Error1 ( "GetSoundPositionZ - sound does not exist" );
 		return 0.0f;
 	}
 

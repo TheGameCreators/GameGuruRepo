@@ -14,7 +14,7 @@ extern char g_strErrorClue[512];
 
 void timestampactivity(int i, char* desc_s);
 
-void Error ( char* szMessage )
+void Error1 ( char* szMessage )
 {
 	if(g_pErrorHandler)
 		if(g_pErrorHandler->dwErrorCode==0)

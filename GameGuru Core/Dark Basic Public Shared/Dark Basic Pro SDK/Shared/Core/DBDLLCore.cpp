@@ -59,6 +59,12 @@
 #include "LightMapper.h"
 #include "Enchancements.h"
 
+//Windows Mixed Reality Support
+#include "GGWMR.h"
+
+#include <iostream>
+#include <fstream>
+
 DB_ENTER_NS()
 DB_LEAVE_NS()
 
@@ -1398,18 +1404,30 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	}
 	else
 	{
-		g_pGlob->hWnd = CreateWindow(	pAppNameUnique,
+		/*
+		g_pGlob->hWnd = CreateWindow(pAppNameUnique,
 									pAppName,
-									dwWindowStyle,
-									g_pGlob->dwWindowX,
-									g_pGlob->dwWindowY,
-									g_pGlob->dwWindowWidth,
-									g_pGlob->dwWindowHeight,
-									NULL,
-									NULL,
-									hInstance,
-									NULL);
+									WS_OVERLAPPEDWINDOW,
+									CW_USEDEFAULT,
+									0,
+									CW_USEDEFAULT,
+									0,
+									nullptr,
+									nullptr,
+									hInstance, 
+									nullptr);
+		*/
+
+		g_pGlob->hWnd = CreateWindow(	pAppNameUnique,	pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
+		
 	}
+
+	ShowWindow(g_pGlob->hWnd, SW_HIDE);
+
+	//Setup Holographic Space for Window to support Windows Mixed Reality
+	GGWMR_GetHolographicSpace();
+	ShowWindow(g_pGlob->hWnd, SW_SHOW);
+
 
 	// Init Steam API
 	SteamInit();

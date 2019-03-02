@@ -1112,7 +1112,7 @@ DARKSDK void GetWindowSize ( int* piWidth, int* piHeight )
 
 	// check for valid pointers
 	if ( !piWidth || !piHeight )
-		Error ( "Invalid pointers passed to GetWindowSize for setup library" );
+		Error1 ( "Invalid pointers passed to GetWindowSize for setup library" );
 
 	// assign the pointers the saved window size
 	*piWidth  = m_iWindowWidth;
@@ -1123,7 +1123,7 @@ DARKSDK void OverrideHWND ( HWND hWnd )
 {
 	// use an external window instead of the default
 	// check the window handle is valid
-	if ( !hWnd ) Error ( "Invalid window handle passed to OverrideHWND" );
+	if ( !hWnd ) Error1 ( "Invalid window handle passed to OverrideHWND" );
 	m_bOverrideHWND = true;
 	m_hWnd          = hWnd;
 }
@@ -1150,7 +1150,7 @@ DARKSDK void AddSwapChain ( HWND hwnd )
 
 	// check the window handle is valid
 	if ( !hwnd )
-		Error ( "Invalid window handle for AddSwapChain" );
+		Error1 ( "Invalid window handle for AddSwapChain" );
 
 	// clear out structures
 	memset ( &d3dpp, 0, sizeof ( d3dpp ) );
@@ -1254,11 +1254,11 @@ DARKSDK void UpdateSwapChain ( int iID )
 
 	// check the ID is valid
 	if ( iID > MAX_SWAP_CHAINS )
-		Error ( "Specified invalid swap chain - overrun maximum limit" );
+		Error1 ( "Specified invalid swap chain - overrun maximum limit" );
 
 	// check the swap chain is valid
 	if ( !m_pSwapChain [ iID ] )
-		Error ( "Swap chain pointer not setup correctly" );
+		Error1 ( "Swap chain pointer not setup correctly" );
 
 	// update full screen
 	#ifdef DX11
@@ -1968,7 +1968,7 @@ DARKSDK bool SetDisplayMode ( int iWidth, int iHeight, int iDepth, int iMode, in
 	}
 	else
 	{
-		Error ( "Unable to setup 3D device" );
+		Error1 ( "Unable to setup 3D device" );
 	}
 
 	// Runs off the end as unknown direct x, else runtime picked up along the way
@@ -1977,7 +1977,7 @@ DARKSDK bool SetDisplayMode ( int iWidth, int iHeight, int iDepth, int iMode, in
 
 DARKSDK bool SetDisplayDebugMode ( void )
 {
-	Error ( "SetDisplayDebug mode disabled" );
+	Error1 ( "SetDisplayDebug mode disabled" );
 	return true;
 }
 
@@ -2045,7 +2045,7 @@ DARKSDK bool GetBackBufferAndDepthBuffer ( void )
     hr = m_pD3D->CreateRenderTargetView( g_pBackBuffer, NULL, &m_pRenderTargetView );
     if( FAILED( hr ) )
     {
-		Error ( "Failed to CreateRenderTargetView\n" );
+		Error1 ( "Failed to CreateRenderTargetView\n" );
         return false;
 	}
 
@@ -2070,7 +2070,7 @@ DARKSDK bool GetBackBufferAndDepthBuffer ( void )
     hr = m_pD3D->CreateTexture2D( &descDepth, NULL, &m_pDepthStencil );
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to CreateTexture2D\n" );
+		Error1 ( "Failed to CreateTexture2D\n" );
         return false;
 	}
 
@@ -2083,7 +2083,7 @@ DARKSDK bool GetBackBufferAndDepthBuffer ( void )
     hr = m_pD3D->CreateDepthStencilView( m_pDepthStencil, &descDSV, &m_pDepthStencilView );
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to CreateDepthStencilView\n" );
+		Error1 ( "Failed to CreateDepthStencilView\n" );
         return false;
 	}
 
@@ -2111,7 +2111,7 @@ DARKSDK bool SetupDX11 ( void )
 	{
 		m_uAdapterChoice = m_iForceAdapterOrdinal;
 	}
-    IDXGIAdapter* pAdapter = NULL; 
+    IDXGIAdapter* pAdapter = NULL;
 	strcpy ( m_pAdapterName, "Default Adapter" );
 	D3D_DRIVER_TYPE adapterType = D3D_DRIVER_TYPE_HARDWARE;
     std::vector <IDXGIAdapter*> vAdapters; 
@@ -2182,23 +2182,23 @@ DARKSDK bool SetupDX11 ( void )
 												&g_featureLevel, &m_pImmediateContext );
     if( FAILED( hr ) )
 	{
-		if ( hr == D3D11_ERROR_FILE_NOT_FOUND ) Error ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_FILE_NOT_FOUND\n" );
-		else if ( hr == D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS ) Error ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS\n" );
-		else if ( hr == D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS ) Error ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS\n" );
-		else if ( hr == D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD ) Error ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD\n" );
-		else if ( hr == D3DERR_WASSTILLDRAWING ) Error ( "D3D11CreateDeviceAndSwapChain = D3DERR_WASSTILLDRAWING\n" );
-		else if ( hr == D3DERR_INVALIDCALL ) Error ( "D3D11CreateDeviceAndSwapChain = D3DERR_INVALIDCALL\n" );
-		else if ( hr == E_FAIL ) Error ( "D3D11CreateDeviceAndSwapChain = E_FAIL\n" );
-		else if ( hr == E_INVALIDARG ) Error ( "D3D11CreateDeviceAndSwapChain = E_INVALIDARG\n" );
-		else if ( hr == E_OUTOFMEMORY ) Error ( "D3D11CreateDeviceAndSwapChain = E_OUTOFMEMORY\n" );
-		else if ( hr == S_FALSE ) Error ( "D3D11CreateDeviceAndSwapChain = S_FALSE\n" );
+		if ( hr == D3D11_ERROR_FILE_NOT_FOUND ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_FILE_NOT_FOUND\n" );
+		else if ( hr == D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS\n" );
+		else if ( hr == D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS\n" );
+		else if ( hr == D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD\n" );
+		else if ( hr == D3DERR_WASSTILLDRAWING ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3DERR_WASSTILLDRAWING\n" );
+		else if ( hr == D3DERR_INVALIDCALL ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3DERR_INVALIDCALL\n" );
+		else if ( hr == E_FAIL ) Error1 ( "D3D11CreateDeviceAndSwapChain = E_FAIL\n" );
+		else if ( hr == E_INVALIDARG ) Error1 ( "D3D11CreateDeviceAndSwapChain = E_INVALIDARG\n" );
+		else if ( hr == E_OUTOFMEMORY ) Error1 ( "D3D11CreateDeviceAndSwapChain = E_OUTOFMEMORY\n" );
+		else if ( hr == S_FALSE ) Error1 ( "D3D11CreateDeviceAndSwapChain = S_FALSE\n" );
 		else
 		{
 			char szOut [ 256 ] = "";
 			sprintf ( szOut, "Cannot initialize DirectX 11" );
-			Error ( szOut );
+			Error1 ( szOut );
 		}
-		Error ( "Failed to D3D11CreateDeviceAndSwapChain\n" );
+		Error1 ( "Failed to D3D11CreateDeviceAndSwapChain\n" );
 		return false;
 	}
 
@@ -2230,7 +2230,7 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateDepthStencilState(&depthStencilDesc, &m_pDepthStencilState);
 	if( FAILED( hr ) )
 	{
-		Error ( "Failed to CreateDepthStencilState\n" );
+		Error1 ( "Failed to CreateDepthStencilState\n" );
 		return false;
 	}
 
@@ -2252,7 +2252,7 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateDepthStencilState(&depthStencilDesc, &m_pDepthNoWriteStencilState);
 	if( FAILED( hr ) )
 	{
-		Error ( "Failed to CreateDepthStencilState\n" );
+		Error1 ( "Failed to CreateDepthStencilState\n" );
 		return false;
 	}
 
@@ -2290,14 +2290,14 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateRasterizerState(&rasterDesc, &m_pRasterState);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pRasterState\n" );
+		Error1 ( "Failed to m_pRasterState\n" );
         return false;
 	}
 	rasterDesc.CullMode = D3D11_CULL_NONE;
 	hr = m_pD3D->CreateRasterizerState(&rasterDesc, &m_pRasterStateNoCull);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pRasterStateNoCull\n" );
+		Error1 ( "Failed to m_pRasterStateNoCull\n" );
         return false;
 	}	
 	rasterDesc.CullMode = D3D11_CULL_BACK;
@@ -2307,7 +2307,7 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateRasterizerState(&rasterDesc, &m_pRasterStateDepthBias);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pRasterStateDepthBias\n" );
+		Error1 ( "Failed to m_pRasterStateDepthBias\n" );
         return false;
 	}	
 
@@ -2338,14 +2338,14 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateBlendState(&blendDesc, &m_pBlendStateAlpha);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pBlendStateAlpha\n" );
+		Error1 ( "Failed to m_pBlendStateAlpha\n" );
         return false;
 	}
 	blendDesc.RenderTarget[0].BlendEnable = false;
 	hr = m_pD3D->CreateBlendState(&blendDesc, &m_pBlendStateNoAlpha);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pBlendStateNoAlpha\n" );
+		Error1 ( "Failed to m_pBlendStateNoAlpha\n" );
         return false;
 	}
 	blendDesc.RenderTarget[0].BlendEnable = true;
@@ -2354,7 +2354,7 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateBlendState(&blendDesc, &m_pBlendStateShadowBlend);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pBlendStateShadowBlend\n" );
+		Error1 ( "Failed to m_pBlendStateShadowBlend\n" );
         return false;
 	}
 	
@@ -2853,7 +2853,7 @@ DARKSDK void GetGamma ( int* piR, int* piG, int* piB )
 
 	// check all of the pointers are valid
 	if ( !piR || !piG || !piB )
-		Error ( "Invalid pointers passed to GetGamma" );
+		Error1 ( "Invalid pointers passed to GetGamma" );
 
 	// now assign the gamma values
 	*piR = m_iGammaRed;			// copy red
