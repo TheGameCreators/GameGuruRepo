@@ -1266,11 +1266,11 @@ void CEditorApp::RestoreIDEEditorView ( void )
 	// restore windows
 	((CMainFrame*)theApp.GetMainWnd())->m_wndMenuBar.ShowWindow(SW_SHOW);
 	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBar.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame.ShowWindow(SW_SHOW);
 	((CMainFrame*)theApp.GetMainWnd())->m_wndStatusBar.ShowWindow(SW_SHOW);
 	((CMainFrame*)theApp.GetMainWnd())->m_wndOutput.ShowWindow(SW_SHOW);
 	((CMainFrame*)theApp.GetMainWnd())->m_wndWorkSpace.ShowWindow(SW_HIDE);
@@ -1282,11 +1282,11 @@ void CEditorApp::RestoreIDEEditorView ( void )
 	CRect rectA;
 	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBar.GetWindowRect(&rectA);
 	rectA.OffsetRect(1,0);
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
 	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndOutput,			AFX_IDW_DOCKBAR_LEFT,	&rectA );
 	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndWorkSpace );
 
@@ -1318,12 +1318,12 @@ void CEditorApp::UpdateTestGame ( void )
 		RestoreIDEEditorView();
 		((CMainFrame*)theApp.GetMainWnd())->m_wndMenuBar.ShowWindow(SW_SHOW);
 		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBar.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndStatusBar.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndStatusBar.ShowWindow(SW_SHOW);
 		((CMainFrame*)theApp.GetMainWnd())->m_wndOutput.ShowWindow(SW_SHOW);
 		((CMainFrame*)theApp.GetMainWnd())->m_wndWorkSpace.ShowWindow(SW_HIDE);
 
@@ -1334,11 +1334,11 @@ void CEditorApp::UpdateTestGame ( void )
 		CRect rectA;
 		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBar.GetWindowRect(&rectA);
 		rectA.OffsetRect(1,0);
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
 		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndOutput,			AFX_IDW_DOCKBAR_LEFT,	&rectA );
 		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndWorkSpace );
 
@@ -2171,13 +2171,13 @@ void CEditorApp::UpdateBrowserWindow ( void )
 		//Hide menubar and toolbars when in library
 		pFrame->m_wndMenuBar.ShowWindow(SW_HIDE);					//Hides Menu Bar
 		pFrame->m_wndToolBar .ShowWindow(SW_HIDE);					//Hides Toolbars...
-		pFrame->m_wndToolBarGame .ShowWindow(SW_HIDE);
-		pFrame->m_wndToolBarDraw .ShowWindow(SW_HIDE);
-		if ( pFrame->m_wndToolBarEntity ) pFrame->m_wndToolBarEntity.ShowWindow (SW_HIDE);
-		if ( pFrame->m_wndToolBarMode ) pFrame->m_wndToolBarMode.ShowWindow (SW_HIDE);
-		pFrame->m_wndToolBarSegment .ShowWindow (SW_HIDE);
-		pFrame->m_wndToolBarView .ShowWindow (SW_HIDE);
-		pFrame->m_wndToolBarWaypoint .ShowWindow (SW_HIDE);
+		//pFrame->m_wndToolBarGame .ShowWindow(SW_HIDE);
+		//pFrame->m_wndToolBarDraw .ShowWindow(SW_HIDE);
+		//if ( pFrame->m_wndToolBarEntity ) pFrame->m_wndToolBarEntity.ShowWindow (SW_HIDE);
+		//if ( pFrame->m_wndToolBarMode ) pFrame->m_wndToolBarMode.ShowWindow (SW_HIDE);
+		//pFrame->m_wndToolBarSegment .ShowWindow (SW_HIDE);
+		//pFrame->m_wndToolBarView .ShowWindow (SW_HIDE);
+		//pFrame->m_wndToolBarWaypoint .ShowWindow (SW_HIDE);
 		pFrame->m_wndStatusBar .ShowWindow (SW_HIDE);
 		pFrame->RecalcLayout(TRUE);									//Recalc layout to use the toolbar space.
 
@@ -2197,13 +2197,13 @@ void CEditorApp::UpdateBrowserWindow ( void )
 		//Show menubar and toolbars when exit library
 		pFrame->m_wndMenuBar. ShowWindow(SW_SHOW);				//Show menubars
 		pFrame->m_wndToolBar .ShowWindow(SW_SHOW);				//Show Toolbars
-		pFrame->m_wndToolBarGame .ShowWindow(SW_SHOW);
-		pFrame->m_wndToolBarDraw .ShowWindow(SW_SHOW);
-		if ( pFrame->m_wndToolBarEntity ) pFrame->m_wndToolBarEntity.ShowWindow (SW_SHOW);
-		if ( pFrame->m_wndToolBarMode ) pFrame->m_wndToolBarMode.ShowWindow (SW_SHOW);
-		if ( pFrame->m_wndToolBarSegment ) pFrame->m_wndToolBarSegment.ShowWindow (SW_SHOW);
-		pFrame->m_wndToolBarView .ShowWindow (SW_SHOW);
-		pFrame->m_wndToolBarWaypoint .ShowWindow (SW_SHOW);
+		//pFrame->m_wndToolBarGame .ShowWindow(SW_SHOW);
+		//pFrame->m_wndToolBarDraw .ShowWindow(SW_SHOW);
+		//if ( pFrame->m_wndToolBarEntity ) pFrame->m_wndToolBarEntity.ShowWindow (SW_SHOW);
+		//if ( pFrame->m_wndToolBarMode ) pFrame->m_wndToolBarMode.ShowWindow (SW_SHOW);
+		//if ( pFrame->m_wndToolBarSegment ) pFrame->m_wndToolBarSegment.ShowWindow (SW_SHOW);
+		//pFrame->m_wndToolBarView .ShowWindow (SW_SHOW);
+		//pFrame->m_wndToolBarWaypoint .ShowWindow (SW_SHOW);
 		pFrame->m_wndStatusBar .ShowWindow (SW_SHOW);			//Show Statusbar
 		pFrame->RecalcLayout(TRUE);								//Recalculates layout to chack correct.
 

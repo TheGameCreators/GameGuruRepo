@@ -99,6 +99,7 @@
 #define IDB_PORTAL_BUTTON               249
 #define IDB_UPDATE_LOGO1                250
 #define IDR_GAME2                       251
+#define IDR_COMBINEDTOOLBAR             252
 #define IDC_COMBO_TITLE_SCREEN          1005
 #define IDC_COMBO_WEAPONS               1006
 #define IDC_COMBO_GAME_MENU             1007
@@ -705,6 +706,8 @@
 #define ID_HELP_TOGGLEPARENTALCONTROL   33036
 #define ID_HELP_TOGGLEPARENTALCONTROL33037 33037
 #define ID_HELP_READUSERMANUAL          33038
+#define ID_VIEW_ZOOMIN_OLD              32839
+#define ID_VIEW_ZOOMOUT_OLD             32840
 
 // Next default values for new objects
 // 

@@ -438,22 +438,40 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Create toolbar for main window
 	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
-		| CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
-		!m_wndToolBar.LoadToolBar(IDR_MAINFRAME, IDB_TOOLBARCOLD256, 0, TRUE, 0, 0, uiToolbarHotID))
+		| CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
+		//!m_wndToolBar.LoadToolBar(IDR_MAINFRAME, IDB_TOOLBARCOLD256, 0, TRUE, 0, 0, uiToolbarHotID))
+		!m_wndToolBar.LoadToolBar(IDR_COMBINEDTOOLBAR, IDB_TOOLBARCOLD256, 0, TRUE, 0, 0, uiToolbarHotID))
 	{
 		TRACE0("Failed to create toolbar\n");
 		return -1;
 	}
-
+	
 	// Set tool bar tooltips from external text file
-	m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "A" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "B" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "C" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "1" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "2" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "3" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 3,  GetLanguageData ( "Tooltips", "9" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "10" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 5,  GetLanguageData ( "Tooltips", "18" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 6,  GetLanguageData ( "Tooltips", "20" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 7,  GetLanguageData ( "Tooltips", "19" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 8,  GetLanguageData ( "Tooltips", "26" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 9,  GetLanguageData ( "Tooltips", "27" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 10, GetLanguageData ( "Tooltips", "28" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 11, GetLanguageData ( "Tooltips", "29" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 12, GetLanguageData ( "Tooltips", "30" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 13, GetLanguageData ( "Tooltips", "31" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 14, GetLanguageData ( "Tooltips", "35" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 15, GetLanguageData ( "Tooltips", "32" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 16, GetLanguageData ( "Tooltips", "33" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 17, GetLanguageData ( "Tooltips", "34" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 18, GetLanguageData ( "Tooltips", "39" ) );
 
+	/* replaced separate tooltips with one master bar - prevents docking fracture
 	// Build individual toolbar
 	if (!m_wndToolBarView.Create(this,
 		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-		CBRS_GRIPPER | CBRS_BORDER_3D,
+		CBRS_BORDER_3D,
 		IDR_VIEW) || !m_wndToolBarView.LoadToolBar(IDR_VIEW, IDB_BITMAP1, 0, TRUE, 0, 0, IDB_BITMAP1))
 	{
 		TRACE0("Failed to create build toolbar\n");
@@ -463,7 +481,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// Build individual toolbar
 	if (!m_wndToolBarDraw.Create(this,
 		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-		CBRS_GRIPPER | CBRS_BORDER_3D,
+		CBRS_BORDER_3D,
 		IDR_VIEW) || !m_wndToolBarDraw.LoadToolBar(IDR_DRAW, IDB_BITMAP3, 0, TRUE, 0, 0, IDB_BITMAP3))
 		
 	{
@@ -474,7 +492,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// Build individual toolbar
 	if (!m_wndToolBarSegment.Create(this,
 		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-		CBRS_GRIPPER | CBRS_BORDER_3D,
+		CBRS_BORDER_3D,
 		IDR_VIEW) || !m_wndToolBarSegment.LoadToolBar(IDR_SEGMENT, IDB_BITMAP5, 0, TRUE, 0, 0, IDB_BITMAP5))
 	{
 		TRACE0("Failed to create build toolbar\n");
@@ -483,7 +501,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Build individual toolbar
 	if (!m_wndToolBarWaypoint.Create(this,
-		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC| CBRS_GRIPPER | CBRS_BORDER_3D,
+		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC | CBRS_BORDER_3D,
 		IDR_VIEW) || !m_wndToolBarWaypoint.LoadToolBar(IDR_WAYPOINT, IDB_BITMAP7, 0, TRUE, 0, 0, IDB_BITMAP7))
 	{
 		TRACE0("Failed to create build toolbar\n");
@@ -495,7 +513,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	{
 		if (!m_wndToolBarGame.Create(this,
 			WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-			CBRS_GRIPPER | CBRS_BORDER_3D,
+			CBRS_BORDER_3D,
 			IDR_VIEW) || !m_wndToolBarGame.LoadToolBar(IDR_GAME2, IDB_BITMAP8, 0, TRUE, 0, 0, IDB_BITMAP8))
 		{
 			TRACE0("Failed to create build toolbar\n");
@@ -506,13 +524,14 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	{
 		if (!m_wndToolBarGame.Create(this,
 			WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-			CBRS_GRIPPER | CBRS_BORDER_3D,
+			CBRS_BORDER_3D,
 			IDR_VIEW) || !m_wndToolBarGame.LoadToolBar(IDR_GAME1, IDB_BITMAP8, 0, TRUE, 0, 0, IDB_BITMAP8))
 		{
 			TRACE0("Failed to create build toolbar\n");
 			return FALSE;
 		}
 	}
+	*/
 
 	//Set the menu bar to a sensible size											//ADDED 05.09.13
 	m_wndMenuBar.SetSizes (CSize(20,25),CSize(16,18));								//ADDED 05.09.13
@@ -520,11 +539,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//Remove toolbar and menubar grippers (Locks Position)
 	m_wndMenuBar .SetBarStyle (m_wndMenuBar .GetBarStyle () & ~(CBRS_GRIPPER ));
 	m_wndToolBar .SetBarStyle (m_wndToolBar .GetBarStyle () & ~(CBRS_GRIPPER));
-	m_wndToolBarView .SetBarStyle (m_wndToolBarView .GetBarStyle () & ~(CBRS_GRIPPER ));
-	m_wndToolBarDraw.SetBarStyle (m_wndToolBarDraw .GetBarStyle () & ~(CBRS_GRIPPER ));
-	m_wndToolBarSegment.SetBarStyle (m_wndToolBarSegment .GetBarStyle () & ~(CBRS_GRIPPER ));
-	m_wndToolBarWaypoint .SetBarStyle (m_wndToolBarWaypoint .GetBarStyle () & ~(CBRS_GRIPPER ));
-	m_wndToolBarGame.SetBarStyle (m_wndToolBarGame .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarView .SetBarStyle (m_wndToolBarView .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarDraw.SetBarStyle (m_wndToolBarDraw .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarSegment.SetBarStyle (m_wndToolBarSegment .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarWaypoint .SetBarStyle (m_wndToolBarWaypoint .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarGame.SetBarStyle (m_wndToolBarGame .GetBarStyle () & ~(CBRS_GRIPPER ));
 
 	// Create status bar
 	DWORD dwStyle = RBBS_GRIPPERALWAYS | RBBS_FIXEDBMP | RBBS_BREAK;
@@ -559,17 +578,17 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndOutput.EnableDocking				( CBRS_ALIGN_ANY );
 
 	// Individual toolbars can only be docked at the top (on the main toolbar strip)
-	m_wndMenuBar.EnableDocking				( CBRS_ALIGN_TOP );
-	m_wndToolBar.EnableDocking				( CBRS_ALIGN_TOP );
-	m_wndToolBarView.EnableDocking			( CBRS_ALIGN_TOP );
-	m_wndToolBarDraw.EnableDocking			( CBRS_ALIGN_TOP );
-	m_wndToolBarSegment.EnableDocking		( CBRS_ALIGN_TOP );
-	m_wndToolBarWaypoint.EnableDocking		( CBRS_ALIGN_TOP );
-	m_wndToolBarGame.EnableDocking			( CBRS_ALIGN_TOP );
+	//m_wndMenuBar.EnableDocking				( CBRS_ALIGN_TOP );
+	//m_wndToolBar.EnableDocking				( CBRS_ALIGN_TOP );
+	//m_wndToolBarView.EnableDocking			( CBRS_ALIGN_TOP );
+	//m_wndToolBarDraw.EnableDocking			( CBRS_ALIGN_TOP );
+	//m_wndToolBarSegment.EnableDocking		( CBRS_ALIGN_TOP );
+	//m_wndToolBarWaypoint.EnableDocking		( CBRS_ALIGN_TOP );
+	//m_wndToolBarGame.EnableDocking			( CBRS_ALIGN_TOP );
 	
 	// Default docking of menubar and toolbar
-	DockControlBar ( &m_wndMenuBar );
-	DockControlBar ( &m_wndToolBar );
+	//DockControlBar ( &m_wndMenuBar );
+	//DockControlBar ( &m_wndToolBar );
 	
 	// Based on above, allow default dockings now
 	RecalcLayout(TRUE);
@@ -578,17 +597,17 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CRect rectA;
 	m_wndToolBar.GetWindowRect(&rectA);
 	rectA.OffsetRect(1,0);
-	DockControlBar ( &m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
-	DockControlBar ( &m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
-	DockControlBar ( &m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
-	DockControlBar ( &m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
-	DockControlBar ( &m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//DockControlBar ( &m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
+	//DockControlBar ( &m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
+	//DockControlBar ( &m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//DockControlBar ( &m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//DockControlBar ( &m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
 	DockControlBar ( &m_wndOutput,			AFX_IDW_DOCKBAR_LEFT,	&rectA );
 	DockControlBar ( &m_wndWorkSpace );
 
 	// Rename the View toolbar
 	CString strMainToolbarTitle;
-	m_wndToolBarView.SetWindowText (_T("View"));
+	//m_wndToolBarView.SetWindowText (_T("View"));
 	
 	// FREE VERSION - serial code read from USERDETAILS.INI (else free version)
 	//TCHAR szStringA [ MAX_PATH ];
@@ -1035,9 +1054,9 @@ void CMainFrame::OnViewOutput()
 
 void CMainFrame::OnViewView() 
 {
-	ShowControlBar (&m_wndToolBarView,
-					!(m_wndToolBarView.GetStyle () & WS_VISIBLE),
-					FALSE);
+	//ShowControlBar (&m_wndToolBarView,
+	//				!(m_wndToolBarView.GetStyle () & WS_VISIBLE),
+	//				FALSE);
 	RecalcLayout ();
 }
 
@@ -1050,7 +1069,7 @@ void CMainFrame::OnUpdateViewOutput(CCmdUI* pCmdUI)
 void CMainFrame::OnUpdateViewView(CCmdUI* pCmdUI) 
 {
 	pCmdUI->Enable ( theApp.m_bDisable );
-	pCmdUI->SetCheck (m_wndToolBarView.GetStyle () & WS_VISIBLE);
+	//pCmdUI->SetCheck (m_wndToolBarView.GetStyle () & WS_VISIBLE);
 }
 
 void CMainFrame::OnWindowManager() 
@@ -1062,6 +1081,7 @@ void CMainFrame::OnPaint()
 {
 	CPaintDC dc(this); // device context for painting
 
+	/* strange this was done here, should only be done once just after creation (see "Create toolbar for main window")
 	// STANDARD
 	m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "1" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "2" ) );
@@ -1084,9 +1104,6 @@ void CMainFrame::OnPaint()
 	m_wndToolBarSegment.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "30" ) );
 	m_wndToolBarSegment.SetToolBarBtnTooltip ( 5,  GetLanguageData ( "Tooltips", "31" ) );
 	m_wndToolBarSegment.SetToolBarBtnTooltip ( 6,  GetLanguageData ( "Tooltips", "35" ) );
-	//m_wndToolBarSegment.SetToolBarBtnTooltip ( 7,  GetLanguageData ( "Tooltips", "36" ) );
-	//m_wndToolBarSegment.SetToolBarBtnTooltip ( 8,  GetLanguageData ( "Tooltips", "37" ) );
-	//m_wndToolBarSegment.SetToolBarBtnTooltip ( 9,  GetLanguageData ( "Tooltips", "38" ) );
 
 	// WAYPOINT
 	m_wndToolBarWaypoint.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "32" ) );
@@ -1098,6 +1115,7 @@ void CMainFrame::OnPaint()
 	{
 		m_wndToolBarGame.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "39" ) );
 	}
+	*/
 }
 
 void CMainFrame::OnSize( UINT nType, int cx, int cy )
@@ -1110,22 +1128,23 @@ void CMainFrame::OnSize( UINT nType, int cx, int cy )
     m_wndToolBar.GetWindowRect(&rectA);
     rectA.right = size.cx; rectA.left = 0;
     
-    DockControlBar ( &m_wndToolBar, AFX_IDW_DOCKBAR_TOP, &rectA );
-    rectA.OffsetRect( m_wndToolBar.CalcFixedLayout( FALSE, TRUE ).cx,0 );
-    
-    DockControlBar ( &m_wndToolBarView, AFX_IDW_DOCKBAR_TOP, &rectA );
-    rectA.OffsetRect( m_wndToolBarView.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+    //DockControlBar ( &m_wndToolBar, AFX_IDW_DOCKBAR_TOP, &rectA );
+    //rectA.OffsetRect( m_wndToolBar.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+	
+	//m_wndToolBarView.SetWindowPos ( NULL, 50, 50, 80, 80, SWP_NOSIZE );
+    //DockControlBar ( &m_wndToolBarView, AFX_IDW_DOCKBAR_TOP, &rectA );
+    //rectA.OffsetRect( m_wndToolBarView.CalcFixedLayout( FALSE, TRUE ).cx,0 );
 
-    DockControlBar ( &m_wndToolBarSegment, AFX_IDW_DOCKBAR_TOP,  &rectA );
-    rectA.OffsetRect( m_wndToolBarSegment.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+    //DockControlBar ( &m_wndToolBarSegment, AFX_IDW_DOCKBAR_TOP,  &rectA );
+    //rectA.OffsetRect( m_wndToolBarSegment.CalcFixedLayout( FALSE, TRUE ).cx,0 );
 
-    DockControlBar ( &m_wndToolBarDraw, AFX_IDW_DOCKBAR_TOP,  &rectA );
-    rectA.OffsetRect( m_wndToolBarDraw.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+    //DockControlBar ( &m_wndToolBarDraw, AFX_IDW_DOCKBAR_TOP,  &rectA );
+    //rectA.OffsetRect( m_wndToolBarDraw.CalcFixedLayout( FALSE, TRUE ).cx,0 );
 
-    DockControlBar (&m_wndToolBarWaypoint,AFX_IDW_DOCKBAR_TOP,&rectA);
-    rectA.OffsetRect( m_wndToolBarWaypoint.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+    //DockControlBar (&m_wndToolBarWaypoint,AFX_IDW_DOCKBAR_TOP,&rectA);
+    //rectA.OffsetRect( m_wndToolBarWaypoint.CalcFixedLayout( FALSE, TRUE ).cx,0 );
 
-    DockControlBar (&m_wndToolBarGame,AFX_IDW_DOCKBAR_TOP,&rectA );
+    //DockControlBar (&m_wndToolBarGame,AFX_IDW_DOCKBAR_TOP,&rectA );
 
     CMDIFrameWnd::OnSize( nType, cx,cy );
 }
@@ -1723,11 +1742,11 @@ void CMainFrame::TestOrMultiplayerGame ( int iMultiplayerMode )
 		// hide all the BCG sub-windows so only the main frame remains
 		m_wndMenuBar.ShowWindow(SW_HIDE);
 		m_wndToolBar.ShowWindow(SW_HIDE);
-		m_wndToolBarView.ShowWindow(SW_HIDE);
-		m_wndToolBarDraw.ShowWindow(SW_HIDE);
-		m_wndToolBarSegment.ShowWindow(SW_HIDE);
-		m_wndToolBarWaypoint.ShowWindow(SW_HIDE);
-		m_wndToolBarGame.ShowWindow(SW_HIDE);		
+		//m_wndToolBarView.ShowWindow(SW_HIDE);
+		//m_wndToolBarDraw.ShowWindow(SW_HIDE);
+		//m_wndToolBarSegment.ShowWindow(SW_HIDE);
+		//m_wndToolBarWaypoint.ShowWindow(SW_HIDE);
+		//m_wndToolBarGame.ShowWindow(SW_HIDE);		
 		m_wndWorkSpace.ShowWindow(SW_HIDE);
 		m_wndStatusBar.ShowWindow(SW_HIDE);
 		m_wndOutput.ShowWindow(SW_HIDE);

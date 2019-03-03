@@ -85,3 +85,5 @@ sh.exe.stackdump
 GameGuru/Guru-MapEditor.ilk
 GameGuru/Files/mapbank/worklevel.dat
 GameGuru/Files/editors/gridedit/worklevel.fpm
+GameGuru Core/UseFAKEKEY.bat
+GameGuru Core/UseSTOREKEY.bat
