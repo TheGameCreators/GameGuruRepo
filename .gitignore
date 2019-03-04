@@ -87,3 +87,8 @@ GameGuru/Files/mapbank/worklevel.dat
 GameGuru/Files/editors/gridedit/worklevel.fpm
 GameGuru Core/UseFAKEKEY.bat
 GameGuru Core/UseSTOREKEY.bat
+GameGuru/GGWMR.exp
+GameGuru/GGWMR.ilk
+GameGuru/GGWMR.lib
+GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-shm
+GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-wal

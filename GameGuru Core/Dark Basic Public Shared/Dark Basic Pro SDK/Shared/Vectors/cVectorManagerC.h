@@ -51,12 +51,12 @@ public:
     GGVECTOR3& Get() { return V; }
 };
 
-class Vector4 : public BaseVector
+class Vector4Ex : public BaseVector
 {
 private:
     GGVECTOR4 V;
 public:
-    Vector4() : V(0.0f, 0.0f, 0.0f, 0.0f) { }
+    Vector4Ex() : V(0.0f, 0.0f, 0.0f, 0.0f) { }
     eVectorType GetType() const { return E_TYPE_VECTOR4; }
 
     GGVECTOR4& Get() { return V; }

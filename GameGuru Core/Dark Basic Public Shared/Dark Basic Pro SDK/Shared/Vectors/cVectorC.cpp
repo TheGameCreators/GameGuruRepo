@@ -34,9 +34,9 @@ namespace
         return GetCorrectedPtr<Vector3>( iID );
     }
 
-    inline Vector4* GetVector4Ptr( int iID )
+    inline Vector4Ex* GetVector4Ptr( int iID )
     {
-        return GetCorrectedPtr<Vector4>( iID );
+        return GetCorrectedPtr<Vector4Ex>( iID );
     }
 
     inline Matrix* GetMatrixPtr( int iID )
@@ -105,7 +105,7 @@ DARKSDK GGVECTOR3 GetVector3 ( int iID )
 
 DARKSDK GGVECTOR4 GetVector4 ( int iID )
 {
-    Vector4* pVector = GetVector4Ptr( iID );
+    Vector4Ex* pVector = GetVector4Ptr( iID );
 
     if (!pVector)
         return GGVECTOR4( 0.0f, 0.0f, 0.0f, 0.0f );
@@ -720,7 +720,7 @@ DARKSDK SDK_BOOL MakeVector4 ( int iID )
         return false;
     }
 
-    m_DataManager.Add( new Vector4, iID );
+    m_DataManager.Add( new Vector4Ex, iID );
     return true;
 }
 
@@ -732,7 +732,7 @@ DARKSDK SDK_BOOL DeleteVector4 ( int iID )
         return false;
     }
 
-    Vector4* pVector = GetVector4Ptr( iID );
+    Vector4Ex* pVector = GetVector4Ptr( iID );
 
     if (!pVector)
     {
@@ -753,7 +753,7 @@ DARKSDK void SetVector4 ( int iID, float fX, float fY, float fZ, float fW )
         return;
     }
 
-    Vector4* pID = GetVector4Ptr( iID );
+    Vector4Ex* pID = GetVector4Ptr( iID );
 
 	if (!pID)
 	{
@@ -772,8 +772,8 @@ DARKSDK void CopyVector4 ( int iDestination, int iSource )
         return;
     }
 
-    Vector4* pSource = GetVector4Ptr( iSource );
-    Vector4* pDest   = GetVector4Ptr( iDestination );
+    Vector4Ex* pSource = GetVector4Ptr( iSource );
+    Vector4Ex* pDest   = GetVector4Ptr( iDestination );
 
     if (!pSource || !pDest)
 	{
@@ -786,7 +786,7 @@ DARKSDK void CopyVector4 ( int iDestination, int iSource )
 
 DARKSDK SDK_FLOAT GetXVector4 ( int iID )
 {
-    Vector4* pID = GetVector4Ptr( iID );
+    Vector4Ex* pID = GetVector4Ptr( iID );
 
     if (!pID)
 	{
@@ -799,7 +799,7 @@ DARKSDK SDK_FLOAT GetXVector4 ( int iID )
 
 DARKSDK SDK_FLOAT GetYVector4 ( int iID )
 {
-    Vector4* pID = GetVector4Ptr( iID );
+    Vector4Ex* pID = GetVector4Ptr( iID );
 
     if (!pID)
 	{
@@ -812,7 +812,7 @@ DARKSDK SDK_FLOAT GetYVector4 ( int iID )
 
 DARKSDK SDK_FLOAT GetZVector4 ( int iID )
 {
-    Vector4* pID = GetVector4Ptr( iID );
+    Vector4Ex* pID = GetVector4Ptr( iID );
 
     if (!pID)
 	{
@@ -825,7 +825,7 @@ DARKSDK SDK_FLOAT GetZVector4 ( int iID )
 
 DARKSDK SDK_FLOAT GetWVector4 ( int iID )
 {
-    Vector4* pID = GetVector4Ptr( iID );
+    Vector4Ex* pID = GetVector4Ptr( iID );
 
     if (!pID)
 	{
@@ -844,8 +844,8 @@ DARKSDK void TransformVector4 ( int iResult, int iSource, int iMatrix )
         return;
     }
 
-    Vector4* pResult = GetVector4Ptr( iResult );
-    Vector4* pSource = GetVector4Ptr( iSource );
+    Vector4Ex* pResult = GetVector4Ptr( iResult );
+    Vector4Ex* pSource = GetVector4Ptr( iSource );
     Matrix*  pMatrix = GetMatrixPtr ( iMatrix );
 
     if (!pResult || !pSource)

@@ -1424,10 +1424,21 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 
 	ShowWindow(g_pGlob->hWnd, SW_HIDE);
 
-	//Setup Holographic Space for Window to support Windows Mixed Reality
-	GGWMR_GetHolographicSpace();
-	ShowWindow(g_pGlob->hWnd, SW_SHOW);
+	// Setup Holographic Space for Window to support Windows Mixed Reality
+	//GGWMR_GetHolographicSpace();
+	// NOTE: To allow C++/CX code for WMR Support, we need to load the GGWMR library as a DLL and call it thusly
+	//typedef void (CALLBACK* sGGWMRGetHolographicSpaceFnc)();//HWND);
+	typedef void (*sGGWMRGetHolographicSpaceFnc)(HWND);
+	HMODULE hGGWMRDLL = LoadLibrary ( "F:\\GameGuruRepo\\GameGuru\\GGWMR.dll" );
+	if ( hGGWMRDLL )
+	{
+		sGGWMRGetHolographicSpaceFnc pGGWMR_GetHolographicSpace = (sGGWMRGetHolographicSpaceFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetHolographicSpace" );
+		pGGWMR_GetHolographicSpace ( g_pGlob->hWnd );
+		FreeLibrary ( hGGWMRDLL );
+	}
 
+	// Show Window
+	ShowWindow(g_pGlob->hWnd, SW_SHOW);
 
 	// Init Steam API
 	SteamInit();

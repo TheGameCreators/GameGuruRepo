@@ -1,67 +1,101 @@
-#include "globstruct.h"
+//#include "globstruct.h"
 //#include "pch.h"
 //#include <..\cppwinrt\winrt\Windows.UI.Core.h>;
 //#include <..\winrt\wrl\client.h>
-#include <stdio.h>
-#include <string.h>
-
-#include <iostream>
-#include <fstream>
-
-
+//#include <stdio.h>
+//#include <string.h>
+//#include <iostream>
+//#include <fstream>
 #include "GGWMR.h"
-#include "stdafx.h"
-#include <string>
-
-#include "CCameraC.h"
-#include "CImageC.h"
-#include "CObjectsC.h"
-#include "dxdiag.h"
-#include "D3dx9math.h"
-
-//#include "DirectXHelper.h"
-//#include "DeviceResources.h"
+//#include "stdafx.h"
+//#include <string>
+//#include "CCameraC.h"
+//#include "CImageC.h"
+//#include "CObjectsC.h"
+//#include "dxdiag.h"
+//#include "D3dx9math.h"
 
 //Windows Mixed Reality
+//LB-commented out all the old stuff
+//#include "DirectXHelper.h"
+//#include "DeviceResources.h"
+//#include <..\winrt\WinRTBase.h>;
+//#include <windows.graphics.holographic.h>;
+//#include <..\um\HolographicSpaceInterop.h>;
+//#include <wrl.h>;
+//#include <winrt/base.h>
+//#include <..\winrt\WinRTBase.h>
+//#include <windows.graphics.holographic.h>
+//#include <windows.ui.input.spatial.h>
+//#include <..\um\HolographicSpaceInterop.h>
+//#include <..\um\SpatialInteractionManagerInterop.h>
+//#include <wrl.h>
+//#include <Windows.Graphics.Directx.Direct3D11.Interop.h>
+//#include <wrl\client.h>
+//#include <winrt\base.h>
+//#include <winrt\Windows.ApplicationModel.Activation.h>
+//#include <winrt\Windows.ApplicationModel.Core.h>
+//#include <winrt\Windows.Foundation.h>
+//#include <winrt\Windows.Foundation.Collections.h>
+//#include <winrt\Windows.Foundation.Metadata.h>
+//#include <winrt\Windows.Gaming.Input.h>
+//#include <winrt\Windows.Graphics.Display.h>
+//#include <winrt\Windows.Graphics.Holographic.h>
+//#include <winrt\Windows.Perception.People.h>
+//#include <winrt\Windows.Perception.Spatial.h>
+//#include <winrt\Windows.Storage.h>
+//#include <winrt\Windows.Storage.Streams.h>
+//#include <winrt\Windows.UI.Core.h>
+//#include <winrt\Windows.UI.Input.Spatial.h>
+//using namespace ABI::Windows::Foundation;
+//using namespace ABI::Windows::Graphics::Holographic;
+//using namespace Microsoft::WRL;
+//using namespace Microsoft::WRL::Wrappers;
+//using namespace winrt::Windows::Perception::Spatial;
+//using namespace ABI::Windows::Foundation;
+//using namespace ABI::Windows::Graphics::Holographic;
+//using namespace ABI::Windows::UI::Input::Spatial;
+//using namespace Microsoft::WRL;
+//using namespace Microsoft::WRL::Wrappers;
+//using namespace Platform;
+//using namespace Windows::Foundation;
+//using namespace Windows::Foundation::Numerics;
+//using namespace Windows::Graphics::Holographic;
+//using namespace Windows::Perception::Spatial;
+//using namespace Windows::UI::Input::Spatial;
+//DBPRO_GLOBAL ComPtr<IHolographicSpaceStatics> spHolographicSpaceFactory;
+//DBPRO_GLOBAL ComPtr<IHolographicSpaceInterop> spHolographicSpaceInterop;
+//DBPRO_GLOBAL ComPtr<ABI::Windows::Graphics::Holographic::IHolographicSpace> spHolographicSpace;
+// SpatialLocator that is attached to the default HolographicDisplay.
+//DBPRO_GLOBAL SpatialLocator         m_spatialLocator = nullptr;
+//DBPRO_GLOBAL SpatialStationaryFrameOfReference	m_referenceFrame = nullptr;
 
-#include <..\winrt\WinRTBase.h>;
-#include <windows.graphics.holographic.h>;
-#include <..\um\HolographicSpaceInterop.h>;
-#include <wrl.h>;
-#include <winrt/base.h>
+// Includes for Windows Mixed Reality
+#include <thread>
+#include <memory>
+#include "Common\DeviceResources.h"
 
-#include <Windows.Graphics.Directx.Direct3D11.Interop.h>
-#include <wrl\client.h>
+#include <..\winrt\WinRTBase.h>
+#include <windows.graphics.holographic.h>
+#include <windows.ui.input.spatial.h>
+#include <..\um\HolographicSpaceInterop.h>
+#include <..\um\SpatialInteractionManagerInterop.h>
+#include <wrl.h>
 
-#include <winrt\base.h>
-#include <winrt\Windows.ApplicationModel.Activation.h>
-#include <winrt\Windows.ApplicationModel.Core.h>
-#include <winrt\Windows.Foundation.h>
-#include <winrt\Windows.Foundation.Collections.h>
-#include <winrt\Windows.Foundation.Metadata.h>
-#include <winrt\Windows.Gaming.Input.h>
-#include <winrt\Windows.Graphics.Display.h>
-#include <winrt\Windows.Graphics.Holographic.h>
-#include <winrt\Windows.Perception.People.h>
-#include <winrt\Windows.Perception.Spatial.h>
-#include <winrt\Windows.Storage.h>
-#include <winrt\Windows.Storage.Streams.h>
-#include <winrt\Windows.UI.Core.h>
-#include <winrt\Windows.UI.Input.Spatial.h>
-
-// 011118 - Used for Windows Mixed Reality
+// Namespaces for Windows Mixed Reality
 using namespace ABI::Windows::Foundation;
 using namespace ABI::Windows::Graphics::Holographic;
+using namespace ABI::Windows::UI::Input::Spatial;
 using namespace Microsoft::WRL;
 using namespace Microsoft::WRL::Wrappers;
-using namespace winrt::Windows::Perception::Spatial;
+using namespace Windows::Perception::Spatial;
 
 // Externs
-extern GlobStruct*				g_pGlob;
-extern LPGGDEVICE				m_pD3D;
-extern LPGGIMMEDIATECONTEXT		m_pImmediateContext;
-extern LPGGSURFACE				g_pBackBuffer;
-extern LPGGRENDERTARGETVIEW		m_pRenderTargetView;
+//extern GlobStruct*				g_pGlob;
+//extern LPGGDEVICE					m_pD3D;
+//extern LPGGIMMEDIATECONTEXT		m_pImmediateContext;
+//extern LPGGSURFACE				g_pBackBuffer;
+//extern LPGGRENDERTARGETVIEW		m_pRenderTargetView;
 
 //Constants
 const float GGWMR_SINGULARITYRADIUS = 0.0000001f; // Use for Gimbal lock numerical problems
@@ -69,14 +103,6 @@ const float GGWMR_180DIVPI = 57.2957795130823f;
 const float GGWMR_PI = 3.14159265358979f;
 const float GGWMR_PIOVER2 = 0.5f * GGWMR_PI;
 const float GGWMR_radian = 0.0174533f;
-
-DBPRO_GLOBAL ComPtr<IHolographicSpaceStatics> spHolographicSpaceFactory;
-DBPRO_GLOBAL ComPtr<IHolographicSpaceInterop> spHolographicSpaceInterop;
-DBPRO_GLOBAL ComPtr<ABI::Windows::Graphics::Holographic::IHolographicSpace> spHolographicSpace;
-
-// SpatialLocator that is attached to the default HolographicDisplay.
-DBPRO_GLOBAL SpatialLocator         m_spatialLocator = nullptr;
-DBPRO_GLOBAL SpatialStationaryFrameOfReference	m_referenceFrame = nullptr;
 
 /*
 const int GGVR_LEye = 0;
@@ -209,12 +235,10 @@ public:
 };
 GGVR_PlayerData				GGVR_Player;
 
-
 //Internal Functions
 std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError);
 void GGVR_Mat34toYPR(vr::HmdMatrix34_t *Mat, vr::HmdVector3_t *YPR, vr::HmdVector3_t *Pos);
 void GGVR_UpdatePoses(void);
-
 */
 
 BOOL APIENTRY GGWMRMain(HMODULE hModule,
@@ -222,66 +246,96 @@ BOOL APIENTRY GGWMRMain(HMODULE hModule,
 	LPVOID lpReserved
 )
 {
-	   	 
 	return TRUE;
 }
 
-void GGWMR_GetHolographicSpace()
-//// 011118 - Used for Windows Mixed Reality
+DLLEXPORT void GGWMR_GetHolographicSpace ( HWND hWnd )
 {
+	//MessageBox ( NULL, "inside DLL!!", "dsadsa", MB_OK );
 	CoInitializeEx(nullptr, 0);
 
-	std::ofstream myfile;
-	myfile.open("GetHolographicSpace.txt");
+	// NOTE: In order to stay close to working Win32 code, this LIB now uses /ZW (C++/CX) and Multi-Threaded DLL (instead of Multi-Threaded Static)
+	// as PLATFORM & WINDOWS.WINMD required that /MD be used to allow /ZW which in turn allows ref classes as used by C++/CW as needed by WMR ;)
+	// Also notice the Additional #USING Directories which references the required (and correct) Windows 10 ref classes needed (i.e. = $(VC_LibraryPath_VC_x86_Store)\references;C:\Program Files (x86)\Windows Kits\10\UnionMetadata\$(TargetPlatformVersion);C:\Program Files (x86)\Windows Kits\10\UnionMetadata;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.UniversalApiContract\3.0.0.0;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.FoundationContract\3.0.0.0;%(AdditionalUsingDirectories))
 
-	HRESULT hr = GetActivationFactory(HStringReference(RuntimeClass_Windows_Graphics_Holographic_HolographicSpace).Get(), &spHolographicSpaceFactory);
-	myfile << "1: " << hr << "\n";
+	//std::ofstream myfile;
+	//myfile.open("GetHolographicSpace.txt");
 
-	if (SUCCEEDED(hr))
-	{
-		hr = spHolographicSpaceFactory.As(&spHolographicSpaceInterop);
-		myfile << "2: " << hr << "\n";
-	}
+	// INIT - Create Holographic Space and crete m_holographicSpace and m_spatialInteractionManager
+	Windows::Graphics::Holographic::HolographicSpace^ m_holographicSpace;
+	Windows::UI::Input::Spatial::SpatialInteractionManager^ m_spatialInteractionManager;
+    ComPtr<IHolographicSpaceStatics> spHolographicSpaceFactory;
+    HRESULT hr = GetActivationFactory(HStringReference(RuntimeClass_Windows_Graphics_Holographic_HolographicSpace).Get(), &spHolographicSpaceFactory);
+    ComPtr<IHolographicSpaceInterop> spHolographicSpaceInterop;
+    if (SUCCEEDED(hr))
+    {
+        hr = spHolographicSpaceFactory.As(&spHolographicSpaceInterop);
+    }
+    ComPtr<ABI::Windows::Graphics::Holographic::IHolographicSpace> spHolographicSpace;
+    if (SUCCEEDED(hr))
+    {
+        hr = spHolographicSpaceInterop->CreateForWindow(hWnd, IID_PPV_ARGS(&spHolographicSpace));
+        if (SUCCEEDED(hr))
+        {
+            m_holographicSpace = reinterpret_cast<Windows::Graphics::Holographic::HolographicSpace^>(spHolographicSpace.Get());
+        }
+    }
+    ComPtr<ISpatialInteractionManagerStatics> spSpatialInteractionFactory;
+    hr = GetActivationFactory(HStringReference(RuntimeClass_Windows_UI_Input_Spatial_SpatialInteractionManager).Get(), &spSpatialInteractionFactory);
+    ComPtr<ISpatialInteractionManagerInterop> spSpatialInterop;
+    if (SUCCEEDED(hr))
+    {
+        hr = spSpatialInteractionFactory.As(&spSpatialInterop);
+    }
+    ComPtr<ISpatialInteractionManager> spSpatialInteractionManager;
+    if (SUCCEEDED(hr))
+    {
+        hr = spSpatialInterop->GetForWindow(hWnd, IID_PPV_ARGS(&spSpatialInteractionManager));
+        if (SUCCEEDED(hr))
+        {
+            m_spatialInteractionManager = reinterpret_cast<Windows::UI::Input::Spatial::SpatialInteractionManager^>(spSpatialInteractionManager.Get());
+        }
+    }
 
-	if (SUCCEEDED(hr))
-	{
-		myfile << "g_pGlob->hWnd: " << g_pGlob->hWnd << "\n";
-		hr = spHolographicSpaceInterop->CreateForWindow((HWND)g_pGlob->hWnd, IID_PPV_ARGS(&spHolographicSpace));
-		myfile << "3: " << hr << "\n";
-	}
+	// Set up spacial reference frame (for now)
+	Windows::Perception::Spatial::SpatialLocator^ m_locator = SpatialLocator::GetDefault();
+	Windows::Perception::Spatial::SpatialStationaryFrameOfReference^ m_referenceFrame = m_locator->CreateStationaryFrameOfReferenceAtCurrentLocation();
 
-	if (SUCCEEDED(hr))	{
-		ComPtr<IHolographicFrame> spHolographicFrame;
-		hr = spHolographicSpace->CreateNextFrame(&spHolographicFrame);
-		myfile << "4: " << hr << "\n";
-	}
+	// LOOP UPDATE - Manage Holographic Space (see MRWin32 project for more details) [note the namespaces point to a DIFFERENT Holographic which is a ref class C++/CX)
+	// get current coordinate system
+    SpatialCoordinateSystem^ currentCoordinateSystem = m_referenceFrame->CoordinateSystem;
 
-	myfile.close();
+	// HolographicSpace requires a Direct3D11 device, create one and call SetDirect3D11Device
+    std::shared_ptr<DX::DeviceResources> m_deviceResources = std::make_shared<DX::DeviceResources>();
+	m_deviceResources->SetHolographicSpace(m_holographicSpace);
 
-	m_spatialLocator = SpatialLocator::GetDefault();
-	m_referenceFrame = m_spatialLocator.CreateStationaryFrameOfReferenceAtCurrentLocation();
-/*
-	std::ofstream myfile;
-	myfile.open("example.txt");
-	myfile << "HighPart: " << GGWMR_GetDirect3DDevice_HighPart() << "\n";
-	myfile << "LowPart: " << GGWMR_GetDirect3DDevice_LowPart() << "\n";
-	myfile.close();
-*/
+	// get next frame and from it get current prediction
+    Windows::Graphics::Holographic::HolographicFrame^ holographicFrame = m_holographicSpace->CreateNextFrame();
+    Windows::Graphics::Holographic::HolographicFramePrediction^ prediction = holographicFrame->CurrentPrediction;
+
+	//if (SUCCEEDED(hr))	{
+	//	ComPtr<IHolographicFrame> spHolographicFrame;
+	//	hr = spHolographicSpace->CreateNextFrame(&spHolographicFrame);
+	//	myfile << "4: " << hr << "\n";
+	//}
+	//myfile.close();
+	//m_spatialLocator = SpatialLocator::GetDefault();
+	//m_referenceFrame = m_spatialLocator.CreateStationaryFrameOfReferenceAtCurrentLocation();
 }
 
 int GGWMR_GetDirect3DDevice_HighPart()
 {
-	HolographicAdapterId ID;
-	spHolographicSpace->get_PrimaryAdapterId(&ID);
-
-	return (int)ID.HighPart;
+	//HolographicAdapterId ID;
+	//spHolographicSpace->get_PrimaryAdapterId(&ID);
+	//return (int)ID.HighPart;
+	return 0;
 }
 int GGWMR_GetDirect3DDevice_LowPart()
 {
-	HolographicAdapterId ID;
-	spHolographicSpace->get_PrimaryAdapterId(&ID);
-
-	return (int)ID.LowPart;
+	//HolographicAdapterId ID;
+	//spHolographicSpace->get_PrimaryAdapterId(&ID);
+	//return (int)ID.LowPart;
+	return 0;
 }
 
 //*********************************

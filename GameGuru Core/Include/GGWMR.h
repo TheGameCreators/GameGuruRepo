@@ -1,8 +1,8 @@
-#pragma comment ( lib, "GGWMR.lib"     )
+//#pragma comment ( lib, "GGWMR.lib"     )
 
-#define DLLEXPORT 
+#include "windows.h"
 
-
+#define DLLEXPORT __declspec ( dllexport )
 
 //*********************************************************************************
 // GGWMR (version 1.0): Windows Mixed Reality Direct Interface
@@ -17,10 +17,13 @@
 //	Setup Commands
 //*********************************
 
-DLLEXPORT void GGWMR_GetHolographicSpace();
-DLLEXPORT int GGWMR_GetDirect3DDevice_HighPart();
-DLLEXPORT int GGWMR_GetDirect3DDevice_LowPart();
+extern "C" 
+{
+	DLLEXPORT void GGWMR_GetHolographicSpace ( HWND hWnd );
+}
 
+//DLLEXPORT int GGWMR_GetDirect3DDevice_HighPart();
+//DLLEXPORT int GGWMR_GetDirect3DDevice_LowPart();
 
 /*
 //*********************************************************************************
