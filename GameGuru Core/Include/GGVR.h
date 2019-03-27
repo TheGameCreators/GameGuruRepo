@@ -3,6 +3,7 @@
 #define DLLEXPORT 
 
 DLLEXPORT void  GGVR_ChooseVRSystem ( int iGGVREnabledMode );
+DLLEXPORT void  GGVR_GetHolographicSpace ( HWND hWnd );
 DLLEXPORT int	GGVR_IsHmdPresent();
 DLLEXPORT int	GGVR_IsRuntimeInstalled();
 

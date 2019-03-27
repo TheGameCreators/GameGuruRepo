@@ -41,8 +41,15 @@ BOOL APIENTRY GGWMRMain(HMODULE hModule,
 
 DLLEXPORT void GGWMR_GetHolographicSpace ( HWND hWnd )
 {
-	//MessageBox ( NULL, "inside DLL!!", "dsadsa", MB_OK );
+	MessageBox ( NULL, "inside DLL!!", "dsadsa", MB_OK );
 	CoInitializeEx(nullptr, 0);
+
+	// LEE: Seems like the call right after CreateWindow succeeds with code below, but when we call this a second time when the
+	// test game triggers VR to activate, the HWND is no longer appropriate somehow (might be related to what it gets used for between FIRST and SECOND call)
+	// May be related to using HWND for normal DirectX use, and may need to free it up before can use below
+	// Might also be related to moving the HWND to the IDE child window, also an affect on the HWND
+	// Is there a chance a NEW window can be created just for the WMR (OpenVR Steam seems to allow a VR setup without needing a window)...
+
 
 	// INIT - Create Holographic Space and crete m_holographicSpace and m_spatialInteractionManager
 	Windows::Graphics::Holographic::HolographicSpace^ m_holographicSpace;

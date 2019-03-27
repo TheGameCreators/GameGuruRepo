@@ -231,6 +231,12 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode )
 	}
 }
 
+void GGVR_GetHolographicSpace ( HWND hWnd )
+{
+	GGVR_ChooseVRSystem ( 2 );
+	GGWMR_GetHolographicSpace ( hWnd );
+}
+
 int	GGVR_IsHmdPresent()
 {
 	int result = 0;
@@ -323,6 +329,11 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 		GGVR_tex_info[GGVR_REye].eType = vr::TextureType_DirectX;
 		GGVR_tex_info[GGVR_LEye].eColorSpace = vr::ColorSpace_Auto;
 		GGVR_tex_info[GGVR_REye].eColorSpace = vr::ColorSpace_Auto;
+	}
+	if ( GGVR_EnabledMode == 2 )
+	{
+		HWND hWnd = g_pGlob->hWnd;
+		GGWMR_GetHolographicSpace ( hWnd );
 	}
 
 	//Texture Bounds

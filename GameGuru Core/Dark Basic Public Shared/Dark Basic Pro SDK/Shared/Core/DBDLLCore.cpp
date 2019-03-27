@@ -60,7 +60,7 @@
 #include "Enchancements.h"
 
 //Windows Mixed Reality Support
-#include "GGWMR.h"
+#include "GGVR.h"
 
 #include <iostream>
 #include <fstream>
@@ -1421,6 +1421,9 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		g_pGlob->hWnd = CreateWindow(	pAppNameUnique,	pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
 		
 	}
+
+	// LEE: HWND needs to be valid for Space to be created inside call!
+	GGVR_GetHolographicSpace ( g_pGlob->hWnd );
 
 	ShowWindow(g_pGlob->hWnd, SW_HIDE);
 
