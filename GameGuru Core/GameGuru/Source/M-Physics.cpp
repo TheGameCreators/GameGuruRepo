@@ -1403,7 +1403,7 @@ void physics_player_gatherkeycontrols ( void )
 	}
 
 	// VR Support - take extra input from VR controllers
-	if (g.vrglobals.GGVREnabled == 1)
+	if ( g.vrglobals.GGVREnabled > 0 )
 	{
 		// Intialize the player to the start position and rotation and setup the GGVR Player Object
 		if (g.vrglobals.GGVRInitialized == 0)
@@ -1626,7 +1626,7 @@ void physics_player_control_F9 ( void )
 		}
 		t.tRotationDivider_f=8.0/t.tturnspeedmodifier_f;
 		t.camangx_f=CameraAngleX(t.terrain.gameplaycamera)+(t.cammousemovey_f/t.tRotationDivider_f);
-		if (g.vrglobals.GGVREnabled == 0)
+		if ( g.vrglobals.GGVREnabled == 0 )
 		{
 			t.camangy_f=t.playercontrol.finalcameraangley_f+(t.cammousemovex_f/t.tRotationDivider_f);
 		}

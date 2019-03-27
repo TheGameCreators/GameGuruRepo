@@ -2743,7 +2743,7 @@ int ControlDynamicCharacterController ( lua_State *L )
 	float fPushAngle = lua_tonumber(L, 6);
 	float fPushForce = lua_tonumber(L, 7);
 	float fThrustUpwards = lua_tonumber(L, 8);
-	if (g.vrglobals.GGVREnabled == 0 )
+	if ( g.vrglobals.GGVREnabled == 0 )
 	{
 		ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, fAngleY, fAngleX, fSpeed, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards );
 	}

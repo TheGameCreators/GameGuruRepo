@@ -1909,6 +1909,9 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					// VRMode
 					// 0 : off
 					// 1 : VR920/iWear
+					// 2 : GGVR (OpenVR)
+					// 3 : GGVR (Microsoft WMR)
+					// 4 : RESERVED - HOLDING VALUE (see code)
 					// 5 : detects VR920/iWear (switches OFF if not found)
 					// 6 : special case, side by side rendering
 					t.tryfield_s = "vrmode" ; if (  t.field_s == t.tryfield_s  )  { g.gvrmode = t.value1; g.gvrmodeoriginal = t.value1; }
@@ -2729,8 +2732,7 @@ void FPSC_Setup ( void )
 
 			// set backbuffer for editor
 			t.bkwidth=GetDesktopWidth() ; t.bkheight=GetDesktopHeight();
-			t.thevrmodeflag = 0; 
-			if ( g.gvrmode != 0  ) t.thevrmodeflag = 1;
+			t.thevrmodeflag = 0; if ( g.gvrmode == 1 || g.gvrmode == 5 || g.gvrmode == 6 ) t.thevrmodeflag = 1;
 			if ( t.thevrmodeflag != 0 ) 
 			{
 				SetDisplayModeVR ( GetDesktopWidth(),GetDesktopHeight(),GetDisplayDepth(), g.gvsync,0,0,0,0,t.thevrmodeflag );
@@ -2791,8 +2793,8 @@ void FPSC_Setup ( void )
 					if ( g.gdisplaywidth == -1 || g.gdisplayheight == -1 ) { g.gdisplaywidth = GetDesktopWidth() ; g.gdisplayheight = GetDesktopHeight(); }
 					if ( g.gdisplaywidth != 640 || g.gdisplayheight != 480 || g.gdisplaydepth != 32 || g.gvrmode != 0 ) 
 					{
-						t.thevrmodeflag = 0 ; if (  g.gvrmode != 0  )  t.thevrmodeflag = 1;
-						if ( t.thevrmodeflag != 0 ) // CheckDisplayMode(g.gdisplaywidth,g.gdisplayheight,g.gdisplaydepth) == 1 ) 
+						t.thevrmodeflag = 0; if ( g.gvrmode == 1 || g.gvrmode == 5 || g.gvrmode == 6 ) t.thevrmodeflag = 1;
+						if ( t.thevrmodeflag != 0 )
 						{
 							SetDisplayModeVR ( g.gdisplaywidth, g.gdisplayheight, g.gdisplaydepth, g.gvsync,0,0,0,0,t.thevrmodeflag );
 						}

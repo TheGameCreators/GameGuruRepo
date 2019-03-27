@@ -1424,6 +1424,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 
 	ShowWindow(g_pGlob->hWnd, SW_HIDE);
 
+	/*
 	// Setup Holographic Space for Window to support Windows Mixed Reality
 	//GGWMR_GetHolographicSpace();
 	// NOTE: To allow C++/CX code for WMR Support, we need to load the GGWMR library as a DLL and call it thusly
@@ -1436,6 +1437,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		pGGWMR_GetHolographicSpace ( g_pGlob->hWnd );
 		FreeLibrary ( hGGWMRDLL );
 	}
+	*/
 
 	// Show Window
 	ShowWindow(g_pGlob->hWnd, SW_SHOW);

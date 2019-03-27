@@ -107,7 +107,7 @@ void postprocess_init ( void )
 				}
 
 				// VR Support - create VR cameras
-				if (g.vrglobals.GGVREnabled > 0)
+				if ( g.vrglobals.GGVREnabled > 0 )
 				{
 					// Set camera IDs and initialise GGVR
 					t.glefteyecameraid = 6;
@@ -352,7 +352,7 @@ void postprocess_applycheapshadow ( void )
 void postprocess_free ( void )
 {
 	// free GGVR if used
-	if (g.vrglobals.GGVREnabled > 0)
+	if ( g.vrglobals.GGVREnabled > 0 )
 	{
 		GGVR_Shutdown();
 	}
@@ -583,7 +583,7 @@ void postprocess_preterrain ( void )
 	}
 
 	// VR Support - render VR cameras
-	if (g.vrglobals.GGVREnabled > 0)
+	if ( g.vrglobals.GGVREnabled > 0 )
 	{
 		GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
 		GGVR_RotatePlayerLocalY(t.cammousemovex_f / 8.0);

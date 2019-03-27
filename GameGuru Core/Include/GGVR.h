@@ -1,24 +1,10 @@
 #pragma comment ( lib, "GGVR.lib"     )
 
-
 #define DLLEXPORT 
 
-//*********************************************************************************
-// GG_OpenVR (version 1.0):
-//*********************************************************************************
-//developed by: Ron Erickson
-
-//Info:
-//The purpose of this library is to make VR possible in Game Guru
-
-//*********************************
-//	Setup Commands
-//*********************************
-// Quick check to see if HMD is found which can be done prior to intialization
+DLLEXPORT void  GGVR_ChooseVRSystem ( int iGGVREnabledMode );
 DLLEXPORT int	GGVR_IsHmdPresent();
-// Check to see if the runtime is installed
 DLLEXPORT int	GGVR_IsRuntimeInstalled();
-
 
 //Setup the VR System.
 // The return value states the success or error value

@@ -1,29 +1,11 @@
-//#pragma comment ( lib, "GGWMR.lib"     )
-
 #include "windows.h"
 
 #define DLLEXPORT __declspec ( dllexport )
-
-//*********************************************************************************
-// GGWMR (version 1.0): Windows Mixed Reality Direct Interface
-//*********************************************************************************
-//developed by: Ron Erickson
-
-//Info:
-//The purpose of this library is to make VR possible in Game Guru directly through 
-//the Windows Mixed Reality API.
-
-//*********************************
-//	Setup Commands
-//*********************************
 
 extern "C" 
 {
 	DLLEXPORT void GGWMR_GetHolographicSpace ( HWND hWnd );
 }
-
-//DLLEXPORT int GGWMR_GetDirect3DDevice_HighPart();
-//DLLEXPORT int GGWMR_GetDirect3DDevice_LowPart();
 
 /*
 //*********************************************************************************

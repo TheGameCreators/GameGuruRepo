@@ -4,6 +4,7 @@
 
 #include "gameguru.h"
 #include "M-WelcomeSystem.h"
+#include "GGVR.h"
 
 // 
 //  GAMEGURU MAP EDITOR EXECUTABLE CODE
@@ -29,9 +30,12 @@ void mapeditorexecutable ( void )
 	timestampactivity(0,"ide input mode");
 	g.globals.ideinputmode = 1;
 
-	//  No VR or RIFTMODE in Editor Mode
+	// No VR or RIFTMODE in Editor Mode
 	g.globals.riftmode = 0;
-	g.vrglobals.GGVREnabled = 1; 
+	g.vrglobals.GGVREnabled = 0; 
+	if ( g.gvrmode == 2 ) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
+	if ( g.gvrmode == 3 ) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
+	GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled );
 
 	//  Set device to get multisampling AA active in editor
 	t.multisamplingfactor=0;
