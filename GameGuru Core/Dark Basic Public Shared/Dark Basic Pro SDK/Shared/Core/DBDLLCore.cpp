@@ -1340,19 +1340,19 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	//PE: Use the exe filenane as the title in the game.
 	//PE: So if you use Test-my-Game_name.exe as the standalone
 	//PE: the windows title will be "Test my Game name".
-
 	char workstring[1024];
 	GetModuleFileName(NULL, workstring, 1024);
-
 	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0 )
 	{
 		strcpy(pAppName, "Game Guru");
 	}
-	else {
+	else 
+	{
 		strcpy(pAppName, "Game Guru");
 		TCHAR * out;
 		out = PathFindFileName(workstring);
-		if (out != NULL) {
+		if (out != NULL) 
+		{
 			*(PathFindExtension(out)) = 0;
 			for (int i = strlen(out); i > 0; i--) {
 				if (out[i] == '-') out[i] = ' ';
@@ -1363,6 +1363,17 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		}
 	}
 
+	// Extract path from ModuleFileName so can locate any DLLs in GG Root Folder
+	char pRootPath[1024];
+	strcpy ( pRootPath, workstring );
+	for ( int n = strlen(pRootPath); n > 0; n-- )
+	{
+		if ( pRootPath[n] == '\\' || pRootPath[n] == '/' )
+		{
+			pRootPath[n] = 0;
+			break;
+		}
+	}
 
 	// this ensures no conflict between window class name and application class name
 	strcpy ( pAppNameUnique, pAppName );
@@ -1404,7 +1415,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	}
 	else
 	{
-		/*
+		/* from sample
 		g_pGlob->hWnd = CreateWindow(pAppNameUnique,
 									pAppName,
 									WS_OVERLAPPEDWINDOW,
@@ -1417,38 +1428,14 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 									hInstance, 
 									nullptr);
 		*/
-
-		g_pGlob->hWnd = CreateWindow(	pAppNameUnique,	pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
-		
+		g_pGlob->hWnd = CreateWindow( pAppNameUnique, pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
 	}
-
-	// LEE: HWND needs to be valid for Space to be created inside call!
-	GGVR_GetHolographicSpace ( g_pGlob->hWnd );
-
-	ShowWindow(g_pGlob->hWnd, SW_HIDE);
-
-	/*
-	// Setup Holographic Space for Window to support Windows Mixed Reality
-	//GGWMR_GetHolographicSpace();
-	// NOTE: To allow C++/CX code for WMR Support, we need to load the GGWMR library as a DLL and call it thusly
-	//typedef void (CALLBACK* sGGWMRGetHolographicSpaceFnc)();//HWND);
-	typedef void (*sGGWMRGetHolographicSpaceFnc)(HWND);
-	HMODULE hGGWMRDLL = LoadLibrary ( "F:\\GameGuruRepo\\GameGuru\\GGWMR.dll" );
-	if ( hGGWMRDLL )
-	{
-		sGGWMRGetHolographicSpaceFnc pGGWMR_GetHolographicSpace = (sGGWMRGetHolographicSpaceFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetHolographicSpace" );
-		pGGWMR_GetHolographicSpace ( g_pGlob->hWnd );
-		FreeLibrary ( hGGWMRDLL );
-	}
-	*/
-
-	// Show Window
-	ShowWindow(g_pGlob->hWnd, SW_SHOW);
 
 	// Init Steam API
 	SteamInit();
 
 	// Main Setup init
+	g_pGlob->hOriginalhWnd = g_pGlob->hWnd;
 	bool bDXFailed=false;
 	if ( SETUPConstructor() == true)
 	{
@@ -1458,11 +1445,14 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	else
 		bDXFailed=true;
 
+	// Show Window
+	ShowWindow(g_pGlob->hWnd, SW_SHOW);
+
 	// Initialise DisplayDLL
 	OverrideHWND(g_pGlob->hWnd);
 
 	// Activate COM
-	CoInitialize(NULL);
+	//CoInitialize(NULL);
 
 	// Create Display (dwAppDisplayModeUsing controls window handler)
 	g_pGlob->dwAppDisplayModeUsing=dwDisplayType;
@@ -1504,12 +1494,35 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	SetDefaultDisplayProperties();
 
 	// Process any messages prior to program start (also for begin scene call)
-	//remove unnecessary delay to start of launch
-	//DWORD dwTimer=timeGetTime();
-	//while(timeGetTime()<dwTimer+100)
-	//{
 	InternalProcessMessages();
-	//}
+
+	/* works here now we are using the primaru HWND!
+	// Need to create Holographic Space early to get original HWND pointer
+	GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, pRootPath );//g_pGlob->hWnd, pRootPath );
+	GGVR_CreateHolographicSpace2 ( NULL, NULL );
+	ShowWindow(g_pGlob->hOriginalhWnd, SW_SHOW);
+    UpdateWindow(g_pGlob->hOriginalhWnd);
+
+	// Mini message pump to test rendering works okay
+    MSG msg { };
+    bool isRunning = true;
+    while (isRunning)
+    {
+        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+        {
+            if (msg.message == WM_QUIT)
+            {
+                isRunning = false;
+            }
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        else
+        {
+			GGVR_InitHolographicSpace();
+        }
+    }
+	*/
 
 	// complete
 	return 0;

@@ -194,7 +194,7 @@ struct GlobStruct
 	DWORD						dwAppDisplayModeUsing;
 	DWORD						dwWindowX;
 	DWORD						dwWindowY;
-	DWORD						dwWGDSpare1;
+	HWND						hOriginalhWnd;
 	DWORD						dwWGDSpare2;
 	DWORD						dwWGDSpare3;
 	DWORD						dwWGDSpare4;

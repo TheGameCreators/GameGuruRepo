@@ -1,19 +1,9 @@
-//#include "windows.h"
-
 #pragma once
 
-//#include "resource.h"
+#include "resource.h"
+
 #include "Common/DeviceResources.h"
 #include "BasicHologramMain.h"
-
-#define DLLEXPORT __declspec ( dllexport )
-extern "C" 
-{
-	DLLEXPORT void GGWMR_CreateHolographicSpace1 ( HWND hWnd );
-	DLLEXPORT void GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContext );
-	DLLEXPORT void GGWMR_InitHolographicSpace ( void* LEyeImage, void* REyeImage );
-	DLLEXPORT void GGWMR_DestroyHolographicSpace ( void );
-}
 
 namespace BasicHologram
 {
@@ -21,17 +11,17 @@ namespace BasicHologram
     class App sealed
     {
     public:
-        void Initialize();
-        void CreateHolographicSpaceA(HWND hWnd);
-        void CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
-        void Run(void* pLeftCamTex, void* pRightCamTex);
+        void Initialize(HINSTANCE hInstance);
+        void CreateWindowAndHolographicSpace(HINSTANCE hInstance, int nCmdShow);
+        int  Run(HINSTANCE hInstance);
         void Uninitialize();
 
-		void SetInitialised(bool bState) { m_initialised = bState; }
-		bool GetInitialised() { return m_initialised; }
+        static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
     private:
-		bool													m_initialised = false;
+        ATOM MyRegisterClass(HINSTANCE hInstance);
+        void ProcessEvents(uint32_t numberOfEvents);
+
         std::unique_ptr<BasicHologramMain> m_main;
 
         HWND hWnd;

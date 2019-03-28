@@ -1,24 +1,36 @@
-// stdafx.h : include file for standard system include files,
-//  or project specific include files that are used frequently, but
-//      are changed infrequently
-//
-
-#if !defined(AFX_STDAFX_H__03D14C8A_A0EF_43A7_A9CA_4A86E66141B4__INCLUDED_)
-#define AFX_STDAFX_H__03D14C8A_A0EF_43A7_A9CA_4A86E66141B4__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
+#include <array>
+#include <d2d1_2.h>
+#include <d3d11_4.h>
+#include <DirectXColors.h>
+#include <dwrite_2.h>
+#include <future>
+#include <map>
+#include <mutex>
+#include <vector>
+#include <wincodec.h>
+#include <WindowsNumerics.h>
 
-// Insert your headers here
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#include <iostream>
+#include <fstream>
 
-#include <windows.h>
+#include <Windows.Graphics.Directx.Direct3D11.Interop.h>
+#include <wrl/client.h>
 
-// TODO: reference additional headers your program requires here
+#include <winrt/base.h>
+#include <winrt/Windows.ApplicationModel.Activation.h>
+#include <winrt/Windows.ApplicationModel.Core.h>
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Foundation.Metadata.h>
+#include <winrt/Windows.Gaming.Input.h>
+#include <winrt/Windows.Graphics.Display.h>
+#include <winrt/Windows.Graphics.Holographic.h>
+#include <winrt/Windows.Perception.People.h>
+#include <winrt/Windows.Perception.Spatial.h>
+#include <winrt/Windows.Storage.h>
+#include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Windows.UI.Core.h>
+#include <winrt/Windows.UI.Input.Spatial.h>
 
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_STDAFX_H__03D14C8A_A0EF_43A7_A9CA_4A86E66141B4__INCLUDED_)

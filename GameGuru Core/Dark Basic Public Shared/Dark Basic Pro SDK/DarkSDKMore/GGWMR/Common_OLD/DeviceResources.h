@@ -8,7 +8,7 @@ namespace DX
     // Provides an interface for an application that owns DeviceResources to be notified of the device being lost or created.
     interface IDeviceNotify
     {
-        virtual void OnDeviceLost() = 0;
+        virtual void OnDeviceLost()     = 0;
         virtual void OnDeviceRestored() = 0;
     };
 
@@ -17,49 +17,48 @@ namespace DX
     {
     public:
         DeviceResources();
-		~DeviceResources();
 
         // Public methods related to Direct3D devices.
         void HandleDeviceLost();
         void RegisterDeviceNotify(IDeviceNotify* deviceNotify);
         void Trim();
-        void Present(winrt::Windows::Graphics::Holographic::HolographicFrame frame);
+        void Present(Windows::Graphics::Holographic::HolographicFrame^ frame);
 
         // Public methods related to holographic devices.
-        void SetHolographicSpace(winrt::Windows::Graphics::Holographic::HolographicSpace space, ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+        void SetHolographicSpace(Windows::Graphics::Holographic::HolographicSpace^ space);
         void EnsureCameraResources(
-            winrt::Windows::Graphics::Holographic::HolographicFrame frame,
-            winrt::Windows::Graphics::Holographic::HolographicFramePrediction prediction);
+            Windows::Graphics::Holographic::HolographicFrame^ frame,
+            Windows::Graphics::Holographic::HolographicFramePrediction^ prediction);
 
-        void AddHolographicCamera(winrt::Windows::Graphics::Holographic::HolographicCamera camera);
-        void RemoveHolographicCamera(winrt::Windows::Graphics::Holographic::HolographicCamera camera);
+        void AddHolographicCamera(Windows::Graphics::Holographic::HolographicCamera^ camera);
+        void RemoveHolographicCamera(Windows::Graphics::Holographic::HolographicCamera^ camera);
 
         // Holographic accessors.
         template<typename RetType, typename LCallback>
-        RetType                 UseHolographicCameraResources(LCallback const& callback);
+        RetType                 UseHolographicCameraResources(const LCallback& callback);
 
-        winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice
-                                GetD3DInteropDevice()           const { return m_d3dInteropDevice;      }
+        Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice^
+                                GetD3DInteropDevice() const             { return m_d3dInteropDevice;    }
 
         // D3D accessors.
-        ID3D11Device4*          GetD3DDevice()                  const { return m_d3dDevice.Get();       }
-        ID3D11DeviceContext3*   GetD3DDeviceContext()           const { return m_d3dContext.Get();      }
-        D3D_FEATURE_LEVEL       GetDeviceFeatureLevel()         const { return m_d3dFeatureLevel;       }
-        bool                    GetDeviceSupportsVprt()         const { return m_supportsVprt;          }
+        ID3D11Device4*          GetD3DDevice() const                    { return m_d3dDevice.Get();     }
+        ID3D11DeviceContext3*   GetD3DDeviceContext() const             { return m_d3dContext.Get();    }
+        D3D_FEATURE_LEVEL       GetDeviceFeatureLevel() const           { return m_d3dFeatureLevel;     }
+        bool                    GetDeviceSupportsVprt() const           { return m_supportsVprt;        }
 
         // DXGI acessors.
-        IDXGIAdapter3*          GetDXGIAdapter()                const { return m_dxgiAdapter.Get();     }
+        IDXGIAdapter3*          GetDXGIAdapter() const                  { return m_dxgiAdapter.Get();   }
 
         // D2D accessors.
-        ID2D1Factory2*          GetD2DFactory()                 const { return m_d2dFactory.Get();      }
-        IDWriteFactory2*        GetDWriteFactory()              const { return m_dwriteFactory.Get();   }
-        IWICImagingFactory2*    GetWicImagingFactory()          const { return m_wicFactory.Get();      }
+        ID2D1Factory2*          GetD2DFactory() const                   { return m_d2dFactory.Get();    }
+        IDWriteFactory2*        GetDWriteFactory() const                { return m_dwriteFactory.Get(); }
+        IWICImagingFactory2*    GetWicImagingFactory() const            { return m_wicFactory.Get();    }
 
     private:
         // Private methods related to the Direct3D device, and resources based on that device.
         void CreateDeviceIndependentResources();
-        void InitializeUsingHolographicSpace(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
-        void CreateDeviceResources(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
+        void InitializeUsingHolographicSpace();
+        void CreateDeviceResources();
 
         // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D11Device4>                   m_d3dDevice;
@@ -67,7 +66,7 @@ namespace DX
         Microsoft::WRL::ComPtr<IDXGIAdapter3>                   m_dxgiAdapter;
 
         // Direct3D interop objects.
-        winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice m_d3dInteropDevice;
+        Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice^ m_d3dInteropDevice;
 
         // Direct2D factories.
         Microsoft::WRL::ComPtr<ID2D1Factory2>                   m_d2dFactory;
@@ -75,7 +74,7 @@ namespace DX
         Microsoft::WRL::ComPtr<IWICImagingFactory2>             m_wicFactory;
 
         // The holographic space provides a preferred DXGI adapter ID.
-        winrt::Windows::Graphics::Holographic::HolographicSpace m_holographicSpace = nullptr;
+        Windows::Graphics::Holographic::HolographicSpace^       m_holographicSpace = nullptr;
 
         // Properties of the Direct3D device currently in use.
         D3D_FEATURE_LEVEL                                       m_d3dFeatureLevel = D3D_FEATURE_LEVEL_10_0;
@@ -100,7 +99,7 @@ namespace DX
 // The callback takes a parameter of type std::map<UINT32, std::unique_ptr<DX::CameraResources>>&
 // through which the list of cameras will be accessed.
 template<typename RetType, typename LCallback>
-RetType DX::DeviceResources::UseHolographicCameraResources(LCallback const& callback)
+RetType DX::DeviceResources::UseHolographicCameraResources(const LCallback& callback)
 {
     std::lock_guard<std::mutex> guard(m_cameraResourcesLock);
     return callback(m_cameraResources);

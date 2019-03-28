@@ -2143,8 +2143,11 @@ DARKSDK bool SetupDX11 ( void )
 	int denominator = 0;
 	D3D_FEATURE_LEVEL featureLevels[] =
     {
-        D3D_FEATURE_LEVEL_11_0
-    };
+    //    D3D_FEATURE_LEVEL_11_0
+    //};
+        D3D_FEATURE_LEVEL_11_1,
+        D3D_FEATURE_LEVEL_11_0,
+	};
 	D3D_FEATURE_LEVEL g_featureLevel = D3D_FEATURE_LEVEL_11_0;
     DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory ( &sd, sizeof( sd ) );
@@ -2173,11 +2176,11 @@ DARKSDK bool SetupDX11 ( void )
 	sd.SampleDesc.Count						= 1;
     sd.SampleDesc.Quality					= 0;
     sd.Windowed								= bWindowed;
-	UINT DebugFlag = 0;
+	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 	#ifdef _DEBUG
-	DebugFlag = D3D11_CREATE_DEVICE_DEBUG;
+	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 	#endif
-	HRESULT hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, DebugFlag, featureLevels, 1,
+	HRESULT hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevels, ARRAYSIZE(featureLevels),
 												D3D11_SDK_VERSION, &sd, &m_pSwapChain[0], &m_pD3D, 
 												&g_featureLevel, &m_pImmediateContext );
     if( FAILED( hr ) )

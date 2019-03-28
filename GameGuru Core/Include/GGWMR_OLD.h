@@ -1,14 +1,30 @@
-#pragma comment ( lib, "GGVR.lib"     )
+#include "windows.h"
 
-#define DLLEXPORT 
+#define DLLEXPORT __declspec ( dllexport )
 
-void GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath );
-void GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext );
-void GGVR_InitHolographicSpace ( void* pLEyeImageViewRes, void* pREyeImageViewRes );
+extern "C" 
+{
+	DLLEXPORT void GGWMR_GetHolographicSpace ( HWND hWnd );
+	DLLEXPORT void GGWMR_InitHolographicSpace ( void** LEyeImage, void** REyeImage );
+}
 
-DLLEXPORT void  GGVR_ChooseVRSystem ( int iGGVREnabledMode );
+/*
+//*********************************************************************************
+// GG_OpenVR (version 1.0):
+//*********************************************************************************
+//developed by: Ron Erickson
+
+//Info:
+//The purpose of this library is to make VR possible in Game Guru
+
+//*********************************
+//	Setup Commands
+//*********************************
+// Quick check to see if HMD is found which can be done prior to intialization
 DLLEXPORT int	GGVR_IsHmdPresent();
+// Check to see if the runtime is installed
 DLLEXPORT int	GGVR_IsRuntimeInstalled();
+
 
 //Setup the VR System.
 // The return value states the success or error value
@@ -44,6 +60,9 @@ DLLEXPORT void GGVR_Submit( void );
 //2017-11-02: Added to allow rendering to individual eyes
 DLLEXPORT void GGVR_Submit_RightEye();
 DLLEXPORT void GGVR_Submit_LeftEye();
+
+//2017-11-02: Added to support rendering depth textures
+//void	GGVR_SetDepthTextures(int RDepthImageID, int LDepthImageID);
 
 //2017-11-02: Added for custom skybox support
 DLLEXPORT void	GGVR_CreateSkyboxOveride(int Front, int Back, int Left, int Right, int Top, int Bottom);
@@ -177,3 +196,4 @@ DLLEXPORT char* GGVR_LCntrl_GetTrackingSysName();
 DLLEXPORT char* GGVR_LCntrl_GetModelNumber();
 DLLEXPORT char* GGVR_LCntrl_GetManufacturer();
 
+*/
