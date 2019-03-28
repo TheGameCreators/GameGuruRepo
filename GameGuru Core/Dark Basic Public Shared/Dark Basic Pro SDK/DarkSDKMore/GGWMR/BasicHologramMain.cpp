@@ -162,26 +162,33 @@ HolographicFrame BasicHologramMain::Update()
             bool buttonDownThisUpdate = ((gamepadWithButtonState.gamepad.GetCurrentReading().Buttons & GamepadButtons::A) == GamepadButtons::A);
             if (buttonDownThisUpdate && !gamepadWithButtonState.buttonAWasPressedLastFrame)
             {
-                m_pointerPressed = true;
+                //m_pointerPressed = true;
             }
             gamepadWithButtonState.buttonAWasPressedLastFrame = buttonDownThisUpdate;
         }
 
-        SpatialInteractionSourceState pointerState = m_spatialInputHandler->CheckForInput();
+        //SpatialInteractionSourceState pointerState = m_spatialInputHandler->CheckForInput();
         SpatialPointerPose pose = nullptr;
-        if (pointerState != nullptr)
-        {
-            pose = pointerState.TryGetPointerPose(m_stationaryReferenceFrame.CoordinateSystem());
-        }
-        else if (1)//m_pointerPressed)
-        {
-            pose = SpatialPointerPose::TryGetAtTimestamp(m_stationaryReferenceFrame.CoordinateSystem(), prediction.Timestamp());
-        }
-        m_pointerPressed = false;
+        //if (pointerState != nullptr)
+        //{
+        //   pose = pointerState.TryGetPointerPose(m_stationaryReferenceFrame.CoordinateSystem());
+        //}
+        //else if (1)//m_pointerPressed)
+        //{
+        pose = SpatialPointerPose::TryGetAtTimestamp(m_stationaryReferenceFrame.CoordinateSystem(), prediction.Timestamp());
+        //}
+        //m_pointerPressed = false;
 
         // When a Pressed gesture is detected, the sample hologram will be repositioned
         // two meters in front of the user.
-        m_spinningCubeRenderer->PositionHologram(pose);
+        //m_spinningCubeRenderer->PositionHologram(pose);
+
+		// Lee, extract POS and DIRECTION from POSE, store so can read out of GGVR.cpp -> GGWMR_GetUpdate function call
+		// so I can set up the players head position, and head angle, which will FIX THE VIEW MATRIX issue!!
+		m_fHeadPosX = pose.Head().Position().x;
+		m_fHeadPosY = pose.Head().Position().y;
+		m_fHeadPosZ = pose.Head().Position().z;
+
     }
 #endif
 
@@ -238,7 +245,7 @@ HolographicFrame BasicHologramMain::Update()
 // Renders the current frame to each holographic camera, according to the
 // current application and spatial positioning state. Returns true if the
 // frame was rendered to at least one camera.
-bool BasicHologramMain::Render(HolographicFrame const& holographicFrame, void* pLeftCamTex, void* pRightCamTex)
+bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
 {
     // Don't try to render anything before the first Update.
     if (m_timer.GetFrameCount() == 0)
@@ -257,7 +264,7 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame, void* p
     // Lock the set of holographic camera resources, then draw to each camera
     // in this frame.
     return m_deviceResources->UseHolographicCameraResources<bool>(
-        [this, holographicFrame,pLeftCamTex, pRightCamTex](std::map<UINT32, std::unique_ptr<DX::CameraResources>>& cameraResourceMap)
+        [this, holographicFrame](std::map<UINT32, std::unique_ptr<DX::CameraResources>>& cameraResourceMap)
     {
         // Up-to-date frame predictions enhance the effectiveness of image stablization and
         // allow more accurate positioning of holograms.
@@ -271,14 +278,20 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame, void* p
             DX::CameraResources* pCameraResources = cameraResourceMap[cameraPose.HolographicCamera().Id()].get();
 
             // Get the device context.
-            const auto context = m_deviceResources->GetD3DDeviceContext();
-            const auto depthStencilView = pCameraResources->GetDepthStencilView();
+            //const auto context = m_deviceResources->GetD3DDeviceContext();
+            //const auto depthStencilView = pCameraResources->GetDepthStencilView();
 
             // Set render targets to the current holographic camera.
-            ID3D11RenderTargetView *const targets[1] = { pCameraResources->GetBackBufferRenderTargetView() };
-            context->OMSetRenderTargets(1, targets, depthStencilView);
-			if ( targets[0] != NULL )
+            //ID3D11RenderTargetView *const targets[1] = { pCameraResources->GetBackBufferRenderTargetView() };
+            //context->OMSetRenderTargets(1, targets, depthStencilView);
+			if ( pCameraResources->GetBackBufferRenderTargetView() != NULL )//targets[0] != NULL )
 			{
+				m_pPassOutRenderTargetView = pCameraResources->GetBackBufferRenderTargetView();
+				m_pPassOutDepthStencilView = pCameraResources->GetDepthStencilView();
+				m_dwPassOutRenderTargetWidth = pCameraResources->GetRenderTargetSize().Width;
+				m_dwPassOutRenderTargetHeight = pCameraResources->GetRenderTargetSize().Height;
+				
+				/*
 				// Clear the back buffer and depth stencil view.
 				if (m_canGetHolographicDisplayForCamera &&
 					cameraPose.HolographicCamera().Display().IsOpaque())
@@ -320,7 +333,7 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame, void* p
 				// Attach the view/projection constant buffer for this camera to the graphics pipeline.
 				bool cameraActive = pCameraResources->AttachViewProjectionBuffer(m_deviceResources);
 
-	#ifdef DRAW_SAMPLE_CONTENT
+				#ifdef DRAW_SAMPLE_CONTENT
 				// Only render world-locked content when positional tracking is active.
 				if (cameraActive)
 				{
@@ -343,7 +356,8 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame, void* p
 						renderingParameters.CommitDirect3D11DepthBuffer(interopSurface);
 					}
 				}
-	#endif
+				#endif
+				*/
 			}
 			atLeastOneCameraRendered = true;
         }

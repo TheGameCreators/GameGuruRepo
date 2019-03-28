@@ -99,6 +99,7 @@ DARKSDK void		SetCurrentCamera				( int iID );
 DARKSDK void		SetCameraToImage				( int iID, int iImage, int iWidth, int iHeight, int iGenerateCameraAlpha, DWORD dwOwnD3DFMTValue );
 DARKSDK void		SetCameraToImage				( int iID, int iImage, int iWidth, int iHeight, int iGenerateCameraAlpha );
 DARKSDK void		SetCameraToImage				( int iID, int iImage, int iWidth, int iHeight );
+DARKSDK void		SetCameraToView					( int iID, void* pRenderTargetView, void* pDepthStencilView, DWORD dwWidth, DWORD dwHeight );
 DARKSDK void		ResetCamera						( int iID );
 DARKSDK void		MoveCameraLeft					( int iID, float fStep );
 DARKSDK void		MoveCameraRight					( int iID, float fStep );

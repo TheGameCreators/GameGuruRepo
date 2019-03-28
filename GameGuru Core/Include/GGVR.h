@@ -4,7 +4,7 @@
 
 void GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath );
 void GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext );
-void GGVR_InitHolographicSpace ( void* pLEyeImageViewRes, void* pREyeImageViewRes );
+//void GGVR_InitHolographicSpace ( void* pLEyeImageViewRes, void* pREyeImageViewRes );
 
 DLLEXPORT void  GGVR_ChooseVRSystem ( int iGGVREnabledMode );
 DLLEXPORT int	GGVR_IsHmdPresent();
@@ -39,6 +39,7 @@ DLLEXPORT void GGVR_SetWorldScale( float scale );
 DLLEXPORT float GGVR_GetWorldScale(  );
 
 //Render
+DLLEXPORT void GGVR_PreSubmit( void );
 DLLEXPORT void GGVR_Submit( void );
 
 //2017-11-02: Added to allow rendering to individual eyes

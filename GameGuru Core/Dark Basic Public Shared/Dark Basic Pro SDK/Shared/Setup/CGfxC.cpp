@@ -1272,7 +1272,7 @@ DARKSDK void Begin ( void )
 {
 	// being a typical rendering session
 	g_bValidFPS = true;
-	if ( g_bWindowOverride ) ShowWindow ( g_OldHwnd, SW_HIDE );
+	//if ( g_bWindowOverride ) ShowWindow ( g_OldHwnd, SW_HIDE );
 	if ( !m_pD3D ) return;
 
 	// now begin scene drawing

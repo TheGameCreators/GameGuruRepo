@@ -585,12 +585,14 @@ void postprocess_preterrain ( void )
 	// VR Support - render VR cameras
 	if ( g.vrglobals.GGVREnabled > 0 )
 	{
+		// set player from in-game
 		GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
 		GGVR_RotatePlayerLocalY(t.cammousemovex_f / 8.0);
+
+		// update HMD position and controller feedback
 		GGVR_UpdatePlayer();
 
 		float Yangle;
-
 		if (GGVR_GetPlayerAngleX() == 180.0)
 		{
 			Yangle = 180.0 - GGVR_GetPlayerAngleY();
@@ -610,6 +612,9 @@ void postprocess_preterrain ( void )
 		{
 			if (t.terrain.TerrainID > 0)
 			{
+				// for WMR style VR
+				GGVR_PreSubmit();
+
 				for (t.leftright = 0; t.leftright <= 1; t.leftright++)
 				{
 					//  left and right camera in turn
@@ -638,15 +643,24 @@ void postprocess_preterrain ( void )
 						else
 							Projection = GGVR_GetRightEyeProjectionMatrix();
 
-						// convert matrix from OpenGL to DirectX (invert Z)
-						GGMATRIX newWorkingProj = Projection;
-						newWorkingProj.m[0][2] = -Projection.m[0][2];
-						newWorkingProj.m[1][2] = -Projection.m[1][2];
-						newWorkingProj.m[2][2] = -Projection.m[2][2];
-						newWorkingProj.m[3][2] = -Projection.m[3][2];
+						// hack
+						tagCameraData* pCameraPtrZero = (tagCameraData*)GetCameraInternalData ( 0 );
+						Projection = pCameraPtrZero->matProjection;
 
-						// transpose so compatible with the way our shadow model 5.0 shaders work
-						GGMatrixTranspose ( &newWorkingProj, &newWorkingProj );
+						GGMATRIX newWorkingProj = Projection;
+
+						// projection transposition for some VR systems
+						if ( g.vrglobals.GGVREnabled == 1 )
+						{
+							// convert matrix from OpenGL to DirectX (invert Z)
+							newWorkingProj.m[0][2] = -Projection.m[0][2];
+							newWorkingProj.m[1][2] = -Projection.m[1][2];
+							newWorkingProj.m[2][2] = -Projection.m[2][2];
+							newWorkingProj.m[3][2] = -Projection.m[3][2];
+
+							// transpose so compatible with the way our shadow model 5.0 shaders work
+							GGMatrixTranspose ( &newWorkingProj, &newWorkingProj );
+						}
 
 						// finally override the camera projection matrix now
 						pCameraPtr->matProjection = newWorkingProj;
@@ -655,7 +669,7 @@ void postprocess_preterrain ( void )
 					FastSync();
 				}
 
-				//Submit the rendered images to GGVR
+				// for OpenVR style VR
 				GGVR_Submit();
 
 				if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));

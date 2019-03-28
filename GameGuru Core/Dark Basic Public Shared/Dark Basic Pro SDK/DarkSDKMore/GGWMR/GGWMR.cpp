@@ -46,6 +46,7 @@ using namespace Windows::Perception::Spatial;
 //Windows::Graphics::Holographic::HolographicSpace^ m_holographicSpace;
 //Windows::UI::Input::Spatial::SpatialInteractionManager^ m_spatialInteractionManager;
 App app;
+HolographicFrame g_holographicFrame = nullptr;
 
 // DLL Entry Function
 BOOL APIENTRY GGWMRMain(HMODULE hModule,
@@ -130,10 +131,26 @@ DLLEXPORT void GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DConte
 	}
 }
 
-DLLEXPORT void GGWMR_InitHolographicSpace ( void* LEyeImage, void* REyeImage )
+DLLEXPORT void GGWMR_GetUpdate ( void )
 {
-    app.Run(LEyeImage, REyeImage);
+	app.UpdateFrame();
 }
+
+DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTarget, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight)
+{
+	app.UpdateRender();
+	app.GetRenderTargetAndDepthStencilView ( ppRenderTarget, ppDepthStencil, pdwWidth, pdwHeight );
+}
+
+DLLEXPORT void GGWMR_Present ( void )
+{
+	app.Present();
+}
+
+//DLLEXPORT void GGWMR_InitHolographicSpace ( void* LEyeImage, void* REyeImage )
+//{
+    //app.Run(LEyeImage, REyeImage);
+//}
 
 DLLEXPORT void GGWMR_DestroyHolographicSpace ( void )
 {
@@ -156,11 +173,7 @@ void App::CreateHolographicSpaceA(HWND hWnd)
     using namespace winrt::Windows::Graphics::Holographic;
     winrt::com_ptr<IHolographicSpaceInterop> holographicSpaceInterop = winrt::get_activation_factory<HolographicSpace, IHolographicSpaceInterop>();
     winrt::com_ptr<ABI::Windows::Graphics::Holographic::IHolographicSpace> spHolographicSpace;
-
-	// LEE: On second pass, get error "'CreateForWindow requires a window (HWND) which has not been used in a previous call to CreateForWindow.'."
-	// suggesting there is a way to KEEp the hologpahic space, just need to find a way to BRING IT BACK as it stays hidden once we use device and devicecontext for GG rendering!?!
     winrt::check_hresult(holographicSpaceInterop->CreateForWindow(hWnd, __uuidof(ABI::Windows::Graphics::Holographic::IHolographicSpace), winrt::put_abi(spHolographicSpace)));
-
     if (!spHolographicSpace)
     {
         winrt::check_hresult(E_FAIL);
@@ -182,6 +195,50 @@ void App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pCo
     m_main->SetHolographicSpace(hWnd, m_holographicSpace);
 }
 
+void App::UpdateFrame()
+{
+	g_holographicFrame = nullptr;
+    if (m_holographicSpace != nullptr)
+    {
+        g_holographicFrame = m_main->Update();
+	}
+}
+
+void App::UpdateRender()
+{
+	m_canPresentThisFrame = false;
+    if (g_holographicFrame != nullptr)
+    {
+        if (m_main->Render(g_holographicFrame))
+        {
+			m_canPresentThisFrame = true;
+        }
+	}
+}
+
+void App::GetRenderTargetAndDepthStencilView ( void** ppRenderTarget, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight )
+{
+	*ppRenderTarget = m_main->GetPassOutRenderTargetView();
+	*ppDepthStencil = m_main->GetPassOutDepthStencilView();
+	*pdwWidth = m_main->GetPassOutRenderTargetWidth();
+	*pdwHeight = m_main->GetPassOutRenderTargetHeight();
+}
+
+void App::Present()
+{
+    if (g_holographicFrame != nullptr)
+    {
+		if ( m_canPresentThisFrame == true )
+		{
+			if ( m_main->GetPassOutRenderTargetView() != NULL )
+			{
+				m_deviceResources->Present(g_holographicFrame);
+			}
+		}
+	}
+}
+
+/*
 void App::Run(void* pLeftCamTex, void* pRightCamTex)
 {
 	// message pump code when idle
@@ -202,6 +259,7 @@ void App::Run(void* pLeftCamTex, void* pRightCamTex)
         }
     }
 }
+*/
 
 void App::Uninitialize()
 {

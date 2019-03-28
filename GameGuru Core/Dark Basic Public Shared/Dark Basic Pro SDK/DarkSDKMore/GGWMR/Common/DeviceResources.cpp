@@ -23,17 +23,18 @@ DX::DeviceResources::~DeviceResources()
 	m_d3dInteropDevice.Close();
 
 	// from InitialisingUsingHS
-	m_dxgiAdapter.Reset();
+	//m_dxgiAdapter.Reset();
 
 	// from CreateDeviceIndependentResources
-	m_d2dFactory.Reset();
-	m_dwriteFactory.Reset();
-	m_wicFactory.Reset();
+	//m_d2dFactory.Reset();
+	//m_dwriteFactory.Reset();
+	//m_wicFactory.Reset();
 }
 
 // Configures resources that don't depend on the Direct3D device.
 void DX::DeviceResources::CreateDeviceIndependentResources()
 {
+	/*
     // Initialize Direct2D resources.
     D2D1_FACTORY_OPTIONS options{};
 
@@ -67,6 +68,7 @@ void DX::DeviceResources::CreateDeviceIndependentResources()
             CLSCTX_INPROC_SERVER,
             IID_PPV_ARGS(&m_wicFactory)
         ));
+	*/
 }
 
 void DX::DeviceResources::SetHolographicSpace(HolographicSpace holographicSpace,ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
@@ -79,6 +81,7 @@ void DX::DeviceResources::SetHolographicSpace(HolographicSpace holographicSpace,
 
 void DX::DeviceResources::InitializeUsingHolographicSpace(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
 {
+	/* do not need this, done much ealier
     // The holographic space might need to determine which adapter supports
     // holograms, in which case it will specify a non-zero PrimaryAdapterId.
     LUID id =
@@ -121,6 +124,7 @@ void DX::DeviceResources::InitializeUsingHolographicSpace(ID3D11Device* pDevice,
     {
         m_dxgiAdapter.Reset();
     }
+	*/
 
     CreateDeviceResources(pDevice,pContext);
 
@@ -212,11 +216,13 @@ void DX::DeviceResources::CreateDeviceResources(ID3D11Device* pDevice,ID3D11Devi
         reinterpret_cast<IInspectable**>(winrt::put_abi(object))));
     m_d3dInteropDevice = object.as<IDirect3DDevice>();
 
+	/*
     // Cache the DXGI adapter.
     // This is for the case of no preferred DXGI adapter, or fallback to WARP.
     ComPtr<IDXGIAdapter> dxgiAdapter;
     winrt::check_hresult(dxgiDevice->GetAdapter(&dxgiAdapter));
     winrt::check_hresult(dxgiAdapter.As(&m_dxgiAdapter));
+	*/
 
     // Check for device support for the optional feature that allows setting the render target array index from the vertex shader stage.
     D3D11_FEATURE_DATA_D3D11_OPTIONS3 options;
@@ -236,12 +242,19 @@ void DX::DeviceResources::EnsureCameraResources(
 {
     UseHolographicCameraResources<void>([this, frame, prediction](std::map<UINT32, std::unique_ptr<CameraResources>>& cameraResourceMap)
     {
-        for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
-        {
-            HolographicCameraRenderingParameters renderingParameters = frame.GetRenderingParameters(cameraPose);
-            CameraResources* pCameraResources = cameraResourceMap[cameraPose.HolographicCamera().Id()].get();
-            pCameraResources->CreateResourcesForBackBuffer(this, renderingParameters);
-        }
+		try
+		{
+			for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
+			{
+				HolographicCameraRenderingParameters renderingParameters = frame.GetRenderingParameters(cameraPose);
+				CameraResources* pCameraResources = cameraResourceMap[cameraPose.HolographicCamera().Id()].get();
+				pCameraResources->CreateResourcesForBackBuffer(this, renderingParameters);
+			}
+		}
+		catch(...)
+		{
+			// maybe next time (this will exception if HMD not generating a valid cameraPose/frame/prediction..)
+		}
     });
 }
 

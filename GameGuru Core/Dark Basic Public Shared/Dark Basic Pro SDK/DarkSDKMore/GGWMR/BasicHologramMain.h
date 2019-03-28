@@ -37,7 +37,7 @@ namespace BasicHologram
         winrt::Windows::Graphics::Holographic::HolographicFrame Update();
 
         // Renders holograms, including world-locked content.
-        bool Render(winrt::Windows::Graphics::Holographic::HolographicFrame const& holographicFrame, void* pLeftCamTex, void* pRightCamTex);
+        bool Render(winrt::Windows::Graphics::Holographic::HolographicFrame const& holographicFrame);
 
         // Handle saving and loading of app state owned by AppMain.
         void SaveAppState();
@@ -49,6 +49,13 @@ namespace BasicHologram
         // IDeviceNotify
         void OnDeviceLost() override;
         void OnDeviceRestored() override;
+
+		// Handle extraction of render views
+		ID3D11RenderTargetView*	GetPassOutRenderTargetView(void) { return m_pPassOutRenderTargetView; }
+		ID3D11DepthStencilView*	GetPassOutDepthStencilView(void) { return m_pPassOutDepthStencilView; }
+		DWORD GetPassOutRenderTargetWidth(void) { return m_dwPassOutRenderTargetWidth; }
+		DWORD GetPassOutRenderTargetHeight(void) { return m_dwPassOutRenderTargetHeight; }
+		
 
     private:
         // Asynchronously creates resources for new holographic cameras.
@@ -131,5 +138,11 @@ namespace BasicHologram
 
         // Cache whether or not the HolographicCameraRenderingParameters.CommitDirect3D11DepthBuffer() method can be called.
         bool                                                        m_canCommitDirect3D11DepthBuffer = false;
+
+		// Extra members
+		ID3D11RenderTargetView*										m_pPassOutRenderTargetView = NULL;
+		ID3D11DepthStencilView*										m_pPassOutDepthStencilView = NULL;
+		DWORD														m_dwPassOutRenderTargetWidth = 0;
+		DWORD														m_dwPassOutRenderTargetHeight = 0;
     };
 }
