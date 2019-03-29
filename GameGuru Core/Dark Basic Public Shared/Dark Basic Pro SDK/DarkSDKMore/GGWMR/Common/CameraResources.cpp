@@ -55,17 +55,6 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
         // are activated.
         m_d3dBackBuffer = cameraBackBuffer;
 
-		/* this one creates a stereo render target view only
-        // Create a render target view of the back buffer.
-        // Creating this resource is inexpensive, and is better than keeping track of
-        // the back buffers in order to pre-allocate render target views for each one.
-        winrt::check_hresult(
-            device->CreateRenderTargetView(
-                m_d3dBackBuffer.Get(),
-                nullptr,
-                &m_d3dRenderTargetView
-            ));
-		*/
         // Get the DXGI format for the back buffer.
         D3D11_TEXTURE2D_DESC backBufferDesc;
         m_d3dBackBuffer->GetDesc(&backBufferDesc);
@@ -160,86 +149,6 @@ void DX::CameraResources::ReleaseResourcesForBackBuffer(DX::DeviceResources* pDe
     context->Flush();
 }
 
-// Updates the view/projection constant buffer for a holographic camera.
-void DX::CameraResources::UpdateViewProjectionBuffer(
-    std::shared_ptr<DX::DeviceResources> deviceResources,
-    HolographicCameraPose const& cameraPose,
-    SpatialCoordinateSystem const& coordinateSystem
-)
-{
-	/* only want the projection matrix!
-    // The system changes the viewport on a per-frame basis for system optimizations.
-    auto viewport = cameraPose.Viewport();
-    m_d3dViewport = CD3D11_VIEWPORT(
-        viewport.X,
-        viewport.Y,
-        viewport.Width,
-        viewport.Height
-    );
-	*/
-
-	// Hmm, can get this from the cameraPose just passed in (no need of this function)
-    // The projection transform for each frame is provided by the HolographicCameraPose.
-    //HolographicStereoTransform cameraProjectionTransform = cameraPose.ProjectionTransform();
-	//cameraProjectionTransform.Left
-	//XMLoadFloat4x4(&cameraProjectionTransform.Left)
-
-	/*
-    // Get a container object with the view and projection matrices for the given
-    // pose in the given coordinate system.
-    auto viewTransformContainer = cameraPose.TryGetViewTransform(coordinateSystem);
-
-    // If TryGetViewTransform returns a null pointer, that means the pose and coordinate
-    // system cannot be understood relative to one another; content cannot be rendered
-    // in this coordinate system for the duration of the current frame.
-    // This usually means that positional tracking is not active for the current frame, in
-    // which case it is possible to use a SpatialLocatorAttachedFrameOfReference to render
-    // content that is not world-locked instead.
-    DX::ViewProjectionConstantBuffer viewProjectionConstantBufferData;
-    bool viewTransformAcquired = viewTransformContainer != nullptr;
-    if (viewTransformAcquired)
-    {
-        // Otherwise, the set of view transforms can be retrieved.
-        HolographicStereoTransform viewCoordinateSystemTransform = viewTransformContainer.Value();
-
-        // Update the view matrices. Holographic cameras (such as Microsoft HoloLens) are
-        // constantly moving relative to the world. The view matrices need to be updated
-        // every frame.
-        XMStoreFloat4x4(
-            &viewProjectionConstantBufferData.viewProjection[0],
-            XMMatrixTranspose(XMLoadFloat4x4(&viewCoordinateSystemTransform.Left) * XMLoadFloat4x4(&cameraProjectionTransform.Left))
-        );
-        XMStoreFloat4x4(
-            &viewProjectionConstantBufferData.viewProjection[1],
-            XMMatrixTranspose(XMLoadFloat4x4(&viewCoordinateSystemTransform.Right) * XMLoadFloat4x4(&cameraProjectionTransform.Right))
-        );
-    }
-
-    // Use the D3D device context to update Direct3D device-based resources.
-    ID3D11DeviceContext* context = deviceResources->GetD3DDeviceContext();
-
-    // Loading is asynchronous. Resources must be created before they can be updated.
-    if (context == nullptr || m_viewProjectionConstantBuffer == nullptr || !viewTransformAcquired)
-    {
-        m_framePending = false;
-    }
-    else
-    {
-        // Update the view and projection matrices.
-        context->UpdateSubresource(
-            m_viewProjectionConstantBuffer.Get(),
-            0,
-            nullptr,
-            &viewProjectionConstantBufferData,
-            0,
-            0
-        );
-
-        m_framePending = true;
-    }
-	*/
-}
-
 // Gets the view-projection constant buffer for the HolographicCamera and attaches it
 // to the shader pipeline.
 bool DX::CameraResources::AttachViewProjectionBuffer(
@@ -266,19 +175,6 @@ bool DX::CameraResources::AttachViewProjectionBuffer(
         1,
         m_viewProjectionConstantBuffer.GetAddressOf()
     );
-
-    // The template includes a pass-through geometry shader that is used by
-    // default on systems that don't support the D3D11_FEATURE_D3D11_OPTIONS3::
-    // VPAndRTArrayIndexFromAnyShaderFeedingRasterizer extension. The shader 
-    // will be enabled at run-time on systems that require it.
-    // If your app will also use the geometry shader for other tasks and those
-    // tasks require the view/projection matrix, uncomment the following line 
-    // of code to send the constant buffer to the geometry shader as well.
-    /*context->GSSetConstantBuffers(
-    1,
-    1,
-    m_viewProjectionConstantBuffer.GetAddressOf()
-    );*/
 
     m_framePending = false;
 

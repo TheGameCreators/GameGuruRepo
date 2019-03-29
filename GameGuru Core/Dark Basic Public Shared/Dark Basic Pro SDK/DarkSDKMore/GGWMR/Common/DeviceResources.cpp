@@ -17,58 +17,13 @@ DX::DeviceResources::DeviceResources()
 
 DX::DeviceResources::~DeviceResources()
 {
-	// free anything created by device resources
-
-	// from createdeviceresources
+	// free anything created by device resources from createdeviceresources
 	m_d3dInteropDevice.Close();
-
-	// from InitialisingUsingHS
-	//m_dxgiAdapter.Reset();
-
-	// from CreateDeviceIndependentResources
-	//m_d2dFactory.Reset();
-	//m_dwriteFactory.Reset();
-	//m_wicFactory.Reset();
 }
 
 // Configures resources that don't depend on the Direct3D device.
 void DX::DeviceResources::CreateDeviceIndependentResources()
 {
-	/*
-    // Initialize Direct2D resources.
-    D2D1_FACTORY_OPTIONS options{};
-
-#if defined(_DEBUG)
-    // If the project is in a debug build, enable Direct2D debugging via SDK Layers.
-    options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
-#endif
-
-    // Initialize the Direct2D Factory.
-    winrt::check_hresult(
-        D2D1CreateFactory(
-            D2D1_FACTORY_TYPE_SINGLE_THREADED,
-            __uuidof(ID2D1Factory2),
-            &options,
-            &m_d2dFactory
-        ));
-
-    // Initialize the DirectWrite Factory.
-    winrt::check_hresult(
-        DWriteCreateFactory(
-            DWRITE_FACTORY_TYPE_SHARED,
-            __uuidof(IDWriteFactory2),
-            &m_dwriteFactory
-        ));
-
-    // Initialize the Windows Imaging Component (WIC) Factory.
-    winrt::check_hresult(
-        CoCreateInstance(
-            CLSID_WICImagingFactory2,
-            nullptr,
-            CLSCTX_INPROC_SERVER,
-            IID_PPV_ARGS(&m_wicFactory)
-        ));
-	*/
 }
 
 void DX::DeviceResources::SetHolographicSpace(HolographicSpace holographicSpace,ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
@@ -81,53 +36,7 @@ void DX::DeviceResources::SetHolographicSpace(HolographicSpace holographicSpace,
 
 void DX::DeviceResources::InitializeUsingHolographicSpace(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
 {
-	/* do not need this, done much ealier
-    // The holographic space might need to determine which adapter supports
-    // holograms, in which case it will specify a non-zero PrimaryAdapterId.
-    LUID id =
-    {
-        m_holographicSpace.PrimaryAdapterId().LowPart,
-        m_holographicSpace.PrimaryAdapterId().HighPart
-    };
-
-    // When a primary adapter ID is given to the app, the app should find
-    // the corresponding DXGI adapter and use it to create Direct3D devices
-    // and device contexts. Otherwise, there is no restriction on the DXGI
-    // adapter the app can use.
-    if ((id.HighPart != 0) || (id.LowPart != 0))
-    {
-        UINT createFlags = 0;
-#ifdef DEBUG
-        if (DX::SdkLayersAvailable())
-        {
-            createFlags |= DXGI_CREATE_FACTORY_DEBUG;
-        }
-#endif
-        // Create the DXGI factory.
-        ComPtr<IDXGIFactory1> dxgiFactory;
-        winrt::check_hresult(
-            CreateDXGIFactory2(
-                createFlags,
-                IID_PPV_ARGS(&dxgiFactory)
-            ));
-        ComPtr<IDXGIFactory4> dxgiFactory4;
-        winrt::check_hresult(dxgiFactory.As(&dxgiFactory4));
-
-        // Retrieve the adapter specified by the holographic space.
-        winrt::check_hresult(
-            dxgiFactory4->EnumAdapterByLuid(
-                id,
-                IID_PPV_ARGS(&m_dxgiAdapter)
-            ));
-    }
-    else
-    {
-        m_dxgiAdapter.Reset();
-    }
-	*/
-
     CreateDeviceResources(pDevice,pContext);
-
     m_holographicSpace.SetDirect3D11Device(m_d3dInteropDevice);
 }
 
@@ -137,69 +46,6 @@ void DX::DeviceResources::CreateDeviceResources(ID3D11Device* pDevice,ID3D11Devi
     // Create the Direct3D 11 API device object and a corresponding context.
     ComPtr<ID3D11Device> device = pDevice;
     ComPtr<ID3D11DeviceContext> context = pContext;
-
-	if ( pDevice == NULL )
-	{
-		// This flag adds support for surfaces with a different color channel ordering
-		// than the API default. It is required for compatibility with Direct2D.
-		UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-
-		#if defined(_DEBUG)
-		if (DX::SdkLayersAvailable())
-		{
-			// If the project is in a debug build, enable debugging via SDK Layers with this flag.
-			creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
-		}
-		#endif
-
-		// This array defines the set of DirectX hardware feature levels this app will support.
-		// Note the ordering should be preserved.
-		// Note that HoloLens supports feature level 11.1. The HoloLens emulator is also capable
-		// of running on graphics cards starting with feature level 10.0.
-		D3D_FEATURE_LEVEL featureLevels[] =
-		{
-			D3D_FEATURE_LEVEL_12_1,
-			D3D_FEATURE_LEVEL_12_0,
-			D3D_FEATURE_LEVEL_11_1,
-			D3D_FEATURE_LEVEL_11_0,
-			D3D_FEATURE_LEVEL_10_1,
-			D3D_FEATURE_LEVEL_10_0
-		};
-
-		const D3D_DRIVER_TYPE driverType = m_dxgiAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE : D3D_DRIVER_TYPE_UNKNOWN;
-		const HRESULT hr = D3D11CreateDevice(
-			m_dxgiAdapter.Get(),        // Either nullptr, or the primary adapter determined by Windows Holographic.
-			driverType,                 // Create a device using the hardware graphics driver.
-			0,                          // Should be 0 unless the driver is D3D_DRIVER_TYPE_SOFTWARE.
-			creationFlags,              // Set debug and Direct2D compatibility flags.
-			featureLevels,              // List of feature levels this app can support.
-			ARRAYSIZE(featureLevels),   // Size of the list above.
-			D3D11_SDK_VERSION,          // Always set this to D3D11_SDK_VERSION for Windows Runtime apps.
-			&device,                    // Returns the Direct3D device created.
-			&m_d3dFeatureLevel,         // Returns feature level of device created.
-			&context                    // Returns the device immediate context.
-		);
-
-		if (FAILED(hr))
-		{
-			// If the initialization fails, fall back to the WARP device.
-			// For more information on WARP, see:
-			// http://go.microsoft.com/fwlink/?LinkId=286690
-			winrt::check_hresult(
-					D3D11CreateDevice(
-						nullptr,              // Use the default DXGI adapter for WARP.
-						D3D_DRIVER_TYPE_WARP, // Create a WARP device instead of a hardware device.
-						0,
-						creationFlags,
-						featureLevels,
-						ARRAYSIZE(featureLevels),
-						D3D11_SDK_VERSION,
-						&device,
-						&m_d3dFeatureLevel,
-						&context
-					));
-		}
-    }
 
     // Store pointers to the Direct3D device and immediate context.
     winrt::check_hresult(device.As(&m_d3dDevice));
@@ -215,14 +61,6 @@ void DX::DeviceResources::CreateDeviceResources(ID3D11Device* pDevice,ID3D11Devi
         dxgiDevice.Get(),
         reinterpret_cast<IInspectable**>(winrt::put_abi(object))));
     m_d3dInteropDevice = object.as<IDirect3DDevice>();
-
-	/*
-    // Cache the DXGI adapter.
-    // This is for the case of no preferred DXGI adapter, or fallback to WARP.
-    ComPtr<IDXGIAdapter> dxgiAdapter;
-    winrt::check_hresult(dxgiDevice->GetAdapter(&dxgiAdapter));
-    winrt::check_hresult(dxgiAdapter.As(&m_dxgiAdapter));
-	*/
 
     // Check for device support for the optional feature that allows setting the render target array index from the vertex shader stage.
     D3D11_FEATURE_DATA_D3D11_OPTIONS3 options;
@@ -301,10 +139,6 @@ void DX::DeviceResources::HandleDeviceLost()
             pCameraResources->ReleaseResourcesForBackBuffer(this);
         }
     });
-	
-	/* No way to recover GG device and context!!
-    InitializeUsingHolographicSpace();
-	*/
 
     if (m_deviceNotify != nullptr)
     {

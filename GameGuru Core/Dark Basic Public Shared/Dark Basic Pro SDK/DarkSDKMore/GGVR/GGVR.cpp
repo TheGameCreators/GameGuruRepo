@@ -91,8 +91,8 @@ bool							GGVR_LCntrlBut_Press[64];
 bool							GGVR_LCntrlBut_Touch[64];
 
 // Camera Reference
-float							GGVR_WorldScale = 39.3700787;
-float							GGVR_ipdscale = 1.0;
+float							GGVR_WorldScale = 39.3700787f;
+float							GGVR_ipdscale = 1.0f;
 GGMATRIX						GGVR_LeftEyeProjection;
 GGMATRIX						GGVR_RightEyeProjection;
 
@@ -528,6 +528,7 @@ int GGVR_GetTrackingSpace( int space )
 		}
 		else { return 1; }
 	}
+	return 0;
 }
 
 void GGVR_ResetSeatedZeroPose()

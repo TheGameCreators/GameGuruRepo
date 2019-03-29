@@ -69,7 +69,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -420,6 +420,9 @@
       <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Lib\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win32;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\Enhancements\</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <HeapReserveSize>0</HeapReserveSize>
+      <StackReserveSize>0</StackReserveSize>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -830,11 +833,13 @@
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <PreprocessorDefinitions>_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
+      <StringPooling>
+      </StringPooling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <FunctionLevelLinking>
+      </FunctionLevelLinking>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PrecompiledHeaderOutputFile>.\Release/DarkEXE.pch</PrecompiledHeaderOutputFile>
@@ -845,7 +850,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\Include\;$(ProjectDir)..\GameGuru\Include;</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005;4995;4723</DisableSpecificWarnings>
-      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformation>true</BrowseInformation>
+      <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -879,7 +885,7 @@
       <GenerateDebugInformation>No</GenerateDebugInformation>
       <FullProgramDatabaseFile>false</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
-      <Profile>true</Profile>
+      <Profile>false</Profile>
     </Link>
     <Manifest />
     <Manifest />

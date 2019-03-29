@@ -13,11 +13,6 @@
 #include "Common/DeviceResources.h"
 #include "Common/StepTimer.h"
 
-#ifdef DRAW_SAMPLE_CONTENT
-#include "Content/SpinningCubeRenderer.h"
-#include "Content/SpatialInputHandler.h"
-#endif
-
 // Updates, renders, and presents holographic content using Direct3D.
 namespace BasicHologram
 {
@@ -29,9 +24,7 @@ namespace BasicHologram
 
         // Sets the holographic space. This is our closest analogue to setting a new window
         // for the app.
-        void SetHolographicSpace(
-            HWND hWnd,
-            winrt::Windows::Graphics::Holographic::HolographicSpace const& holographicSpace);
+        void SetHolographicSpace(winrt::Windows::Graphics::Holographic::HolographicSpace const& holographicSpace);
 
         // Starts the holographic frame and updates the content.
         winrt::Windows::Graphics::Holographic::HolographicFrame Update();
@@ -97,15 +90,6 @@ namespace BasicHologram
         // Clears event registration state. Used when changing to a new HolographicSpace
         // and when tearing down AppMain.
         void UnregisterHolographicEventHandlers();
-
-#ifdef DRAW_SAMPLE_CONTENT
-        // Renders a colorful holographic cube that's 20 centimeters wide. This sample content
-        // is used to demonstrate world-locked rendering.
-        std::unique_ptr<SpinningCubeRenderer>                       m_spinningCubeRenderer;
-
-        // Listens for the Pressed spatial input event.
-        std::shared_ptr<SpatialInputHandler>                        m_spatialInputHandler;
-#endif
 
         // Cached pointer to device resources.
         std::shared_ptr<DX::DeviceResources>                        m_deviceResources;

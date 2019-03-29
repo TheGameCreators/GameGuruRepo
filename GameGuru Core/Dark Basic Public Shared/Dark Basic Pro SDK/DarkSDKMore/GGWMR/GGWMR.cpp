@@ -30,6 +30,9 @@ BOOL APIENTRY GGWMRMain(HMODULE hModule,
 	LPVOID lpReserved
 )
 {
+	hModule = hModule;
+	ul_reason_for_call = ul_reason_for_call;
+	lpReserved = lpReserved;
 	return TRUE;
 }
 
@@ -123,7 +126,7 @@ void App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pCo
     m_deviceResources->SetHolographicSpace ( m_holographicSpace, pDevice, pContext );
 
     // The main class uses the holographic space for updates and rendering.
-    m_main->SetHolographicSpace(hWnd, m_holographicSpace);
+    m_main->SetHolographicSpace(m_holographicSpace);
 }
 
 void App::UpdateFrame()

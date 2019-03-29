@@ -48,23 +48,11 @@ BasicHologramMain::BasicHologramMain(std::shared_ptr<DX::DeviceResources> const&
     OnHolographicDisplayIsAvailableChanged(nullptr, nullptr);
 }
 
-void BasicHologramMain::SetHolographicSpace(
-    HWND hWnd, 
-    HolographicSpace const& holographicSpace)
+void BasicHologramMain::SetHolographicSpace(HolographicSpace const& holographicSpace)
 {
     UnregisterHolographicEventHandlers();
 
     m_holographicSpace = holographicSpace;
-
-    //
-    // TODO: Add code here to initialize your holographic content.
-    //
-
-#ifdef DRAW_SAMPLE_CONTENT
-    // Initialize the sample hologram.
-    m_spinningCubeRenderer = std::make_unique<SpinningCubeRenderer>(m_deviceResources);
-    m_spatialInputHandler = std::make_unique<SpatialInputHandler>(hWnd);
-#endif
 
     // Respond to camera added events by creating any resources that are specific
     // to that camera, such as the back buffer render target view.
@@ -114,9 +102,6 @@ void BasicHologramMain::UnregisterHolographicEventHandlers()
 
 BasicHologramMain::~BasicHologramMain()
 {
-    m_spinningCubeRenderer.reset();
-    m_spatialInputHandler.reset();
-
     m_deviceResources->RegisterDeviceNotify(nullptr);
 
     UnregisterHolographicEventHandlers();
@@ -167,21 +152,9 @@ HolographicFrame BasicHologramMain::Update()
             gamepadWithButtonState.buttonAWasPressedLastFrame = buttonDownThisUpdate;
         }
 
-        //SpatialInteractionSourceState pointerState = m_spatialInputHandler->CheckForInput();
+		// get post from predicted frame
         SpatialPointerPose pose = nullptr;
-        //if (pointerState != nullptr)
-        //{
-        //   pose = pointerState.TryGetPointerPose(m_stationaryReferenceFrame.CoordinateSystem());
-        //}
-        //else if (1)//m_pointerPressed)
-        //{
         pose = SpatialPointerPose::TryGetAtTimestamp(m_stationaryReferenceFrame.CoordinateSystem(), prediction.Timestamp());
-        //}
-        //m_pointerPressed = false;
-
-        // When a Pressed gesture is detected, the sample hologram will be repositioned
-        // two meters in front of the user.
-        //m_spinningCubeRenderer->PositionHologram(pose);
 
 		// extract head position and direction
 		if ( pose != nullptr )
@@ -216,7 +189,6 @@ HolographicFrame BasicHologramMain::Update()
         //
 
 #ifdef DRAW_SAMPLE_CONTENT
-        m_spinningCubeRenderer->Update(m_timer);
 #endif
     });
 
@@ -241,10 +213,10 @@ HolographicFrame BasicHologramMain::Update()
                 // plane using overloads of this method.
             if (m_stationaryReferenceFrame != nullptr)
             {
-                renderingParameters.SetFocusPoint(
-                    m_stationaryReferenceFrame.CoordinateSystem(),
-                    m_spinningCubeRenderer->GetPosition()
-                );
+                //renderingParameters.SetFocusPoint(
+                //    m_stationaryReferenceFrame.CoordinateSystem(),
+                //    m_spinningCubeRenderer->GetPosition()
+                //);
             }
 #endif
         }
@@ -302,8 +274,8 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
 				m_pPassOutRenderTargetLeftView = pCameraResources->GetBackBufferRenderTargetLeftView();
 				m_pPassOutRenderTargetRightView = pCameraResources->GetBackBufferRenderTargetRightView();
 				m_pPassOutDepthStencilView = pCameraResources->GetDepthStencilView();
-				m_dwPassOutRenderTargetWidth = pCameraResources->GetRenderTargetSize().Width;
-				m_dwPassOutRenderTargetHeight = pCameraResources->GetRenderTargetSize().Height;
+				m_dwPassOutRenderTargetWidth = (DWORD)pCameraResources->GetRenderTargetSize().Width;
+				m_dwPassOutRenderTargetHeight = (DWORD)pCameraResources->GetRenderTargetSize().Height;
 				
 				/*
 				// Clear the back buffer and depth stencil view.
@@ -415,7 +387,6 @@ void BasicHologramMain::OnPointerPressed()
 void BasicHologramMain::OnDeviceLost()
 {
 #ifdef DRAW_SAMPLE_CONTENT
-    m_spinningCubeRenderer->ReleaseDeviceDependentResources();
 #endif
 }
 
@@ -424,7 +395,6 @@ void BasicHologramMain::OnDeviceLost()
 void BasicHologramMain::OnDeviceRestored()
 {
 #ifdef DRAW_SAMPLE_CONTENT
-    m_spinningCubeRenderer->CreateDeviceDependentResources();
 #endif
 }
 

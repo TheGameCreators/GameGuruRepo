@@ -27,12 +27,7 @@ namespace DX
         void ReleaseResourcesForBackBuffer(
             DX::DeviceResources* pDeviceResources
         );
-
-        void UpdateViewProjectionBuffer(
-            std::shared_ptr<DX::DeviceResources> deviceResources,
-            winrt::Windows::Graphics::Holographic::HolographicCameraPose const& cameraPose,
-            winrt::Windows::Perception::Spatial::SpatialCoordinateSystem const& coordinateSystem);
-
+		
         bool AttachViewProjectionBuffer(
             std::shared_ptr<DX::DeviceResources>& deviceResources);
 

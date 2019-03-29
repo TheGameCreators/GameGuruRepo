@@ -47,9 +47,6 @@ namespace BasicHologram
     private:
 		bool													m_initialised = false;
         std::unique_ptr<BasicHologramMain>						m_main;
-
-        HWND hWnd;
-
         std::shared_ptr<DX::DeviceResources>                    m_deviceResources;
         bool                                                    m_windowClosed = false;
         bool                                                    m_windowVisible = true;
