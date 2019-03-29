@@ -870,8 +870,8 @@ void GGVR_UpdatePlayer(bool bPlayerDucking)
 	//Position the Head Object based on the origin
 	//-------------------------------------------------------
 	// Head is somewhere above the feet of the player
-	float fsubtleeyeadjustment = 30.0;
-	if ( bPlayerDucking ) fsubtleeyeadjustment = 10.0f;
+	float fsubtleeyeadjustment = 60.0;
+	if ( bPlayerDucking ) fsubtleeyeadjustment = 20.0f;
 	//Set the head to the orientation of the origin
 	RotateObject(GGVR_Player.ObjHead, ObjectAngleX(GGVR_Player.ObjOrigin), ObjectAngleY(GGVR_Player.ObjOrigin), ObjectAngleZ(GGVR_Player.ObjOrigin));
 	//Set the head to the position of the origin
@@ -890,6 +890,7 @@ void GGVR_UpdatePlayer(bool bPlayerDucking)
 	PositionCamera(GGVR_LCamID, ObjectPositionX(GGVR_Player.ObjHead), ObjectPositionY(GGVR_Player.ObjHead), ObjectPositionZ(GGVR_Player.ObjHead));
 	RotateCamera(GGVR_RCamID, ObjectAngleX(GGVR_Player.ObjHead), ObjectAngleY(GGVR_Player.ObjHead), ObjectAngleZ(GGVR_Player.ObjHead));
 	RotateCamera(GGVR_LCamID, ObjectAngleX(GGVR_Player.ObjHead), ObjectAngleY(GGVR_Player.ObjHead), ObjectAngleZ(GGVR_Player.ObjHead));
+
 	//Move Cameras for IPD Distance
 	if ( GGVR_EnabledMode == 1 )
 	{
@@ -898,7 +899,7 @@ void GGVR_UpdatePlayer(bool bPlayerDucking)
 	}
 	if ( GGVR_EnabledMode > 1 )
 	{
-		float fUserIpdMeters = 0.025f; // 0.1f hill looked like a small toy
+		float fUserIpdMeters = 0.035f; // 0.1f hill looked like a small toy
 		MoveCameraRight(GGVR_RCamID, (fUserIpdMeters/2.0f)*GGVR_WorldScale*GGVR_ipdscale);
 		MoveCameraRight(GGVR_LCamID, -(fUserIpdMeters/2.0f)*GGVR_WorldScale*GGVR_ipdscale);
 	}

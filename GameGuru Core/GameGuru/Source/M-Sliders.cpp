@@ -6,10 +6,6 @@
 #include "gameguru.h"
 
 // Externals
-//extern int g_iTriggerReloadOfImportModel;
-//extern int g_iFBXGeometryToggleMode;
-//extern int g_iFBXGeometryCenterMesh;
-//extern bool g_VR920RenderStereoNow;
 extern UINT g_StereoEyeToggle;
 
 // 
@@ -1415,7 +1411,6 @@ void sliders_draw ( void )
 	t.tokay=1;
 	if (  g.globals.riftmode>0  )  t.tokay = 0;
 	if (  t.conkit.editmodeactive == 1  )  t.tokay = 0;
-	//if (  ( g.tabmodehidehuds == 1 || g.ghideallhuds == 1 ) && g.lowfpswarning != 1 && g.tabmodeshowfps == 0 && g.tabmode == 0 )  t.tokay = 0;
 	if (  ( g.tabmodehidehuds == 1 || g.ghideallhuds == 1 ) && g.lowfpswarning != 1 && g.tabmodeshowfps != 1 && g.tabmode == 0 )  t.tokay = 0;
 	if (  t.importer.importerActive  ==  1  )  t.tokay = 1;
 	if (  t.game.runasmultiplayer  ==  1  )  g.ghardwareinfomode = 0;

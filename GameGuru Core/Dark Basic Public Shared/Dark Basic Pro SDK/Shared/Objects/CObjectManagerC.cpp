@@ -5277,11 +5277,18 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 			if ( g_pGlob->dwRenderCameraID == 30 ) iPreferredCamera = 30;
 
 			// reset to default camera range for noz and locked objects
-			tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( iPreferredCamera );
-			float fCurrentNearRange = m_Camera_Ptr->fZNear;
-			float fCurrentFarRange = m_Camera_Ptr->fZFar;
-			SetCameraRange ( iPreferredCamera, 1, 70000 );
-
+			float fCurrentNearRange = 0.0f;
+			float fCurrentFarRange = 0.0f;
+			bool bCameraRangeAndProjectionChanged = false;
+			if ( g_pGlob->dwRenderCameraID != 6 && g_pGlob->dwRenderCameraID != 7 )
+			{
+				// except for cameras 6 and 7 which are VR eye cameras and have their own projection matrix (which should not be overwritten by SetCameraRange)
+				tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( iPreferredCamera );
+				fCurrentNearRange = m_Camera_Ptr->fZNear;
+				fCurrentFarRange = m_Camera_Ptr->fZFar;
+				SetCameraRange ( iPreferredCamera, 1, 70000 );
+				bCameraRangeAndProjectionChanged = true;
+			}
 			if ( ! m_vVisibleObjectEarly.empty() )
 			{
 				for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectEarly.size(); ++iIndex )
@@ -5302,7 +5309,11 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				}
 			}
 			// restore camera range
-			SetCameraRange ( iPreferredCamera, fCurrentNearRange, fCurrentFarRange );
+			if ( bCameraRangeAndProjectionChanged == true )
+			{
+				// except for cameras 6 and 7 which are VR eye cameras and have their own projection matrix (which should not be overwritten by SetCameraRange)
+				SetCameraRange ( iPreferredCamera, fCurrentNearRange, fCurrentFarRange );
+			}
 		}
 		break;
 

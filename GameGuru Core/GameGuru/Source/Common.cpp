@@ -5330,7 +5330,7 @@ void printscreenprompt ( char* screenprompt_s )
 			tscrwidth_f=GetDisplayWidth();
 			txoffset_f=0;
 			tsidemax=0;
-			if ( g.globals.riftmode > 0 || g.gvrmode > 0 ) 
+			if ( g.globals.riftmode > 0 || ( g.gvrmode > 0 && g.gvrmode != 2 && g.gvrmode != 3 ) ) 
 			{
 				tscrwidth_f=tscrwidth_f/2;
 				twidth_f=twidth_f/2;

@@ -656,6 +656,8 @@ void postprocess_preterrain ( void )
 						// finally override the camera projection matrix now
 						pCameraPtr->matProjection = newWorkingProj;
 					}
+
+					// and now render
 					SyncMask((1 << t.tcamindex));
 					FastSync();
 				}
@@ -666,6 +668,7 @@ void postprocess_preterrain ( void )
 				if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
 				if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
 				if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera) + 7000, CameraPositionZ(t.terrain.gameplaycamera));
+
 				SetCurrentCamera(0);
 			}
 

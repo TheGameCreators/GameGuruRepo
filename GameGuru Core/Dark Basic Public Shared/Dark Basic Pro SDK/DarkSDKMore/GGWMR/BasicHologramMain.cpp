@@ -1,11 +1,10 @@
-
+// Includes
 #include "stdafx.h"
-
 #include "BasicHologramMain.h"
 #include "Common/DirectXHelper.h"
-
 #include <windows.graphics.directx.direct3d11.interop.h>
 
+// Namespaces
 using namespace BasicHologram;
 using namespace concurrency;
 using namespace Microsoft::WRL;
@@ -169,25 +168,11 @@ HolographicFrame BasicHologramMain::Update()
 			m_fHeadDirY = pose.Head().ForwardDirection().y;
 			m_fHeadDirZ = pose.Head().ForwardDirection().z;
 		}
-
-		// also get projection matrices from somewhere as will need that too...
-
-		// then slice out TWO views of render target so can render to right eye with correct projection
-
-		// should be back to normal then :)
     }
 #endif
 
     m_timer.Tick([this]()
     {
-        //
-        // TODO: Update scene objects.
-        //
-        // Put time-based updates here. By default this code will run once per frame,
-        // but if you change the StepTimer to use a fixed time step this code will
-        // run as many times as needed to get to the current step.
-        //
-
 #ifdef DRAW_SAMPLE_CONTENT
 #endif
     });
@@ -213,10 +198,6 @@ HolographicFrame BasicHologramMain::Update()
                 // plane using overloads of this method.
             if (m_stationaryReferenceFrame != nullptr)
             {
-                //renderingParameters.SetFocusPoint(
-                //    m_stationaryReferenceFrame.CoordinateSystem(),
-                //    m_spinningCubeRenderer->GetPosition()
-                //);
             }
 #endif
         }
@@ -238,15 +219,7 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
         return false;
     }
 
-    //
-    // TODO: Add code for pre-pass rendering here.
-    //
-    // Take care of any tasks that are not specific to an individual holographic
-    // camera. This includes anything that doesn't need the final view or projection
-    // matrix, such as lighting maps.
-    //
-
-    // Lock the set of holographic camera resources, then draw to each camera
+     // Lock the set of holographic camera resources, then draw to each camera
     // in this frame.
     return m_deviceResources->UseHolographicCameraResources<bool>(
         [this, holographicFrame](std::map<UINT32, std::unique_ptr<DX::CameraResources>>& cameraResourceMap)
@@ -262,13 +235,7 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
             // This represents the device-based resources for a HolographicCamera.
             DX::CameraResources* pCameraResources = cameraResourceMap[cameraPose.HolographicCamera().Id()].get();
 
-            // Get the device context.
-            //const auto context = m_deviceResources->GetD3DDeviceContext();
-            //const auto depthStencilView = pCameraResources->GetDepthStencilView();
-
             // Set render targets to the current holographic camera.
-            //ID3D11RenderTargetView *const targets[1] = { pCameraResources->GetBackBufferRenderTargetView() };
-            //context->OMSetRenderTargets(1, targets, depthStencilView);
 			if ( pCameraResources->GetBackBufferRenderTargetLeftView() != NULL )//targets[0] != NULL )
 			{
 				m_pPassOutRenderTargetLeftView = pCameraResources->GetBackBufferRenderTargetLeftView();
@@ -276,79 +243,11 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
 				m_pPassOutDepthStencilView = pCameraResources->GetDepthStencilView();
 				m_dwPassOutRenderTargetWidth = (DWORD)pCameraResources->GetRenderTargetSize().Width;
 				m_dwPassOutRenderTargetHeight = (DWORD)pCameraResources->GetRenderTargetSize().Height;
-				
-				/*
-				// Clear the back buffer and depth stencil view.
-				if (m_canGetHolographicDisplayForCamera &&
-					cameraPose.HolographicCamera().Display().IsOpaque())
-				{
-					context->ClearRenderTargetView(targets[0], DirectX::Colors::CornflowerBlue);
-				}
-				else
-				{
-					context->ClearRenderTargetView(targets[0], DirectX::Colors::Transparent);
-				}
-				context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-				//
-				// TODO: Replace the sample content with your own content.
-				//
-				// Notes regarding holographic content:
-				//    * For drawing, remember that you have the potential to fill twice as many pixels
-				//      in a stereoscopic render target as compared to a non-stereoscopic render target
-				//      of the same resolution. Avoid unnecessary or repeated writes to the same pixel,
-				//      and only draw holograms that the user can see.
-				//    * To help occlude hologram geometry, you can create a depth map using geometry
-				//      data obtained via the surface mapping APIs. You can use this depth map to avoid
-				//      rendering holograms that are intended to be hidden behind tables, walls,
-				//      monitors, and so on.
-				//    * On HolographicDisplays that are transparent, black pixels will appear transparent 
-				//      to the user. On such devices, you should clear the screen to Transparent as shown 
-				//      above. You should still use alpha blending to draw semitransparent holograms. 
-				//
-				*/
-
-				// The view and projection matrices for each holographic camera will change
-				// every frame. This function refreshes the data in the constant buffer for
-				// the holographic camera indicated by cameraPose.
-				//if (m_stationaryReferenceFrame)
-				//{
-				//	pCameraResources->UpdateViewProjectionBuffer(m_deviceResources, cameraPose, m_stationaryReferenceFrame.CoordinateSystem());
-				//}
 				// The projection transform for each frame is provided by the cameraPose
 			    HolographicStereoTransform cameraProjectionTransform = cameraPose.ProjectionTransform();
 				m_matProjectionLeft = cameraProjectionTransform.Left;
 				m_matProjectionRight = cameraProjectionTransform.Right;
-
-				/*
-				// Attach the view/projection constant buffer for this camera to the graphics pipeline.
-				bool cameraActive = pCameraResources->AttachViewProjectionBuffer(m_deviceResources);
-
-				#ifdef DRAW_SAMPLE_CONTENT
-				// Only render world-locked content when positional tracking is active.
-				if (cameraActive)
-				{
-					// Draw the sample hologram.
-					m_spinningCubeRenderer->Render(pLeftCamTex, pRightCamTex); 
-
-					// stabalise - whatever that is!
-					if (m_canCommitDirect3D11DepthBuffer)
-					{
-						// On versions of the platform that support the CommitDirect3D11DepthBuffer API, we can 
-						// provide the depth buffer to the system, and it will use depth information to stabilize 
-						// the image at a per-pixel level.
-						HolographicCameraRenderingParameters renderingParameters = holographicFrame.GetRenderingParameters(cameraPose);
-                    
-						IDirect3DSurface interopSurface = DX::CreateDepthTextureInteropObject(pCameraResources->GetDepthStencilTexture2D());
-
-						// Calling CommitDirect3D11DepthBuffer causes the system to queue Direct3D commands to 
-						// read the depth buffer. It will then use that information to stabilize the image as
-						// the HolographicFrame is presented.
-						renderingParameters.CommitDirect3D11DepthBuffer(interopSurface);
-					}
-				}
-				#endif
-				*/
 			}
 			atLeastOneCameraRendered = true;
         }
@@ -359,22 +258,10 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
 
 void BasicHologramMain::SaveAppState()
 {
-    //
-    // TODO: Insert code here to save your app state.
-    //       This method is called when the app is about to suspend.
-    //
-    //       For example, store information in the SpatialAnchorStore.
-    //
 }
 
 void BasicHologramMain::LoadAppState()
 {
-    //
-    // TODO: Insert code here to load your app state.
-    //       This method is called when the app resumes.
-    //
-    //       For example, load information from the SpatialAnchorStore.
-    //
 }
 
 void BasicHologramMain::OnPointerPressed()
@@ -386,16 +273,12 @@ void BasicHologramMain::OnPointerPressed()
 // need to be released before this method returns.
 void BasicHologramMain::OnDeviceLost()
 {
-#ifdef DRAW_SAMPLE_CONTENT
-#endif
 }
 
 // Notifies classes that use Direct3D device resources that the device resources
 // may now be recreated.
 void BasicHologramMain::OnDeviceRestored()
 {
-#ifdef DRAW_SAMPLE_CONTENT
-#endif
 }
 
 void BasicHologramMain::OnLocatabilityChanged(SpatialLocator const& sender, winrt::Windows::Foundation::IInspectable const& /*args*/)
@@ -438,13 +321,6 @@ void BasicHologramMain::OnCameraAdded(
     HolographicCamera holographicCamera = args.Camera();
     create_task([this, deferral, holographicCamera]()
     {
-        //
-        // TODO: Allocate resources for the new camera and load any content specific to
-        //       that camera. Note that the render target size (in pixels) is a property
-        //       of the HolographicCamera object, and can be used to create off-screen
-        //       render targets that match the resolution of the HolographicCamera.
-        //
-
         // Create device-based resources for the holographic camera and add it to the list of
         // cameras used for updates and rendering. Notes:
         //   * Since this function may be called at any time, the AddHolographicCamera function
@@ -468,10 +344,6 @@ void BasicHologramMain::OnCameraRemoved(
 {
     create_task([this]()
     {
-        //
-        // TODO: Asynchronously unload or deactivate content resources (not back buffer 
-        //       resources) that are specific only to the camera that was removed.
-        //
     });
 
     // Before letting this callback return, ensure that all references to the back buffer 
