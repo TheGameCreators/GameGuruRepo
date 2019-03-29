@@ -73,7 +73,10 @@ void welcome_init ( int iLoadingPart )
 	{
 		// only interested in anim backdrop for now
 		welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
-		welcome_loadasset ( welcomePath, "welcome-assets\\splash-logo.bmp", g.editorimagesoffset+41 );
+		if ( g.vrqcontrolmode != 0 )
+			welcome_loadasset ( welcomePath, "welcome-assets\\branded\\splash-logo.bmp", g.editorimagesoffset+41 );
+		else
+			welcome_loadasset ( welcomePath, "welcome-assets\\splash-logo.bmp", g.editorimagesoffset+41 );
 	}
 	if ( iLoadingPart == 2 )
 	{

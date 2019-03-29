@@ -861,6 +861,7 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 						pMenuPopup->RemoveItem(4);
 						pMenuPopup->RemoveItem(3);
 						pMenuPopup->RemoveItem(3);
+						pMenuPopup->RemoveItem(2);
 					}
 					else
 					{
@@ -2801,7 +2802,11 @@ void CMainFrame::OnHelpReadUserManual()
 {
 	// Go to link
 	//ShellExecuteW( NULL, L"open", L"https://www.game-guru.com/downloads/pdfs/GameGuru%20-%20Getting%20Started%20Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
+	#ifdef GGBRANDED
+	ShellExecuteW( NULL, L"open", L"Files\\languagebank\\english\\artwork\\branded\\Getting Started Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
+	#else
 	ShellExecuteW( NULL, L"open", L"Files\\languagebank\\english\\artwork\\GameGuru - Getting Started Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
+	#endif
 }
 
 void CMainFrame::OnStandaloneEasterGame()

@@ -2296,6 +2296,9 @@ void common_makeserialcode ( LPSTR pInstituteName, int iFromDD, int iFromMM, int
 
 int common_isserialcodevalid ( LPSTR pSerialCode )
 {
+	// hack in always successful until cloud key system ready
+	return 1;
+
 	// get serial code into build array
 	char pBuildString[10+12+1];
 	strcpy ( pBuildString, pSerialCode );
@@ -5282,7 +5285,17 @@ void loadscreenpromptassets ( void )
 			{
 				if ( g.quickparentalcontrolmode == 2 )
 				{	
-					sprintf ( t.szwork , "languagebank\\%s\\artwork\\testgamelayout-noweapons.png", g.language_s.Get() );
+					if ( g.vrqcontrolmode != 0 )
+					{
+						if ( g.gvrmode == 3 )
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-vr.png", g.language_s.Get() );
+						else
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-noweapons.png", g.language_s.Get() );
+					}
+					else
+					{
+						sprintf ( t.szwork , "languagebank\\%s\\artwork\\testgamelayout-noweapons.png", g.language_s.Get() );
+					}
 				}
 				else
 				{

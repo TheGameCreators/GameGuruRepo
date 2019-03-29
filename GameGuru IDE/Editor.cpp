@@ -2452,6 +2452,9 @@ void CEditorApp::LoadLanguage ( void )
 	strcat ( szPath, szLanguage );
 	strcpy ( theApp.m_szLanguagePath, szPath );
 	strcat ( szPath, "/textfiles" );
+	#ifdef GGBRANDED
+	strcat ( szPath, "/branded" );
+	#endif
 	strcat ( szPath, "/ide-words.ini" );
 	strcpy ( theApp.m_szLanguage, theApp.m_szDirectory );
 	strcat ( theApp.m_szLanguage, "\\" );
@@ -2462,6 +2465,9 @@ void CEditorApp::LoadLanguage ( void )
 	strcat ( szPath, szLanguage );
 	strcpy ( theApp.m_szLanguagePath, szPath );
 	strcat ( szPath, "/textfiles" );
+	#ifdef GGBRANDED
+	strcat ( szPath, "/branded" );
+	#endif
 	strcat ( szPath, "/ide-words.ini" );
 	strcpy ( theApp.m_szLanguageVariant, theApp.m_szDirectory );
 	strcat ( theApp.m_szLanguageVariant, "\\" );

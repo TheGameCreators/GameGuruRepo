@@ -219,6 +219,10 @@ BOOL cFront::OnInitDialog()
 	SetCurrentDirectory ( theApp.m_szDirectory );
 	SetCurrentDirectory ( theApp.m_szLanguagePath );
 	SetCurrentDirectory ( "artwork" );
+	#ifdef GGBRANDED
+	SetCurrentDirectory ( "branded" );	
+	#endif
+
 	m_hDCSRC = CreateCompatibleDC ( NULL ); 
 
 	// changing image nice idea but would require new media (art and more files to logo version)

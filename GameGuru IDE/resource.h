@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Editor.rc
+// Used by EditorVRQ.rc
 //
 #define IDCPREVIEW                      3
 #define IDR_EDITORTYPE_CNTR_IP          6
@@ -528,7 +528,9 @@
 #define ID_VIEW_DECREASE_SHROUD         32837
 #define ID_VIEW_LAYERS                  32838
 #define ID_VIEW_MOVEDOWN_LAYER          32839
+#define ID_VIEW_ZOOMIN_OLD              32839
 #define ID_VIEW_MOVEUP_LAYER            32840
+#define ID_VIEW_ZOOMOUT_OLD             32840
 #define ID_VIEW_OVERVIEW                32841
 #define ID_VIEW_CLOSEUP                 32842
 #define ID_BUTTON32843                  32843
@@ -706,8 +708,6 @@
 #define ID_HELP_TOGGLEPARENTALCONTROL   33036
 #define ID_HELP_TOGGLEPARENTALCONTROL33037 33037
 #define ID_HELP_READUSERMANUAL          33038
-#define ID_VIEW_ZOOMIN_OLD              32839
-#define ID_VIEW_ZOOMOUT_OLD             32840
 
 // Next default values for new objects
 // 

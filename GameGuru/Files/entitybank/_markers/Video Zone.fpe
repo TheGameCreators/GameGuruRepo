@@ -1,0 +1,28 @@
+;Entity Spec
+
+;Header
+desc          = Video Zone
+
+;AI For Trigger
+aimain        = markers\storyinzone.lua
+
+;AIUsed
+ifused        = 
+
+;Sound
+soundset      = audiobank\misc\soundtrigger.wav
+
+;Orientation
+model         = triggerzone.x
+defaultheight = 5
+textured      = triggerzone.dds
+scale         = 100
+fixnewy       = 0
+
+;Marker Extras
+ismarker      = 3
+markerindex   = 1
+isobjective   = 0
+
+;Trigger data
+stylecolor    = 4
