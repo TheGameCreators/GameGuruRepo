@@ -183,12 +183,25 @@ HolographicFrame BasicHologramMain::Update()
         // two meters in front of the user.
         //m_spinningCubeRenderer->PositionHologram(pose);
 
-		// Lee, extract POS and DIRECTION from POSE, store so can read out of GGVR.cpp -> GGWMR_GetUpdate function call
-		// so I can set up the players head position, and head angle, which will FIX THE VIEW MATRIX issue!!
-		m_fHeadPosX = pose.Head().Position().x;
-		m_fHeadPosY = pose.Head().Position().y;
-		m_fHeadPosZ = pose.Head().Position().z;
+		// extract head position and direction
+		if ( pose != nullptr )
+		{
+			m_fHeadPosX = pose.Head().Position().x;
+			m_fHeadPosY = pose.Head().Position().y;
+			m_fHeadPosZ = pose.Head().Position().z;
+			m_fHeadUpX = pose.Head().UpDirection().x;
+			m_fHeadUpY = pose.Head().UpDirection().y;
+			m_fHeadUpZ = pose.Head().UpDirection().z;
+			m_fHeadDirX = pose.Head().ForwardDirection().x;
+			m_fHeadDirY = pose.Head().ForwardDirection().y;
+			m_fHeadDirZ = pose.Head().ForwardDirection().z;
+		}
 
+		// also get projection matrices from somewhere as will need that too...
+
+		// then slice out TWO views of render target so can render to right eye with correct projection
+
+		// should be back to normal then :)
     }
 #endif
 
@@ -284,9 +297,10 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
             // Set render targets to the current holographic camera.
             //ID3D11RenderTargetView *const targets[1] = { pCameraResources->GetBackBufferRenderTargetView() };
             //context->OMSetRenderTargets(1, targets, depthStencilView);
-			if ( pCameraResources->GetBackBufferRenderTargetView() != NULL )//targets[0] != NULL )
+			if ( pCameraResources->GetBackBufferRenderTargetLeftView() != NULL )//targets[0] != NULL )
 			{
-				m_pPassOutRenderTargetView = pCameraResources->GetBackBufferRenderTargetView();
+				m_pPassOutRenderTargetLeftView = pCameraResources->GetBackBufferRenderTargetLeftView();
+				m_pPassOutRenderTargetRightView = pCameraResources->GetBackBufferRenderTargetRightView();
 				m_pPassOutDepthStencilView = pCameraResources->GetDepthStencilView();
 				m_dwPassOutRenderTargetWidth = pCameraResources->GetRenderTargetSize().Width;
 				m_dwPassOutRenderTargetHeight = pCameraResources->GetRenderTargetSize().Height;
@@ -320,16 +334,21 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
 				//      to the user. On such devices, you should clear the screen to Transparent as shown 
 				//      above. You should still use alpha blending to draw semitransparent holograms. 
 				//
-
+				*/
 
 				// The view and projection matrices for each holographic camera will change
 				// every frame. This function refreshes the data in the constant buffer for
 				// the holographic camera indicated by cameraPose.
-				if (m_stationaryReferenceFrame)
-				{
-					pCameraResources->UpdateViewProjectionBuffer(m_deviceResources, cameraPose, m_stationaryReferenceFrame.CoordinateSystem());
-				}
+				//if (m_stationaryReferenceFrame)
+				//{
+				//	pCameraResources->UpdateViewProjectionBuffer(m_deviceResources, cameraPose, m_stationaryReferenceFrame.CoordinateSystem());
+				//}
+				// The projection transform for each frame is provided by the cameraPose
+			    HolographicStereoTransform cameraProjectionTransform = cameraPose.ProjectionTransform();
+				m_matProjectionLeft = cameraProjectionTransform.Left;
+				m_matProjectionRight = cameraProjectionTransform.Right;
 
+				/*
 				// Attach the view/projection constant buffer for this camera to the graphics pipeline.
 				bool cameraActive = pCameraResources->AttachViewProjectionBuffer(m_deviceResources);
 

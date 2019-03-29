@@ -51,11 +51,22 @@ namespace BasicHologram
         void OnDeviceRestored() override;
 
 		// Handle extraction of render views
-		ID3D11RenderTargetView*	GetPassOutRenderTargetView(void) { return m_pPassOutRenderTargetView; }
+		ID3D11RenderTargetView*	GetPassOutRenderTargetLeftView(void) { return m_pPassOutRenderTargetLeftView; }
+		ID3D11RenderTargetView*	GetPassOutRenderTargetRightView(void) { return m_pPassOutRenderTargetRightView; }
 		ID3D11DepthStencilView*	GetPassOutDepthStencilView(void) { return m_pPassOutDepthStencilView; }
 		DWORD GetPassOutRenderTargetWidth(void) { return m_dwPassOutRenderTargetWidth; }
 		DWORD GetPassOutRenderTargetHeight(void) { return m_dwPassOutRenderTargetHeight; }
-		
+		winrt::Windows::Foundation::Numerics::float4x4 GetPassOutProjectionLeft(void) { return m_matProjectionLeft; }
+		winrt::Windows::Foundation::Numerics::float4x4 GetPassOutProjectionRight(void) { return m_matProjectionRight; }
+		float GetPassOutHeadPosX(void) { return m_fHeadPosX; }
+		float GetPassOutHeadPosY(void) { return m_fHeadPosY; }
+		float GetPassOutHeadPosZ(void) { return m_fHeadPosZ; }
+		float GetPassOutHeadUpX(void) { return m_fHeadUpX; }
+		float GetPassOutHeadUpY(void) { return m_fHeadUpY; }
+		float GetPassOutHeadUpZ(void) { return m_fHeadUpZ; }		
+		float GetPassOutHeadDirX(void) { return m_fHeadDirX; }
+		float GetPassOutHeadDirY(void) { return m_fHeadDirY; }
+		float GetPassOutHeadDirZ(void) { return m_fHeadDirZ; }		
 
     private:
         // Asynchronously creates resources for new holographic cameras.
@@ -140,9 +151,21 @@ namespace BasicHologram
         bool                                                        m_canCommitDirect3D11DepthBuffer = false;
 
 		// Extra members
-		ID3D11RenderTargetView*										m_pPassOutRenderTargetView = NULL;
+		ID3D11RenderTargetView*										m_pPassOutRenderTargetLeftView = NULL;
+		ID3D11RenderTargetView*										m_pPassOutRenderTargetRightView = NULL;
 		ID3D11DepthStencilView*										m_pPassOutDepthStencilView = NULL;
 		DWORD														m_dwPassOutRenderTargetWidth = 0;
 		DWORD														m_dwPassOutRenderTargetHeight = 0;
+		winrt::Windows::Foundation::Numerics::float4x4				m_matProjectionLeft;
+		winrt::Windows::Foundation::Numerics::float4x4				m_matProjectionRight;
+		float														m_fHeadPosX = 0;
+		float														m_fHeadPosY = 0;
+		float														m_fHeadPosZ = 0;
+		float														m_fHeadUpX = 0;
+		float														m_fHeadUpY = 0;
+		float														m_fHeadUpZ = 0;
+		float														m_fHeadDirX = 0;
+		float														m_fHeadDirY = 0;
+		float														m_fHeadDirZ = 0;
     };
 }

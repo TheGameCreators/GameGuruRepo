@@ -20,31 +20,7 @@ using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Graphics::Holographic;
 using namespace winrt::Windows::UI::Core;
 
-/*
-// Includes for Windows Mixed Reality
-#include <thread>
-#include <memory>
-#include "Common\DeviceResources.h"
-
-#include <..\winrt\WinRTBase.h>
-#include <windows.graphics.holographic.h>
-#include <windows.ui.input.spatial.h>
-#include <..\um\HolographicSpaceInterop.h>
-#include <..\um\SpatialInteractionManagerInterop.h>
-#include <wrl.h>
-
-// Namespaces for Windows Mixed Reality
-using namespace ABI::Windows::Foundation;
-using namespace ABI::Windows::Graphics::Holographic;
-using namespace ABI::Windows::UI::Input::Spatial;
-using namespace Microsoft::WRL;
-using namespace Microsoft::WRL::Wrappers;
-using namespace Windows::Perception::Spatial;
-*/
-
 // Globals
-//Windows::Graphics::Holographic::HolographicSpace^ m_holographicSpace;
-//Windows::UI::Input::Spatial::SpatialInteractionManager^ m_spatialInteractionManager;
 App app;
 HolographicFrame g_holographicFrame = nullptr;
 
@@ -70,53 +46,6 @@ DLLEXPORT void GGWMR_CreateHolographicSpace1 ( HWND hWnd )
 		// Create the HWND and the HolographicSpace.
 		app.CreateHolographicSpaceA(hWnd);
 	}
-
-    // Main message loop:
-    ///app.Run(); moved below to be called in loop
-
-    // Perform application teardown.
-    ///app.Uninitialize(); for end
-
-	/*
-	// Initialise COM
-	CoInitializeEx(nullptr, 0);
-
-	// Create Holographic Space 
-    ComPtr<IHolographicSpaceStatics> spHolographicSpaceFactory;
-    HRESULT hr = GetActivationFactory(HStringReference(RuntimeClass_Windows_Graphics_Holographic_HolographicSpace).Get(), &spHolographicSpaceFactory);
-    ComPtr<IHolographicSpaceInterop> spHolographicSpaceInterop;
-    if (SUCCEEDED(hr))
-    {
-        hr = spHolographicSpaceFactory.As(&spHolographicSpaceInterop);
-    }
-    ComPtr<ABI::Windows::Graphics::Holographic::IHolographicSpace> spHolographicSpace;
-    if (SUCCEEDED(hr))
-    {
-        hr = spHolographicSpaceInterop->CreateForWindow(hWnd, IID_PPV_ARGS(&spHolographicSpace));
-        if (SUCCEEDED(hr))
-        {
-            m_holographicSpace = reinterpret_cast<Windows::Graphics::Holographic::HolographicSpace^>(spHolographicSpace.Get());
-        }
-    }
-
-	// Create Spatial Interaction Manager
-	ComPtr<ISpatialInteractionManagerStatics> spSpatialInteractionFactory;
-    hr = GetActivationFactory(HStringReference(RuntimeClass_Windows_UI_Input_Spatial_SpatialInteractionManager).Get(), &spSpatialInteractionFactory);
-    ComPtr<ISpatialInteractionManagerInterop> spSpatialInterop;
-    if (SUCCEEDED(hr))
-    {
-        hr = spSpatialInteractionFactory.As(&spSpatialInterop);
-    }
-    ComPtr<ISpatialInteractionManager> spSpatialInteractionManager;
-    if (SUCCEEDED(hr))
-    {
-        hr = spSpatialInterop->GetForWindow(hWnd, IID_PPV_ARGS(&spSpatialInteractionManager));
-        if (SUCCEEDED(hr))
-        {
-            m_spatialInteractionManager = reinterpret_cast<Windows::UI::Input::Spatial::SpatialInteractionManager^>(spSpatialInteractionManager.Get());
-        }
-    }
-	*/
 }
 
 DLLEXPORT void GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContext )
@@ -136,26 +65,28 @@ DLLEXPORT void GGWMR_GetUpdate ( void )
 	app.UpdateFrame();
 }
 
-DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTarget, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight)
+DLLEXPORT void GGWMR_GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ )
+{
+	app.GetHeadPosAndDir ( pPosX, pPosY, pPosZ, pUpX, pUpY, pUpZ, pDirX, pDirY, pDirZ );
+}
+
+DLLEXPORT void GGWMR_GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM10, float* pM20, float* pM30, 
+															float* pM01, float* pM11, float* pM21, float* pM31,
+															float* pM02, float* pM12, float* pM22, float* pM32,
+															float* pM03, float* pM13, float* pM23, float* pM33)
+{
+	app.GetProjectionMatrix ( iEyeIndex, pM00, pM10, pM20, pM30, pM01, pM11, pM21, pM31, pM02, pM12, pM22, pM32, pM03, pM13, pM23, pM33 );
+}
+
+DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight)
 {
 	app.UpdateRender();
-	app.GetRenderTargetAndDepthStencilView ( ppRenderTarget, ppDepthStencil, pdwWidth, pdwHeight );
+	app.GetRenderTargetAndDepthStencilView ( ppRenderTargetLeft, ppRenderTargetRight, ppDepthStencil, pdwWidth, pdwHeight );
 }
 
 DLLEXPORT void GGWMR_Present ( void )
 {
 	app.Present();
-}
-
-//DLLEXPORT void GGWMR_InitHolographicSpace ( void* LEyeImage, void* REyeImage )
-//{
-    //app.Run(LEyeImage, REyeImage);
-//}
-
-DLLEXPORT void GGWMR_DestroyHolographicSpace ( void )
-{
-	app.Uninitialize();
-	app.SetInitialised(false);
 }
 
 // Holographic Functions
@@ -204,6 +135,67 @@ void App::UpdateFrame()
 	}
 }
 
+void App::GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ )
+{
+    if (g_holographicFrame != nullptr)
+    {
+		*pPosX = m_main->GetPassOutHeadPosX();
+		*pPosY = m_main->GetPassOutHeadPosY();
+		*pPosZ = m_main->GetPassOutHeadPosZ();
+		*pUpX = m_main->GetPassOutHeadUpX();
+		*pUpY = m_main->GetPassOutHeadUpY();
+		*pUpZ = m_main->GetPassOutHeadUpZ();
+		*pDirX = m_main->GetPassOutHeadDirX();
+		*pDirY = m_main->GetPassOutHeadDirY();
+		*pDirZ = m_main->GetPassOutHeadDirZ();
+	}
+}
+
+void App::GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM10, float* pM20, float* pM30, 
+												float* pM01, float* pM11, float* pM21, float* pM31,
+												float* pM02, float* pM12, float* pM22, float* pM32,
+												float* pM03, float* pM13, float* pM23, float* pM33)
+{
+	if ( iEyeIndex == 0 ) 
+	{
+		*pM00 = m_main->GetPassOutProjectionLeft().m11;
+		*pM10 = m_main->GetPassOutProjectionLeft().m21;
+		*pM20 = m_main->GetPassOutProjectionLeft().m31;
+		*pM30 = m_main->GetPassOutProjectionLeft().m41;
+		*pM01 = m_main->GetPassOutProjectionLeft().m12;
+		*pM11 = m_main->GetPassOutProjectionLeft().m22;
+		*pM21 = m_main->GetPassOutProjectionLeft().m32;
+		*pM31 = m_main->GetPassOutProjectionLeft().m42;
+		*pM02 = m_main->GetPassOutProjectionLeft().m13;
+		*pM12 = m_main->GetPassOutProjectionLeft().m23;
+		*pM22 = m_main->GetPassOutProjectionLeft().m33;
+		*pM32 = m_main->GetPassOutProjectionLeft().m43;
+		*pM03 = m_main->GetPassOutProjectionLeft().m14;
+		*pM13 = m_main->GetPassOutProjectionLeft().m24;
+		*pM23 = m_main->GetPassOutProjectionLeft().m34;
+		*pM33 = m_main->GetPassOutProjectionLeft().m41;
+	}
+	else
+	{
+		*pM00 = m_main->GetPassOutProjectionRight().m11;
+		*pM10 = m_main->GetPassOutProjectionRight().m21;
+		*pM20 = m_main->GetPassOutProjectionRight().m31;
+		*pM30 = m_main->GetPassOutProjectionRight().m41;
+		*pM01 = m_main->GetPassOutProjectionRight().m12;
+		*pM11 = m_main->GetPassOutProjectionRight().m22;
+		*pM21 = m_main->GetPassOutProjectionRight().m32;
+		*pM31 = m_main->GetPassOutProjectionRight().m42;
+		*pM02 = m_main->GetPassOutProjectionRight().m13;
+		*pM12 = m_main->GetPassOutProjectionRight().m23;
+		*pM22 = m_main->GetPassOutProjectionRight().m33;
+		*pM32 = m_main->GetPassOutProjectionRight().m43;
+		*pM03 = m_main->GetPassOutProjectionRight().m14;
+		*pM13 = m_main->GetPassOutProjectionRight().m24;
+		*pM23 = m_main->GetPassOutProjectionRight().m34;
+		*pM33 = m_main->GetPassOutProjectionRight().m41;
+	}
+}
+
 void App::UpdateRender()
 {
 	m_canPresentThisFrame = false;
@@ -216,9 +208,10 @@ void App::UpdateRender()
 	}
 }
 
-void App::GetRenderTargetAndDepthStencilView ( void** ppRenderTarget, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight )
+void App::GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight )
 {
-	*ppRenderTarget = m_main->GetPassOutRenderTargetView();
+	*ppRenderTargetLeft = m_main->GetPassOutRenderTargetLeftView();
+	*ppRenderTargetRight = m_main->GetPassOutRenderTargetRightView();
 	*ppDepthStencil = m_main->GetPassOutDepthStencilView();
 	*pdwWidth = m_main->GetPassOutRenderTargetWidth();
 	*pdwHeight = m_main->GetPassOutRenderTargetHeight();
@@ -230,36 +223,13 @@ void App::Present()
     {
 		if ( m_canPresentThisFrame == true )
 		{
-			if ( m_main->GetPassOutRenderTargetView() != NULL )
+			if ( m_main->GetPassOutRenderTargetLeftView() != NULL )
 			{
 				m_deviceResources->Present(g_holographicFrame);
 			}
 		}
 	}
 }
-
-/*
-void App::Run(void* pLeftCamTex, void* pRightCamTex)
-{
-	// message pump code when idle
-    if (m_windowVisible && (m_holographicSpace != nullptr))
-    {
-		// Update
-        HolographicFrame holographicFrame = m_main->Update();
-
-		// Render
-        if (m_main->Render(holographicFrame, pLeftCamTex, pRightCamTex))
-        {
-            // The holographic frame has an API that presents the swap chain for each HolographicCamera
-            m_deviceResources->Present(holographicFrame);
-        }
-        else
-        {
-            Sleep(10);
-        }
-    }
-}
-*/
 
 void App::Uninitialize()
 {

@@ -590,7 +590,9 @@ void postprocess_preterrain ( void )
 		GGVR_RotatePlayerLocalY(t.cammousemovex_f / 8.0);
 
 		// update HMD position and controller feedback
-		GGVR_UpdatePlayer();
+		bool bPlayerDucking = false;
+		if ( t.aisystem.playerducking != 0 ) bPlayerDucking = true;
+		GGVR_UpdatePlayer(bPlayerDucking);
 
 		float Yangle;
 		if (GGVR_GetPlayerAngleX() == 180.0)
@@ -643,24 +645,13 @@ void postprocess_preterrain ( void )
 						else
 							Projection = GGVR_GetRightEyeProjectionMatrix();
 
-						// hack
-						tagCameraData* pCameraPtrZero = (tagCameraData*)GetCameraInternalData ( 0 );
-						Projection = pCameraPtrZero->matProjection;
-
+						// transpose so compatible with the way our shadow model 5.0 shaders work
 						GGMATRIX newWorkingProj = Projection;
-
-						// projection transposition for some VR systems
-						if ( g.vrglobals.GGVREnabled == 1 )
-						{
-							// convert matrix from OpenGL to DirectX (invert Z)
-							newWorkingProj.m[0][2] = -Projection.m[0][2];
-							newWorkingProj.m[1][2] = -Projection.m[1][2];
-							newWorkingProj.m[2][2] = -Projection.m[2][2];
-							newWorkingProj.m[3][2] = -Projection.m[3][2];
-
-							// transpose so compatible with the way our shadow model 5.0 shaders work
-							GGMatrixTranspose ( &newWorkingProj, &newWorkingProj );
-						}
+						newWorkingProj.m[0][2] = -Projection.m[0][2];
+						newWorkingProj.m[1][2] = -Projection.m[1][2];
+						newWorkingProj.m[2][2] = -Projection.m[2][2];
+						newWorkingProj.m[3][2] = -Projection.m[3][2];
+						GGMatrixTranspose ( &newWorkingProj, &newWorkingProj );
 
 						// finally override the camera projection matrix now
 						pCameraPtr->matProjection = newWorkingProj;

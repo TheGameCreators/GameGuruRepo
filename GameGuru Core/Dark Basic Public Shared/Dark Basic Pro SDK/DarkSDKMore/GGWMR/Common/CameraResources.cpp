@@ -16,6 +16,9 @@ DX::CameraResources::CameraResources(HolographicCamera const& camera) :
     m_isStereo(camera.IsStereo()),
     m_d3dRenderTargetSize(camera.RenderTargetSize())
 {
+	m_holographicCamera.SetNearPlaneDistance(1.0f);
+	m_holographicCamera.SetFarPlaneDistance(70000.0f);
+
     m_d3dViewport = CD3D11_VIEWPORT(
         0.f, 0.f,
         m_d3dRenderTargetSize.Width,
@@ -52,6 +55,7 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
         // are activated.
         m_d3dBackBuffer = cameraBackBuffer;
 
+		/* this one creates a stereo render target view only
         // Create a render target view of the back buffer.
         // Creating this resource is inexpensive, and is better than keeping track of
         // the back buffers in order to pre-allocate render target views for each one.
@@ -61,12 +65,22 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
                 nullptr,
                 &m_d3dRenderTargetView
             ));
-
+		*/
         // Get the DXGI format for the back buffer.
-        // This information can be accessed by the app using CameraResources::GetBackBufferDXGIFormat().
         D3D11_TEXTURE2D_DESC backBufferDesc;
         m_d3dBackBuffer->GetDesc(&backBufferDesc);
         m_dxgiFormat = backBufferDesc.Format;
+
+		// instead, split backbuffer into left and right render target views
+		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+		rtvDesc.Format = m_dxgiFormat;//DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+		rtvDesc.Texture2DArray.MipSlice = 0;
+		rtvDesc.Texture2DArray.ArraySize = 1;
+		rtvDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, 0, 1);
+        winrt::check_hresult(device->CreateRenderTargetView(m_d3dBackBuffer.Get(),&rtvDesc,&m_d3dRenderTargetLeftView));
+		rtvDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, 1, 1);
+        winrt::check_hresult(device->CreateRenderTargetView(m_d3dBackBuffer.Get(),&rtvDesc,&m_d3dRenderTargetRightView));
 
         // Check for render target size changes.
         winrt::Windows::Foundation::Size currentSize = m_holographicCamera.RenderTargetSize();
@@ -88,7 +102,7 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
             DXGI_FORMAT_R16_TYPELESS,
             static_cast<UINT>(m_d3dRenderTargetSize.Width),
             static_cast<UINT>(m_d3dRenderTargetSize.Height),
-            m_isStereo ? 2 : 1, // Create two textures when rendering in stereo.
+            1, // we are handling render target views separately now - m_isStereo ? 2 : 1, // Create two textures when rendering in stereo.
             1, // Use a single mipmap level.
             D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE
         );
@@ -134,7 +148,8 @@ void DX::CameraResources::ReleaseResourcesForBackBuffer(DX::DeviceResources* pDe
     // Release camera-specific resources.
     m_d3dBackBuffer.Reset();
     m_d3dDepthStencil.Reset();
-    m_d3dRenderTargetView.Reset();
+    m_d3dRenderTargetLeftView.Reset();
+    m_d3dRenderTargetRightView.Reset();
     m_d3dDepthStencilView.Reset();
     m_viewProjectionConstantBuffer.Reset();
 
@@ -152,6 +167,7 @@ void DX::CameraResources::UpdateViewProjectionBuffer(
     SpatialCoordinateSystem const& coordinateSystem
 )
 {
+	/* only want the projection matrix!
     // The system changes the viewport on a per-frame basis for system optimizations.
     auto viewport = cameraPose.Viewport();
     m_d3dViewport = CD3D11_VIEWPORT(
@@ -160,10 +176,15 @@ void DX::CameraResources::UpdateViewProjectionBuffer(
         viewport.Width,
         viewport.Height
     );
+	*/
 
+	// Hmm, can get this from the cameraPose just passed in (no need of this function)
     // The projection transform for each frame is provided by the HolographicCameraPose.
-    HolographicStereoTransform cameraProjectionTransform = cameraPose.ProjectionTransform();
+    //HolographicStereoTransform cameraProjectionTransform = cameraPose.ProjectionTransform();
+	//cameraProjectionTransform.Left
+	//XMLoadFloat4x4(&cameraProjectionTransform.Left)
 
+	/*
     // Get a container object with the view and projection matrices for the given
     // pose in the given coordinate system.
     auto viewTransformContainer = cameraPose.TryGetViewTransform(coordinateSystem);
@@ -216,6 +237,7 @@ void DX::CameraResources::UpdateViewProjectionBuffer(
 
         m_framePending = true;
     }
+	*/
 }
 
 // Gets the view-projection constant buffer for the HolographicCamera and attaches it

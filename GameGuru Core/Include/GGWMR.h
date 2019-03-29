@@ -12,9 +12,13 @@ extern "C"
 	DLLEXPORT void GGWMR_CreateHolographicSpace1 ( HWND hWnd );
 	DLLEXPORT void GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContext );
 	DLLEXPORT void GGWMR_GetUpdate ( void );
-	DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTarget, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
+	DLLEXPORT void GGWMR_GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );
+	DLLEXPORT void GGWMR_GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM10, float* pM20, float* pM30, 
+																float* pM01, float* pM11, float* pM21, float* pM31,
+																float* pM02, float* pM12, float* pM22, float* pM32,
+																float* pM03, float* pM13, float* pM23, float* pM33);
+	DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
 	DLLEXPORT void GGWMR_Present ( void );
-	DLLEXPORT void GGWMR_DestroyHolographicSpace ( void );
 }
 
 namespace BasicHologram
@@ -27,10 +31,14 @@ namespace BasicHologram
         void CreateHolographicSpaceA(HWND hWnd);
         void CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
 		void UpdateFrame();
+		void GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );
+		void GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM10, float* pM20, float* pM30, 
+													float* pM01, float* pM11, float* pM21, float* pM31,
+													float* pM02, float* pM12, float* pM22, float* pM32,
+													float* pM03, float* pM13, float* pM23, float* pM33);
 		void UpdateRender();
-		void GetRenderTargetAndDepthStencilView ( void** ppRenderTarget, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
+		void GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
 		void Present();
-        //void Run(void* pLeftCamTex, void* pRightCamTex);
         void Uninitialize();
 
 		void SetInitialised(bool bState) { m_initialised = bState; }

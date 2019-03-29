@@ -530,15 +530,14 @@ DARKSDK void CAMERAUpdate ( void )
 		if ( m_ptr->iBackdropState == 1 )
 		{
 			float color[4] = {0,0,0,1};
-			//if ( m_iRenderCamera == 0 && g_pGlob->iCurrentBitmapNumber == 0 ) { color[0] = 0.1f; color[1] = 0.25f; color[2] = 0.5f; }
 			if ( m_iRenderCamera == 0 && g_pGlob->iCurrentBitmapNumber == 0 ) { color[0] = 0.1f; color[1] = 0.1f; color[2] = 0.1f; }
 			if ( m_iRenderCamera == 0 && g_pGlob->iCurrentBitmapNumber > 0  ) { color[0] = 1; color[1] = 0.5f; color[2] = 0; }
 			if ( m_iRenderCamera == 1 ) { color[0] = 0; color[1] = 1; color[2] = 0; }
 			if ( m_iRenderCamera == 2 ) { color[0] = 0; color[1] = 0; color[2] = 1; }
 			if ( m_iRenderCamera == 3 ) { color[0] = 0; color[1] = 0.25f; color[2] = 0; }
-			m_pImmediateContext->ClearRenderTargetView(g_pGlob->pCurrentRenderView, color);
+			if ( g_pGlob->pCurrentRenderView ) m_pImmediateContext->ClearRenderTargetView(g_pGlob->pCurrentRenderView, color);
 		}
-		m_pImmediateContext->ClearDepthStencilView(g_pGlob->pCurrentDepthView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+		if ( g_pGlob->pCurrentDepthView ) m_pImmediateContext->ClearDepthStencilView(g_pGlob->pCurrentDepthView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 	#else
 	if(m_ptr->iBackdropState==1)

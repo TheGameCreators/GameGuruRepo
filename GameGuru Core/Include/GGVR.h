@@ -59,7 +59,7 @@ DLLEXPORT void	GGVR_Shutdown();
 //*********************************
 //	Player Control
 //*********************************
-DLLEXPORT void GGVR_UpdatePlayer( );
+DLLEXPORT void GGVR_UpdatePlayer(bool bPlayerDucking);
 DLLEXPORT void GGVR_SetPlayerPosition( float X, float Y, float Z );
 DLLEXPORT void GGVR_SetPlayerRotation( float X, float Y, float Z );
 DLLEXPORT void GGVR_SetOriginPosition(float X, float Y, float Z);

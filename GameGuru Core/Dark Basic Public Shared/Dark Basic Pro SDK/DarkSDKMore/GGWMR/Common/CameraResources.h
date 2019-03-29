@@ -37,7 +37,8 @@ namespace DX
             std::shared_ptr<DX::DeviceResources>& deviceResources);
 
         // Direct3D device resources.
-        ID3D11RenderTargetView* GetBackBufferRenderTargetView()     const { return m_d3dRenderTargetView.Get(); }
+        ID3D11RenderTargetView* GetBackBufferRenderTargetLeftView() const { return m_d3dRenderTargetLeftView.Get(); }
+        ID3D11RenderTargetView* GetBackBufferRenderTargetRightView()const { return m_d3dRenderTargetRightView.Get(); }
         ID3D11DepthStencilView* GetDepthStencilView()               const { return m_d3dDepthStencilView.Get(); }
         ID3D11Texture2D*        GetBackBufferTexture2D()            const { return m_d3dBackBuffer.Get();       }
         ID3D11Texture2D*        GetDepthStencilTexture2D()          const { return m_d3dDepthStencil.Get();     }
@@ -53,7 +54,8 @@ namespace DX
 
     private:
         // Direct3D rendering objects. Required for 3D.
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView>              m_d3dRenderTargetView;
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView>              m_d3dRenderTargetLeftView;
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView>              m_d3dRenderTargetRightView;
         Microsoft::WRL::ComPtr<ID3D11DepthStencilView>              m_d3dDepthStencilView;
         Microsoft::WRL::ComPtr<ID3D11Texture2D>                     m_d3dBackBuffer;
         Microsoft::WRL::ComPtr<ID3D11Texture2D>                     m_d3dDepthStencil;
