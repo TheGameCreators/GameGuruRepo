@@ -24,7 +24,7 @@ namespace BasicHologram
 
         // Sets the holographic space. This is our closest analogue to setting a new window
         // for the app.
-        void SetHolographicSpace(winrt::Windows::Graphics::Holographic::HolographicSpace const& holographicSpace);
+        void SetHolographicSpace(winrt::Windows::Graphics::Holographic::HolographicSpace const& holographicSpace, winrt::Windows::UI::Input::Spatial::SpatialInteractionManager* interactionManager);
 
         // Starts the holographic frame and updates the content.
         winrt::Windows::Graphics::Holographic::HolographicFrame Update();
@@ -99,6 +99,7 @@ namespace BasicHologram
 
         // Represents the holographic space around the user.
         winrt::Windows::Graphics::Holographic::HolographicSpace     m_holographicSpace = nullptr;
+		winrt::Windows::UI::Input::Spatial::SpatialInteractionManager* m_interactionManager = NULL;
 
         // SpatialLocator that is attached to the default HolographicDisplay.
         winrt::Windows::Perception::Spatial::SpatialLocator         m_spatialLocator = nullptr;

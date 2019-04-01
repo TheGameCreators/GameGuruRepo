@@ -5,6 +5,9 @@
 //#include "resource.h"
 #include "Common/DeviceResources.h"
 #include "BasicHologramMain.h"
+#include <SpatialInteractionManagerInterop.h>
+#include <windows.ui.input.spatial.h>
+#include <winrt\windows.ui.input.spatial.h>
 
 #define DLLEXPORT __declspec ( dllexport )
 extern "C" 
@@ -44,6 +47,8 @@ namespace BasicHologram
 		void SetInitialised(bool bState) { m_initialised = bState; }
 		bool GetInitialised() { return m_initialised; }
 
+		winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState CheckForInput();
+
     private:
 		bool													m_initialised = false;
         std::unique_ptr<BasicHologramMain>						m_main;
@@ -58,5 +63,30 @@ namespace BasicHologram
 
         // The holographic space the app will use for rendering.
         winrt::Windows::Graphics::Holographic::HolographicSpace m_holographicSpace = nullptr;
-    };
+
+	private:
+        // Interaction event handler.
+        void OnSourcePressed(
+            winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
+            winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
+
+		void OnSourceUpdated(
+			winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
+			winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
+
+        void OnSourceReleased(
+            winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
+            winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
+
+        // API objects used to process gesture input, and generate gesture events.
+        winrt::Windows::UI::Input::Spatial::SpatialInteractionManager       m_interactionManager = nullptr;
+
+        // Event registration token.
+        winrt::event_token                                                  m_sourcePressedEventToken;
+		winrt::event_token													m_sourceUpdatedEventToken;
+        winrt::event_token                                                  m_sourceReleasedEventToken;
+
+        // Used to indicate that a Pressed input event was received this frame.
+        winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState   m_sourceState = nullptr;
+	};
 }

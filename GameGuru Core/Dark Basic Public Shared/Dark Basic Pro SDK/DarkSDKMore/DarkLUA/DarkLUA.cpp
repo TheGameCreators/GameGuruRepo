@@ -2745,11 +2745,13 @@ int ControlDynamicCharacterController ( lua_State *L )
 	float fThrustUpwards = lua_tonumber(L, 8);
 	if ( g.vrglobals.GGVREnabled == 0 )
 	{
+		// no VR control
 		ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, fAngleY, fAngleX, fSpeed, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards );
 	}
 	else
 	{
-		//Rotate the offset around the Yaw of the HMD to make it relative to the HMD facing
+		// VR Controlled player capsule
+		// Rotate the offset around the Yaw of the HMD to make it relative to the HMD facing
 		double radian = 0.0174532988888;
 		double modifiedX = 0.0;
 		double modifiedZ = 0.0;
@@ -2787,8 +2789,12 @@ int ControlDynamicCharacterController ( lua_State *L )
 		yl = yl *  radian;
 		double cosYL = cos(yl);  double sinYL = sin(yl); double nsinYL = -sin(yl);
 
-		modifiedX = (sin(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*cosYL) + (g.vrglobals.GGVR_ZposOffsetChange*sinYL));
-		modifiedZ = (cos(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*nsinYL) + (g.vrglobals.GGVR_ZposOffsetChange*cosYL));
+		// move player along X and Z if in standing mode
+		if ( g.vrglobals.GGVRStandingMode == 1 )
+		{
+			modifiedX = (sin(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*cosYL) + (g.vrglobals.GGVR_ZposOffsetChange*sinYL));
+			modifiedZ = (cos(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*nsinYL) + (g.vrglobals.GGVR_ZposOffsetChange*cosYL));
+		}
 		
 		double norm_XOffset = 0.0;
 		double norm_ZOffset = 0.0;

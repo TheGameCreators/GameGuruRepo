@@ -32,5 +32,6 @@
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.UI.Core.h>
+#include <SpatialInteractionManagerInterop.h>
 #include <winrt/Windows.UI.Input.Spatial.h>
 

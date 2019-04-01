@@ -589,6 +589,9 @@ void postprocess_preterrain ( void )
 		GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
 		GGVR_RotatePlayerLocalY(t.cammousemovex_f / 8.0);
 
+		// update seated/standing flag
+		g.vrglobals.GGVRStandingMode = GGVR_GetTrackingSpace();
+
 		// update HMD position and controller feedback
 		bool bPlayerDucking = false;
 		if ( t.aisystem.playerducking != 0 ) bPlayerDucking = true;

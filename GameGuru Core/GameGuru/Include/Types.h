@@ -3262,10 +3262,12 @@ struct vrglobalstype
 	float GGVR_XposOffsetChange;
 	float GGVR_YposOffsetChange;
 	float GGVR_ZposOffsetChange;
+	int GGVRStandingMode;
 	vrglobalstype ( )
 	{
 		GGVREnabled = 0;
 		GGVRInitialized = 0;
+		GGVRStandingMode = 0;
 	}
 };
 

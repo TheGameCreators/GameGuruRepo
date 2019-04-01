@@ -47,11 +47,12 @@ BasicHologramMain::BasicHologramMain(std::shared_ptr<DX::DeviceResources> const&
     OnHolographicDisplayIsAvailableChanged(nullptr, nullptr);
 }
 
-void BasicHologramMain::SetHolographicSpace(HolographicSpace const& holographicSpace)
+void BasicHologramMain::SetHolographicSpace(HolographicSpace const& holographicSpace, winrt::Windows::UI::Input::Spatial::SpatialInteractionManager* interactionManager)
 {
     UnregisterHolographicEventHandlers();
 
     m_holographicSpace = holographicSpace;
+    m_interactionManager = interactionManager;
 
     // Respond to camera added events by creating any resources that are specific
     // to that camera, such as the back buffer render target view.
@@ -168,6 +169,28 @@ HolographicFrame BasicHologramMain::Update()
 			m_fHeadDirY = pose.Head().ForwardDirection().y;
 			m_fHeadDirZ = pose.Head().ForwardDirection().z;
 		}
+
+		// try to get controller input directly
+		/*
+		if ( m_interactionManager )
+		{
+			auto states = m_interactionManager->GetDetectedSourcesAtTimestamp(prediction.Timestamp());
+			std::vector<Windows::Foundation::Numerics::float3> m_positions;
+			//m_positions.reserve(states.Size);
+			for (const auto& state : states)
+			{
+				// Get the location of the SpatialInteractionSource for the earlier provided timestamp in the coordinate system provided.
+				SpatialInteractionSourceLocation location = state.Properties().TryGetLocation(m_stationaryReferenceFrame.CoordinateSystem());
+				if (!location || !location.Position() || !location.Orientation())
+				{
+					continue;
+				}
+
+				bool test = state.IsPressed();
+				test=test;
+			}
+		}
+		*/
     }
 #endif
 
