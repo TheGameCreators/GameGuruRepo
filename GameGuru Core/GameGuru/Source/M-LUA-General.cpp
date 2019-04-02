@@ -167,18 +167,19 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime )
 			SetObjectEffect ( g.prompt3dobjectoffset, g.guishadereffectindex );
 			DisableObjectZDepth ( g.prompt3dobjectoffset );
 			DisableObjectZRead ( g.prompt3dobjectoffset );
-			SetObjectMask ( g.prompt3dobjectoffset, 1 );
 			SetSphereRadius ( g.prompt3dobjectoffset, 0 );
+			// normal or VR
+			if ( g.vrglobals.GGVREnabled > 0 )
+				SetObjectMask ( g.prompt3dobjectoffset, (1<<6) + (1<<7) + 1 );
+			else
+				SetObjectMask ( g.prompt3dobjectoffset, 1 );
 		}
 
 		// render text to texture
 		if ( BitmapExist(2) == 0 ) CreateBitmap ( 2, 1024, 1024 );
 		SetCurrentBitmap ( 2 );
 		CLS ( Rgb(64,64,64) );
-		if ( g.gvrmode > 0 )
-			pastebitmapfontcenter ( pTextToRender, 512, 0, 4, 255);
-		else
-			pastebitmapfontcenter ( pTextToRender, 256, 0, 4, 255);
+		pastebitmapfontcenter ( pTextToRender, 256, 0, 4, 255);
 		GrabImage ( g.prompt3dimageoffset, 0, 0, 512, 64, 3 );
 		SetCurrentBitmap ( 0 );
 
@@ -205,7 +206,20 @@ void lua_updateprompt3d ( void )
 	float fA = t.luaglobal.scriptprompt3dAY;
 	if ( fX == 0.0f && fY == 0.0f && fZ == 0.0f )
 	{
-		// no coordinates so show in front of user
+		// projects forward from camera pos, finds floor and raises up 50 units, should stay put in all render views
+		float fStCamX = CameraAngleX();
+		float fStCamZ = CameraAngleZ();
+		RotateCamera ( 0, 0, CameraAngleY(0), 0 );
+		MoveCamera ( 0, 75.0f );
+		fX = CameraPositionX(0);
+		fZ = CameraPositionZ(0);
+		fY = BT_GetGroundHeight(t.terrain.TerrainID,fX,fZ) + 50.0f;
+		fA = CameraAngleY(0);
+		MoveCamera ( 0, -75.0f );
+		RotateCamera ( 0, fStCamX, CameraAngleY(0), fStCamZ );
+
+		/*
+		// no coordinates so show in front of user - follows camera zero direction no good for VR HMD cameras!
 		MoveCameraDown ( 0, 18.0f );
 		MoveCamera ( 0, 50.0f );
 		fX = CameraPositionX(0);
@@ -214,6 +228,7 @@ void lua_updateprompt3d ( void )
 		fA = CameraAngleY(0);
 		MoveCamera ( 0, -50.0f );
 		MoveCameraDown ( 0, -18.0f );
+		*/
 	}
 	if ( ObjectExist( g.prompt3dobjectoffset ) == 1 )
 	{

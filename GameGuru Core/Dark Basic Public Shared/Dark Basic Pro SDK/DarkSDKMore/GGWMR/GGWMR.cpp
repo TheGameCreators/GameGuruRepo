@@ -82,6 +82,11 @@ DLLEXPORT void GGWMR_GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM
 	app.GetProjectionMatrix ( iEyeIndex, pM00, pM10, pM20, pM30, pM01, pM11, pM21, pM31, pM02, pM12, pM22, pM32, pM03, pM13, pM23, pM33 );
 }
 
+DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY )
+{
+	app.GetThumbAndTrigger ( pTriggerValue, pThumbStickX, pThumbStickY );
+}
+
 DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight)
 {
 	app.UpdateRender();
@@ -132,9 +137,9 @@ void App::CreateHolographicSpaceA(HWND hWnd)
 
 	m_interactionManager = spSpatialInteractionManager.as<SpatialInteractionManager>();
 
-	m_sourcePressedEventToken = m_interactionManager.SourcePressed(bind(&App::OnSourcePressed, this, _1, _2));
+	//m_sourcePressedEventToken = m_interactionManager.SourcePressed(bind(&App::OnSourcePressed, this, _1, _2));
 	m_sourceUpdatedEventToken = m_interactionManager.SourceUpdated(bind(&App::OnSourceUpdated, this, _1, _2));
-	m_sourceReleasedEventToken = m_interactionManager.SourceReleased(bind(&App::OnSourceReleased, this, _1, _2));
+	//m_sourceReleasedEventToken = m_interactionManager.SourceReleased(bind(&App::OnSourceReleased, this, _1, _2));
 }
 
 void App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
@@ -154,8 +159,10 @@ void App::UpdateFrame()
 	g_holographicFrame = nullptr;
     if (m_holographicSpace != nullptr)
     {
-        g_holographicFrame = m_main->Update();
+		winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference pSpatialStationaryFrameOfReference = nullptr;
+        g_holographicFrame = m_main->Update(&pSpatialStationaryFrameOfReference);
 
+		/* seems this misses data, looses controller states and has lag, try the event driven approach!
 		// direct access to controller input
 		if ( m_interactionManager != nullptr && g_holographicFrame != nullptr )
 		{
@@ -164,26 +171,13 @@ void App::UpdateFrame()
 				auto states = m_interactionManager.GetDetectedSourcesAtTimestamp(g_holographicFrame.CurrentPrediction().Timestamp());
 				for (const auto& state : states)
 				{
-					bool bThumbStickpressed = state.ControllerProperties().IsThumbstickPressed();
-					if ( bThumbStickpressed )
+					if ( state.Source().Handedness() == SpatialInteractionSourceHandedness::Right )
 					{
-						MessageBox ( NULL, "can detect controller input now", "", MB_OK );
+						m_fTriggerValue = state.SelectPressedValue();
+						m_fThumbX = state.ControllerProperties().ThumbstickX();
+						m_fThumbY = state.ControllerProperties().ThumbstickY();
 					}
-					double fThumbX = state.ControllerProperties().ThumbstickX();
-					fThumbX=fThumbX;
 				}
-			}
-		}
-
-		/* not using event based for now - though would pickup input on SLOWER systems!!
-		// not working (see inside Update)
-		SpatialInteractionSourceState pointerState = CheckForInput();
-		if ( pointerState != nullptr )
-		{
-			bool bPressed = pointerState.IsSelectPressed();
-			if ( bPressed == true )
-			{
-				MessageBox ( NULL, "hello", "", MB_OK );
 			}
 		}
 		*/
@@ -203,6 +197,16 @@ void App::GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pU
 		*pDirX = m_main->GetPassOutHeadDirX();
 		*pDirY = m_main->GetPassOutHeadDirY();
 		*pDirZ = m_main->GetPassOutHeadDirZ();
+	}
+}
+
+void App::GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY )
+{
+    if (g_holographicFrame != nullptr)
+    {
+		*pTriggerValue = m_fTriggerValue;
+		*pThumbStickX = m_fThumbX;
+		*pThumbStickY = m_fThumbY;
 	}
 }
 
@@ -293,6 +297,7 @@ void App::Uninitialize()
 	m_deviceResources.reset();
 }
 
+/*
 SpatialInteractionSourceState App::CheckForInput()
 {
     SpatialInteractionSourceState sourceState = m_sourceState;
@@ -300,32 +305,36 @@ SpatialInteractionSourceState App::CheckForInput()
     return sourceState;
 }
 
-void App::OnSourcePressed(SpatialInteractionManager const& /*sender*/, SpatialInteractionSourceEventArgs const& args)
+void App::OnSourcePressed(SpatialInteractionManager const&, SpatialInteractionSourceEventArgs const& args)
 {
 	// see above - not using this way for now
     m_sourceState = args.State();
 }
 
-void App::OnSourceReleased(SpatialInteractionManager const& /*sender*/, SpatialInteractionSourceEventArgs const& args)
+void App::OnSourceReleased(SpatialInteractionManager const& , SpatialInteractionSourceEventArgs const& args)
 {
 	// see above
 }
+*/
 
-void App::OnSourceUpdated(SpatialInteractionManager const& /*sender*/, SpatialInteractionSourceEventArgs const& args)
+void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSourceEventArgs const& args)
 {
-	/* see above
-	winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState state = args.State;
-	SpatialInteractionSource source = state.Source;
-	SpatialInteractionController controller = source.Controller;
+	SpatialInteractionSourceState state = args.State();
+	SpatialInteractionSource source = state.Source();
+	SpatialInteractionController controller = source.Controller();
 	if (controller != nullptr)
     {
-        // Give Thumbstuck priority over Touchpad for tool selection.
-        if (controller.HasThumbstick)
+		m_fTriggerValue = (float)state.SelectPressedValue();
+        if (controller.HasThumbstick())
         {
-			SpatialInteractionControllerProperties controllerState = args.State.ControllerProperties;
-			double x = controllerState.ThumbstickX;
-			double y = controllerState.ThumbstickY;
+			SpatialInteractionControllerProperties controllerState = state.ControllerProperties();
+			m_fThumbX = (float)controllerState.ThumbstickX();
+			m_fThumbY = (float)controllerState.ThumbstickY();
+		}
+		else
+		{
+			m_fThumbX = 0.0f;
+			m_fThumbY = 0.0f;
 		}
 	}
-	*/
 }

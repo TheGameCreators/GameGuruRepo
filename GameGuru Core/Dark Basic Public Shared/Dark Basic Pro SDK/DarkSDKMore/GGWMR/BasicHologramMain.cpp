@@ -114,7 +114,7 @@ BasicHologramMain::~BasicHologramMain()
 }
 
 // Updates the application state once per frame.
-HolographicFrame BasicHologramMain::Update()
+HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference* pstationaryReferenceFrame )
 {
     // Before doing the timer update, there is some work to do per-frame
     // to maintain holographic rendering. First, we will get information
@@ -226,8 +226,8 @@ HolographicFrame BasicHologramMain::Update()
         }
     }
 
-    // The holographic frame will be used to get up-to-date view and projection matrices and
-    // to present the swap chain.
+    // The holographic frame will be used to get up-to-date view and projection matrices and to present the swap chain.
+	*pstationaryReferenceFrame = m_stationaryReferenceFrame;
     return holographicFrame;
 }
 

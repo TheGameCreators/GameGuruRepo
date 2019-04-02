@@ -20,6 +20,7 @@ extern "C"
 																float* pM01, float* pM11, float* pM21, float* pM31,
 																float* pM02, float* pM12, float* pM22, float* pM32,
 																float* pM03, float* pM13, float* pM23, float* pM33);
+	DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
 	DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
 	DLLEXPORT void GGWMR_Present ( void );
 }
@@ -35,6 +36,7 @@ namespace BasicHologram
         void CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
 		void UpdateFrame();
 		void GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );
+		void GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
 		void GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM10, float* pM20, float* pM30, 
 													float* pM01, float* pM11, float* pM21, float* pM31,
 													float* pM02, float* pM12, float* pM22, float* pM32,
@@ -47,7 +49,7 @@ namespace BasicHologram
 		void SetInitialised(bool bState) { m_initialised = bState; }
 		bool GetInitialised() { return m_initialised; }
 
-		winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState CheckForInput();
+		//winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState CheckForInput();
 
     private:
 		bool													m_initialised = false;
@@ -66,27 +68,32 @@ namespace BasicHologram
 
 	private:
         // Interaction event handler.
-        void OnSourcePressed(
-            winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
-            winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
+        //void OnSourcePressed(
+        //    winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
+       //     winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
 
 		void OnSourceUpdated(
 			winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
 			winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
 
-        void OnSourceReleased(
-            winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
-            winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
+        //void OnSourceReleased(
+        //    winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
+        //    winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
 
         // API objects used to process gesture input, and generate gesture events.
         winrt::Windows::UI::Input::Spatial::SpatialInteractionManager       m_interactionManager = nullptr;
 
+		// store controller input
+		float																m_fTriggerValue;
+		float																m_fThumbX;
+		float																m_fThumbY;
+
         // Event registration token.
-        winrt::event_token                                                  m_sourcePressedEventToken;
+        //winrt::event_token												m_sourcePressedEventToken;
 		winrt::event_token													m_sourceUpdatedEventToken;
-        winrt::event_token                                                  m_sourceReleasedEventToken;
+        //winrt::event_token												m_sourceReleasedEventToken;
 
         // Used to indicate that a Pressed input event was received this frame.
-        winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState   m_sourceState = nullptr;
+        //winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState   m_sourceState = nullptr;
 	};
 }

@@ -2750,106 +2750,117 @@ int ControlDynamicCharacterController ( lua_State *L )
 	}
 	else
 	{
-		// VR Controlled player capsule
-		// Rotate the offset around the Yaw of the HMD to make it relative to the HMD facing
-		double radian = 0.0174532988888;
-		double modifiedX = 0.0;
-		double modifiedZ = 0.0;
-		double HMDYaw = GGVR_GetHMDYaw();
-		double camL = t.playercontrol.finalcameraangley_f;
-
-		if (HMDYaw < 0.0)
-		{
-			HMDYaw = 360.0 + HMDYaw;
-		}
-		if (HMDYaw > 360.0)
-		{
-			HMDYaw = HMDYaw - 360.0;
-		}
-		if (camL < 0.0)
-		{
-			camL = 360.0 + camL;
-		}
-		if (camL > 360.0)
-		{
-			camL = camL - 360.0;
-		}
-
-		double yl = (camL - HMDYaw);
-
-		if (yl < 0.0f)
-		{
-			yl = 360.0f + yl;
-		}
-		if (yl > 360.0f)
-		{
-			yl = yl - 360.0f;
-		}
-		
-		yl = yl *  radian;
-		double cosYL = cos(yl);  double sinYL = sin(yl); double nsinYL = -sin(yl);
-
-		// move player along X and Z if in standing mode
+		// VR Control (standing or seated)
+		double Modified_fAngleY = 0.0;
+		double norm = 0.0;
 		if ( g.vrglobals.GGVRStandingMode == 1 )
 		{
+			// VR Controlled player capsule
+			double norm_XOffset = 0.0;
+			double norm_ZOffset = 0.0;
+
+			// Rotate the offset around the Yaw of the HMD to make it relative to the HMD facing
+			double radian = 0.0174532988888;
+			double modifiedX = 0.0;
+			double modifiedZ = 0.0;
+			double HMDYaw = GGVR_GetHMDYaw();
+			double camL = t.playercontrol.finalcameraangley_f;
+
+			if (HMDYaw < 0.0)
+			{
+				HMDYaw = 360.0 + HMDYaw;
+			}
+			if (HMDYaw > 360.0)
+			{
+				HMDYaw = HMDYaw - 360.0;
+			}
+			if (camL < 0.0)
+			{
+				camL = 360.0 + camL;
+			}
+			if (camL > 360.0)
+			{
+				camL = camL - 360.0;
+			}
+
+			double yl = (camL - HMDYaw);
+
+			if (yl < 0.0f)
+			{
+				yl = 360.0f + yl;
+			}
+			if (yl > 360.0f)
+			{
+				yl = yl - 360.0f;
+			}
+		
+			yl = yl *  radian;
+			double cosYL = cos(yl);  double sinYL = sin(yl); double nsinYL = -sin(yl);
+
+			// move player along X and Z if in standing mode
 			modifiedX = (sin(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*cosYL) + (g.vrglobals.GGVR_ZposOffsetChange*sinYL));
 			modifiedZ = (cos(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*nsinYL) + (g.vrglobals.GGVR_ZposOffsetChange*cosYL));
-		}
 		
-		double norm_XOffset = 0.0;
-		double norm_ZOffset = 0.0;
-		double Modified_fAngleY = 0.0;
+			norm_XOffset = 0.0;
+			norm_ZOffset = 0.0;
+			Modified_fAngleY = 0.0;
 		
-		//Work out the motion angle of the HMD in the play area
-		double norm = sqrt((modifiedX*modifiedX) + (modifiedZ*modifiedZ));
-		if (norm != 0.0)
-		{
-			double XOffset = modifiedX / norm;
-			double ZOffset = modifiedZ / norm;
-			double MovementAngle = 0.0f;
-
-			if (XOffset == 0.0)
+			//Work out the motion angle of the HMD in the play area
+			norm = sqrt((modifiedX*modifiedX) + (modifiedZ*modifiedZ));
+			if (norm != 0.0)
 			{
-				if (ZOffset > 0.0f)
-				{
-					MovementAngle = 0.0f;
-				}
-				else
-				{
-					MovementAngle = 180.0f;
-				}
-			}
-			if (XOffset > 0.0)
-			{
-				if (ZOffset >= 0.0f)
-				{
-					MovementAngle = Asin(XOffset);
-				}
-				else
-				{
-					MovementAngle = 180.0f - Asin(XOffset);
-				}
-			}
-			if (XOffset < 0.0)
-			{
-				if (ZOffset >= 0.0)
-				{
-					MovementAngle = 360.0f + Asin(XOffset);
-				}
-				else
-				{
-					MovementAngle = 180.0f - Asin(XOffset);
-				}
-			}
+				double XOffset = modifiedX / norm;
+				double ZOffset = modifiedZ / norm;
+				double MovementAngle = 0.0f;
 
-			Modified_fAngleY = MovementAngle;
+				if (XOffset == 0.0)
+				{
+					if (ZOffset > 0.0f)
+					{
+						MovementAngle = 0.0f;
+					}
+					else
+					{
+						MovementAngle = 180.0f;
+					}
+				}
+				if (XOffset > 0.0)
+				{
+					if (ZOffset >= 0.0f)
+					{
+						MovementAngle = Asin(XOffset);
+					}
+					else
+					{
+						MovementAngle = 180.0f - Asin(XOffset);
+					}
+				}
+				if (XOffset < 0.0)
+				{
+					if (ZOffset >= 0.0)
+					{
+						MovementAngle = 360.0f + Asin(XOffset);
+					}
+					else
+					{
+						MovementAngle = 180.0f - Asin(XOffset);
+					}
+				}
 
+				Modified_fAngleY = MovementAngle;
+
+			}
+			else
+			{
+				norm_XOffset = 0.0;
+				norm_ZOffset = 0.0;
+				norm = 0.0;
+				Modified_fAngleY = fAngleY;
+			}
 		}
 		else
 		{
-			norm_XOffset = 0.0;
-			norm_ZOffset = 0.0;
-			norm = 0.0;
+			norm = fSpeed;
 			Modified_fAngleY = fAngleY;
 		}
 		ODEControlDynamicCharacterController(t.aisystem.objectstartindex, Modified_fAngleY, fAngleX, norm, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards);
@@ -4097,6 +4108,8 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 187 : t.tshakez_f = lua_tonumber(L, 1); break;		
 		case 188 : t.huddamage.immunity = lua_tonumber(L, 1); break;		
 		case 189 : g.charanimindex = lua_tonumber(L, 1); break;	
+
+		// 190-200 reserved for MOTION CONTROLLER actions
 	
 		case 201 : t.gun[gunId].settings.ismelee         = lua_tonumber( L, param ); break;
 		case 202 : t.gun[gunId].settings.alternate       = lua_tonumber( L, param ); break;
@@ -4391,7 +4404,12 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 187 : lua_pushnumber ( L, t.tshakez_f ); break;	
 		case 188 : lua_pushnumber ( L, t.huddamage.immunity ); break;	
 		case 189 : lua_pushnumber ( L, g.charanimindex ); break;				
-			
+
+		case 190 : if ( GGVR_IsHmdPresent() > 0 ) { lua_pushnumber ( L, 1 ); } else { lua_pushnumber ( L, 0 ); } break;
+		case 191 : lua_pushnumber ( L, GGVR_IsHmdPresent() ); break;				
+		case 192 : lua_pushnumber ( L, GGVR_RightController_JoyX() ); break;				
+		case 193 : lua_pushnumber ( L, GGVR_RightController_JoyY() ); break;				
+
 		case 201 : lua_pushnumber ( L, t.gun[gunId].settings.ismelee         ); break;
 		case 202 : lua_pushnumber ( L, t.gun[gunId].settings.alternate       ); break;
 		case 203 : lua_pushnumber ( L, t.gun[gunId].settings.modessharemags  ); break;
@@ -4819,6 +4837,11 @@ int SetGamePlayerStateImmunity ( lua_State *L ) { return SetGamePlayerControlDat
 int GetGamePlayerStateImmunity ( lua_State *L ) { return GetGamePlayerControlData ( L, 188 ); }
 int SetGamePlayerStateCharAnimIndex ( lua_State *L ) { return SetGamePlayerControlData ( L, 189 ); }
 int GetGamePlayerStateCharAnimIndex ( lua_State *L ) { return GetGamePlayerControlData ( L, 189 ); }
+
+int GetGamePlayerStateMotionController ( lua_State *L ) { return GetGamePlayerControlData ( L, 190 ); }
+int GetGamePlayerStateMotionControllerType ( lua_State *L ) { return GetGamePlayerControlData ( L, 191 ); }
+int MotionControllerThumbstickX ( lua_State *L ) { return GetGamePlayerControlData ( L, 192 ); }
+int MotionControllerThumbstickY ( lua_State *L ) { return GetGamePlayerControlData ( L, 193 ); }
 
 int SetGamePlayerStateIsMelee ( lua_State *L ) { return SetGamePlayerControlData ( L, 201 ); }
 int GetGamePlayerStateIsMelee ( lua_State *L ) { return GetGamePlayerControlData ( L, 201 ); }
@@ -6136,6 +6159,11 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateImmunity" , GetGamePlayerStateImmunity );
 	lua_register(lua, "SetGamePlayerStateCharAnimIndex" , SetGamePlayerStateCharAnimIndex );
 	lua_register(lua, "GetGamePlayerStateCharAnimIndex" , GetGamePlayerStateCharAnimIndex );
+
+	lua_register(lua, "GetGamePlayerStateMotionController" , GetGamePlayerStateMotionController );
+	lua_register(lua, "GetGamePlayerStateMotionControllerType" , GetGamePlayerStateMotionControllerType );
+	lua_register(lua, "MotionControllerThumbstickX" , MotionControllerThumbstickX );
+	lua_register(lua, "MotionControllerThumbstickY" , MotionControllerThumbstickY );
 	
 	lua_register(lua, "SetGamePlayerStateIsMelee" , SetGamePlayerStateIsMelee );
 	lua_register(lua, "GetGamePlayerStateIsMelee" , GetGamePlayerStateIsMelee );

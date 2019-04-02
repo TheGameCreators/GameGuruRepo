@@ -1772,6 +1772,13 @@ GetCharAnimControlsMoving: GetCharAnimControlsMoving() -- command used by the de
 GetEntityAnimStart: GetEntityAnimStart() -- command used by the default player control mechanism
 GetEntityAnimFinish: GetEntityAnimFinish() -- command used by the default player control mechanism
 
+VR:MotionControllers
+--------------------
+GetGamePlayerStateMotionController: GetGamePlayerStateMotionController() -- returns 1 if VR HMD present
+GetGamePlayerStateMotionControllerType: GetGamePlayerStateMotionControllerType() -- returns 2 if WMR present
+MotionControllerThumbnstickX: MotionControllerThumbnstickX() -- returns X axis of thumbstick on motion controller
+MotionControllerThumbnstickY: MotionControllerThumbnstickY() -- returns Y axis of thumbstick on motion controller
+
 Understanding PREEXIT system
 ----------------------------
 SetPreExitValue: SetPreExitValue(e,value) -- where e is the entity and a value of 2 will exit preexit function

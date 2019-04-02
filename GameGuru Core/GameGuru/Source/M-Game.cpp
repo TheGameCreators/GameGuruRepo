@@ -2485,42 +2485,46 @@ void game_main_loop ( void )
 	// Handle occlusion if active
 	if ( g.globals.occlusionmode == 1 ) 
 	{
-		// detect velocity of XZ motion of player and advance 'virtual camera' ahead of real camera
-		// in order to give occluder time to reveal visible objects in advance of getting there
-		float plrx = CameraPositionX(0);
-		float plrz = CameraPositionZ(0);
-		g_fOccluderCamVelX = plrx - g_fOccluderLastCamX;
-		g_fOccluderCamVelZ = plrz - g_fOccluderLastCamZ;
-		g_fOccluderLastCamX = plrx;
-		g_fOccluderLastCamZ = plrz;
-		if ( fabs(g_fOccluderCamVelX)>0.01f || fabs(g_fOccluderCamVelZ)>0.01f )
+		// VR cannot use occlusion at the moment
+		if ( g.vrglobals.GGVREnabled == 0 )
 		{
-			float fDDMultiplier = 20.0f / sqrt(fabs(g_fOccluderCamVelX*g_fOccluderCamVelX)+fabs(g_fOccluderCamVelZ*g_fOccluderCamVelZ));
-			g_fOccluderCamVelX *= fDDMultiplier;
-			g_fOccluderCamVelZ *= fDDMultiplier;
-			if ( g_fOccluderCamVelX < -20.0f ) g_fOccluderCamVelX = -20.0f;
-			if ( g_fOccluderCamVelZ < -20.0f ) g_fOccluderCamVelZ = -20.0f;
-			if ( g_fOccluderCamVelX > 20.0f ) g_fOccluderCamVelX = 20.0f;
-			if ( g_fOccluderCamVelZ > 20.0f ) g_fOccluderCamVelZ = 20.0f;
-		}
-		else
-		{
-			g_fOccluderCamVelX = 0.0f;
-			g_fOccluderCamVelZ = 0.0f;
-		}
-		// show me this
-		CPUShiftXZ ( g_fOccluderCamVelX, g_fOccluderCamVelZ );
+			// detect velocity of XZ motion of player and advance 'virtual camera' ahead of real camera
+			// in order to give occluder time to reveal visible objects in advance of getting there
+			float plrx = CameraPositionX(0);
+			float plrz = CameraPositionZ(0);
+			g_fOccluderCamVelX = plrx - g_fOccluderLastCamX;
+			g_fOccluderCamVelZ = plrz - g_fOccluderLastCamZ;
+			g_fOccluderLastCamX = plrx;
+			g_fOccluderLastCamZ = plrz;
+			if ( fabs(g_fOccluderCamVelX)>0.01f || fabs(g_fOccluderCamVelZ)>0.01f )
+			{
+				float fDDMultiplier = 20.0f / sqrt(fabs(g_fOccluderCamVelX*g_fOccluderCamVelX)+fabs(g_fOccluderCamVelZ*g_fOccluderCamVelZ));
+				g_fOccluderCamVelX *= fDDMultiplier;
+				g_fOccluderCamVelZ *= fDDMultiplier;
+				if ( g_fOccluderCamVelX < -20.0f ) g_fOccluderCamVelX = -20.0f;
+				if ( g_fOccluderCamVelZ < -20.0f ) g_fOccluderCamVelZ = -20.0f;
+				if ( g_fOccluderCamVelX > 20.0f ) g_fOccluderCamVelX = 20.0f;
+				if ( g_fOccluderCamVelZ > 20.0f ) g_fOccluderCamVelZ = 20.0f;
+			}
+			else
+			{
+				g_fOccluderCamVelX = 0.0f;
+				g_fOccluderCamVelZ = 0.0f;
+			}
+			// show me this
+			CPUShiftXZ ( g_fOccluderCamVelX, g_fOccluderCamVelZ );
 
-		CPU3DSetCameraFar ( t.visuals.CameraFAR_f );
-		if ( g_pOccluderThread == NULL )
-		{
-			CPU3DOcclude (  );
-			g_hOccluderBegin = CreateEvent ( NULL, FALSE, FALSE, NULL );
-			g_hOccluderEnd   = CreateEvent ( NULL, FALSE, FALSE, NULL );
-			g_pOccluderThread = new cOccluderThread;
-			g_pOccluderThread->Start ( );
+			CPU3DSetCameraFar ( t.visuals.CameraFAR_f );
+			if ( g_pOccluderThread == NULL )
+			{
+				CPU3DOcclude (  );
+				g_hOccluderBegin = CreateEvent ( NULL, FALSE, FALSE, NULL );
+				g_hOccluderEnd   = CreateEvent ( NULL, FALSE, FALSE, NULL );
+				g_pOccluderThread = new cOccluderThread;
+				g_pOccluderThread->Start ( );
+			}
+			g_occluderOn = true;
 		}
-		g_occluderOn = true;
 	}
 	t.game.perf.occlusion += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 

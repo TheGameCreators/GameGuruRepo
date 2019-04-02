@@ -27,7 +27,7 @@ namespace BasicHologram
         void SetHolographicSpace(winrt::Windows::Graphics::Holographic::HolographicSpace const& holographicSpace, winrt::Windows::UI::Input::Spatial::SpatialInteractionManager* interactionManager);
 
         // Starts the holographic frame and updates the content.
-        winrt::Windows::Graphics::Holographic::HolographicFrame Update();
+        winrt::Windows::Graphics::Holographic::HolographicFrame Update(winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference* pstationaryReferenceFrame);
 
         // Renders holograms, including world-locked content.
         bool Render(winrt::Windows::Graphics::Holographic::HolographicFrame const& holographicFrame);

@@ -10,10 +10,14 @@ function switchmain_main(e)
  if PlayerDist < 100 and g_PlayerHealth > 0 then
   GetEntityPlayerVisibility(e)
   if g_Entity[e]['plrvisible'] == 1 and (g_Entity[e]['activated'] == 0 or g_Entity[e]['activated'] == 2) then
-   if GetGamePlayerStateXBOX() == 1 then
-    Prompt("Press Y button to use")
+   if GetGamePlayerStateMotionController() == 1 then
+    Prompt("Press Trigger to use")
    else
-    Prompt ("Press E to use")
+    if GetGamePlayerStateXBOX() == 1 then
+     Prompt("Press Y button to use")
+    else
+     Prompt ("Press E to use")
+    end
    end
    if g_Entity[e]['activated'] == 0 and g_KeyPressE == 1 then
 	switchautolegacy[e] = 0

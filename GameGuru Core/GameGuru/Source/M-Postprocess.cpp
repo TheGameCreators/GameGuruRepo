@@ -585,9 +585,9 @@ void postprocess_preterrain ( void )
 	// VR Support - render VR cameras
 	if ( g.vrglobals.GGVREnabled > 0 )
 	{
-		// set player from in-game
-		GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
-		GGVR_RotatePlayerLocalY(t.cammousemovex_f / 8.0);
+		// position VR player at location of main camera
+		GGVR_SetPlayerPosition(t.tFinalCamX_f, t.tFinalCamY_f, t.tFinalCamZ_f);
+		GGVR_SetPlayerAngleY(t.playercontrol.finalcameraangley_f);
 
 		// update seated/standing flag
 		g.vrglobals.GGVRStandingMode = GGVR_GetTrackingSpace();
@@ -596,21 +596,6 @@ void postprocess_preterrain ( void )
 		bool bPlayerDucking = false;
 		if ( t.aisystem.playerducking != 0 ) bPlayerDucking = true;
 		GGVR_UpdatePlayer(bPlayerDucking);
-
-		float Yangle;
-		if (GGVR_GetPlayerAngleX() == 180.0)
-		{
-			Yangle = 180.0 - GGVR_GetPlayerAngleY();
-		}
-		else
-		{
-			Yangle = GGVR_GetPlayerAngleY();
-		}
-		RotateCamera(t.terrain.gameplaycamera, 0.0, Yangle, 0.0);
-		g.vrglobals.GGVR_HeadingAngle = Yangle;
-		t.playercontrol.finalcameraanglex_f = 0;
-		t.playercontrol.finalcameraangley_f = Yangle;
-		t.playercontrol.finalcameraanglez_f = 0;
 
 		//  render terrains now
 		if (t.hardwareinfoglobals.noterrain == 0)

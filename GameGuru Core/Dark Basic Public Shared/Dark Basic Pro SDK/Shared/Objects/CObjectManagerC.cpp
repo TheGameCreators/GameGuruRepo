@@ -5460,7 +5460,13 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 			tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( 0 );
 			float fCurrentNearRange = m_Camera_Ptr->fZNear;
 			float fCurrentFarRange = m_Camera_Ptr->fZFar;
-			SetCameraRange ( 0, 2.5f, 70000.0f ); // forces HUD weapons not to blur/DOF/MOTION/etc
+			bool bCameraRangeAndProjectionChanged = false;
+			if ( g_pGlob->dwRenderCameraID != 6 && g_pGlob->dwRenderCameraID != 7 )
+			{
+				// except for cameras 6 and 7 which are VR eye cameras and have their own projection matrix (which should not be overwritten by SetCameraRange)
+				SetCameraRange ( 0, 2.5f, 70000.0f ); // forces HUD weapons not to blur/DOF/MOTION/etc
+				bCameraRangeAndProjectionChanged = true;
+			}
 
 			// record weapon/jetpack techniques (so can restore after cutout technique)
 			DWORD dwOldWeaponBasicShaderPtr, dwOldWeaponBoneShaderPtr, dwOldJetpackBoneShaderPtr;
@@ -5706,7 +5712,10 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 			}
 
 			// restore saved camera range
-			SetCameraRange ( 0, fCurrentNearRange, fCurrentFarRange );
+			if ( bCameraRangeAndProjectionChanged == false )
+			{
+				SetCameraRange ( 0, fCurrentNearRange, fCurrentFarRange );
+			}
 		}
 		break;
 	}

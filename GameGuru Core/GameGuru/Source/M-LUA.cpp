@@ -270,6 +270,11 @@ void lua_loop_begin ( void )
 		if ( JoystickFireD() == 1 )  
 			t.tKeyPressE = 1;
 	}
+	if ( g.vrglobals.GGVREnabled > 0 )
+	{
+		if ( GGVR_RightController_Trigger() > 0.9f )
+			t.tKeyPressE = 1;
+	}
 	LuaSetInt ( "g_KeyPressE",t.tKeyPressE );
 	LuaSetInt ( "g_KeyPressQ",KeyState(g.keymap[16]) );
 

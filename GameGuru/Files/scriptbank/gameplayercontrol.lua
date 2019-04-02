@@ -598,8 +598,16 @@ function gameplayercontrol.lookmove()
 			SetGamePlayerStateCamMouseMoveX(ttjoyrotx*6.0)
 			SetGamePlayerStateCamMouseMoveY(ttjoyroty*6.0)
 		end
+		if ( GetGamePlayerStateMotionController() == 1 ) then
+			-- Get Motion Controller input to control player turning
+			if ( GetGamePlayerStateMotionControllerType() == 2 ) then -- WMR
+				ttjoyrotx=MotionControllerThumbstickX()
+				if ( ttjoyrotx>-0.3 and ttjoyrotx<0.3 ) then ttjoyrotx = 0 end
+				SetGamePlayerStateCamMouseMoveX(GetGamePlayerStateCamMouseMoveX()+(ttjoyrotx*6.0))			
+			end
+		end
 
-		-- Modifly rotation speed by zoom amount
+		-- Modify rotation speed by zoom amount
 		ttturnspeedmodifier=1.0
 		if ( GetGamePlayerStateGunID()>0 ) then 
 			ttturnspeedmodifier=GetFireModeSettingsPlrTurnSpeedMod()

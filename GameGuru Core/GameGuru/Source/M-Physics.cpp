@@ -1418,14 +1418,8 @@ void physics_player_gatherkeycontrols ( void )
 		}
 		if (g.walkonkeys == 1)
 		{
-			if ( GGVR_LeftController_JoyY() > 0.25 )  t.plrkeyW = 1;
-			if ( GGVR_LeftController_JoyY() < -0.25)  t.plrkeyS = 1;
-			if ( GGVR_LeftController_JoyX() < -0.25)  t.plrkeyA = 1;
-			if ( GGVR_LeftController_JoyX() > 0.25 )  t.plrkeyD = 1;
-		}
-		if (GGVR_RightController_JoyX() < -0.25 || GGVR_RightController_JoyX() > 0.25)
-		{
-			t.playercontrol.cy_f = t.playercontrol.cy_f + GGVR_RightController_JoyX()*0.2;
+			if ( GGVR_RightController_JoyY() > 0.25 )  t.plrkeyW = 1;
+			if ( GGVR_RightController_JoyY() < -0.25)  t.plrkeyS = 1;
 		}
 		g.vrglobals.GGVR_XposOffset = GGVR_GetHMDOffsetX();
 		g.vrglobals.GGVR_ZposOffset = GGVR_GetHMDOffsetZ();
@@ -1510,7 +1504,16 @@ void physics_player_gatherkeycontrols ( void )
 		t.plrhasfocus=1;
 		if ( t.plrfilemapaccess == 1 ) 
 		{
-			t.plrhasfocus=GetFileMapDWORD( 11, 148 );
+			// if VR, disable this as WMR changes the focus window
+			if ( g.vrglobals.GGVREnabled > 0 )
+			{
+				// window focus can be switched to HMD window
+			}
+			else
+			{
+				// normal behavior
+				t.plrhasfocus=GetFileMapDWORD( 11, 148 );
+			}
 		}
 	}
 

@@ -2,6 +2,7 @@
 
 // Generic
 void GGVR_ChooseVRSystem ( int iGGVREnabledMode );
+int GGVR_IsHmdPresent();
 void GGVR_SetTrackingSpace( int space );
 int GGVR_GetTrackingSpace ( void );
 int GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand);
@@ -19,6 +20,7 @@ void GGVR_MovePlayerLocalX( float valx );
 void GGVR_MovePlayerLocalY( float valy );
 void GGVR_MovePlayerLocalZ( float valz );
 void GGVR_RotatePlayerLocalX( float valx );
+void GGVR_SetPlayerAngleY( float valy );
 void GGVR_RotatePlayerLocalY( float valy );
 void GGVR_RotatePlayerLocalZ( float valz );
 void GGVR_LockPlayerTurn( int Lock );
@@ -91,7 +93,6 @@ void GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext );
 void GGVR_PreSubmit( void );
 
 // OpenVR Specific
-int GGVR_IsHmdPresent();
 int GGVR_IsRuntimeInstalled();
 void GGVR_SuspendRendering(int flag);
 void GGVR_ErrorMessagesOn(int state );

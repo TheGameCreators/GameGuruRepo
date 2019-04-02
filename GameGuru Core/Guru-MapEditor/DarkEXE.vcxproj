@@ -882,7 +882,7 @@
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <GenerateDebugInformation>No</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <FullProgramDatabaseFile>false</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <Profile>false</Profile>
