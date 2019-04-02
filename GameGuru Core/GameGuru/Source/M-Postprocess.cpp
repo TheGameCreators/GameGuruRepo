@@ -113,7 +113,7 @@ void postprocess_init ( void )
 					t.glefteyecameraid = 6;
 					t.grighteyecameraid = 7;
 					g.vrglobals.GGVRInitialized = 0;
-					GGVR_Init(g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004);
+					GGVR_Init(g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004, g.guishadereffectindex, g.editorimagesoffset+14);
 				}
 
 				// and new SAO shader which is slower but nicer looking with SAO effect in place

@@ -87,6 +87,11 @@ DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbSti
 	app.GetThumbAndTrigger ( pTriggerValue, pThumbStickX, pThumbStickY );
 }
 
+DLLEXPORT void GGWMR_GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ )
+{
+	app.GetHandPosAndOrientation ( pRHX, pRHY, pRHZ );
+}
+
 DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight)
 {
 	app.UpdateRender();
@@ -161,26 +166,6 @@ void App::UpdateFrame()
     {
 		winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference pSpatialStationaryFrameOfReference = nullptr;
         g_holographicFrame = m_main->Update(&pSpatialStationaryFrameOfReference);
-
-		/* seems this misses data, looses controller states and has lag, try the event driven approach!
-		// direct access to controller input
-		if ( m_interactionManager != nullptr && g_holographicFrame != nullptr )
-		{
-			if ( g_holographicFrame.CurrentPrediction() != nullptr )
-			{
-				auto states = m_interactionManager.GetDetectedSourcesAtTimestamp(g_holographicFrame.CurrentPrediction().Timestamp());
-				for (const auto& state : states)
-				{
-					if ( state.Source().Handedness() == SpatialInteractionSourceHandedness::Right )
-					{
-						m_fTriggerValue = state.SelectPressedValue();
-						m_fThumbX = state.ControllerProperties().ThumbstickX();
-						m_fThumbY = state.ControllerProperties().ThumbstickY();
-					}
-				}
-			}
-		}
-		*/
 	}
 }
 
@@ -207,6 +192,16 @@ void App::GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float*
 		*pTriggerValue = m_fTriggerValue;
 		*pThumbStickX = m_fThumbX;
 		*pThumbStickY = m_fThumbY;
+	}
+}
+
+void App::GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ )
+{
+    if (g_holographicFrame != nullptr)
+    {
+		*pRHX = m_fRightHandX;
+		*pRHY = m_fRightHandY;
+		*pRHZ = m_fRightHandZ;
 	}
 }
 
@@ -324,6 +319,7 @@ void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSo
 	SpatialInteractionController controller = source.Controller();
 	if (controller != nullptr)
     {
+		// get trigger value and thumbstick
 		m_fTriggerValue = (float)state.SelectPressedValue();
         if (controller.HasThumbstick())
         {
@@ -335,6 +331,25 @@ void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSo
 		{
 			m_fThumbX = 0.0f;
 			m_fThumbY = 0.0f;
+		}
+
+		// get controller position and orientation
+        SpatialPointerPose pose = nullptr;
+		winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference stationaryReferenceFrame = m_main->GetFrameOfReference();
+		pose = state.TryGetPointerPose(stationaryReferenceFrame.CoordinateSystem());
+		if ( pose != nullptr )
+		{
+			SpatialPointerInteractionSourcePose motioncontrollerpose = nullptr;
+			motioncontrollerpose = pose.TryGetInteractionSourcePose(source);
+			if ( motioncontrollerpose != nullptr )
+			{
+				if ( source.Handedness() == SpatialInteractionSourceHandedness::Right )
+				{
+					m_fRightHandX = motioncontrollerpose.Position().x;
+					m_fRightHandY = motioncontrollerpose.Position().y;
+					m_fRightHandZ = motioncontrollerpose.Position().z;
+				}
+			}
 		}
 	}
 }

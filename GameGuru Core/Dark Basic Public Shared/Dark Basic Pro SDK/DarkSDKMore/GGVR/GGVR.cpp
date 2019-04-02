@@ -87,6 +87,8 @@ public:
 	int ObjOrigin;
 	int ObjRightHand;
 	int ObjLeftHand;
+	int ShaderID;
+	int TextureID;
 	void Create();
 	void Destroy();
 
@@ -114,6 +116,7 @@ typedef void (*sGGWMR_GetUpdateFnc)(void); sGGWMR_GetUpdateFnc GGWMR_GetUpdate =
 typedef void (*sGGWMR_GetHeadPosAndDirFnc)(float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHeadPosAndDirFnc GGWMR_GetHeadPosAndDir = NULL;
 typedef void (*sGGWMR_GetProjectionMatrixFnc)(int,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetProjectionMatrixFnc GGWMR_GetProjectionMatrix = NULL;
 typedef void (*sGGWMR_GetThumbAndTriggerFnc)(float*,float*,float*); sGGWMR_GetThumbAndTriggerFnc GGWMR_GetThumbAndTrigger = NULL;
+typedef void (*sGGWMR_GetHandPosAndOrientationFnc)(float*,float*,float*); sGGWMR_GetHandPosAndOrientationFnc GGWMR_GetHandPosAndOrientation = NULL;
 typedef void (*sGGWMR_GetRenderTargetAndDepthStencilViewFnc)(void**,void**,void**,DWORD*,DWORD*); sGGWMR_GetRenderTargetAndDepthStencilViewFnc GGWMR_GetRenderTargetAndDepthStencilView = NULL;
 typedef void (*sGGWMR_PresentFnc)(void); sGGWMR_PresentFnc GGWMR_Present = NULL;
 
@@ -237,6 +240,7 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode )
 				GGWMR_GetHeadPosAndDir = (sGGWMR_GetHeadPosAndDirFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetHeadPosAndDir" );
 				GGWMR_GetProjectionMatrix = (sGGWMR_GetProjectionMatrixFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetProjectionMatrix" );
 				GGWMR_GetThumbAndTrigger = (sGGWMR_GetThumbAndTriggerFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetThumbAndTrigger" );
+				GGWMR_GetHandPosAndOrientation = (sGGWMR_GetHandPosAndOrientationFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetHandPosAndOrientation" );
 				GGWMR_GetRenderTargetAndDepthStencilView = (sGGWMR_GetRenderTargetAndDepthStencilViewFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetRenderTargetAndDepthStencilView" );
 				GGWMR_Present = (sGGWMR_PresentFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_Present" );
 			}
@@ -267,7 +271,7 @@ int GGVR_GetTrackingSpace ( void )
 	return GGVR_TrackingSpace;
 }
 
-int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand)
+int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand, int iShaderID, int iTextureID)
 {
 	//Set Onject ID's for Player dummy objects
 	GGVR_Player.ObjBase = ObjBase;
@@ -275,6 +279,9 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 	GGVR_Player.ObjOrigin = ObjOrigin;
 	GGVR_Player.ObjRightHand = ObjRightHand;
 	GGVR_Player.ObjLeftHand = ObjLeftHand;
+
+	GGVR_Player.ShaderID = iShaderID;//g.guishadereffectindex
+	GGVR_Player.TextureID = iTextureID;//g.editorimagesoffset+14
 
 	//Create Cameras
 	GGVR_RCamID = RCamID;
@@ -646,8 +653,14 @@ void GGVR_UpdatePoses(void)
 				}
 
 				// also need position/orientation of controller
-
 				// also need touch pad for teleport action
+				float fRightHandX = 0.0f;
+				float fRightHandY = 0.0f;
+				float fRightHandZ = 0.0f;
+				GGWMR_GetHandPosAndOrientation ( &fRightHandX, &fRightHandY, &fRightHandZ );
+				pGamePoseArray_Pos[GGVR_RHandIndex].v[0] = fRightHandX;
+				pGamePoseArray_Pos[GGVR_RHandIndex].v[1] = fRightHandY;
+				pGamePoseArray_Pos[GGVR_RHandIndex].v[2] = -fRightHandZ;
 
 				// also need grip for pickup and drop actions
 			}
@@ -1550,10 +1563,19 @@ void GGVR_PlayerData::Create( )
 	SetObjectCollisionOff(GGVR_Player.ObjOrigin);
 
 	//ObjRightHand
-	MakeObjectCone(GGVR_Player.ObjRightHand, 0.1f*GGVR_WorldScale);
+	//MakeObjectCone(GGVR_Player.ObjRightHand, 0.1f*GGVR_WorldScale);
+	MakeObjectSphere(GGVR_Player.ObjRightHand, 2.0f);//0.1f*GGVR_WorldScale);
 	RotateObject(GGVR_Player.ObjRightHand, 90.0, 0.0, 0.0);
 	FixObjectPivot(GGVR_Player.ObjRightHand);
 	SetObjectCollisionOff(GGVR_Player.ObjRightHand);
+
+	// make controller object renderable
+	SetObjectEffect ( GGVR_Player.ObjRightHand, GGVR_Player.ShaderID );//g.guishadereffectindex);
+	DisableObjectZDepth ( GGVR_Player.ObjRightHand );
+	DisableObjectZRead ( GGVR_Player.ObjRightHand );
+	SetSphereRadius ( GGVR_Player.ObjRightHand, 0 );
+	SetObjectMask ( GGVR_Player.ObjRightHand, (1<<6) + (1<<7) + 1 );
+	TextureObject ( GGVR_Player.ObjRightHand, 0, GGVR_Player.TextureID );//g.editorimagesoffset+14 );
 
 	//ObjLeftHand
 	MakeObjectCone(GGVR_Player.ObjLeftHand, 0.1f*GGVR_WorldScale);

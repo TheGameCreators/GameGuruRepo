@@ -61,6 +61,9 @@ namespace BasicHologram
 		float GetPassOutHeadDirY(void) { return m_fHeadDirY; }
 		float GetPassOutHeadDirZ(void) { return m_fHeadDirZ; }		
 
+		// utility member functions
+		winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference GetFrameOfReference ( void ) { return m_stationaryReferenceFrame; }
+
     private:
         // Asynchronously creates resources for new holographic cameras.
         void OnCameraAdded(

@@ -21,6 +21,7 @@ extern "C"
 																float* pM02, float* pM12, float* pM22, float* pM32,
 																float* pM03, float* pM13, float* pM23, float* pM33);
 	DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
+	DLLEXPORT void GGWMR_GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ );
 	DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
 	DLLEXPORT void GGWMR_Present ( void );
 }
@@ -37,6 +38,7 @@ namespace BasicHologram
 		void UpdateFrame();
 		void GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );
 		void GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
+		void GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ );
 		void GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM10, float* pM20, float* pM30, 
 													float* pM01, float* pM11, float* pM21, float* pM31,
 													float* pM02, float* pM12, float* pM22, float* pM32,
@@ -87,6 +89,10 @@ namespace BasicHologram
 		float																m_fTriggerValue;
 		float																m_fThumbX;
 		float																m_fThumbY;
+
+		float																m_fRightHandX;
+		float																m_fRightHandY;
+		float																m_fRightHandZ;
 
         // Event registration token.
         //winrt::event_token												m_sourcePressedEventToken;

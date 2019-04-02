@@ -5,7 +5,7 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode );
 int GGVR_IsHmdPresent();
 void GGVR_SetTrackingSpace( int space );
 int GGVR_GetTrackingSpace ( void );
-int GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand);
+int GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand, int iShaderID, int iTextureID);
 GGMATRIX GGVR_GetRightEyeProjectionMatrix();
 GGMATRIX GGVR_GetLeftEyeProjectionMatrix();
 void GGVR_SetWorldScale( float scale );
