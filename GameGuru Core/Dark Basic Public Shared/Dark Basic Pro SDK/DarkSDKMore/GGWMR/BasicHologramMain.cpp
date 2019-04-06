@@ -16,26 +16,33 @@ using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 using namespace winrt::Windows::Perception::Spatial;
 using namespace winrt::Windows::UI::Input::Spatial;
 
+void DebugVRlog ( const char* pReportLog );
+
 // Loads and initializes application assets when the application is loaded.
 BasicHologramMain::BasicHologramMain(std::shared_ptr<DX::DeviceResources> const& deviceResources) :
     m_deviceResources(deviceResources)
 {
     // Register to be notified if the device is lost or recreated.
+	DebugVRlog("RegisterDeviceNotify");
     m_deviceResources->RegisterDeviceNotify(this);
 
     // If connected, a game controller can also be used for input.
+	DebugVRlog("m_gamepadAddedEventToken");
     m_gamepadAddedEventToken = Gamepad::GamepadAdded(bind(&BasicHologramMain::OnGamepadAdded, this, _1, _2));
     m_gamepadRemovedEventToken = Gamepad::GamepadRemoved(bind(&BasicHologramMain::OnGamepadRemoved, this, _1, _2));
 
+	DebugVRlog("OnGamepadAdded");
     for (Gamepad const& gamepad : Gamepad::Gamepads())
     {
         OnGamepadAdded(nullptr, gamepad);
     }
 
+	DebugVRlog("m_canGetHolographicDisplayForCamera");
     m_canGetHolographicDisplayForCamera = winrt::Windows::Foundation::Metadata::ApiInformation::IsPropertyPresent(L"Windows.Graphics.Holographic.HolographicCamera", L"Display");
     m_canGetDefaultHolographicDisplay = winrt::Windows::Foundation::Metadata::ApiInformation::IsMethodPresent(L"Windows.Graphics.Holographic.HolographicDisplay", L"GetDefault");
     m_canCommitDirect3D11DepthBuffer = winrt::Windows::Foundation::Metadata::ApiInformation::IsMethodPresent(L"Windows.Graphics.Holographic.HolographicCameraRenderingParameters", L"CommitDirect3D11DepthBuffer");
 
+	DebugVRlog("IsAvailableChanged");
     if (m_canGetDefaultHolographicDisplay)
     {
         // Subscribe for notifications about changes to the state of the default HolographicDisplay 
@@ -44,13 +51,16 @@ BasicHologramMain::BasicHologramMain(std::shared_ptr<DX::DeviceResources> const&
     }
 
     // Acquire the current state of the default HolographicDisplay and its SpatialLocator.
+	DebugVRlog("OnHolographicDisplayIsAvailableChanged");
     OnHolographicDisplayIsAvailableChanged(nullptr, nullptr);
 }
 
 void BasicHologramMain::SetHolographicSpace(HolographicSpace const& holographicSpace, winrt::Windows::UI::Input::Spatial::SpatialInteractionManager* interactionManager)
 {
+	DebugVRlog("m_gamepadAddedEventToken");
     UnregisterHolographicEventHandlers();
 
+	DebugVRlog("m_holographicSpace");
     m_holographicSpace = holographicSpace;
     m_interactionManager = interactionManager;
 
@@ -62,6 +72,7 @@ void BasicHologramMain::SetHolographicSpace(HolographicSpace const& holographicS
     // allows the app to take more than one frame to finish creating resources and
     // loading assets for the new holographic camera.
     // This function should be registered before the app creates any HolographicFrames.
+	DebugVRlog("m_cameraAddedToken");
     m_cameraAddedToken = m_holographicSpace.CameraAdded(std::bind(&BasicHologramMain::OnCameraAdded, this, _1, _2));
 
     // Respond to camera removed events by releasing resources that were created for that
@@ -70,6 +81,7 @@ void BasicHologramMain::SetHolographicSpace(HolographicSpace const& holographicS
     // buffer right away. This includes render target views, Direct2D target bitmaps, and so on.
     // The app must also ensure that the back buffer is not attached as a render target, as
     // shown in DeviceResources::ReleaseResourcesForBackBuffer.
+	DebugVRlog("m_cameraRemovedToken");
     m_cameraRemovedToken = m_holographicSpace.CameraRemoved(std::bind(&BasicHologramMain::OnCameraRemoved, this, _1, _2));
 
     // Notes on spatial tracking APIs:

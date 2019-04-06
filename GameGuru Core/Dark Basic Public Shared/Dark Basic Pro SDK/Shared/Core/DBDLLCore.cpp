@@ -1496,34 +1496,6 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	// Process any messages prior to program start (also for begin scene call)
 	InternalProcessMessages();
 
-	/* works here now we are using the primaru HWND!
-	// Need to create Holographic Space early to get original HWND pointer
-	GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, pRootPath );//g_pGlob->hWnd, pRootPath );
-	GGVR_CreateHolographicSpace2 ( NULL, NULL );
-	ShowWindow(g_pGlob->hOriginalhWnd, SW_SHOW);
-    UpdateWindow(g_pGlob->hOriginalhWnd);
-
-	// Mini message pump to test rendering works okay
-    MSG msg { };
-    bool isRunning = true;
-    while (isRunning)
-    {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-        {
-            if (msg.message == WM_QUIT)
-            {
-                isRunning = false;
-            }
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-        else
-        {
-			GGVR_InitHolographicSpace();
-        }
-    }
-	*/
-
 	// complete
 	return 0;
 }

@@ -2,6 +2,8 @@
 // GGWMR - Windows Mixed Reality DLL (WinRT hooked)
 //
 
+#define ACTIVATEVRDEBUGLOGGING
+
 // Includes for Windows Mixed Reality
 #include "stdafx.h"
 #include <HolographicSpaceInterop.h>
@@ -24,6 +26,89 @@ using namespace winrt::Windows::UI::Input::Spatial;
 // Globals
 App app;
 HolographicFrame g_holographicFrame = nullptr;
+char* g_pVRDebugLog[10000];
+
+// Support debug log system
+void DebugVRlog ( const char* pReportLog )
+{
+	// Log File
+	#ifdef ACTIVATEVRDEBUGLOGGING
+	const char* pFilename = "VRDebugLog.log";
+
+	// Reset at start
+	if ( pReportLog == NULL )
+	{
+		for ( int iFind = 0; iFind < 10000; iFind++ ) g_pVRDebugLog[iFind] = NULL; 
+		return;
+	}
+
+	// New entry 
+	char pWithTime[2048];
+	sprintf_s ( pWithTime, "%d : %s\r\n", timeGetTime(), pReportLog );
+	DWORD dwNewEntry = strlen(pWithTime);
+
+	// Find new slot
+	for ( int iFind = 0; iFind < 10000; iFind++ )
+	{
+		if ( g_pVRDebugLog[iFind] == NULL ) 
+		{
+			g_pVRDebugLog[iFind] = new char[2048];
+			memset ( g_pVRDebugLog[iFind], 0, 2048 );
+			strcpy_s ( g_pVRDebugLog[iFind], 2048, pWithTime );
+			break;
+		}
+	}
+
+	// save new log file
+	DWORD bytesdone = 0;
+	HANDLE hFile = CreateFile(pFilename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if ( hFile != INVALID_HANDLE_VALUE )
+	{
+		for ( int iFind = 0; iFind < 10000; iFind++ )
+		{
+			if ( g_pVRDebugLog[iFind] != NULL ) 
+			{
+				WriteFile(hFile, g_pVRDebugLog[iFind], strlen(g_pVRDebugLog[iFind]), &bytesdone, FALSE);
+			}
+		}
+		CloseHandle ( hFile );
+	}
+
+	/*
+	// read if exist
+	DWORD bytesdone = 0;
+	LPSTR pData = NULL;
+	DWORD dwDataSize = 0;
+	HANDLE hFile = CreateFile(pFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if ( hFile != INVALID_HANDLE_VALUE )
+	{
+		dwDataSize = GetFileSize(hFile, 0) + dwNewEntry;
+		pData = new char[dwDataSize];
+		ReadFile(hFile, pData, dwDataSize, &bytesdone, FALSE);
+		CloseHandle ( hFile );
+	}
+	else
+	{
+		dwDataSize = dwNewEntry;
+		pData = new char[dwDataSize];
+	}
+
+	// write log entry
+	memcpy ( pData+dwDataSize, pReportLog, dwNewEntry );
+
+	// save new log file
+	hFile = CreateFile(pFilename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if ( hFile != INVALID_HANDLE_VALUE )
+	{
+		WriteFile(hFile, pData, dwDataSize+dwNewEntry, &bytesdone, FALSE);
+		CloseHandle ( hFile );
+	}
+
+	// free resource
+	if ( pData ) delete pData;
+	*/
+	#endif
+}
 
 // DLL Entry Function
 BOOL APIENTRY GGWMRMain(HMODULE hModule,
@@ -34,34 +119,50 @@ BOOL APIENTRY GGWMRMain(HMODULE hModule,
 	hModule = hModule;
 	ul_reason_for_call = ul_reason_for_call;
 	lpReserved = lpReserved;
+	DebugVRlog(NULL);
 	return TRUE;
 }
 
-DLLEXPORT void GGWMR_CreateHolographicSpace1 ( HWND hWnd )
+DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd )
 {
 	if ( app.GetInitialised() == false )
 	{
 		// COM init
+		DebugVRlog("init_apartment");
 		winrt::init_apartment();
 
 		// Initialize global strings, and perform application initialization.
+		DebugVRlog("Initialize");
 		app.Initialize();
 
 		// Create the HWND and the HolographicSpace.
-		app.CreateHolographicSpaceA(hWnd);
+		DebugVRlog("CreateHolographicSpaceA");
+		int iErrorCode = app.CreateHolographicSpaceA(hWnd);
+		if ( iErrorCode > 0 ) return iErrorCode;
 	}
+	else
+		return 11;
+
+	// success
+	return 0;
 }
 
-DLLEXPORT void GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContext )
+DLLEXPORT int GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContext )
 {
 	if ( app.GetInitialised() == false )
 	{
 		// now initialised
+		DebugVRlog("SetInitialised");
 		app.SetInitialised(true);
 
 		// complete holographic space creation using existing device and context from engine
-	    app.CreateHolographicSpaceB((ID3D11Device*)pD3DDevice, (ID3D11DeviceContext*)pD3DContext);
+		DebugVRlog("CreateHolographicSpaceB");
+	    int iErrorCode = app.CreateHolographicSpaceB((ID3D11Device*)pD3DDevice, (ID3D11DeviceContext*)pD3DContext);
+		if ( iErrorCode > 0 ) return iErrorCode;
 	}
+
+	// success
+	return 0;
 }
 
 DLLEXPORT void GGWMR_GetUpdate ( void )
@@ -87,9 +188,14 @@ DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbSti
 	app.GetThumbAndTrigger ( pTriggerValue, pThumbStickX, pThumbStickY );
 }
 
-DLLEXPORT void GGWMR_GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ )
+DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
 {
-	app.GetHandPosAndOrientation ( pRHX, pRHY, pRHZ );
+	app.GetTouchPadData ( pbTouched, pbPressed, pfTouchPadX, pfTouchPadY );
+}
+
+DLLEXPORT void GGWMR_GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ )
+{
+	app.GetHandPosAndOrientation ( pRHX, pRHY, pRHZ, pQuatW, pQuatX, pQuatY, pQuatZ );
 }
 
 DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight)
@@ -108,55 +214,82 @@ DLLEXPORT void GGWMR_Present ( void )
 void App::Initialize()
 {
     // At this point we have access to the device and we can create device-dependent
+	DebugVRlog("DeviceResources");
     m_deviceResources = std::make_shared<DX::DeviceResources>();
+	DebugVRlog("BasicHologramMain");
     m_main = std::make_unique<BasicHologramMain>(m_deviceResources);
 }
 
-void App::CreateHolographicSpaceA(HWND hWnd)
+int App::CreateHolographicSpaceA(HWND hWnd)
 {
     // Use WinRT factory to create the holographic space.
     using namespace winrt::Windows::Graphics::Holographic;
+	DebugVRlog("IHolographicSpaceInterop");
     winrt::com_ptr<IHolographicSpaceInterop> holographicSpaceInterop = winrt::get_activation_factory<HolographicSpace, IHolographicSpaceInterop>();
+	DebugVRlog("IHolographicSpace");
     winrt::com_ptr<ABI::Windows::Graphics::Holographic::IHolographicSpace> spHolographicSpace;
+	DebugVRlog("CreateForWindow");
     winrt::check_hresult(holographicSpaceInterop->CreateForWindow(hWnd, __uuidof(ABI::Windows::Graphics::Holographic::IHolographicSpace), winrt::put_abi(spHolographicSpace)));
     if (!spHolographicSpace)
     {
         winrt::check_hresult(E_FAIL);
+		return 1;
     }
 
     // Store the holographic space.
+	DebugVRlog("HolographicSpace");
     m_holographicSpace = spHolographicSpace.as<HolographicSpace>();
+	if ( m_holographicSpace == nullptr )
+		return 2;
 
 	// Create spatial interaction manager for hand/controller input
+	DebugVRlog("get_activation_factory");
 	winrt::com_ptr<ISpatialInteractionManagerInterop> spatialInteractionManagerInterop = winrt::get_activation_factory<SpatialInteractionManager, ISpatialInteractionManagerInterop>();
 	if (!spatialInteractionManagerInterop)
 	{
 		winrt::check_hresult(E_FAIL);
+		return 3;
 	}
+	DebugVRlog("ISpatialInteractionManager");
 	winrt::com_ptr<ABI::Windows::UI::Input::Spatial::ISpatialInteractionManager> spSpatialInteractionManager;
+	DebugVRlog("spatialInteractionManagerInterop");
 	winrt::check_hresult(spatialInteractionManagerInterop->GetForWindow(hWnd, __uuidof(ABI::Windows::UI::Input::Spatial::ISpatialInteractionManager), winrt::put_abi(spSpatialInteractionManager)));
 	if (!spSpatialInteractionManager)
 	{
 		winrt::check_hresult(E_FAIL);
+		return 4;
 	}
 
+	// create interaction manager
+	DebugVRlog("SpatialInteractionManager");
 	m_interactionManager = spSpatialInteractionManager.as<SpatialInteractionManager>();
+	if ( m_interactionManager == nullptr )
+		return 5;
 
 	//m_sourcePressedEventToken = m_interactionManager.SourcePressed(bind(&App::OnSourcePressed, this, _1, _2));
+	DebugVRlog("SourceUpdated");
 	m_sourceUpdatedEventToken = m_interactionManager.SourceUpdated(bind(&App::OnSourceUpdated, this, _1, _2));
 	//m_sourceReleasedEventToken = m_interactionManager.SourceReleased(bind(&App::OnSourceReleased, this, _1, _2));
+
+	// success
+	return 0;
 }
 
-void App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
+int App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
 {
     // The DeviceResources class uses the preferred DXGI adapter ID from the holographic
     // space (when available) to create a Direct3D device. The HolographicSpace
     // uses this ID3D11Device to create and manage device-based resources such as
     // swap chains.
+	DebugVRlog("deviceResources SetHolographicSpace");
     m_deviceResources->SetHolographicSpace ( m_holographicSpace, pDevice, pContext );
 
     // The main class uses the holographic space for updates and rendering.
+	DebugVRlog("main SetHolographicSpace");
     m_main->SetHolographicSpace(m_holographicSpace, &m_interactionManager);
+
+	// success
+	return 0;
 }
 
 void App::UpdateFrame()
@@ -195,13 +328,28 @@ void App::GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float*
 	}
 }
 
-void App::GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ )
+void App::GetTouchPadData ( bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
+{
+    if (g_holographicFrame != nullptr)
+    {
+		*pbTouched = m_bTouchPadTouched;
+		*pbPressed = m_bTouchPadPressed;
+		*pfTouchPadX = m_fTouchPadX;
+		*pfTouchPadY = m_fTouchPadY;
+	}
+}
+
+void App::GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ )
 {
     if (g_holographicFrame != nullptr)
     {
 		*pRHX = m_fRightHandX;
 		*pRHY = m_fRightHandY;
 		*pRHZ = m_fRightHandZ;
+		*pQuatW = m_qRightHandOrientation.w;
+		*pQuatX = m_qRightHandOrientation.x;
+		*pQuatY = m_qRightHandOrientation.y;
+		*pQuatZ = m_qRightHandOrientation.z;
 	}
 }
 
@@ -292,26 +440,6 @@ void App::Uninitialize()
 	m_deviceResources.reset();
 }
 
-/*
-SpatialInteractionSourceState App::CheckForInput()
-{
-    SpatialInteractionSourceState sourceState = m_sourceState;
-    m_sourceState = nullptr;
-    return sourceState;
-}
-
-void App::OnSourcePressed(SpatialInteractionManager const&, SpatialInteractionSourceEventArgs const& args)
-{
-	// see above - not using this way for now
-    m_sourceState = args.State();
-}
-
-void App::OnSourceReleased(SpatialInteractionManager const& , SpatialInteractionSourceEventArgs const& args)
-{
-	// see above
-}
-*/
-
 void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSourceEventArgs const& args)
 {
 	SpatialInteractionSourceState state = args.State();
@@ -319,11 +447,13 @@ void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSo
 	SpatialInteractionController controller = source.Controller();
 	if (controller != nullptr)
     {
+		// controller properties
+		SpatialInteractionControllerProperties controllerState = state.ControllerProperties();
+
 		// get trigger value and thumbstick
 		m_fTriggerValue = (float)state.SelectPressedValue();
         if (controller.HasThumbstick())
         {
-			SpatialInteractionControllerProperties controllerState = state.ControllerProperties();
 			m_fThumbX = (float)controllerState.ThumbstickX();
 			m_fThumbY = (float)controllerState.ThumbstickY();
 		}
@@ -331,6 +461,22 @@ void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSo
 		{
 			m_fThumbX = 0.0f;
 			m_fThumbY = 0.0f;
+		}
+
+		// get controller touch input
+        if (controller.HasTouchpad())
+        {
+			m_bTouchPadTouched = controllerState.IsTouchpadTouched();
+			m_bTouchPadPressed = controllerState.IsTouchpadPressed();
+			m_fTouchPadX = (float)controllerState.TouchpadX();
+			m_fTouchPadY = (float)controllerState.TouchpadY();
+		}
+		else
+		{
+			m_bTouchPadTouched = false;
+			m_bTouchPadPressed = false;
+			m_fTouchPadX = 0;
+			m_fTouchPadY = 0;
 		}
 
 		// get controller position and orientation
@@ -343,12 +489,13 @@ void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSo
 			motioncontrollerpose = pose.TryGetInteractionSourcePose(source);
 			if ( motioncontrollerpose != nullptr )
 			{
-				if ( source.Handedness() == SpatialInteractionSourceHandedness::Right )
-				{
+				//if ( source.Handedness() == SpatialInteractionSourceHandedness::Right )
+				//{
 					m_fRightHandX = motioncontrollerpose.Position().x;
 					m_fRightHandY = motioncontrollerpose.Position().y;
 					m_fRightHandZ = motioncontrollerpose.Position().z;
-				}
+					m_qRightHandOrientation = motioncontrollerpose.Orientation();
+				//}
 			}
 		}
 	}

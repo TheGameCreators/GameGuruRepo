@@ -35,6 +35,7 @@ void mapeditorexecutable ( void )
 	g.vrglobals.GGVREnabled = 0; 
 	if ( g.gvrmode == 2 ) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
 	if ( g.gvrmode == 3 ) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
+	timestampactivity(0,"choose VR system");
 	GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled );
 
 	//  Set device to get multisampling AA active in editor

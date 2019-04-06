@@ -113,7 +113,15 @@ void postprocess_init ( void )
 					t.glefteyecameraid = 6;
 					t.grighteyecameraid = 7;
 					g.vrglobals.GGVRInitialized = 0;
-					GGVR_Init(g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004, g.guishadereffectindex, g.editorimagesoffset+14);
+					char pErrorStr[1024];
+					sprintf ( pErrorStr, "initialise VR System Mode %d", g.vrglobals.GGVREnabled );
+					timestampactivity(0,pErrorStr);
+					int iErrorCode = GGVR_Init(g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004, 10005, 10099, g.guishadereffectindex, g.editorimagesoffset+14);
+					if ( iErrorCode > 0 )
+					{
+						sprintf ( pErrorStr, "Error starting VR : Code %d", iErrorCode );
+						timestampactivity(0,pErrorStr);
+					}
 				}
 
 				// and new SAO shader which is slower but nicer looking with SAO effect in place
@@ -595,7 +603,24 @@ void postprocess_preterrain ( void )
 		// update HMD position and controller feedback
 		bool bPlayerDucking = false;
 		if ( t.aisystem.playerducking != 0 ) bPlayerDucking = true;
-		GGVR_UpdatePlayer(bPlayerDucking);
+		GGVR_UpdatePlayer(bPlayerDucking,t.terrain.TerrainID);
+
+		// handle teleport
+		float fTelePortDestX = 0.0f;
+		float fTelePortDestY = 0.0f;
+		float fTelePortDestZ = 0.0f;
+		float fTelePortDestAngleY = 0.0f;
+		if ( GGVR_HandlePlayerTeleport ( &fTelePortDestX, &fTelePortDestY, &fTelePortDestZ, &fTelePortDestAngleY ) == true )
+		{
+			physics_disableplayer ( );
+			t.terrain.playerx_f=fTelePortDestX;
+			t.terrain.playery_f=fTelePortDestY+30;
+			t.terrain.playerz_f=fTelePortDestZ;
+			t.terrain.playerax_f=0;
+			t.terrain.playeray_f=CameraAngleY(0);
+			t.terrain.playeraz_f=0;
+			physics_setupplayer ( );
+		}
 
 		//  render terrains now
 		if (t.hardwareinfoglobals.noterrain == 0)
@@ -603,7 +628,13 @@ void postprocess_preterrain ( void )
 			if (t.terrain.TerrainID > 0)
 			{
 				// for WMR style VR
-				GGVR_PreSubmit();
+				int iErrorCode = GGVR_PreSubmit();
+				if ( iErrorCode > 0 )
+				{
+					char pErrorStr[1024];
+					sprintf ( pErrorStr, "Error running VR : Code %d", iErrorCode );
+					timestampactivity(0,pErrorStr);
+				}
 
 				for (t.leftright = 0; t.leftright <= 1; t.leftright++)
 				{

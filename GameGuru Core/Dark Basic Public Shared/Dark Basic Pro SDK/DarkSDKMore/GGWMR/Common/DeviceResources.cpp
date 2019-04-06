@@ -9,6 +9,8 @@ using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 using namespace winrt::Windows::Graphics::Display;
 using namespace winrt::Windows::Graphics::Holographic;
 
+void DebugVRlog ( const char* pReportLog );
+
 // Constructor for DeviceResources.
 DX::DeviceResources::DeviceResources()
 {
@@ -31,13 +33,17 @@ void DX::DeviceResources::SetHolographicSpace(HolographicSpace holographicSpace,
     // Cache the holographic space. Used to re-initalize during device-lost scenarios.
     m_holographicSpace = holographicSpace;
 
+	DebugVRlog("InitializeUsingHolographicSpace");
     InitializeUsingHolographicSpace(pDevice,pContext);
 }
 
 void DX::DeviceResources::InitializeUsingHolographicSpace(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
 {
+	DebugVRlog("CreateDeviceResources");
     CreateDeviceResources(pDevice,pContext);
-    m_holographicSpace.SetDirect3D11Device(m_d3dInteropDevice);
+
+	DebugVRlog("SetDirect3D11Device");
+	m_holographicSpace.SetDirect3D11Device(m_d3dInteropDevice);
 }
 
 // Configures the Direct3D device, and stores handles to it and the device context.
@@ -56,6 +62,7 @@ void DX::DeviceResources::CreateDeviceResources(ID3D11Device* pDevice,ID3D11Devi
     winrt::check_hresult(m_d3dDevice.As(&dxgiDevice));
 
     // Wrap the native device using a WinRT interop object.
+	DebugVRlog("CreateDirect3D11DeviceFromDXGIDevice");
     winrt::com_ptr<::IInspectable> object;
     winrt::check_hresult(CreateDirect3D11DeviceFromDXGIDevice(
         dxgiDevice.Get(),
@@ -63,6 +70,7 @@ void DX::DeviceResources::CreateDeviceResources(ID3D11Device* pDevice,ID3D11Devi
     m_d3dInteropDevice = object.as<IDirect3DDevice>();
 
     // Check for device support for the optional feature that allows setting the render target array index from the vertex shader stage.
+	DebugVRlog("CheckFeatureSupport");
     D3D11_FEATURE_DATA_D3D11_OPTIONS3 options;
     m_d3dDevice->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS3, &options, sizeof(options));
     if (options.VPAndRTArrayIndexFromAnyShaderFeedingRasterizer)
@@ -84,6 +92,7 @@ void DX::DeviceResources::EnsureCameraResources(
 		{
 			for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
 			{
+				DebugVRlog("GetRenderingParameters");
 				HolographicCameraRenderingParameters renderingParameters = frame.GetRenderingParameters(cameraPose);
 				CameraResources* pCameraResources = cameraResourceMap[cameraPose.HolographicCamera().Id()].get();
 				pCameraResources->CreateResourcesForBackBuffer(this, renderingParameters);

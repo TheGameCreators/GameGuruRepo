@@ -5,13 +5,14 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode );
 int GGVR_IsHmdPresent();
 void GGVR_SetTrackingSpace( int space );
 int GGVR_GetTrackingSpace ( void );
-int GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand, int iShaderID, int iTextureID);
+int GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand, int iObjTeleportStart, int iObjTeleportFinish, int iShaderID, int iTextureID);
 GGMATRIX GGVR_GetRightEyeProjectionMatrix();
 GGMATRIX GGVR_GetLeftEyeProjectionMatrix();
 void GGVR_SetWorldScale( float scale );
 float GGVR_GetWorldScale(  );
 void GGVR_Shutdown();
-void GGVR_UpdatePlayer(bool bPlayerDucking);
+void GGVR_UpdatePlayer(bool bPlayerDucking, int iTerrainID);
+bool GGVR_HandlePlayerTeleport ( float* pNewPosX, float* pNewPosY, float* pNewPosZ, float* pNewAngleY );
 void GGVR_SetPlayerPosition( float X, float Y, float Z );
 void GGVR_SetPlayerRotation( float X, float Y, float Z );
 void GGVR_SetOriginPosition(float X, float Y, float Z);
@@ -88,9 +89,9 @@ float GGVR_LeftController_AxisTriggerX(int axis);
 float GGVR_LeftController_AxisTriggerY(int axis);
 
 // WMR Specific
-void GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath );
-void GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext );
-void GGVR_PreSubmit( void );
+int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath );
+int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext );
+int GGVR_PreSubmit( void );
 
 // OpenVR Specific
 int GGVR_IsRuntimeInstalled();

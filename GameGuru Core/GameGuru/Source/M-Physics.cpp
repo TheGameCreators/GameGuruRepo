@@ -1410,7 +1410,7 @@ void physics_player_gatherkeycontrols ( void )
 		{
 			GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
 			GGVR_SetPlayerRotation(0, CameraAngleY(t.terrain.gameplaycamera), 0);
-			GGVR_UpdatePlayer(false);
+			GGVR_UpdatePlayer(false,t.terrain.TerrainID);
 			g.vrglobals.GGVR_Old_XposOffset = GGVR_GetHMDOffsetX();
 			g.vrglobals.GGVR_Old_ZposOffset = GGVR_GetHMDOffsetZ();
 			g.vrglobals.GGVR_Old_Yangle = GGVR_GetPlayerAngleY();

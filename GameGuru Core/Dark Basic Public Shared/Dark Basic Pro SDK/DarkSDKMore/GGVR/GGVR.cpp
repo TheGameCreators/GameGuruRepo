@@ -13,6 +13,7 @@
 #include "CObjectsC.h"
 #include "dxdiag.h"
 #include "D3dx9math.h"
+#include "BlitzTerrain.h"
 
 // Externs
 extern GlobStruct*				g_pGlob;
@@ -68,6 +69,14 @@ int								GGVR_RJoystick = -1;
 int								GGVR_LJoystick = -1;
 
 // Controller Button Presses
+bool							GGVR_bTouchPadTouched = false;
+bool							GGVR_bTouchPadPressed = false;
+bool							GGVR_bTouchPadNeedToRelease = false;
+float							GGVR_fTouchPadX = 0.0f;
+float							GGVR_fTouchPadY = 0.0f;
+float							GGVR_fTelePortDestinationX = 0.0f;
+float							GGVR_fTelePortDestinationY = 0.0f;
+float							GGVR_fTelePortDestinationZ = 0.0f;
 bool							GGVR_RCntrlBut_Press[64];
 bool							GGVR_RCntrlBut_Touch[64];
 bool							GGVR_LCntrlBut_Press[64];
@@ -87,9 +96,11 @@ public:
 	int ObjOrigin;
 	int ObjRightHand;
 	int ObjLeftHand;
+	int ObjTeleportStart;
+	int ObjTeleportFinish;
 	int ShaderID;
 	int TextureID;
-	void Create();
+	int Create();
 	void Destroy();
 
 	int GetBaseObjID();
@@ -110,13 +121,14 @@ int								GGVR_TrackingSpace = 0;
 
 // WMR (Microsoft)
 HMODULE hGGWMRDLL = NULL;
-typedef void (*sGGWMR_CreateHolographicSpace1Fnc)(HWND); sGGWMR_CreateHolographicSpace1Fnc GGWMR_CreateHolographicSpace1 = NULL;
-typedef void (*sGGWMR_CreateHolographicSpace2Fnc)(void*,void*); sGGWMR_CreateHolographicSpace2Fnc GGWMR_CreateHolographicSpace2 = NULL;
+typedef int (*sGGWMR_CreateHolographicSpace1Fnc)(HWND); sGGWMR_CreateHolographicSpace1Fnc GGWMR_CreateHolographicSpace1 = NULL;
+typedef int (*sGGWMR_CreateHolographicSpace2Fnc)(void*,void*); sGGWMR_CreateHolographicSpace2Fnc GGWMR_CreateHolographicSpace2 = NULL;
 typedef void (*sGGWMR_GetUpdateFnc)(void); sGGWMR_GetUpdateFnc GGWMR_GetUpdate = NULL;
 typedef void (*sGGWMR_GetHeadPosAndDirFnc)(float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHeadPosAndDirFnc GGWMR_GetHeadPosAndDir = NULL;
 typedef void (*sGGWMR_GetProjectionMatrixFnc)(int,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetProjectionMatrixFnc GGWMR_GetProjectionMatrix = NULL;
 typedef void (*sGGWMR_GetThumbAndTriggerFnc)(float*,float*,float*); sGGWMR_GetThumbAndTriggerFnc GGWMR_GetThumbAndTrigger = NULL;
-typedef void (*sGGWMR_GetHandPosAndOrientationFnc)(float*,float*,float*); sGGWMR_GetHandPosAndOrientationFnc GGWMR_GetHandPosAndOrientation = NULL;
+typedef void (*sGGWMR_GetTouchPadDataFnc)(bool*,bool*,float*,float*); sGGWMR_GetTouchPadDataFnc GGWMR_GetTouchPadData = NULL;
+typedef void (*sGGWMR_GetHandPosAndOrientationFnc)(float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHandPosAndOrientationFnc GGWMR_GetHandPosAndOrientation = NULL;
 typedef void (*sGGWMR_GetRenderTargetAndDepthStencilViewFnc)(void**,void**,void**,DWORD*,DWORD*); sGGWMR_GetRenderTargetAndDepthStencilViewFnc GGWMR_GetRenderTargetAndDepthStencilView = NULL;
 typedef void (*sGGWMR_PresentFnc)(void); sGGWMR_PresentFnc GGWMR_Present = NULL;
 
@@ -240,6 +252,7 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode )
 				GGWMR_GetHeadPosAndDir = (sGGWMR_GetHeadPosAndDirFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetHeadPosAndDir" );
 				GGWMR_GetProjectionMatrix = (sGGWMR_GetProjectionMatrixFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetProjectionMatrix" );
 				GGWMR_GetThumbAndTrigger = (sGGWMR_GetThumbAndTriggerFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetThumbAndTrigger" );
+				GGWMR_GetTouchPadData = (sGGWMR_GetTouchPadDataFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetTouchPadData" );
 				GGWMR_GetHandPosAndOrientation = (sGGWMR_GetHandPosAndOrientationFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetHandPosAndOrientation" );
 				GGWMR_GetRenderTargetAndDepthStencilView = (sGGWMR_GetRenderTargetAndDepthStencilViewFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetRenderTargetAndDepthStencilView" );
 				GGWMR_Present = (sGGWMR_PresentFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_Present" );
@@ -271,7 +284,7 @@ int GGVR_GetTrackingSpace ( void )
 	return GGVR_TrackingSpace;
 }
 
-int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand, int iShaderID, int iTextureID)
+int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand, int iObjTeleportStart, int iObjTeleportFinish, int iShaderID, int iTextureID)
 {
 	//Set Onject ID's for Player dummy objects
 	GGVR_Player.ObjBase = ObjBase;
@@ -279,6 +292,8 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 	GGVR_Player.ObjOrigin = ObjOrigin;
 	GGVR_Player.ObjRightHand = ObjRightHand;
 	GGVR_Player.ObjLeftHand = ObjLeftHand;
+	GGVR_Player.ObjTeleportStart = iObjTeleportStart;
+	GGVR_Player.ObjTeleportFinish = iObjTeleportFinish;
 
 	GGVR_Player.ShaderID = iShaderID;//g.guishadereffectindex
 	GGVR_Player.TextureID = iTextureID;//g.editorimagesoffset+14
@@ -402,9 +417,7 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 	{
 		// done in realtime
 	}
-	GGVR_Player.Create();
-
-	return 0;
+	return GGVR_Player.Create();
 }
 
 void GGVR_Shutdown()
@@ -474,6 +487,7 @@ int GGVR_GetPlayerLeftHandObjID( )
 
 void GGVR_UpdatePoses(void)
 {
+	// Handles HMD orientation and Motion Controller handling
 	if ( GGVR_EnabledMode == 1 )
 	{
 		if (GGVR_init_error == vr::VRInitError_None && ivr_compositor != NULL)
@@ -638,8 +652,6 @@ void GGVR_UpdatePoses(void)
 				GGVR_RTrigger = 0; 
 				GGVR_LJoystick = 1;
 				GGVR_RJoystick = 1;
-
-				// Match Left and Right Controller from single controller input for now
 				for ( int c = 0; c <= 1; c++ )
 				{
 					GGVR_AxisType[c][0] = 0;
@@ -652,15 +664,38 @@ void GGVR_UpdatePoses(void)
 					GGVR_ControllerState[c].rAxis[GGVR_LJoystick].y = fThumbStickY;
 				}
 
-				// also need position/orientation of controller
 				// also need touch pad for teleport action
+				GGVR_bTouchPadTouched = false;
+				GGVR_bTouchPadPressed = false;
+				GGVR_fTouchPadX = 0.0f;
+				GGVR_fTouchPadY = 0.0f;
+				GGWMR_GetTouchPadData ( &GGVR_bTouchPadTouched, &GGVR_bTouchPadPressed, &GGVR_fTouchPadX, &GGVR_fTouchPadY );
+
+				// also need position/orientation of controller
 				float fRightHandX = 0.0f;
 				float fRightHandY = 0.0f;
 				float fRightHandZ = 0.0f;
-				GGWMR_GetHandPosAndOrientation ( &fRightHandX, &fRightHandY, &fRightHandZ );
-				pGamePoseArray_Pos[GGVR_RHandIndex].v[0] = fRightHandX;
-				pGamePoseArray_Pos[GGVR_RHandIndex].v[1] = fRightHandY;
-				pGamePoseArray_Pos[GGVR_RHandIndex].v[2] = -fRightHandZ;
+				float fQuatW = 0.0f;
+				float fQuatX = 0.0f;
+				float fQuatY = 0.0f;
+				float fQuatZ = 0.0f;
+				GGWMR_GetHandPosAndOrientation ( &fRightHandX, &fRightHandY, &fRightHandZ, &fQuatW, &fQuatX, &fQuatY, &fQuatZ );
+				GGMATRIX matRot;
+				GGQUATERNION QuatRot = GGQUATERNION ( -fQuatX, -fQuatY, -fQuatZ, fQuatW );
+				GGMatrixRotationQuaternion ( &matRot, &QuatRot );
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[0][0] = matRot.m[0][0];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[1][0] = matRot.m[1][0];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[2][0] = matRot.m[2][0];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[0][1] = matRot.m[0][1];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[1][1] = matRot.m[1][1];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[2][1] = matRot.m[2][1];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[0][2] = matRot.m[0][2];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[1][2] = matRot.m[1][2];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[2][2] = matRot.m[2][2];
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[0][3] = fRightHandX;
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[1][3] = fRightHandY;
+				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[2][3] = fRightHandZ;
+				GGVR_Mat34toYPR(&pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking, &pGamePoseArray_YPR[GGVR_RHandIndex], &pGamePoseArray_Pos[GGVR_RHandIndex]);
 
 				// also need grip for pickup and drop actions
 			}
@@ -668,7 +703,7 @@ void GGVR_UpdatePoses(void)
 	}
 }
 
-void GGVR_UpdatePlayer(bool bPlayerDucking)
+void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 {
 	// Update the HMD and controller feedbacks
 	GGVR_UpdatePoses();
@@ -767,6 +802,127 @@ void GGVR_UpdatePlayer(bool bPlayerDucking)
 		PitchObjectDown(GGVR_Player.ObjLeftHand, pGamePoseArray_YPR[GGVR_LHandIndex].v[0]);
 		RollObjectRight(GGVR_Player.ObjLeftHand, -pGamePoseArray_YPR[GGVR_LHandIndex].v[2]);
 	}
+
+	// show pointer when teleport touched
+	bool bShowControllerWand = false;
+	if ( GGVR_bTouchPadTouched == true && GGVR_fTouchPadY > 0.5f )
+	{
+		ShowObject ( GGVR_Player.ObjRightHand );
+		bShowControllerWand = true;
+	}
+	else
+		HideObject ( GGVR_Player.ObjRightHand );
+
+	// create teleport arc control points
+	if ( bShowControllerWand == true )
+	{
+		float x = ObjectPositionX ( GGVR_Player.ObjRightHand );
+		float y = ObjectPositionY ( GGVR_Player.ObjRightHand );
+		float z = ObjectPositionZ ( GGVR_Player.ObjRightHand );
+		MoveObject ( GGVR_Player.ObjRightHand, 10.0f );
+		float nx = ObjectPositionX ( GGVR_Player.ObjRightHand ) - x;
+		float ny = ObjectPositionY ( GGVR_Player.ObjRightHand ) - y;
+		float nz = ObjectPositionZ ( GGVR_Player.ObjRightHand ) - z;
+		MoveObject ( GGVR_Player.ObjRightHand, -10.0f );
+		std::vector <GGVECTOR3> vecControlPoints;
+		vecControlPoints.clear();
+		bool bAboveGround = true;
+		while ( bAboveGround == true )
+		{
+			// shift normal to fall with gravity
+			nx *= 0.99f;
+			ny -= 0.1f; if ( ny < -10.0f ) ny = -10.0f;
+			nz *= 0.99f;
+
+			// move control point
+			x += nx;
+			y += ny;
+			z += nz;
+			GGVECTOR3 pnt = GGVECTOR3 ( x, y, z );
+			vecControlPoints.push_back ( pnt );
+
+			// when drop below ground
+			if ( y < BT_GetGroundHeight ( iTerrainID, x, z ) )
+			{
+				GGVR_fTelePortDestinationX = x;
+				GGVR_fTelePortDestinationY = y;
+				GGVR_fTelePortDestinationZ = z;
+				bAboveGround = false;
+			}
+		}
+
+		// work out spread from perfect arc data to available dots below
+		int iControlPointCount = vecControlPoints.size();
+		float fCountPointIndex = 0;
+		float fControlPointStep = (float)iControlPointCount/(float)(GGVR_Player.ObjTeleportFinish-GGVR_Player.ObjTeleportStart);
+
+		// project arc to show teleport destination
+		int iLastControlPoint = -1;
+		x = ObjectPositionX ( GGVR_Player.ObjRightHand );
+		y = ObjectPositionY ( GGVR_Player.ObjRightHand );
+		z = ObjectPositionZ ( GGVR_Player.ObjRightHand );
+		for ( int o = GGVR_Player.ObjTeleportStart; o <= GGVR_Player.ObjTeleportFinish; o++ )
+		{
+			int iThisUniqueControlPoint = (int)fCountPointIndex;
+			if ( iThisUniqueControlPoint >= iControlPointCount ) iThisUniqueControlPoint = iControlPointCount - 1;
+			if ( !ObjectExist ( o ) )
+			{
+				// create object slice
+				MakeObjectBox ( o, 0.3f, 0.1f, 5.0f );	
+				SetObjectEffect ( o, GGVR_Player.ShaderID );
+				SetSphereRadius ( o, 0 );
+				SetObjectMask ( o, (1<<6) + (1<<7) + 1 );
+				TextureObject ( o, 0, GGVR_Player.TextureID );
+			}
+			HideObject ( o );
+			if ( ObjectExist ( o ) && iLastControlPoint != iThisUniqueControlPoint )
+			{
+				// use this object
+				ShowObject ( o );
+
+				// position and rotate object
+				float lx = x;
+				float ly = y;
+				float lz = z;
+				x = vecControlPoints[iThisUniqueControlPoint].x;
+				y = vecControlPoints[iThisUniqueControlPoint].y;
+				z = vecControlPoints[iThisUniqueControlPoint].z;
+				PositionObject ( o, x, y, z );
+
+				// rotate to follow curve
+				PointObject ( o, lx, ly, lz );
+			}
+
+			// next control point
+			iLastControlPoint = (int)fCountPointIndex;
+			fCountPointIndex += fControlPointStep;
+		}
+	}
+	else
+	{
+		// hide teleport arc
+		for ( int o = GGVR_Player.ObjTeleportStart; o <= GGVR_Player.ObjTeleportFinish; o++ )
+			if ( ObjectExist(o) )
+				HideObject ( o );
+	}
+}
+
+bool GGVR_HandlePlayerTeleport ( float* pNewPosX, float* pNewPosY, float* pNewPosZ, float* pNewAngleY )
+{
+	if ( GGVR_bTouchPadPressed==true && GGVR_bTouchPadNeedToRelease==false && GGVR_fTelePortDestinationX != 0.0f )
+	{
+		*pNewPosX = GGVR_fTelePortDestinationX;
+		*pNewPosY = GGVR_fTelePortDestinationY+30;
+		*pNewPosZ = GGVR_fTelePortDestinationZ;
+		*pNewAngleY = CameraAngleY(0);
+		GGVR_bTouchPadNeedToRelease = true;
+		return true;
+	}
+	if ( GGVR_bTouchPadPressed==false )
+	{
+		GGVR_bTouchPadNeedToRelease = false;
+	}
+	return false;
 }
 
 void GGVR_SetHMDPosition(float X, float Y, float Z)
@@ -1542,8 +1698,14 @@ float GGVR_LeftController_AxisTriggerY(int axis)
 	return 0.0f;
 }
 
-void GGVR_PlayerData::Create( )
+int GGVR_PlayerData::Create( )
 {
+	// Clear teleport work objects
+	for ( int o = GGVR_Player.ObjTeleportStart; o <= GGVR_Player.ObjTeleportFinish; o++ )
+	{
+		if ( ObjectExist ( o ) ) DeleteObject ( o );
+	}
+
 	//ObjBase
 	MakeObjectCone(GGVR_Player.ObjBase, 0.1f*GGVR_WorldScale);
 	RotateObject(GGVR_Player.ObjBase, 90.0, 0.0, 0.0);
@@ -1563,10 +1725,7 @@ void GGVR_PlayerData::Create( )
 	SetObjectCollisionOff(GGVR_Player.ObjOrigin);
 
 	//ObjRightHand
-	//MakeObjectCone(GGVR_Player.ObjRightHand, 0.1f*GGVR_WorldScale);
-	MakeObjectSphere(GGVR_Player.ObjRightHand, 2.0f);//0.1f*GGVR_WorldScale);
-	RotateObject(GGVR_Player.ObjRightHand, 90.0, 0.0, 0.0);
-	FixObjectPivot(GGVR_Player.ObjRightHand);
+	MakeObjectBox(GGVR_Player.ObjRightHand, 0.3f, 0.3f, 8.0f);//0.1f*GGVR_WorldScale);
 	SetObjectCollisionOff(GGVR_Player.ObjRightHand);
 
 	// make controller object renderable
@@ -1586,6 +1745,9 @@ void GGVR_PlayerData::Create( )
 	//PlayerVars
 	PitchLock = 0;
 	TurnLock = 1;
+
+	// success
+	return 0;
 }
 
 void GGVR_PlayerData::Destroy( )
@@ -1625,25 +1787,27 @@ int GGVR_PlayerData::GetLHandObjID()
 
 // WMR
 
-void GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath )
+int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath )
 {
-	GGWMR_CreateHolographicSpace1 ( hWnd );
+	return GGWMR_CreateHolographicSpace1 ( hWnd );
 }
 
-void GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext )
+int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext )
 {
-	GGWMR_CreateHolographicSpace2 ( pDevice, pContext );
+	return GGWMR_CreateHolographicSpace2 ( pDevice, pContext );
 }
 
-void GGVR_PreSubmit()
+int GGVR_PreSubmit()
 {
 	// WMR prepares the views to be rendered to (not taking renders after they have done as with GGVR_Submit)
 	if ( GGVR_EnabledMode == 2 )
 	{
 		if ( GGVR_EnabledState == 1 )
 		{
-			GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "" );
-			GGVR_CreateHolographicSpace2 ( m_pD3D, m_pImmediateContext );
+			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "" );
+			if ( iErrorCode > 0 ) return iErrorCode;
+			iErrorCode = GGVR_CreateHolographicSpace2 ( m_pD3D, m_pImmediateContext );
+			if ( iErrorCode > 0 ) return iErrorCode;
 			ShowWindow(g_pGlob->hOriginalhWnd, SW_SHOW);
 			UpdateWindow(g_pGlob->hOriginalhWnd);
 			GGVR_EnabledState = 2;
@@ -1681,6 +1845,7 @@ void GGVR_PreSubmit()
 			GGVR_RightEyeProjection = GGMATRIX ( fM00, fM10, fM20, fM30, fM01, fM11, fM21, fM31, fM02, fM12, fM22, fM32, fM03, fM13, fM23, fM33 );
 		}
 	}
+	return 0;
 }
 
 // OpenVR
