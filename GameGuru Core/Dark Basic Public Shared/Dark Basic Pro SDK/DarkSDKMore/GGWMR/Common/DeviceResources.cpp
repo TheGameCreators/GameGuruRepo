@@ -9,7 +9,7 @@ using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 using namespace winrt::Windows::Graphics::Display;
 using namespace winrt::Windows::Graphics::Holographic;
 
-void DebugVRlog ( const char* pReportLog );
+int DebugVRlog ( const char* pReportLog );
 
 // Constructor for DeviceResources.
 DX::DeviceResources::DeviceResources()

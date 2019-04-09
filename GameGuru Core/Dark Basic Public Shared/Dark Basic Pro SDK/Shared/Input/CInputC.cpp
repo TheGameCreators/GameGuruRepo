@@ -131,7 +131,7 @@ DARKSDK void InputConstructor ( )
 	// Held in Core, used here..
 	g_pCreateDeleteStringFunction = g_pGlob->CreateDeleteString;
 	g_pWindowsEntryString = (DWORD*)&g_pGlob->pWindowsTextEntry;
-	//g_phWnd = g_pGlob->hWnd;
+	// 090419 - lost keyboard input with new VR window (WMR) g_phWnd = g_pGlob->hWnd;
 	g_phWnd = g_pGlob->hOriginalhWnd;
 	g_iMouseLocalZ = 0;
 

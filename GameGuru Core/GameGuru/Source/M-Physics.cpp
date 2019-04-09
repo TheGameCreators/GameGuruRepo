@@ -2208,6 +2208,9 @@ void physics_player_takedamage ( void )
 	//  This is set to 0 after takedamage is called, so doesn't need to be unset elsewhere
 	//  before calling this sub
 
+	// 090419 - special VRQ2 mode also disables concepts of being damaged
+	if ( g.gvrmode == 3 ) return;
+
 	//  player cannot be damaged when immune!
 	if (  t.huddamage.immunity>0  )  return;
 

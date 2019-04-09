@@ -121,7 +121,7 @@ int								GGVR_TrackingSpace = 0;
 
 // WMR (Microsoft)
 HMODULE hGGWMRDLL = NULL;
-typedef int (*sGGWMR_CreateHolographicSpace1Fnc)(HWND); sGGWMR_CreateHolographicSpace1Fnc GGWMR_CreateHolographicSpace1 = NULL;
+typedef int (*sGGWMR_CreateHolographicSpace1Fnc)(HWND,int); sGGWMR_CreateHolographicSpace1Fnc GGWMR_CreateHolographicSpace1 = NULL;
 typedef int (*sGGWMR_CreateHolographicSpace2Fnc)(void*,void*); sGGWMR_CreateHolographicSpace2Fnc GGWMR_CreateHolographicSpace2 = NULL;
 typedef void (*sGGWMR_GetUpdateFnc)(void); sGGWMR_GetUpdateFnc GGWMR_GetUpdate = NULL;
 typedef void (*sGGWMR_GetHeadPosAndDirFnc)(float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHeadPosAndDirFnc GGWMR_GetHeadPosAndDir = NULL;
@@ -1850,9 +1850,9 @@ int GGVR_PlayerData::GetLHandObjID()
 
 // WMR
 
-int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath )
+int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath, int iDebugMode )
 {
-	return GGWMR_CreateHolographicSpace1 ( hWnd );
+	return GGWMR_CreateHolographicSpace1 ( hWnd, iDebugMode );
 }
 
 int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext )
@@ -1860,14 +1860,14 @@ int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext )
 	return GGWMR_CreateHolographicSpace2 ( pDevice, pContext );
 }
 
-int GGVR_PreSubmit()
+int GGVR_PreSubmit ( int iDebugMode )
 {
 	// WMR prepares the views to be rendered to (not taking renders after they have done as with GGVR_Submit)
 	if ( GGVR_EnabledMode == 2 )
 	{
 		if ( GGVR_EnabledState == 1 )
 		{
-			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "" );
+			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "", iDebugMode );
 			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }
 			iErrorCode = GGVR_CreateHolographicSpace2 ( m_pD3D, m_pImmediateContext );
 			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }

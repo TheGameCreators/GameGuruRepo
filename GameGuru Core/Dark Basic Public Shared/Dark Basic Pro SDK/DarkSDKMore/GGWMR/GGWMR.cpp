@@ -2,7 +2,7 @@
 // GGWMR - Windows Mixed Reality DLL (WinRT hooked)
 //
 
-//#define ACTIVATEVRDEBUGLOGGING
+#define ACTIVATEVRDEBUGLOGGING
 
 // Includes for Windows Mixed Reality
 #include "stdafx.h"
@@ -26,54 +26,66 @@ using namespace winrt::Windows::UI::Input::Spatial;
 // Globals
 App app;
 HolographicFrame g_holographicFrame = nullptr;
+int g_iDebugLoggingActive = 0;
 char* g_pVRDebugLog[10000];
 
 // Support debug log system
-void DebugVRlog ( const char* pReportLog )
+int DebugVRlog ( const char* pReportLog )
 {
 	// Log File
 	#ifdef ACTIVATEVRDEBUGLOGGING
-	const char* pFilename = "VRDebugLog.log";
-
-	// Reset at start
 	if ( pReportLog == NULL )
 	{
+		// Reset at VERY start
 		for ( int iFind = 0; iFind < 10000; iFind++ ) g_pVRDebugLog[iFind] = NULL; 
-		return;
+		return 0;
 	}
-
-	// New entry 
-	char pWithTime[2048];
-	sprintf_s ( pWithTime, "%d : %s\r\n", timeGetTime(), pReportLog );
-	DWORD dwNewEntry = strlen(pWithTime);
-
-	// Find new slot
-	for ( int iFind = 0; iFind < 10000; iFind++ )
+	if ( g_iDebugLoggingActive == 1 )
 	{
-		if ( g_pVRDebugLog[iFind] == NULL ) 
-		{
-			g_pVRDebugLog[iFind] = new char[2048];
-			memset ( g_pVRDebugLog[iFind], 0, 2048 );
-			strcpy_s ( g_pVRDebugLog[iFind], 2048, pWithTime );
-			break;
-		}
-	}
+		// the debug file
+		const char* pFilename = "VRDebugLog.log";
 
-	// save new log file
-	DWORD bytesdone = 0;
-	HANDLE hFile = CreateFile(pFilename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if ( hFile != INVALID_HANDLE_VALUE )
-	{
+		// New entry 
+		char pWithTime[2048];
+		sprintf_s ( pWithTime, "%d : %s\r\n", timeGetTime(), pReportLog );
+		DWORD dwNewEntry = strlen(pWithTime);
+
+		// Find new slot
 		for ( int iFind = 0; iFind < 10000; iFind++ )
 		{
-			if ( g_pVRDebugLog[iFind] != NULL ) 
+			if ( g_pVRDebugLog[iFind] == NULL ) 
 			{
-				WriteFile(hFile, g_pVRDebugLog[iFind], strlen(g_pVRDebugLog[iFind]), &bytesdone, FALSE);
+				g_pVRDebugLog[iFind] = new char[2048];
+				memset ( g_pVRDebugLog[iFind], 0, 2048 );
+				strcpy_s ( g_pVRDebugLog[iFind], 2048, pWithTime );
+				break;
 			}
 		}
-		CloseHandle ( hFile );
+
+		// save new log file
+		DWORD bytesdone = 0;
+		HANDLE hFile = CreateFile(pFilename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		if ( hFile != INVALID_HANDLE_VALUE )
+		{
+			for ( int iFind = 0; iFind < 10000; iFind++ )
+			{
+				if ( g_pVRDebugLog[iFind] != NULL ) 
+				{
+					WriteFile(hFile, g_pVRDebugLog[iFind], strlen(g_pVRDebugLog[iFind]), &bytesdone, FALSE);
+				}
+			}
+			CloseHandle ( hFile );
+		}
+		else
+		{
+			// error - cannot get write lock on this file!
+			return 1;
+		}
 	}
 	#endif
+
+	// success
+	return 0;
 }
 
 // DLL Entry Function
@@ -89,8 +101,17 @@ BOOL APIENTRY GGWMRMain(HMODULE hModule,
 	return TRUE;
 }
 
-DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd )
+DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd, int iDebugLoggingActive )
 {
+	// set debugging flag
+	g_iDebugLoggingActive = iDebugLoggingActive;
+
+	// test abilty to write VR debug log file
+	if ( DebugVRlog("test VR debug log file writing") == 1 )
+		return 51;
+
+	// now go through VR setup
+	DebugVRlog("GetInitialised");
 	if ( app.GetInitialised() == false )
 	{
 		// COM init

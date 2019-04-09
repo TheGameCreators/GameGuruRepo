@@ -628,7 +628,9 @@ void postprocess_preterrain ( void )
 			if (t.terrain.TerrainID > 0)
 			{
 				// for WMR style VR
-				int iErrorCode = GGVR_PreSubmit();
+				int iDebugMode = 0;
+				if ( g.gproducelogfiles > 0 ) iDebugMode = 1;
+				int iErrorCode = GGVR_PreSubmit(iDebugMode);
 				if ( iErrorCode > 0 )
 				{
 					char pErrorStr[1024];

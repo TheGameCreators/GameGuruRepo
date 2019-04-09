@@ -3958,6 +3958,8 @@ struct Stemps
 	int tfillwidth;
 	int tflaglight;
 	int tflaglives;
+	int tflagnotionofhealth;
+	int tflagsimpler;
 	int tflagsound;
 	int tflagspawn;
 	int tflagstats;

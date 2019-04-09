@@ -622,8 +622,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//SetWindowText ( szStringA );
 
 	// Main Title
-	SetTitle ( "Game Guru" );
-	SetWindowText ( "Game Guru" );
+	SetTitle ( IDENAME );
+	SetWindowText ( IDENAME );
 
 	// Enable windows manager
 	EnableWindowsDialog (ID_WINDOW_MANAGER, IDS_WINDOWS_MANAGER, TRUE);
@@ -2623,7 +2623,7 @@ BOOL CALLBACK EnumWindowsProc1(HWND hwnd,LPARAM lParam )
 		return FALSE;
 
 	_strlwr ( szBuffer );
-	if ( strcmp ( szBuffer, _T ( "Game Guru" ) ) == 0 ) //"fpsc map editor" ) ) == 0 )
+	if ( strcmp ( szBuffer, _T ( IDENAME ) ) == 0 ) //"fpsc map editor" ) ) == 0 )
 	{
 		LPARAM  lParam = 0;
 		lParam = ( LPARAM ) hwnd;

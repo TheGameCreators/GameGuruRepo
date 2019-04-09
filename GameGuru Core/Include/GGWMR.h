@@ -12,7 +12,7 @@
 #define DLLEXPORT __declspec ( dllexport )
 extern "C" 
 {
-	DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd );
+	DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd, int iDebugMode );
 	DLLEXPORT int GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContext );
 	DLLEXPORT void GGWMR_GetUpdate ( void );
 	DLLEXPORT void GGWMR_GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );

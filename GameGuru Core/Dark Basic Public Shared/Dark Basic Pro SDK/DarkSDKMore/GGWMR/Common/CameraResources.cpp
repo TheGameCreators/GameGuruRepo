@@ -11,7 +11,7 @@ using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 using namespace winrt::Windows::Graphics::Holographic;
 using namespace winrt::Windows::Perception::Spatial;
 
-void DebugVRlog ( const char* pReportLog );
+int DebugVRlog ( const char* pReportLog );
 
 DX::CameraResources::CameraResources(HolographicCamera const& camera) :
     m_holographicCamera(camera),

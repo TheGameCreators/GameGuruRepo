@@ -8752,6 +8752,10 @@ void interface_openpropertywindow ( void )
 	//  wait until the entity window is read
 	if (  GetFileMapDWORD( 2, ENTITY_SETUP )  ==  1 ) 
 	{
+		// special VRQ2 mode also hides concepts of lives, health, blood, violence (substitute health for strength)
+		bool bVRQ2ZeroViolenceMode = false;
+		if ( g.gvrmode == 3 ) bVRQ2ZeroViolenceMode = true;
+
 		//  Setup usage flags
 		t.tsimplecharview=0;
 		t.tflaglives=0 ; t.tflaglight=0 ; t.tflagobjective=0 ; t.tflagtdecal=0 ; t.tflagdecalparticle=0 ; t.tflagspawn=0 ; t.tflagifused=0;
@@ -8881,6 +8885,19 @@ void interface_openpropertywindow ( void )
 			t.tflagammo = 0;
 		}
 
+		// special VR mode can remove even more
+		t.tflagnotionofhealth = 1;
+		t.tflagsimpler = 0;
+		if ( bVRQ2ZeroViolenceMode == true )
+		{
+			t.tflaglives=0; 
+			t.tflaghurtfall=0; 
+			t.tflaghasweapon=0; 
+			t.tflagammoclip=0;
+			t.tflagnotionofhealth=0;
+			t.tflagsimpler = 1;
+		}
+
 		//  set array and counters to track scope of contents of each group
 		Dim (  t.propfield,16  );
 		for ( t.t = 0 ; t.t <= 16 ; t.t++ ) t.propfield[t.t]=0 ; 
@@ -8934,8 +8951,11 @@ void interface_openpropertywindow ( void )
 			// 101016 - Additional General Parameters
 			if ( t.tflagchar == 0 && t.tflagvis == 1 ) 
 			{
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocluder),"Occluder","Set to YES makes this entity an occluder",0) ; ++t.controlindex;
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocludee),"Occludee","Set to YES makes this entity an occludee",0) ; ++t.controlindex;
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocluder),"Occluder","Set to YES makes this entity an occluder",0) ; ++t.controlindex;
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocludee),"Occludee","Set to YES makes this entity an occludee",0) ; ++t.controlindex;
+				}
 				
 				// these will be back when EBE needs doors and windows
 				//setpropertystring2(t.group,Str(t.grideleprof.parententityindex),"Parent Index","Selects another entity element to be a parent") ; ++t.controlindex;
@@ -9005,14 +9025,17 @@ void interface_openpropertywindow ( void )
 			//  Is Character
 			if (  t.tflagchar == 1 ) 
 			{
-				// 020316 - special check to avoid offering can take weapon if no HUD.X
-				t.tfile_s = cstr("gamecore\\guns\\") + t.grideleprof.hasweapon_s + cstr("\\HUD.X");
-				if ( FileExist(t.tfile_s.Get()) == 1 ) 
+				if ( t.tflagsimpler == 0 )
 				{
-					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.cantakeweapon),t.strarr_s[429].Get(),t.strarr_s[219].Get(),0) ; ++t.controlindex;
-					setpropertystring2(t.group,Str(t.grideleprof.quantity),t.strarr_s[430].Get(),t.strarr_s[220].Get()) ; ++t.controlindex;
+					// 020316 - special check to avoid offering can take weapon if no HUD.X
+					t.tfile_s = cstr("gamecore\\guns\\") + t.grideleprof.hasweapon_s + cstr("\\HUD.X");
+					if ( FileExist(t.tfile_s.Get()) == 1 ) 
+					{
+						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.cantakeweapon),t.strarr_s[429].Get(),t.strarr_s[219].Get(),0) ; ++t.controlindex;
+						setpropertystring2(t.group,Str(t.grideleprof.quantity),t.strarr_s[430].Get(),t.strarr_s[220].Get()) ; ++t.controlindex;
+					}
+					setpropertystring2(t.group,Str(t.grideleprof.rateoffire),t.strarr_s[431].Get(),t.strarr_s[221].Get()) ; ++t.controlindex;
 				}
-				setpropertystring2(t.group,Str(t.grideleprof.rateoffire),t.strarr_s[431].Get(),t.strarr_s[221].Get()) ; ++t.controlindex;
 			}
 			if ( t.tflagquantity == 1 && g.quickparentalcontrolmode != 2 ) 
 			{ 
@@ -9102,7 +9125,10 @@ void interface_openpropertywindow ( void )
 					}
 					else
 					{
-						setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[454].Get(),t.strarr_s[244].Get()) ; ++t.controlindex;
+						if ( t.tflagnotionofhealth == 1 )
+						{
+							setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[454].Get(),t.strarr_s[244].Get()) ; ++t.controlindex;
+						}
 					}
 					if (  t.tflagplayersettings == 1 ) 
 					{
@@ -9110,9 +9136,12 @@ void interface_openpropertywindow ( void )
 						{
 							setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isviolent),"Blood Effects","Sets whether blood and screams should be used",0) ; ++t.controlindex;
 						}
-						setpropertystring2(t.group,Str(t.playercontrol.regenrate),"Regeneration Rate","Sets the increase value at which the players health will restore")  ; ++t.controlindex;
-						setpropertystring2(t.group,Str(t.playercontrol.regenspeed),"Regeneration Speed","Sets the speed in milliseconds at which the players health will regenerate") ; ++t.controlindex;
-						setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
+						if ( t.tflagnotionofhealth == 1 )
+						{
+							setpropertystring2(t.group,Str(t.playercontrol.regenrate),"Regeneration Rate","Sets the increase value at which the players health will restore")  ; ++t.controlindex;
+							setpropertystring2(t.group,Str(t.playercontrol.regenspeed),"Regeneration Speed","Sets the speed in milliseconds at which the players health will regenerate") ; ++t.controlindex;
+							setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
+						}
 					}
 					setpropertystring2(t.group,Str(t.grideleprof.speed),t.strarr_s[455].Get(),t.strarr_s[245].Get()) ; ++t.controlindex;
 					if (  t.playercontrol.thirdperson.enabled == 1 ) 
@@ -9141,7 +9170,13 @@ void interface_openpropertywindow ( void )
 					setpropertystring2(t.group,Str(t.playercontrol.accel_f*100),"Acceleration","Sets the acceleration curve used when t.moving from t.a stood position") ; ++t.controlindex;
 				}
 				if ( t.tflagmobile == 1 ) { setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isimmobile),t.strarr_s[457].Get(),t.strarr_s[247].Get(),0); ++t.controlindex; }
-				if ( t.tflagmobile == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.lodmodifier),"LOD Modifier","Modify when the LOD transition takes effect. The default value is 0, increase this to a percentage reduce the LOD effect.") ; ++t.controlindex; }
+				if ( t.tflagmobile == 1 ) 
+				{ 
+					if ( t.tflagsimpler == 0 )
+					{
+						setpropertystring2(t.group,Str(t.grideleprof.lodmodifier),"LOD Modifier","Modify when the LOD transition takes effect. The default value is 0, increase this to a percentage reduce the LOD effect.") ; ++t.controlindex; 
+					}
+				}
 			}
 
 			//  Team field
@@ -9162,8 +9197,11 @@ void interface_openpropertywindow ( void )
 				setpropertystring2(t.group,Str(t.grideleprof.phyfriction),t.strarr_s[586].Get(),t.strarr_s[587].Get()) ; ++t.controlindex;
 				//     `setpropertystring2(group,Str(grideleprof.phyforcedamage),strarr$(588),strarr$(589)) ; inc controlindex
 				//     `setpropertystring2(group,Str(grideleprof.rotatethrow),strarr$(590),strarr$(591)) ; inc controlindex
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodable),t.strarr_s[592].Get(),t.strarr_s[593].Get(),0) ; ++t.controlindex;
-				setpropertystring2(t.group,Str(t.grideleprof.explodedamage),t.strarr_s[594].Get(),t.strarr_s[595].Get()) ; ++t.controlindex;
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodable),t.strarr_s[592].Get(),t.strarr_s[593].Get(),0) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.explodedamage),t.strarr_s[594].Get(),t.strarr_s[595].Get()) ; ++t.controlindex;
+				}
 			}
 
 			//  Ammo data (FPGC - 280809 - filtered fpgcgenre=1 is shooter genre

@@ -1184,6 +1184,9 @@ void entity_applydamage ( void )
 	if ( t.entityelement[t.ttte].obj <= 0 ) return;
 	if ( ObjectExist ( t.entityelement[t.ttte].obj ) == 0 ) return;
 
+	// 090419 - special VRQ2 mode also disables concepts of being damaged
+	if ( g.gvrmode == 3 ) return;
+
 	//  if entity being damaged is protagonist
 	if (  t.tskiplayerautoreject == 0 ) 
 	{

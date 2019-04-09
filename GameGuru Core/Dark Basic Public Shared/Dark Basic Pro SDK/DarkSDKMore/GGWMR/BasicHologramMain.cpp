@@ -16,7 +16,7 @@ using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 using namespace winrt::Windows::Perception::Spatial;
 using namespace winrt::Windows::UI::Input::Spatial;
 
-void DebugVRlog ( const char* pReportLog );
+int DebugVRlog ( const char* pReportLog );
 
 // Loads and initializes application assets when the application is loaded.
 BasicHologramMain::BasicHologramMain(std::shared_ptr<DX::DeviceResources> const& deviceResources) :

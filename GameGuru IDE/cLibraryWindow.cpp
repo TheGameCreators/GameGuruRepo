@@ -121,7 +121,7 @@ void cLibraryWindow::OnClickList1 ( NMHDR* pNMHDR, LRESULT* pResult )
 			if ( *((char*)pFullPathStr-0)=='\\' ) pFullPathStrFinal = pFullPathStr-0;
 			if ( *((char*)pFullPathStr+1)=='\\' ) pFullPathStrFinal = pFullPathStr+1;
 			if ( *((char*)pFullPathStr+2)=='\\' ) pFullPathStrFinal = pFullPathStr+2;
-			CString pNewTitle = CString("Game Guru - ");
+			CString pNewTitle = CString(IDENAMEHYPHEN);
 			char pCropName[_MAX_PATH];
 			strcpy ( pCropName, pFullPathStrFinal+1 );
 			pCropName[strlen(pCropName)-4]=0;
@@ -129,7 +129,7 @@ void cLibraryWindow::OnClickList1 ( NMHDR* pNMHDR, LRESULT* pResult )
 			theApp.GetMainWnd()->SetWindowText ( pNewTitle );
 		}
 		else
-			theApp.GetMainWnd()->SetWindowText ( CString("Game Guru") );
+			theApp.GetMainWnd()->SetWindowText ( CString(IDENAME) );
 	}
 }
 
