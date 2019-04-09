@@ -1,4 +1,8 @@
+// pragma
 #pragma comment ( lib, "GGVR.lib"     )
+
+// defines
+//#define USINGOPENVR
 
 // Generic
 void GGVR_ChooseVRSystem ( int iGGVREnabledMode );
@@ -92,14 +96,15 @@ float GGVR_LeftController_AxisTriggerY(int axis);
 int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath );
 int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext );
 int GGVR_PreSubmit( void );
+void GGVR_SetCameraRange( float Near, float Far );
+void GGVR_Submit( void );
 
 // OpenVR Specific
+#ifdef USINGOPENVR
 int GGVR_IsRuntimeInstalled();
 void GGVR_SuspendRendering(int flag);
 void GGVR_ErrorMessagesOn(int state );
 void GGVR_ResetSeatedZeroPose();
-void GGVR_SetCameraRange( float Near, float Far );
-void GGVR_Submit( void );
 void GGVR_Submit_RightEye();
 void GGVR_Submit_LeftEye();
 void GGVR_CreateSkyboxOveride(int Front, int Back, int Left, int Right, int Top, int Bottom);
@@ -132,3 +137,4 @@ char* GGVR_LCntrl_GetSerialNumber();
 char* GGVR_LCntrl_GetTrackingSysName();
 char* GGVR_LCntrl_GetModelNumber();
 char* GGVR_LCntrl_GetManufacturer();
+#endif

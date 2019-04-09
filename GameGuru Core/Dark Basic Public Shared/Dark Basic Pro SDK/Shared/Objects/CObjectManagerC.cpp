@@ -4069,7 +4069,12 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			for ( int i = 0; i < pMesh->dwTextureCount; i++ )
 			{
 				//PE: pMesh->pTextures[i].dwStage not used so stages must be in correct order in the shaders.
-				ID3D11ShaderResourceView* lpTexture = GetImagePointerView ( pMesh->pTextures[i].iImageID );
+				//special -123 mode means the textureref was overwritten (for animation to object texture)
+				ID3D11ShaderResourceView* lpTexture = NULL;
+				if ( pMesh->pTextures[i].iImageID == -123 )
+					lpTexture = pMesh->pTextures[i].pTexturesRefView;
+				else
+					lpTexture = GetImagePointerView ( pMesh->pTextures[i].iImageID );
 				m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
 			}
 

@@ -17,7 +17,7 @@ void lua_prompt ( void )
 	if ( g.gvrmode > 0 )
 	{
 		// use VR prompt instead
-		lua_prompt3d ( t.s_s.Get(), Timer() );
+		lua_prompt3d ( t.s_s.Get(), Timer(), 0 );
 	}
 	else
 	{
@@ -26,12 +26,21 @@ void lua_prompt ( void )
 	}
 }
 
+void lua_promptimage ( void )
+{
+	if ( g.gvrmode > 0 )
+	{
+		// use VR prompt instead
+		lua_prompt3d ( "image", Timer(), t.v );
+	}
+}
+
 void lua_promptduration ( void )
 {
 	if ( g.gvrmode > 0 )
 	{
 		// use VR prompt instead
-		lua_prompt3d ( t.s_s.Get(), Timer()+t.v );
+		lua_prompt3d ( t.s_s.Get(), Timer()+t.v, 0 );
 	}
 	else
 	{
@@ -50,7 +59,7 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 	if ( g.gvrmode > 0 )
 	{
 		// use VR prompt instead
-		lua_prompt3d ( t.s_s.Get(), Timer()+1000 );
+		lua_prompt3d ( t.s_s.Get(), Timer()+1000, 0 );
 		float fObjCtrX = GetObjectCollisionCenterX(t.entityelement[t.e].obj);
 		float fObjCtrZ = GetObjectCollisionCenterZ(t.entityelement[t.e].obj);
 		float fObjHeight = ObjectSizeY(t.entityelement[t.e].obj);
@@ -147,7 +156,7 @@ void lua_text ( void )
 
 ///
 
-void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime )
+void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 {
 	// set prompt 3D - only regenerate if text changes
 	t.luaglobal.scriptprompt3dtime = dwPrompt3DTime;
@@ -159,10 +168,20 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime )
 		t.luaglobal.scriptprompt3dZ = 0.0f;
 		t.luaglobal.scriptprompt3dAY = 0.0f;
 
-		// create 3d object for text
+		// determine if 3D text or 3D image
+		t.luaglobal.scriptprompttype = 1;
+		if ( iImageIndex > 0 ) 
+			t.luaglobal.scriptprompttype = 2;
+
+		// create 3d object for text or image
+		if ( ObjectExist(g.prompt3dobjectoffset)==1 ) DeleteObject ( g.prompt3dobjectoffset );
 		if ( ObjectExist(g.prompt3dobjectoffset)==0 )
 		{
-			MakeObjectPlane ( g.prompt3dobjectoffset, 512/5.0f, 32.0f/5.0f );
+			if ( t.luaglobal.scriptprompttype == 1 )
+				MakeObjectPlane ( g.prompt3dobjectoffset, 512/5.0f, 32.0f/5.0f );
+			else
+				MakeObjectPlane ( g.prompt3dobjectoffset, 256/5.0f, 256.0f/5.0f );
+
 			PositionObject ( g.prompt3dobjectoffset, -100000, -100000, -100000 );
 			SetObjectEffect ( g.prompt3dobjectoffset, g.guishadereffectindex );
 			DisableObjectZDepth ( g.prompt3dobjectoffset );
@@ -175,16 +194,25 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime )
 				SetObjectMask ( g.prompt3dobjectoffset, 1 );
 		}
 
-		// render text to texture
-		if ( BitmapExist(2) == 0 ) CreateBitmap ( 2, 1024, 1024 );
-		SetCurrentBitmap ( 2 );
-		CLS ( Rgb(64,64,64) );
-		pastebitmapfontcenter ( pTextToRender, 256, 0, 4, 255);
-		GrabImage ( g.prompt3dimageoffset, 0, 0, 512, 64, 3 );
-		SetCurrentBitmap ( 0 );
+		// text or image
+		if ( t.luaglobal.scriptprompttype == 1 )
+		{
+			// render text to texture
+			if ( BitmapExist(2) == 0 ) CreateBitmap ( 2, 1024, 1024 );
+			SetCurrentBitmap ( 2 );
+			CLS ( Rgb(64,64,64) );
+			pastebitmapfontcenter ( pTextToRender, 256, 0, 4, 255);
+			GrabImage ( g.prompt3dimageoffset, 0, 0, 512, 64, 3 );
+			SetCurrentBitmap ( 0 );
 
-		// apply to object
-		TextureObject ( g.prompt3dobjectoffset, 0, g.prompt3dimageoffset );
+			// apply to object
+			TextureObject ( g.prompt3dobjectoffset, 0, g.prompt3dimageoffset );
+		}
+		else
+		{
+			// render image instead of text
+			TextureObject ( g.prompt3dobjectoffset, 0, iImageIndex );
+		}
 	}
 }
 
@@ -217,18 +245,6 @@ void lua_updateprompt3d ( void )
 		fA = CameraAngleY(0);
 		MoveCamera ( 0, -75.0f );
 		RotateCamera ( 0, fStCamX, CameraAngleY(0), fStCamZ );
-
-		/*
-		// no coordinates so show in front of user - follows camera zero direction no good for VR HMD cameras!
-		MoveCameraDown ( 0, 18.0f );
-		MoveCamera ( 0, 50.0f );
-		fX = CameraPositionX(0);
-		fY = CameraPositionY(0);
-		fZ = CameraPositionZ(0);
-		fA = CameraAngleY(0);
-		MoveCamera ( 0, -50.0f );
-		MoveCameraDown ( 0, -18.0f );
-		*/
 	}
 	if ( ObjectExist( g.prompt3dobjectoffset ) == 1 )
 	{

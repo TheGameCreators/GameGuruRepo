@@ -766,7 +766,7 @@ void entity_lua_setsoundvolume ( void )
 	}
 }
 
-void entity_lua_playvideonoskip ( int iNoSkipFlag )
+void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 {
 	if ( t.v > 1 ) return; 
 	if ( t.v == 0 ) 
@@ -789,11 +789,37 @@ void entity_lua_playvideonoskip ( int iNoSkipFlag )
 		}
 		if ( AnimationExist(t.tvideoid) == 1 ) 
 		{
+			// create object for 3D rendering
+			if ( i3DMode == 1 )
+			{
+				if ( ObjectExist(g.video3dobjectoffset)==1 ) DeleteObject ( g.video3dobjectoffset );
+				if ( ObjectExist(g.video3dobjectoffset)==0 )
+				{
+					MakeObjectPlane ( g.video3dobjectoffset, 640/5.0f, 480/5.0f );
+					PositionObject ( g.video3dobjectoffset, -100000, -100000, -100000 );
+					SetObjectEffect ( g.video3dobjectoffset, g.guishadereffectindex );
+					DisableObjectZDepth ( g.video3dobjectoffset );
+					DisableObjectZRead ( g.video3dobjectoffset );
+					SetSphereRadius ( g.video3dobjectoffset, 0 );
+					TextureObject ( g.video3dobjectoffset, 0, g.editorimagesoffset+14 );
+					ShowObject ( g.video3dobjectoffset );
+					if ( g.vrglobals.GGVREnabled > 0 )
+						SetObjectMask ( g.video3dobjectoffset, (1<<6) + (1<<7) + 1 );
+					else
+						SetObjectMask ( g.video3dobjectoffset, 1 );
+				}
+			}
+
+			// run animation
 			PlayAnimation (  t.tvideoid );
-			PlaceAnimation (  t.tvideoid,0,0,GetDisplayWidth(),GetDisplayHeight() );
+			if ( i3DMode == 1 )
+				PlaceAnimation (  t.tvideoid,-10,-10,-5,-5);//GetDisplayWidth(),GetDisplayHeight() );
+			else
+				PlaceAnimation (  t.tvideoid,0,0,GetDisplayWidth(),GetDisplayHeight() );
 			t.ttrackmouse=0;
 			while (  AnimationPlaying(t.tvideoid) == 1 ) 
 			{
+				// handle skip functionality
 				if ( iNoSkipFlag == 0 )
 				{
 					t.inputsys.mclick = GetFileMapDWORD( 1, 20 );
@@ -802,11 +828,43 @@ void entity_lua_playvideonoskip ( int iNoSkipFlag )
 					if (  t.inputsys.mclick != 0 && t.ttrackmouse == 1  )  t.ttrackmouse = 2;
 					if (  t.inputsys.mclick == 0 && t.ttrackmouse == 2  )  break;
 				}
-				Sync (  );
+
+				// handle 3d object if available
+				if ( i3DMode == 1 )
+				{
+					float fStCamX = CameraAngleX();
+					float fStCamZ = CameraAngleZ();
+					RotateCamera ( 0, 0, CameraAngleY(0), 0 );
+					MoveCamera ( 0, 75.0f );
+					float fX = CameraPositionX(0);
+					float fZ = CameraPositionZ(0);
+					float fY = BT_GetGroundHeight(t.terrain.TerrainID,fX,fZ) + 50.0f;
+					float fA = CameraAngleY(0);
+					MoveCamera ( 0, -75.0f );
+					RotateCamera ( 0, fStCamX, CameraAngleY(0), fStCamZ );
+					PositionObject ( g.video3dobjectoffset, fX, fY, fZ );
+					PointObject ( g.video3dobjectoffset, ObjectPositionX(t.aisystem.objectstartindex), ObjectPositionY(t.aisystem.objectstartindex)+60.0f, ObjectPositionZ(t.aisystem.objectstartindex) );
+					MoveObject ( g.video3dobjectoffset, 15.0f );
+					RotateObject ( g.video3dobjectoffset, 0, fA+180.0f, 0 );
+					OverrideTextureWithAnimation ( t.tvideoid, g.video3dobjectoffset );
+				}
+
+				// keep things going
+				t.aisystem.processplayerlogic = 0;
+				game_main_loop ( );
+				game_sync ( );
 			}
+			t.aisystem.processplayerlogic = 1;
 			PlaceAnimation (  t.tvideoid,-1,-1,0,0 );
 			StopAnimation (  t.tvideoid );
 			t.luaglobal.lastvideonumber=t.tvideoid;
+
+			// free 3d object
+			if ( i3DMode == 1 )
+			{
+				if ( ObjectExist ( g.video3dobjectoffset ) == 1 ) DeleteObject ( g.video3dobjectoffset );
+			}
+
 			//  clear mouse deltas when return to game
 			t.tclear=MouseMoveX();
 			t.tclear=MouseMoveY();

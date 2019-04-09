@@ -34,7 +34,7 @@ void entity_lua_loopsound ( void );
 void entity_lua_stopsound ( void );
 void entity_lua_setsoundspeed ( void );
 void entity_lua_setsoundvolume ( void );
-void entity_lua_playvideonoskip ( int iSkipFlag );
+void entity_lua_playvideonoskip ( int i3DMode, int iSkipFlag );
 void entity_lua_stopvideo ( void );
 void entity_lua_moveupdate ( void );
 void entity_lua_rotateupdate ( void );

@@ -522,6 +522,7 @@ void common_init_globals ( void )
 	g.entityworkobjectoffset = 3499;
 	g.entityattachmentsoffset = 3500;
 	g.entityattachmentindex = 0;
+	g.video3dobjectoffset = 5998;
 	g.prompt3dobjectoffset = 5999;
 	g.terrainobjectoffset = 6000;
 	g.hudlayersbankoffset = 16000;
@@ -3124,6 +3125,17 @@ void FPSC_Setup ( void )
 	
 		//  Activate Steam (always so single player can do snapshots and get Steam notifications)
 		steam_init ( );
+
+		// VR Mode Initialisation
+		g.globals.riftmode = 0;
+		g.vrglobals.GGVREnabled = 0; 
+		if ( g.gvrmode == 2 ) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
+		if ( g.gvrmode == 3 ) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
+		timestampactivity(0,"choose VR system");
+		GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled );
+
+		// Need editor 14.PNG for teleport graphic
+		LoadImage ( "editors\\gfx\\14.png",g.editorimagesoffset+14 );
 
 		// Init default material sounds
 		material_init ( );

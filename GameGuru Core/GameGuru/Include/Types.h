@@ -2336,6 +2336,7 @@ struct luaglobaltype
 	int lastvideonumber;
 	cstr scriptprompt_s;
 	DWORD scriptprompttime;
+	DWORD scriptprompttype;
 	int scriptprompttextsize;
 	char scriptprompt3dtext[256];
 	DWORD scriptprompt3dtime;
@@ -2348,6 +2349,7 @@ struct luaglobaltype
 	luaglobaltype ( )
 	{
 		 scriptprompttextsize = 0;
+		 scriptprompttype = 0;
 		 scriptprompttime = 0;
 		 scriptprompt_s = "";
 		 lastvideonumber = 0;

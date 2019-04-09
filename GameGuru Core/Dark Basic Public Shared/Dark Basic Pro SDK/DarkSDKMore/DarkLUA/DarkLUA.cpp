@@ -1988,7 +1988,7 @@ int Prompt3D(lua_State *L)
 	char pTextToRender[1024];
 	strcpy ( pTextToRender, lua_tostring(L, 1));
 	DWORD dwPrompt3DTime = lua_tonumber(L, 2);
-	lua_prompt3d ( pTextToRender, Timer()+dwPrompt3DTime );
+	lua_prompt3d ( pTextToRender, Timer()+dwPrompt3DTime, 0 );
 	return 1;
 }
 

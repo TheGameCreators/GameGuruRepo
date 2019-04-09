@@ -266,6 +266,9 @@ end
 function Prompt(str)
  SendMessageS("prompt",str);
 end
+function PromptImage(i)
+ SendMessageI("promptimage",i);
+end
 function PromptDuration(str,v)
  SendMessageS("promptduration",v,str);
 end
@@ -742,6 +745,12 @@ function PlayVideo(e,v)
 end
 function PlayVideoNoSkip(e,v)
  SendMessageI("playvideonoskip",e,v);
+end
+function PromptVideo(e,v)
+ SendMessageI("promptvideo",e,v);
+end
+function PromptVideoNoSkip(e,v)
+ SendMessageI("promptvideonoskip",e,v);
 end
 function StopVideo(e,v)
  SendMessageI("stopvideo",e,v);

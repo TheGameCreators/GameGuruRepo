@@ -2,7 +2,7 @@
 // GGWMR - Windows Mixed Reality DLL (WinRT hooked)
 //
 
-#define ACTIVATEVRDEBUGLOGGING
+//#define ACTIVATEVRDEBUGLOGGING
 
 // Includes for Windows Mixed Reality
 #include "stdafx.h"
@@ -73,40 +73,6 @@ void DebugVRlog ( const char* pReportLog )
 		}
 		CloseHandle ( hFile );
 	}
-
-	/*
-	// read if exist
-	DWORD bytesdone = 0;
-	LPSTR pData = NULL;
-	DWORD dwDataSize = 0;
-	HANDLE hFile = CreateFile(pFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if ( hFile != INVALID_HANDLE_VALUE )
-	{
-		dwDataSize = GetFileSize(hFile, 0) + dwNewEntry;
-		pData = new char[dwDataSize];
-		ReadFile(hFile, pData, dwDataSize, &bytesdone, FALSE);
-		CloseHandle ( hFile );
-	}
-	else
-	{
-		dwDataSize = dwNewEntry;
-		pData = new char[dwDataSize];
-	}
-
-	// write log entry
-	memcpy ( pData+dwDataSize, pReportLog, dwNewEntry );
-
-	// save new log file
-	hFile = CreateFile(pFilename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if ( hFile != INVALID_HANDLE_VALUE )
-	{
-		WriteFile(hFile, pData, dwDataSize+dwNewEntry, &bytesdone, FALSE);
-		CloseHandle ( hFile );
-	}
-
-	// free resource
-	if ( pData ) delete pData;
-	*/
 	#endif
 }
 
@@ -223,15 +189,22 @@ void App::Initialize()
 int App::CreateHolographicSpaceA(HWND hWnd)
 {
     // Use WinRT factory to create the holographic space.
+	//MessageBox ( NULL, "VR error1", "", MB_OK );
     using namespace winrt::Windows::Graphics::Holographic;
+	//MessageBox ( NULL, "VR error2", "", MB_OK );
 	DebugVRlog("IHolographicSpaceInterop");
     winrt::com_ptr<IHolographicSpaceInterop> holographicSpaceInterop = winrt::get_activation_factory<HolographicSpace, IHolographicSpaceInterop>();
+	//MessageBox ( NULL, "VR error3", "", MB_OK );
 	DebugVRlog("IHolographicSpace");
     winrt::com_ptr<ABI::Windows::Graphics::Holographic::IHolographicSpace> spHolographicSpace;
+	//MessageBox ( NULL, "VR error4", "", MB_OK );
 	DebugVRlog("CreateForWindow");
+	//MessageBox ( NULL, "VR error5", "", MB_OK );
     winrt::check_hresult(holographicSpaceInterop->CreateForWindow(hWnd, __uuidof(ABI::Windows::Graphics::Holographic::IHolographicSpace), winrt::put_abi(spHolographicSpace)));
+	//MessageBox ( NULL, "VR error6", "", MB_OK );
     if (!spHolographicSpace)
     {
+		//MessageBox ( NULL, "VR error", "", MB_OK );
         winrt::check_hresult(E_FAIL);
 		return 1;
     }

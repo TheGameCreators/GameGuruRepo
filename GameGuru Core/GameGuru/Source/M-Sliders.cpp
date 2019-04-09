@@ -1317,6 +1317,7 @@ void sliders_draw ( void )
 	// LUA PROMPT IMAGES
 	if (  t.promptimage.show == 1 && t.conkit.editmodeactive == 0 ) 
 	{
+		// image prompt 2D
 		if (  ImageExist(t.promptimage.img) == 1 ) 
 		{
 			if (  t.promptimage.alignment == 0 ) 

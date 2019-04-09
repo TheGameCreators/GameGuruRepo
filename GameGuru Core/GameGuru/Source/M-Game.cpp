@@ -732,6 +732,7 @@ void game_masterroot ( void )
 			t.huddamage.immunity=1000;
 			t.game.gameloop=1;
 			g.timeelapsed_f=0;
+			t.luaglobal.scriptprompttype = 0;
 			t.luaglobal.scriptprompt_s="";
 			t.luaglobal.scriptprompttime=0;
 			t.luaglobal.scriptprompttextsize=0;
@@ -745,11 +746,18 @@ void game_masterroot ( void )
 				// detect if standalone is a foreground window
 				if ( t.game.gameisexe == 1 )
 				{
-					HWND hForeWnd = GetForegroundWindow();
-					if ( GetWindowHandle() != hForeWnd ) 
-						t.plrhasfocus = 0;
-					else
+					if ( g.gvrmode == 3 )
+					{
 						t.plrhasfocus = 1;
+					}
+					else
+					{
+						HWND hForeWnd = GetForegroundWindow();
+						if ( GetWindowHandle() != hForeWnd ) 
+							t.plrhasfocus = 0;
+						else
+							t.plrhasfocus = 1;
+					}
 				}
 
 				// if controller active, also detect for START button press (same as ESCAPE)

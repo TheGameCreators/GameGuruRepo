@@ -145,6 +145,7 @@ DARKSDK void SetObjectToObjectOrientation		( int iID, int iWhichID, int iMode );
 DARKSDK void SetObjectToCameraOrientation		( int iID );
 
 // Texture commands
+DARKSDK void TextureObjectRef				( int iID, LPGGSHADERRESOURCEVIEW pTextureRef, float fClipU, float fClipV );
 DARKSDK void TextureObject					( int iID, int iImage );
 DARKSDK void TextureObject					( int iID, int iStage, int iImage );
 DARKSDK void SetObjectTextureStageEx		( int iID, int iStage, int iImage, int iDoNotSortTextures );

@@ -1415,19 +1415,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	}
 	else
 	{
-		/* from sample
-		g_pGlob->hWnd = CreateWindow(pAppNameUnique,
-									pAppName,
-									WS_OVERLAPPEDWINDOW,
-									CW_USEDEFAULT,
-									0,
-									CW_USEDEFAULT,
-									0,
-									nullptr,
-									nullptr,
-									hInstance, 
-									nullptr);
-		*/
+		// hidden window
 		g_pGlob->hWnd = CreateWindow( pAppNameUnique, pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
 	}
 
@@ -1444,6 +1432,35 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	}
 	else
 		bDXFailed=true;
+
+	// Need window for game so original window can stay hidden until VR activates (used by standalone game exe)
+	if ( g_pGlob->hOriginalhWnd == g_pGlob->hWnd )
+	{
+		WNDCLASS wc2;
+		wc2.style = CS_HREDRAW | CS_VREDRAW;
+		wc2.lpfnWndProc = WindowProc;
+		wc2.cbClsExtra = 0;
+		wc2.cbWndExtra = 0;
+		wc2.hInstance = hInstance;
+		wc2.hIcon = g_hUseIcon;
+		wc2.hCursor = NULL;
+		wc2.hbrBackground = NULL;
+		wc2.lpszMenuName = NULL;
+		wc2.lpszClassName = "TheGameWindowClass";
+		RegisterClass( &wc2 );
+		g_pGlob->hWnd = CreateWindow(
+			"TheGameWindowClass", 
+			"TheGameWindow",
+			WS_VISIBLE,
+			CW_USEDEFAULT, 
+			0, 
+			CW_USEDEFAULT, 
+			0, 
+			nullptr, 
+			nullptr, 
+			hInstance, 
+			nullptr);
+	}
 
 	// Show Window
 	ShowWindow(g_pGlob->hWnd, SW_SHOW);

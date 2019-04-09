@@ -133,6 +133,7 @@ typedef void (*sGGWMR_GetRenderTargetAndDepthStencilViewFnc)(void**,void**,void*
 typedef void (*sGGWMR_PresentFnc)(void); sGGWMR_PresentFnc GGWMR_Present = NULL;
 
 // OpenVR (Steam)
+#ifdef USINGOPENVR
 bool							GGVR_ErrorMessageOn = true;
 std::string						GGVR_HMD_TrackingSysName = "NULL";
 std::string						GGVR_HMD_ModelNo = "NULL";
@@ -153,15 +154,18 @@ vr::IVRCompositor				*ivr_compositor;
 vr::EVRCompositorError			GGVR_CompositorError;
 vr::IVRChaperone				*Chaperone;
 vr::EVRSubmitFlags				GGVR_SubmitFlags = vr::Submit_Default;
-vr::TrackedDevicePose_t			pGamePoseArray[vr::k_unMaxTrackedDeviceCount];
-vr::HmdVector3_t				pGamePoseArray_YPR[vr::k_unMaxTrackedDeviceCount];
-vr::HmdVector3_t				pGamePoseArray_Pos[vr::k_unMaxTrackedDeviceCount];
 vr::TrackedDevicePose_t			pRenderPoseArray[vr::k_unMaxTrackedDeviceCount];
 vr::HmdVector3_t				pRenderPoseArray_YPR[vr::k_unMaxTrackedDeviceCount];
 vr::HmdVector3_t				pRenderPoseArray_Pos[vr::k_unMaxTrackedDeviceCount];
 vr::Texture_t					GGVR_tex_info[2];
 vr::VRTextureBounds_t			GGVR_texture_bounds[2];
 vr::Texture_t					GGVR_CustomSkybox[6];
+#endif
+
+// reuse these data structures
+vr::TrackedDevicePose_t			pGamePoseArray[vr::k_unMaxTrackedDeviceCount];
+vr::HmdVector3_t				pGamePoseArray_YPR[vr::k_unMaxTrackedDeviceCount];
+vr::HmdVector3_t				pGamePoseArray_Pos[vr::k_unMaxTrackedDeviceCount];
 vr::VRControllerState001_t		GGVR_ControllerState[2];
 
 // DLL Entry (no DLL though!)
@@ -267,7 +271,9 @@ int	GGVR_IsHmdPresent()
 	// 1 - OpenVR
 	// 2 - WMR
 	int result = 0;
+	#ifdef USINGOPENVR
 	if ( GGVR_EnabledMode == 1 ) result = vr::VR_IsHmdPresent();
+	#endif
 	if ( GGVR_EnabledMode == 2 ) result = 2;
 	return result;
 }
@@ -315,6 +321,7 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 	// Initialise VR System
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		GGVR_init_error = vr::VRInitError_None;
 		//Initialize OpenVR
 		ivr_system = vr::VR_Init(&GGVR_init_error, GGVR_ApplicationType);
@@ -367,6 +374,16 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 		GGVR_tex_info[GGVR_REye].eType = vr::TextureType_DirectX;
 		GGVR_tex_info[GGVR_LEye].eColorSpace = vr::ColorSpace_Auto;
 		GGVR_tex_info[GGVR_REye].eColorSpace = vr::ColorSpace_Auto;
+		//Texture Bounds
+		GGVR_texture_bounds[GGVR_REye].uMin = 0;
+		GGVR_texture_bounds[GGVR_REye].uMax = 1;
+		GGVR_texture_bounds[GGVR_REye].vMin = 0;
+		GGVR_texture_bounds[GGVR_REye].vMax = 1;
+		GGVR_texture_bounds[GGVR_LEye].uMin = 0;
+		GGVR_texture_bounds[GGVR_LEye].uMax = 1;
+		GGVR_texture_bounds[GGVR_LEye].vMin = 0;
+		GGVR_texture_bounds[GGVR_LEye].vMax = 1;
+		#endif
 	}
 	if ( GGVR_EnabledMode == 2 )
 	{
@@ -374,16 +391,6 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 		GGVR_EyeW = 32;
 		GGVR_EyeH = 32;
 	}
-
-	//Texture Bounds
-	GGVR_texture_bounds[GGVR_REye].uMin = 0;
-	GGVR_texture_bounds[GGVR_REye].uMax = 1;
-	GGVR_texture_bounds[GGVR_REye].vMin = 0;
-	GGVR_texture_bounds[GGVR_REye].vMax = 1;
-	GGVR_texture_bounds[GGVR_LEye].uMin = 0;
-	GGVR_texture_bounds[GGVR_LEye].uMax = 1;
-	GGVR_texture_bounds[GGVR_LEye].vMin = 0;
-	GGVR_texture_bounds[GGVR_LEye].vMax = 1;
 
 	//Create Render Images
 	GGVR_REyeImageID = RImageID;
@@ -394,12 +401,13 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 	GGVR_LEyeImage_Res = GetImagePointer(GGVR_LEyeImageID);
 	GGVR_REyeImage_Res->QueryInterface(IID_ID3D11Texture2D, (void **)&GGVR_REyeImage);
 	GGVR_LEyeImage_Res->QueryInterface(IID_ID3D11Texture2D, (void **)&GGVR_LEyeImage);
-	GGVR_tex_info[GGVR_LEye].handle = (void**)GGVR_LEyeImage;
-	GGVR_tex_info[GGVR_REye].handle = (void**)GGVR_REyeImage;
 
 	// Get the Projection Matrix values
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
+		GGVR_tex_info[GGVR_LEye].handle = (void**)GGVR_LEyeImage;
+		GGVR_tex_info[GGVR_REye].handle = (void**)GGVR_REyeImage;
 		vr::HmdMatrix44_t HMDMat_Left;
 		vr::HmdMatrix44_t HMDMat_Right;
 		HMDMat_Left = ivr_system->GetProjectionMatrix(vr::Eye_Left, GGVR_NearClip, GGVR_FarClip);
@@ -412,6 +420,7 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 		GGVR_RightEyeProjection._21 = HMDMat_Right.m[1][0]; GGVR_RightEyeProjection._22 = HMDMat_Right.m[1][1]; GGVR_RightEyeProjection._23 = HMDMat_Right.m[1][2]; GGVR_RightEyeProjection._24 = HMDMat_Right.m[1][3];
 		GGVR_RightEyeProjection._31 = HMDMat_Right.m[2][0]; GGVR_RightEyeProjection._32 = HMDMat_Right.m[2][1]; GGVR_RightEyeProjection._33 = HMDMat_Right.m[2][2]; GGVR_RightEyeProjection._34 = HMDMat_Right.m[2][3];
 		GGVR_RightEyeProjection._41 = HMDMat_Right.m[3][0]; GGVR_RightEyeProjection._42 = HMDMat_Right.m[3][1]; GGVR_RightEyeProjection._43 = HMDMat_Right.m[3][2]; GGVR_RightEyeProjection._44 = HMDMat_Right.m[3][3];
+		#endif
 	}
 	if ( GGVR_EnabledMode == 2 )
 	{
@@ -432,7 +441,9 @@ void GGVR_Shutdown()
 	// final shutdown of VR system
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		vr::VR_Shutdown();
+		#endif
 	}
 	if ( GGVR_EnabledMode == 2 )
 	{
@@ -490,6 +501,7 @@ void GGVR_UpdatePoses(void)
 	// Handles HMD orientation and Motion Controller handling
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_init_error == vr::VRInitError_None && ivr_compositor != NULL)
 		{
 			//Update the current orientation of the HMD's and Controllers
@@ -599,6 +611,7 @@ void GGVR_UpdatePoses(void)
 				ivr_system->GetControllerState(GGVR_LHandIndex, &GGVR_ControllerState[1], sizeof(vr::VRControllerState001_t));
 			}
 		}
+		#endif
 	}
 	if ( GGVR_EnabledMode == 2 )
 	{
@@ -756,8 +769,10 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 	//Move Cameras for IPD Distance
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		MoveCameraRight(GGVR_RCamID, (ivr_system->GetFloatTrackedDeviceProperty(0, vr::Prop_UserIpdMeters_Float) / 2.0f)*GGVR_WorldScale*GGVR_ipdscale);
 		MoveCameraRight(GGVR_LCamID, -(ivr_system->GetFloatTrackedDeviceProperty(0, vr::Prop_UserIpdMeters_Float) / 2.0f)*GGVR_WorldScale*GGVR_ipdscale);
+		#endif
 	}
 	if ( GGVR_EnabledMode > 1 )
 	{
@@ -1387,6 +1402,7 @@ int GGVR_RightControllerFound( )
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_RHandIndex < 1 || GGVR_RHandIndex > vr::k_unMaxTrackedDeviceCount)
 		{
 		}
@@ -1394,6 +1410,7 @@ int GGVR_RightControllerFound( )
 		{
 			return 1;
 		}
+		#endif
 	}
 	if ( GGVR_EnabledMode == 2 && GGVR_RHandIndex != -1 ) return 1;
 	return 0;
@@ -1403,6 +1420,7 @@ int GGVR_LeftControllerFound( )
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_LHandIndex < 1 || GGVR_LHandIndex > vr::k_unMaxTrackedDeviceCount)
 		{
 		}
@@ -1410,6 +1428,7 @@ int GGVR_LeftControllerFound( )
 		{
 			return 1;
 		}
+		#endif
 	}
 	if ( GGVR_EnabledMode == 2 && GGVR_LHandIndex != -1 ) return 1;
 	return 0;
@@ -1449,10 +1468,12 @@ int GGVR_RightController_Grip(void)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[0].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1461,10 +1482,12 @@ int GGVR_LeftController_Grip(void)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[1].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1473,10 +1496,12 @@ int GGVR_RightController_Button1(void)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[0].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1485,10 +1510,12 @@ int GGVR_LeftController_Button1(void)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[1].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1497,20 +1524,24 @@ int GGVR_RightController_Button2(void)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[0].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Axis0) || GGVR_ControllerState[0].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
 
 int GGVR_LeftController_Button2(void)
 {
+	#ifdef USINGOPENVR
 	if (GGVR_ControllerState[1].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Axis0) || GGVR_ControllerState[1].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A))
 	{
 		return 1;
 	}
+	#endif
 	return 0;
 }
 
@@ -1518,6 +1549,7 @@ int GGVR_RightController_ButtonPressed(int Button)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (Button < vr::k_EButton_Max)
 		{
 			if (GGVR_ControllerState[0].ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)Button))
@@ -1525,6 +1557,7 @@ int GGVR_RightController_ButtonPressed(int Button)
 				return 1;
 			}
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1533,6 +1566,7 @@ int GGVR_LeftController_ButtonPressed(int Button)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (Button < vr::k_EButton_Max)
 		{
 			if (GGVR_ControllerState[1].ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)Button))
@@ -1540,6 +1574,7 @@ int GGVR_LeftController_ButtonPressed(int Button)
 				return 1;
 			}
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1548,10 +1583,12 @@ void GGVR_LeftController_TriggerPulse( int axis, int duration_ms)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_init_error == vr::VRInitError_None && ivr_compositor != NULL)
 		{
 			ivr_system->TriggerHapticPulse(GGVR_LHandIndex, axis, duration_ms);
 		}
+		#endif
 	}
 }
 
@@ -1559,10 +1596,12 @@ void GGVR_RightController_TriggerPulse( int axis, int duration_ms)
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_init_error == vr::VRInitError_None && ivr_compositor != NULL)
 		{
 			ivr_system->TriggerHapticPulse(GGVR_RHandIndex, axis, duration_ms);
 		}
+		#endif
 	}
 }
 
@@ -1570,10 +1609,12 @@ int GGVR_RightController_GetButtonPressed( int button )
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[0].ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1582,10 +1623,12 @@ int GGVR_LeftController_GetButtonPressed( int button )
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[1].ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1594,10 +1637,12 @@ int GGVR_RightController_GetButtonTouched( int button )
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[0].ulButtonTouched & vr::ButtonMaskFromId((vr::EVRButtonId)button))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1606,10 +1651,12 @@ int GGVR_LeftController_GetButtonTouched( int button )
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[1].ulButtonTouched & vr::ButtonMaskFromId((vr::EVRButtonId)button))
 		{
 			return 1;
 		}
+		#endif
 	}
 	return 0;
 }
@@ -1618,10 +1665,12 @@ int GGVR_RightController_GetFingerPointed()
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[0].ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_Axis1))
 		{
 			return 0;
 		}
+		#endif
 	}
 	return 1;
 }
@@ -1630,10 +1679,12 @@ int GGVR_LeftController_GetFingerPointed()
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[1].ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_Axis1))
 		{
 			return 0;
 		}
+		#endif
 	}
 	return 1;
 }
@@ -1642,10 +1693,12 @@ int GGVR_RightController_GetThumbUp()
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[0].ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_Axis0) || GGVR_ControllerState[0].ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_A) || GGVR_ControllerState[0].ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 		{
 			return 0;
 		}
+		#endif
 	}
 	return 1;
 }
@@ -1654,47 +1707,57 @@ int GGVR_LeftController_GetThumbUp()
 {
 	if ( GGVR_EnabledMode == 1 )
 	{
+		#ifdef USINGOPENVR
 		if (GGVR_ControllerState[1].ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_Axis0) || GGVR_ControllerState[1].ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_A) || GGVR_ControllerState[1].ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 		{
 			return 0;
 		}
+		#endif
 	}
 	return 1;
 }
 
 float GGVR_RightController_AxisTriggerX(int axis)
 {
+	#ifdef USINGOPENVR
 	if (axis >= 0 && axis < vr::k_unControllerStateAxisCount)
 	{
 		return GGVR_ControllerState[0].rAxis[axis].x;
 	}
+	#endif
 	return 0.0f;
 }
 
 float GGVR_RightController_AxisTriggerY(int axis)
 {
+	#ifdef USINGOPENVR
 	if (axis >= 0 && axis < vr::k_unControllerStateAxisCount)
 	{
 		return GGVR_ControllerState[0].rAxis[axis].y;
 	}
+	#endif
 	return 0.0f;
 }
 
 float GGVR_LeftController_AxisTriggerX(int axis)
 {
+	#ifdef USINGOPENVR
 	if (axis >= 0 && axis < vr::k_unControllerStateAxisCount)
 	{
 		return GGVR_ControllerState[1].rAxis[axis].x;
 	}
+	#endif
 	return 0.0f;
 }
 
 float GGVR_LeftController_AxisTriggerY(int axis)
 {
+	#ifdef USINGOPENVR
 	if (axis >= 0 && axis < vr::k_unControllerStateAxisCount)
 	{
 		return GGVR_ControllerState[1].rAxis[axis].y;
 	}
+	#endif
 	return 0.0f;
 }
 
@@ -1805,9 +1868,9 @@ int GGVR_PreSubmit()
 		if ( GGVR_EnabledState == 1 )
 		{
 			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "" );
-			if ( iErrorCode > 0 ) return iErrorCode;
+			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }
 			iErrorCode = GGVR_CreateHolographicSpace2 ( m_pD3D, m_pImmediateContext );
-			if ( iErrorCode > 0 ) return iErrorCode;
+			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }
 			ShowWindow(g_pGlob->hOriginalhWnd, SW_SHOW);
 			UpdateWindow(g_pGlob->hOriginalhWnd);
 			GGVR_EnabledState = 2;
@@ -1848,8 +1911,61 @@ int GGVR_PreSubmit()
 	return 0;
 }
 
+void GGVR_SetCameraRange( float Near, float Far )
+{
+	GGVR_NearClip = Near;
+	GGVR_FarClip = Far;
+
+	SetCameraRange(GGVR_RCamID, GGVR_NearClip, GGVR_FarClip);
+	SetCameraRange(GGVR_LCamID, GGVR_NearClip, GGVR_FarClip);
+
+	if ( GGVR_EnabledMode == 1 )
+	{
+		#ifdef USINGOPENVR
+		vr::HmdMatrix44_t HMDMat_Left;
+		vr::HmdMatrix44_t HMDMat_Right;
+		HMDMat_Left = ivr_system->GetProjectionMatrix(vr::Eye_Left, GGVR_NearClip, GGVR_FarClip);
+		HMDMat_Right = ivr_system->GetProjectionMatrix(vr::Eye_Right, GGVR_NearClip, GGVR_FarClip);
+		GGVR_LeftEyeProjection._11 = HMDMat_Left.m[0][0]; GGVR_LeftEyeProjection._12 = HMDMat_Left.m[0][1]; GGVR_LeftEyeProjection._13 = HMDMat_Left.m[0][2]; GGVR_LeftEyeProjection._14 = HMDMat_Left.m[0][3];
+		GGVR_LeftEyeProjection._21 = HMDMat_Left.m[1][0]; GGVR_LeftEyeProjection._22 = HMDMat_Left.m[1][1]; GGVR_LeftEyeProjection._23 = HMDMat_Left.m[1][2]; GGVR_LeftEyeProjection._24 = HMDMat_Left.m[1][3];
+		GGVR_LeftEyeProjection._31 = HMDMat_Left.m[2][0]; GGVR_LeftEyeProjection._32 = HMDMat_Left.m[2][1]; GGVR_LeftEyeProjection._33 = HMDMat_Left.m[2][2]; GGVR_LeftEyeProjection._34 = HMDMat_Left.m[2][3];
+		GGVR_LeftEyeProjection._41 = HMDMat_Left.m[3][0]; GGVR_LeftEyeProjection._42 = HMDMat_Left.m[3][1]; GGVR_LeftEyeProjection._43 = HMDMat_Left.m[3][2]; GGVR_LeftEyeProjection._44 = HMDMat_Left.m[3][3];
+		GGVR_RightEyeProjection._11 = HMDMat_Right.m[0][0]; GGVR_RightEyeProjection._12 = HMDMat_Right.m[0][1]; GGVR_RightEyeProjection._13 = HMDMat_Right.m[0][2]; GGVR_RightEyeProjection._14 = HMDMat_Right.m[0][3];
+		GGVR_RightEyeProjection._21 = HMDMat_Right.m[1][0]; GGVR_RightEyeProjection._22 = HMDMat_Right.m[1][1]; GGVR_RightEyeProjection._23 = HMDMat_Right.m[1][2]; GGVR_RightEyeProjection._24 = HMDMat_Right.m[1][3];
+		GGVR_RightEyeProjection._31 = HMDMat_Right.m[2][0]; GGVR_RightEyeProjection._32 = HMDMat_Right.m[2][1]; GGVR_RightEyeProjection._33 = HMDMat_Right.m[2][2]; GGVR_RightEyeProjection._34 = HMDMat_Right.m[2][3];
+		GGVR_RightEyeProjection._41 = HMDMat_Right.m[3][0]; GGVR_RightEyeProjection._42 = HMDMat_Right.m[3][1]; GGVR_RightEyeProjection._43 = HMDMat_Right.m[3][2]; GGVR_RightEyeProjection._44 = HMDMat_Right.m[3][3];
+		#endif
+	}
+	if ( GGVR_EnabledMode == 2 )
+	{
+		// done in realtime
+	}
+}
+
+void GGVR_Submit ( void )
+{
+	if ( GGVR_EnabledMode == 1 )
+	{
+		#ifdef USINGOPENVR
+		if (GGVR_init_error == vr::VRInitError_None && ivr_compositor != NULL)
+		{
+			GGVR_CompositorError = ivr_compositor->Submit(vr::Eye_Left, &GGVR_tex_info[GGVR_LEye], &GGVR_texture_bounds[GGVR_LEye], GGVR_SubmitFlags);
+			GGVR_CompositorError = ivr_compositor->Submit(vr::Eye_Right, &GGVR_tex_info[GGVR_REye], &GGVR_texture_bounds[GGVR_REye], GGVR_SubmitFlags);
+		}
+		#endif
+	}
+	if ( GGVR_EnabledMode == 2 )
+	{
+		if ( GGVR_EnabledState == 2 )
+		{
+			GGWMR_Present();
+		}
+	}
+}
+
 // OpenVR
 
+#ifdef USINGOPENVR
 int	GGVR_IsRuntimeInstalled()
 {
 	bool result = 0;
@@ -1888,54 +2004,6 @@ void GGVR_ResetSeatedZeroPose()
 		if (GGVR_init_error == vr::VRInitError_None && ivr_compositor != NULL)
 		{
 			ivr_system->ResetSeatedZeroPose();
-		}
-	}
-}
-
-void GGVR_SetCameraRange( float Near, float Far )
-{
-	GGVR_NearClip = Near;
-	GGVR_FarClip = Far;
-
-	SetCameraRange(GGVR_RCamID, GGVR_NearClip, GGVR_FarClip);
-	SetCameraRange(GGVR_LCamID, GGVR_NearClip, GGVR_FarClip);
-
-	if ( GGVR_EnabledMode == 1 )
-	{
-		vr::HmdMatrix44_t HMDMat_Left;
-		vr::HmdMatrix44_t HMDMat_Right;
-		HMDMat_Left = ivr_system->GetProjectionMatrix(vr::Eye_Left, GGVR_NearClip, GGVR_FarClip);
-		HMDMat_Right = ivr_system->GetProjectionMatrix(vr::Eye_Right, GGVR_NearClip, GGVR_FarClip);
-		GGVR_LeftEyeProjection._11 = HMDMat_Left.m[0][0]; GGVR_LeftEyeProjection._12 = HMDMat_Left.m[0][1]; GGVR_LeftEyeProjection._13 = HMDMat_Left.m[0][2]; GGVR_LeftEyeProjection._14 = HMDMat_Left.m[0][3];
-		GGVR_LeftEyeProjection._21 = HMDMat_Left.m[1][0]; GGVR_LeftEyeProjection._22 = HMDMat_Left.m[1][1]; GGVR_LeftEyeProjection._23 = HMDMat_Left.m[1][2]; GGVR_LeftEyeProjection._24 = HMDMat_Left.m[1][3];
-		GGVR_LeftEyeProjection._31 = HMDMat_Left.m[2][0]; GGVR_LeftEyeProjection._32 = HMDMat_Left.m[2][1]; GGVR_LeftEyeProjection._33 = HMDMat_Left.m[2][2]; GGVR_LeftEyeProjection._34 = HMDMat_Left.m[2][3];
-		GGVR_LeftEyeProjection._41 = HMDMat_Left.m[3][0]; GGVR_LeftEyeProjection._42 = HMDMat_Left.m[3][1]; GGVR_LeftEyeProjection._43 = HMDMat_Left.m[3][2]; GGVR_LeftEyeProjection._44 = HMDMat_Left.m[3][3];
-		GGVR_RightEyeProjection._11 = HMDMat_Right.m[0][0]; GGVR_RightEyeProjection._12 = HMDMat_Right.m[0][1]; GGVR_RightEyeProjection._13 = HMDMat_Right.m[0][2]; GGVR_RightEyeProjection._14 = HMDMat_Right.m[0][3];
-		GGVR_RightEyeProjection._21 = HMDMat_Right.m[1][0]; GGVR_RightEyeProjection._22 = HMDMat_Right.m[1][1]; GGVR_RightEyeProjection._23 = HMDMat_Right.m[1][2]; GGVR_RightEyeProjection._24 = HMDMat_Right.m[1][3];
-		GGVR_RightEyeProjection._31 = HMDMat_Right.m[2][0]; GGVR_RightEyeProjection._32 = HMDMat_Right.m[2][1]; GGVR_RightEyeProjection._33 = HMDMat_Right.m[2][2]; GGVR_RightEyeProjection._34 = HMDMat_Right.m[2][3];
-		GGVR_RightEyeProjection._41 = HMDMat_Right.m[3][0]; GGVR_RightEyeProjection._42 = HMDMat_Right.m[3][1]; GGVR_RightEyeProjection._43 = HMDMat_Right.m[3][2]; GGVR_RightEyeProjection._44 = HMDMat_Right.m[3][3];
-	}
-	if ( GGVR_EnabledMode == 2 )
-	{
-		// done in realtime
-	}
-}
-
-void GGVR_Submit()
-{
-	if ( GGVR_EnabledMode == 1 )
-	{
-		if (GGVR_init_error == vr::VRInitError_None && ivr_compositor != NULL)
-		{
-			GGVR_CompositorError = ivr_compositor->Submit(vr::Eye_Left, &GGVR_tex_info[GGVR_LEye], &GGVR_texture_bounds[GGVR_LEye], GGVR_SubmitFlags);
-			GGVR_CompositorError = ivr_compositor->Submit(vr::Eye_Right, &GGVR_tex_info[GGVR_REye], &GGVR_texture_bounds[GGVR_REye], GGVR_SubmitFlags);
-		}
-	}
-	if ( GGVR_EnabledMode == 2 )
-	{
-		if ( GGVR_EnabledState == 2 )
-		{
-			GGWMR_Present();
 		}
 	}
 }
@@ -2252,3 +2320,4 @@ char* GGVR_LCntrl_GetManufacturer()
 	strcpy(cstr, GGVR_LCntrl_Manufacturer.c_str());
 	return cstr;
 }
+#endif

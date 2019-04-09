@@ -70,6 +70,7 @@ DARKSDK void PlayAnimationToImage			( int animindex, int imageindex, int x1, int
 DARKSDK void PlayAnimationToBitmap			( int animindex, int bitmapindex, int x1, int y1, int x2, int y2 );
 DARKSDK void LoopAnimationToBitmap			( int animindex, int bitmapindex, int x1, int y1, int x2, int y2 );
 DARKSDK void PlaceAnimation					( int animindex, int x1, int y1, int x2, int y2);
+DARKSDK void OverrideTextureWithAnimation	( int animindex, int objectnumber );
 
 DARKSDK int  AnimationExist					( int animindex );
 DARKSDK int  AnimationPlaying				( int animindex );

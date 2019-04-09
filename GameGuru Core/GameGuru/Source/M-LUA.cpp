@@ -794,6 +794,7 @@ void lua_loop_finish ( void )
 	{
 		t.luaaction_s=LuaMessageDesc();
 		if ( strcmp ( t.luaaction_s.Get() , "prompt" ) == 0 ) {  t.s_s=LuaMessageString(); lua_prompt(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "promptimage" ) == 0 ) { t.v=LuaMessageInt(); lua_promptimage() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "promptduration" ) == 0 ) {  t.v=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_promptduration() ;}
 		else if ( strcmp ( t.luaaction_s.Get() , "prompttextsize" ) == 0 ) {  t.v=LuaMessageInt() ; lua_prompttextsize() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "promptlocal" ) == 0 ) {  t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_promptlocal() ; }
@@ -989,8 +990,10 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "stopsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_stopsound() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setsoundspeed" ) == 0 ) { t.v=LuaMessageInt() ; entity_lua_setsoundspeed() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setsoundvolume" ) == 0 ) { t.v=LuaMessageInt() ; entity_lua_setsoundvolume() ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "playvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(0) ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "playvideonoskip" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(1) ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "playvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(0,0) ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "playvideonoskip" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(0,1) ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "promptvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(1,0) ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "promptvideonoskip" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(1,1) ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "stopvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_stopvideo() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "fireweapon" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_fireweapon() ; }
 

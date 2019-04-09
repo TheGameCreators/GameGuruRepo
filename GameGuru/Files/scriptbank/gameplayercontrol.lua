@@ -546,7 +546,7 @@ function gameplayercontrol.lookmove()
 	end
 	
 	-- completely skip use of mousemovexy so LUA mouse system can use it for its own pointer
-	if ( GetGamePlayerStateLuaActiveMouse() ~= 1 ) then
+	if ( GetGamePlayerStateLuaActiveMouse() ~= 1 or GetGamePlayerStateMotionController() == 1 ) then
 		-- No player control if dead, but use up mousemoves to prevent sudden move on respawn or if in multiplayer and respawning
 		if ( g_PlayerHealth == 0 or GetGamePlayerStatePlrHasFocus() == 0 or (GetGamePlayerStateGameRunAsMultiplayer() == 1 and GetGamePlayerStateSteamWorksRespawnLeft() ~= 0) ) then 
 			tcleardeltas = MouseMoveX() + MouseMoveY()

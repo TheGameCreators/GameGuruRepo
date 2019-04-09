@@ -648,6 +648,7 @@ void mapfile_savestandalone ( void )
 
 	//  Stage 1 - specify all common files
 	addtocollection("editors\\gfx\\guru-forexe.ico");
+	addtocollection("editors\\gfx\\14.png");
 	addtocollection( cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-wordcount.ini").Get() );
 	addtocollection(cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-words.txt").Get() );
 	addtocollection("audiobank\\misc\\silence.wav");
@@ -1376,7 +1377,7 @@ void mapfile_savestandalone ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
-	for ( int iCritDLLs = 1; iCritDLLs <= 6; iCritDLLs++ )
+	for ( int iCritDLLs = 1; iCritDLLs <= 7; iCritDLLs++ )
 	{
 		LPSTR pCritDLLFilename = "";
 		switch ( iCritDLLs )
@@ -1387,6 +1388,7 @@ void mapfile_savestandalone ( void )
 			case 4 : pCritDLLFilename = "avformat-57.dll"; break;
 			case 5 : pCritDLLFilename = "avutil-55.dll"; break;
 			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
+			case 7 : pCritDLLFilename = "GGWMR.dll"; break;
 		}
 		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
@@ -1548,10 +1550,21 @@ void mapfile_savestandalone ( void )
 			else
 			{
 				// old VRQ had XBOX Controllers
-				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=1"; ++t.i;
-				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
-				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
-				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
+				if ( g.gvrmode == 3 )
+				{
+					// use MOTION CONTROLLERS with WMR Support
+					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=0"; ++t.i;
+					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
+					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
+					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
+				}
+				else
+				{
+					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=1"; ++t.i;
+					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
+					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
+					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
+				}
 			}
 		}
 		else

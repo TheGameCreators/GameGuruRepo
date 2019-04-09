@@ -5,12 +5,13 @@
 #include "cstr.h"
 
 void lua_prompt ( void );
+void lua_promptimage ( void );
 void lua_promptduration ( void );
 void lua_prompttextsize ( void );
 void lua_promptlocal ( void );
 void lua_promptlocalforvrmode ( void );
 void lua_promptlocalforvr ( void );
-void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime );
+void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex );
 void lua_positionprompt3d (  float fX, float fY, float fZ, float fAngleY );
 void lua_updateprompt3d ( void );
 void lua_hideprompt3d ( void );

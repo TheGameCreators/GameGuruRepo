@@ -3821,6 +3821,38 @@ DARKSDK_DLL void SetObjectToCameraOrientation ( int iID )
 
 // Texture commands
 
+DARKSDK_DLL void TextureObjectRef ( int iID, LPGGSHADERRESOURCEVIEW pTextureRef, float fClipU, float fClipV )
+{
+	// check the object exists
+	g_pGlob->dwInternalFunctionCode=12001;
+	if ( !ConfirmObject ( iID ) )
+		return;
+
+	// apply to all meshes
+	sObject* pObject = g_ObjectList [ iID ];
+	for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+	{
+		sMesh* pMesh = pObject->ppMeshList [ iMesh ];
+		SetBaseTextureStageRef ( pMesh, 0, pTextureRef );
+
+		// get the offset map for the FVF
+		sOffsetMap offsetMap;
+		GetFVFOffsetMap ( pMesh, &offsetMap );
+
+		// change the UV offsets
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTU[0] + ( offsetMap.dwSize * 0 ) ) = fClipU;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTU[0] + ( offsetMap.dwSize * 2 ) ) = fClipU;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTV[0] + ( offsetMap.dwSize * 2 ) ) = fClipV;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTV[0] + ( offsetMap.dwSize * 4 ) ) = fClipV;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTU[0] + ( offsetMap.dwSize * 5 ) ) = fClipU;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTV[0] + ( offsetMap.dwSize * 5 ) ) = fClipV;
+
+		// flag mesh for a VB update
+		pMesh->bVBRefreshRequired=true;
+		g_vRefreshMeshList.push_back ( pMesh );
+	}
+}
+
 DARKSDK_DLL void TextureObject ( int iID, int iImage )
 {
 	// check the object exists

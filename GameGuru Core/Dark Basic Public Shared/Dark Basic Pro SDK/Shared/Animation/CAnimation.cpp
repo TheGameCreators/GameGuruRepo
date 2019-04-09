@@ -11,6 +11,7 @@
 #include "CGfxC.h"
 #include "CImageC.h"
 #include "CSpritesC.h"
+#include "CObjectsC.h"
 
 #include <clipffmpeg/clipffmpeg.h>
 #include <theoraplayer/FrameQueue.h>
@@ -285,6 +286,12 @@ DARKSDK BOOL DB_ResizeAnimation(int AnimIndex, int x1, int y1, int x2, int y2)
 	Anim[AnimIndex].WantRect.top	= y1;
 	Anim[AnimIndex].WantRect.right	= x2;
 	Anim[AnimIndex].WantRect.bottom	= y2;
+	return TRUE;
+}
+
+DARKSDK BOOL DB_OverrideTextureWithAnimation(int AnimIndex, int ObjectNumber)
+{
+	TextureObjectRef ( ObjectNumber, Anim[AnimIndex].pTextureRef, Anim[AnimIndex].ClipU, Anim[AnimIndex].ClipV );
 	return TRUE;
 }
 
@@ -728,6 +735,16 @@ DARKSDK void PlaceAnimation( int animindex, int x1, int y1, int x2, int y2)
 		}
 		else
 			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+DARKSDK void OverrideTextureWithAnimation( int animindex, int objectnumber )
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		DB_OverrideTextureWithAnimation(animindex, objectnumber);
 	}
 	else
 		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);

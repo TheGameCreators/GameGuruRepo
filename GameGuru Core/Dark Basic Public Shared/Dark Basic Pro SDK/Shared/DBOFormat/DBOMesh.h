@@ -74,6 +74,7 @@ void  FreeInternalTextures      ( sMesh* pMesh );
 void  CloneInternalTextures		( sMesh* pMeshDest, sMesh* pMeshSrc );
 void  CopyMeshSettings			( sMesh* pDestMesh, sMesh* pSrcMesh );
 void  SetBaseTexture			( sMesh* pMesh, int iStage, int iImage );
+void  SetBaseTextureStageRef	( sMesh* pMesh, int iStage, LPGGSHADERRESOURCEVIEW pTextureRef );
 void  SetBaseTextureStage		( sMesh* pMesh, int iStage, int iImage );
 void  SetMultiTexture			( sMesh* pMesh, int iStage, DWORD dwBlendMode, DWORD dwTexCoordMode, int iImage );
 void  SetCubeTexture			( sMesh* pMesh, int iStage, LPGGCUBETEXTURE pCubeTexture );

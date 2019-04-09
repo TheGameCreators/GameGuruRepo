@@ -2363,6 +2363,13 @@ DARKSDK_DLL void SetBaseTextureStage ( sMesh* pMesh, int iStage, int iImage )
 	g_pGlob->dwInternalFunctionCode=11016;
 }
 
+DARKSDK_DLL void SetBaseTextureStageRef ( sMesh* pMesh, int iStage, LPGGSHADERRESOURCEVIEW pTextureRef )
+{
+	// force a texyture ref override (animation to object texture image ref)
+	pMesh->pTextures [ iStage ].iImageID = -123;
+	pMesh->pTextures [ iStage ].pTexturesRefView = pTextureRef;
+}
+
 DARKSDK_DLL void SetAlphaOverride ( sMesh* pMesh, float fPercentage )
 {
 	if ( fPercentage<100.0f )
