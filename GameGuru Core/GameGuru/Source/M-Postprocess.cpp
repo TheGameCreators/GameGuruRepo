@@ -107,7 +107,7 @@ void postprocess_init ( void )
 				}
 
 				// VR Support - create VR cameras
-				if ( g.vrglobals.GGVREnabled > 0 )
+				if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 				{
 					// Set camera IDs and initialise GGVR
 					t.glefteyecameraid = 6;
@@ -360,7 +360,7 @@ void postprocess_applycheapshadow ( void )
 void postprocess_free ( void )
 {
 	// free GGVR if used
-	if ( g.vrglobals.GGVREnabled > 0 )
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 	{
 		GGVR_Shutdown();
 	}
@@ -591,7 +591,7 @@ void postprocess_preterrain ( void )
 	}
 
 	// VR Support - render VR cameras
-	if ( g.vrglobals.GGVREnabled > 0 )
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 	{
 		// position VR player at location of main camera
 		GGVR_SetPlayerPosition(t.tFinalCamX_f, t.tFinalCamY_f, t.tFinalCamZ_f);
@@ -636,6 +636,7 @@ void postprocess_preterrain ( void )
 					timestampactivity(0,pErrorStr);
 				}
 
+				// render left and right eyes
 				for (t.leftright = 0; t.leftright <= 1; t.leftright++)
 				{
 					//  left and right camera in turn
@@ -684,10 +685,12 @@ void postprocess_preterrain ( void )
 				// for OpenVR style VR
 				GGVR_Submit();
 
+				// restore skies
 				if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
 				if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
 				if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera) + 7000, CameraPositionZ(t.terrain.gameplaycamera));
 
+				// restore camera
 				SetCurrentCamera(0);
 			}
 

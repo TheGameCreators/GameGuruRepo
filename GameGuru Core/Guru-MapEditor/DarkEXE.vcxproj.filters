@@ -396,7 +396,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon2-db3.ico">
+    <Image Include="iconG.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

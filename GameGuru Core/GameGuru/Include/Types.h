@@ -3252,6 +3252,7 @@ struct huddamagetype
 struct vrglobalstype
 {
 	int GGVREnabled;
+	int GGVRUsingVRSystem;
 	float GGVRInitialized;
 	float GGVR_HeadingAngle;
 	float GGVR_XposOffset;
@@ -3268,6 +3269,7 @@ struct vrglobalstype
 	vrglobalstype ( )
 	{
 		GGVREnabled = 0;
+		GGVRUsingVRSystem = 0;
 		GGVRInitialized = 0;
 		GGVRStandingMode = 0;
 	}

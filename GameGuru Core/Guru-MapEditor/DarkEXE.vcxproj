@@ -1597,7 +1597,7 @@
     <ResourceCompile Include="dbproexe.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon2-db3.ico" />
+    <Image Include="iconG.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

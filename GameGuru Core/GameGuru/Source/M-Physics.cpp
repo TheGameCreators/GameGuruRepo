@@ -1403,7 +1403,7 @@ void physics_player_gatherkeycontrols ( void )
 	}
 
 	// VR Support - take extra input from VR controllers
-	if ( g.vrglobals.GGVREnabled > 0 )
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 	{
 		// Intialize the player to the start position and rotation and setup the GGVR Player Object
 		if (g.vrglobals.GGVRInitialized == 0)

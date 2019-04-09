@@ -33,6 +33,7 @@ void mapeditorexecutable ( void )
 	// No VR or RIFTMODE in Editor Mode
 	g.globals.riftmode = 0;
 	g.vrglobals.GGVREnabled = 0; 
+	g.vrglobals.GGVRUsingVRSystem = 1; 
 	if ( g.gvrmode == 2 ) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
 	if ( g.gvrmode == 3 ) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
 	timestampactivity(0,"choose VR system");
@@ -1479,7 +1480,7 @@ void editor_showreviewrequest_check ( void )
 }
 */
 
-void editor_previewmapormultiplayer ( void )
+void editor_previewmapormultiplayer ( int iUseVRTest )
 {
 	//  store if project modified
 	t.storeprojectmodified=g.projectmodified;
@@ -1638,9 +1639,9 @@ void editor_previewmapormultiplayer ( void )
 		terrain_applyshader();
 		terrain_fastveg_applyshader();
 	}
-
+	
 	//  set-up test game screen prompt assets
-	loadscreenpromptassets();
+	loadscreenpromptassets(iUseVRTest);
 	if (  t.game.runasmultiplayer == 1 ) 
 	{
 		printscreenprompt("ENTERING MULTIPLAYER MODE");
@@ -1831,12 +1832,14 @@ void editor_previewmapormultiplayer ( void )
 	//  Work out the amount of memory used for the TEST GAME session
 	t.tmemorybeforetestgame=SMEMAvailable(1);
 
+	//
 	//  launch game root with IDE 'test at cursor position' settings
+	//
 	t.game.gameisexe=0;
 	t.game.set.resolution=0;
 	t.game.set.initialsplashscreen=0;
 	t.game.set.ismapeditormode=0;
-	game_masterroot ( );
+	game_masterroot ( iUseVRTest );
 	t.game.set.ismapeditormode=1;
 
 	//  Restore entities (remove light map objects for return to IDE editor)
@@ -2052,7 +2055,7 @@ void editor_multiplayermode ( void )
 
 	//  Set multiplayer flags here
 	t.game.runasmultiplayer=1;
-	editor_previewmapormultiplayer ( );
+	editor_previewmapormultiplayer ( 0 );
 
 	//  As multiplayer can load OTHER things, restore level to state before we clicked MM button
 	t.tfile_s=g.mysystem.editorsGridedit_s+"cfg.cfg";//"editors\\gridedit\\cfg.cfg";
@@ -2076,13 +2079,13 @@ return;
 
 }
 
-void editor_previewmap ( void )
+void editor_previewmap ( int iUseVRTest )
 {
 	//  check if we are in the importer or character creator, if we are, don't test ma
 	editor_checkIfInSubApp ( );
 	//  Set single player test game flags here
 	t.game.runasmultiplayer=0;
-	editor_previewmapormultiplayer ( );
+	editor_previewmapormultiplayer ( iUseVRTest );
 }
 
 void input_getfilemapcontrols ( void )
@@ -2303,12 +2306,15 @@ void input_getfilemapcontrols ( void )
 				switch (  t.toolbarindex ) 
 				{
 					case 1 :
-						editor_previewmap ( );
+						editor_previewmap ( 0 );
 					break;
 					case 2 :
 						editor_multiplayermode ( );
 					break;
-				}		//~   endif
+					case 3 :
+						editor_previewmap ( 1 );
+					break;
+				}
 			}
 			if (  t.toolbarset == 21 ) 
 			{
@@ -4656,7 +4662,7 @@ if ( t.inputsys.dosave == 1 )
 if ( t.inputsys.doopen == 1 ) gridedit_open_map_ask ( );
 if ( t.inputsys.donew == 1 || t.inputsys.donewflat == 1 ) gridedit_new_map_ask ( );
 if ( t.inputsys.dosaveas == 1 ) gridedit_saveas_map ( );
-if ( t. inputsys.dosaveandrun==1 ) { t.inputsys.dosaveandrun = 0 ; editor_previewmap ( ); }
+if ( t. inputsys.dosaveandrun==1 ) { t.inputsys.dosaveandrun = 0 ; editor_previewmap ( 0 ); }
 
 //  Undo \ Redo
 if ( t.inputsys.doundo == 1 ) editor_undo ( );

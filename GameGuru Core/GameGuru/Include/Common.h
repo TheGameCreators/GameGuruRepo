@@ -55,7 +55,7 @@ void printvalue ( int x, int y, int value );
 int loadinternalmesh ( char* tfile_s );
 //cstr findmaterialtexturesinmodelfile ( char* file_s, char* texpath_s );
 char* browseropen_s ( int browsemode );
-void loadscreenpromptassets ( void );
+void loadscreenpromptassets ( int iUseVRTest );
 void printscreenprompt ( char* screenprompt_s );
 int mod ( int num, int modulus );
 void GGBoxGradient ( int iLeft, int iTop, int iRight, int iBottom, DWORD dw1, DWORD dw2, DWORD dw3, DWORD dw4 );

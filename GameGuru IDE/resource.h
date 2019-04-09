@@ -576,6 +576,7 @@
 #define ID_VIEW_ROTATE_ENTITY           32885
 #define ID_BUTTON_TEST_GAME             32886
 #define ID_TEST_GAME                    32887
+#define ID_TESTVR_GAME                  32888
 #define ID_EDIT_UNDO_1                  32889
 #define ID_FILE_SAVE_EX                 32890
 #define ID_FILE_SAVE_AS_EX              32891

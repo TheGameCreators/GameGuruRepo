@@ -26,8 +26,11 @@ float				g_fOccluderLastCamZ = 0.0f;
 // externals
 //extern bool g_VR920RenderStereoNow;
 
-void game_masterroot ( void )
+void game_masterroot ( int iUseVRTest )
 {
+	// prevent any VR if VRtest is off
+	if ( iUseVRTest == 0 ) g.vrglobals.GGVRUsingVRSystem = 0;
+
 	//  Load all one-off non-graphics assets
 	timestampactivity(0,"_game_oneoff_nongraphics");
 	game_oneoff_nongraphics ( );
@@ -36,7 +39,6 @@ void game_masterroot ( void )
 	t.game.masterloop=1;
 	while ( t.game.masterloop == 1 ) 
 	{
-
 		// first hide rendering of 3D while we set up
 		SyncMaskOverride ( 0 );
 
@@ -137,7 +139,6 @@ void game_masterroot ( void )
 		//  Level loop will run while level progression is in progress
 		while (  t.game.levelloop == 1 ) 
 		{
-
 			// also hide rendering of 3D while we set up a new level
 			SyncMaskOverride ( 0 );
 
@@ -1024,6 +1025,9 @@ void game_masterroot ( void )
 	{
 		t.game.set.endsplash=0;
 	}
+
+	// restore VR activity (vrtest flag has done its job)
+	g.vrglobals.GGVRUsingVRSystem = 1;
 }
 
 void game_setresolution ( void )

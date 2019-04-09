@@ -3129,6 +3129,7 @@ void FPSC_Setup ( void )
 		// VR Mode Initialisation
 		g.globals.riftmode = 0;
 		g.vrglobals.GGVREnabled = 0; 
+		g.vrglobals.GGVRUsingVRSystem = 1; 
 		if ( g.gvrmode == 2 ) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
 		if ( g.gvrmode == 3 ) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
 		timestampactivity(0,"choose VR system");
@@ -3155,7 +3156,9 @@ void FPSC_Setup ( void )
 		SetCameraAspect (  t.aspect_f );
 	
 		//  set-up test game screen prompt assets (for printscreenprompt())
-		loadscreenpromptassets();
+		int iUseVRTest = 0;
+		if ( g.vrglobals.GGVREnabled > 0 ) iUseVRTest = 1;
+		loadscreenpromptassets(iUseVRTest);
 		printscreenprompt("");
 
 		// delayed material load to after logo splash
@@ -3209,8 +3212,10 @@ void FPSC_Setup ( void )
 		//  full speed
 		SyncRate (  0 );
 	
+		//
 		//  Launch game in EXE mode
-		game_masterroot ( );
+		//
+		game_masterroot ( iUseVRTest );
 
 		// 131115 - standalone game sessions fragment memory over time, so launch new instance
 		// of the game executable (with silencing command line) and then quit this 'fragmented'
@@ -5184,7 +5189,7 @@ else
 return NULL;
 } 
 
-void loadscreenpromptassets ( void )
+void loadscreenpromptassets ( int iUseVRTest )
 {
 	if ( t.levelsforstandalone == 0 )
 	{
@@ -5299,7 +5304,7 @@ void loadscreenpromptassets ( void )
 				{	
 					if ( g.vrqcontrolmode != 0 )
 					{
-						if ( g.gvrmode == 3 )
+						if ( g.gvrmode == 3 && iUseVRTest == 1 )
 							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-vr.png", g.language_s.Get() );
 						else
 							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-noweapons.png", g.language_s.Get() );

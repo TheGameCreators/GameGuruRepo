@@ -4,7 +4,7 @@
 
 #include "cstr.h"
 
-void game_masterroot ( void );
+void game_masterroot ( int iUseVRTest );
 void game_setresolution ( void );
 void game_postresolutionchange ( void );
 void game_oneoff_nongraphics ( void );

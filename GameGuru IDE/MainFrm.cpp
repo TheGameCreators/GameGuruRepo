@@ -101,9 +101,11 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_COMMAND(ID_VIEW_WAYPOINT, OnViewWaypoint)
 	ON_COMMAND(ID_VIEW_TEST_GAME, OnViewTestGame)
 	ON_COMMAND(ID_TEST_GAME, OnTestGame)
+	ON_COMMAND(ID_TESTVR_GAME, OnTestVRGame)
 	ON_COMMAND(ID_MULTIPLAYER_GAME, OnMultiplayerGame)
 	ON_UPDATE_COMMAND_UI(ID_TEST_MAP, OnUpdateTestMap)
 	ON_UPDATE_COMMAND_UI(ID_TEST_GAME, OnUpdateTestGame)
+	ON_UPDATE_COMMAND_UI(ID_TESTVR_GAME, OnUpdateTestVRGame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ZOOMIN, OnUpdateViewZoomIn)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ZOOMOUT, OnUpdateViewZoomOut)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_INCREASE_SHROUD, OnUpdateViewIncreaseShroud)
@@ -465,7 +467,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndToolBar.SetToolBarBtnTooltip ( 15, GetLanguageData ( "Tooltips", "32" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 16, GetLanguageData ( "Tooltips", "33" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 17, GetLanguageData ( "Tooltips", "34" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 18, GetLanguageData ( "Tooltips", "39" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 18, GetLanguageData ( "Tooltips", "36" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 19, GetLanguageData ( "Tooltips", "39" ) );
 
 	/* replaced separate tooltips with one master bar - prevents docking fracture
 	// Build individual toolbar
@@ -1729,11 +1732,15 @@ void gShowHideTaskBar(BOOL bHide /*=FALSE*/)
 	}
 }
 
-void CMainFrame::TestOrMultiplayerGame ( int iMultiplayerMode ) 
+void CMainFrame::TestOrMultiplayerGame ( int iSingleMultiplayerVRMode ) 
 {
+	// 0 - test game
+	// 1 - multiplayer game
+	// 2 - VR test game
+
 	// set the file map to instruct the mapeditor to launch TEST LEVEL
 	theApp.SetFileMapData ( 200, 9 );
-	theApp.SetFileMapData ( 204, 1+iMultiplayerMode );
+	theApp.SetFileMapData ( 204, 1+iSingleMultiplayerVRMode );
 
 	// make child window full screen view for Test Level mode
 	HMONITOR hmon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
@@ -1772,6 +1779,11 @@ void CMainFrame::OnTestGame()
 	TestOrMultiplayerGame(0);
 }
 
+void CMainFrame::OnTestVRGame() 
+{
+	TestOrMultiplayerGame(2);
+}
+
 void CMainFrame::OnMultiplayerGame() 
 {
 	TestOrMultiplayerGame(1);
@@ -1782,6 +1794,11 @@ void CMainFrame::OnUpdateTestGame ( CCmdUI* pCmdUI )
 	//SetToolbarButtonState ( 9, 1, 1 );
 
 	//pCmdUI->Enable ( m_bTest [ 9 ] [ 0 ] );
+	pCmdUI->Enable ( theApp.m_bDisable );
+}
+
+void CMainFrame::OnUpdateTestVRGame ( CCmdUI* pCmdUI )
+{
 	pCmdUI->Enable ( theApp.m_bDisable );
 }
 

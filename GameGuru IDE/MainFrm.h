@@ -162,9 +162,11 @@ protected:
 	afx_msg void OnViewWaypoint();
 	afx_msg void OnViewTestGame();
 	afx_msg void OnTestGame();
+	afx_msg void OnTestVRGame();
 	afx_msg void OnMultiplayerGame();
 	afx_msg void OnUpdateTestMap(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateTestGame(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateTestVRGame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewZoomIn(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewZoomOut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewIncreaseShroud(CCmdUI* pCmdUI);

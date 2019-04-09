@@ -981,7 +981,7 @@ void visuals_updateobjectmasks ( void )
 	//  can be called from _loop and also from terrain (reflection update when not looking at water pixels)
 	if ( 1 ) 
 	{
-		if ( g.globals.riftmode>0 || g.vrglobals.GGVREnabled > 0 ) 
+		if ( g.globals.riftmode>0 || (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) ) 
 		{
 			if ( g.vrglobals.GGVREnabled > 0 )
 			{
@@ -1331,7 +1331,7 @@ void visuals_loop ( void )
 			}
 
 			//  Update in-game objects that only appear in main camera
-			if ( g.globals.riftmode>0 || g.vrglobals.GGVREnabled > 0 )  
+			if ( g.globals.riftmode>0 || (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) )  
 			{
 				if ( g.vrglobals.GGVREnabled > 0 )
 					t.tmaskmaincamera=1+(1<<t.glefteyecameraid)+(1<<t.grighteyecameraid);

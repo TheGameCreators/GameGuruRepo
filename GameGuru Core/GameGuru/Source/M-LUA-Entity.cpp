@@ -803,7 +803,7 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 					SetSphereRadius ( g.video3dobjectoffset, 0 );
 					TextureObject ( g.video3dobjectoffset, 0, g.editorimagesoffset+14 );
 					ShowObject ( g.video3dobjectoffset );
-					if ( g.vrglobals.GGVREnabled > 0 )
+					if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 						SetObjectMask ( g.video3dobjectoffset, (1<<6) + (1<<7) + 1 );
 					else
 						SetObjectMask ( g.video3dobjectoffset, 1 );
@@ -813,7 +813,7 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 			// run animation
 			PlayAnimation (  t.tvideoid );
 			if ( i3DMode == 1 )
-				PlaceAnimation (  t.tvideoid,-10,-10,-5,-5);//GetDisplayWidth(),GetDisplayHeight() );
+				PlaceAnimation (  t.tvideoid,-10,-10,-5,-5);
 			else
 				PlaceAnimation (  t.tvideoid,0,0,GetDisplayWidth(),GetDisplayHeight() );
 			t.ttrackmouse=0;
