@@ -87,3 +87,48 @@ GameGuru/Files/mapbank/worklevel.dat
 GameGuru/Files/editors/gridedit/worklevel.fpm
 GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-shm
 GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-wal
+GameGuru/Files/mapbank/_vrq2.fpm
+GameGuru/Files/mapbank/_vrq2.dat
+GameGuru/Files/mapbank/_vrq.fpm
+GameGuru/Files/mapbank/_vrq.dat
+GameGuru IDE/resVRQ/messages.h
+GameGuru IDE/resVRQ/WorkArt/16x16-Icon.png
+GameGuru IDE/resVRQ/WaypointToolBar.bmp
+GameGuru IDE/resVRQ/TerrainToolbar.bmp
+GameGuru IDE/resVRQ/Messages_GER.bin
+GameGuru IDE/resVRQ/Messages_ENU.bin
+GameGuru IDE/resVRQ/Game Creator Store Button.bmp
+GameGuru IDE/resVRQ/Editor.rc2
+GameGuru IDE/VRQ.vcxproj
+GameGuru IDE/EditorVRQ.rc
+GameGuru IDE/EditorVRQ.aps
+GameGuru IDE/resVRQ/update_l.bmp
+GameGuru IDE/resVRQ/messages.rc
+GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-10.png
+GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-04.png
+GameGuru IDE/resVRQ/WorkArt/48x48-Icon.png
+GameGuru IDE/resVRQ/StandardToolBar2.bmp
+GameGuru IDE/resVRQ/StandardToolBar2 - Copy.bmp
+GameGuru IDE/resVRQ/GameToolbar.bmp
+GameGuru IDE/resVRQ/ZoomToolbar2.bmp
+GameGuru IDE/resVRQ/WorkArt/vrq.ico
+GameGuru IDE/resVRQ/WorkArt/32x32-Icon.png
+GameGuru IDE/resVRQ/WorkArt/256x256-Icon.png
+GameGuru IDE/resVRQ/ModeToolbar3.bmp
+GameGuru/vrqcontrolmode.ini
+GameGuru IDE/resVRQ/logo.bmp
+GameGuru IDE/resVRQ/editor.ico
+GameGuru IDE/resVRQ/WorkArt/24x24-Icon.png
+GameGuru/GGWMR.ilk
+GameGuru/GGWMR.exp
+GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-15.png
+GameGuru/GGWMR.lib
+GameGuru/Files/languagebank/english/artwork/branded/testgamelayout-vr.png
+GameGuru/Files/languagebank/english/artwork/branded/testgamelayout-noweapons.png
+GameGuru/Files/languagebank/english/artwork/branded/TGCBadge.bmp
+GameGuru/Files/languagebank/english/artwork/branded/Getting Started Guide.docx
+GameGuru/Files/languagebank/english/artwork/branded/aboutsplash.bmp
+GameGuru/Files/languagebank/english/artwork/branded/Splsh16.bmp
+GameGuru/Files/languagebank/english/artwork/branded/Getting Started Guide.pdf
+GameGuru/Files/languagebank/english/textfiles/branded/ide-words.ini
+GameGuru/Files/languagebank/english/artwork/welcome-assets/branded/splash-logo.bmp
