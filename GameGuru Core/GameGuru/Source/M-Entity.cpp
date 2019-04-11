@@ -2915,7 +2915,7 @@ void entity_loadtexturesandeffect ( void )
 				t.entityprofile[t.entid].texiid = t.entityprofiletexiid;
 
 				// Assign AMBIENT OCCLUSION MAP
-				// *** CHRIS NOTE - SUSPECT AO ISSUE HERE  - ALSO TESTING GITHUB ***
+				// 110419 - GGEV, please refer to the Issues Tracker # for this AO issue you suspect! (also please note your comments with GGEV, thanks)
 				t.texdirO_s = t.texdirnoext_s+"_o.dds";
 				t.texuseid = loadinternaltextureex(t.texdirO_s.Get(),1,t.tfullorhalfdivide);
 				if ( t.texuseid == 0 ) 
