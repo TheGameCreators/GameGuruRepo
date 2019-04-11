@@ -20,6 +20,7 @@ void postprocess_init ( void )
 	g.gpostprocessing=1;
 
 	//  if flagged, use post processing
+	timestampactivity(0,"postprocessing code started");
 	if (  g.gpostprocessing == 0 ) 
 	{
 		//  ensure camera zero set correctly
@@ -30,9 +31,9 @@ void postprocess_init ( void )
 		//  Initialise or Activate existing
 		if (  t.gpostprocessmode == 0 ) 
 		{
-
 			//  kind of post process (gpostprocessing)
 			//  1 - bloom
+			timestampactivity(0,"postprocessing check");
 			if (  g.gpostprocessing == 1 ) 
 			{
 				//  new camera 3 holds post-process screen quad
@@ -107,13 +108,15 @@ void postprocess_init ( void )
 				}
 
 				// VR Support - create VR cameras
+				char pErrorStr[1024];
+				sprintf ( pErrorStr, "check if VR required with codes %d and %d", g.vrglobals.GGVREnabled, g.vrglobals.GGVRUsingVRSystem );
+				timestampactivity(0,pErrorStr);
 				if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 				{
 					// Set camera IDs and initialise GGVR
 					t.glefteyecameraid = 6;
 					t.grighteyecameraid = 7;
 					g.vrglobals.GGVRInitialized = 0;
-					char pErrorStr[1024];
 					sprintf ( pErrorStr, "initialise VR System Mode %d", g.vrglobals.GGVREnabled );
 					timestampactivity(0,pErrorStr);
 					int iErrorCode = GGVR_Init(g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004, 10005, 10099, g.guishadereffectindex, g.editorimagesoffset+14);
@@ -629,7 +632,16 @@ void postprocess_preterrain ( void )
 			{
 				// for WMR style VR
 				int iDebugMode = 0;
-				if ( g.gproducelogfiles > 0 ) iDebugMode = 1;
+				if ( g.gproducelogfiles > 0 ) 
+				{
+					static bool bDoThisPreSubmitDebugLineOnce = false;
+					if ( bDoThisPreSubmitDebugLineOnce == false )
+					{
+						timestampactivity(0,"Calling GGVR_PreSubmit VR");
+						bDoThisPreSubmitDebugLineOnce = true;
+					}
+					iDebugMode = 1;
+				}
 				int iErrorCode = GGVR_PreSubmit(iDebugMode);
 				if ( iErrorCode > 0 )
 				{

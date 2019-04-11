@@ -98,6 +98,7 @@ BOOL APIENTRY GGWMRMain(HMODULE hModule,
 	ul_reason_for_call = ul_reason_for_call;
 	lpReserved = lpReserved;
 	DebugVRlog(NULL);
+	DebugVRlog("WMR DLL Activated");
 	return TRUE;
 }
 
