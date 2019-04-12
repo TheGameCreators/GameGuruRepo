@@ -84,7 +84,10 @@ void welcome_init ( int iLoadingPart )
 		welcome_loadasset ( welcomePath, "welcome\\welcome-page.png", g.editorimagesoffset+8 );
 
 		// what you get
-		welcome_loadasset ( welcomePath, "welcome-assets\\product-logo.png", g.editorimagesoffset+9 );
+		if ( g.vrqcontrolmode != 0 )
+			welcome_loadasset ( welcomePath, "welcome-assets\\branded\\product-logo.png", g.editorimagesoffset+9 );
+		else
+			welcome_loadasset ( welcomePath, "welcome-assets\\product-logo.png", g.editorimagesoffset+9 );
 		welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
 
 		// load in 3x3 pieces

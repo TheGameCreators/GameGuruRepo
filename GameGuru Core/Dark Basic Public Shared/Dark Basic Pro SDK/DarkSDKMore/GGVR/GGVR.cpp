@@ -177,6 +177,66 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	return TRUE;
 }
 
+// Debugging
+
+int g_iDebuggingActive = 0;
+char* g_pGGVRDebugLog[10000];
+int DebugGGVRlog ( const char* pReportLog )
+{
+	// Log File
+	if ( pReportLog == NULL )
+	{
+		// Reset at VERY start
+		for ( int iFind = 0; iFind < 10000; iFind++ ) g_pGGVRDebugLog[iFind] = NULL; 
+		return 0;
+	}
+	if ( g_iDebuggingActive == 1 )
+	{
+		// the debug file
+		const char* pFilename = "GGVRDebugLog.log";
+
+		// New entry 
+		char pWithTime[2048];
+		sprintf_s ( pWithTime, "%d : %s\r\n", timeGetTime(), pReportLog );
+		DWORD dwNewEntry = strlen(pWithTime);
+
+		// Find new slot
+		for ( int iFind = 0; iFind < 10000; iFind++ )
+		{
+			if ( g_pGGVRDebugLog[iFind] == NULL ) 
+			{
+				g_pGGVRDebugLog[iFind] = new char[2048];
+				memset ( g_pGGVRDebugLog[iFind], 0, 2048 );
+				strcpy_s ( g_pGGVRDebugLog[iFind], 2048, pWithTime );
+				break;
+			}
+		}
+
+		// save new log file
+		DWORD bytesdone = 0;
+		HANDLE hFile = CreateFile(pFilename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		if ( hFile != INVALID_HANDLE_VALUE )
+		{
+			for ( int iFind = 0; iFind < 10000; iFind++ )
+			{
+				if ( g_pGGVRDebugLog[iFind] != NULL ) 
+				{
+					WriteFile(hFile, g_pGGVRDebugLog[iFind], strlen(g_pGGVRDebugLog[iFind]), &bytesdone, FALSE);
+				}
+			}
+			CloseHandle ( hFile );
+		}
+		else
+		{
+			// error - cannot get write lock on this file!
+			return 1;
+		}
+	}
+
+	// success
+	return 0;
+}
+
 // Support Functions
 
 std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL)
@@ -231,9 +291,11 @@ void GGVR_Mat34toYPR(vr::HmdMatrix34_t *Mat, vr::HmdVector3_t *YPR, vr::HmdVecto
 
 // Generic
 
-void GGVR_ChooseVRSystem ( int iGGVREnabledMode )
+void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive )
 {
 	// Assign VR System Mode to Use
+	g_iDebuggingActive = iDebuggingActive;
+	DebugGGVRlog ( NULL );
 	if ( GGVR_EnabledMode == 0 )
 	{
 		// Set VR System Mode
@@ -250,6 +312,7 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode )
 			hGGWMRDLL = LoadLibrary ( "F:\\GameGuruRepo\\GameGuru\\GGWMR.dll" );
 			if ( hGGWMRDLL )
 			{
+				// get proc calls
 				GGWMR_CreateHolographicSpace1 = (sGGWMR_CreateHolographicSpace1Fnc) GetProcAddress ( hGGWMRDLL, "GGWMR_CreateHolographicSpace1" );
 				GGWMR_CreateHolographicSpace2 = (sGGWMR_CreateHolographicSpace2Fnc) GetProcAddress ( hGGWMRDLL, "GGWMR_CreateHolographicSpace2" );
 				GGWMR_GetUpdate = (sGGWMR_GetUpdateFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetUpdate" );
@@ -260,6 +323,9 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode )
 				GGWMR_GetHandPosAndOrientation = (sGGWMR_GetHandPosAndOrientationFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetHandPosAndOrientation" );
 				GGWMR_GetRenderTargetAndDepthStencilView = (sGGWMR_GetRenderTargetAndDepthStencilViewFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetRenderTargetAndDepthStencilView" );
 				GGWMR_Present = (sGGWMR_PresentFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_Present" );
+
+				// confirm proc exists
+				if ( GGWMR_CreateHolographicSpace1 ) DebugGGVRlog ( "CreateHolographicSpace1 Valid" );
 			}
 		}
 	}
@@ -1852,6 +1918,7 @@ int GGVR_PlayerData::GetLHandObjID()
 
 int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath, int iDebugMode )
 {
+	DebugGGVRlog ( "Calling GGWMR_CreateHolographicSpace1" );
 	return GGWMR_CreateHolographicSpace1 ( hWnd, iDebugMode );
 }
 
@@ -1863,11 +1930,17 @@ int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext )
 int GGVR_PreSubmit ( int iDebugMode )
 {
 	// WMR prepares the views to be rendered to (not taking renders after they have done as with GGVR_Submit)
+	DebugGGVRlog ( "GGVR_EnabledMode Stage" );
 	if ( GGVR_EnabledMode == 2 )
 	{
+		DebugGGVRlog ( "GGVR_EnabledState Stage" );
 		if ( GGVR_EnabledState == 1 )
 		{
+			DebugGGVRlog ( "Calling GGVR_CreateHolographicSpace1" );
 			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "", iDebugMode );
+			char pErrStr[1024];
+			sprintf ( pErrStr, "Error Value From GGVR_CreateHolographicSpace1 : %d", iErrorCode );
+			DebugGGVRlog ( pErrStr );
 			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }
 			iErrorCode = GGVR_CreateHolographicSpace2 ( m_pD3D, m_pImmediateContext );
 			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }

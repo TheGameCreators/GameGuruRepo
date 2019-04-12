@@ -2304,6 +2304,35 @@ int common_isserialcodevalid ( LPSTR pSerialCode )
 	// confirm validity of serial code/cloud key
 	#ifdef CLOUDKEYSYSTEM
 
+		// generate unique code for install if none available
+		char* pUniqueCodeFile = "installcode.dat";
+		char pUniqueCode[33];
+		memset ( pUniqueCode, 33, 0 );
+		FILE *file = fopen(pUniqueCodeFile, "r");
+		if ( file == NULL )
+		{
+			// generate
+			time_t mtime;
+			mtime = time(0);
+			srand(mtime);
+			int n = 0;
+			for (; n < 32; n++ ) 
+			{
+				pUniqueCode[n] = 65+(rand()%22);
+			}
+			pUniqueCode[32] = 0;
+			FILE* fp = fopen( pUniqueCodeFile , "w" );
+			fwrite(pUniqueCode , 1 , 32 , fp );
+			fclose(fp);
+		}
+		else
+		{
+			// read
+			fread(pUniqueCode, 1, 32, file);
+			fclose(file);
+		}
+		pUniqueCode[32] = 0;
+
 		// connect to server and verify code is valid and not expired
 		LPSTR pServerHost = "keydistro.thegamecreators.com";
 		HTTPConnect ( pServerHost );
@@ -2316,7 +2345,7 @@ int common_isserialcodevalid ( LPSTR pSerialCode )
 		strcat ( szGetData, "&app_id=" );
 		strcat ( szGetData, "1" );
 		strcat ( szGetData, "&device_id=" );
-		strcat ( szGetData, "testPC" );
+		strcat ( szGetData, pUniqueCode );
 		strcat ( szGetData, "&description=" );
 		strcat ( szGetData, "ValidationCheck" );
 		LPSTR pVerb = "GET";
@@ -3230,7 +3259,7 @@ void FPSC_Setup ( void )
 		char pVRSystemString[1024];
 		sprintf ( pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled );
 		timestampactivity(0,pVRSystemString);
-		GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled );
+		GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles );
 
 		// Need editor 14.PNG for teleport graphic
 		LoadImage ( "editors\\gfx\\14.png",g.editorimagesoffset+14 );

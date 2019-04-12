@@ -39,7 +39,7 @@ void mapeditorexecutable ( void )
 	char pVRSystemString[1024];
 	sprintf ( pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled );
 	timestampactivity(0,pVRSystemString);
-	GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled );
+	GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles );
 
 	//  Set device to get multisampling AA active in editor
 	t.multisamplingfactor=0;

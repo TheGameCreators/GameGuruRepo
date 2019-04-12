@@ -892,7 +892,7 @@ void conkitedit_loop ( void )
 	else
 	{
 		//  detect switch ON (only if not standalone)
-		if (  t.game.gameisexe == 0 && t.game.runasmultiplayer  ==  0 ) 
+		if (  t.game.gameisexe == 0 && t.game.runasmultiplayer  ==  0 && (g.vrglobals.GGVREnabled == 0 || g.vrglobals.GGVRUsingVRSystem == 0 ) ) 
 		{
 			if (  (KeyState(g.keymap[67]) == 1 || t.conkit.forceaction == 68) && t.conkit.edit.conkitkeypressed == 0  )  t.conkit.edit.conkitkeypressed = 1;
 			if (  (KeyState(g.keymap[67]) == 0 && t.conkit.forceaction != 68) && t.conkit.edit.conkitkeypressed == 1 ) 
