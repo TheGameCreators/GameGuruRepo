@@ -415,23 +415,38 @@ void welcome_serialcode_init ( void )
 
 void welcome_serialcode_page ( int iHighlightingButton )
 {
+	// string variants
+	int iCodeDigitsRequiredCount = 0;
+	#ifdef CLOUDKEYSYSTEM
+		LPSTR pCodeTitle = "CLOUD KEY ENTRY\n";
+		LPSTR pCodeEnterText = "Enter the cloud key (XXXXX-XXXXX-XXXXX-XXXXX) to activate";
+		LPSTR pCodeWrong = "Cloud key has been entered incorrectly or has expired.";
+		iCodeDigitsRequiredCount = 23;
+	#else
+		LPSTR pCodeTitle = "SERIAL CODE ENTRY\n";
+		LPSTR pCodeEnterText = "Please enter the 22-digit serial code to activate this software.";
+		LPSTR pCodeWrong = "Serial code has been entered incorrectly or has expired.";
+		iCodeDigitsRequiredCount = 22;
+	#endif
+	welcome_text ( pCodeTitle, 1, 50, 28, 192, true, false );
+
 	// draw page
 	int iID = 0;
 	welcome_drawrotatedimage ( g.editorimagesoffset+9, 50, 5, 0, 0, 0, false );
-	welcome_drawbox ( 0, 10, 23, 90, 81 );
-	welcome_text ( "SERIAL CODE ENTRY\n", 1, 50, 28, 192, true, false );
+	welcome_drawbox ( 0, 10, 23, 90, 81 );		
+	welcome_text ( pCodeTitle, 1, 50, 28, 192, true, false );
 	if ( g_welcomeserialcode.iAfterError > 1 )
 	{
-		welcome_text ( "Serial code has been entered incorrectly or has expired.", 1, 50, 50, 192, true, false );
+		welcome_text ( pCodeWrong, 1, 50, 50, 192, true, false );
 		int iOkayID = 3; welcome_textinbox ( iOkayID, "TRY AGAIN", 1, 50, 70, g_welcomebutton[iOkayID].alpha );
 	}
 	else
 	{
-		welcome_text ( "Please enter the 22-digit serial code to activate this software.", 1, 50, 43, 192, true, false );
+		welcome_text ( pCodeEnterText, 1, 50, 43, 192, true, false );
 		welcome_drawbox ( 0, 30, 50, 70, 60 );
 		welcome_text ( g_welcomeserialcode.pCode, 1, 50, 55, 192, true, false );
 		welcome_text ( "You can use CTRL+V to paste contents of clipboard.", 2, 50, 65, 192, true, false );
-		iID = g_welcomeserialcode.iNextButtonID; if ( strlen(g_welcomeserialcode.pCode) < 22 ) iID = 0;
+		iID = g_welcomeserialcode.iNextButtonID; if ( strlen(g_welcomeserialcode.pCode) < iCodeDigitsRequiredCount ) iID = 0;
 		welcome_textinbox ( iID, "CONFIRM", 1, 50, 90, g_welcomebutton[iID].alpha );
 		if ( g_welcomeserialcode.iAfterError == 1 )
 		{
@@ -445,11 +460,10 @@ void welcome_serialcode_page ( int iHighlightingButton )
 	if ( iKeyScanCode > 0 && g_welcomeserialcode.iKeyPressed == 0)
 	{
 		unsigned char c = InKey();
-		//sprintf ( g_welcomeserialcode.pCode, "%d %d", iKeyScanCode, c );
 		if ( (c >= 48 && c <= 57) || (c >= 97 && c <= 122) )
 		{
 			g_welcomeserialcode.iKeyPressed = 1;
-			if ( strlen(g_welcomeserialcode.pCode) < 22 )
+			if ( strlen(g_welcomeserialcode.pCode) < iCodeDigitsRequiredCount )
 			{
 				strcat ( g_welcomeserialcode.pCode, Chr(c) );
 				strupr ( g_welcomeserialcode.pCode );
@@ -468,7 +482,7 @@ void welcome_serialcode_page ( int iHighlightingButton )
 			g_welcomeserialcode.iKeyPressed = 1;
 			LPSTR pBuffer = new char[strlen((LPSTR)GetClipboard(NULL))+1];
 			strcpy ( pBuffer, (LPSTR)GetClipboard(NULL) );
-			pBuffer[22] = 0;
+			pBuffer[iCodeDigitsRequiredCount] = 0;
 			strcpy ( g_welcomeserialcode.pCode, pBuffer );
 			SAFE_DELETE(pBuffer);
 		}

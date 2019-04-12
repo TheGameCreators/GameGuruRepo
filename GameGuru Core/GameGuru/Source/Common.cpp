@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include "M-WelcomeSystem.h"
 #include "time.h"
+#include "CFtpC.h"
 
 // Used for Free Weekend Promotion Build 
 //#define STEAMOWNERSHIPCHECKFREEWEEKEND
@@ -2297,51 +2298,141 @@ void common_makeserialcode ( LPSTR pInstituteName, int iFromDD, int iFromMM, int
 
 int common_isserialcodevalid ( LPSTR pSerialCode )
 {
-	// hack in always successful until cloud key system ready
-	return 1;
+	// valid code
+	int iValidCode = 0;
 
-	// get serial code into build array
-	char pBuildString[10+12+1];
-	strcpy ( pBuildString, pSerialCode );
+	// confirm validity of serial code/cloud key
+	#ifdef CLOUDKEYSYSTEM
 
-	// extract the DD, MM and YY data from build array
-	int iFromYY = common_unalign(pBuildString[16])-69;
-	int iToDD = common_unalign(pBuildString[14])-64;
-	int iToMM = common_unalign(pBuildString[18])-65;
-	int iToYY = common_unalign(pBuildString[20])-68;
+		// connect to server and verify code is valid and not expired
+		LPSTR pServerHost = "keydistro.thegamecreators.com";
+		HTTPConnect ( pServerHost );
 
-	// check if system date within serial code date range
-	time_t now = time(0);
-    tm *ltm = localtime(&now);
-	int iDay   = ltm->tm_mday;
-	int iMonth = ltm->tm_mon;
-	int iYear  = ltm->tm_year-100;
+		// access script from server
+		char szGetData[1024];
+		strcpy ( szGetData, "/api/key/validity?" );
+		strcat ( szGetData, "sc=hf09Rdc43aaD&key=" );
+		strcat ( szGetData, pSerialCode );
+		strcat ( szGetData, "&app_id=" );
+		strcat ( szGetData, "1" );
+		strcat ( szGetData, "&device_id=" );
+		strcat ( szGetData, "testPC" );
+		strcat ( szGetData, "&description=" );
+		strcat ( szGetData, "ValidationCheck" );
+		LPSTR pVerb = "GET";
+		LPSTR pDataReturned = HTTPRequestData ( pVerb, szGetData, NULL );
 
-	// if within the years range of the code (allows any date within the last month)
-	int iDateWithinRange = 0;
-	if ( iYear >= iFromYY && iYear <= iToYY )
-	{
-		if ( iYear < iToYY )
+		// disconnect from server
+		HTTPDisconnect();
+
+		// break up response string
+		char pValid[10240];
+		strcpy ( pValid, "" );
+		char pMessage[10240];
+		strcpy ( pMessage, "" );
+		char pWorkStr[10240];
+		strcpy ( pWorkStr, pDataReturned );
+		if ( pWorkStr[0]=='{' ) strcpy ( pWorkStr, pWorkStr+1 );
+		int n = 10200;
+		for (; n>0; n-- ) if ( pWorkStr[n] == '}' ) { pWorkStr[n] = 0; break; }
+		char* pChop = strstr ( pWorkStr, "," );
+		char pStatusStr[10240];
+		strcpy ( pStatusStr, pWorkStr );
+		pStatusStr[pChop-pWorkStr] = 0;
+		char* pStatusValue = strstr ( pStatusStr, ":" ) + 1;
+		if ( pChop[0]=',' ) pChop += 1;
+		if ( strstr ( pStatusValue, "success" ) != NULL )
 		{
-			// if not the final year
-			iDateWithinRange = 1;
+			// success - check valid status
+			pChop = strstr ( pChop, ":" ) + 1;
+			strcpy ( pValid, pChop );
+			char pEndOfChunk[4];
+			pEndOfChunk[0]=',';
+			pEndOfChunk[1]=0;
+			char* pValidEnd = strstr ( pValid, pEndOfChunk );
+			pValid[pValidEnd-pValid] = 0;
+			pChop += (pValidEnd-pValid);
+
+			// determine if valid true or false
+			bool bIsKeyValid = true;
+			if ( strstr ( pValid, "false" ) != NULL )
+				bIsKeyValid = false;
+
+			// show prompt of not valid
+			if ( bIsKeyValid == true )
+			{
+				// passed server check, key is valid
+				iValidCode = 1;
+			}
+			else
+			{
+				// message info
+				strcpy ( pMessage, strstr ( pChop, ":" ) + 1 );
+				char* pCurly = strstr ( pMessage, "}" );
+				if ( pCurly ) *pCurly = ' ';
+				MessageBox ( NULL, pMessage, "Cloud Key Validation Failed", MB_OK );
+			}
 		}
 		else
 		{
-			// if the final year
-			if ( iYear == iToYY )
+			// error prompt when server check fails
+			char* pMessageValue = strstr ( pChop, ":" );
+			if ( pMessageValue )
 			{
-				if ( iMonth <= iToMM )
+				char* pCurly = strstr ( pMessageValue, "}" );
+				if ( pCurly ) *pCurly = ' ';
+				MessageBox ( NULL, pMessageValue, "Cloud Key Validation Check", MB_OK );
+			}
+			else
+			{
+				//MessageBox ( NULL, "Unknown Error", "Cloud Key Validation Check", MB_OK );
+				MessageBox ( NULL, pChop, "Cloud Key Validation Check", MB_OK );
+			}
+		}
+
+	#else
+		// get serial code into build array
+		char pBuildString[10+12+1];
+		strcpy ( pBuildString, pSerialCode );
+
+		// extract the DD, MM and YY data from build array
+		int iFromYY = common_unalign(pBuildString[16])-69;
+		int iToDD = common_unalign(pBuildString[14])-64;
+		int iToMM = common_unalign(pBuildString[18])-65;
+		int iToYY = common_unalign(pBuildString[20])-68;
+
+		// check if system date within serial code date range
+		time_t now = time(0);
+		tm *ltm = localtime(&now);
+		int iDay   = ltm->tm_mday;
+		int iMonth = ltm->tm_mon;
+		int iYear  = ltm->tm_year-100;
+
+		// if within the years range of the code (allows any date within the last month)
+		if ( iYear >= iFromYY && iYear <= iToYY )
+		{
+			if ( iYear < iToYY )
+			{
+				// if not the final year
+				iValidCode = 1;
+			}
+			else
+			{
+				// if the final year
+				if ( iYear == iToYY )
 				{
-					// and not an expired month
-					iDateWithinRange = 1;
+					if ( iMonth <= iToMM )
+					{
+						// and not an expired month
+						iValidCode = 1;
+					}
 				}
 			}
 		}
-	}
+	#endif
 
 	// return result
-	return iDateWithinRange;
+	return iValidCode;
 }
 
 void common_writeserialcode ( LPSTR pCode )
@@ -2487,7 +2578,11 @@ void FPSC_Setup ( void )
 			if ( common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get()) == 0 )
 			{
 				// serial code expired
-				MessageBox ( NULL, "Your serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
+				#ifdef CLOUDKEYSYSTEM
+				// Allow UI to offer up cloud key dialog now - message already given with more detailed info on error earlier
+				#else
+				MessageBox ( NULL, "Your code has expired, obtain an updated code to continue using the software.", "License Not Found", MB_OK );
+				#endif
 				g.vrqTriggerSerialCodeEntrySystem = 1;
 				g.iTriggerSoftwareToQuit = 1;
 			}

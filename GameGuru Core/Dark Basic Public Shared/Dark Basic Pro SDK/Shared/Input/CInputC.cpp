@@ -104,7 +104,7 @@ DARKSDK void FreeDevices( void );
 // INTERNAL FUNCTIONS ////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
-DARKSDK void InputConstructor ( )
+DARKSDK void InputConstructor ( bool bNeededToCreateExtraWindowForWMRWindow )
 {
 	// setup the input library
 
@@ -131,8 +131,18 @@ DARKSDK void InputConstructor ( )
 	// Held in Core, used here..
 	g_pCreateDeleteStringFunction = g_pGlob->CreateDeleteString;
 	g_pWindowsEntryString = (DWORD*)&g_pGlob->pWindowsTextEntry;
+
 	// 090419 - lost keyboard input with new VR window (WMR) g_phWnd = g_pGlob->hWnd;
-	g_phWnd = g_pGlob->hOriginalhWnd;
+	if ( bNeededToCreateExtraWindowForWMRWindow == true )
+	{
+		// when running standalone
+		g_phWnd = g_pGlob->hOriginalhWnd;
+	}
+	else
+	{
+		// when running in map editor mode
+		g_phWnd = g_pGlob->hWnd;
+	}
 	g_iMouseLocalZ = 0;
 
 	// new HWND, so new setups

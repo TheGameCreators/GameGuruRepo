@@ -1178,9 +1178,9 @@ DARKSDK void ConstructPostDisplayItems(HINSTANCE hInstance)
 	InfiniteVegetationConstructor();
 }
 
-DARKSDK void ConstructPostDLLItems(HINSTANCE hInstance)
+DARKSDK void ConstructPostDLLItems(HINSTANCE hInstance,bool bNeededToCreateExtraWindowForWMRWindow)
 {
-	InputConstructor();
+	InputConstructor(bNeededToCreateExtraWindowForWMRWindow);
 	SystemConstructor();
 	SoundConstructor();
 	FileConstructor();
@@ -1434,6 +1434,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		bDXFailed=true;
 
 	// Need window for game so original window can stay hidden until VR activates (used by standalone game exe)
+	bool bNeededToCreateExtraWindowForWMRWindow = false;
 	if ( g_pGlob->hOriginalhWnd == g_pGlob->hWnd )
 	{
 		WNDCLASS wc2;
@@ -1460,6 +1461,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 			nullptr, 
 			hInstance, 
 			nullptr);
+		bNeededToCreateExtraWindowForWMRWindow = true;
 	}
 
 	// Show Window
@@ -1491,7 +1493,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	ConstructPostDisplayItems(hInstance);
 
 	// Prepare Other DLLs
-	ConstructPostDLLItems(hInstance);
+	ConstructPostDLLItems(hInstance,bNeededToCreateExtraWindowForWMRWindow);
 
 	// Visible Window
 	if(bWindowIsDisplayable)
@@ -1531,7 +1533,7 @@ DARKSDK void ConstructDLLs(void)
 {
 	// Prepare Other DLLs
 	ConstructPostDisplayItems(g_pGlob->hInstance);
-	ConstructPostDLLItems(g_pGlob->hInstance);
+	ConstructPostDLLItems(g_pGlob->hInstance,false);
 }
 
 DARKSDK int GetSecurityCode(void)
