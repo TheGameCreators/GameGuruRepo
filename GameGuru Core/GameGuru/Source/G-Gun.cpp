@@ -236,7 +236,7 @@ void gun_manager ( void )
 				{
 					t.gunmodelast = t.gunmode;
 					t.gunmode = 101;
-					if ( t.game.runasmultiplayer == 1 ) steam_shoot ( );
+					if ( t.game.runasmultiplayer == 1 ) mp_shoot ( );
 				}
 			}
 			t.gunfull=1;
@@ -3011,7 +3011,7 @@ void gun_shoot ( void )
 	if ( t.gunshoot == 1 ) 
 	{
 		//  170315 - 020 - stop invincible if you shoot
-		g.steamworks.invincibleTimer = 0;
+		g.mp.invincibleTimer = 0;
 
 		//  if third person, trigger shot flag
 		if ( t.playercontrol.thirdperson.enabled == 1 ) 

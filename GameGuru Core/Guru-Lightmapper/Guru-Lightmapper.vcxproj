@@ -391,6 +391,7 @@
     <ClCompile Include="..\GameGuru\Source\M-LUA.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-MapFile.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Material.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-MP.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-OBS.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Panel.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Particles.cpp" />
@@ -399,7 +400,6 @@
     <ClCompile Include="..\GameGuru\Source\M-Ragdoll.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-RealSense.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Sliders.cpp" />
-    <ClCompile Include="..\GameGuru\Source\M-Steam.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Terrain.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Titles.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Visuals.cpp" />
@@ -454,6 +454,7 @@
     <ClInclude Include="..\GameGuru\Include\M-LUA.h" />
     <ClInclude Include="..\GameGuru\Include\M-MapFile.h" />
     <ClInclude Include="..\GameGuru\Include\M-Material.h" />
+    <ClInclude Include="..\GameGuru\Include\M-MP.h" />
     <ClInclude Include="..\GameGuru\Include\M-OBS.h" />
     <ClInclude Include="..\GameGuru\Include\M-Panel.h" />
     <ClInclude Include="..\GameGuru\Include\M-Particles.h" />
@@ -462,7 +463,6 @@
     <ClInclude Include="..\GameGuru\Include\M-Ragdoll.h" />
     <ClInclude Include="..\GameGuru\Include\M-RealSense.h" />
     <ClInclude Include="..\GameGuru\Include\M-Sliders.h" />
-    <ClInclude Include="..\GameGuru\Include\M-Steam.h" />
     <ClInclude Include="..\GameGuru\Include\M-Terrain.h" />
     <ClInclude Include="..\GameGuru\Include\M-Titles.h" />
     <ClInclude Include="..\GameGuru\Include\M-Visuals.h" />

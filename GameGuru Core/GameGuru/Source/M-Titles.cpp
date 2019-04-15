@@ -1366,7 +1366,7 @@ void titles_base ( void )
 		}
 
 		//  steam condition
-		if (  t.game.runasmultiplayer  ==  0 || g.steamworks.dontDrawTitles  ==  0 || (t.titlespage  >=  11 && t.titlespage  <=  13) ) 
+		if (  t.game.runasmultiplayer  ==  0 || g.mp.dontDrawTitles  ==  0 || (t.titlespage  >=  11 && t.titlespage  <=  13) ) 
 		{
 			//  Scan buttons
 			t.ttitlesbuttonhighlight=0;
@@ -1549,10 +1549,15 @@ void titles_base ( void )
 				if (  t.ttitlesbuttonhighlight == 4 ) 
 				{
 					//  QUIT GAME
-					steam_quitGame ( );
+					mp_quitGame ( );
 				}
 			}
-			//  STEAM PAGE (Multiplayer Lobby)
+
+			//
+			// MULTIPLAYER SCREENS
+			//
+
+			// MAIN MULTIPLAYER MENU
 			if (  t.titlespagetousehere == 7 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1565,16 +1570,16 @@ void titles_base ( void )
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
 					//  search for lobbies
-					g.steamworks.listboxmode = 0;
-					steam_searchForLobbies ( );
+					g.mp.listboxmode = 0;
+					mp_searchForLobbies ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steamSearchLobbies ( );
 				}
 				if (  t.ttitlesbuttonhighlight == 3 ) 
 				{
 					//  back to IDE/Title
-					steam_backToStart ( );
-					steam_quitGame ( );
+					mp_backToStart ( );
+					mp_quitGame ( );
 					t.game.masterloop = 0;
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
@@ -1584,32 +1589,34 @@ void titles_base ( void )
 					characterkit_chooseOnlineAvatar ( );
 				}
 			}
-			//  STEAM PAGE Created Lobby (Multiplayer Lobby)
+
+			// INSIDE MY OWN LOBBY/ROOM SCREEN - READY TO START THE GAME WITH PRESENT PLAYERS
 			if (  t.titlespagetousehere == 8 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
 					//  start the game server
-					steam_launchGame ( );
+					mp_launchGame ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
 					//  exit and drop the lobby
-					steam_leaveALobby ( );
-					steam_resetSteam ( );
+					mp_leaveALobby ( );
+					mp_resetSteam ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Search for lobbies (Multiplayer Lobby)
+
+			// GAME LIST SCREEN - READY TO SELECT A LOBBY/ROOM TO ENTER
 			if (  t.titlespagetousehere == 9 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
-					steam_joinALobby ( );
+					mp_joinALobby ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
-					if (  g.steamworks.mode  ==  STEAM_JOINING_LOBBY ) 
+					if (  g.mp.mode  ==  MP_JOINING_LOBBY ) 
 					{
 						characterkit_loadMyAvatarInfo ( );
 						titles_steamInLobbyGuest ( );
@@ -1617,40 +1624,41 @@ void titles_base ( void )
 				}
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
-					steam_backToStart ( );
+					mp_backToStart ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Choose type of level (host)
+
+			// PLAY ONE OF YOUR LEVELS BUTTON SCREEN
 			if (  t.titlespagetousehere == 14 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
 					//  create list
-					g.steamworks.listboxmode = 1;
-					steam_searchForFpms ( );
+					g.mp.listboxmode = 1;
+					mp_searchForFpms ( );
 					titles_steamchoosefpmtouse ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				} 
-				//  TAKE THIS Line (  OUT BELOW WHEN YOU PUT THE CODE ABOVE BACK! )
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
-					steam_backToStart ( );
+					mp_backToStart ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Choose level from list (host)
+
+			// SELECTED OWN LEVEL - CREATE LOBBY/ROOM FOR IT
 			if (  t.titlespagetousehere == 15 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
 					//  picked the level, create lobby
-					steam_selectedALevel ( );
-					if (  g.steamworks.levelContainsCustomContent  ==  0 || g.steamworks.workshopItemChangedFlag  ==  0 ) 
+					mp_selectedALevel ( );
+					if (  g.mp.levelContainsCustomContent  ==  0 || g.mp.workshopItemChangedFlag  ==  0 ) 
 					{
-						steam_createLobby ( );
+						mp_createLobby ( );
 						titles_steamCreateLobby ( );
 					}
 					else
@@ -1661,26 +1669,27 @@ void titles_base ( void )
 				}
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
-					steam_backToStart ( );
+					mp_backToStart ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE do you want to create/update a workshop item? (host)
+
+			// INSIDE SOMEONE ELSES LOBBY/ROOM SCREEN - WAITING FOR HOST TO START GAME
 			if (  t.titlespagetousehere == 16 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
-					g.steamworks.buildingWorkshopItemMode = 0;
-					steam_buildWorkShopItem ( );
+					g.mp.buildingWorkshopItemMode = 0;
+					mp_buildWorkShopItem ( );
 					titles_steamcreatingworkshopitem ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
 					//  create list
-					g.steamworks.listboxmode = 1;
-					steam_searchForFpms ( );
+					g.mp.listboxmode = 1;
+					mp_searchForFpms ( );
 					titles_steamchoosefpmtouse ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
@@ -1690,23 +1699,25 @@ void titles_base ( void )
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 			}
-			//  STEAM PAGE in someone elses lobby (Multiplayer Lobby)
+
+			// CAN LEAVE LOBBY/ROOM FROM HERE
 			if (  t.titlespagetousehere == 10 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
-					steam_leaveALobby ( );
+					mp_leaveALobby ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 					return;
 				}
 			}
-			//  STEAM PAGE do you want to subscribe to this item
+
+			// SUBSCRIBE TO WORKSHOP ITEM (CUSTOM LEVEL) SCREEN
 			if (  t.titlespagetousehere == 18 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
-					steam_SubscribeToWorkShopItem ( );
+					mp_SubscribeToWorkShopItem ( );
 					titles_subscribetoworkshopitemwaitingforresult ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
@@ -1714,38 +1725,41 @@ void titles_base ( void )
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
 					//  search for lobbies
-					g.steamworks.listboxmode = 0;
-					steam_searchForLobbies ( );
+					g.mp.listboxmode = 0;
+					mp_searchForLobbies ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steamSearchLobbies ( );
 				}
 			}
-			//  STEAM PAGE waiting for subscription results (user does not need to wait if they dont want to)
+
+			// WAITING FOR SUBSCRIPTION RESULTS SCREEN
 			if (  t.titlespagetousehere == 19 ) 
 			{
 				//  back to searching for lobbies
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
 					//  search for lobbies
-					g.steamworks.listboxmode = 0;
-					steam_searchForLobbies ( );
+					g.mp.listboxmode = 0;
+					mp_searchForLobbies ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steamSearchLobbies ( );
 				}
 			}
-			//  STEAM PAGE using selected to join a red workshop item
+
+			// BACK TO SEARCH FOR LOBBIES
 			if (  t.titlespagetousehere == 20 ) 
 			{
 				//  back to searching for lobbies
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
 					//  search for lobbies
-					g.steamworks.listboxmode = 0;
-					steam_searchForLobbies ( );
+					g.mp.listboxmode = 0;
+					mp_searchForLobbies ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steamSearchLobbies ( );
 				}
 			}
+
 			//  GRAPHICS SETTINGS
 			if (  t.titlespagetousehere == 12 ) 
 			{
@@ -1796,21 +1810,21 @@ void titles_base ( void )
 		//  this is outside of the loop since it checks for state changes rather than a button press
 		if (  t.titlespage == 17 ) 
 		{
-			steam_buildWorkShopItem ( );
+			mp_buildWorkShopItem ( );
 			//  success
-			if (  g.steamworks.buildingWorkshopItemMode  ==  99 ) 
+			if (  g.mp.buildingWorkshopItemMode  ==  99 ) 
 			{
-				steam_createLobby ( );
+				mp_createLobby ( );
 				titles_steamCreateLobby ( );
 				t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 			}
 			//  fail
-			if (  g.steamworks.buildingWorkshopItemMode  ==  98 ) 
+			if (  g.mp.buildingWorkshopItemMode  ==  98 ) 
 			{
-				steam_buildingWorkshopItemFailed ( );
+				mp_buildingWorkshopItemFailed ( );
 				//  create list again
-				g.steamworks.listboxmode = 1;
-				steam_searchForFpms ( );
+				g.mp.listboxmode = 1;
+				mp_searchForFpms ( );
 				titles_steamchoosefpmtouse ( );
 				t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 			}
@@ -1846,11 +1860,11 @@ void titles_base ( void )
 			{
 				if (  t.game.runasmultiplayer == 1 ) 
 				{
-					steam_loop ( );
+					mp_loop ( );
 				}
 			}
 			//  if in MP game, need to keep connection running
-			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			//  Update screen
 			//  dave added a skip test for syncing to prevent the editor being drawn when switching to mp game start
 			if (  Timer() - t.tskipLevelSync > 2000  )  Sync (  );

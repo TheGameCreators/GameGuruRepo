@@ -308,6 +308,10 @@ void blood_damage_init ( void )
 	//  blood splats
 	if (  t.huddamage.bloodtotal == 0 ) 
 	{
+//   `huddamage.maxbloodsplats=66
+
+//   `for mb=0 to huddamage.maxbloodsplats ; rem maybe 'extendedblood' mode later on (if community requests this)
+
 		t.huddamage.maxbloodsplats=7;
 		for ( t.mb = 0 ; t.mb<=  t.huddamage.maxbloodsplats; t.mb++ )
 		{
@@ -319,7 +323,7 @@ void blood_damage_init ( void )
 				++t.huddamage.bloodtotal;
 
 				//  keep alive with steam server
-				if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+				if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 			}
 		}
@@ -332,7 +336,14 @@ void blood_damage_init ( void )
 	OffsetSprite (  t.huddamage.indicator,ImageWidth(t.huddamage.indicator)/2,ImageHeight(t.huddamage.indicator)/2 );
 
 	//  keep alive with steam server
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
+
+return;
+
+
+//BloodDamage&Direction Functions
+
+
 }
 
 void placeblood ( int damage, int x, int y, int z, int howfar )
@@ -344,9 +355,6 @@ void placeblood ( int damage, int x, int y, int z, int howfar )
 
 	//  no blood damage for third person
 	if (  t.playercontrol.thirdperson.enabled == 1  )  return;
-
-	// 090419 - special VRQ2 mode also disables concepts of being damaged
-	if ( g.gvrmode == 3 ) return;
 
 	//  find space
 	for ( find = 1 ; find<=  40; find++ )
@@ -376,6 +384,8 @@ void placeblood ( int damage, int x, int y, int z, int howfar )
 			return;
 		}
 	}
+//endfunction
+
 }
 
 int controlblood ( void )
@@ -415,7 +425,9 @@ int controlblood ( void )
 			}
 		}
 	}
-	return howmany;
+//endfunction howmany
+	return howmany
+;
 }
 
 void resetblood ( void )
@@ -427,13 +439,12 @@ void resetblood ( void )
 		t.screenblood[cb].fadetime=Timer();
 		t.screenblood[cb].used=0;
 	}
+//endfunction
+
 }
 
 void new_damage_marker ( int entity, int x, int z, int y, int tempdamage )
 {
-	// 090419 - special VRQ2 mode also disables concepts of being damaged
-	if ( g.gvrmode == 3 ) return;
-
 	int attackeralreadyhasmarker = 0;
 	int nodouble = 0;
 	float tcamx_f = 0;
@@ -498,6 +509,13 @@ void new_damage_marker ( int entity, int x, int z, int y, int tempdamage )
 				howfar=Sqrt(abs(tdx_f*tdx_f)+abs(tdy_f*tdy_f)+abs(tdz_f*tdz_f));
 				if (  howfar>300  )  howfar = 300;
 				t.damagemarker[find].range=howfar;
+				//  find the angle (later)
+				//     `fundx#=entityelement(entity).x-CameraPositionX()
+				//     `fundy#=CameraPositionZ()-entityelement(entity).z
+				//     `fundx#=entityelement(entity).x-CameraPositionX()
+				//     `fundy#=entityelement(entity).z-CameraPositionZ()
+				//     `funangle#=atan2deg(fundx#,fundy#)
+				//     `rrr#=funangle#-WrapValue(CameraAngleY())
 				float fundx = t.entityelement[entity].x - CameraPositionX();
 				float fundz = t.entityelement[entity].z - CameraPositionZ();
 				float funangle = atan2deg ( fundx, fundz );
@@ -514,6 +532,8 @@ void new_damage_marker ( int entity, int x, int z, int y, int tempdamage )
 		}
 	}
 	placeblood(tempdamage,x,y,z,howfar);
+//endfunction
+
 }
 
 int controldamagemarker ( void )
@@ -623,7 +643,9 @@ int controldamagemarker ( void )
 		}
 	}
 	//  return number of arrows
-	return howmany;
+//endfunction howmany
+	return howmany
+;
 }
 
 void resetdamagemarker ( void )
@@ -637,4 +659,6 @@ void resetdamagemarker ( void )
 		t.damagemarker[dm].used=0;
 		t.damagemarker[dm].entity=0;
 	}
+//endfunction
+
 }

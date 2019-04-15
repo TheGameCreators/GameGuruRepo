@@ -1726,7 +1726,7 @@ void lm_loadscene ( void )
 	t.tlmloadsuccess=0;
 
 	// Don't use lightmaps for multiplayer, unless you are the host
-	if ( FileExist(t.lightmapper.lmobjectfile_s.Get()) == 0 || (t.game.runasmultiplayer  ==  1 && g.steamworks.isGameHost  ==  0)  )  return;
+	if ( FileExist(t.lightmapper.lmobjectfile_s.Get()) == 0 || (t.game.runasmultiplayer  ==  1 && g.mp.isGameHost  ==  0)  )  return;
 
 	// Remove any old lightmapping scene
 	timestampactivity(0,"delete old LMOs");

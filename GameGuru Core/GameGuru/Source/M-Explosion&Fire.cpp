@@ -41,22 +41,22 @@ void explosion_init ( void )
 	LoadImage (  "effectbank\\explosion\\animatedspark.dds",g.sparks,1 );
 	LoadImage (  "effectbank\\explosion\\explosion2.dds",g.largeexplosion, 1 );
 	LoadImage (  "effectbank\\explosion\\fireball.dds",g.largeexplosion2, 1 );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	LoadImage (  "effectbank\\explosion\\rollingsmoke.dds",g.rollingsmoke,1 );
 	LoadImage (  "effectbank\\explosion\\explosion3.dds",g.grenadeexplosion,1 );
 	LoadImage (  "effectbank\\explosion\\darksmoke.dds",g.smokedecal2,1 );
 
 	// Temp rubble
 	LoadImage (  "effectbank\\explosion\\rubble.dds",g.rubbletext,1 );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	LoadObject (  "effectbank\\explosion\\rubble.dbo",g.rubbleobj );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	TextureObject (  g.rubbleobj,g.rubbletext );
 	ScaleObject (  g.rubbleobj,100,100,100 );
 	HideObject (  g.rubbleobj );
 	LoadImage (  "effectbank\\explosion\\concretechunk.dds",g.cretetext,1 );
 	LoadObject (  "effectbank\\explosion\\concretechunk.dbo",g.creteobj );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	TextureObject (  g.creteobj,g.cretetext );
 	HideObject (  g.creteobj );
 	LoadImage (  "effectbank\\explosion\\metalchunk.dds",g.metaltext,1 );
@@ -65,13 +65,13 @@ void explosion_init ( void )
 	HideObject (  g.metalobj );
 
 	//  debris data
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	Dim (  t.debris,g.debrismax  );
 	Dim2(  t.particle,g.maxemit, g.totalpart);
 	make_particles();
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	make_debris();
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 }
 
 void explosion_cleanup ( void )

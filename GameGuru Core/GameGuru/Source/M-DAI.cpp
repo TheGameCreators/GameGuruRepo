@@ -121,11 +121,11 @@ void darkai_preparedata ( void )
 	//  Terrain Obstacles (requires terrain height data loaded)
 	t.terrain.terrainregionupdate=0;
 	terrain_refreshterrainmatrix ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	if ( t.aisystem.generateobs == 1 ) 
 	{
 		timestampactivity(0,"darkai_obstacles_terrain");
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	}
 
 	//  Setup all AI paths and AI containers(navmeshes) via waypoints data
@@ -167,7 +167,7 @@ void darkai_preparedata ( void )
 			}
 		}
 	}
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Setup manual cover positions from cover marker entities
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
@@ -185,7 +185,7 @@ void darkai_preparedata ( void )
 			}
 		}
 	}
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 }
 
 void darkai_completeobstacles ( void )
@@ -194,7 +194,7 @@ void darkai_completeobstacles ( void )
 	// 060917 - don't regenerate waypoints, etc - data has been loaded and is ready
 	if ( t.aisystem.generateobs == 1 ) 
 	{
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		AICompleteObstacles (  );
 	}
 
@@ -202,7 +202,7 @@ void darkai_completeobstacles ( void )
 	if (  t.aisystem.generateobs == 1 ) 
 	{
 		//  after creating obstacles, save into file
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		darkai_saveobstacles ( );
 	}
 
@@ -1101,7 +1101,7 @@ void darkai_shooteffect ( void )
 	//  charanimstate.firesoundindex needs to be set, examle; charanimstate.firesoundindex=ttsnd
 
 	//  Because of coop mode, the ai may not always be shooting at the camera
-	if (  t.game.runasmultiplayer == 0 || g.steamworks.coop == 0 ) 
+	if (  t.game.runasmultiplayer == 0 || g.mp.coop == 0 ) 
 	{
 		t.tplayerx_f = ObjectPositionX(t.aisystem.objectstartindex);
 		t.tplayery_f = ObjectPositionY(t.aisystem.objectstartindex);
@@ -1116,7 +1116,7 @@ void darkai_shooteffect ( void )
 			t.tgunid=t.entityprofile[t.ttentid].hasweapon;
 			t.tattachedobj=t.entityelement[t.te].attachmentobj;
 		}
-		if (  t.entityelement[t.te].mp_coopControlledByPlayer  ==  g.steamworks.me || t.entityelement[t.te].mp_coopControlledByPlayer  ==  -1 || t.entityprofile[t.ttentid].ismultiplayercharacter  ==  1 ) 
+		if (  t.entityelement[t.te].mp_coopControlledByPlayer  ==  g.mp.me || t.entityelement[t.te].mp_coopControlledByPlayer  ==  -1 || t.entityprofile[t.ttentid].ismultiplayercharacter  ==  1 ) 
 		{
 			t.tplayerx_f = CameraPositionX(0);
 			t.tplayery_f = CameraPositionY(0);
@@ -1125,9 +1125,9 @@ void darkai_shooteffect ( void )
 		else
 		{
 			t.tsteamplayer = t.entityelement[t.te].mp_coopControlledByPlayer;
-			t.tplayerx_f = ObjectPositionX(t.entityelement[t.steamworks_playerEntityID[t.tsteamplayer]].obj);
-			t.tplayery_f = ObjectPositionY(t.entityelement[t.steamworks_playerEntityID[t.tsteamplayer]].obj);
-			t.tplayerz_f = ObjectPositionZ(t.entityelement[t.steamworks_playerEntityID[t.tsteamplayer]].obj);
+			t.tplayerx_f = ObjectPositionX(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+			t.tplayery_f = ObjectPositionY(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+			t.tplayerz_f = ObjectPositionZ(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
 		}
 	}
 
@@ -1220,7 +1220,7 @@ void darkai_shooteffect ( void )
 		t.ttdd_f=Sqrt(abs(t.ttdx_f*t.ttdx_f)+abs(t.ttdy_f*t.ttdy_f)+abs(t.ttdz_f*t.ttdz_f));
 		t.ttdistanceaccuracy_f=t.ttdd_f/800.0;
 		if (  t.ttentid>0  )  t.tisnotmpchar  =  t.entityprofile[t.ttentid].ismultiplayercharacter; else t.tisnotmpchar  =  0;
-		if (  t.game.runasmultiplayer == 0 || ( g.steamworks.coop  ==  1 && t.tisnotmpchar  ==  0 ) ) 
+		if (  t.game.runasmultiplayer == 0 || ( g.mp.coop  ==  1 && t.tisnotmpchar  ==  0 ) ) 
 		{
 			if (  t.aisystem.playerducking == 1 ) 
 			{
@@ -1247,7 +1247,7 @@ void darkai_shooteffect ( void )
 			if (  t.ttdistanceaccuracy_f<0.3 || Rnd(t.tchancetohit_f*t.ttdistanceaccuracy_f) == 0 ) 
 			{
 				//  amount of damage to player
-				if (  t.game.runasmultiplayer  ==  0 || ( g.steamworks.coop  ==  1 && t.entityelement[t.te].mp_coopControlledByPlayer  ==  g.steamworks.me ) ) 
+				if (  t.game.runasmultiplayer  ==  0 || ( g.mp.coop  ==  1 && t.entityelement[t.te].mp_coopControlledByPlayer  ==  g.mp.me ) ) 
 				{
 					t.tdamage=g.firemodes[t.tgunid][0].settings.damage;
 					physics_player_takedamage ( );
@@ -1339,9 +1339,9 @@ void darkai_shooteffect ( void )
 		}
 	}
 
-	if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
-		SteamSendLua (  Steam_LUA_FireWeaponEffectOnly,t.te,0 );
+		mp_sendlua (  MP_LUA_FireWeaponEffectOnly,t.te,0 );
 	}
 }
 
@@ -1429,7 +1429,7 @@ void darkai_calcplrvisible ( void )
 	// if the ai is controlled by another player, we can just set as visible here
 	if ( t.game.runasmultiplayer  ==  1 ) 
 	{
-		if ( t.entityelement[t.charanimstate.e].mp_coopControlledByPlayer != g.steamworks.me ) 
+		if ( t.entityelement[t.charanimstate.e].mp_coopControlledByPlayer != g.mp.me ) 
 		{
 			t.entityelement[t.charanimstate.e].plrvisible=0;
 			t.entityelement[t.charanimstate.e].lua.flagschanged=1;
@@ -1824,9 +1824,9 @@ void darkai_character_loop ( void )
 		if (  ObjectExist(t.charanimstate.obj) == 1 ) 
 		{
 		//  if the char is controlled by someone else, we increase the range to max
-		if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 ) 
+		if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 ) 
 		{
-			if (  t.entityelement[t.te].mp_updateOn  ==  1 && t.entityelement[t.te].mp_coopControlledByPlayer  !=  g.steamworks.me && t.entityelement[t.te].mp_coopControlledByPlayer  !=  -1 ) 
+			if (  t.entityelement[t.te].mp_updateOn  ==  1 && t.entityelement[t.te].mp_coopControlledByPlayer  !=  g.mp.me && t.entityelement[t.te].mp_coopControlledByPlayer  !=  -1 ) 
 			{
 				t.maximumnonefreezedistance = 999990;
 			}
@@ -1899,9 +1899,9 @@ void darkai_character_loop ( void )
 					if (  t.tdistancebetweenentityandfinaldestination_f <= 75.0 && t.charanimstate.runmode == 1  )  t.tdothestop = 1;
 
 					//  don't stop them in coop mode, as the destinations are smaller increments (stopping is handled in the steam module)
-					if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 ) 
+					if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 ) 
 					{
-						if (  t.entityelement[t.te].mp_updateOn  ==  1 && t.entityelement[t.te].mp_coopControlledByPlayer  !=  g.steamworks.me ) 
+						if (  t.entityelement[t.te].mp_updateOn  ==  1 && t.entityelement[t.te].mp_coopControlledByPlayer  !=  g.mp.me ) 
 						{
 							t.tdothestop = 0;
 							t.tminrundestsize_f = 0.0;
@@ -1985,21 +1985,21 @@ void darkai_character_loop ( void )
 				}
 
 				//  work out direct Angle between OBJECT character and player
-				if ( t.game.runasmultiplayer == 0 || g.steamworks.coop == 0 ) 
+				if ( t.game.runasmultiplayer == 0 || g.mp.coop == 0 ) 
 				{
 					t.tdx_f=CameraPositionX(0)-ObjectPositionX(t.charanimstate.obj);
 					t.tdz_f=CameraPositionZ(0)-ObjectPositionZ(t.charanimstate.obj);
 				}
 				else
 				{
-					if (  t.entityelement[t.charanimstate.e].mp_coopControlledByPlayer  ==  g.steamworks.me || t.entityelement[t.te].mp_coopControlledByPlayer  ==  -1 ) 
+					if (  t.entityelement[t.charanimstate.e].mp_coopControlledByPlayer  ==  g.mp.me || t.entityelement[t.te].mp_coopControlledByPlayer  ==  -1 ) 
 					{
 						t.tdx_f=CameraPositionX(0)-ObjectPositionX(t.charanimstate.obj);
 						t.tdz_f=CameraPositionZ(0)-ObjectPositionZ(t.charanimstate.obj);
 					}
 					else
 					{
-						t.tsteamotherplayer = t.entityelement[t.steamworks_playerEntityID[t.entityelement[t.te].mp_coopControlledByPlayer]].obj;
+						t.tsteamotherplayer = t.entityelement[t.mp_playerEntityID[t.entityelement[t.te].mp_coopControlledByPlayer]].obj;
 						t.tdx_f=ObjectPositionX(t.tsteamotherplayer)-ObjectPositionX(t.charanimstate.obj);
 						t.tdz_f=ObjectPositionZ(t.tsteamotherplayer)-ObjectPositionZ(t.charanimstate.obj);
 					}

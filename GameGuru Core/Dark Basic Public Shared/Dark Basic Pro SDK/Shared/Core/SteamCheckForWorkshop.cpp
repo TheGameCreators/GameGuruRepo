@@ -6,17 +6,6 @@
 // New include
 #include "SteamCommands.h"
 
-// Steam Multiplayer DLL functions needed
-/*HMODULE SteamMultiplayerModule = NULL;
-
-typedef void	(*t_SteamGetWorkshopItemPathDLL)(LPSTR);
-typedef int		(*t_SteamIsWorkshopLoadingOnDLL)();
-
-t_SteamGetWorkshopItemPathDLL Steam_SteamGetWorkshopItemPathDLL = NULL;
-t_SteamIsWorkshopLoadingOnDLL Steam_SteamIsWorkshopLoadingOnDLL = NULL;*/
-// End of Steam Multiplayer DLL Functions needed
-
-
 bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 {
 
@@ -62,29 +51,6 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 	}
 	// end of encrypted file check
 
-	// Check if the functions pointers exist, if they don't - jolly well make them!
-	/*if ( Steam_SteamIsWorkshopLoadingOnDLL==NULL )
-	{
-		// Setup pointers to Steam functions
-		SteamMultiplayerModule = LoadLibrary ( "SteamMultiplayer.dll" );
-
-		if ( !SteamMultiplayerModule )
-		{
-			//MessageBox(NULL, "Unable to find SteamMultiplayer", "SteamMultiplayer Error", NULL);
-			return false;
-		}
-
-		Steam_SteamGetWorkshopItemPathDLL=(t_SteamGetWorkshopItemPathDLL)GetProcAddress( SteamMultiplayerModule , "?SteamGetWorkshopItemPathDLL@@YAXPAD@Z" );
-		Steam_SteamIsWorkshopLoadingOnDLL=(t_SteamIsWorkshopLoadingOnDLL)GetProcAddress ( SteamMultiplayerModule , "?SteamIsWorkshopLoadingOnDLL@@YAHXZ" );	
-		// End of setup pointers to steam functions
-	}*/
-
-	// CHECK FOR WORKSHOP ITEM
-	/*if ( !Steam_SteamIsWorkshopLoadingOnDLL || !Steam_SteamGetWorkshopItemPathDLL ) 
-		return false;	*/
-
-	//if ( Steam_SteamIsWorkshopLoadingOnDLL() == 1 )
-	{
 		char szWorkshopFilename[_MAX_PATH];
 		char szWorkshopFilenameFolder[_MAX_PATH];
 		char szWorkShopItemPath[_MAX_PATH];
@@ -92,7 +58,7 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 		//strcpy ( szWorkShopItemPath,"D:\\Games\\Steam\\steamapps\\workshop\\content\\266310\\378822626");
 		// If the string is empty then there is no active workshop item, so we can return
 		if ( strcmp ( szWorkShopItemPath , "" ) == 0 ) return false;
-		char* tempCharPointer = NULL;
+		tempCharPointer = NULL;
 		strcpy ( szWorkshopFilenameFolder, VirtualFilename );
 
 		// only check if the workshop item path isnt blank
@@ -208,10 +174,8 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 				}
 			}
 		}
-	}
 
 	return false;
-	// END OF CHECK FOR WORKSHOP ITEM
 }
 
 bool bCanIUse_E_ = false;

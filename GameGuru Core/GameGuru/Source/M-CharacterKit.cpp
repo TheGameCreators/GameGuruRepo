@@ -2074,7 +2074,7 @@ void characterkit_thumbgadget ( void )
 					Line (  t.tlinex_f,t.tlinemaxy_f,t.tlinex_f+70,t.tlinemaxy_f );
 					Line (  t.tlinex_f+70,t.tliney_f,t.tlinex_f+70,t.tlinemaxy_f );
 					Ink (  Rgb(255,255,255),0 );
-					steam_text(-1,95,2,t.characterkitavatarbank_s[t.tpickedthumb].Get());
+					mp_text(-1,95,2,t.characterkitavatarbank_s[t.tpickedthumb].Get());
 				}
 			}
 	
@@ -2452,7 +2452,7 @@ void characterkit_updateAllCharacterCreatorEntitiesInGame ( void )
 {
 	for ( t.tcce = t.characterkitcontrol.minEntity ; t.tcce<=  t.characterkitcontrol.maxEntity; t.tcce++ )
 	{
-		if (  t.tcce  !=  t.steamworks_playerEntityID[g.steamworks.me] ) 
+		if (  t.tcce  !=  t.mp_playerEntityID[g.mp.me] ) 
 		{
 
 			t.tccentid=t.entityelement[t.tcce].bankindex;
@@ -2511,7 +2511,7 @@ return;
 void characterkit_updateCharacterCreatorEntityInGame ( void )
 {
 	t.tcce=t.tte;
-	if (  t.tcce  !=  t.steamworks_playerEntityID[g.steamworks.me] ) 
+	if (  t.tcce  !=  t.mp_playerEntityID[g.mp.me] ) 
 	{
 		t.tccentid=t.entityelement[t.tcce].bankindex;
 		if (  t.tccentid>0 ) 
@@ -2594,7 +2594,7 @@ void characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( void )
 					{
 
 							PositionObject (  t.tccobj, ObjectPositionX(t.tccsourceobj),ObjectPositionY(t.tccsourceobj),ObjectPositionZ(t.tccsourceobj) );
-							if (  t.tccobj  !=  t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj ) 
+							if (  t.tccobj  !=  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj ) 
 							{
 								YRotateObject (  t.tccobj, ObjectAngleY(t.tccsourceobj)+180 );
 							}
@@ -3522,16 +3522,16 @@ void characterkit_checkAvatarExists ( void )
 	if (  FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() )  ==  1 ) 
 	{
 		OpenToRead (  1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get()  );
-		g.steamworks.myAvatar_s = ReadString ( 1 );
-		g.steamworks.myAvatarHeadTexture_s = ReadString ( 1 );
-		g.steamworks.myAvatarName_s = g.steamworks.myAvatarHeadTexture_s;
+		g.mp.myAvatar_s = ReadString ( 1 );
+		g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
+		g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
 		//  store the name of the head texture
-		if (  g.steamworks.myAvatarHeadTexture_s  !=  "" ) 
+		if (  g.mp.myAvatarHeadTexture_s  !=  "" ) 
 		{
-			g.steamworks.myAvatarHeadTexture_s = g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+ g.steamworks.myAvatarHeadTexture_s + "_cc.dds";
-			if (  FileExist(g.steamworks.myAvatarHeadTexture_s.Get())  ==  0  )
+			g.mp.myAvatarHeadTexture_s = g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+ g.mp.myAvatarHeadTexture_s + "_cc.dds";
+			if (  FileExist(g.mp.myAvatarHeadTexture_s.Get())  ==  0  )
 			{
-				g.steamworks.myAvatarHeadTexture_s  =  "";
+				g.mp.myAvatarHeadTexture_s  =  "";
 				CloseFile ( 1 );
 				DeleteAFile (  cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() );
 				return;
@@ -3545,29 +3545,29 @@ void characterkit_loadMyAvatarInfo ( void )
 {
 
 	//  blank out the data first
-	g.steamworks.myAvatar_s = "";
-	g.steamworks.myAvatarName_s = "";
-	g.steamworks.myAvatarHeadTexture_s = "";
-	g.steamworks.haveSentMyAvatar = 0;
+	g.mp.myAvatar_s = "";
+	g.mp.myAvatarName_s = "";
+	g.mp.myAvatarHeadTexture_s = "";
+	g.mp.haveSentMyAvatar = 0;
 
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
-		t.steamworks_playerAvatars_s[t.c] = "";
-		t.steamworks_playerAvatarOwners_s[t.c] = "";
+		t.mp_playerAvatars_s[t.c] = "";
+		t.mp_playerAvatarOwners_s[t.c] = "";
 	}
 
 	if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
 	if (  FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() )  ==  1 ) 
 	{
 		OpenToRead (  1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get()  );
-		g.steamworks.myAvatar_s = ReadString ( 1 );
-		g.steamworks.myAvatarHeadTexture_s = ReadString ( 1 );
-		g.steamworks.myAvatarName_s = g.steamworks.myAvatarHeadTexture_s;
+		g.mp.myAvatar_s = ReadString ( 1 );
+		g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
+		g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
 		//  store the name of the head texture
-		if (  g.steamworks.myAvatarHeadTexture_s  !=  "" ) 
+		if (  g.mp.myAvatarHeadTexture_s  !=  "" ) 
 		{
-			g.steamworks.myAvatarHeadTexture_s = g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+ g.steamworks.myAvatarHeadTexture_s + "_cc.dds";
-			if (  FileExist(g.steamworks.myAvatarHeadTexture_s.Get())  ==  0  )  g.steamworks.myAvatarHeadTexture_s  =  "";
+			g.mp.myAvatarHeadTexture_s = g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+ g.mp.myAvatarHeadTexture_s + "_cc.dds";
+			if (  FileExist(g.mp.myAvatarHeadTexture_s.Get())  ==  0  )  g.mp.myAvatarHeadTexture_s  =  "";
 		}
 		CloseFile (  1 );
 
@@ -3577,9 +3577,9 @@ void characterkit_loadMyAvatarInfo ( void )
 			if (  g.charactercreatorEditorImageoffset > 1 ) 
 			{
 				if (  ImageExist(g.charactercreatorEditorImageoffset)  ==  1  )  DeleteImage (  g.charactercreatorEditorImageoffset );
-				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.steamworks.myAvatarName_s+".bmp").Get() )  ==  1 ) 
+				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() )  ==  1 ) 
 				{
-					LoadImage (  cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.steamworks.myAvatarName_s+".bmp").Get() ,g.charactercreatorEditorImageoffset );
+					LoadImage (  cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() ,g.charactercreatorEditorImageoffset );
 				}
 			}
 		}

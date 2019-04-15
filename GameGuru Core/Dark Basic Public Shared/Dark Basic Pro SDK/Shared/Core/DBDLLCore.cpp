@@ -15,8 +15,11 @@
 #include "..\..\DarkSDK\Core\resource.h"
 #include "..\..\..\..\Guru-MapEditor\Encryptor.h"
 #include ".\..\Core\SteamCheckForWorkshop.h"
-#include "SteamCommands.h"
 #include "DarkLUA.h"
+
+// Multiplayer Systems
+#include "PhotonCommands.h"
+#include "SteamCommands.h"
 
 // Internal Includes
 #include "DBDLLCore.h"
@@ -55,6 +58,7 @@
 #include "SoftwareCulling.h"
 #include "DarkLUA.h"
 #include "SimonReloaded.h"
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 #include "LightMapper.h"
 #include "Enchancements.h"
@@ -1419,7 +1423,8 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		g_pGlob->hWnd = CreateWindow( pAppNameUnique, pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
 	}
 
-	// Init Steam API
+	// Init MP API
+	PhotonInit();
 	SteamInit();
 
 	// Main Setup init

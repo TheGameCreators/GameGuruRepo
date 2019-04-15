@@ -974,7 +974,7 @@ void physics_explodesphere ( void )
 			if (  t.entityelement[t.texplodesourceEntity].mp_networkkill  ==  1 ) 
 			{
 				//  13032015 0XX - Team Multiplayer
-				if (  g.steamworks.team  ==  0 || g.steamworks.friendlyfireoff  ==  0 || t.steamworks_team[t.entityelement[t.texplodesourceEntity].mp_killedby]  !=  t.steamworks_team[g.steamworks.me] ) 
+				if (  g.mp.team  ==  0 || g.mp.friendlyfireoff  ==  0 || t.mp_team[t.entityelement[t.texplodesourceEntity].mp_killedby]  !=  t.mp_team[g.mp.me] ) 
 				{
 					t.tsteamwasnetworkdamage = 1;
 				}
@@ -984,7 +984,7 @@ void physics_explodesphere ( void )
 		{
 			//  13032015 0XX - Team Multiplayer
 			//  Can't kill yourself if friendly fire is off
-			if (  t.tsteamwasnetworkdamage  ==  1 || g.steamworks.friendlyfireoff  ==  0 || g.steamworks.damageWasFromAI  ==  1 ) 
+			if (  t.tsteamwasnetworkdamage  ==  1 || g.mp.friendlyfireoff  ==  0 || g.mp.damageWasFromAI  ==  1 ) 
 			{
 				physics_player_takedamage ( );
 			}
@@ -1002,7 +1002,7 @@ void physics_explodesphere ( void )
 	//  if the explosion was caused by another player, we let them handle it rather than us
 	if (  t.game.runasmultiplayer  ==  1 ) 
 	{
-		if (  t.entityelement[t.texplodesourceEntity].mp_networkkill  ==  1 && g.steamworks.damageWasFromAI  ==  0 ) 
+		if (  t.entityelement[t.texplodesourceEntity].mp_networkkill  ==  1 && g.mp.damageWasFromAI  ==  0 ) 
 		{
 			return;
 		}
@@ -1011,7 +1011,7 @@ void physics_explodesphere ( void )
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
-		if (  g.steamworks.damageWasFromAI  ==  0 ) 
+		if (  g.mp.damageWasFromAI  ==  0 ) 
 		{
 			if (  t.texplodesourceEntity > 0 && t.e == t.texplodesourceEntity  )  t.entid = 0;
 		}
@@ -1075,7 +1075,7 @@ void physics_explodesphere ( void )
 	}
 
 	//  Reset flag for ai damage
-	g.steamworks.damageWasFromAI = 0;
+	g.mp.damageWasFromAI = 0;
 }
 
 void physics_player_init ( void )
@@ -1253,7 +1253,7 @@ return;
 int physics_player_listener_delay = 0;
 void physics_player ( void )
 {
-	if ( t.game.runasmultiplayer ==  0 || g.steamworks.noplayermovement == 0 ) 
+	if ( t.game.runasmultiplayer ==  0 || g.mp.noplayermovement == 0 ) 
 	{
 		if ( t.aisystem.processplayerlogic == 1 ) 
 		{
@@ -1573,7 +1573,7 @@ void physics_player_control_F9 ( void )
 	if ( g.luaactivatemouse != 1 )
 	{
 		// No player control if dead, but use up mousemoves to prevent sudden move on respawn or if in multiplayer and respawning
-		if ( t.player[t.plrid].health == 0 || t.plrhasfocus == 0 || (t.game.runasmultiplayer == 1 && g.steamworks.respawnLeft != 0) ) 
+		if ( t.player[t.plrid].health == 0 || t.plrhasfocus == 0 || (t.game.runasmultiplayer == 1 && g.mp.respawnLeft != 0) ) 
 		{
 			t.tMousemove_f = MouseMoveX() + MouseMoveY();
 		}
@@ -2315,7 +2315,7 @@ void physics_player_takedamage ( void )
 					if (  t.entityelement[t.texplodesourceEntity].mp_networkkill  ==  1 ) 
 					{
 						//  inform of network kill
-						steam_networkkill ( );
+						mp_networkkill ( );
 					}
 				}
 			}

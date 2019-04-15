@@ -90,7 +90,7 @@ void lua_loadscriptin ( void )
 				if (  t.tfound == 0 ) 
 				{
 					t.r=LoadLua(t.tfile_s.Get());
-					if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 					if (  t.r == 0 ) 
 					{
 						t.strwork = "" ; t.strwork = t.strwork + "Loaded "+t.tfile_s;
@@ -644,7 +644,7 @@ void lua_loop_allentities ( void )
 					// this ensures the game loads in _G[x] states BEFORE we start the game scripts
 					// to avoid issues such as the start splash appearing when loading mid-way in level from main menu
 					//  Called when entity states change
-					if (  t.entityelement[t.e].lua.flagschanged == 1 || (t.game.runasmultiplayer  ==  1 && g.steamworks.endplay  ==  1) ) 
+					if (  t.entityelement[t.e].lua.flagschanged == 1 || (t.game.runasmultiplayer  ==  1 && g.mp.endplay  ==  1) ) 
 					{
 						//  do not refresh activated and animating as these are set INSIDE LUA!!
 						// 190516 - ensure we can only call UpdateEntityRT if we previously called UpdateEntity!!
@@ -653,7 +653,7 @@ void lua_loop_allentities ( void )
 							LuaSetFunction (  "UpdateEntityRT",21,0 );
 							LuaPushInt (  t.e );
 							LuaPushInt (  t.tobj );
-							if ( t.game.runasmultiplayer ==  0 || g.steamworks.endplay  ==  0 ) 
+							if ( t.game.runasmultiplayer ==  0 || g.mp.endplay  ==  0 ) 
 							{
 								// if character, update entity coordinates from visible object
 								int tentid = t.entityelement[t.e].bankindex;
@@ -727,23 +727,23 @@ void lua_loop_allentities ( void )
 					{
 						if (  Len(t.entityelement[t.e].eleprof.aimainname_s.Get())>1 ) 
 						{
-							if (  t.game.runasmultiplayer == 0 || g.steamworks.gameAlreadySpawnedBefore  !=  0 ) 
+							if (  t.game.runasmultiplayer == 0 || g.mp.gameAlreadySpawnedBefore  !=  0 ) 
 							{
 								t.tcall = 1;
 
 								//  for multiplayer coop, only call the main function if we are the ones in control of the ai
-								if (  t.game.runasmultiplayer == 1 && g.steamworks.coop  ==  1 ) 
+								if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 ) 
 								{
 									t.entid=t.entityelement[t.e].bankindex;
 									if (  t.entid>0 ) 
 									{
 										if ( (t.entityprofile[t.entid].ischaracter  ==  1 || t.entityelement[t.e].mp_isLuaChar  ==  1) && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) 
 										{
-											if (  t.entityelement[t.e].mp_coopControlledByPlayer  !=  g.steamworks.me  )  t.tcall  =  0;
+											if (  t.entityelement[t.e].mp_coopControlledByPlayer  !=  g.mp.me  )  t.tcall  =  0;
 										}
 									}
 									//  only run marker scripts when in endplay mode (multiplayer only)
-									if (  t.game.runasmultiplayer  ==  1 && g.steamworks.endplay  ==  1 ) 
+									if (  t.game.runasmultiplayer  ==  1 && g.mp.endplay  ==  1 ) 
 									{
 										if (  t.entityprofile[t.entid].ismarker  ==  0  )  t.tcall  =  0;
 									}
@@ -1019,13 +1019,13 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "texty" ) == 0 ) { t.luaText.y  =  LuaMessageFloat() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "textsize" ) == 0 ) { t.luaText.size  =  LuaMessageInt() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "textcenterx" ) == 0 ) { t.tluaTextCenterX  =  1 ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "textred" ) == 0 ) { g.steamworks.steamColorRed  =  LuaMessageInt() ; g.steamworks.steamDoColorText  =  1 ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "textgreen" ) == 0 ) { g.steamworks.steamColorGreen  =  LuaMessageInt() ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "textblue" ) == 0 ) { g.steamworks.steamColorBlue  =  LuaMessageInt() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "textred" ) == 0 ) { g.mp.steamColorRed  =  LuaMessageInt() ; g.mp.steamDoColorText  =  1 ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "textgreen" ) == 0 ) { g.mp.steamColorGreen  =  LuaMessageInt() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "textblue" ) == 0 ) { g.mp.steamColorBlue  =  LuaMessageInt() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "texttxt" ) == 0 ) { t.luaText.txt = LuaMessageString() ; lua_text() ; }
 
-		else if ( strcmp ( t.luaaction_s.Get() , "nameplatesoff" ) == 0 ) { g.steamworks.nameplatesOff = 1 ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "nameplateson" ) == 0 ) { g.steamworks.nameplatesOff = 0 ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "nameplatesoff" ) == 0 ) { g.mp.nameplatesOff = 1 ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "nameplateson" ) == 0 ) { g.mp.nameplatesOff = 0 ; }
 
 		else if ( strcmp ( t.luaaction_s.Get() , "panelx" ) == 0 ) { t.luaPanel.x  =  LuaMessageFloat() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "panely" ) == 0 ) { t.luaPanel.y  =  LuaMessageFloat() ; }
@@ -1033,14 +1033,14 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "panely2" ) == 0 ) { t.luaPanel.y2 = LuaMessageFloat(); lua_panel() ; }
  
 
-		else if ( strcmp ( t.luaaction_s.Get() , "mpgamemode" ) == 0 ) { t.v=LuaMessageInt() ; steam_serverSetLuaGameMode() ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "setservertimer" ) == 0 ) { t.v=LuaMessageInt() ; steam_setServerTimer() ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "serverrespawnall" ) == 0 ) { steam_serverRespawnAll() ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "serverendplay" ) == 0 ) { steam_serverEndPlay() ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "setserverkillstowin" ) == 0 ) { steam_setServerKillsToWin() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "mpgamemode" ) == 0 ) { t.v=LuaMessageInt() ; mp_serverSetLuaGameMode() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setservertimer" ) == 0 ) { t.v=LuaMessageInt() ; mp_setServerTimer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "serverrespawnall" ) == 0 ) { mp_serverRespawnAll() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "serverendplay" ) == 0 ) { mp_serverEndPlay() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setserverkillstowin" ) == 0 ) { mp_setServerKillsToWin() ; }
  
 		else if ( strcmp ( t.luaaction_s.Get() , "mp_aimovetox" ) == 0 ) { t.e  =  LuaMessageIndex() ; t.tSteamX_f  =  LuaMessageFloat() ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "mp_aimovetoz" ) == 0 ) { t.e=LuaMessageIndex() ; t.tSteamZ_f=LuaMessageFloat() ; steam_COOP_aiMoveTo() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "mp_aimovetoz" ) == 0 ) { t.e=LuaMessageIndex() ; t.tSteamZ_f=LuaMessageFloat() ; mp_COOP_aiMoveTo() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setskyto") == 0 ) { t.s_s = LuaMessageString(); lua_set_sky(); }
 
 		// 020216 - TITLE/MENU/PAGE LUA COMMANDS

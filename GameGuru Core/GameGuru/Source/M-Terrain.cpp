@@ -2317,7 +2317,7 @@ void terrain_make ( void )
 		SetEffectToShadowMappingEx ( t.terrain.terrainshaderindex, g.shadowdebugobjectoffset, g.guidepthshadereffectindex, g.globals.hidedistantshadows, g.globals.realshadowresolution, g.globals.realshadowcascadecount, g.globals.realshadowcascade[0], g.globals.realshadowcascade[1], g.globals.realshadowcascade[2], g.globals.realshadowcascade[3], g.globals.realshadowcascade[4], g.globals.realshadowcascade[5], g.globals.realshadowcascade[6], g.globals.realshadowcascade[7] );
 
 		//  Load all terrain textures
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		if (  t.terrain.superflat == 2 ) 
 		{
 			//  No terrain to texture
@@ -2346,7 +2346,7 @@ void terrain_make ( void )
 				terrain_generatevegandmask_grab ( );
 			}
 
-			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 			if (  g.gdividetexturesize == 0 ) 
 			{
@@ -2359,7 +2359,7 @@ void terrain_make ( void )
 				LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\Texture_D.dds").Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
 				LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\Texture_N.dds").Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
 			}
-			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 			// This texture acts as highlight graphic and also store for mega texture (distant terrain texture composite)
 			SetImageAutoMipMap (  0 ); // PE: SetImageAutoMipMap Dont work anymore.
@@ -2368,7 +2368,7 @@ void terrain_make ( void )
 			SetMipmapNum(-1);
 			SetImageAutoMipMap (  1 );
 		}
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 		//  Water handling vars
 		t.terrain.WaterCamY_f=0.0;
@@ -3569,7 +3569,7 @@ void terrain_generatesupertexture ( bool bForceRecalcOfPalette )
 			}
 		}
 		CloseFile (  7 );
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	}
 	else
 	{
@@ -3605,7 +3605,7 @@ void terrain_generatesupertexture ( bool bForceRecalcOfPalette )
 							t.tb_f=t.tb_f+RgbB(t.trgba);
 							t.tt_f=t.tt_f+1;
 						}
-						if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+						if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 					}
 					t.tr=t.tr_f/t.tt_f;
 					t.tg=t.tg_f/t.tt_f;
@@ -3615,7 +3615,7 @@ void terrain_generatesupertexture ( bool bForceRecalcOfPalette )
 					if (  t.tb>255  )  t.tb = 255;
 					t.pot[t.p][t.x][t.z]=(t.tr<<16)+(t.tg<<8)+(t.tb);
 				}
-				if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+				if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			}
 			UnlockPixels (  );
 		}
@@ -3637,7 +3637,7 @@ void terrain_generatesupertexture ( bool bForceRecalcOfPalette )
 			}
 		}
 		CloseFile (  7 );
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	}
 
 	// New command to create the mega texture entirely inside the Image Module (special mode)
@@ -3664,7 +3664,7 @@ void terrain_generatesupertexture ( bool bForceRecalcOfPalette )
 	t.terrain.floorcolorg_f=(t.terrain.floorcolorg_f*0.25)+(255*0.75);
 	t.terrain.floorcolorb_f=(t.terrain.floorcolorb_f*0.25)+(255*0.75);
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	TextureObject (  t.terrain.terrainobjectindex,3,t.terrain.imagestartindex+17 );
 }
@@ -4225,7 +4225,7 @@ void terrain_skyspec_init ( void )
 		CloseFile (  1 );
 	}
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  If not from editor, also load and create sky assets
 	if (  t.game.set.ismapeditormode == 0 ) 
@@ -4267,7 +4267,7 @@ void terrain_skyspec_init ( void )
 			t.effectparam.skyscroll.HudFogDist=GetEffectParameterIndex(t.terrain.effectstartindex+9,"HudFogDist");
 			t.effectparam.skyscroll.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+9,"HudFogColor");
 		}
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 		//  Initialise main and secondary sky
 		SetMipmapNum ( 1 );
@@ -4285,7 +4285,7 @@ void terrain_skyspec_init ( void )
 				gun_updategunshaders ( );
 			}
 
-			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 			//  skyname only
 			t.skynameonly_s=t.skyname_s;
@@ -4320,7 +4320,7 @@ void terrain_skyspec_init ( void )
 			DisableObjectZWrite (  t.skyobj );
 			DisableObjectZRead (  t.skyobj );
 
-			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		}
 
 		//  For MAIN sky, get full name and name only strings (again)
@@ -4374,7 +4374,7 @@ void terrain_skyspec_init ( void )
 				//  Show if hidden
 				ShowObject (  t.terrain.objectstartindex+9 );
 			}
-			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 			//  Always load in specified texture as sky can change
 			LoadImage ( t.skyscroll_s.Get(),t.terrain.imagestartindex+9,0,g.gdividetexturesize );
@@ -4392,7 +4392,7 @@ void terrain_skyspec_init ( void )
 				HideObject (  t.terrain.objectstartindex+9 );
 			}
 		}
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		SetMipmapNum ( -1 );
 	}
 

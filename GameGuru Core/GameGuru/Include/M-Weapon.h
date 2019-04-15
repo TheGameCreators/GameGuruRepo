@@ -28,7 +28,7 @@ void weapon_projectile_setup ( void );
 void weapon_projectile_make ( void );
 void weapon_add_projectile_particles ( void );
 void weapon_projectile_reset ( void );
-void weapon_steam_projectile_reset ( void );
+void weapon_mp_projectile_reset ( void );
 void weapon_projectile_setDistFromPlayer ( void );
 void weapon_projectile_destroy ( void );
 void weapon_projectileresult_make ( void );

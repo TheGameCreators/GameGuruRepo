@@ -114,8 +114,7 @@ void game_masterroot ( int iUseVRTest )
 			//  DOWNLOAD the level selected by the HOSTER and put it in levelbank
 			//  called 'multiplayer_level.zip' (has to be a loop for Steam)
 			//  EXTRACT the ZIP into the testmap folder ready for the code below
-			//  steam_loop is now called inside titlesbase!!
-			g.steamworks.mode = STEAM_MODE_MAIN_MENU;
+			g.mp.mode = MP_MODE_MAIN_MENU;
 			timestampactivity(0,"_titles_steampage");
 			t.game.cancelmultiplayer=0;
 			SetCameraView (  0,0,1,1 );
@@ -261,11 +260,11 @@ void game_masterroot ( int iUseVRTest )
 			{
 				//  these are the multiplayer start markers
 				t.tnumberofstartmarkers = 0;
-				g.steamworks.team = 0;
-				g.steamworks.coop = 0;
-				for ( t.tc = 1 ; t.tc<=  STEAM_MAX_NUMBER_OF_PLAYERS; t.tc++ )
+				g.mp.team = 0;
+				g.mp.coop = 0;
+				for ( t.tc = 1 ; t.tc<=  MP_MAX_NUMBER_OF_PLAYERS; t.tc++ )
 				{
-					t.steamworksmultiplayerstart[t.tc].active=0;
+					t.mpmultiplayerstart[t.tc].active=0;
 				}
 				t.plrindex=1;
 				t.tfoundAMultiplayerScript = 0;
@@ -279,7 +278,7 @@ void game_masterroot ( int iUseVRTest )
 					t.entid=t.entityelement[t.e].bankindex;
 					if (  t.entid>0 ) 
 					{
-						if (  t.entityprofile[t.entid].ismarker == 7 && t.plrindex <= STEAM_MAX_NUMBER_OF_PLAYERS ) 
+						if (  t.entityprofile[t.entid].ismarker == 7 && t.plrindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 						{
 
 							//  to ensure mp game script always runs from any distance
@@ -290,7 +289,7 @@ void game_masterroot ( int iUseVRTest )
 							}
 							if (  t.entityelement[t.e].eleprof.teamfield  !=  0 ) 
 							{
-								g.steamworks.team = 1;
+								g.mp.team = 1;
 							}
 	
 							//  only let one marker end up with a script otherwise we end up running the same script 8 times
@@ -301,14 +300,14 @@ void game_masterroot ( int iUseVRTest )
 								if (  FileOpen(3)  ==  1  )  CloseFile (  3 );
 								t.strwork = "" ; t.strwork = t.strwork + "scriptbank\\"+t.entityelement[t.e].eleprof.aimain_s;
 								OpenToRead (  3, t.strwork.Get() );
-								g.steamworks.friendlyfireoff = 0;
+								g.mp.friendlyfireoff = 0;
 								while (  FileEnd(3)  ==  0 ) 
 								{
 									t.tScriptLine_s = ReadString (  3 );
 									t.tScriptLine_s = Lower(t.tScriptLine_s.Get());
 									if (  FindSubString(t.tScriptLine_s.Get(),"setmultiplayergamefriendlyfireoff") > 0 && FindSubString(t.tScriptLine_s.Get(),"--SetMultiplayerGameFriendlyFireOff")  <=  0 && FindSubString(t.tScriptLine_s.Get(),"-- SetMultiplayerGameFriendlyFireOff") <=  0 ) 
 									{
-										g.steamworks.friendlyfireoff = 1;
+										g.mp.friendlyfireoff = 1;
 									}
 								}
 								CloseFile (  3 );
@@ -357,18 +356,18 @@ void game_masterroot ( int iUseVRTest )
 					t.entid=t.entityelement[t.e].bankindex;
 					if (  t.entid>0 ) 
 					{
-						if (  t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= STEAM_MAX_NUMBER_OF_PLAYERS ) 
+						if (  t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 						{
 							//  add start markers for free for all or team a
 							if (  t.entityelement[t.e].eleprof.teamfield < 2 ) 
 							{
 								//  a spawn GetPoint (  for the multiplayer )
-								t.steamworksmultiplayerstart[t.tmpstartindex].active=1;
-								t.steamworksmultiplayerstart[t.tmpstartindex].x=t.entityelement[t.e].x;
+								t.mpmultiplayerstart[t.tmpstartindex].active=1;
+								t.mpmultiplayerstart[t.tmpstartindex].x=t.entityelement[t.e].x;
 								//  added 10 onto the y otherwise the players fall through the ground
-								t.steamworksmultiplayerstart[t.tmpstartindex].y=t.entityelement[t.e].y+50;
-								t.steamworksmultiplayerstart[t.tmpstartindex].z=t.entityelement[t.e].z;
-								t.steamworksmultiplayerstart[t.tmpstartindex].angle=t.entityelement[t.e].ry;
+								t.mpmultiplayerstart[t.tmpstartindex].y=t.entityelement[t.e].y+50;
+								t.mpmultiplayerstart[t.tmpstartindex].z=t.entityelement[t.e].z;
+								t.mpmultiplayerstart[t.tmpstartindex].angle=t.entityelement[t.e].ry;
 								t.thaveTeamAMarkers = 1;
 								++t.tnumberofstartmarkers;
 								++t.tmpstartindex;
@@ -377,25 +376,25 @@ void game_masterroot ( int iUseVRTest )
 					}
 				}
 				//  add team b markers if in team mode
-				if (  g.steamworks.team  ==  1 ) 
+				if (  g.mp.team  ==  1 ) 
 				{
 					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
 						if (  t.entid>0 ) 
 						{
-							if (  t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= STEAM_MAX_NUMBER_OF_PLAYERS ) 
+							if (  t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 							{
 								//  add start markers for team b
 								if (  t.entityelement[t.e].eleprof.teamfield  ==  2 ) 
 								{
 									//  a spawn GetPoint (  for the multiplayer )
-									t.steamworksmultiplayerstart[t.tmpstartindex].active=1;
-									t.steamworksmultiplayerstart[t.tmpstartindex].x=t.entityelement[t.e].x;
+									t.mpmultiplayerstart[t.tmpstartindex].active=1;
+									t.mpmultiplayerstart[t.tmpstartindex].x=t.entityelement[t.e].x;
 									//  added 10 onto the y otherwise the players fall through the ground
-									t.steamworksmultiplayerstart[t.tmpstartindex].y=t.entityelement[t.e].y+50;
-									t.steamworksmultiplayerstart[t.tmpstartindex].z=t.entityelement[t.e].z;
-									t.steamworksmultiplayerstart[t.tmpstartindex].angle=t.entityelement[t.e].ry;
+									t.mpmultiplayerstart[t.tmpstartindex].y=t.entityelement[t.e].y+50;
+									t.mpmultiplayerstart[t.tmpstartindex].z=t.entityelement[t.e].z;
+									t.mpmultiplayerstart[t.tmpstartindex].angle=t.entityelement[t.e].ry;
 									t.thaveTeamBMarkers = 1;
 									++t.tnumberofstartmarkers;
 									++t.tmpstartindex;
@@ -406,18 +405,18 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				//  check for coop mode
-				g.steamworks.coop = 0;
-				if (  g.steamworks.team  ==  1 ) 
+				g.mp.coop = 0;
+				if (  g.mp.team  ==  1 ) 
 				{
 					if (  (t.thaveTeamAMarkers  ==  1 && t.thaveTeamBMarkers  ==  0) || (t.thaveTeamAMarkers  ==  0 && t.thaveTeamBMarkers  ==  1) || (t.thaveTeamAMarkers  ==  0 && t.thaveTeamBMarkers  ==  0) ) 
 					{
-						g.steamworks.coop = 1;
-						steam_setupCoopTeam ( );
+						g.mp.coop = 1;
+						mp_setupCoopTeam ( );
 					}
 				}
 
 				//  perhaps it is a solo game with a start maker only
-				if (  g.steamworks.coop  ==  0 && t.tnumberofstartmarkers  ==  0 ) 
+				if (  g.mp.coop  ==  0 && t.tnumberofstartmarkers  ==  0 ) 
 				{
 					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 					{
@@ -427,32 +426,32 @@ void game_masterroot ( int iUseVRTest )
 							if (  t.entityprofile[t.entid].ismarker == 1 ) 
 							{
 								//  a spawn GetPoint (  for the multiplayer )
-								t.steamworksmultiplayerstart[1].active=1;
-								t.steamworksmultiplayerstart[1].x=t.entityelement[t.e].x;
+								t.mpmultiplayerstart[1].active=1;
+								t.mpmultiplayerstart[1].x=t.entityelement[t.e].x;
 								//  added 10 onto the y otherwise the players fall through the ground
-								t.steamworksmultiplayerstart[1].y=t.entityelement[t.e].y+50;
-								t.steamworksmultiplayerstart[1].z=t.entityelement[t.e].z;
-								t.steamworksmultiplayerstart[1].angle=t.entityelement[t.e].ry;
+								t.mpmultiplayerstart[1].y=t.entityelement[t.e].y+50;
+								t.mpmultiplayerstart[1].z=t.entityelement[t.e].z;
+								t.mpmultiplayerstart[1].angle=t.entityelement[t.e].ry;
 								t.entityelement[t.e].eleprof.phyalways = 1;
 								//  switch it to multiplayer script
 								t.entityelement[t.e].eleprof.aimain_s = "multiplayer_firstto10.lua";
 								t.tnumberofstartmarkers = 1;
-								g.steamworks.coop = 1;
-								g.steamworks.team = 1;
-								steam_setupCoopTeam ( );
+								g.mp.coop = 1;
+								g.mp.team = 1;
+								mp_setupCoopTeam ( );
 
 								//  Check for friendly fire off
 								if (  FileOpen(3)  ==  1  )  CloseFile (  3 );
 								t.strwork ="" ; t.strwork = t.strwork + "scriptbank\\"+t.entityelement[t.e].eleprof.aimain_s;
 								OpenToRead (  3, t.strwork.Get() );
-								g.steamworks.friendlyfireoff = 0;
+								g.mp.friendlyfireoff = 0;
 								while (  FileEnd(3)  ==  0 ) 
 								{
 									t.tScriptLine_s = ReadString (  3 );
 									t.tScriptLine_s = Lower(t.tScriptLine_s.Get());
 									if (  FindSubString(t.tScriptLine_s.Get(),"setmultiplayergamefriendlyfireoff") > 0 && FindSubString(t.tScriptLine_s.Get(),"--SetMultiplayerGameFriendlyFireOff")  <=  0 && FindSubString(t.tScriptLine_s.Get(),"-- SetMultiplayerGameFriendlyFireOff") <=  0 ) 
 									{
-										g.steamworks.friendlyfireoff = 1;
+										g.mp.friendlyfireoff = 1;
 									}
 								}
 								CloseFile (  3 );
@@ -463,7 +462,7 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				//  if multiplayer and not coop, disable ai characters
-				if (  t.game.runasmultiplayer == 1 && g.steamworks.coop  ==  0 ) 
+				if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  0 ) 
 				{
 					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 					{
@@ -479,7 +478,7 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				//  if multiplayer and coop, setup ai for switching who control them, depending on gameplay circumstances
-				if (  t.game.runasmultiplayer == 1 && g.steamworks.coop  ==  1 ) 
+				if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 ) 
 				{
 					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 					{
@@ -497,31 +496,31 @@ void game_masterroot ( int iUseVRTest )
 				//  if no multiplayer markers, put some at the default height
 				if (  t.tnumberofstartmarkers  ==  0 ) 
 				{
-					for ( t.tloop = 1 ; t.tloop<=  STEAM_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
+					for ( t.tloop = 1 ; t.tloop<=  MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
 					{
-						t.steamworksmultiplayerstart[t.tloop].active=1;
-						t.steamworksmultiplayerstart[t.tloop].x=25600;
+						t.mpmultiplayerstart[t.tloop].active=1;
+						t.mpmultiplayerstart[t.tloop].x=25600;
 						//  added 10 onto the y otherwise the players fall through the ground
-						t.steamworksmultiplayerstart[t.tloop].y=BT_GetGroundHeight(t.terrain.TerrainID,25600.0,25600.0)+50;
-						t.steamworksmultiplayerstart[t.tloop].z=25600;
-						t.steamworksmultiplayerstart[t.tloop].angle=0;
+						t.mpmultiplayerstart[t.tloop].y=BT_GetGroundHeight(t.terrain.TerrainID,25600.0,25600.0)+50;
+						t.mpmultiplayerstart[t.tloop].z=25600;
+						t.mpmultiplayerstart[t.tloop].angle=0;
 					}
 				}
 				//  if coop and only 1 marker, make some more
-				if (  g.steamworks.coop  ==  1 && t.tnumberofstartmarkers  ==  1 ) 
+				if (  g.mp.coop  ==  1 && t.tnumberofstartmarkers  ==  1 ) 
 				{
-					for ( t.tloop = 2 ; t.tloop<=  STEAM_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
+					for ( t.tloop = 2 ; t.tloop<=  MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
 					{
-						t.steamworksmultiplayerstart[t.tloop].active=1;
-						t.steamworksmultiplayerstart[t.tloop].x=t.steamworksmultiplayerstart[1].x;
+						t.mpmultiplayerstart[t.tloop].active=1;
+						t.mpmultiplayerstart[t.tloop].x=t.mpmultiplayerstart[1].x;
 						//  added 10 onto the y otherwise the players fall through the ground
-						t.steamworksmultiplayerstart[t.tloop].y=t.steamworksmultiplayerstart[1].y;
-						t.steamworksmultiplayerstart[t.tloop].z=t.steamworksmultiplayerstart[1].z;
-						t.steamworksmultiplayerstart[t.tloop].angle=t.steamworksmultiplayerstart[1].angle;
+						t.mpmultiplayerstart[t.tloop].y=t.mpmultiplayerstart[1].y;
+						t.mpmultiplayerstart[t.tloop].z=t.mpmultiplayerstart[1].z;
+						t.mpmultiplayerstart[t.tloop].angle=t.mpmultiplayerstart[1].angle;
 					}
 				}
 				//  reserve max multiplayer characters (all weapon animations included)
-				Dim (  t.tubindex,2+STEAM_MAX_NUMBER_OF_PLAYERS  );
+				Dim (  t.tubindex,2+MP_MAX_NUMBER_OF_PLAYERS  );
 				t.ent_s=g.rootdir_s+"entitybank\\characters\\Uber Soldier.fpe";
 				entity_addtoselection_core ( );
 				t.tubindex[0]=t.entid;
@@ -530,7 +529,7 @@ void game_masterroot ( int iUseVRTest )
 				// No lua script for player chars
 				t.entityprofile[t.tubindex[0]].aimain_s = "";
 
-				if (  g.steamworks.team  ==  1 && g.steamworks.coop  ==  0 ) 
+				if (  g.mp.team  ==  1 && g.mp.coop  ==  0 ) 
 				{
 					t.ent_s=g.rootdir_s+"entitybank\\characters\\Uber Soldier Red.fpe";
 					entity_addtoselection_core ( );
@@ -543,15 +542,15 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				//  add any character creator player avatars in
-				for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
+				for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
 				{
 					//  check if there is a custom avatar
-					if (  t.steamworks_playerAvatars_s[t.tcustomAvatarCount]  !=  "" ) 
+					if (  t.mp_playerAvatars_s[t.tcustomAvatarCount]  !=  "" ) 
 					{
 						//  there is so lets built a temp fpe file from it
 						t.ent_s=g.rootdir_s+"entitybank\\user\\charactercreator\\customAvatar_"+Str(t.tcustomAvatarCount)+".fpe";
 						t.avatarFile_s = t.ent_s;
-						t.avatarString_s = t.steamworks_playerAvatars_s[t.tcustomAvatarCount];
+						t.avatarString_s = t.mp_playerAvatars_s[t.tcustomAvatarCount];
 						characterkit_makeMultiplayerCharacterCreatorAvatar ( );
 						entity_addtoselection_core ( );
 						characterkit_removeMultiplayerCharacterCreatorAvatar ( );
@@ -565,10 +564,10 @@ void game_masterroot ( int iUseVRTest )
 
 				//  store ttiswitch for tti as multiplayer avatars can upset the 0->1 switching!
 				t.ttiswitch = 1;
-				for ( t.plrindex = 1 ; t.plrindex<=  STEAM_MAX_NUMBER_OF_PLAYERS; t.plrindex++ )
+				for ( t.plrindex = 1 ; t.plrindex<=  MP_MAX_NUMBER_OF_PLAYERS; t.plrindex++ )
 				{
 					//  Add the max number of players into the level if there are start markers or not
-					if (  g.steamworks.team  ==  1 && g.steamworks.coop  ==  0 ) 
+					if (  g.mp.team  ==  1 && g.mp.coop  ==  0 ) 
 					{
 						t.ttiswitch = 1 - t.ttiswitch;
 					}
@@ -578,7 +577,7 @@ void game_masterroot ( int iUseVRTest )
 					}
 					t.tti = t.ttiswitch;
 					//  check if the player has their own avatar
-					if (  t.steamworks_playerAvatars_s[t.plrindex-1]  !=  "" ) 
+					if (  t.mp_playerAvatars_s[t.plrindex-1]  !=  "" ) 
 					{
 						t.tti = t.plrindex-1+2;
 					}
@@ -589,12 +588,12 @@ void game_masterroot ( int iUseVRTest )
 					t.gridentitystaticmode=0;
 					t.gridentityhasparent=0;
 					t.tfoundone = 0;
-					if (  t.steamworksmultiplayerstart[t.plrindex].active == 1 ) 
+					if (  t.mpmultiplayerstart[t.plrindex].active == 1 ) 
 					{
 						t.tfoundone = 1;
-						t.gridentityposx_f=t.steamworksmultiplayerstart[t.plrindex].x;
-						t.gridentityposy_f=t.steamworksmultiplayerstart[t.plrindex].y;
-						t.gridentityposz_f=t.steamworksmultiplayerstart[t.plrindex].z;
+						t.gridentityposx_f=t.mpmultiplayerstart[t.plrindex].x;
+						t.gridentityposy_f=t.mpmultiplayerstart[t.plrindex].y;
+						t.gridentityposz_f=t.mpmultiplayerstart[t.plrindex].z;
 					}
 					else
 					{
@@ -602,34 +601,34 @@ void game_masterroot ( int iUseVRTest )
 						if (  t.tonetotry > 0 ) 
 						{
 							t.tfoundone = 1;
-							if (  t.steamworksmultiplayerstart[t.tonetotry].active == 1 ) 
+							if (  t.mpmultiplayerstart[t.tonetotry].active == 1 ) 
 							{
-								t.gridentityposx_f=t.steamworksmultiplayerstart[t.tonetotry].x;
-								t.gridentityposy_f=t.steamworksmultiplayerstart[t.tonetotry].y;
-								t.gridentityposz_f=t.steamworksmultiplayerstart[t.tonetotry].z;
+								t.gridentityposx_f=t.mpmultiplayerstart[t.tonetotry].x;
+								t.gridentityposy_f=t.mpmultiplayerstart[t.tonetotry].y;
+								t.gridentityposz_f=t.mpmultiplayerstart[t.tonetotry].z;
 							}
 						}
 					}
 					if (  t.tfoundone  ==  0 ) 
 					{
-						if (  t.steamworksmultiplayerstart[1].active == 1 ) 
+						if (  t.mpmultiplayerstart[1].active == 1 ) 
 						{
-							t.gridentityposx_f=t.steamworksmultiplayerstart[1].x;
-							t.gridentityposy_f=t.steamworksmultiplayerstart[1].y;
-							t.gridentityposz_f=t.steamworksmultiplayerstart[1].z;
+							t.gridentityposx_f=t.mpmultiplayerstart[1].x;
+							t.gridentityposy_f=t.mpmultiplayerstart[1].y;
+							t.gridentityposz_f=t.mpmultiplayerstart[1].z;
 						}
 					}
 					t.gridentityrotatex_f=0;
-					t.gridentityrotatey_f=t.steamworksmultiplayerstart[t.plrindex].angle;
+					t.gridentityrotatey_f=t.mpmultiplayerstart[t.plrindex].angle;
 					t.gridentityrotatez_f=0;
 					t.gridentityscalex_f=100;
 					t.gridentityscaley_f=100;
 					t.gridentityscalez_f=100;
 					entity_fillgrideleproffromprofile ( );
 					entity_addentitytomap_core ( );
-					t.steamworksmultiplayerstart[t.plrindex].ghostentityindex=t.e;
+					t.mpmultiplayerstart[t.plrindex].ghostentityindex=t.e;
 					//  Grab the entity number for steam to use
-					t.steamworks_playerEntityID[t.plrindex-1] = t.e;
+					t.mp_playerEntityID[t.plrindex-1] = t.e;
 					t.entityprofile[t.ubercharacterindex].ismultiplayercharacter=1;
 					t.entityprofile[t.ubercharacterindex].hasweapon_s="";
 					t.entityprofile[t.ubercharacterindex].hasweapon=0;
@@ -919,7 +918,7 @@ void game_masterroot ( int iUseVRTest )
 			t.terrain.waterliney_f = g.gdefaultwaterheight;
 
 			// 240316 - additional cleanup
-			steam_freefadesprite ( );
+			mp_freefadesprite ( );
 
 			// if VR, deactivate at this point
 			//g_VR920RenderStereoNow = false;
@@ -1000,11 +999,11 @@ void game_masterroot ( int iUseVRTest )
 
 		if (  t.game.runasmultiplayer == 1 ) 
 		{
-			steam_free_game ( );
-			steam_cleanupGame ( );
-			if (  g.steamworks.goBackToEditor  ==  1 ) 
+			mp_free_game ( );
+			mp_cleanupGame ( );
+			if (  g.mp.goBackToEditor  ==  1 ) 
 			{
-				g.steamworks.goBackToEditor = 0;
+				g.mp.goBackToEditor = 0;
 				t.game.masterloop = 0;
 			}
 		}
@@ -1078,16 +1077,16 @@ void game_loadinleveldata ( void )
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	waypoint_loaddata ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	waypoint_recreateobjs ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Load terrain
 	t.screenprompt_s="LOADING TERRAIN DATA";
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	terrain_loaddata ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Recreate all entities in level
 	t.screenprompt_s="CREATE ENTITY OBJECTS";
@@ -1097,7 +1096,7 @@ void game_loadinleveldata ( void )
 	for ( t.tupdatee = 1 ; t.tupdatee<=  g.entityelementlist; t.tupdatee++ )
 	{
 		entity_updateentityobj ( );
-		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	}
 	t.terrain.terrainpainteroneshot=0;
 
@@ -1175,7 +1174,7 @@ void game_preparelevel ( void )
 	ravey_particles_init ( );
 
 	//  Allow Steam to refresh (so does not stall)
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  HUD graphics
 	t.screenprompt_s="LOADING HUD GRAPHICS";
@@ -1194,7 +1193,7 @@ void game_preparelevel ( void )
 	t.screenprompt_s="UPDATED TERRAIN";
 	timestampactivity(0,t.screenprompt_s.Get());
 	terrain_update ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Load weapon system
 	t.screenprompt_s="LOADING NEW WEAPONS";
@@ -1205,7 +1204,7 @@ void game_preparelevel ( void )
 	gun_setup ( );
 	gun_loadonlypresent ( );
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Load in HUD Layer assets
 	t.screenprompt_s="LOADING HUD LAYERS";
@@ -1213,7 +1212,7 @@ void game_preparelevel ( void )
 	timestampactivity(0,t.screenprompt_s.Get());
 	hud_scanforhudlayers ( );
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Veg Creation
 	t.screenprompt_s="PREPARING VEGETATION";
@@ -1221,7 +1220,7 @@ void game_preparelevel ( void )
 	timestampactivity(0,t.screenprompt_s.Get());
 	terrain_fastveg_init ( );
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  setup terrain for in-game
 	t.screenprompt_s="LOADING WATER SYSTEM";
@@ -1231,7 +1230,7 @@ void game_preparelevel ( void )
 	terrain_water_init ( );
 	terrain_water_loop ( );
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  setup terrain for in-game
 	t.screenprompt_s="LOADING A.I SYSTEM";
@@ -1255,14 +1254,14 @@ void game_preparelevel ( void )
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	entity_init ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  create A.I entities for all characters
 	t.screenprompt_s="CREATING CHARACTERS";
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	darkai_setup_characters ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  When all static entities added, complete obstacle map
 	if (  g.gskipobstaclecreation == 0 ) 
@@ -1271,23 +1270,23 @@ void game_preparelevel ( void )
 		if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 		timestampactivity(0,t.screenprompt_s.Get());
 	}
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	darkai_completeobstacles ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  setup infinilights
 	t.screenprompt_s="PREPARING DYNAMIC LIGHTS";
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	lighting_init ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  particles/flak/debris required
 	decal_activatedecalsfromentities ( );
 	material_activatedecals ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	decal_loadonlyactivedecals ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  load required scripts
 	lua_init ( );
@@ -1469,7 +1468,7 @@ void game_preparelevel_finally ( void )
 	g.inGameLightingMode = 0;
 	if (  t.game.runasmultiplayer == 1 ) 
 	{
-		steam_load_guns ( );
+		mp_load_guns ( );
 	}
 
 	//Free up spawns sent to lua
@@ -1500,13 +1499,13 @@ void game_preparelevel_finally ( void )
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	postprocess_init ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	timestampactivity(0,"postprocessing initialised");
 
 	//  Ensure correct shaders in play
 	visuals_shaderlevels_update ( );
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Initialise Construction Kit
 	conkit_init ( );
@@ -1517,7 +1516,7 @@ void game_preparelevel_finally ( void )
 	timestampactivity(0,t.screenprompt_s.Get());
 	physics_init ( );
 
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  initialise physics for conkit objects
 	//conkit_setupphysics ( );
@@ -1538,14 +1537,14 @@ void game_preparelevel_finally ( void )
 		//	if (  t.obj>0 ) 
 		//	{
 		//		if ( ObjectExist(t.obj) == 1  )  CPU3DAddOccluder (  t.obj );
-		//		if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+		//		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		//	}
 		//}
 		//  Set occludees for all entities in level
 		t.toccobj=g.occlusionboxobjectoffset;
 		for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 		{
-			if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			t.entid=t.entityelement[t.e].bankindex;
 			if (  t.entityprofile[t.entid].ismarker == 0 ) 
 			{
@@ -1665,15 +1664,15 @@ void game_preparelevel_finally ( void )
 	//  Final states of entities and call ALL entity script INIT functions
 	timestampactivity(0,"Entity Initiations");
 	entity_initafterphysics ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	lua_launchallinitscripts ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Once player start known, fill veg area instantly
 	timestampactivity(0,"Fill Veg Areas");
 	t.completelyfillvegarea=1;
 	terrain_fastveg_loop ( );
-	if ( t.game.runasmultiplayer == 1 ) steam_refresh ( );
+	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Force a shader update to ensure correct shadows are used at start
 	t.visuals.refreshcountdown=5;
@@ -1681,7 +1680,7 @@ void game_preparelevel_finally ( void )
 	//  Let steam know we have finished loading
 	if (  t.game.runasmultiplayer  ==  1 ) 
 	{
-		g.steamworks.finishedLoadingMap = 1;
+		g.mp.finishedLoadingMap = 1;
 	}
 
 	// The start marker may have given the play an initial gun, so lets call physics_player_refreshcount just incase it has
@@ -1885,7 +1884,7 @@ void game_freegame ( void )
 
 	if (  t.game.runasmultiplayer == 1 ) 
 	{
-		steam_free_game ( );
+		mp_free_game ( );
 	}
 
 	panel_free ( );
@@ -2069,7 +2068,7 @@ void game_main_loop ( void )
 
 	//  Character sound update
 	//  110315 - 019 - If spawning in, no sound for the player
-	if (  t.game.runasmultiplayer  ==  0 || g.steamworks.noplayermovement  ==  0 ) 
+	if (  t.game.runasmultiplayer  ==  0 || g.mp.noplayermovement  ==  0 ) 
 	{
 		character_sound_update ( );
 	}
@@ -2408,7 +2407,7 @@ void game_main_loop ( void )
 	//  Steam call moved here as camera changes need to be BEFORE the shadow update
 	if (  t.game.runasmultiplayer == 1 ) 
 	{
-		steam_gameLoop ( );
+		mp_gameLoop ( );
 	}
 
 	//  if we have character creator stuff in, we setup the characters

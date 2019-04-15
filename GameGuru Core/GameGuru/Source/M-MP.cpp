@@ -1,5 +1,5 @@
 //----------------------------------------------------
-//--- GAMEGURU - M-Steam
+//--- GAMEGURU - M-Multiplayer
 //----------------------------------------------------
 
 #include "gameguru.h"
@@ -8,15 +8,15 @@
 extern bool OnlineMultiplayerModeForSharingFiles;
 
 //  Startup Steam
-void steam_init ( void )
+void mp_init ( void )
 {
-	timestampactivity(0,"_steam_init:");
-	t.steamworks_build = 1121;
-	g.steamworks.isRunning = SteamInit();
-	g.steamworks.mode = STEAM_MODE_NONE;
-	g.steamworks.dontDrawTitles = 0;
-	g.steamworks.message = "";
-	g.steamworks.messageTime = 0;
+	timestampactivity(0,"_mp_init:");
+	t.mp_build = 1121;
+	g.mp.isRunning = SteamInit();
+	g.mp.mode = MP_MODE_NONE;
+	g.mp.dontDrawTitles = 0;
+	g.mp.message = "";
+	g.mp.messageTime = 0;
 
 	// If a custom character head is used but the image no longer exists, we need to get rid of the avatar file
 	characterkit_checkAvatarExists();
@@ -29,19 +29,19 @@ bool OccluderCheckingForMultiplayer ( void )
 	return true;
 }
 
-void steam_loop ( void )
+void mp_loop ( void )
 {
 
 	SteamLoop (  );
 
 	//  store old positions of entities if in coop mode
 	/*      
-	if (  g.steamworks.coop  ==  1 ) 
+	if (  g.mp.coop  ==  1 ) 
 	{
-		if (  g.steamworks.madeArrays   ==  0 ) 
+		if (  g.mp.madeArrays   ==  0 ) 
 		{
-			g.steamworks.madeArrays = 1;
-			steam_storeOldEntityPositions ( );
+			g.mp.madeArrays = 1;
+			mp_storeOldEntityPositions ( );
 		}
 	}
 	*/    
@@ -49,16 +49,16 @@ void steam_loop ( void )
 	//  debug stuff for loading in custom cc avatars
 	/*      
 	SetCursor (  0,0 );
-	Print (  "My avatar string = " + g.steamworks.myAvatar_s );
+	Print (  "My avatar string = " + g.mp.myAvatar_s );
 	for ( t.c = 0 ; t.c<=  7; t.c++ )
 	{
-		Print (  t.steamworks_playerAvatarOwners_s[t.c] );
-		Print (  t.steamworks_playerAvatars_s[t.c] );
+		Print (  t.mp_playerAvatarOwners_s[t.c] );
+		Print (  t.mp_playerAvatars_s[t.c] );
 	}
-	Print (  "have sent mine " + Str(g.steamworks.haveSentMyAvatar) );
+	Print (  "have sent mine " + Str(g.mp.haveSentMyAvatar) );
 	*/    
 
-	if (  g.steamworks.mode  ==  STEAM_MODE_NONE || t.game.runasmultiplayer  ==  0  )
+	if (  g.mp.mode  ==  MP_MODE_NONE || t.game.runasmultiplayer  ==  0  )
 	{
 		// usual workshop mode
 		OnlineMultiplayerModeForSharingFiles = false;
@@ -68,38 +68,38 @@ void steam_loop ( void )
 	// game managed mode for sharing files
 	OnlineMultiplayerModeForSharingFiles = true;
 
-	if (  g.steamworks.mode  !=  STEAM_IN_GAME_CLIENT && g.steamworks.mode  !=  STEAM_IN_GAME_SERVER ) 
+	if (  g.mp.mode  !=  MP_IN_GAME_CLIENT && g.mp.mode  !=  MP_IN_GAME_SERVER ) 
 	{
 
-		g.steamworks.finishedLoadingMap = 0;
+		g.mp.finishedLoadingMap = 0;
 
 		//  200315 - 021 - flashlight of when starting a game
-		steam_flashLightOff ( );
-		g.steamworks.originalEntitycount = 0;
+		mp_flashLightOff ( );
+		g.mp.originalEntitycount = 0;
 		if (  SpriteExist(g.steamchatpanelsprite)  )  DeleteSprite (  g.steamchatpanelsprite );
-		g.steamworks.dontDrawTitles = 0;
+		g.mp.dontDrawTitles = 0;
 		//  If not connected to steam, retry
-		if (  g.steamworks.isRunning  ==  0 || g.steamworks.needToResetOnStartup  ==  1 ) 
+		if (  g.mp.isRunning  ==  0 || g.mp.needToResetOnStartup  ==  1 ) 
 		{
-			g.steamworks.goBackToEditor = 0;
-			steam_resetSteam ( );
-			if (  g.steamworks.isRunning  ==  0 ) 
+			g.mp.goBackToEditor = 0;
+			mp_resetSteam ( );
+			if (  g.mp.isRunning  ==  0 ) 
 			{
 				t.tsteamlostconnectioncustommessage_s = "Cannot connect to Steam (Error MP001)";
-				g.steamworks.backtoeditorforyou = 2;
-				steam_lostConnection ( );
+				g.mp.backtoeditorforyou = 2;
+				mp_lostConnection ( );
 				return;
 			}
 		}
 		else
 		{
-			g.steamworks.backtoeditorforyou = 0;
+			g.mp.backtoeditorforyou = 0;
 		}
 
 		//  Debug Info
 		t.steamDoDropShadow = 1;
-		t.ttstring_s = cstr("Multiplayer Build ") + Str(t.steamworks_build);
-		steam_text(-1,98,2,t.ttstring_s.Get());
+		t.ttstring_s = cstr("Multiplayer Build ") + Str(t.mp_build);
+		mp_text(-1,98,2,t.ttstring_s.Get());
 
 
 	}
@@ -107,12 +107,12 @@ void steam_loop ( void )
 	{
 		//  030315 - 013 - Lobby chat
 		t.tchatLobbyMode = 0;
-		steam_chat ( );
+		mp_chat ( );
 	}
-	if (  g.steamworks.mode  ==  STEAM_MODE_MAIN_MENU ) 
+	if (  g.mp.mode  ==  MP_MODE_MAIN_MENU ) 
 	{
 		//  show avatar name if there is one
-		if (  g.steamworks.myAvatarName_s != "" ) 
+		if (  g.mp.myAvatarName_s != "" ) 
 		{
 		if (  ImageExist(g.charactercreatorEditorImageoffset)  ==  0 ) 
 		{
@@ -121,7 +121,7 @@ void steam_loop ( void )
 		}
 			t.tYPos_f = 95;
 			if (  GetDisplayHeight() > 900  )  t.tYPos_f  =  92;
-			steam_text(-1,t.tYPos_f,2,g.steamworks.myAvatarName_s.Get());
+			mp_text(-1,t.tYPos_f,2,g.mp.myAvatarName_s.Get());
 			if (  g.charactercreatorEditorImageoffset > 0 ) 
 			{
 				if (  ImageExist(g.charactercreatorEditorImageoffset)  ==  1 ) 
@@ -132,10 +132,10 @@ void steam_loop ( void )
 				}
 			}
 		}
-		g.steamworks.dontDrawTitles = 0;
-		if (  g.steamworks.originalpath  ==  "" ) 
+		g.mp.dontDrawTitles = 0;
+		if (  g.mp.originalpath  ==  "" ) 
 		{
-			g.steamworks.originalpath = GetDir();
+			g.mp.originalpath = GetDir();
 			SteamSetRoot(cstr(g.fpscrootdir_s+"\\Files\\").Get());
 		}
 		//  110315 - 019 - remove fadeoutsprite if it exists
@@ -152,13 +152,13 @@ void steam_loop ( void )
 		}
 		if (  LeftKey() && oldleftkey  ==  0 ) 
 		{
-//steam_save_workshop_files_needed ( );
+//mp_save_workshop_files_needed ( );
 			SteamDownloadWorkshopItem (  "378579107" );
 			Print (  "HELLO" );
 		}
 		if (  SteamIsWorkshopItemDownloaded()  ==  1 ) 
 		{
-			steam_text(-1,5,3,"WORKSHOP ITEM DOWNLOADED");
+			mp_text(-1,5,3,"WORKSHOP ITEM DOWNLOADED");
 //    `if ImageExist(999) = 0
 
 //     `load image "F:\\TGCSHARED\\fpsc-reloaded\\FPS Creator Files\\Files\\entitybank\\ravey\\fizco\\fizzie.jpg",999
@@ -170,7 +170,7 @@ void steam_loop ( void )
 		}
 		else
 		{
-			steam_text(-1,5,3,"WORKSHOP ITEM NOT DOWNLOADED");
+			mp_text(-1,5,3,"WORKSHOP ITEM NOT DOWNLOADED");
 		}
 		oldleftkey = LeftKey();
 		oldspacekey = SpaceKey();
@@ -185,12 +185,12 @@ void steam_loop ( void )
 //   `print "======================================"
 
 
-		g.steamworks.lobbyscrollbarOn = 0;
-		g.steamworks.selectedLobby = 0;
+		g.mp.lobbyscrollbarOn = 0;
+		g.mp.selectedLobby = 0;
 		t.tjoinedLobby = 0;
-		g.steamworks.lobbyoffset = 0;
-		g.steamworks.lobbycount = 0;
-		steam_resetGameStats ( );
+		g.mp.lobbyoffset = 0;
+		g.mp.lobbycount = 0;
+		mp_resetGameStats ( );
 
 		t.game.jumplevel_s="__multiplayerlevel__";
 	}
@@ -202,7 +202,7 @@ void steam_loop ( void )
 		}
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_WAITING_FOR_LOBBY_CREATION ) 
+	if (  g.mp.mode  ==  MP_WAITING_FOR_LOBBY_CREATION ) 
 	{
 //   `print "======================================"
 
@@ -212,129 +212,129 @@ void steam_loop ( void )
 
 		if (  SteamIsLobbyCreated()  ==  1 ) 
 		{
-			g.steamworks.isLobbyCreated = 1;
+			g.mp.isLobbyCreated = 1;
 			SteamGetLobbyList (  );
-			g.steamworks.mode = STEAM_MODE_LOBBY;
+			g.mp.mode = MP_MODE_LOBBY;
 		}
 		else
 		{
-			g.steamworks.haveToldAboutSolo = 0;
+			g.mp.haveToldAboutSolo = 0;
 			if (  Timer() - t.tempsteamlobbycreationtimeout > 5000 ) 
 			{
 				t.tsteamlostconnectioncustommessage_s = "Could not create lobby (Error MP002)";
-				steam_lostConnection ( );
+				mp_lostConnection ( );
 				return;
 			}
-			if (  g.steamworks.isRunning  ==  0 ) 
+			if (  g.mp.isRunning  ==  0 ) 
 			{
 				t.tsteamlostconnectioncustommessage_s = "Cannot connect to Steam (Error MP003)";
-				g.steamworks.backtoeditorforyou = 2;
-				steam_lostConnection ( );
+				g.mp.backtoeditorforyou = 2;
+				mp_lostConnection ( );
 				return;
 			}
 		}
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM ) 
+	if (  g.mp.mode  ==  MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM ) 
 	{
-		steam_text(-1,45,3,"You do not currently have the workshop item required to");
-		steam_text(-1,50,3,"join this game. Do you wish to subscribe to the workshop");
-		steam_text(-1,55,3,"item so you can join a game with this level at a later time?");
-		steam_text(-1,65,3,"Note: Once you have subscribed the Lobby will remain yellow until");
-		steam_text(-1,70,3,"you have downloaded the whole workshop item.");
+		mp_text(-1,45,3,"You do not currently have the workshop item required to");
+		mp_text(-1,50,3,"join this game. Do you wish to subscribe to the workshop");
+		mp_text(-1,55,3,"item so you can join a game with this level at a later time?");
+		mp_text(-1,65,3,"Note: Once you have subscribed the Lobby will remain yellow until");
+		mp_text(-1,70,3,"you have downloaded the whole workshop item.");
 		t.tempsteamhaveaskedtosubscribeflag = 0;
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_TELLING_THEY_NEED_TO_RESTART ) 
+	if (  g.mp.mode  ==  MP_TELLING_THEY_NEED_TO_RESTART ) 
 	{
-		steam_text(-1,45,3,"Your version of this workshop item is outdated.");
-		steam_text(-1,50,3,"To enable Steam to download the update you will need to:");
-		steam_text(-1,55,3,"Exit multiplayer, then exit Game Guru completely.");
-		steam_text(-1,60,3,"Then restart Game Guru and Steam will update all");
-		steam_text(-1,65,3,"your subscriptions.");
+		mp_text(-1,45,3,"Your version of this workshop item is outdated.");
+		mp_text(-1,50,3,"To enable Steam to download the update you will need to:");
+		mp_text(-1,55,3,"Exit multiplayer, then exit Game Guru completely.");
+		mp_text(-1,60,3,"Then restart Game Guru and Steam will update all");
+		mp_text(-1,65,3,"your subscriptions.");
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_WAITING_FOR_RESULTS ) 
+	if (  g.mp.mode  ==  MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_WAITING_FOR_RESULTS ) 
 	{
 		if (  t.tempsteamhaveaskedtosubscribeflag  ==  0 ) 
 		{
 			t.tempsteamhaveaskedtosubscribeflag = 1;
-			SteamDownloadWorkshopItem (  g.steamworks.workshopidtojoin.Get() );
+			SteamDownloadWorkshopItem (  g.mp.workshopidtojoin.Get() );
 		}
 		if (  SteamHasSubscriptionWorkshopItemFinished()  ==  0 ) 
 		{
-			if (  Timer() - g.steamworks.oldtime > 150 ) 
+			if (  Timer() - g.mp.oldtime > 150 ) 
 			{
-				g.steamworks.oldtime = Timer();
+				g.mp.oldtime = Timer();
 				t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
 				if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
 			}
-			steam_text(-1,50,3,cstr( cstr("Subscribing you") + t.tSteamBuildingWorkshopItem_s).Get() );
+			mp_text(-1,50,3,cstr( cstr("Subscribing you") + t.tSteamBuildingWorkshopItem_s).Get() );
 		}
 		if (  SteamHasSubscriptionWorkshopItemFinished()  ==  1 ) 
 		{
-			steam_text(-1,50,3,"You are now subscribed to:");
-			steam_text(-1,55,3,g.steamworks.levelnametojoin.Get());
-			steam_text(-1,65,3,"Press back and wait for this level to install");
-			steam_text(-1,70,3,"(the lobby will turn from yellow to white)");
-			steam_text(-1,75,3,"then re-join the lobby.");
+			mp_text(-1,50,3,"You are now subscribed to:");
+			mp_text(-1,55,3,g.mp.levelnametojoin.Get());
+			mp_text(-1,65,3,"Press back and wait for this level to install");
+			mp_text(-1,70,3,"(the lobby will turn from yellow to white)");
+			mp_text(-1,75,3,"then re-join the lobby.");
 		}
 		if (  SteamHasSubscriptionWorkshopItemFinished()  ==  -1 ) 
 		{
-			steam_text(-1,50,3,"Subscription failed");
-			steam_text(-1,55,3,"Please t.try again in t.a few moments");
+			mp_text(-1,50,3,"Subscription failed");
+			mp_text(-1,55,3,"Please t.try again in t.a few moments");
 		}
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_SERVER_CHOOSING_FPM_TO_USE ) 
+	if (  g.mp.mode  ==  MP_SERVER_CHOOSING_FPM_TO_USE ) 
 	{
-		steam_text(-1,5,3,"LIST OF LEVELS");
-		steam_lobbyListBox ( );
+		mp_text(-1,5,3,"LIST OF LEVELS");
+		mp_lobbyListBox ( );
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP ) 
+	if (  g.mp.mode  ==  MP_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP ) 
 	{
-		steam_text(-1,30,3,"This level contains custom content.");
-		steam_text(-1,35,3,"To share this level with others you will need to create a workshop item.");
-		steam_text(-1,40,3,"(This is done automatically for you)");
-		steam_text(-1,50,3,"Once your level is a workshop item other players can play your level.");
-		steam_text(-1,60,3,"Do you wish to create (or update if you have share this level before)");
-		steam_text(-1,65,3,"A workshop item?");
-		steam_text(-1,75,3,"By submitting this item, you agree to the workshop terms of service");
+		mp_text(-1,30,3,"This level contains custom content.");
+		mp_text(-1,35,3,"To share this level with others you will need to create a workshop item.");
+		mp_text(-1,40,3,"(This is done automatically for you)");
+		mp_text(-1,50,3,"Once your level is a workshop item other players can play your level.");
+		mp_text(-1,60,3,"Do you wish to create (or update if you have share this level before)");
+		mp_text(-1,65,3,"A workshop item?");
+		mp_text(-1,75,3,"By submitting this item, you agree to the workshop terms of service");
 	
-//   `steamworks.oldtime = 0
+//   `mp.oldtime = 0
 
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_CREATING_WORKSHOP_ITEM ) 
+	if (  g.mp.mode  ==  MP_CREATING_WORKSHOP_ITEM ) 
 	{
-		if (  Timer() - g.steamworks.oldtime > 150 ) 
+		if (  Timer() - g.mp.oldtime > 150 ) 
 		{
-			g.steamworks.oldtime = Timer();
+			g.mp.oldtime = Timer();
 			t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
 			if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
 		}
 		t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Building Workshop Item" + t.tSteamBuildingWorkshopItem_s;
-		steam_text(-1,50,3,t.tstring_s.Get());
+		mp_text(-1,50,3,t.tstring_s.Get());
 		t.tstring_s = "";
 	
-//  `steam_text(0,10,3, "steamworks.buildingWorkshopItemMode = " + Str(steamworks.buildingWorkshopItemMode) )
+//  `mp_text(0,10,3, "mp.buildingWorkshopItemMode = " + Str(mp.buildingWorkshopItemMode) )
 
-//  `steam_text(0,20,3, "steamworks.workshopid = " + steamworks.workshopid )
+//  `mp_text(0,20,3, "mp.workshopid = " + mp.workshopid )
 
 	
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_MODE_LOBBY ) 
+	if (  g.mp.mode  ==  MP_MODE_LOBBY ) 
 	{
-		if (  g.steamworks.isGameHost  ==  0 ) 
+		if (  g.mp.isGameHost  ==  0 ) 
 		{
 
-			if (  g.steamworks.isRunning  ==  0 ) 
+			if (  g.mp.isRunning  ==  0 ) 
 			{
 				t.tsteamlostconnectioncustommessage_s = "Cannot connect to Steam (Error MP004)";
-				g.steamworks.backtoeditorforyou = 2;
-				steam_lostConnection ( );
+				g.mp.backtoeditorforyou = 2;
+				mp_lostConnection ( );
 				return;
 			}
 //    `print "======================================"
@@ -343,18 +343,18 @@ void steam_loop ( void )
 
 //    `print "======================================"
 
-			steam_text(-1,5,3,"LIST OF LOBBIES");
+			mp_text(-1,5,3,"LIST OF LOBBIES");
 			if (  SteamIsLobbyListCreated()  ==  0 ) 
 			{
 
-				if (  g.steamworks.lobbycount  ==  0 ) 
+				if (  g.mp.lobbycount  ==  0 ) 
 				{
 					t.tstring_s = "Building Lobby list";
-					steam_text(-1,10,1,t.tstring_s.Get());
+					mp_text(-1,10,1,t.tstring_s.Get());
 				}
 				else
 				{
-//      `if steamworks.lobbycount = 1
+//      `if mp.lobbycount = 1
 
 //       `tstring$ = "1 lobby found"
 
@@ -364,46 +364,46 @@ void steam_loop ( void )
 
 //      `endif
 
-//      `steam_text(-1,15,1,tstring$)
+//      `mp_text(-1,15,1,tstring$)
 
 
 				}
 
-				if (  Timer() - g.steamworks.oldtime > 3000 ) 
+				if (  Timer() - g.mp.oldtime > 3000 ) 
 				{
 					SteamGetLobbyList (  );
-					g.steamworks.oldtime = Timer();
+					g.mp.oldtime = Timer();
 				}
 			}
 			else
 			{
-				if (  Timer() - g.steamworks.oldtime > 3000 ) 
+				if (  Timer() - g.mp.oldtime > 3000 ) 
 				{
 					SteamGetLobbyList (  );
-					g.steamworks.oldtime = Timer();
+					g.mp.oldtime = Timer();
 				}
 			}
 
-			steam_lobbyListBox ( );
+			mp_lobbyListBox ( );
 
 		}
 		else
 		{
 			//  030315 - 013 - Lobby chat
 			t.tchatLobbyMode = 1;
-			steam_chat ( );
-			steam_text(-1,85,3,"Press Enter to chat");
+			mp_chat ( );
+			mp_text(-1,85,3,"Press Enter to chat");
 
 			t.tUserCount = SteamGetLobbyUserCount();
 			if (  Timer() - t.tempsteamlobbycreationtimeout > 5000 && t.tUserCount  ==  0 ) 
 			{
 				t.tsteamlostconnectioncustommessage_s = "Could not create lobby (Error MP005)";
-				steam_lostConnection ( );
+				mp_lostConnection ( );
 				return;
 			}
 //    `print "======================================"
 
-//    `print steamworks.playerName + "'s Lobby"
+//    `print mp.playerName + "'s Lobby"
 
 //    `print "======================================"
 
@@ -414,78 +414,78 @@ void steam_loop ( void )
 			if (  t.tUserCount  ==  1 ) 
 			{
 				t.tstring_s = "There is 1 user (you!) in this lobby";
-				g.steamworks.usersInServersLobbyAtServerCreation = 1;
+				g.mp.usersInServersLobbyAtServerCreation = 1;
 			}
 			else
 			{
 				t.tstring_s = cstr("There are ") + Str(t.tUserCount) + " users in this lobby";
 			}
-			if (  t.tUserCount  !=  g.steamworks.usersInServersLobbyAtServerCreation ) 
+			if (  t.tUserCount  !=  g.mp.usersInServersLobbyAtServerCreation ) 
 			{
-				g.steamworks.haveSentMyAvatar = 0;
+				g.mp.haveSentMyAvatar = 0;
 			}
-			if (  t.tUserCount > g.steamworks.usersInServersLobbyAtServerCreation ) 
+			if (  t.tUserCount > g.mp.usersInServersLobbyAtServerCreation ) 
 			{
-				g.steamworks.usersInServersLobbyAtServerCreation = t.tUserCount;
+				g.mp.usersInServersLobbyAtServerCreation = t.tUserCount;
 			}
-			steam_text(-1,15,1,t.tstring_s.Get());
+			mp_text(-1,15,1,t.tstring_s.Get());
 			t.tsteamy_f = 50.0 - (t.tUserCount * 2.5);
 			t.tsteamy = t.tsteamy_f;
 			for ( t.tn = 1 ; t.tn<=  t.tUserCount; t.tn++ )
 			{
 				t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + SteamGetLobbyUserName(t.tn-1);
-				if (  SteamGetPlayerName()  !=  SteamGetLobbyUserName(t.tn-1)  )  t.steamworks_joined[t.tn-1]  =  SteamGetLobbyUserName(t.tn-1);
-				steam_text(-1,t.tsteamy,1,t.tstring_s.Get());
+				if (  SteamGetPlayerName()  !=  SteamGetLobbyUserName(t.tn-1)  )  t.mp_joined[t.tn-1]  =  SteamGetLobbyUserName(t.tn-1);
+				mp_text(-1,t.tsteamy,1,t.tstring_s.Get());
 				t.tsteamy += 5;
 			}
-			for ( t.tn = t.tUserCount ; t.tn<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
+			for ( t.tn = t.tUserCount ; t.tn<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
 			{
-				t.steamworks_joined[t.tn] = "";
+				t.mp_joined[t.tn] = "";
 			}
-				if (  g.steamworks.haveToldAboutSolo  ==  1 && t.tUserCount  <=  1 ) 
+				if (  g.mp.haveToldAboutSolo  ==  1 && t.tUserCount  <=  1 ) 
 				{
-					steam_textColor(-1,70,1,"Noone has joined your lobby yet. If you start now you will be playing alone.",255,100,100);
-					steam_textColor(-1,75,1,"Press Start Server again to start anyway.",255,100,100);
+					mp_textColor(-1,70,1,"Noone has joined your lobby yet. If you start now you will be playing alone.",255,100,100);
+					mp_textColor(-1,75,1,"Press Start Server again to start anyway.",255,100,100);
 				}
 
-		if (  g.steamworks.launchServer  ==  1 ) 
+		if (  g.mp.launchServer  ==  1 ) 
 		{
-					if (  g.steamworks.haveToldAboutSolo  ==  0 && t.tUserCount  <=  1 ) 
+					if (  g.mp.haveToldAboutSolo  ==  0 && t.tUserCount  <=  1 ) 
 					{
-						g.steamworks.haveToldAboutSolo = 1;
-						g.steamworks.launchServer = 0;
+						g.mp.haveToldAboutSolo = 1;
+						g.mp.launchServer = 0;
 						return;
 					}
 					SteamStartServer (  );
-				g.steamworks.mode = STEAM_WAITING_FOR_SERVER_CREATION;
-				g.steamworks.oldtime = Timer();
+				g.mp.mode = MP_WAITING_FOR_SERVER_CREATION;
+				g.mp.oldtime = Timer();
 			}
 		}
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_JOINING_LOBBY ) 
+	if (  g.mp.mode  ==  MP_JOINING_LOBBY ) 
 	{
 		if (  SteamIsGameRunning()  ==  1 ) 
 		{
-			g.steamworks.mode = STEAM_IN_GAME_CLIENT;
-			g.steamworks.needToResetOnStartup = 1;
+			g.mp.mode = MP_IN_GAME_CLIENT;
+			g.mp.needToResetOnStartup = 1;
 			t.toldsteamfolder_s=GetDir();
 			SetDir (  cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 			t.tsteamtimeoutongamerunning = Timer();
 			t.tPlayerIndex = SteamGetMyPlayerIndex();
-			if (  t.tPlayerIndex  >=  0 && t.tPlayerIndex < STEAM_MAX_NUMBER_OF_PLAYERS ) 
+			if (  t.tPlayerIndex  >=  0 && t.tPlayerIndex < MP_MAX_NUMBER_OF_PLAYERS ) 
 			{
-				t.steamworks_health[t.tPlayerIndex] = 0;
+				t.mp_health[t.tPlayerIndex] = 0;
 				t.ta = MouseMoveX() + MouseMoveY();
 			}
 		}
 		if (  t.tjoinedLobby  ==  0 ) 
 		{
-			if (  Timer() - g.steamworks.AttemptedToJoinLobbyTime > STEAM_JOIN_LOBBY_TIMEOUT ) 
+			if (  Timer() - g.mp.AttemptedToJoinLobbyTime > MP_JOIN_LOBBY_TIMEOUT ) 
 			{
-				g.steamworks.mode = STEAM_MODE_MAIN_MENU;
+				g.mp.mode = MP_MODE_MAIN_MENU;
 				t.tmsg_s = "Could not join Lobby";
-				steam_setMessage ( );
+				mp_setMessage ( );
 			}
 		}
 		if (  SteamHasJoinedLobby()  ==  1 ) 
@@ -512,8 +512,8 @@ void steam_loop ( void )
 			{
 					//  030315 - 013 - Lobby chat
 					t.tchatLobbyMode = 1;
-					steam_chat ( );
-					steam_text(-1,85,3,"Press Enter to chat");
+					mp_chat ( );
+					mp_text(-1,85,3,"Press Enter to chat");
 					t.tsteamlobbertimer = Timer();
 //     `print "======================================"
 
@@ -523,7 +523,7 @@ void steam_loop ( void )
 
 				if (  t.tUserCount  !=  SteamGetLobbyUserCount() ) 
 				{
-					g.steamworks.haveSentMyAvatar = 0;
+					g.mp.haveSentMyAvatar = 0;
 				}
 				t.tUserCount = SteamGetLobbyUserCount();
 				if (  t.tUserCount  ==  1 && Timer() - t.tsteamwaitedforlobbytimer > 15000 ) 
@@ -532,32 +532,32 @@ void steam_loop ( void )
 					{
 						SteamLeaveLobby (  );
 						t.tsteamlostconnectioncustommessage_s = "Lost connection to lobby (Error MP006)";
-						steam_lostConnection ( );
+						mp_lostConnection ( );
 						return;
 					}
 				}
 				else
 				{
 					t.tsteamwaitedforlobbytimer = Timer();
-					steam_text(-1,15,1, cstr(cstr("There are ") + Str(t.tUserCount) + " users in this lobby").Get() );
-					steam_text(-1,10,1, cstr(cstr("Game being hosted is '") + g.steamworks.levelnametojoin + "'").Get() );
+					mp_text(-1,15,1, cstr(cstr("There are ") + Str(t.tUserCount) + " users in this lobby").Get() );
+					mp_text(-1,10,1, cstr(cstr("Game being hosted is '") + g.mp.levelnametojoin + "'").Get() );
 
 				}
 				t.tsteamistheownerpresent = 0;
-				t.tsteamnamewearelookingfor_s = Left(g.steamworks.lobbyjoinedname.Get(),Len(g.steamworks.lobbyjoinedname.Get())-8);
+				t.tsteamnamewearelookingfor_s = Left(g.mp.lobbyjoinedname.Get(),Len(g.mp.lobbyjoinedname.Get())-8);
 
 				t.tsteamy_f = 50.0 - (t.tUserCount * 2.5);
 				t.tsteamy = t.tsteamy_f;
 
 				if (  t.tsteamnamewearelookingfor_s  ==  SteamGetLobbyUserName(0) ) 
 				{
-					for ( t.tn = t.tUserCount ; t.tn<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
+					for ( t.tn = t.tUserCount ; t.tn<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
 					{
-						t.steamworks_joined[t.tn] = "";
+						t.mp_joined[t.tn] = "";
 					}
 					for ( t.tn = 1 ; t.tn<=  t.tUserCount; t.tn++ )
 					{
-						if (  SteamGetPlayerName()  !=  SteamGetLobbyUserName(t.tn-1)  )  t.steamworks_joined[t.tn-1]  =  SteamGetLobbyUserName(t.tn-1);
+						if (  SteamGetPlayerName()  !=  SteamGetLobbyUserName(t.tn-1)  )  t.mp_joined[t.tn-1]  =  SteamGetLobbyUserName(t.tn-1);
 					}
 				}
 				for ( t.tn = 1 ; t.tn<=  t.tUserCount; t.tn++ )
@@ -570,7 +570,7 @@ void steam_loop ( void )
 					{
 						t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + SteamGetLobbyUserName(t.tn-1);
 					}
-					steam_text(-1,t.tsteamy,1,t.tstring_s.Get());
+					mp_text(-1,t.tsteamy,1,t.tstring_s.Get());
 					t.tsteamy += 5;
 					if (  t.tsteamnamewearelookingfor_s  ==  SteamGetLobbyUserName(t.tn-1) ) 
 					{
@@ -582,7 +582,7 @@ void steam_loop ( void )
 				{
 					SteamLeaveLobby (  );
 					t.tsteamlostconnectioncustommessage_s = "The host left the lobby (Code MP007)";
-					steam_lostConnection ( );
+					mp_lostConnection ( );
 					return;
 				}
 
@@ -590,13 +590,13 @@ void steam_loop ( void )
 			}
 			else
 			{
-				steam_textDots(-1,20,3,"Game Starting...Connecting");
+				mp_textDots(-1,20,3,"Game Starting...Connecting");
 				if (  Timer() - t.tsteamlobbertimer > 20000 ) 
 				{
 					if (  SteamGetClientServerConnectionStatus()  ==  0 ) 
 					{
 						t.tsteamlostconnectioncustommessage_s = "Lost connection to host (Error MP008)";
-						steam_lostConnection ( );
+						mp_lostConnection ( );
 						return;
 					}
 				}
@@ -612,16 +612,16 @@ void steam_loop ( void )
 
 		}
 	}
-	if (  g.steamworks.mode  ==  STEAM_WAITING_FOR_SERVER_CREATION ) 
+	if (  g.mp.mode  ==  MP_WAITING_FOR_SERVER_CREATION ) 
 	{
-		g.steamworks.dontDrawTitles = 1;
+		g.mp.dontDrawTitles = 1;
 		if (  SteamIsServerRunning()  ==  1 ) 
 		{
-			steam_textDots(-1,10,3,"Server Started");
+			mp_textDots(-1,10,3,"Server Started");
 			if (  SteamIsGameRunning()  ==  1 ) 
 			{
-				g.steamworks.mode = STEAM_IN_GAME_SERVER;
-				g.steamworks.needToResetOnStartup = 1;
+				g.mp.mode = MP_IN_GAME_SERVER;
+				g.mp.needToResetOnStartup = 1;
 				t.toldsteamfolder_s=GetDir();
 				SetDir (  cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 				t.tPlayerIndex = SteamGetMyPlayerIndex();
@@ -629,45 +629,45 @@ void steam_loop ( void )
 			}
 			else
 			{
-				if (  Timer() - g.steamworks.oldtime > 150 ) 
+				if (  Timer() - g.mp.oldtime > 150 ) 
 				{
-					g.steamworks.oldtime = Timer();
+					g.mp.oldtime = Timer();
 					t.tStartingServerCount_s = t.tStartingServerCount_s + ".";
 					if (  Len(t.tStartingServerCount_s.Get()) > 5  )  t.tStartingServerCount_s  =  ".";
 				}
 				t.tstring_s = t.tStartingServerCount_s + "Waiting for game to start" + t.tStartingServerCount_s;
-				steam_text(-1,25,3,t.tstring_s.Get());
+				mp_text(-1,25,3,t.tstring_s.Get());
 				t.tstring_s = "";
 			}
 		}
 		else
 		{
-			if (  Timer() - g.steamworks.oldtime > 150 ) 
+			if (  Timer() - g.mp.oldtime > 150 ) 
 			{
-				g.steamworks.oldtime = Timer();
+				g.mp.oldtime = Timer();
 				t.tStartingServerCount_s = t.tStartingServerCount_s + ".";
 				if (  Len(t.tStartingServerCount_s.Get()) > 5  )  t.tStartingServerCount_s  =  ".";
 			}
 			t.tstring_s = t.tStartingServerCount_s + "Starting server" + t.tStartingServerCount_s;
-			steam_text(-1,15,3,t.tstring_s.Get());
+			mp_text(-1,15,3,t.tstring_s.Get());
 			t.tstring_s = "";
 		}
 	}
 
-	if (  g.steamworks.mode  ==  STEAM_IN_GAME_SERVER ) 
+	if (  g.mp.mode  ==  MP_IN_GAME_SERVER ) 
 	{
-			g.steamworks.dontDrawTitles = 1;
-			if (  g.steamworks.iHaveSaidIAmReady  ==  0 ) 
+			g.mp.dontDrawTitles = 1;
+			if (  g.mp.iHaveSaidIAmReady  ==  0 ) 
 			{
 				SteamSendIAmLoadedAndReady (  );
-				g.steamworks.iHaveSaidIAmReady = 1;
+				g.mp.iHaveSaidIAmReady = 1;
 				t.tempsteamingameinitialwaitingdelay = Timer();
 				while (  Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 				{
-					g.steamworks.syncedWithServerMode = 0;
-					g.steamworks.okayToLoadLevel = 0;
+					g.mp.syncedWithServerMode = 0;
+					g.mp.okayToLoadLevel = 0;
 					SteamLoop (  );
-					steam_textDots(-1,20,3,"Waiting for other players");
+					mp_textDots(-1,20,3,"Waiting for other players");
 					if (  Timer() - t.tsteamiseveryoneloadedandreadytime > 1000 ) 
 					{
 						t.tsteamiseveryoneloadedandreadytime = Timer();
@@ -678,7 +678,7 @@ void steam_loop ( void )
 			}
 
 			//wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
-			if (  g.steamworks.okayToLoadLevel  ==  0 && g.steamworks.syncedWithServerMode  ==  99 ) 
+			if (  g.mp.okayToLoadLevel  ==  0 && g.mp.syncedWithServerMode  ==  99 ) 
 			{
 				t.game.titleloop=0;
 				t.game.levelloop=1;
@@ -688,13 +688,13 @@ void steam_loop ( void )
 				t.game.quitflag=0;
 				t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 
-				g.steamworks.playGame = 1;
-				g.steamworks.okayToLoadLevel = 1;
+				g.mp.playGame = 1;
+				g.mp.okayToLoadLevel = 1;
 				t.tskipLevelSync = Timer();
 			}
 			else
 			{
-				if (  g.steamworks.playGame  ==  1 ) 
+				if (  g.mp.playGame  ==  1 ) 
 				{
 					if (  t.game.titleloop == 1 ) 
 					{
@@ -707,41 +707,41 @@ void steam_loop ( void )
 						t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					}
 				}
-				if (  g.steamworks.okayToLoadLevel  ==  0 ) 
+				if (  g.mp.okayToLoadLevel  ==  0 ) 
 				{
-					steam_pre_game_file_sync_server ( );
+					mp_pre_game_file_sync_server ( );
 				}
 			}
 
 	}
-	if (  g.steamworks.mode  ==  STEAM_IN_GAME_CLIENT ) 
+	if (  g.mp.mode  ==  MP_IN_GAME_CLIENT ) 
 	{
 			if (  t.titlespage  ==  11 ) 
 			{
-				g.steamworks.dontDrawTitles = 0;
+				g.mp.dontDrawTitles = 0;
 			}
 			else
 			{
-				g.steamworks.dontDrawTitles = 1;
+				g.mp.dontDrawTitles = 1;
 			}
-			g.steamworks.dontDrawTitles = 1;
-			if (  g.steamworks.iHaveSaidIAmReady  ==  0 ) 
+			g.mp.dontDrawTitles = 1;
+			if (  g.mp.iHaveSaidIAmReady  ==  0 ) 
 			{
 				SteamSendIAmLoadedAndReady (  );
-				g.steamworks.iHaveSaidIAmReady = 1;
+				g.mp.iHaveSaidIAmReady = 1;
 				t.tempsteamingameinitialwaitingdelay = Timer();
 				while (  Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 				{
-					g.steamworks.syncedWithServerMode = 0;
-					g.steamworks.okayToLoadLevel = 0;
-					steam_textDots(-1,50,3,"Waiting for other players");
+					g.mp.syncedWithServerMode = 0;
+					g.mp.okayToLoadLevel = 0;
+					mp_textDots(-1,50,3,"Waiting for other players");
 					SteamLoop (  );
 					if (  Timer() - t.tsteamtimeoutongamerunning > 16000 ) 
 					{
 						if (  SteamGetClientServerConnectionStatus()  ==  0 ) 
 						{
 							t.tsteamlostconnectioncustommessage_s = "Lost connection to host (Error MP009)";
-							steam_lostConnection ( );
+							mp_lostConnection ( );
 							return;
 						}
 					}
@@ -751,7 +751,7 @@ void steam_loop ( void )
 			}
 
 			//wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
-			if (  g.steamworks.okayToLoadLevel  ==  0 && g.steamworks.syncedWithServerMode  ==  99 ) 
+			if (  g.mp.okayToLoadLevel  ==  0 && g.mp.syncedWithServerMode  ==  99 ) 
 			{
 					t.game.titleloop=0;
 					t.game.levelloop=1;
@@ -761,13 +761,13 @@ void steam_loop ( void )
 					t.game.quitflag=0;
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 
-					g.steamworks.playGame = 1;
-					g.steamworks.okayToLoadLevel = 1;
+					g.mp.playGame = 1;
+					g.mp.okayToLoadLevel = 1;
 					t.tskipLevelSync = Timer();
 			}
 			else
 			{
-				if (  g.steamworks.playGame  ==  1 ) 
+				if (  g.mp.playGame  ==  1 ) 
 				{
 					if (  t.game.titleloop == 1 ) 
 					{
@@ -780,28 +780,29 @@ void steam_loop ( void )
 						t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					}
 				}
-				if (  g.steamworks.okayToLoadLevel  ==  0 ) 
+				if (  g.mp.okayToLoadLevel  ==  0 ) 
 				{
-					steam_pre_game_file_sync_client ( );
+					mp_pre_game_file_sync_client ( );
 				}
 			}
 
 	}
 
-	steam_message ( );
-	steam_messageDots ( );
+	mp_message ( );
+	mp_messageDots ( );
 }
 
-void steam_free ( void )
+void mp_free ( void )
 {
-	SteamFree (  );
+	//PhotonFree();
+	SteamFree();
 }
 
-void steam_checkVoiceChat ( void )
+void mp_checkVoiceChat ( void )
 {
 }
 
-void steam_spawn_objects ( void )
+void mp_spawn_objects ( void )
 {
 	//  Grab the list of spawned objects from the server
 	//  TO DO - find out how entities are spawned in FPSC and call those routines
@@ -825,7 +826,7 @@ return;
 
 }
 
-void steam_lua ( void )
+void mp_lua ( void )
 {
 
 	while (  SteamGetLuaList() ) 
@@ -838,97 +839,97 @@ void steam_lua ( void )
 	
 		switch (  t.steamLuaCode ) 
 		{
-		case STEAM_LUA_SetActivated:
-			if ( steam_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_setactivated() ; ++t.activatedCount;
+		case MP_LUA_SetActivated:
+			if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_setactivated() ; ++t.activatedCount;
 		break;
-		case STEAM_LUA_SetAnimation:
+		case MP_LUA_SetAnimation:
 			entity_lua_setanimation() ; ++t.animCount;
 		break;
-		case STEAM_LUA_PlayAnimation:
-			if ( steam_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_playanimation() ; ++t.playanimCount;
+		case MP_LUA_PlayAnimation:
+			if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_playanimation() ; ++t.playanimCount;
 		break;
-		case STEAM_LUA_ActivateIfUsed:
-			if ( steam_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_activateifused() ; ++t.activateCount;
+		case MP_LUA_ActivateIfUsed:
+			if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_activateifused() ; ++t.activateCount;
 		break;
-		case STEAM_LUA_PlaySound:
+		case MP_LUA_PlaySound:
 			entity_lua_playsound ( );
 		break;
-		case STEAM_LUA_StartTimer:
+		case MP_LUA_StartTimer:
 			entity_lua_starttimer ( );
 		break;
-		case STEAM_LUA_CollisionOff:
+		case MP_LUA_CollisionOff:
 			entity_lua_collisionoff ( );
 		break;
-		case STEAM_LUA_CollisionOn:
+		case MP_LUA_CollisionOn:
 			entity_lua_collisionon ( );
 		break;
-		case STEAM_LUA_ServerSetLuaGameMode:
+		case MP_LUA_ServerSetLuaGameMode:
 			LuaSetInt (  "mp_gameMode",t.v );
 		break;
-		case STEAM_LUA_ServerSetPlayerKills:
+		case MP_LUA_ServerSetPlayerKills:
 			t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.e) + "] = " + Str(t.v)).Get() );
 		break;
-		case STEAM_LUA_ServerSetPlayerDeaths:
+		case MP_LUA_ServerSetPlayerDeaths:
 			t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.e) + "] = " + Str(t.v)).Get() );
 		break;
-		case STEAM_LUA_ServerSetPlayerAddKill:
-			t.steamworks_kills[t.v] = t.steamworks_kills[t.v] + 1;
-			SteamSendLua (  STEAM_LUA_ServerSetPlayerKills,t.v,t.steamworks_kills[t.v] );
-			t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.steamworks_kills[t.v])).Get() );
+		case MP_LUA_ServerSetPlayerAddKill:
+			t.mp_kills[t.v] = t.mp_kills[t.v] + 1;
+			SteamSendLua (  MP_LUA_ServerSetPlayerKills,t.v,t.mp_kills[t.v] );
+			t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.mp_kills[t.v])).Get() );
 		break;
-		case STEAM_LUA_ServerSetPlayerRemoveKill:
+		case MP_LUA_ServerSetPlayerRemoveKill:
 			//  check if they already have the kills needed to win
 			//  because they may kill someone else first, then themselves, which has already triggered a win
 			//  so we only remove a kill if they havent yet won
-			if (  g.steamworks.setserverkillstowin  <= 0  )  g.steamworks.setserverkillstowin  =  100;
-			if (  t.steamworks_kills[t.v] < g.steamworks.setserverkillstowin ) 
+			if (  g.mp.setserverkillstowin  <= 0  )  g.mp.setserverkillstowin  =  100;
+			if (  t.mp_kills[t.v] < g.mp.setserverkillstowin ) 
 			{
-				t.steamworks_kills[t.v] = t.steamworks_kills[t.v] - 1;
-				SteamSendLua (  STEAM_LUA_ServerSetPlayerKills,t.v,t.steamworks_kills[t.v] );
-				t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.steamworks_kills[t.v])).Get() );
+				t.mp_kills[t.v] = t.mp_kills[t.v] - 1;
+				SteamSendLua (  MP_LUA_ServerSetPlayerKills,t.v,t.mp_kills[t.v] );
+				t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.mp_kills[t.v])).Get() );
 			}
 		break;
-		case STEAM_LUA_ServerSetPlayerAddDeath:
-			t.steamworks_deaths[t.v] = t.steamworks_deaths[t.v] + 1;
-			SteamSendLua (  STEAM_LUA_ServerSetPlayerDeaths,t.v,t.steamworks_deaths[t.v] );
-			t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.v) + "] = " + Str(t.steamworks_deaths[t.v])).Get() );
+		case MP_LUA_ServerSetPlayerAddDeath:
+			t.mp_deaths[t.v] = t.mp_deaths[t.v] + 1;
+			SteamSendLua (  MP_LUA_ServerSetPlayerDeaths,t.v,t.mp_deaths[t.v] );
+			t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.v) + "] = " + Str(t.mp_deaths[t.v])).Get() );
 		break;
-		case STEAM_LUA_SetServerTimer:
+		case MP_LUA_SetServerTimer:
 			t.tnothing = LuaExecute( cstr(cstr("mp_servertimer = ") + Str(t.v)).Get() );
 		break;
-		case STEAM_LUA_ServerRespawnAll:
-			steam_restoreEntities ( );
-			steam_setLuaResetStats ( );
-			steam_respawnEntities ( );
+		case MP_LUA_ServerRespawnAll:
+			mp_restoreEntities ( );
+			mp_setLuaResetStats ( );
+			mp_respawnEntities ( );
 			t.playercontrol.jetpackhidden=0;
 			t.playercontrol.jetpackmode=0;
 			physics_no_gun_zoom ( );
 			t.aisystem.processplayerlogic=1;
-			g.steamworks.gameAlreadySpawnedBefore = 0;
-			t.steamworks_playerHasSpawned[g.steamworks.me] = 0;
-			if (  g.steamworks.myOriginalSpawnPoint  !=  -1 ) 
+			g.mp.gameAlreadySpawnedBefore = 0;
+			t.mp_playerHasSpawned[g.mp.me] = 0;
+			if (  g.mp.myOriginalSpawnPoint  !=  -1 ) 
 			{
-				t.tindex = g.steamworks.myOriginalSpawnPoint;
+				t.tindex = g.mp.myOriginalSpawnPoint;
 			}
 			else
 			{
 				t.tindex = 1;
 			}
-			if (  t.steamworksmultiplayerstart[t.tindex].active == 1 ) 
+			if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
 			{
-				t.terrain.playerx_f=t.steamworksmultiplayerstart[t.tindex].x;
-				t.terrain.playery_f=t.steamworksmultiplayerstart[t.tindex].y;
-				t.terrain.playerz_f=t.steamworksmultiplayerstart[t.tindex].z;
+				t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
+				t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y;
+				t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
 				t.terrain.playerax_f=0;
-				t.terrain.playeray_f=t.steamworksmultiplayerstart[t.tindex].angle;
+				t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
 				t.terrain.playeraz_f=0;
 
-				g.steamworks.lastx=t.terrain.playerx_f;
-				g.steamworks.lasty=t.terrain.playery_f;
-				g.steamworks.lastz=t.terrain.playerz_f;
-				g.steamworks.lastangley=t.terrain.playeray_f;
+				g.mp.lastx=t.terrain.playerx_f;
+				g.mp.lasty=t.terrain.playery_f;
+				g.mp.lastz=t.terrain.playerz_f;
+				g.mp.lastangley=t.terrain.playeray_f;
 
-				t.tobj = t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj;
+				t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
 				if (  t.tobj > 0 ) 
 				{
 					PositionObject (  t.tobj, t.terrain.playerx_f, t.terrain.playery_f-50, t.terrain.playerz_f );
@@ -937,30 +938,30 @@ void steam_lua ( void )
 			}
 
 			g.autoloadgun=0  ; gun_change ( );
-			g.steamworks.endplay = 0;
+			g.mp.endplay = 0;
 			t.player[t.plrid].health = 0;
-			t.steamworks_health[g.steamworks.me] = 0;
+			t.mp_health[g.mp.me] = 0;
 			physics_resetplayer_core ( );
 		break;
-		case STEAM_LUA_ServerEndPlay:
+		case MP_LUA_ServerEndPlay:
 				t.playercontrol.jetpackhidden=0;
 				t.playercontrol.jetpackmode=0;
 				physics_no_gun_zoom ( );
 				t.aisystem.processplayerlogic=0;
-				g.steamworks.endplay = 1;
+				g.mp.endplay = 1;
 				g.autoloadgun=0 ; gun_change ( );
 		break;
-		case STEAM_LUA_AiGoToX:
+		case MP_LUA_AiGoToX:
 			t.tSteamX_f = t.v;
 		break;
-		case STEAM_LUA_AiGoToZ:
+		case MP_LUA_AiGoToZ:
 			t.tSteamZ_f = t.v;
 			if (  t.e > 0 ) 
 			{
 				if (  ObjectExist(t.e)  ==  1 ) 
 				{
 					AISetEntityActive (  t.e,1 );
-					steam_COOP_aiMoveTo ( );
+					mp_COOP_aiMoveTo ( );
 				}
 			}
 			for ( t.tee = 1 ; t.tee<=  g.entityelementlist; t.tee++ )
@@ -975,7 +976,7 @@ void steam_lua ( void )
 				}
 			}
 		break;
-		case Steam_LUA_setcharactertowalkrun:
+		case MP_LUA_setcharactertowalkrun:
 			entity_lua_setcharactertowalkrun ( );
 			if (  t.entityelement[t.e].obj > 0 ) 
 			{
@@ -986,34 +987,34 @@ void steam_lua ( void )
 				}
 			}
 		break;
-		case Steam_LUA_CharacterControlManual:
+		case MP_LUA_CharacterControlManual:
 			entity_lua_charactercontrolmanual ( );
 			t.entityelement[t.e].mp_updateOn = 1;
 			t.entityelement[t.e].active = 1;
 		break;
-		case Steam_LUA_CharacterControlLimbo:
+		case MP_LUA_CharacterControlLimbo:
 			entity_lua_charactercontrollimbo ( );
 			t.entityelement[t.e].mp_updateOn = 1;
 			t.entityelement[t.e].active = 1;
 		break;
-		case Steam_LUA_CharacterControlArmed:
+		case MP_LUA_CharacterControlArmed:
 			entity_lua_charactercontrolarmed ( );
 			t.entityelement[t.e].mp_updateOn = 1;
 			t.entityelement[t.e].active = 1;
 			AISetEntityActive (  t.entityelement[t.e].obj,1 );
 		break;
-		case Steam_LUA_CharacterControlUnarmed:
+		case MP_LUA_CharacterControlUnarmed:
 			entity_lua_charactercontrolunarmed ( );
 			t.entityelement[t.e].mp_updateOn = 1;
 			t.entityelement[t.e].active = 1;
 		break;
-		case Steam_LUA_LookAtPlayer:
+		case MP_LUA_LookAtPlayer:
 			if (  t.entityelement[t.e].obj > 0 ) 
 			{
 				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
 				{
 					AISetEntityActive (  t.entityelement[t.e].obj,1 );
-					steam_entity_lua_lookatplayer ( );
+					mp_entity_lua_lookatplayer ( );
 					t.entityelement[t.e].mp_updateOn = 1;
 					t.entityelement[t.e].active = 1;
 					t.entityelement[t.e].mp_rotateTimer = Timer();
@@ -1021,17 +1022,17 @@ void steam_lua ( void )
 				}
 			}
 		break;
-		case Steam_LUA_TakenAggro:
+		case MP_LUA_TakenAggro:
 			if (  t.entityelement[t.e].obj > 0 ) 
 			{
 				AISetEntityActive (  t.entityelement[t.e].obj,1 );
 				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
 				{
-//      `if steamworks.me  ==  0 then SteamSendLua (  Steam_LUA_TakenAggro,e,v )
+//      `if mp.me  ==  0 then SteamSendLua (  MP_LUA_TakenAggro,e,v )
 
 					t.entityelement[t.e].mp_coopControlledByPlayer = t.v;
 					t.entityelement[t.e].mp_coopLastTimeSwitchedTarget = Timer();
-//      `if v  ==  steamworks.me then inc entityelement(e).mp_coopLastTimeSwitchedTarget,5000
+//      `if v  ==  mp.me then inc entityelement(e).mp_coopLastTimeSwitchedTarget,5000
 					
 					t.entityelement[t.e].mp_updateOn = 1;
 					t.entityelement[t.e].active = 1;
@@ -1043,13 +1044,13 @@ void steam_lua ( void )
 				}
 			}
 		break;
-		case Steam_LUA_HaveAggro:
+		case MP_LUA_HaveAggro:
 			if (  t.entityelement[t.e].obj > 0 ) 
 			{
 				AISetEntityActive (  t.entityelement[t.e].obj,1 );
 				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
 				{
-//      `if steamworks.me  ==  0 then SteamSendLua (  Steam_LUA_TakenAggro,e,v )
+//      `if mp.me  ==  0 then SteamSendLua (  MP_LUA_TakenAggro,e,v )
 					
 					t.entityelement[t.e].mp_coopControlledByPlayer = t.v;
 					t.entityelement[t.e].mp_updateOn = 1;
@@ -1062,24 +1063,24 @@ void steam_lua ( void )
 				}
 			}
 		break;
-		case Steam_LUA_FireWeaponEffectOnly:
+		case MP_LUA_FireWeaponEffectOnly:
 			if (  t.entityelement[t.e].obj > 0 ) 
 			{
 				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
 				{
-					steam_entity_lua_fireweaponEffectOnly ( );
+					mp_entity_lua_fireweaponEffectOnly ( );
 					t.entityelement[t.e].mp_updateOn = 1;
 					t.entityelement[t.e].active = 1;
 					AISetEntityActive (  t.entityelement[t.e].obj,1 );
 				}
 			}
 		break;
-		case Steam_LUA_RotateToPlayer:
+		case MP_LUA_RotateToPlayer:
 			if (  t.entityelement[t.e].obj > 0 ) 
 			{
 				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
 				{
-					steam_coop_rotatetoplayer ( );
+					mp_coop_rotatetoplayer ( );
 					t.entityelement[t.e].mp_updateOn = 1;
 					t.entityelement[t.e].active = 1;
 					t.entityelement[t.e].mp_rotateTimer = Timer();
@@ -1088,25 +1089,25 @@ void steam_lua ( void )
 				}
 			}
 		break;
-		case Steam_LUA_SetAnimationFrames:
+		case MP_LUA_SetAnimationFrames:
 			entity_lua_setanimationframes ( );
 		break;
-		case Steam_LUA_AISetEntityControl:
+		case MP_LUA_AISetEntityControl:
 			AISetEntityControl (  t.e,t.v );
 		break;
-		case Steam_LUA_AIMoveX:
+		case MP_LUA_AIMoveX:
 			t.tsteamPosX = t.v;
 		break;
-		case Steam_LUA_AIMoveZ:
+		case MP_LUA_AIMoveZ:
 			AISetEntityPosition (  t.e, t.tsteamPosX, BT_GetGroundHeight(t.terrain.TerrainID,t.tsteamPosX,t.v),t.v );
 		break;
-		case Steam_LUA_SendAvatar:
+		case MP_LUA_SendAvatar:
 			t.tsteams_s = SteamGetLuaS();
-			t.steamworks_playerAvatars_s[t.e] = t.tsteams_s;
+			t.mp_playerAvatars_s[t.e] = t.tsteams_s;
 		break;
-		case Steam_LUA_SendAvatarName:
+		case MP_LUA_SendAvatarName:
 			t.tsteams_s = SteamGetLuaS();
-			t.steamworks_playerAvatarOwners_s[t.e] = t.tsteams_s;
+			t.mp_playerAvatarOwners_s[t.e] = t.tsteams_s;
 		break;
 		}	//~   
 	
@@ -1119,10 +1120,10 @@ return;
 
 }
 
-void steam_delete_entities ( void )
+void mp_delete_entities ( void )
 {
 
-	g.steamworks.ignoreDamageToEntity = 1;
+	g.mp.ignoreDamageToEntity = 1;
 	while (  SteamGetDeleteList() ) 
 	{
 		t.ttte = SteamGetDeleteObjectNumber();
@@ -1154,7 +1155,7 @@ void steam_delete_entities ( void )
 	
 		SteamGetNextDelete (  );
 	}
-	g.steamworks.ignoreDamageToEntity = 0;
+	g.mp.ignoreDamageToEntity = 0;
 
 	while (  SteamGetDestroyList() ) 
 	{
@@ -1178,23 +1179,23 @@ return;
 
 }
 
-void steam_pre_game_file_sync ( void )
+void mp_pre_game_file_sync ( void )
 {
 
-	if (  g.steamworks.isGameHost  ==  1 ) 
+	if (  g.mp.isGameHost  ==  1 ) 
 	{
-		steam_pre_game_file_sync_server ( );
+		mp_pre_game_file_sync_server ( );
 	}
 	else
 	{
-		steam_pre_game_file_sync_client ( );
+		mp_pre_game_file_sync_client ( );
 	}
 
 return;
 
 }
 
-void steam_pre_game_file_sync_server ( void )
+void mp_pre_game_file_sync_server ( void )
 {
 
 //  if we have lost connection, head back to main menu
@@ -1202,39 +1203,39 @@ t.tconnectionStatus = SteamGetClientServerConnectionStatus();
 if (  t.tconnectionStatus  ==  0 ) 
 {
 	t.tsteamconnectionlostmessage_s = "Lost Connection";
-	steam_lostConnection ( );
+	mp_lostConnection ( );
 	return;
 }
 
-steam_sendAvatarInfo ( );
+mp_sendAvatarInfo ( );
 //  check if we have finished sending and receiving textures with the server
 //  (the actual process is handled by steam dll)
-if (  g.steamworks.isGameHost  ==  0 || g.steamworks.me  !=  0  )  return;
+if (  g.mp.isGameHost  ==  0 || g.mp.me  !=  0  )  return;
 if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 ) 
 {
 	t.tstring_s = "Syncing Avatars";
-	steam_textDots(-1,50,3,t.tstring_s.Get());
+	mp_textDots(-1,50,3,t.tstring_s.Get());
 	return;
 }
 
-	switch (  g.steamworks.syncedWithServerMode ) 
+	switch (  g.mp.syncedWithServerMode ) 
 	{
 
 		case 0:
 			//  for solo testing to prevent sending files
-			if (  g.steamworks.usersInServersLobbyAtServerCreation  ==  1 ) 
+			if (  g.mp.usersInServersLobbyAtServerCreation  ==  1 ) 
 			{
-				g.steamworks.syncedWithServerMode = 3;
+				g.mp.syncedWithServerMode = 3;
 				return;
 			}
 	
-			g.steamworks.serverusingworkshop = 0;
+			g.mp.serverusingworkshop = 0;
 	
 			SteamSetSendFileCount (  1 );
-			if (  g.steamworks.levelContainsCustomContent  ==  0 ) 
+			if (  g.mp.levelContainsCustomContent  ==  0 ) 
 			{
 				SteamSendFileBegin (  1,"__multiplayerlevel__.fpm" );
-				g.steamworks.serverusingworkshop = 1;
+				g.mp.serverusingworkshop = 1;
 			}
 			else
 			{
@@ -1242,74 +1243,74 @@ if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 )
 				if (  FileExist (t.tempsteamfiletosend_s.Get())  ==  1  )  DeleteAFile (  t.tempsteamfiletosend_s.Get() );
 				if (  FileOpen(1)  )  CloseFile (  1 );
 				OpenToWrite (  1,t.tempsteamfiletosend_s.Get() );
-				WriteString (  1,g.steamworks.workshopid.Get() );
+				WriteString (  1,g.mp.workshopid.Get() );
 				CloseFile (  1 );
 				SteamSendFileBegin (  1,"__multiplayerworkshopitemid__.dat" );
 			}
-			g.steamworks.syncedWithServerMode = 1;
-			steam_textDots(-1,30,3,"Setting up data for clients")  ;    
+			g.mp.syncedWithServerMode = 1;
+			mp_textDots(-1,30,3,"Setting up data for clients")  ;    
 
 		break;
 
 		case 1:
 			if (  SteamSendFileDone()  ==  1 ) 
 			{
-					g.steamworks.syncedWithServerMode = 2;
+					g.mp.syncedWithServerMode = 2;
 			}
-				steam_textDots(-1,50,3,"Sending data to clients");
+				mp_textDots(-1,50,3,"Sending data to clients");
 		break;
 
 		case 2:
-			steam_textDots(-1,30,3,"Waiting for clients to receive data");
+			mp_textDots(-1,30,3,"Waiting for clients to receive data");
 
 			if (  SteamIsEveryoneFileSynced()  ==  1 ) 
 			{
 			//the client hosting the server needs to have loaded everything in also
 				SteamSendIAmLoadedAndReady (  );
-				g.steamworks.syncedWithServerMode = 3;
-				g.steamworks.oldtime = Timer();
+				g.mp.syncedWithServerMode = 3;
+				g.mp.oldtime = Timer();
 			}
 		break;
 
 	case 3:
 		if (  SteamIsEveryoneLoadedAndReady()  ==  1 ) 
 		{
-			if (  g.steamworks.serverusingworkshop  ==  1 ) 
+			if (  g.mp.serverusingworkshop  ==  1 ) 
 			{
-					steam_textDots(-1,30,3,"Waiting for clients to receive data");
-					if (  Timer() - g.steamworks.oldtime > 3000 ) 
+					mp_textDots(-1,30,3,"Waiting for clients to receive data");
+					if (  Timer() - g.mp.oldtime > 3000 ) 
 					{
-						g.steamworks.oldtime = Timer();
-						g.steamworks.syncedWithServer = 1;
-						g.steamworks.syncedWithServerMode = 99;
+						g.mp.oldtime = Timer();
+						g.mp.syncedWithServer = 1;
+						g.mp.syncedWithServerMode = 99;
 						SetDir (  t.toldsteamfolder_s.Get() );
-						SetDir (  g.steamworks.originalpath.Get() );
+						SetDir (  g.mp.originalpath.Get() );
 					}
 				}
 				else
 				{
-					g.steamworks.oldtime = Timer();
-					g.steamworks.syncedWithServer = 1;
-					g.steamworks.syncedWithServerMode = 99;
+					g.mp.oldtime = Timer();
+					g.mp.syncedWithServer = 1;
+					g.mp.syncedWithServerMode = 99;
 					SetDir (  t.toldsteamfolder_s.Get() );
-					SetDir (  g.steamworks.originalpath.Get() );
+					SetDir (  g.mp.originalpath.Get() );
 				}
 			}
 			else
 			{
-				if (  Timer() - g.steamworks.oldtime > 150 ) 
+				if (  Timer() - g.mp.oldtime > 150 ) 
 				{
-					g.steamworks.oldtime = Timer();
+					g.mp.oldtime = Timer();
 					t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
 					if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
 				}
-				if (  Timer() - t.tempsteamworkssendingready > 2000 ) 
+				if (  Timer() - t.tempMPsendingready > 2000 ) 
 				{
 					SteamSendIAmLoadedAndReady (  );
-					t.tempsteamworkssendingready = Timer();
+					t.tempMPsendingready = Timer();
 				}
 				t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
-				steam_text(-1,50,3,t.tstring_s.Get());
+				mp_text(-1,50,3,t.tstring_s.Get());
 				t.tstring_s = "";
 			}
 	break;
@@ -1319,130 +1320,92 @@ return;
 
 }
 
-void steam_pre_game_file_sync_client ( void )
+void mp_pre_game_file_sync_client ( void )
 {
+	//  if we have lost connection, head back to main menu
+	t.tconnectionStatus = SteamGetClientServerConnectionStatus();
+	if (  t.tconnectionStatus  ==  0 ) 
+	{
+		t.tsteamconnectionlostmessage_s = "Lost Connection";
+		mp_lostConnection ( );
+		return;
+	}
 
-//  if we have lost connection, head back to main menu
-t.tconnectionStatus = SteamGetClientServerConnectionStatus();
-if (  t.tconnectionStatus  ==  0 ) 
-{
-	t.tsteamconnectionlostmessage_s = "Lost Connection";
-	steam_lostConnection ( );
-	return;
-}
+	mp_sendAvatarInfo ( );
+	//  check if we have finished sending and receiving textures with the server
+	//  (the actual process is handled by steam dll)
+	if (  g.mp.isGameHost  ==  1 || g.mp.me  ==  0  )  return;
+	if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 ) 
+	{
+		t.tstring_s = "Syncing Avatars";
+		mp_textDots(-1,50,3,t.tstring_s.Get());
+		return;
+	}
 
-steam_sendAvatarInfo ( );
-//  check if we have finished sending and receiving textures with the server
-//  (the actual process is handled by steam dll)
-if (  g.steamworks.isGameHost  ==  1 || g.steamworks.me  ==  0  )  return;
-if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 ) 
-{
-	t.tstring_s = "Syncing Avatars";
-	steam_textDots(-1,50,3,t.tstring_s.Get());
-	return;
-}
+	if ( SteamGetClientServerConnectionStatus()  ==  0 ) 
+	{
+		t.tsteamlostconnectioncustommessage_s = "Lost connect to server (Error MP010)";
+		g.mp.backtoeditorforyou = 0;
+		g.mp.mode = 0;
+		mp_lostConnection ( );
+		return;
+	}
 
-if (  SteamGetClientServerConnectionStatus()  ==  0 ) 
-{
-	t.tsteamlostconnectioncustommessage_s = "Lost connect to server (Error MP010)";
-	g.steamworks.backtoeditorforyou = 0;
-		g.steamworks.mode = 0;
-	steam_lostConnection ( );
-	return;
-}
-
-switch (  g.steamworks.syncedWithServerMode ) 
-{
-	case 0:
+	switch (  g.mp.syncedWithServerMode ) 
+	{
+		case 0:
 			if (  SteamAmIFileSynced()  ==  1 ) 
 			{
-
-			/*      
-				t.f_s = steam get next server file();
-				while (  t.f_s  !=  "" ) 
+				t.tempMPshopidfile_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
+				if (  FileExist(t.tempMPshopidfile_s.Get()) ) 
 				{
-					LoadImage (  t.f_s , 100 );
-					while (  MouseClick()  ==  0 ) 
-					{
-						PasteImage (  100,0,0 );
-						Sync (  );
-					}
-					t.f_s = steam get next server file();
+					if (  FileOpen(10)  ==  1  )  CloseFile (  10 );
+					OpenToRead (  10,t.tempMPshopidfile_s.Get() );
+					g.mp.workshopid = ReadString ( 10 );
+					CloseFile (  10 );
+					cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
+					if (  FileExist( mlevel_s.Get() ) )  DeleteAFile ( mlevel_s.Get() );
+					SteamDownloadWorkshopItem (  g.mp.workshopid.Get() );
+					g.mp.syncedWithServerMode = 2;
 				}
-				*/    
-	
-				//  Text (  CODE REMOVE!!!!!!!! )
-//     `if steamworks.fileLoaded = 0
-
-//      `if FileExist("ds2.png") = 1
-
-//       `if FileSize("ds2.png") = 1884709
-
-//        `load image "ds2.png" , 2
-
-	
-							t.tempsteamworkshopidfile_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
-							if (  FileExist(t.tempsteamworkshopidfile_s.Get()) ) 
-							{
-								if (  FileOpen(10)  ==  1  )  CloseFile (  10 );
-								OpenToRead (  10,t.tempsteamworkshopidfile_s.Get() );
-								g.steamworks.workshopid = ReadString ( 10 );
-								CloseFile (  10 );
-								cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
-								if (  FileExist( mlevel_s.Get() ) )  DeleteAFile ( mlevel_s.Get() );
-								SteamDownloadWorkshopItem (  g.steamworks.workshopid.Get() );
-								g.steamworks.syncedWithServerMode = 2;
-							}
-							else
-							{
-								g.steamworks.fileLoaded = 1;
-								SteamSendIAmLoadedAndReady (  );
-								g.steamworks.syncedWithServerMode = 1;
-							}
-//       `endif
-
-//      `endif
-
-//     `endif
-
-				//  TEST CODE REMOVE!!!!!!!!
-	
-//     `steam send i am loaded plus ready
-
+				else
+				{
+					g.mp.fileLoaded = 1;
+					SteamSendIAmLoadedAndReady (  );
+					g.mp.syncedWithServerMode = 1;
+				}
 			}
 			else
 			{
 				t.tProgress = SteamGetFileProgress();
-				t.tstring_s = cstr("Receiving '")+g.steamworks.levelnametojoin+"': " + Str(t.tProgress) + "%";
-//     `text (GetDisplayWidth()/2) - (Text (  width(tstring$)/2), GetDisplayHeight() - 100, tstring$ )
-
-				steam_text(-1,85,3,t.tstring_s.Get());
+				t.tstring_s = cstr("Receiving '")+g.mp.levelnametojoin+"': " + Str(t.tProgress) + "%";
+				mp_text(-1,85,3,t.tstring_s.Get());
 			}
 		break;
 
 		case 1:
 			if (  SteamIsEveryoneLoadedAndReady()  ==  1 ) 
 			{
-				g.steamworks.syncedWithServer = 1;
-				g.steamworks.syncedWithServerMode = 99;
+				g.mp.syncedWithServer = 1;
+				g.mp.syncedWithServerMode = 99;
 				SetDir (  t.toldsteamfolder_s.Get() );
-				SetDir (  g.steamworks.originalpath.Get() );
+				SetDir (  g.mp.originalpath.Get() );
 			}
 			else
 			{
-				if (  Timer() - g.steamworks.oldtime > 150 ) 
+				if (  Timer() - g.mp.oldtime > 150 ) 
 				{
-					g.steamworks.oldtime = Timer();
+					g.mp.oldtime = Timer();
 					t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
 					if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
 				}
-				if (  Timer() - t.tempsteamworkssendingready > 2000 ) 
+				if (  Timer() - t.tempMPsendingready > 2000 ) 
 				{
 					SteamSendIAmLoadedAndReady (  );
-					t.tempsteamworkssendingready = Timer();
+					t.tempMPsendingready = Timer();
 				}
 				t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
-				steam_text(-1,50,3,t.tstring_s.Get());
+				mp_text(-1,50,3,t.tstring_s.Get());
 				t.tstring_s = "";
 			}
 		break;
@@ -1450,76 +1413,70 @@ switch (  g.steamworks.syncedWithServerMode )
 		case 2:
 			if (  SteamIsWorkshopItemDownloaded()  ==  -1 ) 
 			{
-					t.tsteamconnectionlostmessage_s = "Unable to join, Steam does not yet have all the files needed (Error MP011)";
-					steam_lostConnection ( );
-					return;
+				t.tsteamconnectionlostmessage_s = "Unable to join, Steam does not yet have all the files needed (Error MP011)";
+				mp_lostConnection ( );
+				return;
 			}
 			if (  SteamIsWorkshopItemDownloaded()  ==  1 ) 
 			{
-				cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
+				cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
 				if ( FileExist( mlevel_s.Get() ) ) 
 				{
-					g.steamworks.fileLoaded = 1;
+					g.mp.fileLoaded = 1;
 					SteamSendIAmLoadedAndReady (  );
-					g.steamworks.syncedWithServerMode = 1;
+					g.mp.syncedWithServerMode = 1;
 				}
 				else
 				{
 					t.tsteamconnectionlostmessage_s = "Unable to join, Steam does not yet have all the files needed (Error MP012)";
-					steam_lostConnection ( );
+					mp_lostConnection ( );
 					return;
 				}
 			}
 			else
 			{
-				if (  Timer() - g.steamworks.oldtime > 150 ) 
+				if (  Timer() - g.mp.oldtime > 150 ) 
 				{
-					g.steamworks.oldtime = Timer();
+					g.mp.oldtime = Timer();
 					t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
 					if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
 				}
 				t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Downloading Workshop Item" + t.tSteamBuildingWorkshopItem_s;
-				steam_text(-1,50,3,t.tstring_s.Get());
+				mp_text(-1,50,3,t.tstring_s.Get());
 				t.tstring_s = "";
 			}
 		break;
 
-	}//~ ` 
-
-return;
+	} 
+	return;
 }
 
-void steam_sendAvatarInfo ( void )
+void mp_sendAvatarInfo ( void )
 {
-//  send avatar info
-//  `if Timer() - tlasttimesentavatar > 500
-
-//   `tlasttimesentavatar = Timer()
-
-		if (  g.steamworks.haveSentMyAvatar  ==  0 ) 
+		if (  g.mp.haveSentMyAvatar  ==  0 ) 
 		{
-			g.steamworks.me = SteamGetMyPlayerIndex();
-			if (  g.steamworks.isGameHost  ==  1 || g.steamworks.me  !=  0 ) 
+			g.mp.me = SteamGetMyPlayerIndex();
+			if (  g.mp.isGameHost  ==  1 || g.mp.me  !=  0 ) 
 			{
-				g.steamworks.haveSentMyAvatar = 1;
-				SteamSendLuaString (  Steam_LUA_SendAvatarName,g.steamworks.me,SteamGetPlayerName() );
-				SteamSendLuaString (  Steam_LUA_SendAvatar,g.steamworks.me,g.steamworks.myAvatar_s.Get() );
+				g.mp.haveSentMyAvatar = 1;
+				SteamSendLuaString (  MP_LUA_SendAvatarName,g.mp.me,SteamGetPlayerName() );
+				SteamSendLuaString (  MP_LUA_SendAvatar,g.mp.me,g.mp.myAvatar_s.Get() );
 
 				//  store our own info for loading in our avatar
-				t.steamworks_playerAvatarOwners_s[g.steamworks.me] = SteamGetPlayerName();
-				t.steamworks_playerAvatars_s[g.steamworks.me] = g.steamworks.myAvatar_s;
-				//  send out custom texture (steamworks.myAvatarHeadTexture$ will be "" if we don't have one)
-				SteamSetMyAvatarHeadTextureName (  g.steamworks.myAvatarHeadTexture_s.Get() );
+				t.mp_playerAvatarOwners_s[g.mp.me] = SteamGetPlayerName();
+				t.mp_playerAvatars_s[g.mp.me] = g.mp.myAvatar_s;
+				//  send out custom texture (mp.myAvatarHeadTexture$ will be "" if we don't have one)
+				SteamSetMyAvatarHeadTextureName (  g.mp.myAvatarHeadTexture_s.Get() );
 			}
 		}
 //  `endif
 
-	steam_lua ( );
+	mp_lua ( );
 return;
 
 }
 
-void steam_animation ( void )
+void mp_animation ( void )
 {
 
 	while (  SteamGetAnimationList() ) 
@@ -1539,13 +1496,13 @@ return;
 //  Send our position and angle to steam
 }
 
-void steam_update_player ( void )
+void mp_update_player ( void )
 {
-if (  g.steamworks.endplay  ==  1  )  return;
+if (  g.mp.endplay  ==  1  )  return;
 
 // once we are alive, no immunity
 t.huddamage.immunity = 1000;
-if (  Timer() - g.steamworks.invincibleTimer > 6000 ) 
+if (  Timer() - g.mp.invincibleTimer > 6000 ) 
 {
 	t.huddamage.immunity = 0;
 }
@@ -1563,34 +1520,32 @@ if (  t.tdamage > 0 )
 
 	t.tsteamlastdamageincounter = t.tsteamlastdamageincounter + 1;
 	//  Receives; tdamage, te, tDrownDamageFlag
-	t.te = t.steamworks_playerEntityID[SteamGetPlayerDamageSource()];
+	t.te = t.mp_playerEntityID[SteamGetPlayerDamageSource()];
 	t.tDrownDamageFlag = 0;
 	physics_player_takedamage ( );
-//  `dec entityelement(steamworks_playerEntityID(steamworks.me)).health,tdamage
 
 	if (  t.player[t.plrid].health  <=  0 ) 
 	{
-// entityelement(steamworks_playerEntityID(steamworks.me)).health = 0
-		g.steamworks.killedByPlayerFlag = 1;
-		g.steamworks.playerThatKilledMe = SteamGetPlayerDamageSource();
+		g.mp.killedByPlayerFlag = 1;
+		g.mp.playerThatKilledMe = SteamGetPlayerDamageSource();
 		t.tsteamforce = SteamGetPlayerDamageForce();
-		SteamKilledBy (  g.steamworks.playerThatKilledMe , SteamGetPlayerDamageX(), SteamGetPlayerDamageY(), SteamGetPlayerDamageZ(), t.tsteamforce, SteamGetPlayerDamageLimb() );
-//   `steam set player score SteamGetPlayerDamageSource(),1
+		SteamKilledBy (  g.mp.playerThatKilledMe , SteamGetPlayerDamageX(), SteamGetPlayerDamageY(), SteamGetPlayerDamageZ(), t.tsteamforce, SteamGetPlayerDamageLimb() );
 
-		g.steamworks.dyingTime = Timer();
+
+		g.mp.dyingTime = Timer();
 	}
 }
 
-t.steamworks_health[g.steamworks.me] = t.player[t.plrid].health;
+t.mp_health[g.mp.me] = t.player[t.plrid].health;
 
 	//  check if we have changed guns
-	if (  g.steamworks.gunid  !=  t.gunid ) 
+	if (  g.mp.gunid  !=  t.gunid ) 
 	{
 		//  send a server message saying we have a new gun
 		t.tfound = 0;
-		for ( t.ti = 0 ; t.ti<=  g.steamworks.gunCount; t.ti++ )
+		for ( t.ti = 0 ; t.ti<=  g.mp.gunCount; t.ti++ )
 		{
-			if (  t.steamworks_gunname[t.ti]  ==  Lower(t.gun[t.gunid].name_s.Get()) ) 
+			if (  t.mp_gunname[t.ti]  ==  Lower(t.gun[t.gunid].name_s.Get()) ) 
 			{
 				t.tfound = t.ti+1;
 			}
@@ -1598,57 +1553,57 @@ t.steamworks_health[g.steamworks.me] = t.player[t.plrid].health;
 		if (  t.tfound>0 ) 
 		{
 			t.hasgunname_s=t.gun[t.gunid].name_s;
-			t.steamhasgunname_s=t.steamworks_gunname[t.tfound-1];
-			g.steamworks.appearance = t.tfound;
+			t.steamhasgunname_s=t.mp_gunname[t.tfound-1];
+			g.mp.appearance = t.tfound;
 			t.toldappearancevariable = t.tfound;
-//    `steamworks.gunid = gunid
+//    `mp.gunid = gunid
 
 		}
 		else
 		{
-			g.steamworks.appearance = 0;
+			g.mp.appearance = 0;
 		}
-		g.steamworks.gunid = t.gunid;
+		g.mp.gunid = t.gunid;
 	}
 
 	//  Send our positional data to the server
 //  `t.tTime = Timer()
 
-//  `if t.tTime - steamworks.lastSendPositionTime < STEAM_POSITION_UPDATE_DELAY then return
+//  `if t.tTime - mp.lastSendPositionTime < MP_POSITION_UPDATE_DELAY then return
 	
 	
-//  `steamworks.lastSendPositionTime = t.tTime
+//  `mp.lastSendPositionTime = t.tTime
 
 	
 	SteamSetPlayerPositionX (  CameraPositionX() );
-	g.steamworks.lastx = CameraPositionX();
+	g.mp.lastx = CameraPositionX();
 
-		if (  g.steamworks.crouchOn  ==  0 ) 
+		if (  g.mp.crouchOn  ==  0 ) 
 		{
 			SteamSetPlayerPositionY (  CameraPositionY()-64 );
-			g.steamworks.lasty = CameraPositionY()-64;
+			g.mp.lasty = CameraPositionY()-64;
 		}
 		else
 		{
 			SteamSetPlayerPositionY (  CameraPositionY()-64+30 );
-			g.steamworks.lasty = CameraPositionY()-64+30;
+			g.mp.lasty = CameraPositionY()-64+30;
 		}
 
 	SteamSetPlayerPositionZ (  CameraPositionZ() );
-	g.steamworks.lastz = CameraPositionZ();
+	g.mp.lastz = CameraPositionZ();
 
 	SteamSetPlayerAngle (  CameraAngleY() );
-	g.steamworks.lastangley = CameraAngleY();
+	g.mp.lastangley = CameraAngleY();
 
-	t.tpe = t.steamworks_playerEntityID[g.steamworks.me];
-	t.entityelement[t.tpe].x=g.steamworks.lastx;
-	t.entityelement[t.tpe].y=g.steamworks.lasty;
-	t.entityelement[t.tpe].z=g.steamworks.lastz;
-	if (  t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj > 0 ) 
+	t.tpe = t.mp_playerEntityID[g.mp.me];
+	t.entityelement[t.tpe].x=g.mp.lastx;
+	t.entityelement[t.tpe].y=g.mp.lasty;
+	t.entityelement[t.tpe].z=g.mp.lastz;
+	if (  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj > 0 ) 
 	{
-		if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj) ) 
+		if (  ObjectExist(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj) ) 
 		{
-			PositionObject (  t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj, g.steamworks.lastx, g.steamworks.lasty+10, g.steamworks.lastz );
+			PositionObject (  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj, g.mp.lastx, g.mp.lasty+10, g.mp.lastz );
 		}
 	}
 	t.te = t.tpe;
@@ -1662,21 +1617,21 @@ return;
 
 }
 
-void steam_updatePlayerPositions ( void )
+void mp_updatePlayerPositions ( void )
 {
 
-	if (  g.steamworks.endplay  ==  1  )  return;
+	if (  g.mp.endplay  ==  1  )  return;
 
 	//  Get player data from the server
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 
-		if (  t.steamworks_forcePosition[t.c] > 0 && SteamGetPlayerAlive(t.c)  ==  1 ) 
+		if (  t.mp_forcePosition[t.c] > 0 && SteamGetPlayerAlive(t.c)  ==  1 ) 
 		{
-			if (  t.steamworks_forcePosition[t.c]  ==  1  )  t.steamworks_forcePosition[t.c]  =  Timer();
-			if (  Timer() - t.steamworks_forcePosition[t.c] > 1000 ) 
+			if (  t.mp_forcePosition[t.c]  ==  1  )  t.mp_forcePosition[t.c]  =  Timer();
+			if (  Timer() - t.mp_forcePosition[t.c] > 1000 ) 
 			{
-				t.steamworks_forcePosition[t.c] = 0;
+				t.mp_forcePosition[t.c] = 0;
 				t.x_f = SteamGetPlayerPositionX(t.c);
 				t.y_f = SteamGetPlayerPositionY(t.c);
 				t.z_f = SteamGetPlayerPositionZ(t.c);
@@ -1698,11 +1653,11 @@ void steam_updatePlayerPositions ( void )
 		t.y_f = SteamGetPlayerPositionY(t.c);
 		t.z_f = SteamGetPlayerPositionZ(t.c);
 		t.angle_f = SteamGetPlayerAngle(t.c);
-		if (  t.c  !=  g.steamworks.me ) 
+		if (  t.c  !=  g.mp.me ) 
 		{
-			if (  SteamGetPlayerAlive(t.c)  ==  1 && t.steamworks_forcePosition[t.c]  ==  0 ) 
+			if (  SteamGetPlayerAlive(t.c)  ==  1 && t.mp_forcePosition[t.c]  ==  0 ) 
 			{
-				t.e = t.steamworks_playerEntityID[t.c];
+				t.e = t.mp_playerEntityID[t.c];
 				t.entityelement[t.e].x=t.x_f;
 				t.entityelement[t.e].y=t.y_f;
 				t.entityelement[t.e].z=t.z_f;
@@ -1720,13 +1675,13 @@ return;
 //  Display message from server
 }
 
-void steam_server_message ( void )
+void mp_server_message ( void )
 {
 
-if (  g.steamworks.endplay  ==  1  )  return;
+if (  g.mp.endplay  ==  1  )  return;
 
 t.s_s = SteamGetServerMessage();
-if (  g.steamworks.coop  ==  1 ) 
+if (  g.mp.coop  ==  1 ) 
 {
 	t.tplayer_s = FirstToken(t.s_s.Get()," ");
 	t.tcheckforkilled_s = NextToken(" ");
@@ -1737,9 +1692,9 @@ if (  t.s_s  !=  "" )
 	t.tsteamdisplaymessagetimer = Timer();
 	t.s_s = Upper(t.s_s.Get());
 }
-if (  t.s_s  ==  ""  )  t.s_s  =  g.steamworks.previousMessage_s;
-g.steamworks.previousMessage_s = t.s_s;
-if (  Timer() - t.tsteamdisplaymessagetimer < 2000  )  steam_text(-1,10,3,t.s_s.Get());
+if (  t.s_s  ==  ""  )  t.s_s  =  g.mp.previousMessage_s;
+g.mp.previousMessage_s = t.s_s;
+if (  Timer() - t.tsteamdisplaymessagetimer < 2000  )  mp_text(-1,10,3,t.s_s.Get());
 // `text GetDisplayWidth()/2 - Text (  width(s$)/2, 100, s$ )
 
 
@@ -1747,15 +1702,15 @@ return;
 
 }
 
-void steam_updatePlayerNamePlates ( void )
+void mp_updatePlayerNamePlates ( void )
 {
 
-//  `if steamworks.endplay  ==  1 then return
+//  `if mp.endplay  ==  1 then return
 	
 
-	if (  g.steamworks.nameplatesOff  ==  1 ) 
+	if (  g.mp.nameplatesOff  ==  1 ) 
 	{
-		for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+		for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 		{
 			if (  ObjectExist(g.steamplayermodelsoffset+500+t.c) ) 
 			{
@@ -1765,10 +1720,10 @@ void steam_updatePlayerNamePlates ( void )
 		return;
 	}
 	//  Display players names and stats
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 			//  if it isnt me, display their details above their head
-			if (  g.steamworks.sentmyname  ==  1 ) 
+			if (  g.mp.sentmyname  ==  1 ) 
 			{
 				if (  ObjectExist(g.steamplayermodelsoffset+500+t.c)  ==  1  )  DeleteObject (  g.steamplayermodelsoffset+500+t.c );
 			}
@@ -1777,20 +1732,20 @@ void steam_updatePlayerNamePlates ( void )
 				PositionObject (  g.steamplayermodelsoffset+500+t.c,500000,-500000,500000 );
 			}
 
-			if (  t.entityelement[t.steamworks_playerEntityID[t.c]].obj > 0 ) 
+			if (  t.entityelement[t.mp_playerEntityID[t.c]].obj > 0 ) 
 			{
-				if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.c]].obj)  ==  1 ) 
+				if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].obj)  ==  1 ) 
 				{
-					if (  t.c  !=  g.steamworks.me ) 
+					if (  t.c  !=  g.mp.me ) 
 					{
-						if (  t.steamworks_forcePosition[t.c]  ==  0 && SteamGetPlayerAlive(t.c)  ==  1 ) 
+						if (  t.mp_forcePosition[t.c]  ==  0 && SteamGetPlayerAlive(t.c)  ==  1 ) 
 						{
-							if (  GetInScreen(t.entityelement[t.steamworks_playerEntityID[t.c]].obj) ) 
+							if (  GetInScreen(t.entityelement[t.mp_playerEntityID[t.c]].obj) ) 
 							{
 								t.tname_s = SteamGetOtherPlayerName(t.c);
 								if (  t.tname_s != "Player" ) 
 								{
-									t.tobj = t.entityelement[t.steamworks_playerEntityID[t.c]].obj;
+									t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
 									if (  ObjectExist(g.steamplayermodelsoffset+500+t.c)  ==  0 ) 
 									{
 										t.tResult = MakeNewObjectPanel(g.steamplayermodelsoffset+500+t.c,Len(t.tname_s.Get()));
@@ -1816,9 +1771,9 @@ void steam_updatePlayerNamePlates ( void )
 												t.r = 255;
 												t.g = 50;
 												t.b = 50;
-												if (  g.steamworks.team  ==  1 ) 
+												if (  g.mp.team  ==  1 ) 
 												{
-													if (  t.steamworks_team[t.c]  ==  t.steamworks_team[g.steamworks.me] ) 
+													if (  t.mp_team[t.c]  ==  t.mp_team[g.mp.me] ) 
 													{
 														t.r = 100;
 														t.g = 255;
@@ -1848,10 +1803,10 @@ void steam_updatePlayerNamePlates ( void )
 									{
 //          `show it
 
-										if (  SteamGetPlayerAlive(t.c)  ==  1 && g.steamworks.endplay  ==  0 ) 
+										if (  SteamGetPlayerAlive(t.c)  ==  1 && g.mp.endplay  ==  0 ) 
 										{
 											t.tnameplatey_f = ObjectPositionY(t.tobj)+ ObjectSizeY(t.tobj,1);
-											if (  t.steamworks_playerAvatars_s[t.c]  !=  ""  )  t.tnameplatey_f  =  t.tnameplatey_f + 15.0;
+											if (  t.mp_playerAvatars_s[t.c]  !=  ""  )  t.tnameplatey_f  =  t.tnameplatey_f + 15.0;
 											ShowObject (  g.steamplayermodelsoffset+500+t.c );
 											PositionObject((g.steamplayermodelsoffset+500+t.c), ObjectPositionX(t.tobj), t.tnameplatey_f , ObjectPositionZ(t.tobj));
 											PointObject (  g.steamplayermodelsoffset+500+t.c,CameraPositionX(), CameraPositionY(), CameraPositionZ() );
@@ -1861,12 +1816,6 @@ void steam_updatePlayerNamePlates ( void )
 											HideObject (  g.steamplayermodelsoffset+500+t.c );
 										}
 									}
-//          `text GetScreenX(tobj) - Text (  width(tname$)/2,GetScreenY(tobj)+10,tname$ )
-
-//          `text GetScreenX(tobj) - Text (  width(tname$)/2,GetScreenY(tobj)+25,"Health ): " + Str(entityelement(steamworks_playerEntityID(c)).health)
-
-//          `text GetScreenX(tobj) - Text (  width(tname$)/2,GetScreenY(tobj)+25,"Kills ): " + Str(steam get player score(c))
-
 								}
 							}
 						}
@@ -1874,8 +1823,6 @@ void steam_updatePlayerNamePlates ( void )
 						{
 							if (  ObjectExist(g.steamplayermodelsoffset+500+t.c) ) 
 							{
-//         `hide object steamplayermodelsoffset+500+c
-
 								PositionObject (  g.steamplayermodelsoffset+500+t.c,500000,-500000,500000 );
 							}
 						}
@@ -1884,57 +1831,57 @@ void steam_updatePlayerNamePlates ( void )
 			}
 		}
 
-		g.steamworks.sentmyname = 0;
+		g.mp.sentmyname = 0;
 
 return;
 
 }
 
-void steam_updatePlayerAnimations ( void )
+void mp_updatePlayerAnimations ( void )
 {
 
 	//  Update animations
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 
-			t.tobj = t.entityelement[t.steamworks_playerEntityID[t.c]].obj;
+			t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
 
 			t.thasNade = 0;
-			t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+			t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 			if ( t.gun[t.tgunid].projectileframe != 0 ) t.thasNade = 1;
 
-			t.steamworks_playerShooting[t.c] = SteamGetShoot(t.c);
+			t.mp_playerShooting[t.c] = SteamGetShoot(t.c);
 
 			//  if the player is reloading we will try and show it (only works if idle or ducking at present)
-			if (  SteamGetPlayerAppearance(t.c)  ==  201  )  t.steamworks_reload[t.c]  =  1;
+			if (  SteamGetPlayerAppearance(t.c)  ==  201  )  t.mp_reload[t.c]  =  1;
 
 			//  update animations
-			g.steamworks.isAnimating = 0;
+			g.mp.isAnimating = 0;
 			if (  SteamGetPlayerAlive(t.c)  ==  1 ) 
 			{
-					t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.steamworks_playerEntityID[t.c]].bankindex].spine;
+					t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
 					RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
 
 				if (  (SteamGetPlayerAppearance(t.c) < 102 || SteamGetPlayerAppearance(t.c) > 200) ) 
 				{
 					//  Melee
-					if (  SteamGetKeyState(t.c,16)  ==  1 || t.steamworks_meleePlaying[t.c]  ==  1 ) 
+					if (  SteamGetKeyState(t.c,16)  ==  1 || t.mp_meleePlaying[t.c]  ==  1 ) 
 					{
-						g.steamworks.isAnimating = 1;
-						if (  t.steamworks_meleePlaying[t.c]  ==  0 ) 
+						g.mp.isAnimating = 1;
+						if (  t.mp_meleePlaying[t.c]  ==  0 ) 
 						{
-							t.steamworks_meleePlaying[t.c] = 1;
+							t.mp_meleePlaying[t.c] = 1;
 						}
 						else
 						{
-							if (  GetPlaying(t.tobj)  ==  0  )  t.steamworks_meleePlaying[t.c]  =  0;
-							if (  GetLooping(t.tobj)  ==  1  )  t.steamworks_meleePlaying[t.c]  =  0;
+							if (  GetPlaying(t.tobj)  ==  0  )  t.mp_meleePlaying[t.c]  =  0;
+							if (  GetLooping(t.tobj)  ==  1  )  t.mp_meleePlaying[t.c]  =  0;
 						}
 					}
 					//  Forwards
 					if (  SteamGetKeyState(t.c,17)  ==  1 ) 
 					{
-						g.steamworks.isAnimating = 1;
+						g.mp.isAnimating = 1;
 						//  are they moving left also
 						if (  SteamGetKeyState(t.c,30)  ==  1 ) 
 						{
@@ -1951,33 +1898,33 @@ void steam_updatePlayerAnimations ( void )
 						{
 							if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
 							{
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=300;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=300;
 							}
 							else
 							{
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=100;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
 							}
 						}
 						else
 						{
 							if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
 							{
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=600;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=600;
 							}
 							else
 							{
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=200;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=200;
 							}
 						}
 						if (  SteamGetKeyState(t.c,46)  ==  0 ) 
 						{
-							if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_WALKING ) 
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKING ) 
 							{
 
-								t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
 									t.tplaycsi=t.csi_stoodmoverunANIM[t.tweapstyle];
 								}
@@ -1985,44 +1932,44 @@ void steam_updatePlayerAnimations ( void )
 								{
 									t.tplaycsi=g.csi_unarmedmoverunANIM;
 								}
-								steam_switchAnim ( );
+								mp_switchAnim ( );
 
 								if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
 								{
 									t.tplaycsi=g.csi_unarmedANIM0;
-									steam_switchAnim ( );
+									mp_switchAnim ( );
 								}
 								entity_lua_setanimationframes ( );
-								t.e = t.steamworks_playerEntityID[t.c];
+								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
-								g.steamworks.isAnimating = 1;
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_WALKING;
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKING;
 							}
 						}
 						else
 						{
-							if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_DUCKINGWALKING ) 
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
 							{
 
-								t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
 								t.tplaycsi=t.csi_crouchmoverunANIM[t.tweapstyle];
-								steam_switchAnim ( );
+								mp_switchAnim ( );
 
 								entity_lua_setanimationframes ( );
-								t.e = t.steamworks_playerEntityID[t.c];
+								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
-								g.steamworks.isAnimating = 1;
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_DUCKINGWALKING;
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
 							}
 						}
 					}
 					//  Backwards
 					if (  SteamGetKeyState(t.c,31)  ==  1 ) 
 					{
-						g.steamworks.isAnimating = 1;
+						g.mp.isAnimating = 1;
 						//  are they moving left also
 						if (  SteamGetKeyState(t.c,30)  ==  1 ) 
 						{
@@ -2037,20 +1984,20 @@ void steam_updatePlayerAnimations ( void )
 						}
 						if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
 						{
-							t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=-300;
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-300;
 						}
 						else
 						{
-							t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=-100;
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-100;
 						}
 						if (  SteamGetKeyState(t.c,46)  ==  0 ) 
 						{
-							if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_WALKINGBACKWARDS ) 
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKINGBACKWARDS ) 
 							{
-								t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
 									t.tplaycsi=t.csi_stoodmoverunANIM[t.tweapstyle];
 								}
@@ -2058,40 +2005,40 @@ void steam_updatePlayerAnimations ( void )
 								{
 									t.tplaycsi=g.csi_unarmedmoverunANIM;
 								}
-								steam_switchAnim ( );
+								mp_switchAnim ( );
 
 								if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
 								{
-									t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 									t.tweapstyle=t.gun[t.tgunid].weapontype;
 									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 									t.tplaycsi=t.csi_stoodnormalANIM[t.tweapstyle];
-									steam_switchAnim ( );
+									mp_switchAnim ( );
 								}
 								entity_lua_setanimationframes ( );
-								t.e = t.steamworks_playerEntityID[t.c];
+								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
-								g.steamworks.isAnimating = 1;
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_WALKINGBACKWARDS;
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKINGBACKWARDS;
 							}
 						}
 						else
 						{
-							if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_DUCKINGWALKINGBACKWARDS ) 
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKINGBACKWARDS ) 
 							{
 
-								t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
 								t.tplaycsi=t.csi_crouchmoverunANIM[t.tweapstyle];
-								steam_switchAnim ( );
+								mp_switchAnim ( );
 
 								entity_lua_setanimationframes ( );
-								t.e = t.steamworks_playerEntityID[t.c];
+								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
-								g.steamworks.isAnimating = 1;
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_DUCKINGWALKINGBACKWARDS;
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKINGBACKWARDS;
 							}
 						}
 					}
@@ -2099,44 +2046,44 @@ void steam_updatePlayerAnimations ( void )
 					//  strafe left
 					if (  SteamGetKeyState(t.c,30)  ==  1 ) 
 					{
-						if (  g.steamworks.isAnimating  ==  0 ) 
+						if (  g.mp.isAnimating  ==  0 ) 
 						{
-							g.steamworks.isAnimating = 1;
+							g.mp.isAnimating = 1;
 							if (  SteamGetKeyState(t.c,42)  ==  0 ) 
 							{
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=100;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
 							}
 							else
 							{
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=150;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
 							}
 							if (  SteamGetKeyState(t.c,46)  ==  1 ) 
 							{
-								if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_DUCKINGWALKING ) 
+								if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
 								{
 
-								t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
 								t.tplaycsi=t.csi_crouchmoveleftANIM[t.tweapstyle];
-								steam_switchAnim ( );
+								mp_switchAnim ( );
 
 									entity_lua_setanimationframes ( );
-									t.e = t.steamworks_playerEntityID[t.c];
+									t.e = t.mp_playerEntityID[t.c];
 									entity_lua_loopanimation ( );
-									g.steamworks.isAnimating = 1;
-									t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_DUCKINGWALKING;
+									g.mp.isAnimating = 1;
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
 								}
 							}
 							else
 							{
-								if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_STRAFELEFT ) 
+								if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFELEFT ) 
 								{
-									t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 									t.tweapstyle=t.gun[t.tgunid].weapontype;
 									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-									if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+									if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 									{
 										t.tplaycsi=t.csi_stoodmoverunleftANIM[t.tweapstyle];
 									}
@@ -2145,12 +2092,12 @@ void steam_updatePlayerAnimations ( void )
 										RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 										t.tplaycsi=g.csi_unarmedmoverunANIM;
 									}
-									steam_switchAnim ( );
+									mp_switchAnim ( );
 
 									entity_lua_setanimationframes ( );
-									t.e = t.steamworks_playerEntityID[t.c];
+									t.e = t.mp_playerEntityID[t.c];
 									entity_lua_loopanimation ( );
-									t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_STRAFELEFT;
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFELEFT;
 								}
 							}
 						}
@@ -2159,45 +2106,45 @@ void steam_updatePlayerAnimations ( void )
 					//  strafe right
 					if (  SteamGetKeyState(t.c,32)  ==  1 ) 
 					{
-						if (  g.steamworks.isAnimating  ==  0 ) 
+						if (  g.mp.isAnimating  ==  0 ) 
 						{
-							g.steamworks.isAnimating = 1;
+							g.mp.isAnimating = 1;
 							if (  SteamGetKeyState(t.c,42)  ==  0 ) 
 							{
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=100;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
 							}
 							else
 							{
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.animspeed=150;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
 							}
 							if (  SteamGetKeyState(t.c,46)  ==  1 ) 
 							{
-								if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_DUCKINGWALKING ) 
+								if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
 								{
 
-									t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 									t.tweapstyle=t.gun[t.tgunid].weapontype;
 									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 									if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
 									t.tplaycsi=t.csi_crouchmoverightANIM[t.tweapstyle];
-									steam_switchAnim ( );
+									mp_switchAnim ( );
 
 									entity_lua_setanimationframes ( );
-									t.e = t.steamworks_playerEntityID[t.c];
+									t.e = t.mp_playerEntityID[t.c];
 									entity_lua_loopanimation ( );
-									g.steamworks.isAnimating = 1;
-									t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_DUCKINGWALKING;
+									g.mp.isAnimating = 1;
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
 								}
 							}
 							else
 							{
-								if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_STRAFERIGHT ) 
+								if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFERIGHT ) 
 								{
 
-									t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 									t.tweapstyle=t.gun[t.tgunid].weapontype;
 									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-									if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+									if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 									{
 										t.tplaycsi=t.csi_stoodmoverunrightANIM[t.tweapstyle];
 									}
@@ -2205,30 +2152,30 @@ void steam_updatePlayerAnimations ( void )
 									{
 										t.tplaycsi=g.csi_unarmedmoverunANIM;
 									}
-									steam_switchAnim ( );
+									mp_switchAnim ( );
 
 									entity_lua_setanimationframes ( );
-									t.e = t.steamworks_playerEntityID[t.c];
+									t.e = t.mp_playerEntityID[t.c];
 									entity_lua_loopanimation ( );
-								//steamworks_isIdling(c) = 0
-									t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_STRAFERIGHT;
+								
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFERIGHT;
 								}
 							}
 						}
 					}
 
-					if (  t.steamworks_playingAnimation[t.c]  ==  STEAM_ANIMATION_STRAFELEFT ) 
+					if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFELEFT ) 
 					{
-						if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+						if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
 						{
 							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
 						}
 					}
 
-					if (  t.steamworks_playingAnimation[t.c]  ==  STEAM_ANIMATION_STRAFERIGHT ) 
+					if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFERIGHT ) 
 					{
-						if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+						if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
 						{
 							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
@@ -2237,29 +2184,27 @@ void steam_updatePlayerAnimations ( void )
 
 
 					//  Ducking
-					if (  SteamGetKeyState(t.c,46)  ==  1 && t.steamworks_jetpackOn[t.c]  ==  0 ) 
+					if (  SteamGetKeyState(t.c,46)  ==  1 && t.mp_jetpackOn[t.c]  ==  0 ) 
 					{
-						if (  g.steamworks.isAnimating  ==  0 && t.steamworks_reload[t.c]  ==  0 ) 
+						if (  g.mp.isAnimating  ==  0 && t.mp_reload[t.c]  ==  0 ) 
 						{
-							g.steamworks.isAnimating = 1;
-							if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_DUCKING ) 
+							g.mp.isAnimating = 1;
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKING ) 
 							{
 
-								t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								t.tplaycsi=t.csi_crouchidlenormalANIM1[t.tweapstyle];
-								steam_switchAnim ( );
+								mp_switchAnim ( );
 
 								entity_lua_setanimationframes ( );
-								t.e = t.steamworks_playerEntityID[t.c];
+								t.e = t.mp_playerEntityID[t.c];
 								t.entityelement[t.e].eleprof.animspeed=100;
 								entity_lua_playanimation ( );
-								g.steamworks.isAnimating = 1;
-//         `steamworks_isIdling(c) = 0
+								g.mp.isAnimating = 1;
 
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_DUCKING;
-//         `print "PLAYER IS DUCKING <--------------------------------"
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
 
 							}
 						}
@@ -2269,55 +2214,54 @@ void steam_updatePlayerAnimations ( void )
 
 				if (  t.thasNade  ==  1 ) 
 				{
-					if (  t.steamworks_reload[t.c]  ==  1  )  t.steamworks_reload[t.c]  =  0;
+					if (  t.mp_reload[t.c]  ==  1  )  t.mp_reload[t.c]  =  0;
 				}
 
-				if (  t.steamworks_reload[t.c]  ==  1 ) 
+				if (  t.mp_reload[t.c]  ==  1 ) 
 				{
-						if (  g.steamworks.isAnimating  ==  0 || t.steamworks_playingAnimation[t.c]  ==  STEAM_ANIMATION_DUCKING ) 
+						if (  g.mp.isAnimating  ==  0 || t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
 						{
-							if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_RELOAD ) 
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_RELOAD ) 
 							{
 
-								t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								t.tplaycsi=t.csi_stoodreloadANIM[t.tweapstyle];
-								steam_switchAnim ( );
+								mp_switchAnim ( );
 
-								if (  t.steamworks_playingAnimation[t.c]  ==  STEAM_ANIMATION_DUCKING ) 
+								if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
 								{
 
-								t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								t.tplaycsi=t.csi_crouchreloadANIM[t.tweapstyle];
-								steam_switchAnim ( );
+								mp_switchAnim ( );
 
 								}
 								entity_lua_setanimationframes ( );
-								t.e = t.steamworks_playerEntityID[t.c];
+								t.e = t.mp_playerEntityID[t.c];
 								t.entityelement[t.e].eleprof.animspeed=200;
 								entity_lua_playanimation ( );
-								g.steamworks.isAnimating = 1;
-//         `steamworks_isIdling(c) = 0
+								g.mp.isAnimating = 1;
 
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_RELOAD;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_RELOAD;
 							}
 						}
-						g.steamworks.isAnimating = 1;
+						g.mp.isAnimating = 1;
 						//  if the reload anim has finished or the player starts shooting, turn reloading off
-						if (  GetFrame(t.tobj)  ==  605 || GetFrame(t.tobj)  ==  2010 || t.steamworks_playerShooting[t.c]  ==  1 ) 
+						if (  GetFrame(t.tobj)  ==  605 || GetFrame(t.tobj)  ==  2010 || t.mp_playerShooting[t.c]  ==  1 ) 
 						{
-							t.steamworks_reload[t.c] = 0;
+							t.mp_reload[t.c] = 0;
 							if (  GetFrame(t.tobj)  ==  2010 ) 
 							{
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_DUCKING;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
 							}
 							else
 							{
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
-								g.steamworks.isAnimating = 0;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+								g.mp.isAnimating = 0;
 							}
 //        `print "DUCKING SPOT 2 <----------------------------------------------"
 
@@ -2328,74 +2272,74 @@ void steam_updatePlayerAnimations ( void )
 				if (  SteamGetPlayerAppearance(t.c)  ==  102 ) 
 				{
 					t.tjetpacktempanim = 1;
-					if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_IDLE ) 
+					if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
 					{
-						t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
-						g.steamworks.isAnimating = 0;
+						t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+						g.mp.isAnimating = 0;
 					}
 				}
 
 				if (  t.thasNade  ==  1 ) 
 				{
-					if (  t.steamworks_playingAnimation[t.c]  ==  STEAM_ANIMATION_IDLE ) 
+					if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_IDLE ) 
 					{
-						if (  t.steamworks_playerShooting[t.c]  ==  1 ) 
+						if (  t.mp_playerShooting[t.c]  ==  1 ) 
 						{
 							if (   GetFrame(t.tobj) < 2390 || GetFrame(t.tobj) > 2444 ) 
 							{
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
-								g.steamworks.isAnimating = 0;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+								g.mp.isAnimating = 0;
 							}
 						}
 
-						if (  t.steamworks_playerShooting[t.c]  ==  0 ) 
+						if (  t.mp_playerShooting[t.c]  ==  0 ) 
 						{
 							if (  GetFrame(t.tobj)  ==  2444 ) 
 							{
 								SetObjectFrame(t.tobj,2443);
 								StopObject (  t.tobj );
-								g.steamworks.isAnimating = 0;
-								t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
+								g.mp.isAnimating = 0;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 							}
 						}
 
 					}
 				}
 
-				if (  g.steamworks.isAnimating  ==  0 ) 
+				if (  g.mp.isAnimating  ==  0 ) 
 				{
-					steam_update_waist_rotation ( );
+					mp_update_waist_rotation ( );
 //      `print "IDLING"
 
-					if (  t.steamworks_playingAnimation[t.c]  !=  STEAM_ANIMATION_IDLE ) 
+					if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
 					{
-						if (  abs(t.steamworks_oldplayerx[t.c] - t.entityelement[t.steamworks_playerEntityID[t.c]].x) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+						if (  abs(t.mp_oldplayerx[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].x) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 						{
-							if (  abs(t.steamworks_oldplayery[t.c] - t.entityelement[t.steamworks_playerEntityID[t.c]].y) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+							if (  abs(t.mp_oldplayery[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].y) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 							{
-								if (  abs(t.steamworks_oldplayerz[t.c] - t.entityelement[t.steamworks_playerEntityID[t.c]].z) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+								if (  abs(t.mp_oldplayerz[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].z) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 								{
 									t.tIsThrowingNade = 0;
-									t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 									t.tweapstyle=t.gun[t.tgunid].weapontype;
 									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-									if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+									if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 									{
 
 										t.tplaycsi=t.csi_stoodnormalANIM[t.tweapstyle];
-										steam_switchAnim ( );
+										mp_switchAnim ( );
 
 									}
 									else
 									{
 
-										if (  t.thasNade  ==  1 && t.steamworks_playerShooting[t.c]  ==  1 ) 
+										if (  t.thasNade  ==  1 && t.mp_playerShooting[t.c]  ==  1 ) 
 										{
-											t.ttentid=t.entityelement[t.steamworks_playerEntityID[t.c]].bankindex;
+											t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
 											t.e=2390;
 											t.v=2444;
 											entity_lua_setanimationframes ( );
-											t.e = t.steamworks_playerEntityID[t.c];
+											t.e = t.mp_playerEntityID[t.c];
 											t.entityelement[t.e].eleprof.animspeed=200;
 											t.tLuaDontSendLua = 1;
 											t.q=-1;
@@ -2405,22 +2349,22 @@ void steam_updatePlayerAnimations ( void )
 										}
 										else
 										{
-											t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+											t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 											t.tweapstyle=t.gun[t.tgunid].weapontype;
 											if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 											t.tplaycsi=g.csi_unarmedANIM0;
-											steam_switchAnim ( );
+											mp_switchAnim ( );
 										}
 
 									}
 									if (  t.tIsThrowingNade  ==  0 ) 
 									{
 										entity_lua_setanimationframes ( );
-										t.e = t.steamworks_playerEntityID[t.c];
+										t.e = t.mp_playerEntityID[t.c];
 										t.entityelement[t.e].eleprof.animspeed=100;
 										entity_lua_loopanimation ( );
 									}
-									t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_IDLE;
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_IDLE;
 								}
 							}
 						}
@@ -2429,7 +2373,7 @@ void steam_updatePlayerAnimations ( void )
 				else
 				{
 					//  reset the idle turn if animating
-					t.steamworks_lastIdleReset[t.c] = 1;
+					t.mp_lastIdleReset[t.c] = 1;
 //      `print "last idle reset = 1"
 
 				}
@@ -2438,50 +2382,42 @@ void steam_updatePlayerAnimations ( void )
 
 			//  
 
-			if (  SteamGetPlayerAlive(t.c)  ==  0 && g.steamworks.gameAlreadySpawnedBefore  !=  0 ) 
+			if (  SteamGetPlayerAlive(t.c)  ==  0 && g.mp.gameAlreadySpawnedBefore  !=  0 ) 
 			{
-				t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
-				t.steamworks_lastIdleReset[t.c] = 1;
-				t.steamworks_forcePosition[t.c] = 1;
+				t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+				t.mp_lastIdleReset[t.c] = 1;
+				t.mp_forcePosition[t.c] = 1;
 
-				if (  t.steamworks_jetpackparticles[t.c]  !=  -1 ) 
+				if (  t.mp_jetpackparticles[t.c]  !=  -1 ) 
 				{
-					t.tRaveyParticlesEmitterID=t.steamworks_jetpackparticles[t.c];
+					t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.c];
 					ravey_particles_delete_emitter ( );
-					t.steamworks_jetpackparticles[t.c]=-1;
+					t.mp_jetpackparticles[t.c]=-1;
 				}
 
-				if (  t.steamworks_isDying[t.c]  ==  0 && t.steamworks_playerHasSpawned[t.c]  ==  1 ) 
+				if (  t.mp_isDying[t.c]  ==  0 && t.mp_playerHasSpawned[t.c]  ==  1 ) 
 				{
 
-					t.steamworks_isDying[t.c] = 1;
-					t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
-					t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.steamworks_playerEntityID[t.c]].bankindex].spine;
+					t.mp_isDying[t.c] = 1;
+					t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+					t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
 					RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
-					t.e = t.steamworks_playerEntityID[t.c];
+					t.e = t.mp_playerEntityID[t.c];
 					if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
 					{
 						t.tweight=t.entityelement[t.e].eleprof.phyweight;
 						t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
 						ODECreateDynamicBox (  g.steamplayermodelsoffset+t.c+121,-1,0,t.tweight,t.tfriction,-1 );
 					}
-//      `play object tobj,4800,4958
-
-//      `set GetSpeed (  tobj,200 )
-
-//      `entityelement(e).eleprof.animspeed=200
-
-//      `steamworks_playingAnimation(c) = STEAM_ANIMATION_NONE
-
 
 					//  NON-CHARACTER, but can still have ragdoll flagged (like Zombies)
 					t.ttentid=t.entityelement[t.e].bankindex;
 					t.ttte = t.e;
-					t.steamworks_playingRagdoll[t.c] = 1;
-					if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 ) 
+					t.mp_playingRagdoll[t.c] = 1;
+					if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
 					{
-						if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj)  )  DeleteObject (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj );
-						t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj = 0;
+						if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
+						t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = 0;
 					}
 					t.entityprofile[t.ttentid].ragdoll=1;
 					if (  t.entityprofile[t.ttentid].ragdoll == 1 ) 
@@ -2527,7 +2463,7 @@ void steam_updatePlayerAnimations ( void )
 						*/    
 
 						//  use the real raycast if we shot them
-//       `if Steam Get Player Killed Source(c) = steamworks.me
+//       `if Steam Get Player Killed Source(c) = mp.me
 
 //        `ttx# = brayx2#-brayx1#
 
@@ -2562,23 +2498,15 @@ void steam_updatePlayerAnimations ( void )
 						t.entityelement[t.ttte].ragdollifiedforcey_f=(t.tty_f)*1.2;
 						t.entityelement[t.ttte].ragdollifiedforcez_f=(t.ttz_f)*0.8;
 						t.entityelement[t.ttte].ragdollifiedforcevalue_f=t.ttforce_f*8000.0;
-//       `entityelement(ttte).ragdollifiedforcelimb=tlimb
-
 						t.entityelement[t.ttte].ragdollifiedforcelimb=t.ttlimb;
-//       `bulletraylimbhit=-1
-
-
 					}
-
 				}
-//     `steamworks_isIdling(c) = 0
-
 			}
 			else
 			{
-				if (  t.steamworks_forcePosition[t.c]  ==  0 ) 
+				if (  t.mp_forcePosition[t.c]  ==  0 ) 
 				{
-					if (  t.steamworks_isDying[t.c]  ==  1 ) 
+					if (  t.mp_isDying[t.c]  ==  1 ) 
 					{
 						if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
 						{
@@ -2586,16 +2514,16 @@ void steam_updatePlayerAnimations ( void )
 							RotateObject (  g.steamplayermodelsoffset+t.c+121,0,0,0 );
 							PositionObject (  g.steamplayermodelsoffset+t.c+121,0,-99999,0 );
 							HideObject (  g.steamplayermodelsoffset+t.c+121 );
-							t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 						}
-						t.steamworks_isDying[t.c] = 0;
+						t.mp_isDying[t.c] = 0;
 					}
 				}
 			}
 
-			t.steamworks_oldplayerx[t.c] = t.entityelement[t.steamworks_playerEntityID[t.c]].x;
-			t.steamworks_oldplayery[t.c] = t.entityelement[t.steamworks_playerEntityID[t.c]].y;
-			t.steamworks_oldplayerz[t.c] = t.entityelement[t.steamworks_playerEntityID[t.c]].z;
+			t.mp_oldplayerx[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].x;
+			t.mp_oldplayery[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].y;
+			t.mp_oldplayerz[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].z;
 
 }
 
@@ -2603,9 +2531,9 @@ return;
 
 }
 
-void steam_switchAnim ( void )
+void mp_switchAnim ( void )
 {
-	t.ttentid=t.entityelement[t.steamworks_playerEntityID[t.c]].bankindex;
+	t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
 	t.q=t.entityprofile[t.ttentid].startofaianim;
 	t.e=t.entityanim[t.ttentid][t.q+t.tplaycsi].start;
 	t.v=t.entityanim[t.ttentid][t.q+t.tplaycsi].finish;
@@ -2613,24 +2541,18 @@ return;
 
 }
 
-void steam_update_waist_rotation ( void )
+void mp_update_waist_rotation ( void )
 {
+	return;
+	t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
 
-return;
-t.tobj = t.entityelement[t.steamworks_playerEntityID[t.c]].obj;
-//  needs c as multiplayer index, tobj as the multiplayer chars object
-	if (  t.steamworks_lastIdleReset[t.c]  ==  1 ) 
+	if (  t.mp_lastIdleReset[t.c]  ==  1 ) 
 	{
-		t.steamworks_lastIdleY[t.c] = t.entityelement[t.steamworks_playerEntityID[t.c]].ry;
-		t.steamworks_lastIdleReset[t.c] = 0;
+		t.mp_lastIdleY[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].ry;
+		t.mp_lastIdleReset[t.c] = 0;
 	}
 
-//  `print "steam get player angle(c) = " + Str(entityelement(steamworks_playerEntityID(c)).ry)
-
-//  `print "steamworks_lastIdleY(c) = " + Str(steamworks_lastIdleY(c))
-
-
-	t.tDifference_f = t.entityelement[t.steamworks_playerEntityID[t.c]].ry - t.steamworks_lastIdleY[t.c];
+	t.tDifference_f = t.entityelement[t.mp_playerEntityID[t.c]].ry - t.mp_lastIdleY[t.c];
 	t.tAmountToRotateSpine_f = t.tDifference_f;
 	t.tAmountToRotateObject_f = 0.0;
 
@@ -2646,23 +2568,23 @@ t.tobj = t.entityelement[t.steamworks_playerEntityID[t.c]].obj;
 		t.tAmountToRotateSpine_f = -60.0;
 	}
 
-	YRotateObject (  t.tobj, t.steamworks_lastIdleY[t.c]+t.tAmountToRotateObject_f );
-	t.steamworks_lastIdleY[t.c] = t.steamworks_lastIdleY[t.c]+t.tAmountToRotateObject_f;
+	YRotateObject (  t.tobj, t.mp_lastIdleY[t.c]+t.tAmountToRotateObject_f );
+	t.mp_lastIdleY[t.c] = t.mp_lastIdleY[t.c]+t.tAmountToRotateObject_f;
 
-	t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.steamworks_playerEntityID[t.c]].bankindex].spine;
+	t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
 	RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),t.tAmountToRotateSpine_f,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
 
-return;
+	return;
 
 }
 
-void steam_showdeath ( void )
+void mp_showdeath ( void )
 {
 
 	t.characterkitcontrol.showmyhead = 1;
-	if (  g.steamworks.haveshowndeath  ==  0 ) 
+	if (  g.mp.haveshowndeath  ==  0 ) 
 	{
-		g.steamworks.haveshowndeath = 1;
+		g.mp.haveshowndeath = 1;
 		t.tolddeathcamx_f = 0;
 		t.tolddeathcamy_f = 0;
 		t.tolddeathcamz_f = 0;
@@ -2670,14 +2592,14 @@ void steam_showdeath ( void )
 		t.tamountToMoveUp_f = 0.0;
 		t.tspawninyoffset_f = 0.0;
 		t.tshowdeathlockcam = -1;
-		g.steamworks.spectatorfollowdistance = 200;
+		g.mp.spectatorfollowdistance = 200;
 		t.tdeathamounttotakeoffdistance = 0;
 	}
 
 	//  19032015 - 021 - prevent water affect being triggered when in 3rd person
 	visuals_underwater_off ( );
 
-		t.tobjtosee = t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj;
+		t.tobjtosee = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
 //   `playercontrol.jetobjtouse=hudlayersbankoffset+1
 
 		t.playercontrol.jetpackhidden=0;
@@ -2690,27 +2612,27 @@ void steam_showdeath ( void )
 
 		//  new subroutine so steam can reset zoom in
 		physics_no_gun_zoom ( );
-		if (  g.steamworks.endplay  ==  1 && g.steamworks.respawnLeft > 3 ) 
+		if (  g.mp.endplay  ==  1 && g.mp.respawnLeft > 3 ) 
 		{
-				g.steamworks.respawnLeft = 100;
+				g.mp.respawnLeft = 100;
 				return;
 		}
 		//  if dead switch to 3rd person view to see the action
-			t.e = t.steamworks_playerEntityID[g.steamworks.me];
-			t.tobj = t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj;
+			t.e = t.mp_playerEntityID[g.mp.me];
+			t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
 			if (  t.tobj > 0 ) 
 			{
 				if ( ObjectExist (t.tobj) ) 
 				{
-//     `if health(steamworks.me) <= 0
+//     `if health(mp.me) <= 0
 
 					ShowObject (  t.tobj );
-					t.tpe = t.steamworks_playerEntityID[g.steamworks.me];
-					if (  g.steamworks.ragdollon  ==  0 ) 
+					t.tpe = t.mp_playerEntityID[g.mp.me];
+					if (  g.mp.ragdollon  ==  0 ) 
 					{
-						g.steamworks.ragdollon = 1;
+						g.mp.ragdollon = 1;
 
-					if (  g.steamworks.gameAlreadySpawnedBefore  ==  1 ) 
+					if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
 					{
 
 						//  turn off jetpack sound, turn off particles and reset thrust
@@ -2724,32 +2646,24 @@ void steam_showdeath ( void )
 							t.playercontrol.jetpackparticleemitterindex=0;
 						}
 
-						t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].bankindex].spine;
+						t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[g.mp.me]].bankindex].spine;
 						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
-						if (  ObjectExist(g.steamplayermodelsoffset+g.steamworks.me+121)  ==  1 ) 
+						if (  ObjectExist(g.steamplayermodelsoffset+g.mp.me+121)  ==  1 ) 
 						{
 							t.tweight=t.entityelement[t.e].eleprof.phyweight;
 							t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
-							ODECreateDynamicBox (  g.steamplayermodelsoffset+g.steamworks.me+121,-1,0,t.tweight,t.tfriction,-1 );
+							ODECreateDynamicBox (  g.steamplayermodelsoffset+g.mp.me+121,-1,0,t.tweight,t.tfriction,-1 );
 						}
-						t.tme = g.steamworks.me;
-//       `play object tobj,4800,4958
-
-//       `set GetSpeed (  tobj,200 )
-
-//       `entityelement(e).eleprof.animspeed=200
-
-//       `steamworks_playingAnimation(c) = STEAM_ANIMATION_NONE
-
+						t.tme = g.mp.me;
 
 						//  NON-CHARACTER, but can still have ragdoll flagged (like Zombies)
 						t.ttentid=t.entityelement[t.e].bankindex;
 						t.ttte = t.e;
-						t.steamworks_playingRagdoll[t.tme] = 1;
-						if (  t.entityelement[t.steamworks_playerEntityID[t.tme]].attachmentobj > 0 ) 
+						t.mp_playingRagdoll[t.tme] = 1;
+						if (  t.entityelement[t.mp_playerEntityID[t.tme]].attachmentobj > 0 ) 
 						{
-							if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.tme]].attachmentobj)  )  DeleteObject (  t.entityelement[t.steamworks_playerEntityID[t.tme]].attachmentobj );
-							t.entityelement[t.steamworks_playerEntityID[t.tme]].attachmentobj = 0;
+							if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.tme]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.tme]].attachmentobj );
+							t.entityelement[t.mp_playerEntityID[t.tme]].attachmentobj = 0;
 						}
 						t.entityprofile[t.ttentid].ragdoll=1;
 						if (  t.entityprofile[t.ttentid].ragdoll == 1 ) 
@@ -2768,7 +2682,7 @@ void steam_showdeath ( void )
 							t.c = t.oldc;
 
 							//  use the real raycast if we shot them
-							if (  SteamGetPlayerDamageSource()  ==  g.steamworks.me ) 
+							if (  SteamGetPlayerDamageSource()  ==  g.mp.me ) 
 							{
 								t.ttx_f = t.brayx2_f-t.brayx1_f;
 								t.tty_f = t.brayy2_f-t.brayy1_f;
@@ -2812,42 +2726,42 @@ void steam_showdeath ( void )
 					if (  1 ) 
 					{
 						t.tsteamlimb=t.entityprofile[t.entityelement[t.tpe].bankindex].spine2;
-						if (  g.steamworks.gameAlreadySpawnedBefore  ==  0 ) 
+						if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
 						{
-							if (  g.steamworks.initialSpawnmoveDownCharacterFlag  ==  1 ) 
+							if (  g.mp.initialSpawnmoveDownCharacterFlag  ==  1 ) 
 							{
 								PositionObject (  t.entityelement[t.tpe].obj, ObjectPositionX(t.entityelement[t.tpe].obj), ObjectPositionY(t.entityelement[t.tpe].obj)-50, ObjectPositionZ(t.entityelement[t.tpe].obj) );
 								if (  ObjectPositionY(t.entityelement[t.tpe].obj) < BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.entityelement[t.tpe].obj),ObjectPositionZ(t.entityelement[t.tpe].obj)) ) 
 								{
 									PositionObject (  t.entityelement[t.tpe].obj, ObjectPositionX(t.entityelement[t.tpe].obj), BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.entityelement[t.tpe].obj),ObjectPositionZ(t.entityelement[t.tpe].obj)) , ObjectPositionZ(t.entityelement[t.tpe].obj) );
 								}
-								g.steamworks.initialSpawnmoveDownCharacterFlag = 0;
+								g.mp.initialSpawnmoveDownCharacterFlag = 0;
 							}
 						}
 						t.x_f = LimbPositionX(t.tobjtosee,t.tsteamlimb);
 						t.y_f = LimbPositionY(t.tobjtosee,t.tsteamlimb);
 						t.z_f = LimbPositionZ(t.tobjtosee,t.tsteamlimb);
 						PositionCamera (  t.x_f,t.y_f+100,t.z_f );
-						RotateCamera (  0,g.steamworks.camrotate,0 );
-						g.steamworks.camrotate = g.steamworks.camrotate + (0.5*g.timeelapsed_f);
+						RotateCamera (  0,g.mp.camrotate,0 );
+						g.mp.camrotate = g.mp.camrotate + (0.5*g.timeelapsed_f);
 
 
 						t.x_f = LimbPositionX(t.tobjtosee,t.tsteamlimb);
 						t.y_f = LimbPositionY(t.tobjtosee,t.tsteamlimb)+10;
 						t.z_f = LimbPositionZ(t.tobjtosee,t.tsteamlimb);
 
-						MoveCamera (  -g.steamworks.spectatorfollowdistance );
+						MoveCamera (  -g.mp.spectatorfollowdistance );
 
 						t.tXOldPos_f = CameraPositionX();
 						t.tYOldPos_f = CameraPositionY();
 						t.tZOldPos_f = CameraPositionZ();
 
-						MoveCamera (  g.steamworks.spectatorfollowdistance );
+						MoveCamera (  g.mp.spectatorfollowdistance );
 						t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
 //       `tEndEntity = entityviewstartobj+entityelementlist
 
 						t.tHitObj=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.x_f,t.y_f,t.z_f,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tobjtosee);
-						t.tdistancewecanmovecam_f = g.steamworks.spectatorfollowdistance;
+						t.tdistancewecanmovecam_f = g.mp.spectatorfollowdistance;
 						if (  t.tHitObj > 0 ) 
 						{
 							t.tHitX_f = ChecklistFValueA(6);
@@ -2860,7 +2774,7 @@ void steam_showdeath ( void )
 						}
 						MoveCamera (  -t.tdistancewecanmovecam_f );
 
-//       `move camera -steamworks.spectatorfollowdistance
+//       `move camera -mp.spectatorfollowdistance
 
 						PointCamera (  t.x_f,t.y_f,t.z_f );
 
@@ -2880,17 +2794,17 @@ void steam_showdeath ( void )
 						t.tHitObj=IntersectAll(g.entityviewstartobj,t.tEndEntity,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tXNewPos_f,t.tYNewPos_f,t.tZNewPos_f,t.entityelement[t.tpe].obj);
 						if (  t.tHitObj>0 ) 
 						{
-							if (  g.steamworks.spectatorfollowdistance > 10.0 ) 
+							if (  g.mp.spectatorfollowdistance > 10.0 ) 
 							{
-								g.steamworks.spectatorfollowdistance = g.steamworks.spectatorfollowdistance - 10.0;
-								g.steamworks.spectatorfollowdistancedelay = Timer();
+								g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance - 10.0;
+								g.mp.spectatorfollowdistancedelay = Timer();
 							}
 						}
 						else
 						{
-							if (  g.steamworks.spectatorfollowdistance < 200.0 && Timer() - g.steamworks.spectatorfollowdistancedelay > 1000 ) 
+							if (  g.mp.spectatorfollowdistance < 200.0 && Timer() - g.mp.spectatorfollowdistancedelay > 1000 ) 
 							{
-								g.steamworks.spectatorfollowdistance = g.steamworks.spectatorfollowdistance + 10.0;
+								g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance + 10.0;
 							}
 						}
 						*/    
@@ -2898,7 +2812,7 @@ void steam_showdeath ( void )
 					else
 					{
 						t.twhokilledme = SteamGetPlayerDamageSource();
-						if (  t.twhokilledme  !=  g.steamworks.me ) 
+						if (  t.twhokilledme  !=  g.mp.me ) 
 						{
 							t.tsteamlimb=t.entityprofile[t.entityelement[t.tpe].bankindex].spine2;
 							t.x_f = LimbPositionX(t.entityelement[t.tpe].obj,t.tsteamlimb);
@@ -2907,13 +2821,13 @@ void steam_showdeath ( void )
 							PositionCamera (  t.x_f,t.y_f+100,t.z_f );
 							PointCamera (  SteamGetPlayerPositionX(t.twhokilledme),SteamGetPlayerPositionY(t.twhokilledme)+50,SteamGetPlayerPositionZ(t.twhokilledme) );
 							/*      
-							tcamheight = (200 - g.steamworks.spectatorfollowdistance) / 2;
+							tcamheight = (200 - g.mp.spectatorfollowdistance) / 2;
 							PositionCamera (  SteamGetPlayerPositionX(t.twhokilledme), SteamGetPlayerPositionY(t.twhokilledme)+tcamheight+50, SteamGetPlayerPositionZ(t.twhokilledme) );
 							SteamSetPlayerPositionX (  SteamGetPlayerPositionX(t.twhokilledme) );
 							SteamSetPlayerPositionY (  SteamGetPlayerPositionY(t.twhokilledme) );
 							SteamSetPlayerPositionZ (  SteamGetPlayerPositionZ(t.twhokilledme) );
 							RotateCamera (  0,SteamGetPlayerAngle(t.twhokilledme),0 );
-							MoveCamera (  -g.steamworks.spectatorfollowdistance );
+							MoveCamera (  -g.mp.spectatorfollowdistance );
 							PointCamera (  SteamGetPlayerPositionX(t.twhokilledme),SteamGetPlayerPositionY(t.twhokilledme)+50,SteamGetPlayerPositionZ(t.twhokilledme) );
 
 							t.tEndEntity = g.entityviewstartobj+g.entityelementlist;
@@ -2929,27 +2843,27 @@ void steam_showdeath ( void )
 							t.tHitObj=IntersectAll(g.entityviewstartobj,t.tEndEntity,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tXNewPos_f,t.tYNewPos_f,t.tZNewPos_f,t.entityelement[t.tpe].obj);
 							if (  t.tHitObj>0 ) 
 							{
-								if (  g.steamworks.spectatorfollowdistance > 10.0 ) 
+								if (  g.mp.spectatorfollowdistance > 10.0 ) 
 								{
-									g.steamworks.spectatorfollowdistance = g.steamworks.spectatorfollowdistance - 10.0;
-									g.steamworks.spectatorfollowdistancedelay = Timer();
+									g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance - 10.0;
+									g.mp.spectatorfollowdistancedelay = Timer();
 								}
 							}
 							else
 							{
-								if (  g.steamworks.spectatorfollowdistance < 200.0 && Timer() - g.steamworks.spectatorfollowdistancedelay > 1000 ) 
+								if (  g.mp.spectatorfollowdistance < 200.0 && Timer() - g.mp.spectatorfollowdistancedelay > 1000 ) 
 								{
-									g.steamworks.spectatorfollowdistance = g.steamworks.spectatorfollowdistance + 10.0;
+									g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance + 10.0;
 								}
 							}
 						*/    
 						}
-//       `if steamworks.respawnLeft  ==  5 && toldrespawnleft  ==  6 then steamworks.spectatorfollowdistance  ==  200
+//       `if mp.respawnLeft  ==  5 && toldrespawnleft  ==  6 then mp.spectatorfollowdistance  ==  200
 						
-						t.toldrespawnleft = g.steamworks.respawnLeft;
+						t.toldrespawnleft = g.mp.respawnLeft;
 					}
 				}
-				if (  g.steamworks.gameAlreadySpawnedBefore  ==  1 ) 
+				if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
 				{
 					if (  CameraPositionY()  <=  BT_GetGroundHeight(t.terrain.TerrainID,CameraPositionX(),CameraPositionZ()) ) 
 					{
@@ -2990,9 +2904,9 @@ void steam_showdeath ( void )
 						MoveCamera (  1.0 );
 						t.tdeathamounttotakeoffdistance = t.tdeathamounttotakeoffdistance + 20;
 					}
-					if (  t.tdeathamounttotakeoffdistance > 0 && g.steamworks.spectatorfollowdistance > 40 ) 
+					if (  t.tdeathamounttotakeoffdistance > 0 && g.mp.spectatorfollowdistance > 40 ) 
 					{
-						g.steamworks.spectatorfollowdistance = g.steamworks.spectatorfollowdistance - 1.0;
+						g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance - 1.0;
 						t.tdeathamounttotakeoffdistance = t.tdeathamounttotakeoffdistance - 1;
 					}
 				}
@@ -3000,11 +2914,11 @@ void steam_showdeath ( void )
 			}
 
 			//  update any character creator people
-			t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].x = ObjectPositionX(t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj);
-			t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].y = ObjectPositionY(t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj);
-			t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].z = ObjectPositionZ(t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj);
+			t.entityelement[t.mp_playerEntityID[g.mp.me]].x = ObjectPositionX(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj);
+			t.entityelement[t.mp_playerEntityID[g.mp.me]].y = ObjectPositionY(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj);
+			t.entityelement[t.mp_playerEntityID[g.mp.me]].z = ObjectPositionZ(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj);
 			//  for initial spawn in
-			if (  g.steamworks.gameAlreadySpawnedBefore  ==  0 && ( g.steamworks.realfirsttimespawn  ==  1 || g.steamworks.coop  ==  1 ) ) 
+			if (  g.mp.gameAlreadySpawnedBefore  ==  0 && ( g.mp.realfirsttimespawn  ==  1 || g.mp.coop  ==  1 ) ) 
 			{
 				characterkit_checkForCharacters ( );
 				characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( );
@@ -3014,34 +2928,34 @@ return;
 
 }
 
-void steam_respawn ( void )
+void mp_respawn ( void )
 {
 
 	t.characterkitcontrol.showmyhead = 1;
 	if ( g.autoloadgun != 0 ) { g.autoloadgun=0 ; gun_change ( ); }
 	if (  t.player[t.plrid].health < 100  )  t.player[t.plrid].health  =  100;
-	if (  g.steamworks.myOriginalSpawnPoint  !=  -1 ) 
+	if (  g.mp.myOriginalSpawnPoint  !=  -1 ) 
 	{
-		t.tindex = g.steamworks.me+1;
+		t.tindex = g.mp.me+1;
 	}
 	else
 	{
-		t.tindex = g.steamworks.myOriginalSpawnPoint;
+		t.tindex = g.mp.myOriginalSpawnPoint;
 	}
 
-	g.steamworks.invincibleTimer = Timer();
+	g.mp.invincibleTimer = Timer();
 	t.huddamage.immunity=1000;
 
-	g.steamworks.damageWasFromAI = 0;
+	g.mp.damageWasFromAI = 0;
 
-	if (  g.steamworks.coop  ==  1 ) 
+	if (  g.mp.coop  ==  1 ) 
 	{
 //  `remstart
 
-		if (  g.steamworks.originalEntitycount  ==  0 ) 
+		if (  g.mp.originalEntitycount  ==  0 ) 
 		{
 			//  Store the count here incase other elements get added later (like guns)
-			g.steamworks.originalEntitycount = g.entityelementlist;
+			g.mp.originalEntitycount = g.entityelementlist;
 			Dim (  t.steamStoreentityelement,g.entityelementlist );
 			for ( t.te = 1 ; t.te<=  g.entityelementlist; t.te++ )
 			{
@@ -3056,17 +2970,17 @@ void steam_respawn ( void )
 	t.playercontrol.redDeathFog_f = 0;
 //physics_disableplayer ( );
 	t.aisystem.processplayerlogic=0;
-	g.steamworks.noplayermovement = 1;
+	g.mp.noplayermovement = 1;
 	
-	if (  g.steamworks.syncedWithServer  ==  0 ) 
+	if (  g.mp.syncedWithServer  ==  0 ) 
 	{
 		SteamSendIAmReadyToPlay (  );
-		g.steamworks.syncedWithServer = 1;
-		g.steamworks.sentreadytime = Timer();
+		g.mp.syncedWithServer = 1;
+		g.mp.sentreadytime = Timer();
 //   `print "SENDING I AM READY"
 
 		//  are we the server? if so, let lua know
-		if (  g.steamworks.isGameHost  ==  1 ) 
+		if (  g.mp.isGameHost  ==  1 ) 
 		{
 			LuaSetInt (  "mp_isServer",1 );
 		}
@@ -3074,47 +2988,47 @@ void steam_respawn ( void )
 		{
 			LuaSetInt (  "mp_isServer",0 );
 		}
-		LuaSetInt (  "mp_coop", g.steamworks.coop );
-		steam_howManyEnemiesLeftToKill ( );
-		LuaSetInt (  "mp_me",g.steamworks.me+1 );
-		steam_setLuaResetStats ( );
+		LuaSetInt (  "mp_coop", g.mp.coop );
+		mp_howManyEnemiesLeftToKill ( );
+		LuaSetInt (  "mp_me",g.mp.me+1 );
+		mp_setLuaResetStats ( );
 	}
 	
 	ravey_particles_delete_all_emitters ( );
 	
-	if (  g.steamworks.maxHealth  ==  0  )  g.steamworks.maxHealth  =  t.player[t.plrid].health;
+	if (  g.mp.maxHealth  ==  0  )  g.mp.maxHealth  =  t.player[t.plrid].health;
 	
-	if (  g.steamworks.gameAlreadySpawnedBefore  ==  0 || Timer() - g.steamworks.dyingTime > 1500 ) 
+	if (  g.mp.gameAlreadySpawnedBefore  ==  0 || Timer() - g.mp.dyingTime > 1500 ) 
 	{
-			if (  g.steamworks.gameAlreadySpawnedBefore  ==  0 ) 
+			if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
 			{
 
 				//  13032015 0XX - Team Multiplayer
-				if (  g.steamworks.team  ==  1 ) 
+				if (  g.mp.team  ==  1 ) 
 				{
-					for ( t.tteam = 1 ; t.tteam<=  STEAM_MAX_NUMBER_OF_PLAYERS; t.tteam++ )
+					for ( t.tteam = 1 ; t.tteam<=  MP_MAX_NUMBER_OF_PLAYERS; t.tteam++ )
 					{
-						t.tnothing = LuaExecute( cstr(cstr("mp_playerTeam[") + Str(t.tteam) + "] = " + Str(t.steamworks_team[t.tteam-1])).Get() );
+						t.tnothing = LuaExecute( cstr(cstr("mp_playerTeam[") + Str(t.tteam) + "] = " + Str(t.mp_team[t.tteam-1])).Get() );
 					}
-						t.tnothing = LuaExecute( cstr(cstr("mp_teambased = ") + Str(g.steamworks.team)).Get() );
+						t.tnothing = LuaExecute( cstr(cstr("mp_teambased = ") + Str(g.mp.team)).Get() );
 				}
 
-				t.tindex = g.steamworks.me+1;
-				g.steamworks.myOriginalSpawnPoint = t.tindex;
+				t.tindex = g.mp.me+1;
+				g.mp.myOriginalSpawnPoint = t.tindex;
 
-				if (  t.steamworksmultiplayerstart[t.tindex].active == 1 ) 
+				if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
 				{
-					t.terrain.playerx_f=t.steamworksmultiplayerstart[t.tindex].x;
-					t.terrain.playery_f=t.steamworksmultiplayerstart[t.tindex].y+20;
-					t.terrain.playerz_f=t.steamworksmultiplayerstart[t.tindex].z;
+					t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
+					t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y+20;
+					t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
 					t.terrain.playerax_f=0;
-					t.terrain.playeray_f=t.steamworksmultiplayerstart[t.tindex].angle;
+					t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
 					t.terrain.playeraz_f=0;
 
-					g.steamworks.lastx=t.terrain.playerx_f;
-					g.steamworks.lasty=t.terrain.playery_f;
-					g.steamworks.lastz=t.terrain.playerz_f;
-					g.steamworks.lastangley=t.terrain.playeray_f;
+					g.mp.lastx=t.terrain.playerx_f;
+					g.mp.lasty=t.terrain.playery_f;
+					g.mp.lastz=t.terrain.playerz_f;
+					g.mp.lastangley=t.terrain.playeray_f;
 
 				}
 				else
@@ -3123,65 +3037,48 @@ void steam_respawn ( void )
 					t.ttempindex = t.tindex/2;
 					if (  t.ttempindex > 0 ) 
 					{
-						if (  t.steamworksmultiplayerstart[t.ttempindex].active == 1 ) 
+						if (  t.mpmultiplayerstart[t.ttempindex].active == 1 ) 
 						{
-							g.steamworks.myOriginalSpawnPoint = t.ttempindex;
+							g.mp.myOriginalSpawnPoint = t.ttempindex;
 							t.tfound = 1;
-							t.terrain.playerx_f=t.steamworksmultiplayerstart[t.ttempindex].x;
-							t.terrain.playery_f=t.steamworksmultiplayerstart[t.ttempindex].y+20;
-							t.terrain.playerz_f=t.steamworksmultiplayerstart[t.ttempindex].z;
+							t.terrain.playerx_f=t.mpmultiplayerstart[t.ttempindex].x;
+							t.terrain.playery_f=t.mpmultiplayerstart[t.ttempindex].y+20;
+							t.terrain.playerz_f=t.mpmultiplayerstart[t.ttempindex].z;
 							t.terrain.playerax_f=0;
-							t.terrain.playeray_f=t.steamworksmultiplayerstart[t.ttempindex].angle;
+							t.terrain.playeray_f=t.mpmultiplayerstart[t.ttempindex].angle;
 							t.terrain.playeraz_f=0;
 
-							g.steamworks.lastx=t.terrain.playerx_f;
-							g.steamworks.lasty=t.terrain.playery_f;
-							g.steamworks.lastz=t.terrain.playerz_f;
-							g.steamworks.lastangley=t.terrain.playeray_f;
+							g.mp.lastx=t.terrain.playerx_f;
+							g.mp.lasty=t.terrain.playery_f;
+							g.mp.lastz=t.terrain.playerz_f;
+							g.mp.lastangley=t.terrain.playeray_f;
 						}
 					}
 					if (  t.tfound  ==  0 ) 
 					{
-						if (  t.steamworksmultiplayerstart[1].active == 1 ) 
+						if (  t.mpmultiplayerstart[1].active == 1 ) 
 						{
-							g.steamworks.myOriginalSpawnPoint = 1;
+							g.mp.myOriginalSpawnPoint = 1;
 							t.tfound = 1;
-							t.terrain.playerx_f=t.steamworksmultiplayerstart[1].x;
-							t.terrain.playery_f=t.steamworksmultiplayerstart[1].y+20;
-							t.terrain.playerz_f=t.steamworksmultiplayerstart[1].z;
+							t.terrain.playerx_f=t.mpmultiplayerstart[1].x;
+							t.terrain.playery_f=t.mpmultiplayerstart[1].y+20;
+							t.terrain.playerz_f=t.mpmultiplayerstart[1].z;
 							t.terrain.playerax_f=0;
-							t.terrain.playeray_f=t.steamworksmultiplayerstart[1].angle;
+							t.terrain.playeray_f=t.mpmultiplayerstart[1].angle;
 							t.terrain.playeraz_f=0;
 	
-							g.steamworks.lastx=t.terrain.playerx_f;
-							g.steamworks.lasty=t.terrain.playery_f;
-							g.steamworks.lastz=t.terrain.playerz_f;
-							g.steamworks.lastangley=t.terrain.playeray_f;
+							g.mp.lastx=t.terrain.playerx_f;
+							g.mp.lasty=t.terrain.playery_f;
+							g.mp.lastz=t.terrain.playerz_f;
+							g.mp.lastangley=t.terrain.playeray_f;
 						}
 					}
 					if (  t.tfound  ==  0 ) 
 					{
 						physics_resetplayer_core ( );
 					}
-	
-//      `endif
-
 				}
 			}
-			else
-			{
-//     `if steamworks.spawnrnd  ==  -1 then steamworks.spawnrnd  ==  Rnd(STEAM_MAX_NUMBER_OF_PLAYERS-1)
-
-//     `if steamworksmultiplayerstart(steamworks.spawnrnd).active=1
-
-//    terrain.playerx#=steamworksmultiplayerstart(steamworks.spawnrnd).x
-	//   terrain.playery#=steamworksmultiplayerstart(steamworks.spawnrnd).y+20
-		//  terrain.playerz#=steamworksmultiplayerstart(steamworks.spawnrnd).z
-			// terrain.playera#=steamworksmultiplayerstart(steamworks.spawnrnd).angle
-
-			//endif
-			}
-		//physics_resetplayer_core ( );
 
 			SteamSetPlayerPositionX (  t.terrain.playerx_f );
 			SteamSetPlayerPositionY (  t.terrain.playery_f );
@@ -3189,27 +3086,25 @@ void steam_respawn ( void )
 			SteamSetPlayerAngle (  t.terrain.playeray_f );
 	}
 
-	if (  SteamIsEveryoneReadyToPlay()  ==  0 || g.steamworks.syncedWithServer  ==  0 ) 
+	if (  SteamIsEveryoneReadyToPlay()  ==  0 || g.mp.syncedWithServer  ==  0 ) 
 	{
-		steam_textDots(-1,30,3,"Waiting for other players to join");
-		if (  Timer() - g.steamworks.sentreadytime > 30*1000 ) 
+		mp_textDots(-1,30,3,"Waiting for other players to join");
+		if (  Timer() - g.mp.sentreadytime > 30*1000 ) 
 		{
-				g.steamworks.syncedWithServer = 0;
-//     `print "NOT HEARD FROM OTHER PLAYERS"
-
+				g.mp.syncedWithServer = 0;
 		}
 		t.typos = 40;
-		for ( t.tn = 0 ; t.tn<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
+		for ( t.tn = 0 ; t.tn<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
 		{
-			if (  t.steamworks_joined[t.tn]  !=  "" ) 
+			if (  t.mp_joined[t.tn]  !=  "" ) 
 			{
-				if (  cstr(Right(t.steamworks_joined[t.tn].Get(),6 ))  ==  "Joined" ) 
+				if (  cstr(Right(t.mp_joined[t.tn].Get(),6 ))  ==  "Joined" ) 
 				{
-					steam_textColor(-1,t.typos,1,t.steamworks_joined[t.tn].Get(),100,255,100);
+					mp_textColor(-1,t.typos,1,t.mp_joined[t.tn].Get(),100,255,100);
 				}
 				else
 				{
-					steam_textColor(-1,t.typos,1, cstr(t.steamworks_joined[t.tn] + " - Waiting").Get(),255,200,100);
+					mp_textColor(-1,t.typos,1, cstr(t.mp_joined[t.tn] + " - Waiting").Get(),255,200,100);
 				}
 				t.typos += 5;
 			}
@@ -3217,7 +3112,7 @@ void steam_respawn ( void )
 		return;
 	}
 
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 			t.x_f = SteamGetPlayerPositionX(t.c);
 			t.y_f = SteamGetPlayerPositionY(t.c);
@@ -3225,7 +3120,7 @@ void steam_respawn ( void )
 			t.angle_f = SteamGetPlayerAngle(t.c);
 	}
 
-	//steam set voice chat steamworks.voiceChatOn;
+	//steam set voice chat mp.voiceChatOn;
 	//  Hide gun since we go to 3rd person for spawn in
 //  `steam set player position x -100000
 
@@ -3236,39 +3131,39 @@ void steam_respawn ( void )
 //  `steam set player alive 0
 
 
-	t.tobj = t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj;
+	t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
 
-	if (  g.steamworks.gameAlreadySpawnedBefore  ==  1 ) 
+	if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
 	{
 		//  if we have not died to another player, we take one off our kills instead since we killed ourself
-		if (  g.steamworks.checkedWhoKilledMe  ==  0 ) 
+		if (  g.mp.checkedWhoKilledMe  ==  0 ) 
 		{
-			g.steamworks.checkedWhoKilledMe = 1;
-			if (  g.steamworks.killedByPlayerFlag  ==  0 ) 
+			g.mp.checkedWhoKilledMe = 1;
+			if (  g.mp.killedByPlayerFlag  ==  0 ) 
 			{
-//     `steamworks.kills = steamworks.kills -1
+//     `mp.kills = mp.kills -1
 
-				if (  g.steamworks.coop  ==  0 ) 
+				if (  g.mp.coop  ==  0 ) 
 				{
-					SteamSendLua (  STEAM_LUA_ServerSetPlayerRemoveKill,0,g.steamworks.me+1 );
+					SteamSendLua (  MP_LUA_ServerSetPlayerRemoveKill,0,g.mp.me+1 );
 					SteamKilledSelf (  );
 				}
-//     `tnothing = LuaExecute("mp_playerKills[" + Str(steamworks.me+1) + "] = " + Str(steamworks.kills))
+//     `tnothing = LuaExecute("mp_playerKills[" + Str(mp.me+1) + "] = " + Str(mp.kills))
 
 			}
 			else
 			{
-				if (  g.steamworks.coop  ==  0 ) 
+				if (  g.mp.coop  ==  0 ) 
 				{
-					SteamSendLua (  STEAM_LUA_ServerSetPlayerAddKill,0,g.steamworks.playerThatKilledMe+1 );
+					SteamSendLua (  MP_LUA_ServerSetPlayerAddKill,0,g.mp.playerThatKilledMe+1 );
 				}
-//     `tnothing = LuaExecute("mp_playerKills[" + Str(steamworks.playerThatKilledMe+1) + "] = mp_playerKills[" + Str(steamworks.playerThatKilledMe+1) + "] + 1")
+//     `tnothing = LuaExecute("mp_playerKills[" + Str(mp.playerThatKilledMe+1) + "] = mp_playerKills[" + Str(mp.playerThatKilledMe+1) + "] + 1")
 
 			}
-//    `steamworks.deaths = steamworks.deaths + 1
+//    `mp.deaths = mp.deaths + 1
 
-			SteamSendLua (  STEAM_LUA_ServerSetPlayerAddDeath,0,g.steamworks.me+1 );
-//    `tnothing = LuaExecute("mp_playerDeaths[" + Str(steamworks.me+1) + "] = " + Str(steamworks.deaths))
+			SteamSendLua (  MP_LUA_ServerSetPlayerAddDeath,0,g.mp.me+1 );
+//    `tnothing = LuaExecute("mp_playerDeaths[" + Str(mp.me+1) + "] = " + Str(mp.deaths))
 
 		}
 	}
@@ -3277,89 +3172,89 @@ void steam_respawn ( void )
 
 	if (  SteamReadyToSpawn()  ==  0 ) 
 	{
-		steam_text(-1,20,3,"WAITING FOR PLAYERS");
+		mp_text(-1,20,3,"WAITING FOR PLAYERS");
 //   `text GetDisplayWidth()/2 - Text (  width("WAITING FOR PLAYERS")/2, GetDisplayHeight()/2-30, "WAITING FOR PLAYERS" )
 
 		return;
 	}
-	if (  g.steamworks.syncedWithServer  ==  0 ) 
+	if (  g.mp.syncedWithServer  ==  0 ) 
 	{
-		steam_pre_game_file_sync ( );
+		mp_pre_game_file_sync ( );
 		if (  SteamGetClientServerConnectionStatus()  ==  0 ) 
 		{
 			t.tsteamlostconnectioncustommessage_s = "Lost connection with server (Error MP013)";
-			steam_lostConnection ( );
+			mp_lostConnection ( );
 			return;
 		}
 		return;
 	}
 
-	if (  g.steamworks.endplay  ==  0 && g.steamworks.showscoresdelay  ==  -2000 ) 
+	if (  g.mp.endplay  ==  0 && g.mp.showscoresdelay  ==  -2000 ) 
 	{
-		steam_panel(40,45,60,65);
-		steam_text(-1,52,3,"SPAWNING IN");
+		mp_panel(40,45,60,65);
+		mp_text(-1,52,3,"SPAWNING IN");
 //   `text GetDisplayWidth()/2 - Text (  width("RESPAWNING")/2, GetDisplayHeight()/2-30, "RESPAWNING" )
 
-		t.s_s = Str(5-g.steamworks.respawnLeft);
-		steam_text(-1,58,3,t.s_s.Get());
+		t.s_s = Str(5-g.mp.respawnLeft);
+		mp_text(-1,58,3,t.s_s.Get());
 //   `text GetDisplayWidth()/2 - Text (  width(s$)/2, GetDisplayHeight()/2, s$ )
 
 
-		if (  g.steamworks.coop  ==  0 ) 
+		if (  g.mp.coop  ==  0 ) 
 		{
-			if (  g.steamworks.killedByPlayerFlag  ==  1 ) 
+			if (  g.mp.killedByPlayerFlag  ==  1 ) 
 			{
-				t.s_s = cstr("YOU WERE KILLED BY ") + Upper(SteamGetOtherPlayerName(g.steamworks.playerThatKilledMe));
-				steam_text(-1,30,3,t.s_s.Get());
+				t.s_s = cstr("YOU WERE KILLED BY ") + Upper(SteamGetOtherPlayerName(g.mp.playerThatKilledMe));
+				mp_text(-1,30,3,t.s_s.Get());
 			}
 			else
 			{
-				if (  g.steamworks.gameAlreadySpawnedBefore  ==  1 ) 
+				if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
 				{
 					t.s_s = "YOU KILLED YOURSELF!";
-					steam_text(-1,30,3,t.s_s.Get());
+					mp_text(-1,30,3,t.s_s.Get());
 				}
 			}
 		}
 		else
 		{
-			if (  g.steamworks.gameAlreadySpawnedBefore  ==  1 ) 
+			if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
 			{
 				t.s_s = "YOU DIED!";
-				steam_text(-1,30,3,t.s_s.Get());
+				mp_text(-1,30,3,t.s_s.Get());
 			}
 		}
 	}
-	if (  g.steamworks.oldSpawnTimeLeft  ==  0  )  g.steamworks.oldSpawnTimeLeft  =  Timer();
+	if (  g.mp.oldSpawnTimeLeft  ==  0  )  g.mp.oldSpawnTimeLeft  =  Timer();
 
-	if (  Timer() - g.steamworks.oldSpawnTimeLeft  >=  1000 ) 
+	if (  Timer() - g.mp.oldSpawnTimeLeft  >=  1000 ) 
 	{
-		++g.steamworks.respawnLeft;
-		g.steamworks.oldSpawnTimeLeft = 0;
-		if (  g.steamworks.respawnLeft  >=  5 ) 
+		++g.mp.respawnLeft;
+		g.mp.oldSpawnTimeLeft = 0;
+		if (  g.mp.respawnLeft  >=  5 ) 
 		{
 
-			g.steamworks.haveshowndeath = 0;
-			weapon_steam_projectile_reset ( );
+			g.mp.haveshowndeath = 0;
+			weapon_mp_projectile_reset ( );
 			ravey_particles_delete_all_emitters ( );
 			lua_removeplayerweapons ( );
 			t.tsteamwasnetworkdamage = 0;
-			g.steamworks.checkedWhoKilledMe = 0;
-			g.steamworks.killedByPlayerFlag = 0;
+			g.mp.checkedWhoKilledMe = 0;
+			g.mp.killedByPlayerFlag = 0;
 			g.plrreloading = 0;
 			t.playercontrol.pushforce_f = 0.0;
 			t.playercontrol.camerashake_f = 0.0;
-			g.steamworks.lastSendTime = 0;
-			g.steamworks.spectatorfollowdistance = 200.0;
-			t.tme = g.steamworks.me;
-			if (  t.steamworks_playingRagdoll[t.tme]  ==  1 ) 
+			g.mp.lastSendTime = 0;
+			g.mp.spectatorfollowdistance = 200.0;
+			t.tme = g.mp.me;
+			if (  t.mp_playingRagdoll[t.tme]  ==  1 ) 
 			{
 
-				t.tphyobj=t.entityelement[t.steamworks_playerEntityID[t.tme]].obj;
+				t.tphyobj=t.entityelement[t.mp_playerEntityID[t.tme]].obj;
 				ragdoll_destroy ( );
-				RotateObject (  t.entityelement[t.steamworks_playerEntityID[t.tme]].obj,0,180,0 );
-				FixObjectPivot (  t.entityelement[t.steamworks_playerEntityID[t.tme]].obj );
-				t.steamworks_playingRagdoll[t.tme] = 0;
+				RotateObject (  t.entityelement[t.mp_playerEntityID[t.tme]].obj,0,180,0 );
+				FixObjectPivot (  t.entityelement[t.mp_playerEntityID[t.tme]].obj );
+				t.mp_playingRagdoll[t.tme] = 0;
 
 			}
 
@@ -3371,23 +3266,23 @@ void steam_respawn ( void )
 				HideObject (  g.steamplayermodelsoffset+t.tme+121 );
 			}
 
-			g.steamworks.ragdollon = 0;
-			if (  g.steamworks.endplay  ==  0 ) 
+			g.mp.ragdollon = 0;
+			if (  g.mp.endplay  ==  0 ) 
 			{
 				t.aisystem.processplayerlogic=1;
 			}
 			t.playercontrol.deadtime = 0;
 			t.playercontrol.redDeathFog_f = 0;
 
-			if (  g.steamworks.maxHealth  ==  0  )  g.steamworks.maxHealth  =  100;
-			g.steamworks.reloading = 0;
+			if (  g.mp.maxHealth  ==  0  )  g.mp.maxHealth  =  100;
+			g.mp.reloading = 0;
 //    `steam set player alive 1
 
-			t.steamworks_health[g.steamworks.me] = g.steamworks.maxHealth;
-			t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].health = g.steamworks.maxHealth;
-			t.player[t.plrid].health = g.steamworks.maxHealth;
-			g.steamworks.killedByPlayer = 0;
-			g.steamworks.playedMyDeathAnim = 0;
+			t.mp_health[g.mp.me] = g.mp.maxHealth;
+			t.entityelement[t.mp_playerEntityID[g.mp.me]].health = g.mp.maxHealth;
+			t.player[t.plrid].health = g.mp.maxHealth;
+			g.mp.killedByPlayer = 0;
+			g.mp.playedMyDeathAnim = 0;
 	
 			// courtesy of Ravey
 			t.playercontrol.regenrate = 2;
@@ -3396,17 +3291,17 @@ void steam_respawn ( void )
 			t.playercontrol.regentime = 3000;
 
 			//  16032015 - 020 - MP Team code
-			if (  g.steamworks.gameAlreadySpawnedBefore  ==  0 && g.steamworks.team  ==  0 ) 
+			if (  g.mp.gameAlreadySpawnedBefore  ==  0 && g.mp.team  ==  0 ) 
 			{
-				t.tindex = g.steamworks.me+1;
+				t.tindex = g.mp.me+1;
 	
-				if (  t.steamworksmultiplayerstart[t.tindex].active == 1 ) 
+				if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
 				{
-					t.terrain.playerx_f=t.steamworksmultiplayerstart[t.tindex].x;
-					t.terrain.playery_f=t.steamworksmultiplayerstart[t.tindex].y+20;
-					t.terrain.playerz_f=t.steamworksmultiplayerstart[t.tindex].z;
+					t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
+					t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y+20;
+					t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
 					t.terrain.playerax_f=0;
-					t.terrain.playeray_f=t.steamworksmultiplayerstart[t.tindex].angle;
+					t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
 					t.terrain.playeraz_f=0;
 
 					physics_resetplayer_core ( );
@@ -3417,38 +3312,38 @@ void steam_respawn ( void )
 					t.ttempindex = t.tindex/2;
 					if (  t.ttempindex > 0 ) 
 					{
-						if (  t.steamworksmultiplayerstart[t.ttempindex].active == 1 ) 
+						if (  t.mpmultiplayerstart[t.ttempindex].active == 1 ) 
 						{
 							t.tfound = 1;
-							t.terrain.playerx_f=t.steamworksmultiplayerstart[t.ttempindex].x;
-							t.terrain.playery_f=t.steamworksmultiplayerstart[t.ttempindex].y+20;
-							t.terrain.playerz_f=t.steamworksmultiplayerstart[t.ttempindex].z;
+							t.terrain.playerx_f=t.mpmultiplayerstart[t.ttempindex].x;
+							t.terrain.playery_f=t.mpmultiplayerstart[t.ttempindex].y+20;
+							t.terrain.playerz_f=t.mpmultiplayerstart[t.ttempindex].z;
 							t.terrain.playerax_f=0;
-							t.terrain.playeray_f=t.steamworksmultiplayerstart[t.ttempindex].angle;
+							t.terrain.playeray_f=t.mpmultiplayerstart[t.ttempindex].angle;
 							t.terrain.playeraz_f=0;
 	
-							g.steamworks.lastx=t.terrain.playerx_f;
-							g.steamworks.lasty=t.terrain.playery_f;
-							g.steamworks.lastz=t.terrain.playerz_f;
-							g.steamworks.lastangley=t.terrain.playeray_f;
+							g.mp.lastx=t.terrain.playerx_f;
+							g.mp.lasty=t.terrain.playery_f;
+							g.mp.lastz=t.terrain.playerz_f;
+							g.mp.lastangley=t.terrain.playeray_f;
 						}
 					}
 					if (  t.tfound  ==  0 ) 
 					{
-						if (  t.steamworksmultiplayerstart[1].active == 1 ) 
+						if (  t.mpmultiplayerstart[1].active == 1 ) 
 						{
 							t.tfound = 1;
-							t.terrain.playerx_f=t.steamworksmultiplayerstart[1].x;
-							t.terrain.playery_f=t.steamworksmultiplayerstart[1].y+20;
-							t.terrain.playerz_f=t.steamworksmultiplayerstart[1].z;
+							t.terrain.playerx_f=t.mpmultiplayerstart[1].x;
+							t.terrain.playery_f=t.mpmultiplayerstart[1].y+20;
+							t.terrain.playerz_f=t.mpmultiplayerstart[1].z;
 							t.terrain.playerax_f=0;
-							t.terrain.playeray_f=t.steamworksmultiplayerstart[1].angle;
+							t.terrain.playeray_f=t.mpmultiplayerstart[1].angle;
 							t.terrain.playeraz_f=0;
 
-							g.steamworks.lastx=t.terrain.playerx_f;
-							g.steamworks.lasty=t.terrain.playery_f;
-							g.steamworks.lastz=t.terrain.playerz_f;
-							g.steamworks.lastangley=t.terrain.playeray_f;
+							g.mp.lastx=t.terrain.playerx_f;
+							g.mp.lasty=t.terrain.playery_f;
+							g.mp.lastz=t.terrain.playerz_f;
+							g.mp.lastangley=t.terrain.playeray_f;
 						}
 					}
 					if (  t.tfound  !=  0 ) 
@@ -3463,71 +3358,71 @@ void steam_respawn ( void )
 			else
 			{
 				t.tsteamnumberofmarkers = 0;
-				for ( t.tc = 1 ; t.tc<=  STEAM_MAX_NUMBER_OF_PLAYERS; t.tc++ )
+				for ( t.tc = 1 ; t.tc<=  MP_MAX_NUMBER_OF_PLAYERS; t.tc++ )
 				{
-					if (  t.steamworksmultiplayerstart[t.tc].active == 1 ) 
+					if (  t.mpmultiplayerstart[t.tc].active == 1 ) 
 					{
 						++t.tsteamnumberofmarkers;
 					}
 				}
-				if (  g.steamworks.spawnrnd  ==  -1 && t.tsteamnumberofmarkers > 0  )  g.steamworks.spawnrnd  =  Rnd(t.tsteamnumberofmarkers-1)+1;
+				if (  g.mp.spawnrnd  ==  -1 && t.tsteamnumberofmarkers > 0  )  g.mp.spawnrnd  =  Rnd(t.tsteamnumberofmarkers-1)+1;
 				//  13032015 0XX - Team Multiplayer
-				if (  g.steamworks.team  ==  1 && g.steamworks.coop  ==  0 ) 
+				if (  g.mp.team  ==  1 && g.mp.coop  ==  0 ) 
 				{
 					if (  t.tsteamnumberofmarkers  >=  8 ) 
 					{
-						if (  t.steamworks_team[g.steamworks.me]  ==  0 ) 
+						if (  t.mp_team[g.mp.me]  ==  0 ) 
 						{
-							g.steamworks.spawnrnd = Rnd(4-1)+1;
+							g.mp.spawnrnd = Rnd(4-1)+1;
 						}
 						else
 						{
-							g.steamworks.spawnrnd = Rnd(4-1)+1+4;
+							g.mp.spawnrnd = Rnd(4-1)+1+4;
 						}
 					}
 					if (  t.tsteamnumberofmarkers  ==  4 ) 
 					{
-						if (  t.steamworks_team[g.steamworks.me]  ==  0 ) 
+						if (  t.mp_team[g.mp.me]  ==  0 ) 
 						{
-							g.steamworks.spawnrnd = Rnd(2-1)+1;
+							g.mp.spawnrnd = Rnd(2-1)+1;
 						}
 						else
 						{
-							g.steamworks.spawnrnd = Rnd(2-1)+1+2;
+							g.mp.spawnrnd = Rnd(2-1)+1+2;
 						}
 					}
 					if (  t.tsteamnumberofmarkers  ==  2 ) 
 					{
-						if (  t.steamworks_team[g.steamworks.me]  ==  0 ) 
+						if (  t.mp_team[g.mp.me]  ==  0 ) 
 						{
-							g.steamworks.spawnrnd = 0;
+							g.mp.spawnrnd = 0;
 						}
 						else
 						{
-							g.steamworks.spawnrnd = 1;
+							g.mp.spawnrnd = 1;
 						}
 					}
 				}
-				if (  t.tsteamnumberofmarkers  ==  1  )  g.steamworks.spawnrnd  =  0;
-				steam_getPlaceToSpawn ( );
-				if (  t.steamworksmultiplayerstart[g.steamworks.spawnrnd].active == 1 ) 
+				if (  t.tsteamnumberofmarkers  ==  1  )  g.mp.spawnrnd  =  0;
+				mp_getPlaceToSpawn ( );
+				if (  t.mpmultiplayerstart[g.mp.spawnrnd].active == 1 ) 
 				{
-					t.terrain.playerx_f=t.steamworksmultiplayerstart[g.steamworks.spawnrnd].x;
-					t.terrain.playery_f=t.steamworksmultiplayerstart[g.steamworks.spawnrnd].y+20;
-					t.terrain.playerz_f=t.steamworksmultiplayerstart[g.steamworks.spawnrnd].z;
+					t.terrain.playerx_f=t.mpmultiplayerstart[g.mp.spawnrnd].x;
+					t.terrain.playery_f=t.mpmultiplayerstart[g.mp.spawnrnd].y+20;
+					t.terrain.playerz_f=t.mpmultiplayerstart[g.mp.spawnrnd].z;
 					t.terrain.playerax_f=0;
-					t.terrain.playeray_f=t.steamworksmultiplayerstart[g.steamworks.spawnrnd].angle;
+					t.terrain.playeray_f=t.mpmultiplayerstart[g.mp.spawnrnd].angle;
 					t.terrain.playeraz_f=0;
 				}
 				else
 				{
-					if (  t.steamworksmultiplayerstart[1].active == 1 ) 
+					if (  t.mpmultiplayerstart[1].active == 1 ) 
 					{
-						t.terrain.playerx_f=t.steamworksmultiplayerstart[1].x;
-						t.terrain.playery_f=t.steamworksmultiplayerstart[1].y+20;
-						t.terrain.playerz_f=t.steamworksmultiplayerstart[1].z;
+						t.terrain.playerx_f=t.mpmultiplayerstart[1].x;
+						t.terrain.playery_f=t.mpmultiplayerstart[1].y+20;
+						t.terrain.playerz_f=t.mpmultiplayerstart[1].z;
 						t.terrain.playerax_f=0;
-						t.terrain.playeray_f=t.steamworksmultiplayerstart[1].angle;
+						t.terrain.playeray_f=t.mpmultiplayerstart[1].angle;
 						t.terrain.playeraz_f=0;
 					}
 				}
@@ -3540,26 +3435,26 @@ void steam_respawn ( void )
 				SteamSetPlayerAngle (  t.terrain.playeray_f );
 			}
 	
-			g.steamworks.spawnrnd = -1;
+			g.mp.spawnrnd = -1;
 	
-			steam_getInitialPlayerCount ( );
+			mp_getInitialPlayerCount ( );
 	
-			if (  g.steamworks.gameAlreadySpawnedBefore  ==  0 ) 
+			if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
 			{
 				//  send our name on first respawn to ensure everyone gets it
 				//  as this is the moment everyone is definately there
 				//  steam can sometimes fail to get the name for a while
 				//  so we will send it a few times
-//     `if Timer() - steamworks.lastsendmynametime > 1000
+//     `if Timer() - mp.lastsendmynametime > 1000
 
-//      `steamworks.lastsendmynametime = Timer()
+//      `mp.lastsendmynametime = Timer()
 
 					SteamSendMyName (  );
-					g.steamworks.sentmyname = 1;
+					g.mp.sentmyname = 1;
 //     `endif
 
 
-				if (  t.game.runasmultiplayer == 1 && g.steamworks.coop  ==  1 ) 
+				if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 ) 
 				{
 					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 					{
@@ -3579,26 +3474,26 @@ void steam_respawn ( void )
 
 			}
 
-			g.steamworks.realfirsttimespawn = 0;
-			g.steamworks.gameAlreadySpawnedBefore = 1;
-			for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+			g.mp.realfirsttimespawn = 0;
+			g.mp.gameAlreadySpawnedBefore = 1;
+			for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 			{
-					t.steamworks_forcePosition[t.c] = 1;
+					t.mp_forcePosition[t.c] = 1;
 			}
-			g.steamworks.respawnLeft = 0;
+			g.mp.respawnLeft = 0;
 
-			for ( t.tc = 0 ; t.tc<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
+			for ( t.tc = 0 ; t.tc<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
 			{
-				t.steamworks_playingAnimation[t.tc] = STEAM_ANIMATION_NONE;
+				t.mp_playingAnimation[t.tc] = MP_ANIMATION_NONE;
 			}
 
 		}
 		//Much like mouse move x, calling get player damage amount will wipe it out after
 		t.a=SteamGetPlayerDamageAmount();
-		t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].eleprof.hasweapon = 0;
-		g.steamworks.noplayermovement = 0;
-		g.steamworks.invincibleTimer = Timer();
-		g.steamworks.lastSpawnedTime = g.steamworks.invincibleTimer;
+		t.entityelement[t.mp_playerEntityID[g.mp.me]].eleprof.hasweapon = 0;
+		g.mp.noplayermovement = 0;
+		g.mp.invincibleTimer = Timer();
+		g.mp.lastSpawnedTime = g.mp.invincibleTimer;
 
 
 	}
@@ -3607,26 +3502,26 @@ return;
 
 }
 
-void steam_getPlaceToSpawn ( void )
+void mp_getPlaceToSpawn ( void )
 {
 	t.found = -1;
 	
-	if (  g.steamworks.team  ==  1  )  t.tdisttocheck  =  100; else t.tdisttocheck  =  300;
+	if (  g.mp.team  ==  1  )  t.tdisttocheck  =  100; else t.tdisttocheck  =  300;
 	
 	//  check if the spawnpoint picked is clear, if it is, just use that
 	t.failed = 0;
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 
-		if (  t.c  !=  g.steamworks.me ) 
+		if (  t.c  !=  g.mp.me ) 
 		{
 			t.tpx_f = SteamGetPlayerPositionX(t.c);
 			t.tpy_f = SteamGetPlayerPositionY(t.c);
 			t.tpz_f = SteamGetPlayerPositionZ(t.c);
 
-			t.tsx_f = t.steamworksmultiplayerstart[g.steamworks.spawnrnd].x;
-			t.tsy_f = t.steamworksmultiplayerstart[g.steamworks.spawnrnd].y-50;
-			t.tsz_f = t.steamworksmultiplayerstart[g.steamworks.spawnrnd].z;
+			t.tsx_f = t.mpmultiplayerstart[g.mp.spawnrnd].x;
+			t.tsy_f = t.mpmultiplayerstart[g.mp.spawnrnd].y-50;
+			t.tsz_f = t.mpmultiplayerstart[g.mp.spawnrnd].z;
 
 			t.dx_f = t.tpx_f - t.tsx_f;
 			t.dy_f = t.tpy_f - t.tsy_f;
@@ -3643,15 +3538,15 @@ void steam_getPlaceToSpawn ( void )
 	if (  t.failed  ==  0  )  return;
 	
 	t.tstart = 1;
-	t.tend = STEAM_MAX_NUMBER_OF_PLAYERS;
+	t.tend = MP_MAX_NUMBER_OF_PLAYERS;
 
-	if (  g.steamworks.team  ==  1 ) 
+	if (  g.mp.team  ==  1 ) 
 	{
 
 		t.tsteamnumberofmarkers = 0;
-		for ( t.tc = 1 ; t.tc<=  STEAM_MAX_NUMBER_OF_PLAYERS; t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  MP_MAX_NUMBER_OF_PLAYERS; t.tc++ )
 		{
-			if (  t.steamworksmultiplayerstart[t.tc].active == 1 ) 
+			if (  t.mpmultiplayerstart[t.tc].active == 1 ) 
 			{
 				++t.tsteamnumberofmarkers;
 			}
@@ -3659,7 +3554,7 @@ void steam_getPlaceToSpawn ( void )
 
 		if (  t.tsteamnumberofmarkers  >=  8 ) 
 		{
-			if (  t.steamworks_team[g.steamworks.me]  ==  0 ) 
+			if (  t.mp_team[g.mp.me]  ==  0 ) 
 			{
 				t.tstart = 1;
 				t.tend = 4;
@@ -3672,7 +3567,7 @@ void steam_getPlaceToSpawn ( void )
 		}
 		if (  t.tsteamnumberofmarkers  ==  4 ) 
 		{
-			if (  t.steamworks_team[g.steamworks.me]  ==  0 ) 
+			if (  t.mp_team[g.mp.me]  ==  0 ) 
 			{
 				t.tstart = 1;
 				t.tend = 2;
@@ -3689,7 +3584,7 @@ void steam_getPlaceToSpawn ( void )
 		}
 	}
 
-	if (  g.steamworks.coop  ==  1 ) 
+	if (  g.mp.coop  ==  1 ) 
 	{
 		t.tstart = 1;
 		t.tend = t.tsteamnumberofmarkers;
@@ -3697,24 +3592,24 @@ void steam_getPlaceToSpawn ( void )
 	//  it failed so lets look for an alternative
 	for ( t.tspawnpoints = t.tstart ; t.tspawnpoints<=  t.tend; t.tspawnpoints++ )
 	{
-		if (  t.tspawnpoints  !=  g.steamworks.spawnrnd ) 
+		if (  t.tspawnpoints  !=  g.mp.spawnrnd ) 
 		{
 			t.failed = 0;
-			if (  t.steamworksmultiplayerstart[t.tspawnpoints].active == 1 ) 
+			if (  t.mpmultiplayerstart[t.tspawnpoints].active == 1 ) 
 			{
 
-				for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+				for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 				{
 
-					if (  t.c  !=  g.steamworks.me ) 
+					if (  t.c  !=  g.mp.me ) 
 					{
 						t.tpx_f = SteamGetPlayerPositionX(t.c);
 						t.tpy_f = SteamGetPlayerPositionY(t.c);
 						t.tpz_f = SteamGetPlayerPositionZ(t.c);
 
-						t.tsx_f = t.steamworksmultiplayerstart[t.tspawnpoints].x;
-						t.tsy_f = t.steamworksmultiplayerstart[t.tspawnpoints].y-50;
-						t.tsz_f = t.steamworksmultiplayerstart[t.tspawnpoints].z;
+						t.tsx_f = t.mpmultiplayerstart[t.tspawnpoints].x;
+						t.tsy_f = t.mpmultiplayerstart[t.tspawnpoints].y-50;
+						t.tsz_f = t.mpmultiplayerstart[t.tspawnpoints].z;
 
 						t.dx_f = t.tpx_f - t.tsx_f;
 						t.dy_f = t.tpy_f - t.tsy_f;
@@ -3730,7 +3625,7 @@ void steam_getPlaceToSpawn ( void )
 				//  if noone is here lets use this
 				if (  t.failed  ==  0 ) 
 				{
-					g.steamworks.spawnrnd = t.tspawnpoints;
+					g.mp.spawnrnd = t.tspawnpoints;
 					return;
 				}
 			}
@@ -3741,45 +3636,45 @@ return;
 
 }
 
-void steam_getInitialPlayerCount ( void )
+void mp_getInitialPlayerCount ( void )
 {
-	g.steamworks.howmanyjoinedatstart = 0;
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	g.mp.howmanyjoinedatstart = 0;
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 		t.tname_s = SteamGetOtherPlayerName(t.c);
-		if (  t.tname_s != "Player"  )  ++g.steamworks.howmanyjoinedatstart;
+		if (  t.tname_s != "Player"  )  ++g.mp.howmanyjoinedatstart;
 	}
 return;
 
 }
 
-void steam_nukeTestmap ( void )
+void mp_nukeTestmap ( void )
 {
-	steam_deleteFile ("levelbank\\cfg.cfg");
-	steam_deleteFile ("levelbank\\conkit.dat");
-	steam_deleteFile ("levelbank\\header.dat");
-	steam_deleteFile ("levelbank\\m.dat");
-	steam_deleteFile ("levelbank\\map.ele");
-	steam_deleteFile ("levelbank\\map.ent");
-	steam_deleteFile ("levelbank\\map.way");
-	steam_deleteFile ("levelbank\\playerconfig.dat");
-	steam_deleteFile ("levelbank\\temparea.txt");
-	steam_deleteFile ("levelbank\\vegmaskgrass.dat");
-	steam_deleteFile ("levelbank\\visuals.ini");
-	steam_deleteFile ("levelbank\\watermask.dds");
-	//steam_deleteFile ("editors\\gridedit\\__multiplayerlevel__.fpm");
-	//steam_deleteFile ("editors\\gridedit\\__multiplayerworkshopitemid__.dat");
-	steam_deleteFile (cstr(g.mysystem.editorsGridedit_s+"__multiplayerlevel__.fpm").Get());
-	steam_deleteFile (cstr(g.mysystem.editorsGridedit_s+"__multiplayerworkshopitemid__.dat").Get());
+	mp_deleteFile ("levelbank\\cfg.cfg");
+	mp_deleteFile ("levelbank\\conkit.dat");
+	mp_deleteFile ("levelbank\\header.dat");
+	mp_deleteFile ("levelbank\\m.dat");
+	mp_deleteFile ("levelbank\\map.ele");
+	mp_deleteFile ("levelbank\\map.ent");
+	mp_deleteFile ("levelbank\\map.way");
+	mp_deleteFile ("levelbank\\playerconfig.dat");
+	mp_deleteFile ("levelbank\\temparea.txt");
+	mp_deleteFile ("levelbank\\vegmaskgrass.dat");
+	mp_deleteFile ("levelbank\\visuals.ini");
+	mp_deleteFile ("levelbank\\watermask.dds");
+	//mp_deleteFile ("editors\\gridedit\\__multiplayerlevel__.fpm");
+	//mp_deleteFile ("editors\\gridedit\\__multiplayerworkshopitemid__.dat");
+	mp_deleteFile (cstr(g.mysystem.editorsGridedit_s+"__multiplayerlevel__.fpm").Get());
+	mp_deleteFile (cstr(g.mysystem.editorsGridedit_s+"__multiplayerworkshopitemid__.dat").Get());
 }
 
-void steam_respawnEntities ( void )
+void mp_respawnEntities ( void )
 {
-	if (  g.steamworks.destroyedObjectCount > 0 ) 
+	if (  g.mp.destroyedObjectCount > 0 ) 
 	{
-		for ( t.i = 0 ; t.i<=  g.steamworks.destroyedObjectCount-1; t.i++ )
+		for ( t.i = 0 ; t.i<=  g.mp.destroyedObjectCount-1; t.i++ )
 		{
-			t.e = t.steamworks_destroyedObjectList[t.i];
+			t.e = t.mp_destroyedObjectList[t.i];
 			t.entityelement[t.e].active = 1;
 			entity_lua_spawn ( );
 			entity_lua_collisionon ( );
@@ -3803,7 +3698,7 @@ void steam_respawnEntities ( void )
 				{
 
 					t.entityelement[t.e].lua.flagschanged=1;
-					if (  g.steamworks.coop  ==  0 ) 
+					if (  g.mp.coop  ==  0 ) 
 					{
 						entity_lua_spawn ( );
 					}
@@ -3837,34 +3732,34 @@ void steam_respawnEntities ( void )
 			}
 		}
 	}
-	g.steamworks.destroyedObjectCount = 0;
+	g.mp.destroyedObjectCount = 0;
 }
 
-void steam_addDestroyedObject ( void )
+void mp_addDestroyedObject ( void )
 {
 	//  if (  it has a quantity  )  we will respawn it after so much time has passed
 	if (  t.entityelement[t.e].eleprof.quantity > 0 ) 
 	{
-		steam_add_respawn_timed ( );
+		mp_add_respawn_timed ( );
 	}
-	if (  g.steamworks.destroyedObjectCount < STEAM_DESTROYED_OBJECT_LIST_SIZE ) 
+	if (  g.mp.destroyedObjectCount < MP_DESTROYED_OBJECT_LIST_SIZE ) 
 	{
-		t.steamworks_destroyedObjectList[g.steamworks.destroyedObjectCount] = t.e;
-		++g.steamworks.destroyedObjectCount;
+		t.mp_destroyedObjectList[g.mp.destroyedObjectCount] = t.e;
+		++g.mp.destroyedObjectCount;
 	}
 return;
 
 }
 
-void steam_add_respawn_timed ( void )
+void mp_add_respawn_timed ( void )
 {
-	for ( t.i = 0 ; t.i<=  STEAM_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
+	for ( t.i = 0 ; t.i<=  MP_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
 	{
-			if (  t.steamworks_respawn_timed[t.i].inuse  ==  0 ) 
+			if (  t.mp_respawn_timed[t.i].inuse  ==  0 ) 
 			{
-				t.steamworks_respawn_timed[t.i].inuse = 1;
-				t.steamworks_respawn_timed[t.i].e = t.e;
-				t.steamworks_respawn_timed[t.i].time = Timer();
+				t.mp_respawn_timed[t.i].inuse = 1;
+				t.mp_respawn_timed[t.i].e = t.e;
+				t.mp_respawn_timed[t.i].time = Timer();
 				break;
 			}
 	}
@@ -3872,13 +3767,13 @@ return;
 
 }
 
-void steam_setLuaPlayerNames ( void )
+void mp_setLuaPlayerNames ( void )
 {
-	for ( t.i = 0 ; t.i<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.i++ )
+	for ( t.i = 0 ; t.i<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.i++ )
 	{
-		if (  t.i  ==  g.steamworks.me ) 
+		if (  t.i  ==  g.mp.me ) 
 		{
-			t.tsteamname_s = g.steamworks.playerName;
+			t.tsteamname_s = g.mp.playerName;
 		}
 		else
 		{
@@ -3914,20 +3809,20 @@ return;
 
 }
 
-void steam_setLuaResetStats ( void )
+void mp_setLuaResetStats ( void )
 {
-	for ( t.i = 0 ; t.i<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.i++ )
+	for ( t.i = 0 ; t.i<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.i++ )
 	{
 		t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.i+1) + "] = 0").Get() );
 		t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.i+1) + "] = 0").Get() );
 		t.tnothing = LuaExecute( cstr(cstr("mp_playerNames[") + Str(t.i+1) + "] = ''").Get() );
 		t.tnothing = LuaExecute( cstr(cstr("mp_playerConnected[") + Str(t.i+1) + "] = 0").Get() );
-		t.steamworks_kills[t.i] = 0;
-		t.steamworks_deaths[t.i] = 0;
+		t.mp_kills[t.i] = 0;
+		t.mp_deaths[t.i] = 0;
 	}
-	for ( t.i = 0 ; t.i<=  STEAM_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
+	for ( t.i = 0 ; t.i<=  MP_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
 	{
-		t.steamworks_respawn_timed[t.i].inuse = 0;
+		t.mp_respawn_timed[t.i].inuse = 0;
 	}
 
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
@@ -3941,7 +3836,7 @@ return;
 
 }
 
-void steam_updatePlayerInput ( void )
+void mp_updatePlayerInput ( void )
 {
 
 //  `print "RELOADING: " + Str(plrreloading)
@@ -3949,48 +3844,48 @@ void steam_updatePlayerInput ( void )
 	
 	if (  t.playercontrol.plrhitfloormaterial  ==  0 ) 
 	{
-		if (  g.steamworks.oldfootfloortime  ==  0  )  g.steamworks.oldfootfloortime  =  Timer();
-		if (  Timer()-g.steamworks.oldfootfloortime > 100  )  g.steamworks.footfloor  =  0;
+		if (  g.mp.oldfootfloortime  ==  0  )  g.mp.oldfootfloortime  =  Timer();
+		if (  Timer()-g.mp.oldfootfloortime > 100  )  g.mp.footfloor  =  0;
 	}
 	else
 	{
-		g.steamworks.oldfootfloortime = 0;
-		g.steamworks.footfloor = 1;
+		g.mp.oldfootfloortime = 0;
+		g.mp.footfloor = 1;
 	}
 	
 	if (  g.plrreloading  ==  0 ) 
 	{
-		g.steamworks.reloadingCount = 0;
+		g.mp.reloadingCount = 0;
 	}
 
 	t.tTime = Timer();
 	
-	if (  t.tTime - g.steamworks.lastSendTimeAppearance > STEAM_APPEARANCE_UPDATE_DELAY ) 
+	if (  t.tTime - g.mp.lastSendTimeAppearance > MP_APPEARANCE_UPDATE_DELAY ) 
 	{
 	
 		if (  g.plrreloading  !=  0 ) 
 		{
-			++g.steamworks.reloadingCount;
-			if (  g.steamworks.reloadingCount < 4 ) 
+			++g.mp.reloadingCount;
+			if (  g.mp.reloadingCount < 4 ) 
 			{
-				g.steamworks.reloading = 1;
+				g.mp.reloading = 1;
 			}
 			else
 			{
-				g.steamworks.reloading = 0;
+				g.mp.reloading = 0;
 			}
 		}
 	
-		g.steamworks.lastSendTimeAppearance = t.tTime;
-		if (  t.playercontrol.jetpackmode  !=  2 && g.steamworks.reloading  ==  0 ) 
+		g.mp.lastSendTimeAppearance = t.tTime;
+		if (  t.playercontrol.jetpackmode  !=  2 && g.mp.reloading  ==  0 ) 
 		{
-			SteamSetPlayerAppearance (  g.steamworks.appearance );
+			SteamSetPlayerAppearance (  g.mp.appearance );
 		}
 		else
 		{
 			if (  t.playercontrol.jetpackmode  !=  0 ) 
 			{
-				if (  g.steamworks.footfloor  ==  1 ) 
+				if (  g.mp.footfloor  ==  1 ) 
 				{
 					SteamSetPlayerAppearance (  101 );
 				}
@@ -3998,17 +3893,17 @@ void steam_updatePlayerInput ( void )
 				{
 					SteamSetPlayerAppearance (  102 );
 				}
-				g.steamworks.reloading = 0;
+				g.mp.reloading = 0;
 			}
 			else
 			{
-				if (  g.steamworks.reloading  ==  1 ) 
+				if (  g.mp.reloading  ==  1 ) 
 				{
 						SteamSetPlayerAppearance (  201 );
 				}
 				if (  g.plrreloading  ==  0 ) 
 				{
-					g.steamworks.reloading = 0;
+					g.mp.reloading = 0;
 				}
 			}
 		}
@@ -4016,14 +3911,14 @@ void steam_updatePlayerInput ( void )
 
 	}
 	
-	if (  t.tTime - g.steamworks.lastSendTime < STEAM_INPUT_UPDATE_DELAY  )  return;
+	if (  t.tTime - g.mp.lastSendTime < MP_INPUT_UPDATE_DELAY  )  return;
 	
-	g.steamworks.lastSendTime = t.tTime;
+	g.mp.lastSendTime = t.tTime;
 	
 //  `print "sending input update"
 
 	
-	if (  g.steamworks.meleeOn  ==  0 ) 
+	if (  g.mp.meleeOn  ==  0 ) 
 	{
 		if (  KeyState(g.keymap[17])  ==  1 || KeyState(g.keymap[200])  ==  1 ) 
 		{
@@ -4061,12 +3956,12 @@ void steam_updatePlayerInput ( void )
 if (  KeyState(g.keymap[46])  ==  1 || KeyState(g.keymap[29])  ==  1 || KeyState(g.keymap[157])  ==  1 ) 
 {
 	SteamSetKeyState (  46,1 );
-	g.steamworks.crouchOn = 1;
+	g.mp.crouchOn = 1;
 }
 else
 {
 	SteamSetKeyState (  46,0 );
-	g.steamworks.crouchOn = 0;
+	g.mp.crouchOn = 0;
 }
 //  shift keys
 if (  KeyState(g.keymap[42])  ==  1 || KeyState(g.keymap[54])  ==  1 ) 
@@ -4082,7 +3977,7 @@ return;
 
 }
 
-void steam_load_guns ( void )
+void mp_load_guns ( void )
 {
 
 /*       Debug info
@@ -4096,7 +3991,7 @@ for ( t.tgindex = 1 ; t.tgindex<=  g.gunmax; t.tgindex++ )
 }
 */    
 
-g.steamworks.gunCount = 0;
+g.mp.gunCount = 0;
 
 	//  all vweaps (that are active)
 	for ( t.tgindex = 1 ; t.tgindex<=  g.gunmax; t.tgindex++ )
@@ -4108,10 +4003,10 @@ g.steamworks.gunCount = 0;
 			{
 
 				//  go and load this gun (attached to calling entity instance)
-				t.ttobj=g.steamworks.gunCount+g.steamplayermodelsoffset;
-				t.steamworks_gunobj[g.steamworks.gunCount] = t.ttobj;
-				t.steamworks_gunname[g.steamworks.gunCount] = Lower(t.tweaponname_s.Get());
-				++g.steamworks.gunCount;
+				t.ttobj=g.mp.gunCount+g.steamplayermodelsoffset;
+				t.mp_gunobj[g.mp.gunCount] = t.ttobj;
+				t.mp_gunname[g.mp.gunCount] = Lower(t.tweaponname_s.Get());
+				++g.mp.gunCount;
 				if (  ObjectExist(t.ttobj) == 1  )  DeleteObject (  t.ttobj );
 
 				//  replaced X file load with optional DBO convert/load
@@ -4180,19 +4075,19 @@ g.steamworks.gunCount = 0;
 				SetObjectEffect (  t.ttobj,t.teffectid );
 
 				//  07032015 - 016 - ensure the gun orders are the same on all machines
-				for ( t.i = 0 ; t.i<=  g.steamworks.gunCount-2; t.i++ )
+				for ( t.i = 0 ; t.i<=  g.mp.gunCount-2; t.i++ )
 				{
-					for ( t.j = t.i ; t.j<=  g.steamworks.gunCount-1; t.j++ )
+					for ( t.j = t.i ; t.j<=  g.mp.gunCount-1; t.j++ )
 					{
-						if (  SteamStrCmp(t.steamworks_gunname[t.i].Get(),t.steamworks_gunname[t.j].Get()) > 0 ) 
+						if (  SteamStrCmp(t.mp_gunname[t.i].Get(),t.mp_gunname[t.j].Get()) > 0 ) 
 						{
-							t.ttemp_s = t.steamworks_gunname[t.i];
-							t.steamworks_gunname[t.i] = t.steamworks_gunname[t.j];
-							t.steamworks_gunname[t.j]=t.ttemp_s;
+							t.ttemp_s = t.mp_gunname[t.i];
+							t.mp_gunname[t.i] = t.mp_gunname[t.j];
+							t.mp_gunname[t.j]=t.ttemp_s;
 
-							t.ttemp = t.steamworks_gunobj[t.i];
-							t.steamworks_gunobj[t.i] = t.steamworks_gunobj[t.j];
-							t.steamworks_gunobj[t.j]=t.ttemp;
+							t.ttemp = t.mp_gunobj[t.i];
+							t.mp_gunobj[t.i] = t.mp_gunobj[t.j];
+							t.mp_gunobj[t.j]=t.ttemp;
 						}
 					}
 				} 
@@ -4203,44 +4098,41 @@ g.steamworks.gunCount = 0;
 	}
 }
 
-void steam_check_for_attachments ( void )
+void mp_check_for_attachments ( void )
 {
 
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
-		if (  t.c  !=  g.steamworks.me ) 
+		if (  t.c  !=  g.mp.me ) 
 		{
-//    `if SteamGetPlayerAppearance(c) < 100 then Print (  steamworks_gunname(SteamGetPlayerAppearance(c)) )
-			
+		
 			//  Jetpack
-			if (  SteamGetPlayerAppearance(t.c)  !=  t.steamworks_oldAppearance[t.c] ) 
+			if (  SteamGetPlayerAppearance(t.c)  !=  t.mp_oldAppearance[t.c] ) 
 			{
-				t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
+				t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 				if (  SteamGetPlayerAppearance(t.c)  ==  101 || SteamGetPlayerAppearance(t.c)  ==  102 ) 
 				{
-					t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
-					t.e = t.steamworks_playerEntityID[t.c];
+					t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+					t.e = t.mp_playerEntityID[t.c];
 					entity_freeattachment ( );
 
-					if (  t.steamworks_jetpackparticles[t.c]  ==  -1 && SteamGetPlayerAppearance(t.c)  ==  102 ) 
+					if (  t.mp_jetpackparticles[t.c]  ==  -1 && SteamGetPlayerAppearance(t.c)  ==  102 ) 
 					{
-						steam_addJetpackParticles ( );
+						mp_addJetpackParticles ( );
 					}
-					if (  SteamGetPlayerAppearance(t.c)  ==  101 && t.steamworks_jetpackparticles[t.c]  !=  -1 ) 
+					if (  SteamGetPlayerAppearance(t.c)  ==  101 && t.mp_jetpackparticles[t.c]  !=  -1 ) 
 					{
-							t.tRaveyParticlesEmitterID=t.steamworks_jetpackparticles[t.c];
+							t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.c];
 							ravey_particles_delete_emitter ( );
-							t.steamworks_jetpackparticles[t.c]=-1;
+							t.mp_jetpackparticles[t.c]=-1;
 					}
 
-					if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 ) 
+					if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
 					{
-						DeleteObject (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj );
-						t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
-						t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj = 0;
+						DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
+						t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+						t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = 0;
 					}
-
-//      `steamworks_oldAppearance(c) = SteamGetPlayerAppearance(c)
 
 					if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  0 ) 
 					{
@@ -4256,37 +4148,35 @@ void steam_check_for_attachments ( void )
 			}
 			if (  SteamGetPlayerAppearance(t.c)  !=  101 && SteamGetPlayerAppearance(t.c)  !=  102 ) 
 			{
-				if (  t.steamworks_jetpackparticles[t.c]  !=  -1 ) 
+				if (  t.mp_jetpackparticles[t.c]  !=  -1 ) 
 				{
-					t.tRaveyParticlesEmitterID=t.steamworks_jetpackparticles[t.c];
+					t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.c];
 					ravey_particles_delete_emitter ( );
-					t.steamworks_jetpackparticles[t.c] = -1;
+					t.mp_jetpackparticles[t.c] = -1;
 				}
 			}
 			//  Gun
-			if (  SteamGetPlayerAppearance(t.c)  !=  t.steamworks_oldAppearance[t.c] && SteamGetPlayerAppearance(t.c) < 101 ) 
+			if (  SteamGetPlayerAppearance(t.c)  !=  t.mp_oldAppearance[t.c] && SteamGetPlayerAppearance(t.c) < 101 ) 
 			{
-				t.steamworks_playingAnimation[t.c] = STEAM_ANIMATION_NONE;
+				t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 				if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
 				{
 					HideObject (  g.steamplayermodelsoffset+t.c+121 );
 				}
-				t.e = t.steamworks_playerEntityID[t.c];
+				t.e = t.mp_playerEntityID[t.c];
 				entity_freeattachment ( );
-				if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 ) 
+				if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
 				{
-					DeleteObject (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj );
-					t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj = 0;
+					DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
+					t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = 0;
 				}
-//     `steamworks_oldAppearance(c) = SteamGetPlayerAppearance(c)
-
 				if (  ObjectExist(g.steamplayermodelsoffset+t.c+100)  ==  0 ) 
 				{
 
 					t.tobj = 0;
 					if (  SteamGetPlayerAppearance(t.c) > 0 ) 
 					{
-						t.tobj = t.steamworks_gunobj[SteamGetPlayerAppearance(t.c)-1];
+						t.tobj = t.mp_gunobj[SteamGetPlayerAppearance(t.c)-1];
 					}
 
 					if (  t.tobj > 0 ) 
@@ -4296,21 +4186,21 @@ void steam_check_for_attachments ( void )
 							CloneObject (  g.steamplayermodelsoffset+t.c+100,t.tobj );
 							ShowObject (  g.steamplayermodelsoffset+t.c+100 );
 							SetObjectMask (  g.steamplayermodelsoffset+t.c+100,1 );
-							t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj = g.steamplayermodelsoffset+t.c+100;
+							t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = g.steamplayermodelsoffset+t.c+100;
 
 							t.tfound = 0;
 							for ( t.tgindex = 1 ; t.tgindex<=  g.gunmax; t.tgindex++ )
 							{
 								if (  t.gun[t.tgindex].activeingame == 1 ) 
 								{
-									if (  t.steamworks_gunname[SteamGetPlayerAppearance(t.c)-1] == Lower(t.gun[t.tgindex].name_s.Get()) ) 
+									if (  t.mp_gunname[SteamGetPlayerAppearance(t.c)-1] == Lower(t.gun[t.tgindex].name_s.Get()) ) 
 									{
 										t.tfound = t.tgindex;
 									}
 								}
 							}
 
-							t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon = t.tfound;
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon = t.tfound;
 
 						//  Find firespot for this vweap
 						t.entityelement[t.e].attachmentobjfirespotlimb=0;
@@ -4328,12 +4218,12 @@ void steam_check_for_attachments ( void )
 					}
 					else
 					{
-						if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 ) 
+						if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
 						{
-							if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj) ) 
+							if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj) ) 
 							{
-								DeleteObject (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj );
-								t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon = 0;
+								DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon = 0;
 							}
 						}
 					}
@@ -4347,7 +4237,7 @@ void steam_check_for_attachments ( void )
 				if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
 				{
 					ShowObject (  g.steamplayermodelsoffset+t.c+121 );
-					t.tobj = t.entityelement[t.steamworks_playerEntityID[t.c]].obj;
+					t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
 					if (  SteamGetKeyState(t.c,46)  ==  1 ) 
 					{
 						PositionObject (  g.steamplayermodelsoffset+t.c+121, ObjectPositionX(t.tobj), ObjectPositionY(t.tobj)+20, ObjectPositionZ(t.tobj) );
@@ -4361,18 +4251,18 @@ void steam_check_for_attachments ( void )
 			}
 
 			//  update gun appearance
-			if (  t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj > 0 ) 
+			if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
 			{
-				t.e = t.steamworks_playerEntityID[t.c];
+				t.e = t.mp_playerEntityID[t.c];
 				entity_controlattachments ( );
 
-				if (  t.steamworks_playerShooting[t.c]  ==  1 ) 
+				if (  t.mp_playerShooting[t.c]  ==  1 ) 
 				{
-					t.tgunid=t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
-					t.tattachedobj=t.entityelement[t.steamworks_playerEntityID[t.c]].attachmentobj;
-					t.te = t.steamworks_playerEntityID[t.c];
+					t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+					t.tattachedobj=t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj;
+					t.te = t.mp_playerEntityID[t.c];
 
-					t.tgunid = t.entityelement[t.steamworks_playerEntityID[t.c]].eleprof.hasweapon;
+					t.tgunid = t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 					t.ttrr=Rnd(1);
 					for ( t.tt = t.ttrr+0 ; t.tt<=  t.ttrr+1; t.tt++ )
 					{
@@ -4399,36 +4289,22 @@ void steam_check_for_attachments ( void )
 			}
 		}
 
-		if (  t.steamworks_oldAppearance[t.c]  !=  SteamGetPlayerAppearance(t.c)  )  t.steamworks_playingAnimation[t.c]  =  STEAM_ANIMATION_NONE;
-		t.steamworks_oldAppearance[t.c] = SteamGetPlayerAppearance(t.c);
+		if (  t.mp_oldAppearance[t.c]  !=  SteamGetPlayerAppearance(t.c)  )  t.mp_playingAnimation[t.c]  =  MP_ANIMATION_NONE;
+		t.mp_oldAppearance[t.c] = SteamGetPlayerAppearance(t.c);
 
 	}
-
-
-//  `print "-------------------------------------------------------"
-
-//  `print entityelement(steamworks_playerEntityID(1)).attachmentobj
-
-//  `print "active " + Str(entityelement(steamworks_playerEntityID(1)).active)
-
-//  `print "beenkilled " + Str(entityelement(steamworks_playerEntityID(1)).beenkilled)
-
-//  `print GetVisible(99999)
-
-
-return;
-
+	return;
 }
 
-void steam_addJetpackParticles ( void )
+void mp_addJetpackParticles ( void )
 {
 
-	t.tpartObj = t.entityelement[t.steamworks_playerEntityID[t.c]].obj;
+	t.tpartObj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
 
 	ravey_particles_get_free_emitter ( );
 	if (  t.tResult>0 ) 
 	{
-		t.steamworks_jetpackparticles[t.c]=t.tResult;
+		t.mp_jetpackparticles[t.c]=t.tResult;
 		g.tEmitter.id = t.tResult;
 		g.tEmitter.emitterLife = 0;
 		g.tEmitter.parentObject = t.tpartObj;
@@ -4476,14 +4352,14 @@ return;
 
 }
 
-void steam_NearOtherPlayers ( void )
+void mp_NearOtherPlayers ( void )
 {
 
-	for ( t.c = 0 ; t.c<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
-		if (  t.c  !=  g.steamworks.me ) 
+		if (  t.c  !=  g.mp.me ) 
 		{
-				t.tobj = t.entityelement[t.steamworks_playerEntityID[t.c]].obj;
+				t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
 				if (  t.tobj > 0 ) 
 				{
 					if (  ObjectExist(t.tobj) ) 
@@ -4491,7 +4367,7 @@ void steam_NearOtherPlayers ( void )
 						if (  SteamGetPlayerAlive(t.c)  ==  1 ) 
 						{
 							t.tplrproxx_f=CameraPositionX()-ObjectPositionX(t.tobj);
-							if (  g.steamworks.crouchOn  ==  0 ) 
+							if (  g.mp.crouchOn  ==  0 ) 
 							{
 								t.tplrproyy_f=(CameraPositionY()-64)-ObjectPositionY(t.tobj);
 							}
@@ -4517,18 +4393,18 @@ return;
 
 }
 
-void steam_check_respawn_objects ( void )
+void mp_check_respawn_objects ( void )
 {
 	t.tTime = Timer();
-	for ( t.i = 0 ; t.i<=  STEAM_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
+	for ( t.i = 0 ; t.i<=  MP_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
 	{
-			if (  t.steamworks_respawn_timed[t.i].inuse  ==  1 ) 
+			if (  t.mp_respawn_timed[t.i].inuse  ==  1 ) 
 			{
-				if (  t.tTime - t.steamworks_respawn_timed[t.i].time > STEAM_RESPAWN_TIME_DELAY ) 
+				if (  t.tTime - t.mp_respawn_timed[t.i].time > MP_RESPAWN_TIME_DELAY ) 
 				{
-					t.steamworks_respawn_timed[t.i].inuse = 0;
+					t.mp_respawn_timed[t.i].inuse = 0;
 
-					t.e = t.steamworks_respawn_timed[t.i].e;
+					t.e = t.mp_respawn_timed[t.i].e;
 					t.entityelement[t.e].active = 1;
 					entity_lua_spawn ( );
 					entity_lua_collisionon ( );
@@ -4545,12 +4421,12 @@ return;
 
 }
 
-void steam_checkForEveryoneLeft ( void )
+void mp_checkForEveryoneLeft ( void )
 {
-		if (  g.steamworks.howmanyjoinedatstart > 1 ) 
+		if (  g.mp.howmanyjoinedatstart > 1 ) 
 		{
 			t.tsteamhowmanynow = 0;
-			for ( t.tcount = 0 ; t.tcount<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tcount++ )
+			for ( t.tcount = 0 ; t.tcount<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tcount++ )
 			{
 				t.tname_s = SteamGetOtherPlayerName(t.tcount);
 				if (  t.tname_s != "Player"  )  ++t.tsteamhowmanynow;
@@ -4559,8 +4435,8 @@ void steam_checkForEveryoneLeft ( void )
 			if (  t.tsteamhowmanynow  <= 1 ) 
 			{
 				t.tsteamlostconnectioncustommessage_s = "Everyone else left the game! (Code MP014)";
-				g.steamworks.backtoeditorforyou = 1;
-				steam_lostConnection ( );
+				g.mp.backtoeditorforyou = 1;
+				mp_lostConnection ( );
 				return;
 			}
 		}
@@ -4568,53 +4444,53 @@ return;
 
 }
 
-void steam_lostConnection ( void )
+void mp_lostConnection ( void )
 {
 		t.tTime = Timer();
 		editor_hideall3d ( );
 		SetDir (  cstr(g.fpscrootdir_s + "\\Files").Get() );
-		if (  t.tsteamconnectionlostmessage_s  ==  "GAMEOVER"  )  g.steamworks.backtoeditorforyou  =  1;
+		if (  t.tsteamconnectionlostmessage_s  ==  "GAMEOVER"  )  g.mp.backtoeditorforyou  =  1;
 		t.tsteamconnectionlostmessage_s = "Lost connection to server";
 		if (  t.tsteamlostconnectioncustommessage_s != ""  )  t.tsteamconnectionlostmessage_s  =  t.tsteamlostconnectioncustommessage_s;
 		while (  Timer() - t.tTime < 5000 ) 
 		{
 			Cls (  );
-			steam_text(-1,30,3,t.tsteamconnectionlostmessage_s.Get());
+			mp_text(-1,30,3,t.tsteamconnectionlostmessage_s.Get());
 			if (  t.tsteamconnectionlostmessage_s  ==  "Could not build workshop item (Error MP015)" ) 
 			{
-				steam_text(-1,40,3,"The workshop item did not upload to Steam");
-				steam_text(-1,45,3,"Please t.try again in t.a few moments.");
-				steam_text(-1,50,3,"If the problem persists t.try closing");
-				steam_text(-1,55,3,"Game Guru and restarting Steam.");
+				mp_text(-1,40,3,"The workshop item did not upload to Steam");
+				mp_text(-1,45,3,"Please t.try again in t.a few moments.");
+				mp_text(-1,50,3,"If the problem persists t.try closing");
+				mp_text(-1,55,3,"Game Guru and restarting Steam.");
 			}
 			SteamLoop (  );
 			Sync (  );
 		}
 		t.tsteamlostconnectioncustommessage_s = "";
-//steam_free_game ( );
-		steam_setMessage ( );
-		if (  g.steamworks.mode  ==  STEAM_IN_GAME_CLIENT || g.steamworks.mode  ==  STEAM_IN_GAME_SERVER || g.steamworks.backtoeditorforyou > 0 ) 
+//mp_free_game ( );
+		mp_setMessage ( );
+		if (  g.mp.mode  ==  MP_IN_GAME_CLIENT || g.mp.mode  ==  MP_IN_GAME_SERVER || g.mp.backtoeditorforyou > 0 ) 
 		{
-			steam_resetGameStats ( );
-			if (  g.steamworks.backtoeditorforyou  !=  2 ) 
+			mp_resetGameStats ( );
+			if (  g.mp.backtoeditorforyou  !=  2 ) 
 			{
-				steam_setLuaResetStats ( );
+				mp_setLuaResetStats ( );
 			}
 			else
 			{
-				g.steamworks.goBackToEditor = 1;
+				g.mp.goBackToEditor = 1;
 			}
 		}
-		g.steamworks.backtoeditorforyou = 0;
-		steam_resetGameStats ( );
-		steam_quitGame ( );
+		g.mp.backtoeditorforyou = 0;
+		mp_resetGameStats ( );
+		mp_quitGame ( );
 }
 
-void steam_gameLoop ( void )
+void mp_gameLoop ( void )
 {
 
 //  check we have finished loading, if not exit out
-if (  g.steamworks.finishedLoadingMap  ==  0  )  return;
+if (  g.mp.finishedLoadingMap  ==  0  )  return;
 
 //  HideMouse (  when menu finished )
 if (  t.thaveShownMouse >0 ) 
@@ -4623,8 +4499,8 @@ if (  t.thaveShownMouse >0 )
 	--t.thaveShownMouse;
 }
 
-steam_updateAIForCOOP ( );
-steam_howManyEnemiesLeftToKill ( );
+mp_updateAIForCOOP ( );
+mp_howManyEnemiesLeftToKill ( );
 
 //  some debug stuff
 // `print "destroycount = " + Str(tempsteamdestroycount)
@@ -4640,144 +4516,104 @@ steam_howManyEnemiesLeftToKill ( );
 //  `print gunmode
 
 
-	steam_NearOtherPlayers ( );
+	mp_NearOtherPlayers ( );
 
 	//  if we have lost connection, head back to main menu
 	t.tconnectionStatus = SteamGetClientServerConnectionStatus();
 	if (  t.tconnectionStatus  ==  0 ) 
 	{
 		t.tsteamconnectionlostmessage_s = "GAMEOVER";
-		steam_lostConnection ( );
+		mp_lostConnection ( );
 		return;
 	}
 	if (  t.tconnectionStatus  ==  2 ) 
 	{
 		t.tsteamconnectionlostmessage_s = "GAMEOVER";
 		t.tsteamlostconnectioncustommessage_s = "Game Over. The host closed the server.";
-		steam_lostConnection ( );
+		mp_lostConnection ( );
 		return;
 	}
 
-	steam_lua ( );
-	steam_setLuaPlayerNames ( );
-	steam_check_respawn_objects ( );
+	mp_lua ( );
+	mp_setLuaPlayerNames ( );
+	mp_check_respawn_objects ( );
 
-//steam_checkVoiceChat ( );
+//mp_checkVoiceChat ( );
 
-	if (  Timer() - g.steamworks.showscoresdelay > 2000 ) 
+	if (  Timer() - g.mp.showscoresdelay > 2000 ) 
 	{
-		if (  KeyState(g.keymap[15])  ==  1 && g.steamworks.chaton  ==  0 ) 
+		if (  KeyState(g.keymap[15])  ==  1 && g.mp.chaton  ==  0 ) 
 		{
 			t.tnothing = LuaExecute("mp_showscores = 1");
-			g.steamworks.showscoresdelay = Timer();
+			g.mp.showscoresdelay = Timer();
 		}
 		else
 		{
 			t.tnothing = LuaExecute("mp_showscores = 0");
-			g.steamworks.showscoresdelay = -2000;
+			g.mp.showscoresdelay = -2000;
 		}
 	}
 
-	//  some debug info
-//  `for a = 0 to STEAM_MAX_NUMBER_OF_PLAYERS-1
-
-	// Print (  "player objects" )
-	// Print (  entityelement(steamworks_playerEntityID(a)).obj )
-//  `next a
-
-
 	//  Find out which index we are (server will always be 0)
-	g.steamworks.me = SteamGetMyPlayerIndex();
+	g.mp.me = SteamGetMyPlayerIndex();
 	//  Hide our own player model but show everyone elses
 	//  TO DO; if a player has d/c or never joined, need to hide their model rather than show a zombie standing there doing nothing
-	for ( t.a = 0 ; t.a<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
+	for ( t.a = 0 ; t.a<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
 	{
-			if (  t.steamworks_playingRagdoll[t.a]  ==  1 && SteamGetPlayerAlive(t.a)  ==  1 ) 
+			if (  t.mp_playingRagdoll[t.a]  ==  1 && SteamGetPlayerAlive(t.a)  ==  1 ) 
 			{
-				t.steamworks_playingRagdoll[t.a] = 0;
-				t.tphyobj=t.entityelement[t.steamworks_playerEntityID[t.a]].obj;
+				t.mp_playingRagdoll[t.a] = 0;
+				t.tphyobj=t.entityelement[t.mp_playerEntityID[t.a]].obj;
 				ragdoll_destroy ( );
-				RotateObject (  t.entityelement[t.steamworks_playerEntityID[t.a]].obj,0,180,0 );
-				FixObjectPivot (  t.entityelement[t.steamworks_playerEntityID[t.a]].obj );
-				t.e = t.steamworks_playerEntityID[t.a];
-				t.entityelement[t.e].health=g.steamworks.maxHealth;
+				RotateObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj,0,180,0 );
+				FixObjectPivot (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
+				t.e = t.mp_playerEntityID[t.a];
+				t.entityelement[t.e].health=g.mp.maxHealth;
 				//  set appearance back to default so they repick the gun up they had before
-				t.steamworks_oldAppearance[t.a] = 0;
-				t.steamworks_playingAnimation[t.a] = STEAM_ANIMATION_NONE;
+				t.mp_oldAppearance[t.a] = 0;
+				t.mp_playingAnimation[t.a] = MP_ANIMATION_NONE;
 			}
-			if (  t.a  ==  g.steamworks.me ) 
+			if (  t.a  ==  g.mp.me ) 
 			{
-				if (  t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj > 0 ) 
+				if (  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj > 0 ) 
 				{
-					if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj) ) 
+					if (  ObjectExist(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj) ) 
 					{
-						HideObject (  t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj );
-//       `position object entityelement(steamworks_playerEntityID(steamworks.me)).obj,100000,100000,100000
-
-
-//       `tsentid = entityelement(steamworks_playerEntityID(steamworks.me)).bankindex
-
-//       `tccobj = charactercreatorrmodelsoffset+((tsentid*3)-characterkitcontrol.offset)
-
-//       `if ObjectExist(tccobj)=1
-
-//        `unglue object tccobj
-
-//        `position object tccobj,100000,100000,100000
-
-//       `endif
-
-//       `if ObjectExist(tccobj+1)=1
-
-//        `unglue object tccobj+1
-
-//        `position object tccobj+1,100000,100000,100000
-
-//       `endif
-
-//       `if ObjectExist(tccobj+2)=1
-
-//        `unglue object tccobj+2
-
-//        `position object tccobj+2,100000,100000,100000
-
-//       `endif
-
-
+						HideObject (  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj );
 					}
 				}
 			}
 			else
 			{
-				if (  t.entityelement[t.steamworks_playerEntityID[t.a]].obj > 0 ) 
+				if (  t.entityelement[t.mp_playerEntityID[t.a]].obj > 0 ) 
 				{
-					if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.a]].obj) ) 
+					if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].obj) ) 
 					{
-						if (  t.steamworks_forcePosition[t.a] > 0 && SteamGetPlayerAlive(t.a)  ==  1 ) 
+						if (  t.mp_forcePosition[t.a] > 0 && SteamGetPlayerAlive(t.a)  ==  1 ) 
 						{
-							t.steamworks_playerHasSpawned[t.a]=1;
-							HideObject (  t.entityelement[t.steamworks_playerEntityID[t.a]].obj );
-							if (  t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj > 0 ) 
+							t.mp_playerHasSpawned[t.a]=1;
+							HideObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
+							if (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
 							{
-								if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj)  ==  1  )  HideObject (  t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj );
+								if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj)  ==  1  )  HideObject (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
 							}
 						}
 						else
 						{
-							if (  t.steamworks_playerHasSpawned[t.a]  ==  1 ) 
+							if (  t.mp_playerHasSpawned[t.a]  ==  1 ) 
 							{
-								ShowObject (  t.entityelement[t.steamworks_playerEntityID[t.a]].obj );
-								if (  t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj > 0 ) 
+								ShowObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
+								if (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
 								{
-									if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj)  ==  1  )  ShowObject (  t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj );
+									if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj)  ==  1  )  ShowObject (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
 								}
 							}
 							else
 							{
-								HideObject (  t.entityelement[t.steamworks_playerEntityID[t.a]].obj );
-								if (  t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj > 0 ) 
+								HideObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
+								if (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
 								{
-									if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj)  ==  1  )  HideObject (  t.entityelement[t.steamworks_playerEntityID[t.a]].attachmentobj );
+									if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj)  ==  1  )  HideObject (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
 								}
 							}
 						}
@@ -4788,77 +4624,76 @@ steam_howManyEnemiesLeftToKill ( );
 
 	//  Player is respawning or dead
 	t.characterkitcontrol.showmyhead = 0;
-	if (  t.steamworks_health[g.steamworks.me]  <=  0 ) 
+	if (  t.mp_health[g.mp.me]  <=  0 ) 
 	{
 		t.tTime = Timer();
-		if (  t.tTime - g.steamworks.lastSendAliveTime > STEAM_ALIVE_UPDATE_DELAY ) 
+		if (  t.tTime - g.mp.lastSendAliveTime > MP_ALIVE_UPDATE_DELAY ) 
 		{
-			g.steamworks.lastSendAliveTime = t.tTime;
+			g.mp.lastSendAliveTime = t.tTime;
 			SteamSetPlayerAlive (  0 );
 		}
-		steam_showdeath ( );
-		steam_respawn ( );
-//   `print "RESPAWN"
+		mp_showdeath ( );
+		mp_respawn ( );
 
-		steam_updatePlayerPositions ( );
-		steam_updatePlayerNamePlates ( );
-		steam_updatePlayerAnimations ( );
-		steam_delete_entities ( );
-		steam_loop ( );
-		steam_check_for_attachments ( );
-		steam_update_all_projectiles ( );
-		if (  g.steamworks.gameAlreadySpawnedBefore  ==  0 ) 
+		mp_updatePlayerPositions ( );
+		mp_updatePlayerNamePlates ( );
+		mp_updatePlayerAnimations ( );
+		mp_delete_entities ( );
+		mp_loop ( );
+		mp_check_for_attachments ( );
+		mp_update_all_projectiles ( );
+		if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
 		{
-			steam_dontShowOtherPlayers ( );
+			mp_dontShowOtherPlayers ( );
 		}
 
-		if (  t.steamworks_health[g.steamworks.me] > 0  )  g.steamworks.lastSendAliveTime  =  0;
+		if (  t.mp_health[g.mp.me] > 0  )  g.mp.lastSendAliveTime  =  0;
 		return;
 	}
 
 	//  Player is alive
 	t.tTime = Timer();
-	if (  t.tTime - g.steamworks.lastSendAliveTime > STEAM_ALIVE_UPDATE_DELAY ) 
+	if (  t.tTime - g.mp.lastSendAliveTime > MP_ALIVE_UPDATE_DELAY ) 
 	{
-		g.steamworks.lastSendAliveTime = t.tTime;
+		g.mp.lastSendAliveTime = t.tTime;
 		SteamSetPlayerAlive (  1 );
 	}
-	steam_update_player ( );
-	steam_updatePlayerPositions ( );
-	steam_updatePlayerInput ( );
-	steam_updatePlayerNamePlates ( );
-	steam_updatePlayerAnimations ( );
-	steam_delete_entities ( );
-	steam_loop ( );
-	steam_server_message ( );
-	steam_check_for_attachments ( );
-	steam_update_all_projectiles ( );
+	mp_update_player ( );
+	mp_updatePlayerPositions ( );
+	mp_updatePlayerInput ( );
+	mp_updatePlayerNamePlates ( );
+	mp_updatePlayerAnimations ( );
+	mp_delete_entities ( );
+	mp_loop ( );
+	mp_server_message ( );
+	mp_check_for_attachments ( );
+	mp_update_all_projectiles ( );
 
-	if ( g.steamworks.endplay == 1 ) steam_ending_game ( );
+	if ( g.mp.endplay == 1 ) mp_ending_game ( );
 
-	if (  t.steamworks_health[g.steamworks.me]  <=  0  )  g.steamworks.lastSendAliveTime  =  0;
+	if (  t.mp_health[g.mp.me]  <=  0  )  g.mp.lastSendAliveTime  =  0;
 
 	t.tTime = Timer();
 
-if ( g.steamworks.isGameHost == 1 ) steam_checkForEveryoneLeft ( );
+if ( g.mp.isGameHost == 1 ) mp_checkForEveryoneLeft ( );
 
 return;
 
 }
 
 //  used when restarting a match so you don't see everyone dropping out of the sky
-void steam_dontShowOtherPlayers ( void )
+void mp_dontShowOtherPlayers ( void )
 {
 
-	for ( t.a = 0 ; t.a<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
+	for ( t.a = 0 ; t.a<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
 	{
-		if (  t.a  !=  g.steamworks.me ) 
+		if (  t.a  !=  g.mp.me ) 
 		{
-			if (  t.entityelement[t.steamworks_playerEntityID[t.a]].obj > 0 ) 
+			if (  t.entityelement[t.mp_playerEntityID[t.a]].obj > 0 ) 
 			{
-				if (  ObjectExist(t.entityelement[t.steamworks_playerEntityID[t.a]].obj) ) 
+				if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].obj) ) 
 				{
-					PositionObject (  t.entityelement[t.steamworks_playerEntityID[t.a]].obj,-100000,-100000,-100000 );
+					PositionObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj,-100000,-100000,-100000 );
 				}
 			}
 		}
@@ -4868,14 +4703,14 @@ return;
 	
 }
 
-void steam_ending_game ( void )
+void mp_ending_game ( void )
 {
 	PositionCamera (  25500,2000,25500 );
 	RotateCamera (  90,t.tendofgamerotate_f,0 );
 	t.tendofgamerotate_f = t.tendofgamerotate_f + (0.25*g.timeelapsed_f);
-	for ( t.a = 0 ; t.a<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
+	for ( t.a = 0 ; t.a<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
 	{
-		t.tobj=t.entityelement[t.steamworks_playerEntityID[t.a]].obj;
+		t.tobj=t.entityelement[t.mp_playerEntityID[t.a]].obj;
 		if (  t.tobj > 0 ) 
 		{
 				if (  ObjectExist(t.tobj) ) 
@@ -4889,43 +4724,32 @@ return;
 
 }
 
-void steam_free_game ( void )
+void mp_free_game ( void )
 {
-
-//  `if steamworks.madeArrays = 1
-
-//   `undim steamworks_oldEntityPositionsX()
-
-//   `undim steamworks_oldEntityPositionsZ()
-
-//   `steamworks.madeArrays = 0
-
-//  `endif
-
 	if (  t.tspritetouse > 0 ) 
 	{
 		if (  SpriteExist(t.tspritetouse)  ==  1  )  DeleteSprite (  t.tspritetouse );
 		t.tspritetouse = 0;
 	}
 
-	if (  g.steamworks.coop  ==  1 && g.steamworks.originalEntitycount > 0 ) 
+	if (  g.mp.coop  ==  1 && g.mp.originalEntitycount > 0 ) 
 	{
 		UnDim (  t.steamStoreentityelement );
-		g.steamworks.originalEntitycount = 0;
+		g.mp.originalEntitycount = 0;
 	}
 
-	if (  g.steamworks.gunCount > 0 ) 
+	if (  g.mp.gunCount > 0 ) 
 	{
-		for ( t.i = 0 ; t.i<=  g.steamworks.gunCount-1; t.i++ )
+		for ( t.i = 0 ; t.i<=  g.mp.gunCount-1; t.i++ )
 		{
-			if (  t.steamworks_gunobj[t.i] > 0 ) 
+			if (  t.mp_gunobj[t.i] > 0 ) 
 			{
-				if (  ObjectExist(t.steamworks_gunobj[t.i])  )  DeleteObject (  t.steamworks_gunobj[t.i] );
+				if (  ObjectExist(t.mp_gunobj[t.i])  )  DeleteObject (  t.mp_gunobj[t.i] );
 			}
 		}
 	}
 
-	g.steamworks.gunCount = 0;
+	g.mp.gunCount = 0;
 	for ( t.i = 0 ; t.i<=  599; t.i++ )
 	{
 		if (  ObjectExist (g.steamplayermodelsoffset+t.i)  ==  1  )  DeleteObject (  g.steamplayermodelsoffset+t.i ) ;
@@ -4951,22 +4775,22 @@ void steam_free_game ( void )
 
 	}
 
-	for ( t.i = 0 ; t.i<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.i++ )
+	for ( t.i = 0 ; t.i<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.i++ )
 	{
-		if (  t.steamworks_jetpackparticles[t.i]  !=  -1 ) 
+		if (  t.mp_jetpackparticles[t.i]  !=  -1 ) 
 		{
-			t.tRaveyParticlesEmitterID=t.steamworks_jetpackparticles[t.i];
+			t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.i];
 			ravey_particles_delete_emitter ( );
-			t.steamworks_jetpackparticles[t.i] = -1;
+			t.mp_jetpackparticles[t.i] = -1;
 		}
 	}
 
-	steam_resetGameStats ( );
+	mp_resetGameStats ( );
 
 	SteamWorkshopModeOff (  );
 
-	g.steamworks.message = "";
-	g.steamworks.messageTime = 0;
+	g.mp.message = "";
+	g.mp.messageTime = 0;
 
 	t.game.gameloop = 0;
 
@@ -4978,13 +4802,13 @@ return;
 //  needs tlobbytring$ to be set to the lobby name
 }
 
-void steam_subbedToItem ( void )
+void mp_subbedToItem ( void )
 {
 	for ( t.tloop = 0 ; t.tloop<=  20; t.tloop++ )
 	{
-		if (  t.steamworks_subbedItems[t.tloop]  ==  "" ) 
+		if (  t.mp_subbedItems[t.tloop]  ==  "" ) 
 		{
-			t.steamworks_subbedItems[t.tloop] = t.tlobbytring_s;
+			t.mp_subbedItems[t.tloop] = t.tlobbytring_s;
 			break;
 		}
 	}
@@ -4993,11 +4817,11 @@ return;
 //  needs tlobbytring$ to be set to the lobby name
 }
 
-void steam_checkItemSubbed ( void )
+void mp_checkItemSubbed ( void )
 {
 	for ( t.tloop = 0 ; t.tloop<=  20; t.tloop++ )
 	{
-		if (  t.steamworks_subbedItems[t.tloop]  ==  t.tlobbytring_s && t.tlobbytring_s != "" ) 
+		if (  t.mp_subbedItems[t.tloop]  ==  t.tlobbytring_s && t.tlobbytring_s != "" ) 
 		{
 			if (  Timer() - t.tsteaminstallingdotstime > 150 ) 
 			{
@@ -5013,10 +4837,10 @@ return;
 
 }
 
-void steam_resetGameStats ( void )
+void mp_resetGameStats ( void )
 {
 
-	steam_nukeTestmap ( );
+	mp_nukeTestmap ( );
 	//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
 	//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get() );
 	cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
@@ -5025,9 +4849,9 @@ void steam_resetGameStats ( void )
 	if ( FileExist( mlevelworkshop_s.Get())  )  DeleteAFile ( mlevelworkshop_s.Get() );
 
 	//  empty messages
-	for ( t.tloop = 0 ; t.tloop<=  STEAM_MAX_CHAT_LINES-1; t.tloop++ )
+	for ( t.tloop = 0 ; t.tloop<=  MP_MAX_CHAT_LINES-1; t.tloop++ )
 	{
-		t.steamworks_chat[t.tloop] = "";
+		t.mp_chat[t.tloop] = "";
 	}
 
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
@@ -5037,135 +4861,134 @@ void steam_resetGameStats ( void )
 
 	for ( t.tloop = 0 ; t.tloop<=  20; t.tloop++ )
 	{
-		t.steamworks_subbedItems[t.tloop] = "";
+		t.mp_subbedItems[t.tloop] = "";
 	}
 
 	if ( SteamGetPlayerName() != NULL )
 	{
-		g.steamworks.playerName = SteamGetPlayerName();
-		g.steamworks.playerID = SteamGetPlayerID();
+		g.mp.playerName = SteamGetPlayerName();
+		g.mp.playerID = SteamGetPlayerID();
 	}
 
-	g.steamworks.mode = STEAM_MODE_MAIN_MENU;
-	g.steamworks.launchServer = 0;
-	g.steamworks.maxHealth = 0;
-	g.steamworks.isLobbyCreated = 0;
-	g.steamworks.isServerCreated = 0;
-	g.steamworks.isGameHost= 0;
-	g.steamworks.voiceChatOn = 0;
-	g.steamworks.lobbycount = 0;
-	g.steamworks.lobbyscrollbarOn = 0;
-	g.steamworks.gameAlreadySpawnedBefore = 0;
-	g.steamworks.killedByPlayer = 0;
-	g.steamworks.previousMessage_s = "";
-	g.steamworks.syncedWithServer = 0;
-	g.steamworks.syncedWithServerMode = 0;
-	g.steamworks.oldtime = 0;
-	g.steamworks.me = 0;
-	g.steamworks.playedMyDeathAnim = 0;
-	g.steamworks.fileLoaded = 0;
-	g.steamworks.playGame = 0;
-	g.steamworks.oldSpawnTimeLeft = 0;
-	g.steamworks.respawnLeft = 0;
-	g.steamworks.crouchOn = 0;
-	g.steamworks.meleeOn = 0;
-	g.steamworks.isAnimating = 0;
-	g.steamworks.okayToLoadLevel = 0;
-	g.steamworks.iHaveSaidIAmReady = 0;
-	g.steamworks.attachmentcount = 0;
-	g.steamworks.gunCount = 0;
-	g.steamworks.gunid = 0;
-	g.steamworks.lastSendTime = 0;
-	g.steamworks.lastSendTimeAppearance = 0;
-	g.steamworks.appearance = 0;
-	g.steamworks.dyingTime = 0;
-	g.steamworks.spawnrnd = -1;
-	g.steamworks.reloading = 0;
-	g.steamworks.syncedWithServer = 0;
-	g.steamworks.sentreadytime = 0;
-	g.steamworks.AttemptedToJoinLobbyTime = 0;
-	g.steamworks.lastSendProjectileTime = 0;
-	g.steamworks.dontApplyDamage = 0;
-	g.steamworks.ragdollon = 0;
-	g.steamworks.spectatorfollowdistance = 200.0;
-	g.steamworks.ignoreDamageToEntity = 0;
-	g.steamworks.endplay = 0;
-	g.steamworks.destroyedObjectCount = 0;
-	g.steamworks.message = "";
-	g.steamworks.messageTime = 0;
-	g.steamworks.oldfootfloortime = 0;
-	g.steamworks.footfloor = 0;
-	g.steamworks.resetcore = 0;
-	g.steamworks.levelContainsCustomContent = 0;
-	g.steamworks.workshopid = "0";
-	g.steamworks.initialSpawnmoveDownCharacterFlag=1;
-	g.steamworks.usersInServersLobbyAtServerCreation = 0;
-	g.steamworks.dontDrawTitles = 0;
-	g.steamworks.haveshowndeath = 0;
-	g.steamworks.checkiflobbiesavailablemode = 0;
-	g.steamworks.noplayermovement = 0;
-	g.steamworks.team = 0;
-	g.steamworks.friendlyfireoff = 0;
-	g.steamworks.nameplatesOff = 0;
-	g.steamworks.damageWasFromAI = 0;
-	g.steamworks.haveSentMyAvatar = 0;
-	g.steamworks.myOriginalSpawnPoint = -1;
-	g.steamworks.realfirsttimespawn = 1;
+	g.mp.mode = MP_MODE_MAIN_MENU;
+	g.mp.launchServer = 0;
+	g.mp.maxHealth = 0;
+	g.mp.isLobbyCreated = 0;
+	g.mp.isServerCreated = 0;
+	g.mp.isGameHost= 0;
+	g.mp.voiceChatOn = 0;
+	g.mp.lobbycount = 0;
+	g.mp.lobbyscrollbarOn = 0;
+	g.mp.gameAlreadySpawnedBefore = 0;
+	g.mp.killedByPlayer = 0;
+	g.mp.previousMessage_s = "";
+	g.mp.syncedWithServer = 0;
+	g.mp.syncedWithServerMode = 0;
+	g.mp.oldtime = 0;
+	g.mp.me = 0;
+	g.mp.playedMyDeathAnim = 0;
+	g.mp.fileLoaded = 0;
+	g.mp.playGame = 0;
+	g.mp.oldSpawnTimeLeft = 0;
+	g.mp.respawnLeft = 0;
+	g.mp.crouchOn = 0;
+	g.mp.meleeOn = 0;
+	g.mp.isAnimating = 0;
+	g.mp.okayToLoadLevel = 0;
+	g.mp.iHaveSaidIAmReady = 0;
+	g.mp.attachmentcount = 0;
+	g.mp.gunCount = 0;
+	g.mp.gunid = 0;
+	g.mp.lastSendTime = 0;
+	g.mp.lastSendTimeAppearance = 0;
+	g.mp.appearance = 0;
+	g.mp.dyingTime = 0;
+	g.mp.spawnrnd = -1;
+	g.mp.reloading = 0;
+	g.mp.syncedWithServer = 0;
+	g.mp.sentreadytime = 0;
+	g.mp.AttemptedToJoinLobbyTime = 0;
+	g.mp.lastSendProjectileTime = 0;
+	g.mp.dontApplyDamage = 0;
+	g.mp.ragdollon = 0;
+	g.mp.spectatorfollowdistance = 200.0;
+	g.mp.ignoreDamageToEntity = 0;
+	g.mp.endplay = 0;
+	g.mp.destroyedObjectCount = 0;
+	g.mp.message = "";
+	g.mp.messageTime = 0;
+	g.mp.oldfootfloortime = 0;
+	g.mp.footfloor = 0;
+	g.mp.resetcore = 0;
+	g.mp.levelContainsCustomContent = 0;
+	g.mp.workshopid = "0";
+	g.mp.initialSpawnmoveDownCharacterFlag=1;
+	g.mp.usersInServersLobbyAtServerCreation = 0;
+	g.mp.dontDrawTitles = 0;
+	g.mp.haveshowndeath = 0;
+	g.mp.checkiflobbiesavailablemode = 0;
+	g.mp.noplayermovement = 0;
+	g.mp.team = 0;
+	g.mp.friendlyfireoff = 0;
+	g.mp.nameplatesOff = 0;
+	g.mp.damageWasFromAI = 0;
+	g.mp.haveSentMyAvatar = 0;
+	g.mp.myOriginalSpawnPoint = -1;
+	g.mp.realfirsttimespawn = 1;
 
-	for ( t.tc = 0 ; t.tc<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
+	for ( t.tc = 0 ; t.tc<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
 	{
-		t.steamworks_kills[t.tc] = 0;
-		t.steamworks_deaths[t.tc] = 0;
-		t.steamworks_reload[t.tc] = 0;
-		t.steamworks_playerShooting[t.tc] = 0;
-		t.steamworks_playerAttachmentIndex[t.tc] = 0;
-		t.steamworks_playerIsRagdoll[t.tc] = 0;
-		t.steamworks_playerAttachmentObject[t.tc] = 0;
-		t.steamworks_playerHasSpawned[t.tc] = 0;
-		t.steamworks_oldAppearance[t.tc] = 0;
-		t.steamworks_playingAnimation[t.tc] = 0;
-		t.steamworks_playingRagdoll[t.tc] = 0;
-		t.steamworks_oldplayerx[t.tc] = 0;
-		t.steamworks_oldplayery[t.tc] = 0;
-		t.steamworks_oldplayerz[t.tc] = 0;
-		t.steamworks_meleePlaying[t.tc] = 0;
-//   `steamworks_isIdling(tc) = 0
+		t.mp_kills[t.tc] = 0;
+		t.mp_deaths[t.tc] = 0;
+		t.mp_reload[t.tc] = 0;
+		t.mp_playerShooting[t.tc] = 0;
+		t.mp_playerAttachmentIndex[t.tc] = 0;
+		t.mp_playerIsRagdoll[t.tc] = 0;
+		t.mp_playerAttachmentObject[t.tc] = 0;
+		t.mp_playerHasSpawned[t.tc] = 0;
+		t.mp_oldAppearance[t.tc] = 0;
+		t.mp_playingAnimation[t.tc] = 0;
+		t.mp_playingRagdoll[t.tc] = 0;
+		t.mp_oldplayerx[t.tc] = 0;
+		t.mp_oldplayery[t.tc] = 0;
+		t.mp_oldplayerz[t.tc] = 0;
+		t.mp_meleePlaying[t.tc] = 0;
 
-		t.steamworks_isDying[t.tc] = 0;
-		t.steamworks_jetpackOn[t.tc] = 0;
-		t.steamworks_lobbies_s[t.tc] = "";
-		t.steamworks_playerEntityID[t.tc] = 0;
-		t.steamworks_forcePosition[t.tc] = 0;
-		t.steamworks_health[t.tc] = 0;
-		t.steamworks_lastIdleReset[t.tc] = 1;
-		t.steamworks_jetpackparticles[t.tc] = -1;
-		t.steamworks_joined[t.tc] = "";
+		t.mp_isDying[t.tc] = 0;
+		t.mp_jetpackOn[t.tc] = 0;
+		t.mp_lobbies_s[t.tc] = "";
+		t.mp_playerEntityID[t.tc] = 0;
+		t.mp_forcePosition[t.tc] = 0;
+		t.mp_health[t.tc] = 0;
+		t.mp_lastIdleReset[t.tc] = 1;
+		t.mp_jetpackparticles[t.tc] = -1;
+		t.mp_joined[t.tc] = "";
 	}
 
 	t.twhichteam = 1;
-	for ( t.tc = 0 ; t.tc<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
+	for ( t.tc = 0 ; t.tc<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
 	{
 		t.twhichteam = 1-t.twhichteam;
-		t.steamworks_team[t.tc] = t.twhichteam;
+		t.mp_team[t.tc] = t.twhichteam;
 	}
 
 	for ( t.tc = 0 ; t.tc<=  99; t.tc++ )
 	{
-		t.steamworks_attachmentobjects[t.tc] = 0;
-		t.steamworks_gunobj[t.tc] = 0;
-		t.steamworks_gunname[t.tc] = "";
+		t.mp_attachmentobjects[t.tc] = 0;
+		t.mp_gunobj[t.tc] = 0;
+		t.mp_gunname[t.tc] = "";
 	}
 
 	for ( t.tc = 0 ; t.tc<=  79; t.tc++ )
 	{
-		t.steamworks_bullets[t.tc].on = 0;
-		t.steamworks_bullets[t.tc].particles = -1;
-		t.steamworks_bullets[t.tc].sound = 0;
+		t.mp_bullets[t.tc].on = 0;
+		t.mp_bullets[t.tc].particles = -1;
+		t.mp_bullets[t.tc].sound = 0;
 	}
 
-	for ( t.i = 0 ; t.i<=  STEAM_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
+	for ( t.i = 0 ; t.i<=  MP_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
 	{
-		t.steamworks_respawn_timed[t.i].inuse = 0;
+		t.mp_respawn_timed[t.i].inuse = 0;
 	}
 	
 	t.characterkitcontrol.showmyhead = 0;
@@ -5175,7 +4998,7 @@ return;
 
 }
 
-void steam_update_all_projectiles ( void )
+void mp_update_all_projectiles ( void )
 {
 t.debugHowManyInUse = 0;
 	for ( t.tbulletloop = 0 ; t.tbulletloop<=  159; t.tbulletloop++ )
@@ -5183,14 +5006,14 @@ t.debugHowManyInUse = 0;
 			if (  SteamGetBulletOn(t.tbulletloop)  ==  0 ) 
 			{
 				//  clean up particles
-				if (  t.steamworks_bullets[t.tbulletloop].particles  !=  -1 ) 
+				if (  t.mp_bullets[t.tbulletloop].particles  !=  -1 ) 
 				{
-						t.tRaveyParticlesEmitterID=t.steamworks_bullets[t.tbulletloop].particles;
+						t.tRaveyParticlesEmitterID=t.mp_bullets[t.tbulletloop].particles;
 						ravey_particles_delete_emitter ( );
-						t.steamworks_bullets[t.tbulletloop].particles=-1;
+						t.mp_bullets[t.tbulletloop].particles=-1;
 				}
 			}
-			if (  t.tbulletloop < g.steamworks.me*20 || t.tbulletloop > (g.steamworks.me*20)+19 ) 
+			if (  t.tbulletloop < g.mp.me*20 || t.tbulletloop > (g.mp.me*20)+19 ) 
 			{
 				t.tSteamSoundID = g.steamsoundoffset+t.tbulletloop;
 				if (  SoundExist(t.tSteamSoundID)  ==  1 ) 
@@ -5198,7 +5021,7 @@ t.debugHowManyInUse = 0;
 					if (  SoundLooping(t.tSteamSoundID)  ==  0 ) 
 					{
 						DeleteSound (  t.tSteamSoundID );
-						t.steamworks_bullets[t.tbulletloop].sound = 0;
+						t.mp_bullets[t.tbulletloop].sound = 0;
 					}
 				}
 				t.tSteamSoundID = g.steamsoundoffset+200+t.tbulletloop;
@@ -5210,10 +5033,10 @@ t.debugHowManyInUse = 0;
 				{
 					++t.debugHowManyInUse;
 					t.tsteamBObj = g.steamplayermodelsoffset+200+t.tbulletloop;
-					t.steamworks_bullets[t.tbulletloop].btype = SteamGetBulletType(t.tbulletloop);
+					t.mp_bullets[t.tbulletloop].btype = SteamGetBulletType(t.tbulletloop);
 					if (  ObjectExist(t.tsteamBObj)  ==  0 ) 
 					{
-						t.tfindObj = t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].baseObj;
+						t.tfindObj = t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].baseObj;
 						if (  t.tfindObj  !=  0 ) 
 						{
 							CloneObject (  t.tsteamBObj, t.tfindObj );
@@ -5225,43 +5048,43 @@ t.debugHowManyInUse = 0;
 
 						//  setup particle emitters for this projectile
 						//  but only if entities not set to LOWEST as particle trails are expensive!
-						t.steamworks_bullets[t.tbulletloop].particles = -1;
+						t.mp_bullets[t.tbulletloop].particles = -1;
 						t.tokay = 1 ; if (  t.visuals.shaderlevels.entities == 3  )  t.tokay = 0;
-						if (  t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].particleType>0 && t.tokay == 1 ) 
+						if (  t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].particleType>0 && t.tokay == 1 ) 
 						{
 							ravey_particles_get_free_emitter ( );
 							if (  t.tResult>0 ) 
 							{
 								t.tobj = t.tsteamBObj;
 								weapon_add_projectile_particles ( );
-								t.steamworks_bullets[t.tbulletloop].particles = t.tResult;
+								t.mp_bullets[t.tbulletloop].particles = t.tResult;
 							}
 						}
 
 						//  setup sound
-						t.steamworks_bullets[t.tbulletloop].sound = g.steamsoundoffset+t.tbulletloop;
-						if (  SoundExist(t.steamworks_bullets[t.tbulletloop].sound) == 1 ) 
+						t.mp_bullets[t.tbulletloop].sound = g.steamsoundoffset+t.tbulletloop;
+						if (  SoundExist(t.mp_bullets[t.tbulletloop].sound) == 1 ) 
 						{
-							if (  SoundPlaying(t.steamworks_bullets[t.tbulletloop].sound)  ==  1  )  StopSound (  t.steamworks_bullets[t.tbulletloop].sound );
-							if (  SoundLooping(t.steamworks_bullets[t.tbulletloop].sound)  ==  1  )  StopSound (  t.steamworks_bullets[t.tbulletloop].sound );
-							DeleteSound (  t.steamworks_bullets[t.tbulletloop].sound );
+							if (  SoundPlaying(t.mp_bullets[t.tbulletloop].sound)  ==  1  )  StopSound (  t.mp_bullets[t.tbulletloop].sound );
+							if (  SoundLooping(t.mp_bullets[t.tbulletloop].sound)  ==  1  )  StopSound (  t.mp_bullets[t.tbulletloop].sound );
+							DeleteSound (  t.mp_bullets[t.tbulletloop].sound );
 						}
 						//  if this projectile has a sound that loops, start it now
-						if (  t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].sound  ==  0  )  t.steamworks_bullets[t.tbulletloop].sound  =  0;
-						if (  t.steamworks_bullets[t.tbulletloop].sound > 0 ) 
+						if (  t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].sound  ==  0  )  t.mp_bullets[t.tbulletloop].sound  =  0;
+						if (  t.mp_bullets[t.tbulletloop].sound > 0 ) 
 						{
-							CloneSound (  t.steamworks_bullets[t.tbulletloop].sound,t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].sound );
-							if (  t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].soundLoopFlag  ==  1 ) 
+							CloneSound (  t.mp_bullets[t.tbulletloop].sound,t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].sound );
+							if (  t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].soundLoopFlag  ==  1 ) 
 							{
-								PositionSound (  t.steamworks_bullets[t.tbulletloop].sound,SteamGetBulletX(t.tbulletloop), SteamGetBulletY(t.tbulletloop), SteamGetBulletZ(t.tbulletloop) );
-								SetSoundSpeed (  t.steamworks_bullets[t.tbulletloop].sound, t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].soundDopplerBaseSpeed );
-								LoopSound (  t.steamworks_bullets[t.tbulletloop].sound );
-								if (  t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].soundDopplerFlag  ==  1 ) 
+								PositionSound (  t.mp_bullets[t.tbulletloop].sound,SteamGetBulletX(t.tbulletloop), SteamGetBulletY(t.tbulletloop), SteamGetBulletZ(t.tbulletloop) );
+								SetSoundSpeed (  t.mp_bullets[t.tbulletloop].sound, t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].soundDopplerBaseSpeed );
+								LoopSound (  t.mp_bullets[t.tbulletloop].sound );
+								if (  t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].soundDopplerFlag  ==  1 ) 
 								{
 									t.txDist_f = CameraPositionX(0) - SteamGetBulletX(t.tbulletloop);
 									t.tyDist_f = CameraPositionY(0) - SteamGetBulletY(t.tbulletloop);
 									t.tzDist_f = CameraPositionZ(0) - SteamGetBulletZ(t.tbulletloop);
-									t.steamworks_bullets[t.tbulletloop].soundDistFromPlayer = Sqrt(t.txDist_f*t.txDist_f + t.tyDist_f*t.tyDist_f + t.tzDist_f*t.tzDist_f);
+									t.mp_bullets[t.tbulletloop].soundDistFromPlayer = Sqrt(t.txDist_f*t.txDist_f + t.tyDist_f*t.tyDist_f + t.tzDist_f*t.tzDist_f);
 								}
 							}
 						}
@@ -5273,27 +5096,27 @@ t.debugHowManyInUse = 0;
 						RotateObject (  t.tsteamBObj, SteamGetBulletAngleX(t.tbulletloop), SteamGetBulletAngleY(t.tbulletloop), SteamGetBulletAngleZ(t.tbulletloop) );
 
 						//  do we need to reposition the 3D sound?
-						t.tSndID = t.steamworks_bullets[t.tbulletloop].sound;
+						t.tSndID = t.mp_bullets[t.tbulletloop].sound;
 						if (  t.tSndID > 0 ) 
 						{
-							if (  t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].soundLoopFlag  ==  1 ) 
+							if (  t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].soundLoopFlag  ==  1 ) 
 							{
 								//  position the sound
 								PositionSound (  t.tSndID,SteamGetBulletX(t.tbulletloop), SteamGetBulletY(t.tbulletloop), SteamGetBulletZ(t.tbulletloop) );
 								//  calculate and set doppler pitch
-								if (  t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].soundDopplerFlag  ==  1 ) 
+								if (  t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].soundDopplerFlag  ==  1 ) 
 								{
-									t.tOldDist_f = t.steamworks_bullets[t.tbulletloop].soundDistFromPlayer;
+									t.tOldDist_f = t.mp_bullets[t.tbulletloop].soundDistFromPlayer;
 									t.txDist_f = CameraPositionX(0) - SteamGetBulletX(t.tbulletloop);
 									t.tyDist_f = CameraPositionY(0) - SteamGetBulletY(t.tbulletloop);
 									t.tzDist_f = CameraPositionZ(0) - SteamGetBulletZ(t.tbulletloop);
-									t.steamworks_bullets[t.tbulletloop].soundDistFromPlayer = Sqrt(t.txDist_f*t.txDist_f + t.tyDist_f*t.tyDist_f + t.tzDist_f*t.tzDist_f);
-									t.tDistDiff_f = t.tOldDist_f - t.steamworks_bullets[t.tbulletloop].soundDistFromPlayer;
+									t.mp_bullets[t.tbulletloop].soundDistFromPlayer = Sqrt(t.txDist_f*t.txDist_f + t.tyDist_f*t.tyDist_f + t.tzDist_f*t.tzDist_f);
+									t.tDistDiff_f = t.tOldDist_f - t.mp_bullets[t.tbulletloop].soundDistFromPlayer;
 									t.tSoundMultiplier_f = 1 + (t.tDistDiff_f/t.ElapsedTime_f)*0.00015;
 									if (  t.tSoundMultiplier_f < 0.5  )  t.tSoundMultiplier_f  =  0.5;
 									if (  t.tSoundMultiplier_f > 2  )  t.tSoundMultiplier_f  =  2;
-									t.steamworks_bullets[t.tbulletloop].btype = SteamGetBulletType(t.tbulletloop);
-									SetSoundSpeed (  t.tSndID, t.WeaponProjectileBase[t.steamworks_bullets[t.tbulletloop].btype].soundDopplerBaseSpeed * t.tSoundMultiplier_f );
+									t.mp_bullets[t.tbulletloop].btype = SteamGetBulletType(t.tbulletloop);
+									SetSoundSpeed (  t.tSndID, t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].soundDopplerBaseSpeed * t.tSoundMultiplier_f );
 								}
 							}
 						}
@@ -5305,23 +5128,23 @@ t.debugHowManyInUse = 0;
 					//  projectile ended, show result
 
 					//  clean up particles
-					if (  t.steamworks_bullets[t.tbulletloop].particles  !=  -1 ) 
+					if (  t.mp_bullets[t.tbulletloop].particles  !=  -1 ) 
 					{
-							t.tRaveyParticlesEmitterID=t.steamworks_bullets[t.tbulletloop].particles;
+							t.tRaveyParticlesEmitterID=t.mp_bullets[t.tbulletloop].particles;
 							ravey_particles_delete_emitter ( );
-							t.steamworks_bullets[t.tbulletloop].particles=-1;
+							t.mp_bullets[t.tbulletloop].particles=-1;
 					}
 
 					if (  ObjectExist(g.steamplayermodelsoffset+200+t.tbulletloop)  ==  1 ) 
 					{
 
-						t.tSteamProjectileType = t.steamworks_bullets[t.tbulletloop].btype;
+						t.tSteamProjectileType = t.mp_bullets[t.tbulletloop].btype;
 
 						//  stop any looping sound
-						if (  t.steamworks_bullets[t.tbulletloop].sound > 0 ) 
+						if (  t.mp_bullets[t.tbulletloop].sound > 0 ) 
 						{
-							StopSound (  t.steamworks_bullets[t.tbulletloop].sound );
-							t.steamworks_bullets[t.tbulletloop].sound = 0;
+							StopSound (  t.mp_bullets[t.tbulletloop].sound );
+							t.mp_bullets[t.tbulletloop].sound = 0;
 						}
 
 						t.tsteamBObj = g.steamplayermodelsoffset+200+t.tbulletloop;
@@ -5344,11 +5167,11 @@ t.debugHowManyInUse = 0;
 						t.texplodez_f=ObjectPositionZ(t.tsteamBObj);
 //       `texploderadius#=300.0
 
-//       `steamworks.dontApplyDamage = 1
+//       `mp.dontApplyDamage = 1
 
 						explosion_rocket(t.texplodex_f,t.texplodey_f,t.texplodez_f);
 //physics_explodesphere ( );
-//       `steamworks.dontApplyDamage = 0
+//       `mp.dontApplyDamage = 0
 
 						DeleteObject (  t.tsteamBObj );
 
@@ -5367,7 +5190,7 @@ return;
 
 }
 
-void steam_destroyentity ( void )
+void mp_destroyentity ( void )
 {
 	//  takes ttte
 	SteamDeleteObject (  t.ttte );
@@ -5375,151 +5198,114 @@ return;
 
 }
 
-void steam_refresh ( void )
+void mp_refresh ( void )
 {
 	SteamLoop (  );
 return;
 
 }
 
-void steam_setMessage ( void )
+void mp_setMessage ( void )
 {
 	//  takes tmsg$
-	g.steamworks.message = t.tmsg_s;
-	g.steamworks.messageTime = Timer();
+	g.mp.message = t.tmsg_s;
+	g.mp.messageTime = Timer();
 return;
 
 }
 
-void steam_setMessageDots ( void )
+void mp_setMessageDots ( void )
 {
 	//  takes tmsg$
-	g.steamworks.messageDots = t.tmsg_s;
-	g.steamworks.messageTimeDots = Timer();
+	g.mp.messageDots = t.tmsg_s;
+	g.mp.messageTimeDots = Timer();
 return;
 
 }
 
-void steam_message ( void )
+void mp_message ( void )
 {
-	if (  g.steamworks.message  !=  "" ) 
+	if (  g.mp.message  !=  "" ) 
 	{
-//   `x = (GetDisplayWidth()/2) - (Text (  width(steamworks.message)/2) )
+//   `x = (GetDisplayWidth()/2) - (Text (  width(mp.message)/2) )
 
-//   `text x,200,steamworks.message
+//   `text x,200,mp.message
 
-		steam_text(-1,15,3,g.steamworks.message.Get());
-		if (  Timer() - g.steamworks.messageTime > STEAM_MESSAGE_TIMOUT ) 
+		mp_text(-1,15,3,g.mp.message.Get());
+		if (  Timer() - g.mp.messageTime > MP_MESSAGE_TIMOUT ) 
 		{
-			g.steamworks.message = "";
+			g.mp.message = "";
 		}
 	}
 return;
 
 }
 
-void steam_messageDots ( void )
+void mp_messageDots ( void )
 {
-	if (  g.steamworks.messageDots  !=  "" ) 
+	if (  g.mp.messageDots  !=  "" ) 
 	{
-//   `x = (GetDisplayWidth()/2) - (Text (  width(steamworks.message)/2) )
+//   `x = (GetDisplayWidth()/2) - (Text (  width(mp.message)/2) )
 
-//   `text x,200,steamworks.message
+//   `text x,200,mp.message
 
-		steam_textDots(-1,15,3,g.steamworks.messageDots.Get());
-		if (  Timer() - g.steamworks.messageTimeDots > STEAM_MESSAGE_TIMOUT ) 
+		mp_textDots(-1,15,3,g.mp.messageDots.Get());
+		if (  Timer() - g.mp.messageTimeDots > MP_MESSAGE_TIMOUT ) 
 		{
-			g.steamworks.messageDots = "";
+			g.mp.messageDots = "";
 		}
 	}
 return;
 
 }
 
-void steam_update_projectile ( void )
+void mp_update_projectile ( void )
 {
-
 	if (  t.tProj > 19  )  return;
-	
-//  `print "tProj = " + Str(tProj)
 
-//  `print "Steam Bullet = " + Str((steamworks.me*20) + tProj )
+	t.tSteamBullet = (g.mp.me*20) + t.tProj;
 
-	
-	t.tSteamBullet = (g.steamworks.me*20) + t.tProj;
-	//  if it is a change in state, send immediately
-//  `if steamworks_bullets(tSteamBullet).on  ==  0 && tSteamBulletOn  ==  1 then steamworks_bullets_send_time(tSteamBullet)  ==  0
-	
-//  `if steamworks_bullets(tSteamBullet).on  ==  1 && tSteamBulletOn  ==  0 then steamworks_bullets_send_time(tSteamBullet)  ==  0
-	
 	t.tTime = Timer();
-	if (  t.tTime - t.steamworks_bullets_send_time[t.tSteamBullet] < STEAM_PROJECTILE_UPDATE_DELAY && t.tSteamBulletOn  ==  1  )  return;
+	if (  t.tTime - t.mp_bullets_send_time[t.tSteamBullet] < MP_PROJECTILE_UPDATE_DELAY && t.tSteamBulletOn  ==  1  )  return;
 
-	t.steamworks_bullets_send_time[t.tSteamBullet] = t.tTime;
+	t.mp_bullets_send_time[t.tSteamBullet] = t.tTime;
 	
-//  `Print "sending projectiles"
-
-	
-	//  takes tProj, tProjType, xPos#, yPos#, zPos#, xAng#, yAng#, zAng#, tSteamBulletOn
-//  `print "BULLET:"
-
-//  `print "type " + Str(tProjType)
-
-//  `print "x = " + Str(WeaponProjectile(tProj).xPos#)
-
-//  `print "y = " + Str(WeaponProjectile(tProj).yPos#)
-
-//  `print "z = " + Str(WeaponProjectile(tProj).zPos#)
-
-//  `print "x angle = " + Str(WeaponProjectile(tProj).xAng#)
-
-//  `print "y angle = " + Str(WeaponProjectile(tProj).yAng#)
-
-//  `print "z angle = " + Str(WeaponProjectile(tProj).zAng#)
-
-//  `print "On = " + Str(tSteamBulletOn)
-
-//  `print "tProj" + Str(tProj)
-
-
-
-	t.steamworks_bullets[t.tSteamBullet].on = t.tSteamBulletOn;
+	t.mp_bullets[t.tSteamBullet].on = t.tSteamBulletOn;
 	SteamSetBullet (  t.tSteamBullet , t.WeaponProjectile[t.tProj].xPos_f, t.WeaponProjectile[t.tProj].yPos_f, t.WeaponProjectile[t.tProj].zPos_f, t.WeaponProjectile[t.tProj].xAng_f, t.WeaponProjectile[t.tProj].yAng_f, t.WeaponProjectile[t.tProj].zAng_f, t.tProjType, t.tSteamBulletOn );
 
+	return;
+}
+
+void mp_serverSetLuaGameMode ( void )
+{
+	SteamSendLua (  MP_LUA_ServerSetLuaGameMode,0,t.v );
 return;
 
 }
 
-void steam_serverSetLuaGameMode ( void )
+void mp_setServerTimer ( void )
 {
-	SteamSendLua (  STEAM_LUA_ServerSetLuaGameMode,0,t.v );
+	SteamSendLua (  MP_LUA_SetServerTimer,0,t.v );
 return;
 
 }
 
-void steam_setServerTimer ( void )
+void mp_serverRespawnAll ( void )
 {
-	SteamSendLua (  STEAM_LUA_SetServerTimer,0,t.v );
-return;
-
-}
-
-void steam_serverRespawnAll ( void )
-{
-	SteamSendLua (  STEAM_LUA_ServerRespawnAll,0,0 );
-	steam_restoreEntities ( );
-	steam_setLuaResetStats ( );
-	steam_respawnEntities ( );
+	SteamSendLua (  MP_LUA_ServerRespawnAll,0,0 );
+	mp_restoreEntities ( );
+	mp_setLuaResetStats ( );
+	mp_respawnEntities ( );
 	t.playercontrol.jetpackhidden=0;
 	t.playercontrol.jetpackmode=0;
 	physics_no_gun_zoom ( );
 	t.aisystem.processplayerlogic=1;
-	g.steamworks.gameAlreadySpawnedBefore = 0;
-	t.tindex = g.steamworks.me+1;
+	g.mp.gameAlreadySpawnedBefore = 0;
+	t.tindex = g.mp.me+1;
 
 	//  Find start position for player
 	t.tfoundone = 0;
-	if (  t.steamworksmultiplayerstart[t.tindex].active == 1 ) 
+	if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
 	{
 		t.tfoundone = 1;
 	}
@@ -5528,7 +5314,7 @@ void steam_serverRespawnAll ( void )
 		t.tonetotry = t.tindex/2;
 		if (  t.tonetotry > 0 ) 
 		{
-			if (  t.steamworksmultiplayerstart[t.tonetotry].active == 1 ) 
+			if (  t.mpmultiplayerstart[t.tonetotry].active == 1 ) 
 			{
 				t.tfoundone = 1;
 				t.tindex = t.tonetotry;
@@ -5537,49 +5323,49 @@ void steam_serverRespawnAll ( void )
 	}
 	if (  t.tfoundone  ==  0 ) 
 	{
-		if (  t.steamworksmultiplayerstart[1].active == 1 ) 
+		if (  t.mpmultiplayerstart[1].active == 1 ) 
 		{
 			t.tindex = 1;
 			t.tfoundone = 1;
 		}
 	}
 
-	if (  t.steamworksmultiplayerstart[t.tindex].active == 1 ) 
+	if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
 	{
 
-		t.terrain.playerx_f=t.steamworksmultiplayerstart[t.tindex].x;
-		t.terrain.playery_f=t.steamworksmultiplayerstart[t.tindex].y+20;
-		t.terrain.playerz_f=t.steamworksmultiplayerstart[t.tindex].z;
+		t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
+		t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y+20;
+		t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
 		t.terrain.playerax_f=0;
-		t.terrain.playeray_f=t.steamworksmultiplayerstart[t.tindex].angle;
+		t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
 		t.terrain.playeraz_f=0;
 
-		g.steamworks.lastx=t.terrain.playerx_f;
-		g.steamworks.lasty=t.terrain.playery_f;
-		g.steamworks.lastz=t.terrain.playerz_f;
-		g.steamworks.lastangley=t.terrain.playeray_f;
+		g.mp.lastx=t.terrain.playerx_f;
+		g.mp.lasty=t.terrain.playery_f;
+		g.mp.lastz=t.terrain.playerz_f;
+		g.mp.lastangley=t.terrain.playeray_f;
 	}
 	physics_resetplayer_core ( );
-	t.tobj = t.entityelement[t.steamworks_playerEntityID[g.steamworks.me]].obj;
+	t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
 	if (  t.tobj > 0 ) 
 	{
 		PositionObject (  t.tobj, t.terrain.playerx_f, t.terrain.playery_f-70, t.terrain.playerz_f );
 	}
-	g.steamworks.gameAlreadySpawnedBefore = 0;
+	g.mp.gameAlreadySpawnedBefore = 0;
 	t.player[t.plrid].health = 0;
-	t.steamworks_health[g.steamworks.me] = 0;
-	g.steamworks.endplay = 0;
+	t.mp_health[g.mp.me] = 0;
+	g.mp.endplay = 0;
 	g.autoloadgun=0 ; gun_change ( );
 return;
 
 //  Put entities back to the original "first played" state
 }
 
-void steam_restoreEntities ( void )
+void mp_restoreEntities ( void )
 {
 //  `remstart
 
-	for ( t.te = 1 ; t.te<=  g.steamworks.originalEntitycount; t.te++ )
+	for ( t.te = 1 ; t.te<=  g.mp.originalEntitycount; t.te++ )
 	{
 		t.tentid=t.entityelement[t.te].bankindex;
 		if (  t.tentid>0 ) 
@@ -5607,27 +5393,27 @@ return;
 
 }
 
-void steam_serverEndPlay ( void )
+void mp_serverEndPlay ( void )
 {
-	SteamSendLua (  STEAM_LUA_ServerEndPlay,0,0 );
+	SteamSendLua (  MP_LUA_ServerEndPlay,0,0 );
 	t.playercontrol.jetpackhidden=0;
 	t.playercontrol.jetpackmode=0;
 	physics_no_gun_zoom ( );
-	g.steamworks.endplay = 1;
+	g.mp.endplay = 1;
 	t.aisystem.processplayerlogic = 0;
 	g.autoloadgun=0 ; gun_change ( );
 return;
 
 }
 
-void steam_setServerKillsToWin ( void )
+void mp_setServerKillsToWin ( void )
 {
-	g.steamworks.setserverkillstowin = t.v;
+	g.mp.setserverkillstowin = t.v;
 return;
 
 }
 
-void steam_networkkill ( void )
+void mp_networkkill ( void )
 {
 
 	//  get damage amount to set it back to 0
@@ -5635,22 +5421,22 @@ void steam_networkkill ( void )
 
 	t.tsteamlastdamageincounter = t.tsteamlastdamageincounter + 1;
 	t.tsource = t.entityelement[t.texplodesourceEntity].mp_killedby;
-	t.te = t.steamworks_playerEntityID[t.tsource];
+	t.te = t.mp_playerEntityID[t.tsource];
 	
-	g.steamworks.killedByPlayerFlag = 1;
-	g.steamworks.playerThatKilledMe = t.tsource;
+	g.mp.killedByPlayerFlag = 1;
+	g.mp.playerThatKilledMe = t.tsource;
 	t.tsteamforce = 500;
-	SteamKilledBy (  g.steamworks.playerThatKilledMe , CameraPositionX(), CameraPositionY(), CameraPositionZ(), t.tsteamforce, 0 );
-	g.steamworks.dyingTime = Timer();
+	SteamKilledBy (  g.mp.playerThatKilledMe , CameraPositionX(), CameraPositionY(), CameraPositionZ(), t.tsteamforce, 0 );
+	g.mp.dyingTime = Timer();
 
 return;
 
 }
 
-void steam_lobbyListBox ( void )
+void mp_lobbyListBox ( void )
 {
 	t.tluaTextCenterX = 0;
-	if (  g.steamworks.listboxmode  ==  0 ) 
+	if (  g.mp.listboxmode  ==  0 ) 
 	{
 		t.tsize = SteamGetLobbyListSize();
 
@@ -5674,25 +5460,25 @@ void steam_lobbyListBox ( void )
 		BoxEx (  20,195,40,215 );
 
 		t.tluarealcoords = 1;
-		steam_textColor(50,20,1,"You can join this Lobby",255,255,255);
+		mp_textColor(50,20,1,"You can join this Lobby",255,255,255);
 		t.tluarealcoords = 1;
-		steam_textColor(50,55,1,"Join to subscribe and",255,255,50);
+		mp_textColor(50,55,1,"Join to subscribe and",255,255,50);
 		t.tluarealcoords = 1;
-		steam_textColor(50,80,1,"download the content",255,255,50);
+		mp_textColor(50,80,1,"download the content",255,255,50);
 		t.tluarealcoords = 1;
-		steam_textColor(50,105,1,"for this game. The",255,255,50);
+		mp_textColor(50,105,1,"for this game. The",255,255,50);
 		t.tluarealcoords = 1;
-		steam_textColor(50,130,1,"lobby will turn white",255,255,50);
+		mp_textColor(50,130,1,"lobby will turn white",255,255,50);
 		t.tluarealcoords = 1;
-		steam_textColor(50,155,1,"when downloaded",255,255,50);
+		mp_textColor(50,155,1,"when downloaded",255,255,50);
 		t.tluarealcoords = 1;
-		steam_textColor(50,190,1,"Please restart",255,100,100);
+		mp_textColor(50,190,1,"Please restart",255,100,100);
 		t.tluarealcoords = 1;
-		steam_textColor(50,215,1,"GameGuru to",255,100,100);
+		mp_textColor(50,215,1,"GameGuru to",255,100,100);
 		t.tluarealcoords = 1;
-		steam_textColor(50,240,1,"update this game",255,100,100);
+		mp_textColor(50,240,1,"update this game",255,100,100);
 	}
-	if (  g.steamworks.listboxmode  ==  1 ) 
+	if (  g.mp.listboxmode  ==  1 ) 
 	{
 		t.tsize = t.tempsteamhowmanyfpmsarethere;
 	}
@@ -5712,14 +5498,14 @@ void steam_lobbyListBox ( void )
 	t.tempsteamymaxY_f = GetDisplayHeight() * 0.75;
 	t.tempsteamyminX_f = GetDisplayWidth() * 0.30;
 	t.tempsteamymaxX_f = GetDisplayWidth() * 0.65;
-	t.tempsteamselected_f = g.steamworks.selectedLobby - g.steamworks.lobbyoffset;
+	t.tempsteamselected_f = g.mp.selectedLobby - g.mp.lobbyoffset;
 	t.tempmissthisone_f = t.tempsteamselected_f;
 	if (  t.tempsteamselected_f  >=  0 && t.tempsteamselected_f  <= 9 ) 
 	{
 		t.tempsteamselectedY_f = t.tempsteamyminY_f + (t.tempsteamselected_f * (GetDisplayHeight() * 0.05));
 		InkEx ( 128, 128, 128 );//  Rgb ( 128,128,128),0 );
 		BoxEx (  t.tLeft,t.tempsteamselectedY_f,t.tRight,t.tempsteamselectedY_f+(GetDisplayHeight() * 0.05) );
-		if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0  )  g.steamworks.selectedLobby  =  t.tempsteamselected_f+g.steamworks.lobbyoffset;
+		if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0  )  g.mp.selectedLobby  =  t.tempsteamselected_f+g.mp.lobbyoffset;
 	}
 
 	t.tempsteamyminY_f = (GetDisplayHeight() * 0.25) - (GetDisplayHeight() * 0.025);
@@ -5734,12 +5520,12 @@ void steam_lobbyListBox ( void )
 			t.tempsteamselected_f = Floor((t.my_f - t.tempsteamyminY_f) / (GetDisplayHeight() * 0.05));
 			if (  t.tempsteamselected_f  >=  0 && t.tempsteamselected_f < 10 && t.tempsteamselected_f  !=  t.tempmissthisone_f ) 
 			{
-				if (  t.tempsteamselected_f+g.steamworks.lobbyoffset < t.tsize ) 
+				if (  t.tempsteamselected_f+g.mp.lobbyoffset < t.tsize ) 
 				{
 					t.tempsteamselectedY_f = t.tempsteamyminY_f + (t.tempsteamselected_f * (GetDisplayHeight() * 0.05));
 					InkEx ( 64, 64, 64 );//  Rgb ( 64,64,64),0 );
 					BoxEx (  t.tLeft,t.tempsteamselectedY_f,t.tRight,t.tempsteamselectedY_f+(GetDisplayHeight() * 0.05) );
-					if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0  )  g.steamworks.selectedLobby  =  t.tempsteamselected_f+g.steamworks.lobbyoffset;
+					if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0  )  g.mp.selectedLobby  =  t.tempsteamselected_f+g.mp.lobbyoffset;
 				}
 			}
 		}
@@ -5775,7 +5561,7 @@ void steam_lobbyListBox ( void )
 			{
 				if (  Timer() - t.tempsteamscrollclicktimer > 100 ) 
 				{
-					--g.steamworks.lobbyoffset;
+					--g.mp.lobbyoffset;
 					t.tempsteamscrollclicktimer = Timer();
 				}
 			}
@@ -5796,7 +5582,7 @@ void steam_lobbyListBox ( void )
 			{
 				if (  Timer() - t.tempsteamscrollclicktimer > 100 ) 
 				{
-					++g.steamworks.lobbyoffset;
+					++g.mp.lobbyoffset;
 					t.tempsteamscrollclicktimer = Timer();
 				}
 			}
@@ -5808,12 +5594,12 @@ void steam_lobbyListBox ( void )
 	LineEx (  t.tRight-t.toffx,t.tBottom,t.tRight, t.tBottom-(t.toffy*2) );
 	LineEx (  t.tRight-(t.toffx*2),t.tBottom-(t.toffy*2),t.tRight,t.tBottom-(t.toffy*2) );
 
-	if (  g.steamworks.lobbyscrollbarOn  ==  0 || t.mc  ==  0 ) 
+	if (  g.mp.lobbyscrollbarOn  ==  0 || t.mc  ==  0 ) 
 	{
-		g.steamworks.lobbyscrollbarOn = 0;
+		g.mp.lobbyscrollbarOn = 0;
 		t.tboxsize_f = (10.0 * GetDisplayHeight()) / 100.0;
 		t.tboxsize = t.tboxsize_f;
-		t.tloboffset_f = g.steamworks.lobbyoffset;
+		t.tloboffset_f = g.mp.lobbyoffset;
 		t.tsize_f = t.tsize;
 		t.tboxoffset_f = (t.tloboffset_f / t.tsize_f) * 100.0;
 		if (  t.tboxoffset_f < 0.0  )  t.tboxoffset_f  =  0.0;
@@ -5829,9 +5615,9 @@ void steam_lobbyListBox ( void )
 				InkEx ( 160, 160, 160 );// Rgb (160,160,160),0 ) ;
 				if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0 ) 
 				{
-					g.steamworks.lobbyscrollbarOn = 1;
-					g.steamworks.lobbyscrollbarOffset = t.tboxtop-t.my;
-					g.steamworks.lobbyscrollbarOldY = t.my;
+					g.mp.lobbyscrollbarOn = 1;
+					g.mp.lobbyscrollbarOffset = t.tboxtop-t.my;
+					g.mp.lobbyscrollbarOldY = t.my;
 				}
 			}
 		}
@@ -5841,8 +5627,8 @@ void steam_lobbyListBox ( void )
 	}
 	else
 	{
-		g.steamworks.lobbyscrollbarOldY = t.my;
-		t.tboxtop = t.my+g.steamworks.lobbyscrollbarOffset;
+		g.mp.lobbyscrollbarOldY = t.my;
+		t.tboxtop = t.my+g.mp.lobbyscrollbarOffset;
 		if (  t.tboxtop < t.tTop+(t.toffy*2)+2  )  t.tboxtop  =  t.tTop+(t.toffy*2)+2;
 		if (  t.tboxtop > t.tTop+(t.toffy*2)+2 + ((100.0 * (GetDisplayHeight() * 0.40)) / 100.0)  )  t.tboxtop  =  t.tTop+(t.toffy*2)+2 + ((100.0 * (GetDisplayHeight() * 0.40)) / 100.0);
 		t.tboxsize_f = (10.0 * GetDisplayHeight()) / 100.0;
@@ -5857,18 +5643,18 @@ void steam_lobbyListBox ( void )
 		if (  t.tempsteamperc_f > 100.0  )  t.tempsteamperc_f  =  100.0;
 		t.tsize_f = t.tsize;
 		t.tempsteamnewoffset_f = (t.tempsteamperc_f * t.tsize_f) / 100.0;
-		g.steamworks.lobbyoffset = t.tempsteamnewoffset_f;
+		g.mp.lobbyoffset = t.tempsteamnewoffset_f;
 
 	}
 
-	if (  g.steamworks.lobbyoffset > t.tsize-10  )  g.steamworks.lobbyoffset  =  t.tsize-10;
-	if (  g.steamworks.lobbyoffset < 0  )  g.steamworks.lobbyoffset  =  0;
+	if (  g.mp.lobbyoffset > t.tsize-10  )  g.mp.lobbyoffset  =  t.tsize-10;
+	if (  g.mp.lobbyoffset < 0  )  g.mp.lobbyoffset  =  0;
 
 	InkEx ( 255, 255, 255 );// Rgb(255,255,255),0 );
 
 	t.tempsteamoldmc = t.mc;
 
-	if (  g.steamworks.listboxmode  ==  0 ) 
+	if (  g.mp.listboxmode  ==  0 ) 
 	{
 		if (  t.tsize  ==  1 ) 
 		{
@@ -5879,32 +5665,32 @@ void steam_lobbyListBox ( void )
 			t.tstring_s = cstr(cstr(Str(t.tsize)) + " lobbies found");
 		}
 	}
-	if (  g.steamworks.listboxmode  ==  1 ) 
+	if (  g.mp.listboxmode  ==  1 ) 
 	{
 		t.tstring_s = cstr(cstr(Str(t.tsize)) + " levels found");
 	}
-	steam_text(-1,15,1,t.tstring_s.Get());
+	mp_text(-1,15,1,t.tstring_s.Get());
 
-	if (  t.tsize > 0  )  g.steamworks.lobbycount  =  t.tsize;
+	if (  t.tsize > 0  )  g.mp.lobbycount  =  t.tsize;
 	t.teampsteamy = 25;
 	t.tlobbycount = 0;
 	for ( t.c = 0 ; t.c<=  t.tsize-1; t.c++ )
 	{
-			if (  t.c  >=  g.steamworks.lobbyoffset && t.c < g.steamworks.lobbyoffset+10 ) 
+			if (  t.c  >=  g.mp.lobbyoffset && t.c < g.mp.lobbyoffset+10 ) 
 			{
-				if (  g.steamworks.listboxmode  ==  0 ) 
+				if (  g.mp.listboxmode  ==  0 ) 
 				{
-					t.steamworks_lobbies_s[t.tlobbycount] = SteamGetLobbyListName(t.c);
+					t.mp_lobbies_s[t.tlobbycount] = SteamGetLobbyListName(t.c);
 
-					if (  cstr(Left(t.steamworks_lobbies_s[t.tlobbycount].Get(),5))  ==  "Lobby" || Len(t.steamworks_lobbies_s[t.tlobbycount].Get()) < 8 ) 
+					if (  cstr(Left(t.mp_lobbies_s[t.tlobbycount].Get(),5))  ==  "Lobby" || Len(t.mp_lobbies_s[t.tlobbycount].Get()) < 8 ) 
 					{
-						t.steamworks_lobbies_s[t.tlobbycount] = "Waiting for lobby details...";
+						t.mp_lobbies_s[t.tlobbycount] = "Waiting for lobby details...";
 					}
-					if (  g.steamworks.selectedLobby  ==  t.c  )  g.steamworks.selectedLobbyName  =  t.steamworks_lobbies_s[t.tlobbycount];
+					if (  g.mp.selectedLobby  ==  t.c  )  g.mp.selectedLobbyName  =  t.mp_lobbies_s[t.tlobbycount];
 
-					t.tempSteamworksLobbyNameFromList_s = t.steamworks_lobbies_s[t.tlobbycount];
-					steam_canIJoinThisLobby ( );
-					t.tsteamstring_s = g.steamworks.lobbyjoinedname;
+					t.tempMPLobbyNameFromList_s = t.mp_lobbies_s[t.tlobbycount];
+					mp_canIJoinThisLobby ( );
+					t.tsteamstring_s = g.mp.lobbyjoinedname;
 					if (  t.tsteamcanjoinlobby  ==  1 ) 
 					{
 						t.tr = 255;
@@ -5927,72 +5713,72 @@ void steam_lobbyListBox ( void )
 						}
 					}
 				}
-				if (  g.steamworks.listboxmode  ==  1 ) 
+				if (  g.mp.listboxmode  ==  1 ) 
 				{
-					t.steamworks_lobbies_s[t.tlobbycount] = t.tfpmfilelist_s[t.c];
-					t.tsteamstring_s = t.steamworks_lobbies_s[t.tlobbycount];
+					t.mp_lobbies_s[t.tlobbycount] = t.tfpmfilelist_s[t.c];
+					t.tsteamstring_s = t.mp_lobbies_s[t.tlobbycount];
 					t.tr = 255;
 					t.tg = 255;
 					t.tb = 255;
 				}
 
 				t.tlobbytring_s = t.tsteamstring_s;
-				if ( t.tsteamcanjoinlobby == 0  ) steam_checkItemSubbed ( );
-				steam_textColor(32,t.teampsteamy,1,t.tlobbytring_s.Get(),t.tr,t.tg,t.tb);
+				if ( t.tsteamcanjoinlobby == 0  ) mp_checkItemSubbed ( );
+				mp_textColor(32,t.teampsteamy,1,t.tlobbytring_s.Get(),t.tr,t.tg,t.tb);
 				t.teampsteamy += 5;
 				++t.tlobbycount;
 			}
 	}
 }
 
-void steam_createLobby ( void )
+void mp_createLobby ( void )
 {
-	g.steamworks.haveToldAboutSolo = 0;
+	g.mp.haveToldAboutSolo = 0;
 	t.tempsteamhostlobbyname_s = cstr(SteamGetPlayerName()) + cstr("'s Lobby:");
-	if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
+	if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
 	{
 		t.tempsteamlevelname_s = cstr(SteamGetPlayerName()) + cstr("'s Level:");
 	}
 	else
 	{
-		t.tempsteamlevelname_s = cstr(Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-4)) + cstr(":");
+		t.tempsteamlevelname_s = cstr(Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-4)) + cstr(":");
 	}
 	//  grab version number
-	if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
+	if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
 	{
 		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
 		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s + "worklevel.dat";		
 	}
 	else
 	{
-		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
-		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
+		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
 	}
 
-	t.tsteamworkshopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
-	steam_grabWorkshopChangedFlagAndVersion ( );
+	t.tmphopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
+	mp_grabWorkshopChangedFlagAndVersion ( );
 
-	SteamSetLobbyName (  cstr(t.tempsteamhostlobbyname_s+t.tempsteamlevelname_s+g.steamworks.workshopid+":"+Str(t.tsteamworkshopTheVersionNumber)).Get() );
+	SteamSetLobbyName (  cstr(t.tempsteamhostlobbyname_s+t.tempsteamlevelname_s+g.mp.workshopid+":"+Str(t.tMPshopTheVersionNumber)).Get() );
 	SteamCreateLobby (  );
-	g.steamworks.isGameHost = 1;
-	g.steamworks.mode = STEAM_WAITING_FOR_LOBBY_CREATION;
+	g.mp.isGameHost = 1;
+	g.mp.mode = MP_WAITING_FOR_LOBBY_CREATION;
 	t.tempsteamlobbycreationtimeout = Timer();
 return;
 
 }
 
-void steam_searchForLobbies ( void )
+void mp_searchForLobbies ( void )
 {
 	SteamGetLobbyList (  );
-	g.steamworks.mode = STEAM_MODE_LOBBY;
-	g.steamworks.isGameHost = 0;
+	g.mp.mode = MP_MODE_LOBBY;
+	g.mp.isGameHost = 0;
 return;
 
 }
 
-void steam_searchForFpms ( void )
+void mp_searchForFpms ( void )
 {
-	g.steamworks.mode = STEAM_SERVER_CHOOSING_FPM_TO_USE;
+	g.mp.mode = MP_SERVER_CHOOSING_FPM_TO_USE;
 	t.told_s=GetDir();
 	//SetDir (  cstr(g.fpscrootdir_s + "\\Files\\mapbank").Get() );
 	SetDir ( g.mysystem.mapbankAbs_s.Get() );
@@ -6017,56 +5803,56 @@ void steam_searchForFpms ( void )
 	SetDir (  t.told_s.Get() );
 }
 
-void steam_launchGame ( void )
+void mp_launchGame ( void )
 {
-	g.steamworks.launchServer = 1;
+	g.mp.launchServer = 1;
 }
 
-void steam_backToStart ( void )
+void mp_backToStart ( void )
 {
-	steam_resetGameStats ( );
+	mp_resetGameStats ( );
 }
 
-void steam_selectedALevel ( void )
+void mp_selectedALevel ( void )
 {
-	cstr mlevel_s = g.mysystem.editorsGridedit_s + "__multiplayerlevel__.fpm";
+	cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
 	if ( FileExist( mlevel_s.Get())  ) DeleteAFile ( mlevel_s.Get() );
-	g.steamworks.fpmpicked = t.tfpmfilelist_s[g.steamworks.selectedLobby];
-	steam_checkIfLevelHasCustomContent ( );
-	if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
+	g.mp.fpmpicked = t.tfpmfilelist_s[g.mp.selectedLobby];
+	mp_checkIfLevelHasCustomContent ( );
+	if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
 	{
-		cstr worklevel_s = g.mysystem.editorsGridedit_s + "worklevel.fpm";
+		cstr worklevel_s = g.mysystem.editorsGrideditAbs_s + "worklevel.fpm";
 		CopyAFile ( worklevel_s.Get(),mlevel_s.Get() );
 	}
 	else
 	{
-		//CopyAFile (  cstr(g.fpscrootdir_s+"\\Files\\mapbank\\"+g.steamworks.fpmpicked).Get(),cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
-		CopyAFile ( cstr(g.mysystem.mapbankAbs_s+g.steamworks.fpmpicked).Get(), cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
+		//CopyAFile (  cstr(g.fpscrootdir_s+"\\Files\\mapbank\\"+g.mp.fpmpicked).Get(),cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
+		CopyAFile ( cstr(g.mysystem.mapbankAbs_s+g.mp.fpmpicked).Get(), cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
 	}
-	if (  g.steamworks.levelContainsCustomContent  ==  1 ) 
+	if (  g.mp.levelContainsCustomContent  ==  1 ) 
 	{
 		//  first we check if the changed flag is set (they have saved since hosting) if not, we dont need to upload to steam
-		if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
+		if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
 		{
 			//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
 			t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s + "worklevel.dat";
 		}
 		else
 		{
-			//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
-			t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+			//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
+			t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
 		}
 
-		t.tsteamworkshopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
-		steam_grabWorkshopChangedFlagAndVersion ( );
-		g.steamworks.workshopItemChangedFlag = t.tsteamworkshopHasItemChangedFlag;
-		if (  t.tsteamworkshopHasItemChangedFlag  ==  1 ) 
+		t.tmphopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
+		mp_grabWorkshopChangedFlagAndVersion ( );
+		g.mp.workshopItemChangedFlag = t.tMPshopHasItemChangedFlag;
+		if (  t.tMPshopHasItemChangedFlag  ==  1 ) 
 		{
-			g.steamworks.mode = STEAM_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP;
+			g.mp.mode = MP_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP;
 		}
 		else
 		{
-			g.steamworks.workshopid = t.tsteamworkshopTheIDNumber_s;
+			g.mp.workshopid = t.tMPshopTheIDNumber_s;
 		}
 	}
 
@@ -6074,37 +5860,37 @@ return;
 
 }
 
-void steam_checkIfLevelHasCustomContent ( void )
+void mp_checkIfLevelHasCustomContent ( void )
 {
 
-	if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
+	if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
 	{
 		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
 		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+"worklevel.dat";
 	}
 	else
 	{
-		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
-		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
+		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
 	}
 
 	if (  FileExist(t.tempsteammaptocheck_s.Get()) ) 
 	{
-		g.steamworks.levelContainsCustomContent = 1;
+		g.mp.levelContainsCustomContent = 1;
 	}
 	else
 	{
-		g.steamworks.levelContainsCustomContent = 0;
+		g.mp.levelContainsCustomContent = 0;
 	}
 
 return;
 
 }
 
-void steam_buildWorkShopItem ( void )
+void mp_buildWorkShopItem ( void )
 {
-	g.steamworks.mode = STEAM_CREATING_WORKSHOP_ITEM;
-	switch (  g.steamworks.buildingWorkshopItemMode ) 
+	g.mp.mode = MP_CREATING_WORKSHOP_ITEM;
+	switch (  g.mp.buildingWorkshopItemMode ) 
 	{
 		case 0:
 			if (  PathExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\workshopItem").Get() )  ==  0 ) 
@@ -6133,25 +5919,25 @@ void steam_buildWorkShopItem ( void )
 
 			if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
 
-			if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
+			if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
 			{
 				t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+"worklevel.dat";//g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
 				t.tempsteamleveltocopy_s = g.mysystem.mapbankAbs_s+"worklevel.fpm";//g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.fpm";
 			}
 			else
 			{
-				t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";//g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
-				t.tempsteamleveltocopy_s = g.mysystem.mapbankAbs_s+g.steamworks.fpmpicked;//g.fpscrootdir_s+"\\Files\\mapbank\\" + g.steamworks.fpmpicked;
+				t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";//g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
+				t.tempsteamleveltocopy_s = g.mysystem.mapbankAbs_s+g.mp.fpmpicked;//g.fpscrootdir_s+"\\Files\\mapbank\\" + g.mp.fpmpicked;
 			}
 
 			t.tempsteamdestworkshopfolder_s = g.fpscrootdir_s + "\\Files\\editors\\workshopItem\\";
 			CopyAFile (  t.tempsteamleveltocopy_s.Get(), cstr(t.tempsteamdestworkshopfolder_s + "editors_gridedit___multiplayerlevel__.fpm").Get() );
 			//  grab clanged flag and version number (we dont need the changed flag here tho)
-			t.tsteamworkshopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
-			steam_grabWorkshopChangedFlagAndVersion ( );
+			t.tmphopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
+			mp_grabWorkshopChangedFlagAndVersion ( );
 
 			OpenToRead (  1,t.tempsteammaptocheck_s.Get() );
-			g.steamworks.buildingWorkshopItemMode = 1;
+			g.mp.buildingWorkshopItemMode = 1;
 			//  skip over the warning, change flag, version number and workshop id
 			t.tempsteamstring_s = ReadString ( 1 );
 			t.tempsteamstring_s = ReadString ( 1 );
@@ -6168,79 +5954,77 @@ void steam_buildWorkShopItem ( void )
 			//  Write out version number
 			if (  FileOpen(2)  )  CloseFile (  2 );
 			OpenToWrite (  2, cstr(t.tempsteamdestworkshopfolder_s+"version.dat").Get() );
-			WriteString (  2,Str(t.tsteamworkshopTheVersionNumber) );
+			WriteString (  2,Str(t.tMPshopTheVersionNumber) );
 			CloseFile (  2 );
 
 			t.tempsteamstring_s = ReadString ( 1 );
-			t.tempsteamworkshopfilename_s = "";
+			t.tempMPshopfilename_s = "";
 			for ( t.c = 1 ; t.c<=  Len(t.tempsteamstring_s.Get()); t.c++ )
 			{
 				if (  cstr(Mid(t.tempsteamstring_s.Get(),t.c))  ==  "\\" || cstr(Mid(t.tempsteamstring_s.Get(),t.c))  ==  "/" ) 
 				{
-					t.tempsteamworkshopfilename_s=t.tempsteamworkshopfilename_s+"_";
+					t.tempMPshopfilename_s=t.tempMPshopfilename_s+"_";
 				}
 				else
 				{
 					if (  cstr(Mid(t.tempsteamstring_s.Get(),t.c))  ==  "_" ) 
 					{
-						t.tempsteamworkshopfilename_s=t.tempsteamworkshopfilename_s+"@";
+						t.tempMPshopfilename_s=t.tempMPshopfilename_s+"@";
 					}
 					else
 					{
-						t.tempsteamworkshopfilename_s=t.tempsteamworkshopfilename_s+Mid(t.tempsteamstring_s.Get(),t.c);
+						t.tempMPshopfilename_s=t.tempMPshopfilename_s+Mid(t.tempsteamstring_s.Get(),t.c);
 					}
 				}
 			}
 
 			if (  t.tempsteamstring_s  !=  "" ) 
 			{
-				CopyAFile (  cstr(g.fpscrootdir_s+"\\Files\\"+t.tempsteamstring_s).Get() , cstr(t.tempsteamdestworkshopfolder_s + t.tempsteamworkshopfilename_s).Get() );
+				CopyAFile (  cstr(g.fpscrootdir_s+"\\Files\\"+t.tempsteamstring_s).Get() , cstr(t.tempsteamdestworkshopfolder_s + t.tempMPshopfilename_s).Get() );
 				t.tsteamyesencrypt = 0;
 				//  models
-				if (  cstr(Right(t.tempsteamworkshopfilename_s.Get(),4))  ==  ".dbo"  )  t.tsteamyesencrypt  =  1;
-				if (  cstr(Right(t.tempsteamworkshopfilename_s.Get(),2))  ==  ".x"  )  t.tsteamyesencrypt  =  1;
+				if (  cstr(Right(t.tempMPshopfilename_s.Get(),4))  ==  ".dbo"  )  t.tsteamyesencrypt  =  1;
+				if (  cstr(Right(t.tempMPshopfilename_s.Get(),2))  ==  ".x"  )  t.tsteamyesencrypt  =  1;
 				//  images
-				if (  cstr(Right(t.tempsteamworkshopfilename_s.Get(),4))  ==  ".png"  )  t.tsteamyesencrypt  =  1;
-				if ( cstr( Right(t.tempsteamworkshopfilename_s.Get(),4))  ==  ".jpg"  )  t.tsteamyesencrypt  =  1;
-				if (  cstr(Right(t.tempsteamworkshopfilename_s.Get(),4))  ==  ".dds"  )  t.tsteamyesencrypt  =  1;
-				if (  cstr(Right(t.tempsteamworkshopfilename_s.Get(),4))  ==  ".bmp"  )  t.tsteamyesencrypt  =  1;
+				if (  cstr(Right(t.tempMPshopfilename_s.Get(),4))  ==  ".png"  )  t.tsteamyesencrypt  =  1;
+				if ( cstr( Right(t.tempMPshopfilename_s.Get(),4))  ==  ".jpg"  )  t.tsteamyesencrypt  =  1;
+				if (  cstr(Right(t.tempMPshopfilename_s.Get(),4))  ==  ".dds"  )  t.tsteamyesencrypt  =  1;
+				if (  cstr(Right(t.tempMPshopfilename_s.Get(),4))  ==  ".bmp"  )  t.tsteamyesencrypt  =  1;
 				//  sounds and music
-				if ( cstr( Right(t.tempsteamworkshopfilename_s.Get(),4))  ==  ".wav"  )  t.tsteamyesencrypt  =  1;
-				if ( cstr( Right(t.tempsteamworkshopfilename_s.Get(),4))  ==  ".mp3"  )  t.tsteamyesencrypt  =  1;
-				if ( cstr( Right(t.tempsteamworkshopfilename_s.Get(),4) ) ==  ".ogg"  )  t.tsteamyesencrypt  =  1;
+				if ( cstr( Right(t.tempMPshopfilename_s.Get(),4))  ==  ".wav"  )  t.tsteamyesencrypt  =  1;
+				if ( cstr( Right(t.tempMPshopfilename_s.Get(),4))  ==  ".mp3"  )  t.tsteamyesencrypt  =  1;
+				if ( cstr( Right(t.tempMPshopfilename_s.Get(),4) ) ==  ".ogg"  )  t.tsteamyesencrypt  =  1;
 				//  scripts
-//     `if Right(tempsteamworkshopfilename$,4)  ==  ".lua" then tsteamyesencrypt  ==  1
-
-				if (  cstr(Right(t.tempsteamworkshopfilename_s.Get(),4))  ==  ".fpe"  )  t.tsteamyesencrypt  =  1;
+				if (  cstr(Right(t.tempMPshopfilename_s.Get(),4))  ==  ".fpe"  )  t.tsteamyesencrypt  =  1;
 
 				if (  t.tsteamyesencrypt  ==  1 ) 
 				{
-					EncryptWorkshopDBPro ( cstr(t.tempsteamdestworkshopfolder_s + t.tempsteamworkshopfilename_s).Get() );
-					DeleteAFile (  cstr(t.tempsteamdestworkshopfolder_s + t.tempsteamworkshopfilename_s).Get() );
+					EncryptWorkshopDBPro ( cstr(t.tempsteamdestworkshopfolder_s + t.tempMPshopfilename_s).Get() );
+					DeleteAFile (  cstr(t.tempsteamdestworkshopfolder_s + t.tempMPshopfilename_s).Get() );
 				}
 			}
 			if (  FileEnd(1) ) 
 			{
-				g.steamworks.buildingWorkshopItemMode = 2;
+				g.mp.buildingWorkshopItemMode = 2;
 			}
 		break;
 //   ``````````````````````````````````
 
 		case 2:
 
-			if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
+			if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
 			{
-				t.tempsteamworkshopname_s = "My Level";
+				t.tempMPshopname_s = "My Level";
 			}
 			else
 			{
-				t.tempsteamworkshopname_s = Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-4);
+				t.tempMPshopname_s = Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-4);
 			}
 
 			SteamSetRoot( cstr( g.fpscrootdir_s+"\\Files\\" ).Get() );
-			SteamCreateWorkshopItem (  t.tempsteamworkshopname_s.Get() );
+			SteamCreateWorkshopItem (  t.tempMPshopname_s.Get() );
 
-			g.steamworks.buildingWorkshopItemMode = 3;
+			g.mp.buildingWorkshopItemMode = 3;
 		break;
 //   ``````````````````````````````````
 
@@ -6248,15 +6032,15 @@ void steam_buildWorkShopItem ( void )
 			if (  SteamIsWorkshopItemUploaded()  ==  1 ) 
 			{
 				//  set changed flag to 0
-				if (  g.steamworks.fpmpicked  ==  "Level I just worked on" ) 
+				if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
 				{
 					//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
 					t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+"worklevel.dat";
 				}
 				else
 				{
-					//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
-					t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.steamworks.fpmpicked.Get(),Len(g.steamworks.fpmpicked.Get())-3)+"dat";
+					//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\"+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
+					t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
 				}
 				if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
 				//  Work out how many lines there are so we can Dim (  the right amount )
@@ -6280,10 +6064,10 @@ void steam_buildWorkShopItem ( void )
 				CloseFile (  1 );
 				DeleteAFile (  t.tempsteammaptocheck_s.Get() );
 				OpenToWrite (  1,t.tempsteammaptocheck_s.Get() );
-				g.steamworks.workshopid = SteamGetWorkshopID();
+				g.mp.workshopid = SteamGetWorkshopID();
 
 				t.templines[1] = "0";
-				t.templines[3] = g.steamworks.workshopid;
+				t.templines[3] = g.mp.workshopid;
 				for ( t.tloop = 0 ; t.tloop<=  t.thowmanylines-1; t.tloop++ )
 				{
 					WriteString (  1,t.templines[t.tloop].Get() );
@@ -6293,44 +6077,44 @@ void steam_buildWorkShopItem ( void )
 				//  get rid of the array
 				UnDim (  t.templines );
 
-				g.steamworks.buildingWorkshopItemMode = 99;
+				g.mp.buildingWorkshopItemMode = 99;
 			}
 
-			if (  SteamIsWorkshopItemUploaded()  ==  -1  )  g.steamworks.buildingWorkshopItemMode  =  98;
+			if (  SteamIsWorkshopItemUploaded()  ==  -1  )  g.mp.buildingWorkshopItemMode  =  98;
 		break;
 	}//~ return
 return;
 
 }
 
-void steam_buildingWorkshopItemFailed ( void )
+void mp_buildingWorkshopItemFailed ( void )
 {
 	t.tsteamlostconnectioncustommessage_s = "Could not build workshop item (Error MP015)";
-	steam_lostConnection ( );
-	g.steamworks.mode = STEAM_SERVER_CHOOSING_FPM_TO_USE;
+	mp_lostConnection ( );
+	g.mp.mode = MP_SERVER_CHOOSING_FPM_TO_USE;
 return;
 
 }
 
-void steam_joinALobby ( void )
+void mp_joinALobby ( void )
 {
-	t.a = g.steamworks.selectedLobby;
-	if (  g.steamworks.selectedLobbyName  !=  "Getting Lobby details..." ) 
+	t.a = g.mp.selectedLobby;
+	if (  g.mp.selectedLobbyName  !=  "Getting Lobby details..." ) 
 	{
-		g.steamworks.lobbyjoinedname = g.steamworks.selectedLobbyName;
+		g.mp.lobbyjoinedname = g.mp.selectedLobbyName;
 		t.tempsteamstringlobbyname_s = "";
 		t.tempsteamgotto = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.steamworks.lobbyjoinedname.Get()); t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
 		{
 			++t.tempsteamgotto;
-			if (  cstr(Mid(g.steamworks.lobbyjoinedname.Get(),t.tc))  ==  ":" ) { t.tempsteamgotto+=2 ; break; }
-			t.tempsteamstringlobbyname_s = t.tempsteamstringlobbyname_s + Mid(g.steamworks.lobbyjoinedname.Get(),t.tc);
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" ) { t.tempsteamgotto+=2 ; break; }
+			t.tempsteamstringlobbyname_s = t.tempsteamstringlobbyname_s + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 		}
-		g.steamworks.levelnametojoin = "";
+		g.mp.levelnametojoin = "";
 		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.steamworks.lobbyjoinedname.Get()); t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
 		{
-			if (  cstr(Mid(g.steamworks.lobbyjoinedname.Get(),t.tc))  ==  ":" )
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
 			}
@@ -6338,15 +6122,15 @@ void steam_joinALobby ( void )
 			{
 				if (  t.tempsteamfoundone == 1 ) 
 				{
-					g.steamworks.levelnametojoin = g.steamworks.levelnametojoin + Mid(g.steamworks.lobbyjoinedname.Get(),t.tc);
+					g.mp.levelnametojoin = g.mp.levelnametojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
 		}
-		g.steamworks.workshopidtojoin = "";
+		g.mp.workshopidtojoin = "";
 		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.steamworks.lobbyjoinedname.Get()); t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
 		{
-			if (  cstr(Mid(g.steamworks.lobbyjoinedname.Get(),t.tc))  ==  ":" )
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
 			}
@@ -6354,15 +6138,15 @@ void steam_joinALobby ( void )
 			{
 				if (  t.tempsteamfoundone == 2 ) 
 				{
-					g.steamworks.workshopidtojoin = g.steamworks.workshopidtojoin + Mid(g.steamworks.lobbyjoinedname.Get(),t.tc);
+					g.mp.workshopidtojoin = g.mp.workshopidtojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
 		}
-		g.steamworks.workshopVersionNumberToJoin = "";
+		g.mp.workshopVersionNumberToJoin = "";
 		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.steamworks.lobbyjoinedname.Get()); t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
 		{
-			if (  cstr(Mid(g.steamworks.lobbyjoinedname.Get(),t.tc))  ==  ":" )
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
 			}
@@ -6370,24 +6154,24 @@ void steam_joinALobby ( void )
 			{
 				if (  t.tempsteamfoundone == 3 ) 
 				{
-					g.steamworks.workshopVersionNumberToJoin = g.steamworks.workshopVersionNumberToJoin + Mid(g.steamworks.lobbyjoinedname.Get(),t.tc);
+					g.mp.workshopVersionNumberToJoin = g.mp.workshopVersionNumberToJoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
 		}
-		g.steamworks.lobbyjoinedname = t.tempsteamstringlobbyname_s;
+		g.mp.lobbyjoinedname = t.tempsteamstringlobbyname_s;
 
 		//  Check here if there is a workshop item, if the user has subbed and downloaded
-		if (  g.steamworks.workshopidtojoin  !=  "0" ) 
+		if (  g.mp.workshopidtojoin  !=  "0" ) 
 		{
 
-			t.tempSteamworksLobbyNameFromList_s = g.steamworks.selectedLobbyName;
-			steam_canIJoinThisLobby ( );
-			t.tsteamstring_s = g.steamworks.lobbyjoinedname;
+			t.tempMPLobbyNameFromList_s = g.mp.selectedLobbyName;
+			mp_canIJoinThisLobby ( );
+			t.tsteamstring_s = g.mp.lobbyjoinedname;
 
-			if (  SteamIsWorkshopItemInstalled(g.steamworks.workshopidtojoin.Get())  ==  0 ) 
+			if (  SteamIsWorkshopItemInstalled(g.mp.workshopidtojoin.Get())  ==  0 ) 
 			{
 				//  show screen asking if they want to subscribe
-				g.steamworks.mode = STEAM_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM;
+				g.mp.mode = MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM;
 				titles_steamdoyouwanttosubscribetoworkshopitem ( );
 				return;
 			}
@@ -6396,7 +6180,7 @@ void steam_joinALobby ( void )
 				if (  t.tsteamcanjoinlobby  ==  2 ) 
 				{
 					//  show screen asking if they want to subscribe
-					g.steamworks.mode = STEAM_TELLING_THEY_NEED_TO_RESTART;
+					g.mp.mode = MP_TELLING_THEY_NEED_TO_RESTART;
 					titles_steamdTellingToRestart ( );
 					return;
 				}
@@ -6404,33 +6188,33 @@ void steam_joinALobby ( void )
 		}
 
 		SteamJoinLobby(t.a);
-		g.steamworks.mode = STEAM_JOINING_LOBBY;
+		g.mp.mode = MP_JOINING_LOBBY;
 		t.tsteamwaitedforlobbytimer = Timer();
-		g.steamworks.AttemptedToJoinLobbyTime = Timer();
-		g.steamworks.lobbycount = 0;
+		g.mp.AttemptedToJoinLobbyTime = Timer();
+		g.mp.lobbycount = 0;
 	}
 return;
 
 }
 
-void steam_canIJoinThisLobby ( void )
+void mp_canIJoinThisLobby ( void )
 {
-	if (  g.steamworks.selectedLobbyName  !=  "Getting Lobby details..." ) 
+	if (  g.mp.selectedLobbyName  !=  "Getting Lobby details..." ) 
 	{
-		g.steamworks.lobbyjoinedname = t.tempSteamworksLobbyNameFromList_s;
+		g.mp.lobbyjoinedname = t.tempMPLobbyNameFromList_s;
 		t.tempsteamstringlobbyname_s = "";
 		t.tempsteamgotto = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.steamworks.lobbyjoinedname.Get()); t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
 		{
 			++t.tempsteamgotto;
-			if (  cstr(Mid(g.steamworks.lobbyjoinedname.Get(),t.tc) ) ==  ":" ) { t.tempsteamgotto += 2 ; break; }
-			t.tempsteamstringlobbyname_s = t.tempsteamstringlobbyname_s + Mid(g.steamworks.lobbyjoinedname.Get(),t.tc);
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc) ) ==  ":" ) { t.tempsteamgotto += 2 ; break; }
+			t.tempsteamstringlobbyname_s = t.tempsteamstringlobbyname_s + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 		}
-		g.steamworks.levelnametojoin = "";
+		g.mp.levelnametojoin = "";
 		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.steamworks.lobbyjoinedname.Get()); t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
 		{
-			if (  cstr(Mid(g.steamworks.lobbyjoinedname.Get(),t.tc))  ==  ")" )
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ")" )
 			{
 				++t.tempsteamfoundone;
 			}
@@ -6438,15 +6222,15 @@ void steam_canIJoinThisLobby ( void )
 			{
 				if (  t.tempsteamfoundone == 1 ) 
 				{
-					g.steamworks.levelnametojoin = g.steamworks.levelnametojoin + Mid(g.steamworks.lobbyjoinedname.Get(),t.tc);
+					g.mp.levelnametojoin = g.mp.levelnametojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
 		}
-		g.steamworks.workshopidtojoin = "";
+		g.mp.workshopidtojoin = "";
 		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.steamworks.lobbyjoinedname.Get()); t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
 		{
-			if (  cstr(Mid(g.steamworks.lobbyjoinedname.Get(),t.tc))  ==  ":" )
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
 			}
@@ -6454,16 +6238,16 @@ void steam_canIJoinThisLobby ( void )
 			{
 				if (  t.tempsteamfoundone == 2 ) 
 				{
-					g.steamworks.workshopidtojoin = g.steamworks.workshopidtojoin + Mid(g.steamworks.lobbyjoinedname.Get(),t.tc);
+					g.mp.workshopidtojoin = g.mp.workshopidtojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
 		}
 		//  grab version number
-		g.steamworks.workshopVersionNumberToJoin = "";
+		g.mp.workshopVersionNumberToJoin = "";
 		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.steamworks.lobbyjoinedname.Get()); t.tc++ )
+		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
 		{
-			if (  cstr(Mid(g.steamworks.lobbyjoinedname.Get(),t.tc))  ==  ":" )
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
 			}
@@ -6471,23 +6255,23 @@ void steam_canIJoinThisLobby ( void )
 			{
 				if (  t.tempsteamfoundone == 3 ) 
 				{
-					g.steamworks.workshopVersionNumberToJoin = g.steamworks.workshopVersionNumberToJoin + Mid(g.steamworks.lobbyjoinedname.Get(),t.tc);
+					g.mp.workshopVersionNumberToJoin = g.mp.workshopVersionNumberToJoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
 		}
-		g.steamworks.lobbyjoinedname = t.tempsteamstringlobbyname_s;
+		g.mp.lobbyjoinedname = t.tempsteamstringlobbyname_s;
 
 		//  Check here if there is a workshop item, if the user has subbed and downloaded
-		if (  g.steamworks.workshopidtojoin  !=  "0" && g.steamworks.workshopidtojoin  !=  "" ) 
+		if (  g.mp.workshopidtojoin  !=  "0" && g.mp.workshopidtojoin  !=  "" ) 
 		{
-			if (  SteamIsWorkshopItemInstalled(g.steamworks.workshopidtojoin.Get())  ==  0 ) 
+			if (  SteamIsWorkshopItemInstalled(g.mp.workshopidtojoin.Get())  ==  0 ) 
 			{
 				t.tsteamcanjoinlobby = 0;
 			}
 			else
 			{
 				t.tsteamcanjoinlobby = 0;
-				if (  SteamIsWorkshopItemInstalled(g.steamworks.workshopidtojoin.Get())  ==  2  )  t.tsteamcanjoinlobby  =  2;
+				if (  SteamIsWorkshopItemInstalled(g.mp.workshopidtojoin.Get())  ==  2  )  t.tsteamcanjoinlobby  =  2;
 				if (  t.tsteamcanjoinlobby  ==  0 ) 
 				{
 					t.tpath_s = SteamGetWorkshopItemPath();
@@ -6498,7 +6282,7 @@ void steam_canIJoinThisLobby ( void )
 						OpenToRead (  1,t.tfiletocheck_s.Get() );
 						t.tversioncheck_s = ReadString ( 1 );
 						CloseFile (  1 );
-						if (  t.tversioncheck_s  ==  g.steamworks.workshopVersionNumberToJoin ) 
+						if (  t.tversioncheck_s  ==  g.mp.workshopVersionNumberToJoin ) 
 						{
 							t.tsteamcanjoinlobby = 1;
 						}
@@ -6524,22 +6308,22 @@ return;
 
 }
 
-void steam_leaveALobby ( void )
+void mp_leaveALobby ( void )
 {
 	SteamLeaveLobby (  );
-	steam_resetGameStats ( );
+	mp_resetGameStats ( );
 return;
 
 }
 
-void steam_SubscribeToWorkShopItem ( void )
+void mp_SubscribeToWorkShopItem ( void )
 {
-	t.tlobbytring_s = g.steamworks.lobbyjoinedname;
-	steam_subbedToItem ( );
-	g.steamworks.mode = STEAM_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_WAITING_FOR_RESULTS;
+	t.tlobbytring_s = g.mp.lobbyjoinedname;
+	mp_subbedToItem ( );
+	g.mp.mode = MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_WAITING_FOR_RESULTS;
 }
 
-void steam_save_workshop_files_needed ( void )
+void mp_save_workshop_files_needed ( void )
 {
 	cstr toriginalMasterLevelFile_s = "";
 	cstr toriginalprojectname_s = "";
@@ -6560,7 +6344,7 @@ void steam_save_workshop_files_needed ( void )
 	CloseFile (  1 );
 
 	//  Store the count in our global steamworks type
-	g.steamworks.howmanyfpefiles = t.thowmanyfpefiles;
+	g.mp.howmanyfpefiles = t.thowmanyfpefiles;
 
 	Dim (  t.tallfpefiles_s,t.thowmanyfpefiles  );
 	t.thowmanyfpefiles = 0;
@@ -6596,12 +6380,12 @@ void steam_save_workshop_files_needed ( void )
 	g.exedir_s="?";
 	t.told_s=GetDir();
 	t.tworkshoplistfile_s = t.told_s+"\\mapbank\\" + t.exename_s + ".dat";
-	t.tsteamworkshopTheVersionNumber = 1;
+	t.tMPshopTheVersionNumber = 1;
 	if (  FileExist(t.tworkshoplistfile_s.Get())  ==  1 ) 
 	{
-		t.tsteamworkshopitemtocheckifchangedandversion_s = t.tworkshoplistfile_s;
-		steam_grabWorkshopChangedFlagAndVersion ( );
-		++t.tsteamworkshopTheVersionNumber;
+		t.tmphopitemtocheckifchangedandversion_s = t.tworkshoplistfile_s;
+		mp_grabWorkshopChangedFlagAndVersion ( );
+		++t.tMPshopTheVersionNumber;
 		DeleteAFile (  t.tworkshoplistfile_s.Get() );
 	}
 	OpenToWrite (  1,t.tworkshoplistfile_s.Get() );
@@ -6609,7 +6393,7 @@ void steam_save_workshop_files_needed ( void )
 	//  set the changed flag since we are saving, this way we dont rely on workshop info to know if a file is new or not
 	WriteString (  1,"DO NOT MANUALY EDIT THIS FILE" );
 	WriteString (  1,"1" );
-	WriteString (  1,Str(t.tsteamworkshopTheVersionNumber) );
+	WriteString (  1,Str(t.tMPshopTheVersionNumber) );
 	WriteString (  1,"0" );
 
 	//  Collect ALL files in string array list
@@ -6647,7 +6431,7 @@ void steam_save_workshop_files_needed ( void )
 			//  check for lua scripts
 			if (  t.entityelement[t.e].eleprof.aimain_s  !=  "" ) 
 			{
-				if (  steam_check_if_entity_is_from_install(t.entityelement[t.e].eleprof.aimain_s.Get())  ==  0 ) 
+				if (  mp_check_if_entity_is_from_install(t.entityelement[t.e].eleprof.aimain_s.Get())  ==  0 ) 
 				{
 					addtocollection( cstr(cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aimain_s).Get() );
 				}
@@ -6665,7 +6449,7 @@ void steam_save_workshop_files_needed ( void )
 			}
 			//  Check to see if the entity is part of the base install
 			//  If it is, we can skip checking any further with it
-			if (  steam_check_if_entity_is_from_install(t.tentityname_s.Get())  ==  0 ) 
+			if (  mp_check_if_entity_is_from_install(t.tentityname_s.Get())  ==  0 ) 
 			{
 
 				addtocollection(t.tentityname_s.Get());
@@ -6825,7 +6609,7 @@ void steam_save_workshop_files_needed ( void )
 		if (  cstr(Left(t.name_s.Get(),12))  ==  "scriptbank\\\\"  )  t.name_s  =  cstr("scriptbank\\") + Right(t.name_s.Get(), Len(t.name_s.Get())-12);
 		if (  FileExist(t.name_s.Get()) == 1 ) 
 		{
-			if (  steam_check_if_entity_is_from_install(t.name_s.Get())  ==  0 ) 
+			if (  mp_check_if_entity_is_from_install(t.name_s.Get())  ==  0 ) 
 			{
 				WriteString (  1,t.name_s.Get() );
 				//  check if it is character creator, if it is, check for the existance of a texture
@@ -6914,23 +6698,23 @@ void steam_save_workshop_files_needed ( void )
 
 }
 
-void steam_grabWorkshopChangedFlagAndVersion ( void )
+void mp_grabWorkshopChangedFlagAndVersion ( void )
 {
-	if (  FileExist(t.tsteamworkshopitemtocheckifchangedandversion_s.Get())  ==  1 ) 
+	if (  FileExist(t.tmphopitemtocheckifchangedandversion_s.Get())  ==  1 ) 
 	{
 		if (  FileOpen(1)  )  CloseFile (  1 );
-		OpenToRead (  1,t.tsteamworkshopitemtocheckifchangedandversion_s.Get() );
+		OpenToRead (  1,t.tmphopitemtocheckifchangedandversion_s.Get() );
 		//  skip the warning message
 		t.tnothing_s = ReadString ( 1 );
 		//  read in flag changed
 		t.tnothing_s = ReadString ( 1 );
-		t.tsteamworkshopHasItemChangedFlag = ValF(t.tnothing_s.Get());
+		t.tMPshopHasItemChangedFlag = ValF(t.tnothing_s.Get());
 		//  read in version number
 		t.tnothing_s = ReadString ( 1 );
-		t.tsteamworkshopTheVersionNumber = ValF(t.tnothing_s.Get());
+		t.tMPshopTheVersionNumber = ValF(t.tnothing_s.Get());
 		//  read in workshop id
 		t.tnothing_s = ReadString ( 1 );
-		t.tsteamworkshopTheIDNumber_s = t.tnothing_s;
+		t.tMPshopTheIDNumber_s = t.tnothing_s;
 		CloseFile (  1 );
 	}
 return;
@@ -6938,7 +6722,7 @@ return;
 //  Check to see if this file is part of the base install
 }
 
-int steam_check_if_entity_is_from_install ( char* name_s )
+int mp_check_if_entity_is_from_install ( char* name_s )
 {
 	int ttemploop = 0;
 	int ttresult = 0;
@@ -6953,7 +6737,7 @@ int steam_check_if_entity_is_from_install ( char* name_s )
 		name_s = Lower(name_s);
 	}
 	cstr nameCheck = cstr(name_s);
-	for ( ttemploop = 0 ; ttemploop<=  g.steamworks.howmanyfpefiles-1; ttemploop++ )
+	for ( ttemploop = 0 ; ttemploop<=  g.mp.howmanyfpefiles-1; ttemploop++ )
 	{
 		cstr listFile = cstr( _strlwr(t.tallfpefiles_s[ttemploop].Get()) );
 		if (  nameCheck  ==  listFile ) 
@@ -6966,17 +6750,17 @@ int steam_check_if_entity_is_from_install ( char* name_s )
 	return ttresult;
 }
 
-void steam_resetSteam ( void )
+void mp_resetSteam ( void )
 {
-		steam_free ( );
-		steam_init ( );
-		steam_resetGameStats ( );
-		g.steamworks.needToResetOnStartup = 0;
+		mp_free ( );
+		mp_init ( );
+		mp_resetGameStats ( );
+		g.mp.needToResetOnStartup = 0;
 return;
 
 }
 
-void steam_shoot ( void )
+void mp_shoot ( void )
 {
 	if (  t.weaponammo[g.weaponammoindex+g.ammooffset]>0 ) 
 	{
@@ -6986,43 +6770,43 @@ return;
 
 }
 
-void steam_chat ( void )
+void mp_chat ( void )
 {
 
 	//  check for chat
 	t.tchat_s = SteamGetChat();
 	if (  t.tchat_s  !=  "" ) 
 	{
-		steam_chatNew ( );
+		mp_chatNew ( );
 	}
 
 	t.tscancode = ScanCode();
 	if (  KeyState(g.keymap[28])  ==  1 && t.oldchatscancode  !=  28 ) 
 	{
-		g.steamworks.chaton = 1-g.steamworks.chaton;
-		if (  g.steamworks.chaton  ==  1 ) 
+		g.mp.chaton = 1-g.mp.chaton;
+		if (  g.mp.chaton  ==  1 ) 
 		{
 			//  start a new chat message
 			ClearEntryBuffer (  );
-			g.steamworks.chatstring = "";
+			g.mp.chatstring = "";
 		}
 		else
 		{
 			//  send the chat message
 			//  local send
-			if (  Len(g.steamworks.chatstring.Get())  ==  1 ) 
+			if (  Len(g.mp.chatstring.Get())  ==  1 ) 
 			{
-				if (  Asc(Mid(g.steamworks.chatstring.Get(),1))  <=  31  )  g.steamworks.chatstring  =  "";
+				if (  Asc(Mid(g.mp.chatstring.Get(),1))  <=  31  )  g.mp.chatstring  =  "";
 			}
 			else
 			{
-				if (  Asc(Mid(g.steamworks.chatstring.Get(),1))  <=  31  )  g.steamworks.chatstring  =  Right(g.steamworks.chatstring.Get(),Len(g.steamworks.chatstring.Get())-1);
+				if (  Asc(Mid(g.mp.chatstring.Get(),1))  <=  31  )  g.mp.chatstring  =  Right(g.mp.chatstring.Get(),Len(g.mp.chatstring.Get())-1);
 			}
-			if (  g.steamworks.chatstring !=  "" ) 
+			if (  g.mp.chatstring !=  "" ) 
 			{
-				t.tchat_s = cstr(cstr(Str(g.steamworks.me)) + Left( cstr(cstr("<") + SteamGetPlayerName() + "> " + g.steamworks.chatstring).Get(),80)).Get();
-				steam_chatNew ( );
-				g.steamworks.chatstring = "";
+				t.tchat_s = cstr(cstr(Str(g.mp.me)) + Left( cstr(cstr("<") + SteamGetPlayerName() + "> " + g.mp.chatstring).Get(),80)).Get();
+				mp_chatNew ( );
+				g.mp.chatstring = "";
 				if (  t.tchatLobbyMode  ==  0 ) 
 				{
 					SteamSendChat (  t.tchat_s.Get() );
@@ -7035,9 +6819,9 @@ void steam_chat ( void )
 			}
 		}
 	}
-	if (  g.steamworks.chaton  ==  1 ) 
+	if (  g.mp.chaton  ==  1 ) 
 	{
-		if (  Timer() - g.steamworks.lastSpawnedTime > 1000 ) 
+		if (  Timer() - g.mp.lastSpawnedTime > 1000 ) 
 		{
 			t.aisystem.processplayerlogic=0;
 		}
@@ -7045,22 +6829,22 @@ void steam_chat ( void )
 		{
 			t.aisystem.processplayerlogic=1;
 		}
-		g.steamworks.chattimer = Timer();
+		g.mp.chattimer = Timer();
 
-		g.steamworks.chatstring = Entry(1);
+		g.mp.chatstring = Entry(1);
 		//  show the Text (  we have typed )
 		if (  Timer() - t.chatcursortime > 250 ) 
 		{
 			t.chatcursortime = Timer();
-			g.steamworks.cursoron = 1-g.steamworks.cursoron;
+			g.mp.cursoron = 1-g.mp.cursoron;
 		}
-		if (  g.steamworks.cursoron  ==  0 ) 
+		if (  g.mp.cursoron  ==  0 ) 
 		{
-			t.tstringtoshow_s = cstr(Left(cstr(cstr("<") + SteamGetPlayerName() + "> " + g.steamworks.chatstring).Get(),80));
+			t.tstringtoshow_s = cstr(Left(cstr(cstr("<") + SteamGetPlayerName() + "> " + g.mp.chatstring).Get(),80));
 		}
 		else
 		{
-			t.tstringtoshow_s = cstr(Left(cstr(cstr("<") + SteamGetPlayerName() + "> " + g.steamworks.chatstring).Get(),80)) + cstr("|");
+			t.tstringtoshow_s = cstr(Left(cstr(cstr("<") + SteamGetPlayerName() + "> " + g.mp.chatstring).Get(),80)) + cstr("|");
 		}
 	}
 	else
@@ -7069,7 +6853,7 @@ void steam_chat ( void )
 	}
 	t.oldchatscancode = t.tscancode;
 
-	if (  Timer() - g.steamworks.chattimer  <=  STEAM_CHAT_DELAY+2550 ) 
+	if (  Timer() - g.mp.chattimer  <=  MP_CHAT_DELAY+2550 ) 
 	{
 		t.ttimegone = Timer()-t.toldchattime;
 		if (  t.ttimegone > 50 ) 
@@ -7078,7 +6862,7 @@ void steam_chat ( void )
 			t.ttimegone = 16;
 		}
 		t.toldchattime = Timer();
-		if (  Timer() - g.steamworks.chattimer  >=  STEAM_CHAT_DELAY ) 
+		if (  Timer() - g.mp.chattimer  >=  MP_CHAT_DELAY ) 
 		{
 			t.tsteamalpha = t.tsteamalpha - t.ttimegone;
 		}
@@ -7092,63 +6876,63 @@ void steam_chat ( void )
 		if (  t.tsteamalpha > 0 ) 
 		{
 			InkEx ( 20, 20, 20 );//  Rgb(20,20,20),Rgb(20,20,20) );
-			BoxEx (  5,5,(40*10)+5,((STEAM_MAX_CHAT_LINES+1)*15)+10 );
+			BoxEx (  5,5,(40*10)+5,((MP_MAX_CHAT_LINES+1)*15)+10 );
 		}
 
 		t.tsteamy = 10;
-		for ( t.tloop = 0 ; t.tloop<=  STEAM_MAX_CHAT_LINES-1; t.tloop++ )
+		for ( t.tloop = 0 ; t.tloop<=  MP_MAX_CHAT_LINES-1; t.tloop++ )
 		{
-			if (  t.steamworks_chat[t.tloop] != "" ) 
+			if (  t.mp_chat[t.tloop] != "" ) 
 			{
-				if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "0" ) { t.r  =  255 ; t.g  =  255 ; t.b  =  50; }
-				else if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "1" ) { t.r  =  255  ; t.g  =  100 ; t.b  =  100; }
-				else if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "2" ) { t.r  =  100  ; t.g  =  255 ; t.b  =  100; }
-				else if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "3" ) { t.r  =  100  ; t.g  =  100 ; t.b  =  255; }
-				else if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "4" ) { t.r  =  255  ; t.g  =  255 ; t.b  =  100; }
-				else if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "5" ) { t.r  =  255  ; t.g  =  100 ; t.b  =  255; }
-				else if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "6" ) { t.r  =  100  ; t.g  =  255 ; t.b  =  255; }
-				else if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "7" ) { t.r  =  200  ; t.g  =  255 ; t.b  =  200; }
-				else if (  cstr(Left(t.steamworks_chat[t.tloop].Get(),1))  ==  "s" ) { t.r  =  255  ; t.g  =  255 ; t.b  =  255; }
+				if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "0" ) { t.r  =  255 ; t.g  =  255 ; t.b  =  50; }
+				else if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "1" ) { t.r  =  255  ; t.g  =  100 ; t.b  =  100; }
+				else if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "2" ) { t.r  =  100  ; t.g  =  255 ; t.b  =  100; }
+				else if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "3" ) { t.r  =  100  ; t.g  =  100 ; t.b  =  255; }
+				else if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "4" ) { t.r  =  255  ; t.g  =  255 ; t.b  =  100; }
+				else if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "5" ) { t.r  =  255  ; t.g  =  100 ; t.b  =  255; }
+				else if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "6" ) { t.r  =  100  ; t.g  =  255 ; t.b  =  255; }
+				else if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "7" ) { t.r  =  200  ; t.g  =  255 ; t.b  =  200; }
+				else if (  cstr(Left(t.mp_chat[t.tloop].Get(),1))  ==  "s" ) { t.r  =  255  ; t.g  =  255 ; t.b  =  255; }
 				t.tluarealcoords = 1;
 				t.tluatextalpha = t.tsteamalpha;
-				steam_textColor(10,t.tsteamy,2,Right(t.steamworks_chat[t.tloop].Get(),Len(t.steamworks_chat[t.tloop].Get())-1),t.r,t.g,t.b);
+				mp_textColor(10,t.tsteamy,2,Right(t.mp_chat[t.tloop].Get(),Len(t.mp_chat[t.tloop].Get())-1),t.r,t.g,t.b);
 			}
 			t.tsteamy += 14;
 		}
 
-		if (  g.steamworks.chaton  ==  1 ) 
+		if (  g.mp.chaton  ==  1 ) 
 		{
 			t.tluarealcoords = 1;
 			t.tluatextalpha = t.tsteamalpha;
-			t.tsteamy = 10+((STEAM_MAX_CHAT_LINES)*15);
-			steam_textColor(10,t.tsteamy,2,t.tstringtoshow_s.Get(),255,255,255);
+			t.tsteamy = 10+((MP_MAX_CHAT_LINES)*15);
+			mp_textColor(10,t.tsteamy,2,t.tstringtoshow_s.Get(),255,255,255);
 		}
 	}
 	InkEx ( 255, 255, 255 );// Rgb(255,255,255),Rgb(0,0,0) );
 }
 
-void steam_chatNew ( void )
+void mp_chatNew ( void )
 {
-	for ( t.tloop = 0 ; t.tloop<=  STEAM_MAX_CHAT_LINES-2; t.tloop++ )
+	for ( t.tloop = 0 ; t.tloop<=  MP_MAX_CHAT_LINES-2; t.tloop++ )
 	{
-		t.steamworks_chat[t.tloop] = t.steamworks_chat[t.tloop+1];
+		t.mp_chat[t.tloop] = t.mp_chat[t.tloop+1];
 	}
 	if (  Len(t.tchat_s.Get()) > 80  )  t.tchat_s  =  Left(t.tchat_s.Get(),80);
 	if (  cstr(Left(t.tchat_s.Get(),1))  !=  "s" ) 
 	{
-		t.steamworks_chat[STEAM_MAX_CHAT_LINES-1] = t.tchat_s;
-		g.steamworks.chattimer = Timer();
+		t.mp_chat[MP_MAX_CHAT_LINES-1] = t.tchat_s;
+		g.mp.chattimer = Timer();
 	}
 	//  200315 - 021 - pick up users joining the game from the server message sent
 	if (  cstr(Left(t.tchat_s.Get(),1))  ==  "s" ) 
 	{
 		t.tnametocheckforjoining_s = Right(t.tchat_s.Get(),Len(t.tchat_s.Get())-1);
-		for ( t.tn = 0 ; t.tn<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
+		for ( t.tn = 0 ; t.tn<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
 		{
-			if (  cstr(Left(t.tnametocheckforjoining_s.Get(),Len(t.steamworks_joined[t.tn].Get())))  ==  t.steamworks_joined[t.tn] && t.steamworks_joined[t.tn]  !=  "" && cstr(Right(t.steamworks_joined[t.tn].Get(),6))  !=  "Joined" ) 
+			if (  cstr(Left(t.tnametocheckforjoining_s.Get(),Len(t.mp_joined[t.tn].Get())))  ==  t.mp_joined[t.tn] && t.mp_joined[t.tn]  !=  "" && cstr(Right(t.mp_joined[t.tn].Get(),6))  !=  "Joined" ) 
 			{
-				t.steamworks_joined[t.tn] = t.steamworks_joined[t.tn] + " - Joined";
-//     `if tlastchatline$  !=  tchat$ then steamworks_chat(STEAM_MAX_CHAT_LINES-1)  ==  tchat$
+				t.mp_joined[t.tn] = t.mp_joined[t.tn] + " - Joined";
+//     `if tlastchatline$  !=  tchat$ then mp_chat(MP_MAX_CHAT_LINES-1)  ==  tchat$
 
 //     `tlastchatline$ = tchat$
 
@@ -7157,7 +6941,7 @@ void steam_chatNew ( void )
 	}
 }
 
-void steam_quitGame ( void )
+void mp_quitGame ( void )
 {
 	// exit current game and return to multiplayer menu
 	// 110315 - 019 - first lets fade out nice
@@ -7185,7 +6969,7 @@ void steam_quitGame ( void )
 	}
 	//  if the server, let everyone know instantly the server is dropping
 	//  020315 - 012 - Send an end game message when the host decides to leave
-	if (  g.steamworks.isGameHost  ==  1 ) 
+	if (  g.mp.isGameHost  ==  1 ) 
 	{
 		SteamEndGame (  );
 	}
@@ -7196,7 +6980,7 @@ void steam_quitGame ( void )
 	t.game.quitflag=1;
 }
 
-void steam_freefadesprite ( void )
+void mp_freefadesprite ( void )
 {
 	// 240316 - v1.13b1 - free sprite now finished with fade
 	if ( t.tspritetouse > 0 )
@@ -7206,19 +6990,19 @@ void steam_freefadesprite ( void )
 	}
 }
 
-void steam_backToEditor ( void )
+void mp_backToEditor ( void )
 {
 	t.game.gameloop=0;
 	t.game.levelloop=0;
 	t.game.titleloop=0;
 	t.game.quitflag=1;
-	g.steamworks.goBackToEditor = 1;
+	g.mp.goBackToEditor = 1;
 return;
 
 //  remove all entities and lightmaps that are left from our gaming session
 }
 
-void steam_cleanupGame ( void )
+void mp_cleanupGame ( void )
 {
 
 	//  default start position is edit-camera XZ
@@ -7264,18 +7048,18 @@ return;
 
 }
 
-void steam_sendSteamIDToEditor ( void )
+void mp_sendSteamIDToEditor ( void )
 {
 
-	if (  g.steamworks.isRunning  ==  0 ) 
+	if (  g.mp.isRunning  ==  0 ) 
 	{
 		//  was 60*1000, changing to 5 to keep try and connecting
-		if (  Timer() - g.steamworks.lastTimeTriedToConnectToSteamFromEditor > 5*1000 ) 
+		if (  Timer() - g.mp.lastTimeTriedToConnectToSteamFromEditor > 5*1000 ) 
 		{
-			g.steamworks.lastTimeTriedToConnectToSteamFromEditor = Timer();
-			steam_resetSteam ( );
+			g.mp.lastTimeTriedToConnectToSteamFromEditor = Timer();
+			mp_resetSteam ( );
 		}
-		if (  g.steamworks.isRunning  ==  0 ) 
+		if (  g.mp.isRunning  ==  0 ) 
 		{
 			return;
 		}
@@ -7292,10 +7076,10 @@ void steam_sendSteamIDToEditor ( void )
 
 //   `print Timer()
 
-//   `print steamworks.lastTimeISentMySteamID
+//   `print mp.lastTimeISentMySteamID
 
 
-		if (  Timer() - g.steamworks.lastTimeISentMySteamID > 5000 ) 
+		if (  Timer() - g.mp.lastTimeISentMySteamID > 5000 ) 
 		{
 
 			t.tSteamGetID_s = SteamGetPlayerID();
@@ -7304,7 +7088,7 @@ void steam_sendSteamIDToEditor ( void )
 			{
 //     `print "sending id"
 
-				g.steamworks.lastTimeISentMySteamID = Timer();
+				g.mp.lastTimeISentMySteamID = Timer();
 
 				OpenFileMap (  1, "FPSEXCHANGE" );
 
@@ -7316,12 +7100,12 @@ void steam_sendSteamIDToEditor ( void )
 				//  Close when set all defaults
 				//CloseFileMap (  1 );
 
-				g.steamworks.haveSentSteamIDToEditor = 1;
+				g.mp.haveSentSteamIDToEditor = 1;
 			}
 			else
 			{
-				steam_resetSteam ( );
-				g.steamworks.lastTimeISentMySteamID = Timer()-3000;
+				mp_resetSteam ( );
+				g.mp.lastTimeISentMySteamID = Timer()-3000;
 //     `print "resetting steam"
 
 			}
@@ -7335,22 +7119,22 @@ return;
 //  020315 - 012 - enable check for lobbies while in editor
 }
 
-void steam_checkIfLobbiesAvailable ( void )
+void mp_checkIfLobbiesAvailable ( void )
 {
 	if (  t.thowlongbetweenlobbychecks  <=  0  )  t.thowlongbetweenlobbychecks  =  15*1000;
 	if (  Timer() - t.tlasttimecheckedforlobbiestimer > t.thowlongbetweenlobbychecks ) 
 	{
 		SteamLoop (  );
 		t.tlasttimecheckedforlobbiestimer = Timer();
-		if (  g.steamworks.checkiflobbiesavailablemode  ==  0 ) 
+		if (  g.mp.checkiflobbiesavailablemode  ==  0 ) 
 		{
 			SteamGetLobbyList (  );
-			g.steamworks.checkiflobbiesavailablemode = 1;
+			g.mp.checkiflobbiesavailablemode = 1;
 			return;
 		}
-		if (  g.steamworks.checkiflobbiesavailablemode  ==  1 ) 
+		if (  g.mp.checkiflobbiesavailablemode  ==  1 ) 
 		{
-			g.steamworks.checkiflobbiesavailablemode = 0;
+			g.mp.checkiflobbiesavailablemode = 0;
 
 			if (  SteamIsLobbyListCreated()  ==  0 ) 
 			{
@@ -7387,7 +7171,7 @@ return;
 //  200315 - 021 - flashlight of when starting a game
 }
 
-void steam_flashLightOff ( void )
+void mp_flashLightOff ( void )
 {
 	t.playerlight.flashlightcontrol_f=0.0;
 return;
@@ -7395,27 +7179,27 @@ return;
 //  set everyone to team A for coop mode
 }
 
-void steam_setupCoopTeam ( void )
+void mp_setupCoopTeam ( void )
 {
-	for ( t.tc = 0 ; t.tc<=  STEAM_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
+	for ( t.tc = 0 ; t.tc<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
 	{
-		t.steamworks_team[t.tc] = 0;
+		t.mp_team[t.tc] = 0;
 	}
 return;
 
 //  requires; e, tSteamX# and tSteamZ#
 }
 
-void steam_COOP_aiMoveTo ( void )
+void mp_COOP_aiMoveTo ( void )
 {
 
-	if (  g.steamworks.endplay  ==  1  )  return;
+	if (  g.mp.endplay  ==  1  )  return;
 
-	if (  t.game.runasmultiplayer  ==  1 && g.steamworks.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	if (  t.game.runasmultiplayer  ==  1 && g.mp.coop  ==  1 && t.tLuaDontSendLua  ==  0 ) 
 	{
 
-		SteamSendLua (  STEAM_LUA_AiGoToX,t.e,t.tSteamX_f );
-		SteamSendLua (  STEAM_LUA_AiGoToZ,t.e,t.tSteamZ_f );
+		SteamSendLua (  MP_LUA_AiGoToX,t.e,t.tSteamX_f );
+		SteamSendLua (  MP_LUA_AiGoToZ,t.e,t.tSteamZ_f );
 	}
 	else
 	{
@@ -7443,14 +7227,14 @@ return;
 
 }
 
-void steam_entity_lua_lookatplayer ( void )
+void mp_entity_lua_lookatplayer ( void )
 {
 	entity_lua_findcharanimstate ( );
 	if (  t.tcharanimindex != -1 ) 
 	{
 
 		//  Simply look in direction of player
-		t.ee = t.steamworks_playerEntityID[t.v];
+		t.ee = t.mp_playerEntityID[t.v];
 		t.tdx_f= ObjectPositionX (t.entityelement[t.ee].obj) - ObjectPositionX(t.entityelement[t.e].obj);
 		t.tdz_f= ObjectPositionZ (t.entityelement[t.ee].obj) - ObjectPositionZ(t.entityelement[t.e].obj);
 		AISetEntityAngleY (  t.charanimstate.obj,atan2deg(t.tdx_f,t.tdz_f) );
@@ -7473,7 +7257,7 @@ return;
 
 }
 
-void steam_entity_lua_fireweaponEffectOnly ( void )
+void mp_entity_lua_fireweaponEffectOnly ( void )
 {
 	//  update gun appearance
 	if (  t.entityelement[t.e].attachmentobj > 0 ) 
@@ -7518,16 +7302,16 @@ return;
 //  cycle through entities, pick out the ai and either take aggro or update depending on distance/ownership
 }
 
-void steam_updateAIForCOOP ( void )
+void mp_updateAIForCOOP ( void )
 {
 
-		if (  g.steamworks.endplay  ==  1  )  return;
+		if (  g.mp.endplay  ==  1  )  return;
 
 		t.tsentone = 0;
 //   `set cursor 0,0
 
 
-		if (  t.game.runasmultiplayer == 1 && g.steamworks.coop  ==  1 ) 
+		if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 ) 
 		{
 			t.thowManyDoIHave = 0;
 			//  only send one update to other players max
@@ -7552,7 +7336,7 @@ void steam_updateAIForCOOP ( void )
 							t.tdist_f = Sqrt((t.distx_f*t.distx_f)+(t.distz_f*t.distz_f));
 							if (  t.tdist_f > 3000  )  ScaleObject (  t.entityelement[t.e].obj,0,0,0 );
 						}
-						if (  t.entityelement[t.e].mp_coopControlledByPlayer  !=  g.steamworks.me && t.entityelement[t.e].active == 1 && t.entityelement[t.e].health > 0 ) 
+						if (  t.entityelement[t.e].mp_coopControlledByPlayer  !=  g.mp.me && t.entityelement[t.e].active == 1 && t.entityelement[t.e].health > 0 ) 
 						{
 							// rotate or look at player for 1 second after receiving lua command, to cut down packets being sent
 							if (  t.entityelement[t.e].mp_rotateType  ==  1 ) 
@@ -7562,10 +7346,10 @@ void steam_updateAIForCOOP ( void )
 								{
 									if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
 									{
-										if (  t.entityelement[t.e].mp_coopControlledByPlayer > -1 && t.entityelement[t.e].mp_coopControlledByPlayer < STEAM_MAX_NUMBER_OF_PLAYERS ) 
+										if (  t.entityelement[t.e].mp_coopControlledByPlayer > -1 && t.entityelement[t.e].mp_coopControlledByPlayer < MP_MAX_NUMBER_OF_PLAYERS ) 
 										{
 											t.v = t.entityelement[t.e].mp_coopControlledByPlayer;
-											steam_entity_lua_lookatplayer ( );
+											mp_entity_lua_lookatplayer ( );
 										}
 									}
 								}
@@ -7577,10 +7361,10 @@ void steam_updateAIForCOOP ( void )
 								{
 									if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
 									{
-										if (  t.entityelement[t.e].mp_coopControlledByPlayer > -1 && t.entityelement[t.e].mp_coopControlledByPlayer < STEAM_MAX_NUMBER_OF_PLAYERS ) 
+										if (  t.entityelement[t.e].mp_coopControlledByPlayer > -1 && t.entityelement[t.e].mp_coopControlledByPlayer < MP_MAX_NUMBER_OF_PLAYERS ) 
 										{
 											t.v = t.entityelement[t.e].mp_coopControlledByPlayer;
-											steam_entity_lua_lookatplayer ( );
+											mp_entity_lua_lookatplayer ( );
 										}
 									}
 								}
@@ -7605,10 +7389,10 @@ void steam_updateAIForCOOP ( void )
 									if (  t.tsteamplayeralive  ==  0 || t.entityelement[t.e].mp_coopControlledByPlayer  ==  -1  )  t.tthrowaway  =  1;
 									if (  t.tthrowaway  ==  1 ) 
 									{
-										t.entityelement[t.e].mp_coopControlledByPlayer = g.steamworks.me;
-										SteamSendLua (  Steam_LUA_TakenAggro,t.e,g.steamworks.me );
-										SteamSendLua (  STEAM_LUA_AiGoToX,t.entityelement[t.e].obj,ObjectPositionX(t.entityelement[t.e].obj) );
-										SteamSendLua (  STEAM_LUA_AiGoToZ,t.entityelement[t.e].obj,ObjectPositionZ(t.entityelement[t.e].obj) );
+										t.entityelement[t.e].mp_coopControlledByPlayer = g.mp.me;
+										SteamSendLua (  MP_LUA_TakenAggro,t.e,g.mp.me );
+										SteamSendLua (  MP_LUA_AiGoToX,t.entityelement[t.e].obj,ObjectPositionX(t.entityelement[t.e].obj) );
+										SteamSendLua (  MP_LUA_AiGoToZ,t.entityelement[t.e].obj,ObjectPositionZ(t.entityelement[t.e].obj) );
 //           `AI Entity Stop entityelement(e).obj
 
 										t.entityelement[t.e].mp_updateOn = 1;
@@ -7620,7 +7404,7 @@ void steam_updateAIForCOOP ( void )
 						}
 						else
 						{
-							if (  t.entityelement[t.e].mp_coopControlledByPlayer  ==  g.steamworks.me ) 
+							if (  t.entityelement[t.e].mp_coopControlledByPlayer  ==  g.mp.me ) 
 							{
 								if (  t.entityelement[t.e].mp_updateOn  ==  1 && t.tsentone  ==  0 ) 
 								{
@@ -7638,9 +7422,9 @@ void steam_updateAIForCOOP ( void )
 											if (  Timer() - t.tcoopLastUpdateSent > 500 || t.tcoopLastUpdateSent < 0 ) 
 											{
 													t.tsentone = 1;
-													SteamSendLua (  Steam_LUA_HaveAggro,t.e,g.steamworks.me );
-													SteamSendLua (  STEAM_LUA_AiGoToX,t.entityelement[t.e].obj,ObjectPositionX(t.entityelement[t.e].obj) );
-													SteamSendLua (  STEAM_LUA_AiGoToZ,t.entityelement[t.e].obj,ObjectPositionZ(t.entityelement[t.e].obj) );
+													SteamSendLua (  MP_LUA_HaveAggro,t.e,g.mp.me );
+													SteamSendLua (  MP_LUA_AiGoToX,t.entityelement[t.e].obj,ObjectPositionX(t.entityelement[t.e].obj) );
+													SteamSendLua (  MP_LUA_AiGoToZ,t.entityelement[t.e].obj,ObjectPositionZ(t.entityelement[t.e].obj) );
 													t.entityelement[t.e].mp_lastUpdateSent = Timer();
 													t.tcoopLastUpdateSent = Timer();
 													t.tcoopyentityupdatetostartat = t.e+1;
@@ -7678,7 +7462,7 @@ return;
 
 }
 
-void steam_coop_rotatetoplayer ( void )
+void mp_coop_rotatetoplayer ( void )
 {
 	//  only rotate to player if enemy ai with proper rig
 	if (  t.entityelement[t.e].mp_isLuaChar  ==  1  )  return;
@@ -7703,11 +7487,11 @@ void steam_coop_rotatetoplayer ( void )
 	}
 }
 
-void steam_storeOldEntityPositions ( void )
+void mp_storeOldEntityPositions ( void )
 {
 
-	Dim (  t.steamworks_oldEntityPositionsX,g.entityelementlist );
-	Dim (  t.steamworks_oldEntityPositionsZ,g.entityelementlist );
+	Dim (  t.mp_oldEntityPositionsX,g.entityelementlist );
+	Dim (  t.mp_oldEntityPositionsZ,g.entityelementlist );
 
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
@@ -7720,8 +7504,8 @@ void steam_storeOldEntityPositions ( void )
 				{
 					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
 					{
-						t.steamworks_oldEntityPositionsX[t.e] = ObjectPositionX(t.entityelement[t.e].obj);
-						t.steamworks_oldEntityPositionsZ[t.e] = ObjectPositionZ(t.entityelement[t.e].obj);
+						t.mp_oldEntityPositionsX[t.e] = ObjectPositionX(t.entityelement[t.e].obj);
+						t.mp_oldEntityPositionsZ[t.e] = ObjectPositionZ(t.entityelement[t.e].obj);
 					}
 				}
 			}
@@ -7732,9 +7516,9 @@ return;
 
 }
 
-void steam_howManyEnemiesLeftToKill ( void )
+void mp_howManyEnemiesLeftToKill ( void )
 {
-		if (  g.steamworks.coop  ==  1 ) 
+		if (  g.mp.coop  ==  1 ) 
 		{
 			t.thowmanyenemies = 0;
 			for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
@@ -7757,11 +7541,11 @@ return;
 
 }
 
-void steam_IKilledAnAI ( void )
+void mp_IKilledAnAI ( void )
 {
-	t.steamworks_kills[g.steamworks.me+1] = t.steamworks_kills[g.steamworks.me+1] + 1;
-	SteamSendLua (  STEAM_LUA_ServerSetPlayerKills,g.steamworks.me+1,t.steamworks_kills[g.steamworks.me+1] );
-	t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(g.steamworks.me+1) + "] = " + Str(t.steamworks_kills[g.steamworks.me+1])).Get());
+	t.mp_kills[g.mp.me+1] = t.mp_kills[g.mp.me+1] + 1;
+	SteamSendLua (  MP_LUA_ServerSetPlayerKills,g.mp.me+1,t.mp_kills[g.mp.me+1] );
+	t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(g.mp.me+1) + "] = " + Str(t.mp_kills[g.mp.me+1])).Get());
 return;
 
 // `////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -7769,7 +7553,7 @@ return;
 
 }
 
-void steam_text ( int x, int y, int size, char* txt_s )
+void mp_text ( int x, int y, int size, char* txt_s )
 {
 	t.luaText.txt = txt_s;
 	t.luaText.x = x;
@@ -7780,17 +7564,17 @@ void steam_text ( int x, int y, int size, char* txt_s )
 
 }
 
-void steam_textDots ( int x, int y, int size, char* txt_s )
+void mp_textDots ( int x, int y, int size, char* txt_s )
 {
 
-	if (  Timer() - g.steamworks.steamdotsoldtime > 150 ) 
+	if (  Timer() - g.mp.steamdotsoldtime > 150 ) 
 	{
-		g.steamworks.steamdotsoldtime = Timer();
-		g.steamworks.buildingDots = g.steamworks.buildingDots + ".";
-		if (  Len(g.steamworks.buildingDots.Get()) > 5  )  g.steamworks.buildingDots  =  ".";
+		g.mp.steamdotsoldtime = Timer();
+		g.mp.buildingDots = g.mp.buildingDots + ".";
+		if (  Len(g.mp.buildingDots.Get()) > 5  )  g.mp.buildingDots  =  ".";
 	}
 
-	t.luaText.txt = g.steamworks.buildingDots + txt_s + g.steamworks.buildingDots;
+	t.luaText.txt = g.mp.buildingDots + txt_s + g.mp.buildingDots;
 	t.luaText.x = x;
 	t.luaText.y = y;
 	t.luaText.size = size;
@@ -7799,22 +7583,22 @@ void steam_textDots ( int x, int y, int size, char* txt_s )
 
 }
 
-void steam_textColor ( int x, int y, int size, char* txt_s, int r, int gg, int b )
+void mp_textColor ( int x, int y, int size, char* txt_s, int r, int gg, int b )
 {
-	g.steamworks.steamDoColorText = 1;
+	g.mp.steamDoColorText = 1;
 	t.luaText.txt = txt_s;
 	t.luaText.x = x;
 	t.luaText.y = y;
 	t.luaText.size = size;
-	g.steamworks.steamColorRed = r;
-	g.steamworks.steamColorGreen = gg;
-	g.steamworks.steamColorBlue = b;
+	g.mp.steamColorRed = r;
+	g.mp.steamColorGreen = gg;
+	g.mp.steamColorBlue = b;
 	lua_text ( );
 //endfunction
 
 }
 
-void steam_panel ( int x, int y, int x2, int y2 )
+void mp_panel ( int x, int y, int x2, int y2 )
 {
 	t.luaPanel.x = x;
 	t.luaPanel.y = y;
@@ -7825,7 +7609,7 @@ void steam_panel ( int x, int y, int x2, int y2 )
 
 }
 
-void steam_livelog ( char* t_s )
+void mp_livelog ( char* t_s )
 {
 	SetTextSize (  32 );
 	while (  SpaceKey()  ==  0 ) 
@@ -7844,7 +7628,7 @@ void steam_livelog ( char* t_s )
 
 }
 
-void steam_deleteFile ( char* tempFileToDelete_s )
+void mp_deleteFile ( char* tempFileToDelete_s )
 {
 	cstr fileToDelete;
 	fileToDelete =  cstr(g.fpscrootdir_s + "\\Files\\" + tempFileToDelete_s).Get();
@@ -7853,8 +7637,7 @@ void steam_deleteFile ( char* tempFileToDelete_s )
 
 }
 
-// needs e;
-int steam_check_if_lua_entity_exists ( int tentitytocheck )
+int mp_check_if_lua_entity_exists ( int tentitytocheck )
 {
 	int tcheckobj = 0;
 	int result = 0;
@@ -7871,8 +7654,10 @@ int steam_check_if_lua_entity_exists ( int tentitytocheck )
 			}
 		}
 	}
+	return result;
+}
 
-//endfunction result
-	return result
-;
+void mp_sendlua ( int code, int e, int v )
+{
+	SteamSendLua ( code, e, v );
 }

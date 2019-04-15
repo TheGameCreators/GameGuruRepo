@@ -183,7 +183,7 @@ void mapfile_saveproject_fpm ( void )
 
 	//  does crazy cool stuff
 	t.tsteamsavefilename_s = t.ttempprojfilename_s;
-	steam_save_workshop_files_needed ( );
+	mp_save_workshop_files_needed ( );
 
 	//  log prompts
 	timestampactivity(0,"Saving FPM level file complete");
@@ -346,7 +346,7 @@ void mapfile_loadproject_fpm ( void )
 				{
 					//if ( FileExist( cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() ) == 1  )  DeleteAFile (  cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() );
 					//CopyAFile ( t.tttfile_s.Get() ,cstr(t.tdirst_s+"\\editors\\gridedit\\"+t.tttfile_s).Get() );
-					cstr cfgfile_s = g.mysystem.editorsGridedit_s + t.tttfile_s;
+					cstr cfgfile_s = g.mysystem.editorsGrideditAbs_s + t.tttfile_s;
 					if ( FileExist( cfgfile_s.Get() ) == 1  )  DeleteAFile ( cfgfile_s.Get() );
 					CopyAFile ( t.tttfile_s.Get(), cfgfile_s.Get() );
 				}
@@ -648,7 +648,6 @@ void mapfile_savestandalone ( void )
 
 	//  Stage 1 - specify all common files
 	addtocollection("editors\\gfx\\guru-forexe.ico");
-	addtocollection("editors\\gfx\\14.png");
 	addtocollection( cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-wordcount.ini").Get() );
 	addtocollection(cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-words.txt").Get() );
 	addtocollection("audiobank\\misc\\silence.wav");
@@ -1377,7 +1376,7 @@ void mapfile_savestandalone ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
-	for ( int iCritDLLs = 1; iCritDLLs <= 7; iCritDLLs++ )
+	for ( int iCritDLLs = 1; iCritDLLs <= 6; iCritDLLs++ )
 	{
 		LPSTR pCritDLLFilename = "";
 		switch ( iCritDLLs )
@@ -1388,7 +1387,6 @@ void mapfile_savestandalone ( void )
 			case 4 : pCritDLLFilename = "avformat-57.dll"; break;
 			case 5 : pCritDLLFilename = "avutil-55.dll"; break;
 			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
-			case 7 : pCritDLLFilename = "GGWMR.dll"; break;
 		}
 		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
@@ -1549,22 +1547,10 @@ void mapfile_savestandalone ( void )
 			}
 			else
 			{
-				// old VRQ had XBOX Controllers
-				if ( g.gvrmode == 3 )
-				{
-					// use MOTION CONTROLLERS with WMR Support
-					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=0"; ++t.i;
-					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
-					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
-					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
-				}
-				else
-				{
-					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=1"; ++t.i;
-					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
-					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
-					t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
-				}
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=1"; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;
 			}
 		}
 		else
@@ -1586,7 +1572,7 @@ void mapfile_savestandalone ( void )
 			// VR
 			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "" ; ++t.i;
 			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "[VR]" ; ++t.i;
-			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmode=3"; ++t.i;;//"vrmode=5"; ++t.i;
+			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmode=3"; ++t.i;
 			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmodemag=100"; ++t.i;
 		}
 	}

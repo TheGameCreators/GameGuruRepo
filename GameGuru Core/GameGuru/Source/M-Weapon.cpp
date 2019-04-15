@@ -389,7 +389,7 @@ void weapon_projectile_loop ( void )
 					t.tSteamBulletOn = 0;
 					if (  t.WeaponProjectile[t.tNewProj].sourceEntity  ==  0 ) 
 					{
-						steam_update_projectile ( );
+						mp_update_projectile ( );
 					}
 				}
 			}
@@ -439,7 +439,7 @@ void weapon_projectile_loop ( void )
 							t.tSteamBulletOn = 0;
 							if (  t.WeaponProjectile[t.tNewProj].sourceEntity  ==  0 ) 
 							{
-								steam_update_projectile ( );
+								mp_update_projectile ( );
 							}
 						}
 					}
@@ -485,7 +485,7 @@ void weapon_projectile_loop ( void )
 								t.tSteamBulletOn = 0;
 								if (  t.WeaponProjectile[t.tNewProj].sourceEntity  ==  0 ) 
 								{
-									steam_update_projectile ( );
+									mp_update_projectile ( );
 								}
 							}
 						}
@@ -513,7 +513,7 @@ void weapon_projectile_loop ( void )
 								t.tSteamBulletOn = 0;
 								if (  t.WeaponProjectile[t.tNewProj].sourceEntity  ==  0 ) 
 								{
-									steam_update_projectile ( );
+									mp_update_projectile ( );
 								}
 							}
 						}
@@ -655,7 +655,7 @@ void weapon_projectile_loop ( void )
 										t.tSteamBulletOn = 0;
 										if (  t.WeaponProjectile[t.tNewProj].sourceEntity  ==  0 ) 
 										{
-											steam_update_projectile ( );
+											mp_update_projectile ( );
 										}
 									}
 								}
@@ -717,7 +717,7 @@ void weapon_projectile_loop ( void )
 						t.WeaponProjectile[t.tProj].yAng_f = ObjectAngleY(t.tobj);
 						t.WeaponProjectile[t.tProj].zAng_f = ObjectAngleZ(t.tobj);
 						t.tSteamBulletOn = 1;
-						steam_update_projectile ( );
+						mp_update_projectile ( );
 					}
 				}
 			}
@@ -1385,7 +1385,7 @@ void weapon_projectile_reset ( void )
 	}
 }
 
-void weapon_steam_projectile_reset ( void )
+void weapon_mp_projectile_reset ( void )
 {
 	for ( t.tProj = 1 ; t.tProj<=  g.weaponSystem.numProjectiles; t.tProj++ )
 	{
@@ -1564,10 +1564,10 @@ void weapon_projectileresult_make ( void )
 			t.texplodez_f=t.tz_f;
 			t.texploderadius_f=t.tradius_f;
 			t.texplodesourceEntity=t.tSourceEntity;
-			if ( t.game.runasmultiplayer == 1 && g.steamworks.coop == 1 ) 
+			if ( t.game.runasmultiplayer == 1 && g.mp.coop == 1 ) 
 			{
 				// Check to see if it was the AI that caused the explosion in coop multiplayer
-				if ( t.tSourceEntity != 0 )  g.steamworks.damageWasFromAI  =  1;
+				if ( t.tSourceEntity != 0 )  g.mp.damageWasFromAI  =  1;
 			}
 			physics_explodesphere ( );
 			t.tResult = 1;

@@ -14,6 +14,7 @@
 #include <vector>
 
 //new includes
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 #include "DarkAI.h"
 #include "CTextC.h"
@@ -45,18 +46,8 @@ int functionResults = 0;
 int functionStateID = 0;
 int defaultState = 1;
 
-// Steam Multiplayer DLL functions needed
-/*HMODULE SteamMultiplayerModule = NULL;
-
-typedef void	(*t_SteamGetWorkshopItemPathDLL)(LPSTR);
-typedef int		(*t_SteamIsWorkshopLoadingOnDLL)();
-
-t_SteamGetWorkshopItemPathDLL Steam_SteamGetWorkshopItemPathDLL = NULL;
-t_SteamIsWorkshopLoadingOnDLL Steam_SteamIsWorkshopLoadingOnDLL = NULL;*/
-// End of Steam Multiplayer DLL Functions needed
-
- DARKLUA_API int LoadLua( LPSTR pString );
- bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename);
+DARKLUA_API int LoadLua( LPSTR pString );
+bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename);
 
  struct StringList
  {
@@ -4055,7 +4046,7 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 134 : g.gdisablepeeking = lua_tonumber(L, 1); break;
 		case 135 : t.plrhasfocus = lua_tonumber(L, 1); break;
 		case 136 : t.game.runasmultiplayer = lua_tonumber(L, 1); break;
-		case 137 : g.steamworks.respawnLeft = lua_tonumber(L, 1); break;
+		case 137 : g.mp.respawnLeft = lua_tonumber(L, 1); break;
 		case 138 : g.tabmode = lua_tonumber(L, 1); break;
 		case 139 : g.lowfpswarning = lua_tonumber(L, 1); break;
 		case 140 : t.visuals.CameraFOV_f = lua_tonumber(L, 1); break;
@@ -4351,7 +4342,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 134 : lua_pushnumber ( L, g.gdisablepeeking ); break;	
 		case 135 : lua_pushnumber ( L, t.plrhasfocus ); break;	
 		case 136 : lua_pushnumber ( L, t.game.runasmultiplayer ); break;	
-		case 137 : lua_pushnumber ( L, g.steamworks.respawnLeft ); break;	
+		case 137 : lua_pushnumber ( L, g.mp.respawnLeft ); break;	
 		case 138 : lua_pushnumber ( L, g.tabmode ); break;	
 		case 139 : lua_pushnumber ( L, g.lowfpswarning ); break;	
 		case 140 : lua_pushnumber ( L, t.visuals.CameraFOV_f ); break;	
@@ -4733,6 +4724,8 @@ int SetGamePlayerStateGameRunAsMultiplayer ( lua_State *L ) { return SetGamePlay
 int GetGamePlayerStateGameRunAsMultiplayer ( lua_State *L ) { return GetGamePlayerControlData ( L, 136 ); }
 int SetGamePlayerStateSteamWorksRespawnLeft ( lua_State *L ) { return SetGamePlayerControlData ( L, 137 ); }
 int GetGamePlayerStateSteamWorksRespawnLeft ( lua_State *L ) { return GetGamePlayerControlData ( L, 137 ); }
+int SetGamePlayerStateMPRespawnLeft ( lua_State *L ) { return SetGamePlayerControlData ( L, 137 ); }
+int GetGamePlayerStateMPRespawnLeft ( lua_State *L ) { return GetGamePlayerControlData ( L, 137 ); }
 int SetGamePlayerStateTabMode ( lua_State *L ) { return SetGamePlayerControlData ( L, 138 ); }
 int GetGamePlayerStateTabMode ( lua_State *L ) { return GetGamePlayerControlData ( L, 138 ); }
 int SetGamePlayerStateLowFpsWarning ( lua_State *L ) { return SetGamePlayerControlData ( L, 139 ); }
@@ -5007,6 +5000,16 @@ int ParticlesSetSpeed(lua_State *L)
 	return 0;
 }
 
+int ParticlesSetGravity(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+
+	ravey_particles_set_gravity(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3));
+	return 0;
+}
+
 int ParticlesSetOffset(lua_State *L)
 {
 	lua = L;
@@ -5015,6 +5018,16 @@ int ParticlesSetOffset(lua_State *L)
 
 	ravey_particles_set_offset(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
 		lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7));
+	return 0;
+}
+
+int ParticlesSetAngle(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+
+	ravey_particles_set_angle(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
 	return 0;
 }
 
@@ -5051,14 +5064,22 @@ int ParticlesSetAlpha(lua_State *L)
 	return 0;
 }
 
-int ParticlesSetLife(lua_State *L)
+int ParticlesSetLife( lua_State *L )
 {
 	lua = L;
-	int n = lua_gettop(L);
-	if (n < 6) return 0;
+	int n = lua_gettop( L );
+	if ( n < 6 ) return 0;
 
-	ravey_particles_set_life(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4),
-		lua_tonumber(L, 5), lua_tonumber(L, 6));
+	if ( n == 6 )
+	{
+		ravey_particles_set_life( lua_tonumber( L, 1 ), lua_tonumber( L, 2 ), lua_tonumber( L, 3 ), lua_tonumber( L, 4 ),
+			                      lua_tonumber( L, 5 ), lua_tonumber( L, 6 ), RAVEY_PARTICLES_MAX_SPAWNED_AT_ONCE_BY_AN_EMITTER );
+	}
+	else
+	{
+		ravey_particles_set_life( lua_tonumber( L, 1 ), lua_tonumber( L, 2 ), lua_tonumber( L, 3 ), lua_tonumber( L, 4 ),
+			                      lua_tonumber( L, 5 ), lua_tonumber( L, 6 ), lua_tonumber( L, 7 ) );
+	}
 	return 0;
 }
 
@@ -5072,17 +5093,44 @@ int ParticlesSetWindVector(lua_State *L)
 	return 0;
 }
 
-int ParticlesAddEmitterCore( lua_State *L, int iExtended )
+int ParticlesSetNoWind(lua_State *L)
 {
 	lua = L;
 	int n = lua_gettop(L);
-	if ( iExtended == 0 )
+	if (n < 1) return 0;
+
+	ravey_particles_set_no_wind(lua_tonumber(L, 1));
+	return 0;
+}
+
+int ParticlesSpawnParticle(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+
+	if (n < 4)
 	{
-		if ( n < 28 ) return 0;
+		ravey_particles_generate_particle(lua_tonumber(L, 1), 0, 0, 0);
 	}
 	else
 	{
-		if ( n < 32 ) return 0;
+		ravey_particles_generate_particle(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+	}
+	return 0;
+}
+
+int ParticlesAddEmitterCore(lua_State *L, int iExtended)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (iExtended == 0)
+	{
+		if (n < 28) return 0;
+	}
+	else
+	{
+		if (n < 32) return 0;
 	}
 
 	// populate emitter data
@@ -5118,12 +5166,12 @@ int ParticlesAddEmitterCore( lua_State *L, int iExtended )
 	int entLimbIndex = -1;
 	int particleImage = RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
 	int particleFrameCount = 64;
-	if ( iExtended == 1 )
+	if (iExtended == 1)
 	{
 		entID = lua_tonumber(L, 29);
 		entLimbIndex = lua_tonumber(L, 30);
 		int tCheckParticleImage = lua_tonumber(L, 31);
-		if ( tCheckParticleImage > 0 ) 
+		if (tCheckParticleImage > 0)
 		{
 			particleImage = tCheckParticleImage + g.particlesimageoffset;
 			particleFrameCount = lua_tonumber(L, 32);
@@ -5131,15 +5179,19 @@ int ParticlesAddEmitterCore( lua_State *L, int iExtended )
 	}
 	g.tEmitter.id = t.tResult;
 	g.tEmitter.emitterLife = 0;
-	if ( entID == -1 )
+	if (entID == -1)
 	{
 		g.tEmitter.parentObject = t.aisystem.objectstartindex;
 		g.tEmitter.parentLimb = 0;
 	}
-	else
+	else if (entID > 0)
 	{
 		g.tEmitter.parentObject = t.entityelement[entID].obj;
 		g.tEmitter.parentLimb = entLimbIndex;
+	}
+	else
+	{
+		g.tEmitter.parentObject = 0;
 	}
 	g.tEmitter.isAnObjectEmitter = 0;
 	g.tEmitter.startsOffRandomAngle = startsOffRandomAngle;
@@ -5190,7 +5242,7 @@ int ParticlesAddEmitterCore( lua_State *L, int iExtended )
 	}
 
 	// create emitter
-	ravey_particles_add_emitter ( );
+	ravey_particles_add_emitter();
 
 	return 0;
 }
@@ -5212,6 +5264,21 @@ int ParticlesDeleteEmitter( lua_State *L )
 	if ( n < 1 ) return 0;
 	t.tRaveyParticlesEmitterID = lua_tonumber(L, 1);
 	ravey_particles_delete_emitter ( );
+	return 0;
+}
+
+int GetBulletHit(lua_State *L)
+{
+	if (t.tdamagesource == 1)
+	{
+		lua_pushnumber(L, g.decalx);
+		lua_pushnumber(L, g.decaly);
+		lua_pushnumber(L, g.decalz);
+		lua_pushnumber(L, t.tttriggerdecalimpact);
+		lua_pushnumber(L, t.playercontrol.thirdperson.charactere);
+		t.tdamagesource = 0;
+		return 5;
+	}
 	return 0;
 }
 
@@ -6054,6 +6121,8 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateGameRunAsMultiplayer" , GetGamePlayerStateGameRunAsMultiplayer );
 	lua_register(lua, "SetGamePlayerStateSteamWorksRespawnLeft" , SetGamePlayerStateSteamWorksRespawnLeft );
 	lua_register(lua, "GetGamePlayerStateSteamWorksRespawnLeft" , GetGamePlayerStateSteamWorksRespawnLeft );
+	lua_register(lua, "SetGamePlayerStateMPRespawnLeft" , SetGamePlayerStateMPRespawnLeft );
+	lua_register(lua, "GetGamePlayerStateMPRespawnLeft" , GetGamePlayerStateMPRespawnLeft );
 	lua_register(lua, "SetGamePlayerStateTabMode" , SetGamePlayerStateTabMode );
 	lua_register(lua, "GetGamePlayerStateTabMode" , GetGamePlayerStateTabMode );
 	lua_register(lua, "SetGamePlayerStateLowFpsWarning" , SetGamePlayerStateLowFpsWarning );
@@ -6269,15 +6338,21 @@ void addFunctions()
 	lua_register(lua, "ParticlesAddEmitter" ,     ParticlesAddEmitter );
 	lua_register(lua, "ParticlesAddEmitterEx" ,   ParticlesAddEmitterEx );
 	lua_register(lua, "ParticlesDeleteEmitter" ,  ParticlesDeleteEmitter );
+	lua_register(lua, "ParticlesSpawnParticle",   ParticlesSpawnParticle);
 	lua_register(lua, "ParticlesLoadImage",       ParticlesLoadImage);
 	lua_register(lua, "ParticlesSetFrames",       ParticlesSetFrames);
 	lua_register(lua, "ParticlesSetSpeed",        ParticlesSetSpeed);
+	lua_register(lua, "ParticlesSetGravity",      ParticlesSetGravity);
 	lua_register(lua, "ParticlesSetOffset",       ParticlesSetOffset);
+	lua_register(lua, "ParticlesSetAngle",        ParticlesSetAngle);
 	lua_register(lua, "ParticlesSetRotation",     ParticlesSetRotation);
 	lua_register(lua, "ParticlesSetScale",        ParticlesSetScale);
 	lua_register(lua, "ParticlesSetAlpha",        ParticlesSetAlpha);
 	lua_register(lua, "ParticlesSetLife",         ParticlesSetLife);
 	lua_register(lua, "ParticlesSetWindVector",   ParticlesSetWindVector);
+	lua_register(lua, "ParticlesSetNoWind",       ParticlesSetNoWind);
+
+	lua_register(lua, "GetBulletHit",             GetBulletHit);
 
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	
 	lua_register(lua, "SetAttachmentVisible" , SetAttachmentVisible );
@@ -7112,8 +7187,9 @@ DARKLUA_API void LuaCallSilent()
 	return a;
  }
 
-  DARKLUA_API int LuaExecute ( LPSTR pString )
+ DARKLUA_API int LuaExecute ( LPSTR pString )
  {
+	if ( ppLuaStates == NULL ) return 1;
 
 	int id = defaultState;
 
@@ -8674,29 +8750,6 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 	}
 	// end of encrypted file check
 
-	// Check if the functions pointers exist, if they don't - jolly well make them!
-	/*if ( Steam_SteamIsWorkshopLoadingOnDLL==NULL )
-	{
-		// Setup pointers to Steam functions
-		SteamMultiplayerModule = LoadLibrary ( "SteamMultiplayer.dll" );
-
-		if ( !SteamMultiplayerModule )
-		{
-			//MessageBox(NULL, "Unable to find SteamMultiplayer", "SteamMultiplayer Error", NULL);
-			return false;
-		}
-
-		Steam_SteamGetWorkshopItemPathDLL=(t_SteamGetWorkshopItemPathDLL)GetProcAddress( SteamMultiplayerModule , "?SteamGetWorkshopItemPathDLL@@YAXPAD@Z" );
-		Steam_SteamIsWorkshopLoadingOnDLL=(t_SteamIsWorkshopLoadingOnDLL)GetProcAddress ( SteamMultiplayerModule , "?SteamIsWorkshopLoadingOnDLL@@YAHXZ" );	
-		// End of setup pointers to steam functions
-	}*/
-
-	// CHECK FOR WORKSHOP ITEM
-	//if ( !Steam_SteamIsWorkshopLoadingOnDLL || !Steam_SteamGetWorkshopItemPathDLL ) 
-	//	return false;	
-
-	//if ( Steam_SteamIsWorkshopLoadingOnDLL() == 1 )
-	//{
 		char szWorkshopFilename[_MAX_PATH];
 		char szWorkshopFilenameFolder[_MAX_PATH];
 		char szWorkShopItemPath[_MAX_PATH];
@@ -8817,7 +8870,6 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 				}
 			}
 		}
-	//}
 
 	return false;
 	// END OF CHECK FOR WORKSHOP ITEM
