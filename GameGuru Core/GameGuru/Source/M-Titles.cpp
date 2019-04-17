@@ -608,12 +608,11 @@ void titles_gamelostpage ( void )
 
 void titles_steampage ( void )
 {
-
 	//  grab avatar info so we only have to do it once
 	t.tShowAvatarSprite = 1;
 	characterkit_loadMyAvatarInfo ( );
 
-	InkEx ( 255, 255, 255 );//  Rgb(255,255,255),0 );
+	InkEx ( 255, 255, 255 );
 	t.titlespage=7;
 	t.titlesname_s="";
 	t.titlesclearmode=1;
@@ -641,7 +640,11 @@ void titles_steampage ( void )
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
-	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="SEARCH FOR LOBBIES";
+	#ifdef PHOTONMP
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="SEARCH FOR GAMES";
+	#else
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="SEARCH FOR LOBBIES";
+	#endif
 	t.timgwid=200 ; t.timghig=16;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
@@ -657,8 +660,8 @@ void titles_steampage ( void )
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y1=(GetDisplayHeight()-300.0*t.tva_f)-t.timghig;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y2=(GetDisplayHeight()-300.0*t.tva_f)+t.timghig;
 
-	//  add another button if the user has character creator entities made
-	if (  CharacterKitCheckForUserMade()  ==  1 ) 
+	// add another button if the user has character creator entities made
+	if ( CharacterKitCheckForUserMade()  ==  1 ) 
 	{
 		++g.titlesbuttonmax;
 		t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
@@ -676,7 +679,7 @@ void titles_steampage ( void )
 void titles_steamCreateLobby ( void )
 {
 	t.titlespage=8;
-	t.titlesname_s="My Lobby";
+	t.titlesname_s="";//"My Lobby";
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
 	g.titlesbuttonmax=0;
@@ -702,7 +705,11 @@ void titles_steamCreateLobby ( void )
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
-	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE LOBBY";
+	#ifdef PHOTONMP
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE GAME";
+	#else
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE LOBBY";
+	#endif
 	t.timgwid=200 ; t.timghig=16;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
@@ -714,7 +721,7 @@ void titles_steamCreateLobby ( void )
 void titles_steamSearchLobbies ( void )
 {
 	t.titlespage=9;
-	t.titlesname_s="Searching for a lobby to join";
+	t.titlesname_s="";//Searching for a lobby to join"; prevent overwriting other title
 	
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
@@ -732,7 +739,11 @@ void titles_steamSearchLobbies ( void )
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
-	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="JOIN LOBBY";
+	#ifdef PHOTONMP
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="JOIN GAME";
+	#else
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="JOIN LOBBY";
+	#endif
 	t.timgwid=200 ; t.timghig=16;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
@@ -753,7 +764,7 @@ void titles_steamSearchLobbies ( void )
 void titles_steamInLobbyGuest ( void )
 {
 	t.titlespage=10;
-	t.titlesname_s="In Lobby";
+	t.titlesname_s="";//In Lobby";
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
 	g.titlesbuttonmax=0;
@@ -770,7 +781,11 @@ void titles_steamInLobbyGuest ( void )
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
-	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE LOBBY";
+	#ifdef PHOTONMP
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE GAME";
+	#else
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE LOBBY";
+	#endif
 	t.timgwid=200 ; t.timghig=16;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
@@ -1054,7 +1069,7 @@ void titles_steamchoosetypeoflevel ( void )
 void titles_steamchoosefpmtouse ( void )
 {
 	t.titlespage=15;
-	t.titlesname_s="Choose a level to play";
+	t.titlesname_s="";//"Choose a level to play";
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
 	g.titlesbuttonmax=0;
@@ -1562,14 +1577,18 @@ void titles_base ( void )
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
-					//  choose type of level
+					// choose type of level
 					characterkit_loadMyAvatarInfo ( );
-					titles_steamchoosetypeoflevel ( );
+					//titles_steamchoosetypeoflevel ( ); redundant as only one item!
+					//  create list
+					g.mp.listboxmode = 1;
+					mp_searchForFpms ( );
+					titles_steamchoosefpmtouse();
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
-					//  search for lobbies
+					// search for lobbies
 					g.mp.listboxmode = 0;
 					mp_searchForLobbies ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
@@ -1577,7 +1596,7 @@ void titles_base ( void )
 				}
 				if (  t.ttitlesbuttonhighlight == 3 ) 
 				{
-					//  back to IDE/Title
+					// back to IDE/Title
 					mp_backToStart ( );
 					mp_quitGame ( );
 					t.game.masterloop = 0;
@@ -1591,38 +1610,46 @@ void titles_base ( void )
 			}
 
 			// INSIDE MY OWN LOBBY/ROOM SCREEN - READY TO START THE GAME WITH PRESENT PLAYERS
-			if (  t.titlespagetousehere == 8 ) 
+			if ( t.titlespagetousehere == 8 ) 
 			{
-				if (  t.ttitlesbuttonhighlight == 1 ) 
+				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
-					//  start the game server
+					// start the game server
 					mp_launchGame ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
-				if (  t.ttitlesbuttonhighlight == 2 ) 
+				if ( t.ttitlesbuttonhighlight == 2 ) 
 				{
-					//  exit and drop the lobby
+					// exit and drop the lobby
 					mp_leaveALobby ( );
-					mp_resetSteam ( );
+					#ifdef PHOTONMP
+					 // Photon can have host leave and rejoin, no need to reset everything!
+					#else
+					 mp_resetSteam ( );
+					#endif
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 				}
 			}
 
 			// GAME LIST SCREEN - READY TO SELECT A LOBBY/ROOM TO ENTER
-			if (  t.titlespagetousehere == 9 ) 
+			if ( t.titlespagetousehere == 9 ) 
 			{
-				if (  t.ttitlesbuttonhighlight == 1 ) 
+				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
 					mp_joinALobby ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
-					if (  g.mp.mode  ==  MP_JOINING_LOBBY ) 
+					if ( g.mp.mode == MP_JOINING_LOBBY ) 
 					{
-						characterkit_loadMyAvatarInfo ( );
+						#ifdef PHOTONMP
+						 // not yet, but soon!
+						#else
+						 characterkit_loadMyAvatarInfo ( );
+						#endif
 						titles_steamInLobbyGuest ( );
 					}
 				}
-				if (  t.ttitlesbuttonhighlight == 2 ) 
+				if ( t.ttitlesbuttonhighlight == 2 ) 
 				{
 					mp_backToStart ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
@@ -1630,6 +1657,7 @@ void titles_base ( void )
 				}
 			}
 
+			/* 160419 - seems redundant, one one choice, so we go direct to it
 			// PLAY ONE OF YOUR LEVELS BUTTON SCREEN
 			if (  t.titlespagetousehere == 14 ) 
 			{
@@ -1648,26 +1676,33 @@ void titles_base ( void )
 					titles_steampage ( );
 				}
 			}
+			*/
 
 			// SELECTED OWN LEVEL - CREATE LOBBY/ROOM FOR IT
-			if (  t.titlespagetousehere == 15 ) 
+			if ( t.titlespagetousehere == 15 ) 
 			{
-				if (  t.ttitlesbuttonhighlight == 1 ) 
+				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
-					//  picked the level, create lobby
+					// picked the level, create lobby
 					mp_selectedALevel ( );
-					if (  g.mp.levelContainsCustomContent  ==  0 || g.mp.workshopItemChangedFlag  ==  0 ) 
-					{
+					#ifdef PHOTONMP
+					 // Photon does not support custom content at this time in this way!
+					 mp_createLobby ( );
+					 titles_steamCreateLobby ( );
+					#else
+					 if ( g.mp.levelContainsCustomContent ==  0 || g.mp.workshopItemChangedFlag  ==  0 ) 
+					 {
 						mp_createLobby ( );
 						titles_steamCreateLobby ( );
-					}
-					else
-					{
+					 }
+					 else
+					 {
 						titles_steamdoyouwanttocreateorupdateaworkshopitem ( );
-					}
+					 }
+					#endif
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
-				if (  t.ttitlesbuttonhighlight == 2 ) 
+				if ( t.ttitlesbuttonhighlight == 2 ) 
 				{
 					mp_backToStart ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
@@ -1676,7 +1711,7 @@ void titles_base ( void )
 			}
 
 			// INSIDE SOMEONE ELSES LOBBY/ROOM SCREEN - WAITING FOR HOST TO START GAME
-			if (  t.titlespagetousehere == 16 ) 
+			if ( t.titlespagetousehere == 16 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
@@ -1701,9 +1736,9 @@ void titles_base ( void )
 			}
 
 			// CAN LEAVE LOBBY/ROOM FROM HERE
-			if (  t.titlespagetousehere == 10 ) 
+			if ( t.titlespagetousehere == 10 ) 
 			{
-				if (  t.ttitlesbuttonhighlight == 1 ) 
+				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
 					mp_leaveALobby ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;

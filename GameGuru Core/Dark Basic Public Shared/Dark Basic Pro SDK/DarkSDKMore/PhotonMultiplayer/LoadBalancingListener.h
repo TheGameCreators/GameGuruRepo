@@ -3,14 +3,14 @@
 #include "LoadBalancing-cpp/inc/Client.h"
 #include "PhotonView.h"
 
-struct LocalPlayer
-{
-	LocalPlayer();
-	int x;
-	int y;
-	int color;
-	unsigned long lastUpdateTime;
-};
+//struct LocalPlayer
+//{
+//	LocalPlayer();
+//	int x;
+//	int y;
+//	int color;
+//	unsigned long lastUpdateTime;
+//};
 
 class LoadBalancingListener : public ExitGames::LoadBalancing::Listener
 {
@@ -20,18 +20,16 @@ public:
 
 	void setLBC(ExitGames::LoadBalancing::Client* pLbc);
 	void connect(const ExitGames::Common::JString& userName);
-	void setUseGroups(bool value);
-	bool getUseGroups(void);
-	void updateGroups(void);
-	void setSendGroup(nByte value);
-	void service(void);
-	void createRoom(void);
-	void setAutomove(bool a);
-	bool getAutomove(void);
+	void createRoom(LPSTR name);
+	void updateRoomList(void);
+	void joinRoom(const ExitGames::Common::JString& pRoomName);
+	void updatePlayerList(void);
+	int service(void);
+	void leaveRoom(void);
+
 	void changeRandomColor(void);
 	void nextGridSize(void);
-	bool setLocalPlayerPos(int x, int y);
-	void moveLocalPlayer(void);
+
 private:
 	//From Common::BaseListener
 
@@ -67,19 +65,17 @@ private:
 	virtual void onLobbyStatsResponse(const ExitGames::Common::JVector<ExitGames::LoadBalancing::LobbyStatsResponse>& lobbyStats);
 	virtual void onRoomPropertiesChange(const ExitGames::Common::Hashtable& changes);
 
-	void updateState(void);
 	void afterRoomJoined(int localPlayerNr);
-	bool updateGridSize(const ExitGames::Common::Hashtable& props);
+	//bool updateGridSize(const ExitGames::Common::Hashtable& props);
 	void raiseColorEvent(void);
-	int getGroupByPos(void);
 
 	ExitGames::LoadBalancing::Client* mpLbc;
 	PhotonView* mPhotonView;
-	LocalPlayer mLocalPlayer;
+
+	int mLocalPlayerx = 0;
+	int mLocalPlayery = 0;
+	unsigned long mLocalPlayerlastUpdateTime = 0;
+
 	int mLocalPlayerNr;
-	int mGridSize;
 	ExitGames::Common::JString mMap;
-	bool mAutomove;
-	bool mUseGroups;
-	int mSendGroup; // forces group in outgoing events even if mUseGroups = false
 };

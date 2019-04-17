@@ -8,6 +8,8 @@
 
 bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 {
+	// photon has no workshop
+	return false;
 
 	if ( !VirtualFilename ) return false;
 	if ( strlen ( VirtualFilename ) < 3 ) return false;

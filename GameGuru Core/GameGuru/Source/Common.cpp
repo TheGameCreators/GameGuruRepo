@@ -3150,7 +3150,7 @@ void FPSC_Setup ( void )
 		if ( g.grestoreeditorsettings == 1 ) pFirstTextToShow = "RESUMING PREVIOUS SESSION";
 		welcome_updatebackdrop(pFirstTextToShow);
 
-		//  Activate Steam (always so single player can do snapshots and get Steam notifications)
+		// Init MP System (and Activate Steam (always so single player can do snapshots and get Steam notifications) if Steam)
 		mp_init ( );
 
 		// Init default material sounds

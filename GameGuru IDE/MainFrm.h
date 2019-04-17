@@ -17,8 +17,8 @@
 #define CMDIFrameWnd CBCGMDIFrameWnd
 
 #ifdef GGBRANDED
-#define IDENAME "VRQuest 2.0"
-#define IDENAMEHYPHEN "VRQuest 2.0"
+#define IDENAME "VR Quest"
+#define IDENAMEHYPHEN "VR Quest - "
 #else
 #define IDENAME "Game Guru"
 #define IDENAMEHYPHEN "Game Guru - "

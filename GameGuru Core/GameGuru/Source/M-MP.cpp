@@ -5,21 +5,33 @@
 #include "gameguru.h"
 
 // flag to switch workshop handling from workshop to game managed, by default set to false, set to true for multiplayer mode
-extern bool OnlineMultiplayerModeForSharingFiles;
+#ifdef PHOTONMP
+#else
+///extern bool OnlineMultiplayerModeForSharingFiles;
+#endif
 
 //  Startup Steam
 void mp_init ( void )
 {
 	timestampactivity(0,"_mp_init:");
-	t.mp_build = 1121;
-	g.mp.isRunning = SteamInit();
+	#ifdef PHOTONMP
+	 t.mp_build = 2001;
+	 g.mp.isRunning = 1; // PhotonInit() done later when actually need Photon
+	#else
+	 t.mp_build = 1121;
+	 g.mp.isRunning = SteamInit();
+	#endif
 	g.mp.mode = MP_MODE_NONE;
 	g.mp.dontDrawTitles = 0;
 	g.mp.message = "";
 	g.mp.messageTime = 0;
 
 	// If a custom character head is used but the image no longer exists, we need to get rid of the avatar file
-	characterkit_checkAvatarExists();
+	#ifdef PHOTONMP
+	// later!
+	#else
+	 characterkit_checkAvatarExists();
+	#endif
 }
 
 bool OccluderCheckingForMultiplayer ( void )
@@ -31,11 +43,14 @@ bool OccluderCheckingForMultiplayer ( void )
 
 void mp_loop ( void )
 {
-
-	SteamLoop (  );
+	#ifdef PHOTONMP
+	 PhotonLoop (  );
+	#else
+	 SteamLoop (  );
+	#endif
 
 	//  store old positions of entities if in coop mode
-	/*      
+	/* does this belong in latest code?
 	if (  g.mp.coop  ==  1 ) 
 	{
 		if (  g.mp.madeArrays   ==  0 ) 
@@ -46,41 +61,38 @@ void mp_loop ( void )
 	}
 	*/    
 
-	//  debug stuff for loading in custom cc avatars
-	/*      
-	SetCursor (  0,0 );
-	Print (  "My avatar string = " + g.mp.myAvatar_s );
-	for ( t.c = 0 ; t.c<=  7; t.c++ )
-	{
-		Print (  t.mp_playerAvatarOwners_s[t.c] );
-		Print (  t.mp_playerAvatars_s[t.c] );
-	}
-	Print (  "have sent mine " + Str(g.mp.haveSentMyAvatar) );
-	*/    
-
-	if (  g.mp.mode  ==  MP_MODE_NONE || t.game.runasmultiplayer  ==  0  )
-	{
+	// OnlineMultiplayerModeForSharingFiles handling
+	#ifdef PHOTONMP
+	 // find out later if this needed for Photon
+	#else
+	 if (  g.mp.mode  ==  MP_MODE_NONE || t.game.runasmultiplayer  ==  0  )
+	 {
 		// usual workshop mode
 		OnlineMultiplayerModeForSharingFiles = false;
 		return;
-	}
+	 }
+	 // game managed mode for sharing files
+	 OnlineMultiplayerModeForSharingFiles = true;
+	#endif
 
-	// game managed mode for sharing files
-	OnlineMultiplayerModeForSharingFiles = true;
-
-	if (  g.mp.mode  !=  MP_IN_GAME_CLIENT && g.mp.mode  !=  MP_IN_GAME_SERVER ) 
+	 // General handling
+	if ( g.mp.mode != MP_IN_GAME_CLIENT && g.mp.mode != MP_IN_GAME_SERVER ) 
 	{
-
+		// reset flag
 		g.mp.finishedLoadingMap = 0;
 
-		//  200315 - 021 - flashlight of when starting a game
+		// 200315 - 021 - flashlight of when starting a game
 		mp_flashLightOff ( );
 		g.mp.originalEntitycount = 0;
-		if (  SpriteExist(g.steamchatpanelsprite)  )  DeleteSprite (  g.steamchatpanelsprite );
+		if ( SpriteExist(g.steamchatpanelsprite)  )  DeleteSprite (  g.steamchatpanelsprite );
 		g.mp.dontDrawTitles = 0;
-		//  If not connected to steam, retry
-		if (  g.mp.isRunning  ==  0 || g.mp.needToResetOnStartup  ==  1 ) 
-		{
+
+		// If not connected to steam, retry
+		#ifdef PHOTONMP
+		 g.mp.backtoeditorforyou = 0;
+		#else
+		 if ( g.mp.isRunning == 0 || g.mp.needToResetOnStartup == 1 ) 
+		 {
 			g.mp.goBackToEditor = 0;
 			mp_resetSteam ( );
 			if (  g.mp.isRunning  ==  0 ) 
@@ -90,134 +102,100 @@ void mp_loop ( void )
 				mp_lostConnection ( );
 				return;
 			}
-		}
-		else
-		{
+		 }
+		 else
+		 {
 			g.mp.backtoeditorforyou = 0;
-		}
+		 }
+		#endif
 
-		//  Debug Info
+		// Debug Info
 		t.steamDoDropShadow = 1;
 		t.ttstring_s = cstr("Multiplayer Build ") + Str(t.mp_build);
 		mp_text(-1,98,2,t.ttstring_s.Get());
-
-
 	}
 	else
 	{
-		//  030315 - 013 - Lobby chat
-		t.tchatLobbyMode = 0;
-		mp_chat ( );
+		// 030315 - 013 - Lobby chat
+		#ifdef PHOTONMP
+		#else
+		 t.tchatLobbyMode = 0;
+		 mp_chat ( );
+		#endif
 	}
-	if (  g.mp.mode  ==  MP_MODE_MAIN_MENU ) 
+
+	// Handle main menu
+	if ( g.mp.mode == MP_MODE_MAIN_MENU ) 
 	{
 		//  show avatar name if there is one
-		if (  g.mp.myAvatarName_s != "" ) 
+		if ( g.mp.myAvatarName_s != "" ) 
 		{
-		if (  ImageExist(g.charactercreatorEditorImageoffset)  ==  0 ) 
-		{
-			t.tShowAvatarSprite = 1;
-			characterkit_loadMyAvatarInfo ( );
-		}
-			t.tYPos_f = 95;
-			if (  GetDisplayHeight() > 900  )  t.tYPos_f  =  92;
-			mp_text(-1,t.tYPos_f,2,g.mp.myAvatarName_s.Get());
-			if (  g.charactercreatorEditorImageoffset > 0 ) 
+			if ( ImageExist(g.charactercreatorEditorImageoffset)  ==  0 ) 
 			{
-				if (  ImageExist(g.charactercreatorEditorImageoffset)  ==  1 ) 
+				t.tShowAvatarSprite = 1;
+				characterkit_loadMyAvatarInfo ( );
+			}
+			t.tYPos_f = 95;
+			if ( GetDisplayHeight() > 900  ) t.tYPos_f = 92;
+			mp_text(-1,t.tYPos_f,2,g.mp.myAvatarName_s.Get());
+			if ( g.charactercreatorEditorImageoffset > 0 ) 
+			{
+				if ( ImageExist(g.charactercreatorEditorImageoffset)  ==  1 ) 
 				{
 					t.tYPos_f = GetChildWindowHeight();
 					t.tYPos_f = t.tYPos_f * 0.85;
-					PasteImage (  g.charactercreatorEditorImageoffset, (GetChildWindowWidth()/2)-32, t.tYPos_f,g.charactercreatorEditorImageoffset );
+					PasteImage ( g.charactercreatorEditorImageoffset, (GetChildWindowWidth()/2)-32, t.tYPos_f,g.charactercreatorEditorImageoffset );
 				}
 			}
 		}
 		g.mp.dontDrawTitles = 0;
-		if (  g.mp.originalpath  ==  "" ) 
+		if ( g.mp.originalpath == "" ) 
 		{
 			g.mp.originalpath = GetDir();
-			SteamSetRoot(cstr(g.fpscrootdir_s+"\\Files\\").Get());
+			#ifdef PHOTONMP
+			 PhotonSetRoot(cstr(g.fpscrootdir_s+"\\Files\\").Get());
+			#else
+			 SteamSetRoot(cstr(g.fpscrootdir_s+"\\Files\\").Get());
+			#endif
 		}
-		//  110315 - 019 - remove fadeoutsprite if it exists
-		if (  t.tspritetouse > 0 ) 
+		// 110315 - 019 - remove fadeoutsprite if it exists
+		if ( t.tspritetouse > 0 ) 
 		{
-			if (  SpriteExist(t.tspritetouse)  ==  1  )  DeleteSprite (  t.tspritetouse );
+			if ( SpriteExist(t.tspritetouse) == 1 )  DeleteSprite (  t.tspritetouse );
 			t.tspritetouse = 0;
 		}
-		/*      
-		if (  SpaceKey() && oldspacekey  ==  0 ) 
-		{
-			SteamSetRoot(g.fpscrootdir_s+"\\Files\\");
-			SteamCreateWorkshopItem (  "Awesome Custom Level" );
-		}
-		if (  LeftKey() && oldleftkey  ==  0 ) 
-		{
-//mp_save_workshop_files_needed ( );
-			SteamDownloadWorkshopItem (  "378579107" );
-			Print (  "HELLO" );
-		}
-		if (  SteamIsWorkshopItemDownloaded()  ==  1 ) 
-		{
-			mp_text(-1,5,3,"WORKSHOP ITEM DOWNLOADED");
-//    `if ImageExist(999) = 0
-
-//     `load image "F:\\TGCSHARED\\fpsc-reloaded\\FPS Creator Files\\Files\\entitybank\\ravey\\fizco\\fizzie.jpg",999
-
-//     `sprite 999,0,0,999
-
-//    `endif
-
-		}
-		else
-		{
-			mp_text(-1,5,3,"WORKSHOP ITEM NOT DOWNLOADED");
-		}
-		oldleftkey = LeftKey();
-		oldspacekey = SpaceKey();
-		*/    
-
-//   `print "======================================"
-
-//   `print "(C) Create Lobby"
-
-//   `print "(S) Search for Lobbies"
-
-//   `print "======================================"
-
-
 		g.mp.lobbyscrollbarOn = 0;
 		g.mp.selectedLobby = 0;
 		t.tjoinedLobby = 0;
 		g.mp.lobbyoffset = 0;
 		g.mp.lobbycount = 0;
 		mp_resetGameStats ( );
-
 		t.game.jumplevel_s="__multiplayerlevel__";
 	}
 	else
 	{
-		if (  g.charactercreatorEditorImageoffset > 0 ) 
+		if ( g.charactercreatorEditorImageoffset > 0 ) 
 		{
-			if (  ImageExist(g.charactercreatorEditorImageoffset)  )  DeleteImage (  g.charactercreatorEditorImageoffset );
+			if ( ImageExist(g.charactercreatorEditorImageoffset)  )  DeleteImage (  g.charactercreatorEditorImageoffset );
 		}
 	}
 
-	if (  g.mp.mode  ==  MP_WAITING_FOR_LOBBY_CREATION ) 
+	// Handle lobby creation
+	if ( g.mp.mode == MP_WAITING_FOR_LOBBY_CREATION ) 
 	{
-//   `print "======================================"
-
-//   `print "Creating Lobby"
-
-//   `print "======================================"
-
-		if (  SteamIsLobbyCreated()  ==  1 ) 
-		{
+		#ifdef PHOTONMP
+		 g.mp.isLobbyCreated = 1;
+		 PhotonGetLobbyList();
+		 g.mp.mode = MP_MODE_LOBBY;
+		#else
+		 if ( SteamIsLobbyCreated() == 1 ) 
+		 {
 			g.mp.isLobbyCreated = 1;
 			SteamGetLobbyList (  );
 			g.mp.mode = MP_MODE_LOBBY;
-		}
-		else
-		{
+		 }
+		 else
+		 {
 			g.mp.haveToldAboutSolo = 0;
 			if (  Timer() - t.tempsteamlobbycreationtimeout > 5000 ) 
 			{
@@ -232,30 +210,33 @@ void mp_loop ( void )
 				mp_lostConnection ( );
 				return;
 			}
-		}
+		 }
+		#endif
 	}
 
-	if (  g.mp.mode  ==  MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM ) 
-	{
+	// Workshop related states
+	#ifdef PHOTONMP
+	 // No workshop in Photon
+	#else
+	 if (  g.mp.mode  ==  MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM ) 
+	 {
 		mp_text(-1,45,3,"You do not currently have the workshop item required to");
 		mp_text(-1,50,3,"join this game. Do you wish to subscribe to the workshop");
 		mp_text(-1,55,3,"item so you can join a game with this level at a later time?");
 		mp_text(-1,65,3,"Note: Once you have subscribed the Lobby will remain yellow until");
 		mp_text(-1,70,3,"you have downloaded the whole workshop item.");
 		t.tempsteamhaveaskedtosubscribeflag = 0;
-	}
-
-	if (  g.mp.mode  ==  MP_TELLING_THEY_NEED_TO_RESTART ) 
-	{
+	 }
+	 if (  g.mp.mode  ==  MP_TELLING_THEY_NEED_TO_RESTART ) 
+	 {
 		mp_text(-1,45,3,"Your version of this workshop item is outdated.");
 		mp_text(-1,50,3,"To enable Steam to download the update you will need to:");
 		mp_text(-1,55,3,"Exit multiplayer, then exit Game Guru completely.");
 		mp_text(-1,60,3,"Then restart Game Guru and Steam will update all");
 		mp_text(-1,65,3,"your subscriptions.");
-	}
-
-	if (  g.mp.mode  ==  MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_WAITING_FOR_RESULTS ) 
-	{
+	 }
+	 if (  g.mp.mode  ==  MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM_WAITING_FOR_RESULTS ) 
+	 {
 		if (  t.tempsteamhaveaskedtosubscribeflag  ==  0 ) 
 		{
 			t.tempsteamhaveaskedtosubscribeflag = 1;
@@ -284,16 +265,9 @@ void mp_loop ( void )
 			mp_text(-1,50,3,"Subscription failed");
 			mp_text(-1,55,3,"Please t.try again in t.a few moments");
 		}
-	}
-
-	if (  g.mp.mode  ==  MP_SERVER_CHOOSING_FPM_TO_USE ) 
-	{
-		mp_text(-1,5,3,"LIST OF LEVELS");
-		mp_lobbyListBox ( );
-	}
-
-	if (  g.mp.mode  ==  MP_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP ) 
-	{
+	 }
+	 if (  g.mp.mode  ==  MP_SERVER_CHOOSING_TO_MAKE_FPS_WORKSHOP ) 
+	 {
 		mp_text(-1,30,3,"This level contains custom content.");
 		mp_text(-1,35,3,"To share this level with others you will need to create a workshop item.");
 		mp_text(-1,40,3,"(This is done automatically for you)");
@@ -301,13 +275,9 @@ void mp_loop ( void )
 		mp_text(-1,60,3,"Do you wish to create (or update if you have share this level before)");
 		mp_text(-1,65,3,"A workshop item?");
 		mp_text(-1,75,3,"By submitting this item, you agree to the workshop terms of service");
-	
-//   `mp.oldtime = 0
-
-	}
-
-	if (  g.mp.mode  ==  MP_CREATING_WORKSHOP_ITEM ) 
-	{
+	 }
+	 if (  g.mp.mode  ==  MP_CREATING_WORKSHOP_ITEM ) 
+	 {
 		if (  Timer() - g.mp.oldtime > 150 ) 
 		{
 			g.mp.oldtime = Timer();
@@ -317,124 +287,116 @@ void mp_loop ( void )
 		t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Building Workshop Item" + t.tSteamBuildingWorkshopItem_s;
 		mp_text(-1,50,3,t.tstring_s.Get());
 		t.tstring_s = "";
-	
-//  `mp_text(0,10,3, "mp.buildingWorkshopItemMode = " + Str(mp.buildingWorkshopItemMode) )
+	 }
+	#endif
 
-//  `mp_text(0,20,3, "mp.workshopid = " + mp.workshopid )
-
-	
+	if ( g.mp.mode == MP_SERVER_CHOOSING_FPM_TO_USE ) 
+	{
+		mp_text(-1,5,3,"LIST OF LEVELS");
+		mp_lobbyListBox ( );
 	}
 
-	if (  g.mp.mode  ==  MP_MODE_LOBBY ) 
+	// Handle lobby page
+	if ( g.mp.mode == MP_MODE_LOBBY ) 
 	{
-		if (  g.mp.isGameHost  ==  0 ) 
+		if ( g.mp.isGameHost == 0 ) 
 		{
-
-			if (  g.mp.isRunning  ==  0 ) 
+			// if lose connection
+			if ( g.mp.isRunning == 0 ) 
 			{
-				t.tsteamlostconnectioncustommessage_s = "Cannot connect to Steam (Error MP004)";
+				t.tsteamlostconnectioncustommessage_s = "Lost Connection";
 				g.mp.backtoeditorforyou = 2;
 				mp_lostConnection ( );
 				return;
 			}
-//    `print "======================================"
 
-//    `print "Lobby list"
-
-//    `print "======================================"
-
-			mp_text(-1,5,3,"LIST OF LOBBIES");
-			if (  SteamIsLobbyListCreated()  ==  0 ) 
-			{
-
-				if (  g.mp.lobbycount  ==  0 ) 
+			// if lose lobby list
+			#ifdef PHOTONMP
+			 mp_text(-1,5,3,"LIST OF GAMES");
+			 if ( Timer() - g.mp.oldtime > 3000 ) 
+			 {
+				PhotonGetLobbyList();
+				g.mp.oldtime = Timer();
+			 }
+			#else
+			 mp_text(-1,5,3,"LIST OF LOBBIES");
+			 if ( SteamIsLobbyListCreated() == 0 ) 
+			 {
+				if ( g.mp.lobbycount == 0 ) 
 				{
 					t.tstring_s = "Building Lobby list";
 					mp_text(-1,10,1,t.tstring_s.Get());
 				}
-				else
-				{
-//      `if mp.lobbycount = 1
-
-//       `tstring$ = "1 lobby found"
-
-//      `else
-
-//       `tstring$ = Str(tsize) + " lobbies found"
-
-//      `endif
-
-//      `mp_text(-1,15,1,tstring$)
-
-
-				}
-
-				if (  Timer() - g.mp.oldtime > 3000 ) 
+				if ( Timer() - g.mp.oldtime > 3000 ) 
 				{
 					SteamGetLobbyList (  );
 					g.mp.oldtime = Timer();
 				}
-			}
-			else
-			{
-				if (  Timer() - g.mp.oldtime > 3000 ) 
+			 }
+			 else
+			 {
+				if ( Timer() - g.mp.oldtime > 3000 ) 
 				{
 					SteamGetLobbyList (  );
 					g.mp.oldtime = Timer();
 				}
-			}
-
+			 }
+			#endif
 			mp_lobbyListBox ( );
-
 		}
 		else
 		{
-			//  030315 - 013 - Lobby chat
-			t.tchatLobbyMode = 1;
-			mp_chat ( );
-			mp_text(-1,85,3,"Press Enter to chat");
+			// Chat handling
+			#ifdef PHOTONMP
+			 // No chat in Photon Lobby(game room)
+			#else
+			 // 030315 - 013 - Lobby chat
+			 t.tchatLobbyMode = 1;
+			 mp_chat ( );
+			 mp_text(-1,85,3,"Press Enter to chat");
+			#endif
 
-			t.tUserCount = SteamGetLobbyUserCount();
-			if (  Timer() - t.tempsteamlobbycreationtimeout > 5000 && t.tUserCount  ==  0 ) 
-			{
+			 // Determine number of players in lobby/room
+			#ifdef PHOTONMP
+			 t.tUserCount = PhotonGetLobbyUserCount();
+			#else
+			 t.tUserCount = SteamGetLobbyUserCount();
+			 if (  Timer() - t.tempsteamlobbycreationtimeout > 5000 && t.tUserCount  ==  0 ) 
+			 {
 				t.tsteamlostconnectioncustommessage_s = "Could not create lobby (Error MP005)";
 				mp_lostConnection ( );
 				return;
-			}
-//    `print "======================================"
-
-//    `print mp.playerName + "'s Lobby"
-
-//    `print "======================================"
-
-//    `print "(S) Start Server"
-
-//    `print "======================================"
-
-			if (  t.tUserCount  ==  1 ) 
+			 }
+			#endif
+			if ( t.tUserCount == 1 ) 
 			{
-				t.tstring_s = "There is 1 user (you!) in this lobby";
+				t.tstring_s = "There is 1 user (you!) here";
 				g.mp.usersInServersLobbyAtServerCreation = 1;
 			}
 			else
 			{
-				t.tstring_s = cstr("There are ") + Str(t.tUserCount) + " users in this lobby";
+				t.tstring_s = cstr("There are ") + Str(t.tUserCount) + " users here";
 			}
-			if (  t.tUserCount  !=  g.mp.usersInServersLobbyAtServerCreation ) 
+			if ( t.tUserCount != g.mp.usersInServersLobbyAtServerCreation ) 
 			{
 				g.mp.haveSentMyAvatar = 0;
 			}
-			if (  t.tUserCount > g.mp.usersInServersLobbyAtServerCreation ) 
+			if ( t.tUserCount > g.mp.usersInServersLobbyAtServerCreation ) 
 			{
 				g.mp.usersInServersLobbyAtServerCreation = t.tUserCount;
 			}
 			mp_text(-1,15,1,t.tstring_s.Get());
 			t.tsteamy_f = 50.0 - (t.tUserCount * 2.5);
 			t.tsteamy = t.tsteamy_f;
-			for ( t.tn = 1 ; t.tn<=  t.tUserCount; t.tn++ )
+			for ( t.tn = 1 ; t.tn <= t.tUserCount; t.tn++ )
 			{
-				t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + SteamGetLobbyUserName(t.tn-1);
-				if (  SteamGetPlayerName()  !=  SteamGetLobbyUserName(t.tn-1)  )  t.mp_joined[t.tn-1]  =  SteamGetLobbyUserName(t.tn-1);
+				#ifdef PHOTONMP
+				 t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + PhotonGetLobbyUserName(t.tn-1);
+				 if ( PhotonGetPlayerName() != PhotonGetLobbyUserName(t.tn-1) ) t.mp_joined[t.tn-1] = PhotonGetLobbyUserName(t.tn-1);
+				#else
+				 t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + SteamGetLobbyUserName(t.tn-1);
+				 if (  SteamGetPlayerName()  !=  SteamGetLobbyUserName(t.tn-1)  )  t.mp_joined[t.tn-1]  =  SteamGetLobbyUserName(t.tn-1);
+				#endif
 				mp_text(-1,t.tsteamy,1,t.tstring_s.Get());
 				t.tsteamy += 5;
 			}
@@ -442,93 +404,155 @@ void mp_loop ( void )
 			{
 				t.mp_joined[t.tn] = "";
 			}
-				if (  g.mp.haveToldAboutSolo  ==  1 && t.tUserCount  <=  1 ) 
-				{
-					mp_textColor(-1,70,1,"Noone has joined your lobby yet. If you start now you will be playing alone.",255,100,100);
-					mp_textColor(-1,75,1,"Press Start Server again to start anyway.",255,100,100);
-				}
+			if ( g.mp.haveToldAboutSolo == 1 && t.tUserCount  <=  1 ) 
+			{
+				mp_textColor(-1,70,1,"No-one has joined your lobby yet. If you start now you will be playing alone.",255,100,100);
+				mp_textColor(-1,75,1,"Press Start Server again to start anyway.",255,100,100);
+			}
 
-		if (  g.mp.launchServer  ==  1 ) 
-		{
-					if (  g.mp.haveToldAboutSolo  ==  0 && t.tUserCount  <=  1 ) 
-					{
-						g.mp.haveToldAboutSolo = 1;
-						g.mp.launchServer = 0;
-						return;
-					}
-					SteamStartServer (  );
+			// Handle server launch (start MP game)
+			if ( g.mp.launchServer == 1 ) 
+			{
+				if ( g.mp.haveToldAboutSolo == 0 && t.tUserCount <= 1 ) 
+				{
+					g.mp.haveToldAboutSolo = 1;
+					g.mp.launchServer = 0;
+					return;
+				}
+				#ifdef PHOTONMP
+				 PhotonStartServer (  );
+				#else
+				 SteamStartServer (  );
+				#endif
 				g.mp.mode = MP_WAITING_FOR_SERVER_CREATION;
 				g.mp.oldtime = Timer();
 			}
 		}
 	}
 
-	if (  g.mp.mode  ==  MP_JOINING_LOBBY ) 
+	// Handle joining the lobby/room
+	if ( g.mp.mode == MP_JOINING_LOBBY ) 
 	{
-		if (  SteamIsGameRunning()  ==  1 ) 
+		#ifdef PHOTONMP
+		 int iIsGameRunning = PhotonIsGameRunning();
+		#else
+		 int iIsGameRunning = SteamIsGameRunning();
+		#endif
+		if ( iIsGameRunning  == 1 ) 
 		{
 			g.mp.mode = MP_IN_GAME_CLIENT;
 			g.mp.needToResetOnStartup = 1;
 			t.toldsteamfolder_s=GetDir();
-			SetDir (  cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
+			SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 			t.tsteamtimeoutongamerunning = Timer();
-			t.tPlayerIndex = SteamGetMyPlayerIndex();
-			if (  t.tPlayerIndex  >=  0 && t.tPlayerIndex < MP_MAX_NUMBER_OF_PLAYERS ) 
+
+			// Reset player var
+			#ifdef PHOTONMP
+			 t.tPlayerIndex = PhotonGetMyPlayerIndex();
+			#else
+			 t.tPlayerIndex = SteamGetMyPlayerIndex();
+			#endif
+			if ( t.tPlayerIndex >= 0 && t.tPlayerIndex < MP_MAX_NUMBER_OF_PLAYERS ) 
 			{
 				t.mp_health[t.tPlayerIndex] = 0;
 				t.ta = MouseMoveX() + MouseMoveY();
 			}
 		}
-		if (  t.tjoinedLobby  ==  0 ) 
+		if ( t.tjoinedLobby == 0 ) 
 		{
-			if (  Timer() - g.mp.AttemptedToJoinLobbyTime > MP_JOIN_LOBBY_TIMEOUT ) 
+			if ( Timer() - g.mp.AttemptedToJoinLobbyTime > MP_JOIN_LOBBY_TIMEOUT ) 
 			{
 				g.mp.mode = MP_MODE_MAIN_MENU;
-				t.tmsg_s = "Could not join Lobby";
+				t.tmsg_s = "Could not join";
 				mp_setMessage ( );
 			}
 		}
-		if (  SteamHasJoinedLobby()  ==  1 ) 
-		{
+		#ifdef PHOTONMP
+		 // reduced all code below to a simple display of users in this game room (Photon can migrate host so not important if hosts leaves)
+		 int iHasJoinedLobby = PhotonHasJoinedLobby();
+		 if ( iHasJoinedLobby == 1 )
+		 {
 			t.tjoinedLobby = 1;
-			if (  t.tjoinedLobby  ==  0 ) 
+			int iLobbyUserCount = PhotonGetLobbyUserCount();
+			if ( t.tUserCount != iLobbyUserCount ) 
 			{
-					t.tsteamwaitedforlobbytimer = Timer();
+				g.mp.haveSentMyAvatar = 0;
 			}
-		}
-		else
-		{
+			t.tUserCount = iLobbyUserCount;
+			t.tsteamy_f = 50.0 - (t.tUserCount * 2.5);
+			t.tsteamy = t.tsteamy_f;
+			for ( t.tn = 1 ; t.tn <= t.tUserCount; t.tn++ )
+			{
+				LPSTR pLobbyUserName = PhotonGetLobbyUserName(t.tn-1);
+				//if ( t.tn == 1 ) 
+				//{
+				//	t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pLobbyUserName + " (Host)";
+				//}
+				//else
+				//{
+				t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pLobbyUserName;
+				//}
+				mp_text(-1,t.tsteamy,1,t.tstring_s.Get());
+				t.tsteamy += 5;
+				//if ( t.tsteamnamewearelookingfor_s == pLobbyUserName ) 
+				//{
+				//	t.tsteamistheownerpresent = 1;
+				//	t.tsteamistheownerpresenttime = Timer();
+				//}
+			}
+		 }
+		 else
+		 {
+			mp_textDots(-1,20,3,"Connecting to game...");
+			int iClientServerConnectionStatus = PhotonGetClientServerConnectionStatus();
+			if ( iClientServerConnectionStatus == 0 ) 
+			{
+				t.tsteamlostconnectioncustommessage_s = "Lost connection";
+				mp_lostConnection ( );
+				return;
+			}
+		 }		
+		#else
+		 // not a whole lot of sense below, may untangle it over time
+		 int iHasJoinedLobby = SteamHasJoinedLobby();
+		 if ( iHasJoinedLobby == 1 ) 
+		 {
+			t.tjoinedLobby = 1;
+			if ( t.tjoinedLobby  ==  0 ) 
+			{
+				t.tsteamwaitedforlobbytimer = Timer();
+			}
+		 }
+		 else
+		 {
 			t.tsteamwaitedforlobbytimer = Timer();
 			t.tsteamistheownerpresenttime = t.tsteamwaitedforlobbytimer;
-		}
-		if (  t.tjoinedLobby  ==  0 ) 
-		{
-				t.tsteamwaitedforlobbytimer = Timer();
-				t.tsteamistheownerpresenttime = Timer();
-		}
-		if (  t.tjoinedLobby  ==  1 ) 
-		{
-			if (  SteamHasJoinedLobby()  ==  1 ) 
+		 }
+		 if ( t.tjoinedLobby == 0 ) 
+		 {
+			t.tsteamwaitedforlobbytimer = Timer();
+			t.tsteamistheownerpresenttime = Timer();
+		 }
+		 if ( t.tjoinedLobby == 1 ) 
+		 {
+			if ( iHasJoinedLobby == 1 ) //SteamHasJoinedLobby()  ==  1 ) 
 			{
-					//  030315 - 013 - Lobby chat
-					t.tchatLobbyMode = 1;
-					mp_chat ( );
-					mp_text(-1,85,3,"Press Enter to chat");
-					t.tsteamlobbertimer = Timer();
-//     `print "======================================"
+				// Handling chat (duplicate code, yuk)
+				t.tchatLobbyMode = 1;
+				mp_chat ( );
+				mp_text(-1,85,3,"Press Enter to chat");
+				t.tsteamlobbertimer = Timer();
 
-//     `print "In lobby"
-
-//     `print "======================================"
-
-				if (  t.tUserCount  !=  SteamGetLobbyUserCount() ) 
+				int iLobbyUserCount = SteamGetLobbyUserCount();
+				if ( t.tUserCount != iLobbyUserCount ) 
 				{
 					g.mp.haveSentMyAvatar = 0;
 				}
-				t.tUserCount = SteamGetLobbyUserCount();
-				if (  t.tUserCount  ==  1 && Timer() - t.tsteamwaitedforlobbytimer > 15000 ) 
+				t.tUserCount = iLobbyUserCount; //SteamGetLobbyUserCount();
+				if ( t.tUserCount == 1 && Timer() - t.tsteamwaitedforlobbytimer > 15000 ) 
 				{
-					if (  SteamIsGameRunning()  ==  0 ) 
+					int iIsGameRunning = SteamIsGameRunning();
+					if ( iIsGameRunning == 0 ) 
 					{
 						SteamLeaveLobby (  );
 						t.tsteamlostconnectioncustommessage_s = "Lost connection to lobby (Error MP006)";
@@ -539,61 +563,71 @@ void mp_loop ( void )
 				else
 				{
 					t.tsteamwaitedforlobbytimer = Timer();
-					mp_text(-1,15,1, cstr(cstr("There are ") + Str(t.tUserCount) + " users in this lobby").Get() );
+					if ( t.tUserCount == 1 )
+						mp_text(-1,15,1, "There is 1 user here" );
+					else
+						mp_text(-1,15,1, cstr(cstr("There are ") + Str(t.tUserCount) + " users here").Get() );
 					mp_text(-1,10,1, cstr(cstr("Game being hosted is '") + g.mp.levelnametojoin + "'").Get() );
-
 				}
 				t.tsteamistheownerpresent = 0;
 				t.tsteamnamewearelookingfor_s = Left(g.mp.lobbyjoinedname.Get(),Len(g.mp.lobbyjoinedname.Get())-8);
-
 				t.tsteamy_f = 50.0 - (t.tUserCount * 2.5);
 				t.tsteamy = t.tsteamy_f;
 
-				if (  t.tsteamnamewearelookingfor_s  ==  SteamGetLobbyUserName(0) ) 
+				LPSTR pLobbyUserName = SteamGetLobbyUserName(0);
+				LPSTR pPlayerName = SteamGetPlayerName();
+				if ( t.tsteamnamewearelookingfor_s == pLobbyUserName )
 				{
-					for ( t.tn = t.tUserCount ; t.tn<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
+					for ( t.tn = t.tUserCount ; t.tn <= MP_MAX_NUMBER_OF_PLAYERS-1; t.tn++ )
 					{
 						t.mp_joined[t.tn] = "";
 					}
-					for ( t.tn = 1 ; t.tn<=  t.tUserCount; t.tn++ )
+					for ( t.tn = 1 ; t.tn <= t.tUserCount; t.tn++ )
 					{
-						if (  SteamGetPlayerName()  !=  SteamGetLobbyUserName(t.tn-1)  )  t.mp_joined[t.tn-1]  =  SteamGetLobbyUserName(t.tn-1);
+						LPSTR pLobbyUserName = SteamGetLobbyUserName(t.tn-1);
+						if ( pPlayerName != pLobbyUserName ) 
+							t.mp_joined[t.tn-1] = pLobbyUserName;
 					}
-				}
-				for ( t.tn = 1 ; t.tn<=  t.tUserCount; t.tn++ )
-				{
-					if (  t.tn  ==  1 ) 
+				 }
+				 for ( t.tn = 1 ; t.tn <= t.tUserCount; t.tn++ )
+				 {
+					LPSTR pLobbyUserName = SteamGetLobbyUserName(t.tn-1);
+					if ( t.tn == 1 ) 
 					{
-						t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + SteamGetLobbyUserName(t.tn-1) + " (Host)";
+						t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pLobbyUserName + " (Host)";
 					}
 					else
 					{
-						t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + SteamGetLobbyUserName(t.tn-1);
+						t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pLobbyUserName;
 					}
 					mp_text(-1,t.tsteamy,1,t.tstring_s.Get());
 					t.tsteamy += 5;
-					if (  t.tsteamnamewearelookingfor_s  ==  SteamGetLobbyUserName(t.tn-1) ) 
+					if ( t.tsteamnamewearelookingfor_s == pLobbyUserName ) 
 					{
 						t.tsteamistheownerpresent = 1;
 						t.tsteamistheownerpresenttime = Timer();
 					}
 				}
-				if (  t.tsteamistheownerpresent  ==  0 && Timer() - t.tsteamistheownerpresenttime > 10000 ) 
+				if ( t.tsteamistheownerpresent == 0 && Timer() - t.tsteamistheownerpresenttime > 10000 ) 
 				{
 					SteamLeaveLobby (  );
-					t.tsteamlostconnectioncustommessage_s = "The host left the lobby (Code MP007)";
+					t.tsteamlostconnectioncustommessage_s = "The host left (Code MP007)";
 					mp_lostConnection ( );
 					return;
 				}
-
 				t.tsteamlobbertimer = Timer();
 			}
 			else
 			{
-				mp_textDots(-1,20,3,"Game Starting...Connecting");
-				if (  Timer() - t.tsteamlobbertimer > 20000 ) 
+				mp_textDots(-1,20,3,"Connecting to lobby...");
+				if ( Timer() - t.tsteamlobbertimer > 20000 ) 
 				{
-					if (  SteamGetClientServerConnectionStatus()  ==  0 ) 
+					#ifdef PHOTONMP
+					 int iClientServerConnectionStatus = PhotonGetClientServerConnectionStatus();
+					#else
+					 int iClientServerConnectionStatus = SteamGetClientServerConnectionStatus();
+					#endif
+					if ( iClientServerConnectionStatus == 0 ) 
 					{
 						t.tsteamlostconnectioncustommessage_s = "Lost connection to host (Error MP008)";
 						mp_lostConnection ( );
@@ -601,39 +635,49 @@ void mp_loop ( void )
 					}
 				}
 			}
-		}
-		else
-		{
-//    `print "======================================"
-
-//    `print "Joining lobby"
-
-//    `print "======================================"
-
-		}
+		 }
+		#endif
 	}
-	if (  g.mp.mode  ==  MP_WAITING_FOR_SERVER_CREATION ) 
+
+	// LEE NOTE: This is the next stage, starting the host and joined games and exchanging in-game data
+
+	// Server creation handling
+	if ( g.mp.mode == MP_WAITING_FOR_SERVER_CREATION ) 
 	{
 		g.mp.dontDrawTitles = 1;
-		if (  SteamIsServerRunning()  ==  1 ) 
+		#ifdef PHOTONMP
+		 int iIsServerRunning = PhotonIsServerRunning();
+		#else
+		 int iIsServerRunning = SteamIsServerRunning();
+		#endif
+		if ( iIsServerRunning == 1 ) 
 		{
 			mp_textDots(-1,10,3,"Server Started");
-			if (  SteamIsGameRunning()  ==  1 ) 
+			#ifdef PHOTONMP
+			 int iIsGameRunning = PhotonIsGameRunning();
+			#else
+			 int iIsGameRunning = SteamIsGameRunning();
+			#endif
+			if ( iIsGameRunning == 1 ) 
 			{
 				g.mp.mode = MP_IN_GAME_SERVER;
 				g.mp.needToResetOnStartup = 1;
 				t.toldsteamfolder_s=GetDir();
-				SetDir (  cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
+				SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 				t.tPlayerIndex = SteamGetMyPlayerIndex();
-				SteamSetSendFileCount (  1 );
+				#ifdef PHOTONMP
+				 PhotonSetSendFileCount ( 1 );
+				#else
+				 SteamSetSendFileCount ( 1 );
+				#endif
 			}
 			else
 			{
-				if (  Timer() - g.mp.oldtime > 150 ) 
+				if ( Timer() - g.mp.oldtime > 150 ) 
 				{
 					g.mp.oldtime = Timer();
 					t.tStartingServerCount_s = t.tStartingServerCount_s + ".";
-					if (  Len(t.tStartingServerCount_s.Get()) > 5  )  t.tStartingServerCount_s  =  ".";
+					if ( Len(t.tStartingServerCount_s.Get()) > 5 )  t.tStartingServerCount_s = ".";
 				}
 				t.tstring_s = t.tStartingServerCount_s + "Waiting for game to start" + t.tStartingServerCount_s;
 				mp_text(-1,25,3,t.tstring_s.Get());
@@ -642,11 +686,11 @@ void mp_loop ( void )
 		}
 		else
 		{
-			if (  Timer() - g.mp.oldtime > 150 ) 
+			if ( Timer() - g.mp.oldtime > 150 ) 
 			{
 				g.mp.oldtime = Timer();
 				t.tStartingServerCount_s = t.tStartingServerCount_s + ".";
-				if (  Len(t.tStartingServerCount_s.Get()) > 5  )  t.tStartingServerCount_s  =  ".";
+				if ( Len(t.tStartingServerCount_s.Get()) > 5 ) t.tStartingServerCount_s = ".";
 			}
 			t.tstring_s = t.tStartingServerCount_s + "Starting server" + t.tStartingServerCount_s;
 			mp_text(-1,15,3,t.tstring_s.Get());
@@ -654,105 +698,58 @@ void mp_loop ( void )
 		}
 	}
 
-	if (  g.mp.mode  ==  MP_IN_GAME_SERVER ) 
+	// In Game Server handling
+	if ( g.mp.mode == MP_IN_GAME_SERVER ) 
 	{
-			g.mp.dontDrawTitles = 1;
-			if (  g.mp.iHaveSaidIAmReady  ==  0 ) 
+		g.mp.dontDrawTitles = 1;
+		if ( g.mp.iHaveSaidIAmReady == 0 ) 
+		{
+			#ifdef PHOTONMP
+			 PhotonSendIAmLoadedAndReady ( );
+			#else
+			 SteamSendIAmLoadedAndReady ( );
+			#endif
+			g.mp.iHaveSaidIAmReady = 1;
+			t.tempsteamingameinitialwaitingdelay = Timer();
+			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 			{
-				SteamSendIAmLoadedAndReady (  );
-				g.mp.iHaveSaidIAmReady = 1;
-				t.tempsteamingameinitialwaitingdelay = Timer();
-				while (  Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
+				g.mp.syncedWithServerMode = 0;
+				g.mp.okayToLoadLevel = 0;
+				#ifdef PHOTONMP
+				 PhotonLoop(); // dangerous - risk of recursion!
+				#else
+				 SteamLoop();
+				#endif
+				mp_textDots(-1,20,3,"Waiting for other players");
+				if ( Timer() - t.tsteamiseveryoneloadedandreadytime > 1000 ) 
 				{
-					g.mp.syncedWithServerMode = 0;
-					g.mp.okayToLoadLevel = 0;
-					SteamLoop (  );
-					mp_textDots(-1,20,3,"Waiting for other players");
-					if (  Timer() - t.tsteamiseveryoneloadedandreadytime > 1000 ) 
-					{
-						t.tsteamiseveryoneloadedandreadytime = Timer();
-						if (  SteamIsEveryoneLoadedAndReady()  ==  1  )  t.tempsteamingameinitialwaitingdelay  =  -30000;
-					}
-				}
-				t.tskipLevelSync = Timer();
-			}
-
-			//wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
-			if (  g.mp.okayToLoadLevel  ==  0 && g.mp.syncedWithServerMode  ==  99 ) 
-			{
-				t.game.titleloop=0;
-				t.game.levelloop=1;
-				t.game.runasmultiplayer=1;
-				t.game.levelloadprogress=0;
-				t.game.cancelmultiplayer=0;
-				t.game.quitflag=0;
-				t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
-
-				g.mp.playGame = 1;
-				g.mp.okayToLoadLevel = 1;
-				t.tskipLevelSync = Timer();
-			}
-			else
-			{
-				if (  g.mp.playGame  ==  1 ) 
-				{
-					if (  t.game.titleloop == 1 ) 
-					{
-						t.game.titleloop=0;
-						t.game.levelloop=1;
-						t.game.runasmultiplayer=1;
-						t.game.levelloadprogress=0;
-						t.game.cancelmultiplayer=0;
-						t.game.quitflag=0;
-						t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
-					}
-				}
-				if (  g.mp.okayToLoadLevel  ==  0 ) 
-				{
-					mp_pre_game_file_sync_server ( );
+					t.tsteamiseveryoneloadedandreadytime = Timer();
+					if ( SteamIsEveryoneLoadedAndReady() == 1 ) t.tempsteamingameinitialwaitingdelay = -30000;
 				}
 			}
+			t.tskipLevelSync = Timer();
+		}
 
-	}
-	if (  g.mp.mode  ==  MP_IN_GAME_CLIENT ) 
-	{
-			if (  t.titlespage  ==  11 ) 
+		// wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
+		if ( g.mp.okayToLoadLevel == 0 && g.mp.syncedWithServerMode == 99 ) 
+		{
+			t.game.titleloop=0;
+			t.game.levelloop=1;
+			t.game.runasmultiplayer=1;
+			t.game.levelloadprogress=0;
+			t.game.cancelmultiplayer=0;
+			t.game.quitflag=0;
+			t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+			g.mp.playGame = 1;
+			g.mp.okayToLoadLevel = 1;
+			t.tskipLevelSync = Timer();
+		}
+		else
+		{
+			if ( g.mp.playGame == 1 ) 
 			{
-				g.mp.dontDrawTitles = 0;
-			}
-			else
-			{
-				g.mp.dontDrawTitles = 1;
-			}
-			g.mp.dontDrawTitles = 1;
-			if (  g.mp.iHaveSaidIAmReady  ==  0 ) 
-			{
-				SteamSendIAmLoadedAndReady (  );
-				g.mp.iHaveSaidIAmReady = 1;
-				t.tempsteamingameinitialwaitingdelay = Timer();
-				while (  Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
+				if ( t.game.titleloop == 1 ) 
 				{
-					g.mp.syncedWithServerMode = 0;
-					g.mp.okayToLoadLevel = 0;
-					mp_textDots(-1,50,3,"Waiting for other players");
-					SteamLoop (  );
-					if (  Timer() - t.tsteamtimeoutongamerunning > 16000 ) 
-					{
-						if (  SteamGetClientServerConnectionStatus()  ==  0 ) 
-						{
-							t.tsteamlostconnectioncustommessage_s = "Lost connection to host (Error MP009)";
-							mp_lostConnection ( );
-							return;
-						}
-					}
-					t.tskipLevelSync = Timer();
-					if (  SteamIsEveryoneLoadedAndReady()  ==  1  )  t.tempsteamingameinitialwaitingdelay  =  -30000;
-				}   
-			}
-
-			//wait for everyone before starting to load, at this GetPoint (  they have all the files they need, they just have not loaded them )
-			if (  g.mp.okayToLoadLevel  ==  0 && g.mp.syncedWithServerMode  ==  99 ) 
-			{
 					t.game.titleloop=0;
 					t.game.levelloop=1;
 					t.game.runasmultiplayer=1;
@@ -760,32 +757,99 @@ void mp_loop ( void )
 					t.game.cancelmultiplayer=0;
 					t.game.quitflag=0;
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
-
-					g.mp.playGame = 1;
-					g.mp.okayToLoadLevel = 1;
-					t.tskipLevelSync = Timer();
+				}
 			}
-			else
+			if ( g.mp.okayToLoadLevel == 0 ) 
 			{
-				if (  g.mp.playGame  ==  1 ) 
+				mp_pre_game_file_sync_server ( );
+			}
+		}
+	}
+
+	// In Game Client Handling
+	if ( g.mp.mode == MP_IN_GAME_CLIENT ) 
+	{
+		if ( t.titlespage == 11 ) 
+		{
+			g.mp.dontDrawTitles = 0;
+		}
+		else
+		{
+			g.mp.dontDrawTitles = 1;
+		}
+		g.mp.dontDrawTitles = 1;
+		if ( g.mp.iHaveSaidIAmReady == 0 ) 
+		{
+			#ifdef PHOTONMP
+			 PhotonSendIAmLoadedAndReady (  );
+			#else
+			 SteamSendIAmLoadedAndReady (  );
+			#endif
+			g.mp.iHaveSaidIAmReady = 1;
+			t.tempsteamingameinitialwaitingdelay = Timer();
+			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
+			{
+				g.mp.syncedWithServerMode = 0;
+				g.mp.okayToLoadLevel = 0;
+				mp_textDots(-1,50,3,"Waiting for other players");
+				#ifdef PHOTONMP
+				 PhotonLoop(); // dangerous - risk of recursion!
+				#else
+				 SteamLoop();
+				#endif
+				if ( Timer() - t.tsteamtimeoutongamerunning > 16000 ) 
 				{
-					if (  t.game.titleloop == 1 ) 
+					if ( SteamGetClientServerConnectionStatus() == 0 ) 
 					{
-						t.game.titleloop=0;
-						t.game.levelloop=1;
-						t.game.runasmultiplayer=1;
-						t.game.levelloadprogress=0;
-						t.game.cancelmultiplayer=0;
-						t.game.quitflag=0;
-						t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+						t.tsteamlostconnectioncustommessage_s = "Lost connection to host (Error MP009)";
+						mp_lostConnection ( );
+						return;
 					}
 				}
-				if (  g.mp.okayToLoadLevel  ==  0 ) 
+				t.tskipLevelSync = Timer();
+				#ifdef PHOTONMP
+				 int iIsEveryoneLoadedAndReady = PhotonIsEveryoneLoadedAndReady();
+				#else
+				 int iIsEveryoneLoadedAndReady = SteamIsEveryoneLoadedAndReady();
+				#endif
+				if ( iIsEveryoneLoadedAndReady =  1 ) t.tempsteamingameinitialwaitingdelay = -30000;
+			}   
+		}
+
+		// wait for everyone before starting to load, at this GetPoint ( they have all the files they need, they just have not loaded them )
+		if ( g.mp.okayToLoadLevel == 0 && g.mp.syncedWithServerMode == 99 ) 
+		{
+			t.game.titleloop=0;
+			t.game.levelloop=1;
+			t.game.runasmultiplayer=1;
+			t.game.levelloadprogress=0;
+			t.game.cancelmultiplayer=0;
+			t.game.quitflag=0;
+			t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+			g.mp.playGame = 1;
+			g.mp.okayToLoadLevel = 1;
+			t.tskipLevelSync = Timer();
+		}
+		else
+		{
+			if ( g.mp.playGame == 1 ) 
+			{
+				if ( t.game.titleloop == 1 ) 
 				{
-					mp_pre_game_file_sync_client ( );
+					t.game.titleloop=0;
+					t.game.levelloop=1;
+					t.game.runasmultiplayer=1;
+					t.game.levelloadprogress=0;
+					t.game.cancelmultiplayer=0;
+					t.game.quitflag=0;
+					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 			}
-
+			if ( g.mp.okayToLoadLevel == 0 ) 
+			{
+				mp_pre_game_file_sync_client ( );
+			}
+		}
 	}
 
 	mp_message ( );
@@ -794,8 +858,11 @@ void mp_loop ( void )
 
 void mp_free ( void )
 {
-	//PhotonFree();
-	SteamFree();
+	#ifdef PHOTONMP
+	 PhotonFree();
+	#else
+	 SteamFree();
+	#endif
 }
 
 void mp_checkVoiceChat ( void )
@@ -821,9 +888,6 @@ void mp_spawn_objects ( void )
 		PositionObject (  t.obj, t.x_f, t.y_f, t.z_f );
 		SteamGetNextSpawn (  );
 	}
-
-return;
-
 }
 
 void mp_lua ( void )
@@ -4839,7 +4903,6 @@ return;
 
 void mp_resetGameStats ( void )
 {
-
 	mp_nukeTestmap ( );
 	//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
 	//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get() );
@@ -4856,7 +4919,7 @@ void mp_resetGameStats ( void )
 
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
-			t.entityelement[t.e].mp_networkkill = 0;
+		t.entityelement[t.e].mp_networkkill = 0;
 	}
 
 	for ( t.tloop = 0 ; t.tloop<=  20; t.tloop++ )
@@ -4864,11 +4927,19 @@ void mp_resetGameStats ( void )
 		t.mp_subbedItems[t.tloop] = "";
 	}
 
-	if ( SteamGetPlayerName() != NULL )
-	{
+	#ifdef PHOTONMP
+	 if ( PhotonGetPlayerName() != NULL )
+	 {
+		g.mp.playerName = PhotonGetPlayerName();
+		g.mp.playerID = 123;//PhotonGetPlayerID(); // not used it seems
+	 }
+	#else
+	 if ( SteamGetPlayerName() != NULL )
+	 {
 		g.mp.playerName = SteamGetPlayerName();
 		g.mp.playerID = SteamGetPlayerID();
-	}
+	 }
+	#endif
 
 	g.mp.mode = MP_MODE_MAIN_MENU;
 	g.mp.launchServer = 0;
@@ -4992,15 +5063,11 @@ void mp_resetGameStats ( void )
 	}
 	
 	t.characterkitcontrol.showmyhead = 0;
-	
-
-return;
-
 }
 
 void mp_update_all_projectiles ( void )
 {
-t.debugHowManyInUse = 0;
+	t.debugHowManyInUse = 0;
 	for ( t.tbulletloop = 0 ; t.tbulletloop<=  159; t.tbulletloop++ )
 	{
 			if (  SteamGetBulletOn(t.tbulletloop)  ==  0 ) 
@@ -5428,62 +5495,59 @@ void mp_networkkill ( void )
 	t.tsteamforce = 500;
 	SteamKilledBy (  g.mp.playerThatKilledMe , CameraPositionX(), CameraPositionY(), CameraPositionZ(), t.tsteamforce, 0 );
 	g.mp.dyingTime = Timer();
-
-return;
-
 }
 
 void mp_lobbyListBox ( void )
 {
 	t.tluaTextCenterX = 0;
-	if (  g.mp.listboxmode  ==  0 ) 
+	if ( g.mp.listboxmode == 0 ) 
 	{
-		t.tsize = SteamGetLobbyListSize();
-
-		t.tLeft = 5;
-		t.tTop = 5;
-		t.tRight = (26*10)+10;
-		t.tBottom = 98+110+70;
-		InkEx ( 20, 20, 20 );// Rgb(20,20,20),Rgb(20,20,20) );
-		BoxEx (  t.tLeft,t.tTop,t.tRight,t.tTop );
-		InkEx ( 255, 255, 255 );// Rgb (255,255,255),0 );
-		LineEx (  t.tLeft,t.tTop,t.tRight,t.tTop );
-		LineEx (  t.tLeft,t.tTop,t.tLeft,t.tBottom );
-		LineEx (  t.tLeft,t.tBottom,t.tRight,t.tBottom );
-		LineEx (  t.tRight,t.tTop,t.tRight,t.tBottom );
-
-		InkEx (  255, 255, 255 );//Rgb ( 255,255,255),0 );
-		BoxEx (  20,25,40,45 );
-		InkEx (  255, 255, 50 );//Rgb (255,255,50),0 );
-		BoxEx (  20,60,40,80 );
-		InkEx (  255, 100, 100 );//Rgb (255,100,100),0 );
-		BoxEx (  20,195,40,215 );
-
-		t.tluarealcoords = 1;
-		mp_textColor(50,20,1,"You can join this Lobby",255,255,255);
-		t.tluarealcoords = 1;
-		mp_textColor(50,55,1,"Join to subscribe and",255,255,50);
-		t.tluarealcoords = 1;
-		mp_textColor(50,80,1,"download the content",255,255,50);
-		t.tluarealcoords = 1;
-		mp_textColor(50,105,1,"for this game. The",255,255,50);
-		t.tluarealcoords = 1;
-		mp_textColor(50,130,1,"lobby will turn white",255,255,50);
-		t.tluarealcoords = 1;
-		mp_textColor(50,155,1,"when downloaded",255,255,50);
-		t.tluarealcoords = 1;
-		mp_textColor(50,190,1,"Please restart",255,100,100);
-		t.tluarealcoords = 1;
-		mp_textColor(50,215,1,"GameGuru to",255,100,100);
-		t.tluarealcoords = 1;
-		mp_textColor(50,240,1,"update this game",255,100,100);
+		#ifdef PHOTONMP
+		 t.tsize = PhotonGetLobbyListSize();
+		#else
+		 t.tsize = SteamGetLobbyListSize();
+		 t.tLeft = 5;
+		 t.tTop = 5;
+		 t.tRight = (26*10)+10;
+		 t.tBottom = 98+110+70;
+		 InkEx ( 20, 20, 20 );
+		 BoxEx (  t.tLeft,t.tTop,t.tRight,t.tTop );
+		 InkEx ( 255, 255, 255 );
+		 LineEx (  t.tLeft,t.tTop,t.tRight,t.tTop );
+		 LineEx (  t.tLeft,t.tTop,t.tLeft,t.tBottom );
+		 LineEx (  t.tLeft,t.tBottom,t.tRight,t.tBottom );
+		 LineEx (  t.tRight,t.tTop,t.tRight,t.tBottom );
+		 InkEx (  255, 255, 255 );
+		 BoxEx (  20,25,40,45 );
+		 InkEx (  255, 255, 50 );
+		 BoxEx (  20,60,40,80 );
+		 InkEx (  255, 100, 100 );
+		 BoxEx (  20,195,40,215 );
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,20,1,"You can join this Lobby",255,255,255);
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,55,1,"Join to subscribe and",255,255,50);
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,80,1,"download the content",255,255,50);
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,105,1,"for this game. The",255,255,50);
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,130,1,"lobby will turn white",255,255,50);
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,155,1,"when downloaded",255,255,50);
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,190,1,"Please restart",255,100,100);
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,215,1,"GameGuru to",255,100,100);
+		 t.tluarealcoords = 1;
+		 mp_textColor(50,240,1,"update this game",255,100,100);
+		#endif
 	}
-	if (  g.mp.listboxmode  ==  1 ) 
+	if ( g.mp.listboxmode == 1 ) 
 	{
 		t.tsize = t.tempsteamhowmanyfpmsarethere;
 	}
 	
-
 	t.tTop_f = 20.0 * (GetDisplayHeight() / 100.0);
 	t.tleft_f = 30.0 * (GetDisplayWidth() / 100.0);
 	t.tBottom_f = 75.0 * (GetDisplayHeight() / 100.0);
@@ -5503,9 +5567,9 @@ void mp_lobbyListBox ( void )
 	if (  t.tempsteamselected_f  >=  0 && t.tempsteamselected_f  <= 9 ) 
 	{
 		t.tempsteamselectedY_f = t.tempsteamyminY_f + (t.tempsteamselected_f * (GetDisplayHeight() * 0.05));
-		InkEx ( 128, 128, 128 );//  Rgb ( 128,128,128),0 );
-		BoxEx (  t.tLeft,t.tempsteamselectedY_f,t.tRight,t.tempsteamselectedY_f+(GetDisplayHeight() * 0.05) );
-		if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0  )  g.mp.selectedLobby  =  t.tempsteamselected_f+g.mp.lobbyoffset;
+		InkEx ( 128, 128, 128 );
+		BoxEx ( t.tLeft,t.tempsteamselectedY_f,t.tRight,t.tempsteamselectedY_f+(GetDisplayHeight() * 0.05) );
+		if ( t.mc == 1 && t.tempsteamoldmc ==  0 )  g.mp.selectedLobby  =  t.tempsteamselected_f+g.mp.lobbyoffset;
 	}
 
 	t.tempsteamyminY_f = (GetDisplayHeight() * 0.25) - (GetDisplayHeight() * 0.025);
@@ -5523,7 +5587,7 @@ void mp_lobbyListBox ( void )
 				if (  t.tempsteamselected_f+g.mp.lobbyoffset < t.tsize ) 
 				{
 					t.tempsteamselectedY_f = t.tempsteamyminY_f + (t.tempsteamselected_f * (GetDisplayHeight() * 0.05));
-					InkEx ( 64, 64, 64 );//  Rgb ( 64,64,64),0 );
+					InkEx ( 64, 64, 64 );
 					BoxEx (  t.tLeft,t.tempsteamselectedY_f,t.tRight,t.tempsteamselectedY_f+(GetDisplayHeight() * 0.05) );
 					if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0  )  g.mp.selectedLobby  =  t.tempsteamselected_f+g.mp.lobbyoffset;
 				}
@@ -5531,7 +5595,7 @@ void mp_lobbyListBox ( void )
 		}
 	}
 
-	InkEx ( 255, 255, 255 );// Rgb (255,255,255),0 );
+	InkEx ( 255, 255, 255 );
 	LineEx (  t.tLeft,t.tTop,t.tRight,t.tTop );
 	LineEx (  t.tLeft,t.tTop,t.tLeft,t.tBottom );
 	LineEx (  t.tLeft,t.tBottom,t.tRight,t.tBottom );
@@ -5539,7 +5603,7 @@ void mp_lobbyListBox ( void )
 
 	t.toffx_f = (1.0 * GetDisplayWidth()) / 100.0;
 	t.toffx = t.toffx_f;
-	InkEx ( 30, 30, 30 );// Rgb ( 30,30,30),0 );
+	InkEx ( 30, 30, 30 );
 	BoxEx (  t.tRight-(t.toffx*2)-8,t.tTop+1,t.tRight-1,t.tBottom-1 );
 
 	t.tTop += 4;
@@ -5551,12 +5615,12 @@ void mp_lobbyListBox ( void )
 	t.toffy_f = (1.0 * GetDisplayHeight()) / 100.0;
 	t.toffy = t.toffy_f;
 
-	InkEx ( 255, 255, 255 );//  Rgb (255,255,255),0 );
+	InkEx ( 255, 255, 255 );
 	if (  t.mx > t.tLeft && t.mx < t.tRight ) 
 	{
 		if (  t.my > t.tTop && t.my < t.tTop+(t.toffy_f*2) ) 
 		{
-			InkEx ( 128, 128, 128 );//  Rgb (128,128,128),0 ) ;
+			InkEx ( 128, 128, 128 );
 			if (  t.mc  ==  1 ) 
 			{
 				if (  Timer() - t.tempsteamscrollclicktimer > 100 ) 
@@ -5577,7 +5641,7 @@ void mp_lobbyListBox ( void )
 	{
 		if (  t.my > t.tBottom-(t.toffy*2) && t.my < t.tBottom ) 
 		{
-			InkEx ( 128, 128, 128 );// Rgb (128,128,128),0 ) ;
+			InkEx ( 128, 128, 128 );
 			if (  t.mc  ==  1 ) 
 			{
 				if (  Timer() - t.tempsteamscrollclicktimer > 100 ) 
@@ -5588,7 +5652,6 @@ void mp_lobbyListBox ( void )
 			}
 		}
 	}
-	
 
 	LineEx (  t.tRight-t.toffx,t.tBottom,t.tRight-(t.toffx*2), t.tBottom-(t.toffy*2) );
 	LineEx (  t.tRight-t.toffx,t.tBottom,t.tRight, t.tBottom-(t.toffy*2) );
@@ -5607,12 +5670,12 @@ void mp_lobbyListBox ( void )
 		t.tboxoffset_f = (t.tboxoffset_f * (GetDisplayHeight() * 0.42)) / 100.0;
 		t.tboxoffset = t.tboxoffset_f;
 		t.tboxtop = t.tTop+(t.toffy*2) + t.tboxoffset + 2;
-		InkEx ( 255, 255, 255 );//  Rgb (255,255,255),0 ) ;
+		InkEx ( 255, 255, 255 );
 		if (  t.mx > t.tRight-(t.toffx*2) && t.mx < t.tRight ) 
 		{
 			if (  t.my > t.tboxtop && t.my < t.tboxtop+t.tboxsize ) 
 			{
-				InkEx ( 160, 160, 160 );// Rgb (160,160,160),0 ) ;
+				InkEx ( 160, 160, 160 );
 				if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0 ) 
 				{
 					g.mp.lobbyscrollbarOn = 1;
@@ -5621,9 +5684,7 @@ void mp_lobbyListBox ( void )
 				}
 			}
 		}
-
 		BoxEx (  t.tRight-(t.toffx*2),t.tboxtop,t.tRight,t.tboxtop+t.tboxsize );
-
 	}
 	else
 	{
@@ -5633,10 +5694,10 @@ void mp_lobbyListBox ( void )
 		if (  t.tboxtop > t.tTop+(t.toffy*2)+2 + ((100.0 * (GetDisplayHeight() * 0.40)) / 100.0)  )  t.tboxtop  =  t.tTop+(t.toffy*2)+2 + ((100.0 * (GetDisplayHeight() * 0.40)) / 100.0);
 		t.tboxsize_f = (10.0 * GetDisplayHeight()) / 100.0;
 		t.tboxsize = t.tboxsize_f;
-		InkEx ( 160, 160, 160 );// Rgb (160,160,160),0 ) ;
+		InkEx ( 160, 160, 160 );
 		BoxEx (  t.tRight-(t.toffx*2),t.tboxtop,t.tRight,t.tboxtop+t.tboxsize );
 
-		//  update the list to reflect where the bar is
+		// update the list to reflect where the bar is
 		t.tboxtop_f = t.tboxtop - (t.tTop+(t.toffy*2)+2);
 		t.tempsteamperc_f = (t.tboxtop_f / (GetDisplayHeight() * 0.42)) * 100.0;
 		if (  t.tempsteamperc_f < 0.0  )  t.tempsteamperc_f  =  0.0;
@@ -5650,19 +5711,28 @@ void mp_lobbyListBox ( void )
 	if (  g.mp.lobbyoffset > t.tsize-10  )  g.mp.lobbyoffset  =  t.tsize-10;
 	if (  g.mp.lobbyoffset < 0  )  g.mp.lobbyoffset  =  0;
 
-	InkEx ( 255, 255, 255 );// Rgb(255,255,255),0 );
+	InkEx ( 255, 255, 255 );
 
 	t.tempsteamoldmc = t.mc;
+
+	// in Photon, lobbies are actuall rooms (essentially game rooms)
+	#ifdef PHOTONMP
+	 LPSTR pLobbyWord = "game";
+	 LPSTR pLobbiesWord = "games";
+	#else
+	 LPSTR pLobbyWord = "lobby";
+	 LPSTR pLobbiesWord = "lobbies";
+	#endif
 
 	if (  g.mp.listboxmode  ==  0 ) 
 	{
 		if (  t.tsize  ==  1 ) 
 		{
-			t.tstring_s = "1 lobby found";
+			t.tstring_s = cstr("1 ")+pLobbyWord+" found";
 		}
 		else
 		{
-			t.tstring_s = cstr(cstr(Str(t.tsize)) + " lobbies found");
+			t.tstring_s = cstr(cstr(Str(t.tsize)) + " "+pLobbiesWord+" found");
 		}
 	}
 	if (  g.mp.listboxmode  ==  1 ) 
@@ -5676,75 +5746,92 @@ void mp_lobbyListBox ( void )
 	t.tlobbycount = 0;
 	for ( t.c = 0 ; t.c<=  t.tsize-1; t.c++ )
 	{
-			if (  t.c  >=  g.mp.lobbyoffset && t.c < g.mp.lobbyoffset+10 ) 
+		if (  t.c  >=  g.mp.lobbyoffset && t.c < g.mp.lobbyoffset+10 ) 
+		{
+			if (  g.mp.listboxmode  ==  0 ) 
 			{
-				if (  g.mp.listboxmode  ==  0 ) 
+				#ifdef PHOTONMP
+				 t.mp_lobbies_s[t.tlobbycount] = PhotonGetLobbyListName(t.c);
+				#else
+				 t.mp_lobbies_s[t.tlobbycount] = SteamGetLobbyListName(t.c);
+				#endif
+				if ( cstr(Left(t.mp_lobbies_s[t.tlobbycount].Get(),5)) == "Lobby" || Len(t.mp_lobbies_s[t.tlobbycount].Get()) < 8 ) 
 				{
-					t.mp_lobbies_s[t.tlobbycount] = SteamGetLobbyListName(t.c);
-
-					if (  cstr(Left(t.mp_lobbies_s[t.tlobbycount].Get(),5))  ==  "Lobby" || Len(t.mp_lobbies_s[t.tlobbycount].Get()) < 8 ) 
-					{
-						t.mp_lobbies_s[t.tlobbycount] = "Waiting for lobby details...";
-					}
-					if (  g.mp.selectedLobby  ==  t.c  )  g.mp.selectedLobbyName  =  t.mp_lobbies_s[t.tlobbycount];
-
-					t.tempMPLobbyNameFromList_s = t.mp_lobbies_s[t.tlobbycount];
-					mp_canIJoinThisLobby ( );
-					t.tsteamstring_s = g.mp.lobbyjoinedname;
-					if (  t.tsteamcanjoinlobby  ==  1 ) 
-					{
-						t.tr = 255;
-						t.tg = 255;
-						t.tb = 255;
-					}
-					else
-					{
-						if (  t.tsteamcanjoinlobby  ==  2 ) 
-						{
-							t.tr = 255;
-							t.tg = 100;
-							t.tb = 100;
-						}
-						else
-						{
-							t.tr = 255;
-							t.tg = 255;
-							t.tb = 50;
-						}
-					}
+					t.mp_lobbies_s[t.tlobbycount] = "Waiting for details...";
 				}
-				if (  g.mp.listboxmode  ==  1 ) 
+				if ( g.mp.selectedLobby ==  t.c )  g.mp.selectedLobbyName = t.mp_lobbies_s[t.tlobbycount];
+
+				t.tempMPLobbyNameFromList_s = t.mp_lobbies_s[t.tlobbycount];
+				mp_canIJoinThisLobby ( );
+				t.tsteamstring_s = g.mp.lobbyjoinedname;
+				if ( t.tsteamcanjoinlobby == 1 ) 
 				{
-					t.mp_lobbies_s[t.tlobbycount] = t.tfpmfilelist_s[t.c];
-					t.tsteamstring_s = t.mp_lobbies_s[t.tlobbycount];
 					t.tr = 255;
 					t.tg = 255;
 					t.tb = 255;
 				}
-
-				t.tlobbytring_s = t.tsteamstring_s;
-				if ( t.tsteamcanjoinlobby == 0  ) mp_checkItemSubbed ( );
-				mp_textColor(32,t.teampsteamy,1,t.tlobbytring_s.Get(),t.tr,t.tg,t.tb);
-				t.teampsteamy += 5;
-				++t.tlobbycount;
+				else
+				{
+					if ( t.tsteamcanjoinlobby == 2 ) 
+					{
+						t.tr = 255;
+						t.tg = 100;
+						t.tb = 100;
+					}
+					else
+					{
+						t.tr = 255;
+						t.tg = 255;
+						t.tb = 50;
+					}
+				}
 			}
+			if ( g.mp.listboxmode == 1 ) 
+			{
+				t.mp_lobbies_s[t.tlobbycount] = t.tfpmfilelist_s[t.c];
+				t.tsteamstring_s = t.mp_lobbies_s[t.tlobbycount];
+				t.tr = 255;
+				t.tg = 255;
+				t.tb = 255;
+			}
+
+			t.tlobbytring_s = t.tsteamstring_s;
+			if ( t.tsteamcanjoinlobby == 0 ) mp_checkItemSubbed ( );
+			mp_textColor(32,t.teampsteamy,1,t.tlobbytring_s.Get(),t.tr,t.tg,t.tb);
+			t.teampsteamy += 5;
+			++t.tlobbycount;
+		}
 	}
 }
 
 void mp_createLobby ( void )
 {
+	// warning flag if start game on own
 	g.mp.haveToldAboutSolo = 0;
-	t.tempsteamhostlobbyname_s = cstr(SteamGetPlayerName()) + cstr("'s Lobby:");
-	if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
+
+	// get players lobby label
+	#ifdef PHOTONMP
+	 t.tempsteamhostlobbyname_s = cstr(PhotonGetPlayerName()) + cstr("'s Lobby:");
+	#else
+	 t.tempsteamhostlobbyname_s = cstr(SteamGetPlayerName()) + cstr("'s Lobby:");
+	#endif
+
+	// get level name
+	if ( g.mp.fpmpicked == "Level I just worked on" ) 
 	{
-		t.tempsteamlevelname_s = cstr(SteamGetPlayerName()) + cstr("'s Level:");
+		#ifdef PHOTONMP
+		 t.tempsteamlevelname_s = ""; // redundant as done above!
+		#else
+		 t.tempsteamlevelname_s = cstr(SteamGetPlayerName()) + cstr("'s Level:");
+		#endif
 	}
 	else
 	{
 		t.tempsteamlevelname_s = cstr(Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-4)) + cstr(":");
 	}
-	//  grab version number
-	if (  g.mp.fpmpicked  ==  "Level I just worked on" ) 
+
+	// get map name
+	if ( g.mp.fpmpicked == "Level I just worked on" ) 
 	{
 		//t.tempsteammaptocheck_s = g.fpscrootdir_s+"\\Files\\mapbank\\worklevel.dat";
 		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s + "worklevel.dat";		
@@ -5755,16 +5842,21 @@ void mp_createLobby ( void )
 		t.tempsteammaptocheck_s = g.mysystem.mapbankAbs_s+Left(g.mp.fpmpicked.Get(),Len(g.mp.fpmpicked.Get())-3)+"dat";
 	}
 
-	t.tmphopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
-	mp_grabWorkshopChangedFlagAndVersion ( );
+	// set unique lobbylevel name and create lobby/gameroom
+	#ifdef PHOTONMP
+	 PhotonSetLobbyName ( cstr(t.tempsteamhostlobbyname_s+t.tempsteamlevelname_s+g.mp.workshopid+":"+Str(t.tMPshopTheVersionNumber)).Get() );
+	 PhotonCreateLobby();
+	#else
+	 t.tmphopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
+	 mp_grabWorkshopChangedFlagAndVersion ( );
+	 SteamSetLobbyName (  cstr(t.tempsteamhostlobbyname_s+t.tempsteamlevelname_s+g.mp.workshopid+":"+Str(t.tMPshopTheVersionNumber)).Get() );
+	 SteamCreateLobby (  );
+	#endif
 
-	SteamSetLobbyName (  cstr(t.tempsteamhostlobbyname_s+t.tempsteamlevelname_s+g.mp.workshopid+":"+Str(t.tMPshopTheVersionNumber)).Get() );
-	SteamCreateLobby (  );
+	// mark as host and wait for creation to succeed
 	g.mp.isGameHost = 1;
 	g.mp.mode = MP_WAITING_FOR_LOBBY_CREATION;
 	t.tempsteamlobbycreationtimeout = Timer();
-return;
-
 }
 
 void mp_searchForLobbies ( void )
@@ -6092,28 +6184,30 @@ void mp_buildingWorkshopItemFailed ( void )
 	t.tsteamlostconnectioncustommessage_s = "Could not build workshop item (Error MP015)";
 	mp_lostConnection ( );
 	g.mp.mode = MP_SERVER_CHOOSING_FPM_TO_USE;
-return;
-
 }
 
 void mp_joinALobby ( void )
 {
 	t.a = g.mp.selectedLobby;
-	if (  g.mp.selectedLobbyName  !=  "Getting Lobby details..." ) 
+	if ( g.mp.selectedLobbyName != "Getting Lobby details..." ) 
 	{
 		g.mp.lobbyjoinedname = g.mp.selectedLobbyName;
-		t.tempsteamstringlobbyname_s = "";
-		t.tempsteamgotto = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
-		{
+		#ifdef PHOTONMP
+		 // No workshop in Photon - just join!
+		 PhotonJoinLobby(g.mp.lobbyjoinedname.Get());
+		#else
+		 t.tempsteamstringlobbyname_s = "";
+		 t.tempsteamgotto = 0;
+		 for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
 			++t.tempsteamgotto;
 			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" ) { t.tempsteamgotto+=2 ; break; }
 			t.tempsteamstringlobbyname_s = t.tempsteamstringlobbyname_s + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
-		}
-		g.mp.levelnametojoin = "";
-		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
-		{
+		 }
+		 g.mp.levelnametojoin = "";
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
 			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
@@ -6125,11 +6219,11 @@ void mp_joinALobby ( void )
 					g.mp.levelnametojoin = g.mp.levelnametojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
-		}
-		g.mp.workshopidtojoin = "";
-		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
-		{
+		 }
+		 g.mp.workshopidtojoin = "";
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
 			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
@@ -6141,11 +6235,11 @@ void mp_joinALobby ( void )
 					g.mp.workshopidtojoin = g.mp.workshopidtojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
-		}
-		g.mp.workshopVersionNumberToJoin = "";
-		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
-		{
+		 }
+		 g.mp.workshopVersionNumberToJoin = "";
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
 			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
@@ -6157,49 +6251,49 @@ void mp_joinALobby ( void )
 					g.mp.workshopVersionNumberToJoin = g.mp.workshopVersionNumberToJoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
-		}
-		g.mp.lobbyjoinedname = t.tempsteamstringlobbyname_s;
+		 }
+		 g.mp.lobbyjoinedname = t.tempsteamstringlobbyname_s;
 
-		//  Check here if there is a workshop item, if the user has subbed and downloaded
-		if (  g.mp.workshopidtojoin  !=  "0" ) 
-		{
-
+		 // Check here if there is a workshop item, if the user has subbed and downloaded
+		 if ( g.mp.workshopidtojoin != "0" ) 
+		 {
+			// a workshop level
 			t.tempMPLobbyNameFromList_s = g.mp.selectedLobbyName;
 			mp_canIJoinThisLobby ( );
 			t.tsteamstring_s = g.mp.lobbyjoinedname;
 
-			if (  SteamIsWorkshopItemInstalled(g.mp.workshopidtojoin.Get())  ==  0 ) 
+			// do we need to subscribe?
+			if ( SteamIsWorkshopItemInstalled(g.mp.workshopidtojoin.Get())  ==  0 ) 
 			{
-				//  show screen asking if they want to subscribe
+				// show screen asking if they want to subscribe
 				g.mp.mode = MP_ASKING_IF_SUBSCRIBE_TO_WORKSHOP_ITEM;
 				titles_steamdoyouwanttosubscribetoworkshopitem ( );
 				return;
 			}
 			else
 			{
-				if (  t.tsteamcanjoinlobby  ==  2 ) 
+				if ( t.tsteamcanjoinlobby  ==  2 ) 
 				{
-					//  show screen asking if they want to subscribe
+					// show screen asking if they want to subscribe
 					g.mp.mode = MP_TELLING_THEY_NEED_TO_RESTART;
 					titles_steamdTellingToRestart ( );
 					return;
 				}
 			}
-		}
+		 }
+		 SteamJoinLobby(t.a);
+		#endif
 
-		SteamJoinLobby(t.a);
 		g.mp.mode = MP_JOINING_LOBBY;
 		t.tsteamwaitedforlobbytimer = Timer();
 		g.mp.AttemptedToJoinLobbyTime = Timer();
 		g.mp.lobbycount = 0;
 	}
-return;
-
 }
 
 void mp_canIJoinThisLobby ( void )
 {
-	if (  g.mp.selectedLobbyName  !=  "Getting Lobby details..." ) 
+	if ( g.mp.selectedLobbyName != "Getting Lobby details..." ) 
 	{
 		g.mp.lobbyjoinedname = t.tempMPLobbyNameFromList_s;
 		t.tempsteamstringlobbyname_s = "";
@@ -6304,16 +6398,16 @@ void mp_canIJoinThisLobby ( void )
 	{
 		t.tsteamcanjoinlobby = 0;
 	}
-return;
-
 }
 
 void mp_leaveALobby ( void )
 {
-	SteamLeaveLobby (  );
+	#ifdef PHOTONMP
+	 PhotonLeaveLobby (  );
+	#else
+	 SteamLeaveLobby (  );
+	#endif
 	mp_resetGameStats ( );
-return;
-
 }
 
 void mp_SubscribeToWorkShopItem ( void )
@@ -6746,18 +6840,15 @@ int mp_check_if_entity_is_from_install ( char* name_s )
 			break;
 		}
 	}
-//endfunction ttresult
 	return ttresult;
 }
 
 void mp_resetSteam ( void )
 {
-		mp_free ( );
-		mp_init ( );
-		mp_resetGameStats ( );
-		g.mp.needToResetOnStartup = 0;
-return;
-
+	mp_free ( );
+	mp_init ( );
+	mp_resetGameStats ( );
+	g.mp.needToResetOnStartup = 0;
 }
 
 void mp_shoot ( void )
@@ -6766,8 +6857,6 @@ void mp_shoot ( void )
 	{
 		SteamShoot (  );
 	}
-return;
-
 }
 
 void mp_chat ( void )
@@ -7050,16 +7139,15 @@ return;
 
 void mp_sendSteamIDToEditor ( void )
 {
-
-	if (  g.mp.isRunning  ==  0 ) 
+	if ( g.mp.isRunning == 0 ) 
 	{
-		//  was 60*1000, changing to 5 to keep try and connecting
-		if (  Timer() - g.mp.lastTimeTriedToConnectToSteamFromEditor > 5*1000 ) 
+		// was 60*1000, changing to 5 to keep try and connecting
+		if ( Timer() - g.mp.lastTimeTriedToConnectToSteamFromEditor > 5*1000 ) 
 		{
 			g.mp.lastTimeTriedToConnectToSteamFromEditor = Timer();
 			mp_resetSteam ( );
 		}
-		if (  g.mp.isRunning  ==  0 ) 
+		if ( g.mp.isRunning == 0 ) 
 		{
 			return;
 		}
@@ -7067,56 +7155,26 @@ void mp_sendSteamIDToEditor ( void )
 	else
 	{
 		//  send user id
-
-		//  Debug code put it for a user that had issues with the downloader (which needs to know the steam id from steam, if steam doesnt give it, it wont work)
-//   `set cursor 0,30
-
-//   `print "steam id = " + tSteamGetID$
-
-
-//   `print Timer()
-
-//   `print mp.lastTimeISentMySteamID
-
-
-		if (  Timer() - g.mp.lastTimeISentMySteamID > 5000 ) 
+		if ( Timer() - g.mp.lastTimeISentMySteamID > 5000 ) 
 		{
-
 			t.tSteamGetID_s = SteamGetPlayerID();
-
-			if (  t.tSteamGetID_s  !=  "" ) 
+			if ( t.tSteamGetID_s != "" ) 
 			{
-//     `print "sending id"
-
 				g.mp.lastTimeISentMySteamID = Timer();
-
 				OpenFileMap (  1, "FPSEXCHANGE" );
-
 				//  params; filemap number, offset in bytes, value
 				SetFileMapDWORD (  1, 6145, 1 );
 				SetFileMapString (  1, 6149 , t.tSteamGetID_s.Get() );
 				SetEventAndWait (  1 );
-
-				//  Close when set all defaults
-				//CloseFileMap (  1 );
-
 				g.mp.haveSentSteamIDToEditor = 1;
 			}
 			else
 			{
 				mp_resetSteam ( );
 				g.mp.lastTimeISentMySteamID = Timer()-3000;
-//     `print "resetting steam"
-
 			}
-
-
 		}
 	}
-
-return;
-
-//  020315 - 012 - enable check for lobbies while in editor
 }
 
 void mp_checkIfLobbiesAvailable ( void )

@@ -1424,8 +1424,9 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	}
 
 	// Init MP API
-	PhotonInit();
-	SteamInit();
+	// TEST TEST
+	///PhotonInit();
+	// TEST TEST
 
 	// Main Setup init
 	g_pGlob->hOriginalhWnd = g_pGlob->hWnd;

@@ -1,243 +1,524 @@
 // PhotonMultiplayer.cpp : Defines the exported functions for the DLL application.
 //
 
+// Includes
 #include "stdafx.h"
 #include ".\globstruct.h"
-//#include "steam/steam_api.h"
-//#include "StatsAndAchievements.h"
-//#include "CClient.h"
-//#include "CServer.h"
-//#include "MPAudio.h"
-//#include "voicechat.h"
-//#include <ShellAPI.h>
-//#include "CTextC.h"
-//#include "Photon_lib.h"
 #include "LoadBalancingListener.h"
 
+// Namespaces
 using namespace ExitGames::LoadBalancing;
 using namespace ExitGames::Common;
 using namespace ExitGames::Photon;
 
+// Global Consts
 static const ExitGames::Common::JString appID = L"f6c9acc6-a6a2-4704-9618-cd4a5ebe4db6";
 static const ExitGames::Common::JString appVersion = L"0.1";
-bool gUseTcp = false;
 
+// Globals
+bool gUseTcp = false;
 PhotonView* g_pPhotonView = NULL;
+LoadBalancingListener* g_pLBL = NULL;
+Client* g_pLBC = NULL;
+JString g_sPlayerName = "";
+char hostsLobbyName[256];
 
 int PhotonInit()
 {
-	// skip Photon for now
-	return 1;
-
+	// create photon classes
 	g_pPhotonView = new PhotonView();
-	LoadBalancingListener lbl(g_pPhotonView);
-	Client lbc(lbl, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
-	lbc.setDebugOutputLevel(DEBUG_RELEASE(ExitGames::Common::DebugLevel::INFO, ExitGames::Common::DebugLevel::WARNINGS));
-	ExitGames::Common::Base::setListener(&lbl);
+	//LoadBalancingListener lbl(g_pPhotonView);
+	//Client lbc(lbl, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
+	g_pLBL = new LoadBalancingListener(g_pPhotonView);
+	g_pLBC = new Client(*g_pLBL, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
+
+	// initialise photon
+	g_pLBC->setDebugOutputLevel(DEBUG_RELEASE(ExitGames::Common::DebugLevel::INFO, ExitGames::Common::DebugLevel::WARNINGS));
+	ExitGames::Common::Base::setListener(g_pLBL);
 	ExitGames::Common::Base::setDebugOutputLevel(DEBUG_RELEASE(ExitGames::Common::DebugLevel::INFO, ExitGames::Common::DebugLevel::WARNINGS));
-	lbl.setLBC(&lbc);
-	lbc.setTrafficStatsEnabled(true);
-	//Console::get().writeLine(L"connecting...");
-	lbl.connect(JString(L"NVC")+GETTIMEMS());
+	g_pLBL->setLBC(g_pLBC);
+	g_pLBC->setTrafficStatsEnabled(true);
+
+	// connect player to game room
+	g_sPlayerName = JString(L"PLR")+GETTIMEMS();
+	g_pLBL->connect(g_sPlayerName);
+
+	/* rest shows creating, joinging, exchanging data, mp updating
+	int iCreateGameRoom = 0;
+	int iJoinGameRoom = 0;
+	int iUseRoom = 0;
+	int iLeaveGameRoom = 0;
+	int iDisconnectSession = 0;
 	while(true)
 	{
-		lbc.serviceBasic();
-		while(lbc.dispatchIncomingCommands());
-		while(lbc.sendOutgoingCommands());
-		lbl.service();
-
-		/*
-		int k = getcharIfKbhit();
-		if(k == 27)
-			break;
-		if(k == 'h')
-			usage();
-		if(k == 'd')
+		// create game room to act as 'pseudo lobby' and active game
+		if ( iCreateGameRoom == 1 )
 		{
-			Console::get().writeLine(L"disconnecting...");
+			lbl.createRoom();
+			iCreateGameRoom = 0;
+		}
+
+		// view all rooms
+		lbl.updateRoomList();
+		int iRoomCount = g_pPhotonView->GetRoomCount();
+		if ( iRoomCount > 0 ) 
+		{
+			for ( int iRoomIndex = 0; iRoomIndex < iRoomCount; iRoomIndex++ )
+			{
+				JString pName = g_pPhotonView->GetRoomName ( iRoomIndex );
+				pName = pName;
+			}
+		}
+
+		// join a room
+		if ( iJoinGameRoom == 1 && iRoomCount > 0 )
+		{
+			int iRoomIndex = 0;
+			JString pRoomName = g_pPhotonView->GetRoomName ( iRoomIndex );
+			lbl.joinRoom ( pRoomName );
+			iJoinGameRoom = 0;
+		}
+
+		// share dharing data in the room
+		if ( g_pPhotonView->isInGameRoom() == true )
+		{
+			// run logic in game room
+			int iMPState = lbl.service();
+
+			// list players in room
+			lbl.updatePlayerList();
+			int iPlayerCount = g_pPhotonView->GetPlayerCount();
+			if ( iPlayerCount > 0 ) 
+			{
+				for ( int iPlayerIndex = 0; iPlayerIndex < iPlayerCount; iPlayerIndex++ )
+				{
+					JString pName = g_pPhotonView->GetPlayerName ( iPlayerIndex );
+					pName = pName;
+				}
+			}
+		}
+
+		// leave a room
+		if ( iLeaveGameRoom == 1 )
+		{
+			lbl.leaveRoom();
+			iLeaveGameRoom = 0;
+		}
+
+		// disconnect handling
+		if ( iDisconnectSession == 1 )
+		{
 			lbc.disconnect();
+			iDisconnectSession = 0;
 		}
-		if(k == 'c')
-		{
-			Console::get().writeLine(L"connecting...");
-			lbl.connect(JString(L"NVC")+GETTIMEMS());
-		}
-		if(k == '/')
-		{
-			Console::get().writeLine(gSendAcksOnly?L"disabling \"sendAcksOnly\"...":L"enabling \"sendAcksOnly\"...");
-			gSendAcksOnly = !gSendAcksOnly;
-		}
-		if(k == 'g')
-		{
-			lbl.setUseGroups(false); // reset autogroups
-			gUseGroups = !gUseGroups;
-			JVector<nByte> empty;
-			if(gUseGroups)
-			{
-				Console::get().writeLine(L"activating interest groups...");
-				lbc.opChangeGroups(&empty, &gGroups);
-			}
-			else
-			{
-				Console::get().writeLine(L"deactivating interest groups...");
-				lbc.opChangeGroups(&empty, NULL);
-			}
-		}
-		if(k >= '0' && k <= '9')
-		{
-			lbl.setUseGroups(false); // reset autogroups
-			nByte g = k - '0';
-			if(gUseGroups)
-			{
-				JVector<nByte> v;
-				if(gGroups.contains(g))
-				{
-					Console::get().writeLine(JString(L"removing interest group nr ") + g + L" from list of interest groups to receive updates for...");
-					gGroups.removeElement(g);
-					v.addElement(g);
-					lbc.opChangeGroups(&v, NULL);
-				}
-				else
-				{
-					Console::get().writeLine(JString(L"adding interest group nr ") + g + L" to list of interest groups to receive updates for...");
-					gGroups.addElement(g);
-					v.addElement(g);
-					lbc.opChangeGroups(NULL, &v);
-				}
-			}
-			else
-			{
-				Console::get().writeLine(JString(L"setting interest group to send updates to group nr ") + g + L" ...");
-				gSendGroup = g;
-				lbl.setSendGroup(g);
-			}
-			info(lbc);
-		}
+		if ( g_pPhotonView->isConnecting() == false && g_pPhotonView->isConnected() == false ) break;
 
-		if(k == 'i')
-		{
-			Console::get().writeLine(L"showing info...");
-			info(lbc);
-		}
-		if(k == 's')
-		{
-			Console::get().writeLine(L"showing traffic stats...");
-			trafficStats(lbc);
-		}
-		if(k == 'r')
-		{
-			Console::get().writeLine(L"resetting traffic stats...");
-			lbc.resetTrafficStats();
-			trafficStats(lbc);
-		}
-		if(k == 't')
-		{
-			Console::get().writeLine(lbc.getTrafficStatsEnabled()?L"disabling traffic stats...":L"enabling traffic stats...");
-			lbc.setTrafficStatsEnabled(!lbc.getTrafficStatsEnabled());
-			trafficStats(lbc);
-		}
-		Console::get().update();
-		int t = GETTIMEMS();
-		while(GETTIMEMS() < t + 100);
-		*/
-	}
-
-	//Console::get().writeLine(L"disconnecting...");
-	lbc.disconnect();
-	while ( 1 )
-	{
+		// multiplayer update
 		lbc.serviceBasic();
 		while(lbc.dispatchIncomingCommands());
 		while(lbc.sendOutgoingCommands());
-		lbl.service();
-		if ( g_pPhotonView->isConnected() == false ) break;
 	}
 
 	// free any resources
 	SAFE_DELETE ( g_pPhotonView );
-
-	/*
-	// create instance and connect
-	g_pPhoton = new PhotonLib;
-
-	// connect
-	while ( 1 )
-	{
-		g_pPhoton->update();
-		if ( g_pPhoton->isConnected() == true ) break;
-	}
-
-	// create and join a room
-	g_pPhoton->joinOrCreateRoom("LeesGame");
-	while ( 1 )
-	{
-		g_pPhoton->update();
-		if ( g_pPhoton->isJoined() == true ) break;
-	}
-
-	// send data to room
-	while ( 1 )
-	{
-		g_pPhoton->sendByte(42);
-		g_pPhoton->update();
-		if ( g_pPhoton->isReceivedData() == true ) break;
-	}
-
-	// leave room
-	g_pPhoton->leaveRoom();
-	while ( 1 )
-	{
-		g_pPhoton->update();
-		if ( g_pPhoton->isLeft() == true ) break;
-	}
-
-	// disconnect
-	g_pPhoton->disconnect();
-	while ( 1 )
-	{
-		g_pPhoton->update();
-		if ( g_pPhoton->isDisconnected() == true ) break;
-	}
-
-	// free resources
-	SAFE_DELETE(g_pPhoton);
+	MessageBox ( NULL, "end of Photon test", "", MB_OK );
 	*/
 
 	// success
 	return 1;
-	/*
-	SteamCleanupClient();
-	ResetGameStats();
-	g_pClient = NULL;
-	if ( SteamAPI_Init() )
-	{
-		// must be logged into steam, which will be the case if run from within steam.
-		if ( !SteamUser()->BLoggedOn() ) return 0;
-		g_SteamRunning = true;
-
-		// Start up a steam client
-		SteamInitClient();
-		return 1;
-	}
-	else
-		return 0;
-	*/
 }
 
 void PhotonFree()
 {
+	SAFE_DELETE ( g_pLBC );
+	SAFE_DELETE ( g_pLBL );
 	SAFE_DELETE ( g_pPhotonView );
-	/*
-	if ( !g_SteamRunning ) return;
-	SAFE_DELETE ( g_pClient );
-	SteamAPI_Shutdown();
-	g_SteamRunning = false;
-	IsWorkshopLoadingOn = 0;
-	*/
 }
 
-/*
+void PhotonLoop(void)
+{
+	// if photon active
+	if ( g_pPhotonView )
+	{
+		// disconnect handling
+		if ( 0 ) //iDisconnectSession == 1 )
+		{
+			g_pLBC->disconnect();
+			//iDisconnectSession = 0;
+		}
+		if ( g_pPhotonView->isConnecting() == false && g_pPhotonView->isConnected() == false ) 
+		{
+			MessageBox ( NULL, "disconnected now", "", MB_OK );
+			//break;
+		}
 
+		/* now done with specific commands
+		// view all rooms
+		g_pLBL->updateRoomList();
+		int iRoomCount = g_pPhotonView->GetRoomCount();
+		if ( iRoomCount > 0 ) 
+		{
+			for ( int iRoomIndex = 0; iRoomIndex < iRoomCount; iRoomIndex++ )
+			{
+				JString pName = g_pPhotonView->GetRoomName ( iRoomIndex );
+				pName = pName;
+			}
+		}
+		*/
+
+		// share dharing data in the room
+		if ( g_pPhotonView->isInGameRoom() == true )
+		{
+			// run logic in game room
+			// eventually use the data exchange to organise users playing the game, transfering levels and avatars
+			// and of course, running all the game logic when in-game!!
+			int iMPState = g_pLBL->service();
+
+			/* now done with specific commands
+			// list players in room
+			g_pLBL->updatePlayerList();
+			int iPlayerCount = g_pPhotonView->GetPlayerCount();
+			if ( iPlayerCount > 0 ) 
+			{
+				for ( int iPlayerIndex = 0; iPlayerIndex < iPlayerCount; iPlayerIndex++ )
+				{
+					JString pName = g_pPhotonView->GetPlayerName ( iPlayerIndex );
+					pName = pName;
+				}
+			}
+			*/
+		}
+
+		// sync network services
+		g_pLBC->serviceBasic();
+		while(g_pLBC->dispatchIncomingCommands());
+		while(g_pLBC->sendOutgoingCommands());
+	}
+}
+
+void PhotonGetLobbyList()
+{
+	if ( g_pPhotonView )
+	{
+		g_pLBL->updateRoomList();
+	}
+}
+
+int PhotonIsLobbyListCreated()
+{
+	if ( g_pPhotonView )
+		return 1;
+	else
+		return 0;
+}
+
+int PhotonGetLobbyListSize()
+{
+	if ( g_pPhotonView )
+		return g_pPhotonView->GetRoomCount();
+	else
+		return 0;
+}
+
+LPSTR PhotonGetLobbyListName( int index )
+{
+	if ( g_pPhotonView )
+		return g_pPhotonView->GetRoomName ( index );
+	else
+		return NULL;
+}
+
+void PhotonSetLobbyName( LPSTR name )
+{
+	strcpy ( hostsLobbyName, name );
+}
+
+void PhotonCreateLobby()
+{
+	//isPlayingOnAServer = false;
+	if ( 1 )//g_SteamRunning )
+	{
+		g_pLBL->createRoom ( hostsLobbyName );
+		//messageList.clear();
+		//chatList.clear();
+		//deleteList.clear();
+		//deleteListSource.clear();
+		//destroyList.clear();
+		//lobbyChatIDs.clear();
+		//syncedAvatarTextureMode = SYNC_AVATAR_TEX_BEGIN;
+		//syncedAvatarTextureModeServer = SYNC_AVATAR_TEX_BEGIN;
+		//PacketSend_Log_Client.clear();
+		//PacketSend_Log_Server.clear();
+		//PacketSendReceipt_Log_Client.clear();
+		//PacketSendReceipt_Log_Server.clear();
+		//ClientDeathNumber = 1;
+		//for ( int c = 0 ; c < MAX_PLAYERS_PER_SERVER ; c++ )
+		//	ServerClientLastDeathNumber[c] = 0;
+		//server_timeout_milliseconds = SERVER_TIMEOUT_MILLISECONDS_LONG;
+		//Client()->SteamCreateLobby();
+	}
+}
+
+void PhotonJoinLobby ( LPSTR name )
+{
+	if ( g_pPhotonView )
+	{
+		g_pLBC->opJoinRoom ( name );
+	}
+}
+
+int PhotonHasJoinedLobby() 
+{ 
+	if ( g_pPhotonView )
+	{
+		if ( g_pLBC->getIsInRoom() == true )
+			return 1;
+	}
+	return 0; 
+}
+
+int PhotonGetLobbyUserCount() 
+{
+	if ( g_pPhotonView )
+	{
+		g_pLBL->updatePlayerList();
+		return g_pPhotonView->GetPlayerCount();
+	}
+	return 0;
+}
+
+LPSTR PhotonGetLobbyUserName ( int index ) 
+{ 
+	if ( g_pPhotonView )
+	{
+		int iPlayerCount = g_pPhotonView->GetPlayerCount();
+		if ( iPlayerCount > 0 && index < iPlayerCount ) 
+		{
+			return g_pPhotonView->GetPlayerName ( index );
+		}
+	}
+	return NULL; 
+}
+
+LPSTR PhotonGetPlayerName(void) 
+{ 
+	const char* str = g_sPlayerName.ANSIRepresentation().cstr();
+	return (LPSTR)str; 
+}
+
+void PhotonLeaveLobby() 
+{
+	if ( g_pPhotonView )
+	{
+		if ( g_pPhotonView->isInGameRoom() == true )
+		{
+			g_pLBL->leaveRoom();
+		}
+	}
+}
+
+int PhotonGetClientServerConnectionStatus() 
+{ 
+	if ( g_pPhotonView )
+	{
+		if ( g_pPhotonView->isConnected() == true )
+			return 1;
+	}
+	return 0;
+}
+
+void PhotonStartServer() 
+{
+}
+
+int PhotonIsServerRunning() 
+{ 
+	return 0; 
+}
+
+int PhotonIsGameRunning() 
+{ 
+	return 0; 
+}
+
+int PhotonGetMyPlayerIndex() 
+{ 
+	return 0; 
+}
+
+void PhotonSendIAmLoadedAndReady() 
+{
+}
+
+int PhotonIsEveryoneLoadedAndReady() 
+{
+	return 0; 
+}
+
+void PhotonSetRoot(LPSTR string ) 
+{
+}
+
+void PhotonSetSendFileCount(int count) 
+{
+}
+
+
+//
+// empty functions so can compile code with Steam Multiplayer references
+//
+
+FPSCR bool SteamOwned ( void ) { return false; }
+FPSCR LPSTR SteamGetPlayerName(void) { return "hello"; }
+FPSCR LPSTR SteamGetOtherPlayerName( int index ) { return "hello"; }
+FPSCR LPSTR SteamGetPlayerID(void) { return "hello"; }
+FPSCR void SteamLoop(void) {}
+FPSCR int SteamIsOnline(void) { return 0; }
+FPSCR void SteamAddAch(void) {}
+void ParseCommandLine( const char *pchCmdLine, const char **ppchServerAddress, const char **ppchLobbyID, bool *pbUseVR ) {}
+void SteamInitClient() {}
+FPSCR void SteamCreateLobby() {}
+FPSCR int SteamIsLobbyCreated() { return 0; }
+FPSCR void SteamGetLobbyList() {}
+FPSCR int SteamIsLobbyListCreated() { return 0; }
+FPSCR int SteamGetLobbyListSize() { return 0; }
+FPSCR LPSTR SteamGetLobbyListName( int index ) { return "hello"; }
+FPSCR void SteamJoinLobby( int index ) {}
+FPSCR int SteamGetLobbyUserCount() { return 0; }
+FPSCR int SteamHasJoinedLobby() { return 0; }
+FPSCR void SteamStartServer() {}
+FPSCR int SteamIsServerRunning() { return 0; }
+FPSCR int SteamIsGameRunning() { return 0; }
+FPSCR int SteamGetMyPlayerIndex() { return 0; }
+FPSCR void SteamSetPlayerPositionX( float _x) {}
+FPSCR void SteamSetPlayerPositionY( float _y ) {}
+FPSCR void SteamSetPlayerPositionZ( float _z ) {}
+FPSCR void SteamSetPlayerAngle( float _angle ) {}
+FPSCR void SteamSetPlayerScore( int index, int score ) {}
+FPSCR float SteamGetPlayerPositionX ( int index ) { return 0.0f; }
+FPSCR float SteamGetPlayerPositionY ( int index ) { return 0.0f; }
+FPSCR float SteamGetPlayerPositionZ ( int index ) { return 0.0f; }
+FPSCR float SteamGetPlayerAngle ( int index ) { return 0.0f; }
+FPSCR int SteamGetPlayerScore ( int index ) { return 0; }
+FPSCR void SteamSetBullet ( int index , float x , float y , float z, float anglex, float angley, float anglez, int type, int on ) {}
+FPSCR int SteamGetBulletOn ( int index ) { return 0; }
+FPSCR int SteamGetBulletType ( int index ) { return 0; }
+FPSCR float SteamGetBulletX ( int index ) { return 0.0f; }
+FPSCR float SteamGetBulletY ( int index ) { return 0.0f; }
+FPSCR float SteamGetBulletZ ( int index ) { return 0.0f; }
+FPSCR float SteamGetBulletAngleX ( int index ) { return 0.0f; }
+FPSCR float SteamGetBulletAngleY ( int index ) { return 0.0f; }
+FPSCR float SteamGetBulletAngleZ ( int index ) { return 0.0f; }
+FPSCR void SteamSetKeyState ( int key , int state ) {}
+FPSCR int SteamGetKeyState ( int index, int key ) { return 0; }
+FPSCR void SteamApplyPlayerDamage ( int index, int damage, int x, int y, int z, int force, int limb ) {}
+FPSCR int SteamGetPlayerDamageSource() { return 0; }
+FPSCR int SteamGetPlayerDamageX() { return 0; }
+FPSCR int SteamGetPlayerDamageY() { return 0; }
+FPSCR int SteamGetPlayerDamageZ() { return 0; }
+FPSCR int SteamGetPlayerDamageForce() { return 0; }
+FPSCR int SteamGetPlayerDamageLimb() { return 0; }
+FPSCR int SteamGetPlayerKilledSource( int index ) { return 0; }
+FPSCR int SteamGetPlayerKilledX( int index ) { return 0; }
+FPSCR int SteamGetPlayerKilledY( int index ) { return 0; }
+FPSCR int SteamGetPlayerKilledZ( int index ) { return 0; }
+FPSCR int SteamGetPlayerKilledForce( int index ) { return 0; }
+FPSCR int SteamGetPlayerKilledLimb( int index ) { return 0; }
+FPSCR void SteamKilledBy ( int killedBy, int x, int y, int z, int force, int limb ) {}
+FPSCR void SteamKilledSelf() {}
+FPSCR LPSTR SteamGetServerMessage( void ) { return "hello"; }
+FPSCR int SteamGetPlayerDamageAmount () { return 0; }
+FPSCR int SteamGetClientServerConnectionStatus() { return 0; }
+void SteamResetClient() {}
+void SteamCleanupClient() {}
+void ResetGameStats() {}
+FPSCR void SteamSetPlayerAlive ( int state ) {}
+FPSCR int SteamGetPlayerAlive ( int index ) { return 0; }
+FPSCR void SteamSpawnObject ( int obj, int source, float x, float y, float z ) {}
+FPSCR void SteamDeleteObject ( int obj ) {}
+FPSCR void SteamDestroy ( int obj ) {}
+FPSCR void SteamSendLua ( int code, int e, int v ) {}
+FPSCR void SteamSendLuaString ( int code, int e, LPSTR s ) {}
+FPSCR int SteamGetLuaList() { return 0; }
+FPSCR void SteamGetNextLua() {}
+FPSCR int SteamGetLuaCommand() { return 0; }
+FPSCR int SteamGetLuaE() { return 0; }
+FPSCR int SteamGetLuaV() { return 0; }
+FPSCR LPSTR SteamGetLuaS(void) { return "hello"; }
+FPSCR int SteamGetSpawnList() { return 0; }
+FPSCR void SteamGetNextSpawn() {}
+FPSCR int SteamGetSpawnObjectNumber() { return 0; }
+FPSCR int SteamGetSpawnObjectSource() { return 0; }
+FPSCR float SteamGetSpawnX() { return 0.0f; }
+FPSCR float SteamGetSpawnY() { return 0.0f; }
+FPSCR float SteamGetSpawnZ() { return 0.0f; }
+FPSCR int SteamGetDeleteList() { return 0; }
+FPSCR void SteamGetNextDelete() {}
+FPSCR int SteamGetDeleteObjectNumber() { return 0; }
+FPSCR int SteamGetDeleteSource() { return 0; }
+FPSCR int SteamGetDestroyList() { return 0; }
+FPSCR void SteamGetNextDestroy() {}
+FPSCR int SteamGetDestroyObjectNumber() { return 0; }
+FPSCR int SteamReadyToSpawn() { return 0; }
+FPSCR void SteamSetSendFileCount(int count) {}
+FPSCR void SteamSendFileBegin ( int index , LPSTR pString ) {}
+FPSCR int SteamSendFileDone() { return 0; }
+FPSCR int SteamAmIFileSynced() { return 0; }
+FPSCR int SteamIsEveryoneFileSynced() { return 0; }
+FPSCR void SteamSendIAmLoadedAndReady() {}
+FPSCR int SteamIsEveryoneLoadedAndReady() { return 0; }
+FPSCR void SteamSendIAmReadyToPlay() {}
+FPSCR int SteamIsEveryoneReadyToPlay() { return 0; }
+FPSCR int SteamGetFileProgress() { return 0; }
+FPSCR void SteamSetVoiceChat( int on ) {}
+FPSCR void SteamSetPlayerAppearance( int a ) {}
+FPSCR int SteamGetPlayerAppearance( int index ) { return 0; }
+FPSCR void SteamSetCollision ( int index, int state ) {}
+FPSCR int SteamGetCollisionList() { return 0; }
+FPSCR void SteamGetNextCollision() {}
+FPSCR int SteamGetCollisionIndex() { return 0; }
+FPSCR int SteamGetCollisionState() { return 0; }
+FPSCR void SteamShoot () {}
+FPSCR int SteamGetShoot ( int index ) { return 0; }
+FPSCR void SteamPlayAnimation ( int index, int start, int end, int speed ) {}
+FPSCR int SteamGetAnimationList() { return 0; }
+FPSCR void SteamGetNextAnimation() {}
+FPSCR int SteamGetAnimationIndex() { return 0; }
+FPSCR int SteamGetAnimationStart() { return 0; }
+FPSCR int SteamGetAnimationEnd() { return 0; }
+FPSCR int SteamGetAnimationSpeed() { return 0; }
+FPSCR void SteamSetTweening(int index , int flag) {}
+FPSCR LPSTR SteamGetLobbyUserName( int index) { return "hello"; }
+FPSCR void SteamLeaveLobby() {}
+FPSCR void SteamCreateWorkshopItem() {}
+FPSCR void SteamCreateWorkshopItem( LPSTR pString ) {}
+FPSCR void SteamDownloadWorkshopItem( LPSTR pString ) {}
+FPSCR int SteamIsWorkshopItemDownloaded() { return 0; }
+FPSCR int SteamIsWorkshopItemUploaded() { return 0; }
+FPSCR LPSTR SteamGetWorkshopID(void) { return "hello"; }
+FPSCR LPSTR SteamGetWorkshopItemPath(void) { return "hello"; }
+FPSCR void SteamGetWorkshopItemPathDLL(LPSTR string ) {}
+FPSCR int SteamIsWorkshopLoadingOnDLL() { return 0; }
+FPSCR void SteamSetRoot(LPSTR string ) {}
+FPSCR void SteamSetLobbyName(LPSTR name ) {}
+FPSCR int SteamIsWorkshopItemInstalled(LPSTR idString ) { return 0; }
+FPSCR int SteamHasSubscriptionWorkshopItemFinished() { return 0; }
+FPSCR void SteamSendMyName() {}
+FPSCR int SteamIsOverlayActive() { return 0; }
+FPSCR void SteamWorkshopModeOff() {}
+FPSCR void SteamShowAgreement() {}
+FPSCR void SteamEndGame() {}
+FPSCR void SteamSendChat( LPSTR msg ) {}
+FPSCR void SteamSendLobbyChat( LPSTR msg ) {}
+FPSCR LPSTR SteamGetChat( void ) { return "hello"; }
+FPSCR int SteamInkey( int scancode ) { return 0; }
+FPSCR int SteamCheckSyncedAvatarTexturesWithServer() { return 0; }
+FPSCR void SteamSetMyAvatarHeadTextureName(LPSTR sAvatarTexture) {}
+void SteamAvatarClient() {}
+void SteamAvatarServer() {}
+FPSCR int SteamStrCmp( LPSTR s1, LPSTR s2 ) { return 0; }
+
+/*
 // flag to switch workshop handling from workshop to game managed, by default set to false, set to true for multiplayer mode
 bool OnlineMultiplayerModeForSharingFiles = false;
 
@@ -2845,5 +3126,3 @@ void logEnd()
 
 //========================================================================================
 */
-
-

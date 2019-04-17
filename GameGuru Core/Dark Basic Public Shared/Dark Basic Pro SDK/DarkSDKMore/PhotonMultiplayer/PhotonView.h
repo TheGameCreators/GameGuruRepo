@@ -1,16 +1,37 @@
 #include "LoadBalancing-cpp/inc/Client.h"
+#include <vector>
 
 class PhotonView
 {
 	public:
 		PhotonView ( void );
+		~PhotonView ( void );
 
 	public:
+		void setConnectingState ( bool bState ) { bConnecting = bState; }
+		bool isConnecting() { return bConnecting; }
 		void setConnectionState ( bool bState ) { bConnected = bState; }
 		bool isConnected() { return bConnected; }
+		void setInGameRoom ( bool bState ) { bInGameRoom = bState; }
+		bool isInGameRoom() { return bInGameRoom; }
+
+		void ClearRoomList ( void );
+		void AddRoomToList ( LPSTR pRoomName );
+		int GetRoomCount ( void );
+		LPSTR GetRoomName ( int iRoomIndex );
+
+		void ClearPlayerList ( void );
+		void AddPlayerToList ( LPSTR pPlayerName );
+		int GetPlayerCount ( void );
+		LPSTR GetPlayerName ( int iPlayerIndex );
 
 	public:
+		bool bConnecting;
 		bool bConnected;
+		bool bInGameRoom;
+
+		std::vector< LPSTR > sRoomList;
+		std::vector< LPSTR > sPlayerList;
 };
 
 /*

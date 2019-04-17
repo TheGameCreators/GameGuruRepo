@@ -106,27 +106,32 @@ void game_masterroot ( int iUseVRTest )
 			terrain_sky_show();
 		}
 
-		//  Standaline Multiplayer HOST/JOIN screen
-		if (  t.game.runasmultiplayer == 1 ) 
+		// Standaline Multiplayer HOST/JOIN screen
+		if ( t.game.runasmultiplayer == 1 ) 
 		{
 			//  Show screen, use Steam to get friends CREATE LOBBY, wait, ready to begin
 			//  re-use title page system! (see Lee)
 			//  DOWNLOAD the level selected by the HOSTER and put it in levelbank
 			//  called 'multiplayer_level.zip' (has to be a loop for Steam)
 			//  EXTRACT the ZIP into the testmap folder ready for the code below
+			#ifdef PHOTONMP
+			 PhotonInit();
+			#else
+			 // Steam initialised at very start (for other Steam features)
+			#endif
 			g.mp.mode = MP_MODE_MAIN_MENU;
 			timestampactivity(0,"_titles_steampage");
 			t.game.cancelmultiplayer=0;
 			SetCameraView (  0,0,1,1 );
 			titles_steampage ( );
-			if (  t.game.cancelmultiplayer == 1 ) 
+			if ( t.game.cancelmultiplayer == 1 ) 
 			{
-				//  user selected BACK (cancel multiplayer)
+				// user selected BACK (cancel multiplayer)
 				t.game.levelloop=0;
 			}
 			else
 			{
-				//  proceed into level loop where multiplayer spawn markers are detected and ghosts loaded
+				// proceed into level loop where multiplayer spawn markers are detected and ghosts loaded
 			}
 		}
 
@@ -135,8 +140,8 @@ void game_masterroot ( int iUseVRTest )
 		gun_restart ( );
 		gun_resetactivateguns ( );
 
-		//  Level loop will run while level progression is in progress
-		while (  t.game.levelloop == 1 ) 
+		// Level loop will run while level progression is in progress
+		while ( t.game.levelloop == 1 ) 
 		{
 			// also hide rendering of 3D while we set up a new level
 			SyncMaskOverride ( 0 );
@@ -154,10 +159,10 @@ void game_masterroot ( int iUseVRTest )
 				t.game.levelloadprogress=0  ; titles_loadingpageupdate ( );
 			}
 
-			//  Extract level files from FPM
-			if (  t.game.runasmultiplayer == 1 ) 
+			// Extract level files from FPM
+			if ( t.game.runasmultiplayer == 1 ) 
 			{
-				//  Multiplayer FPM loading
+				// Multiplayer FPM loading
 				g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"__multiplayerlevel__.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm";
 				t.trerfeshvisualsassets=1;
 				mapfile_loadproject_fpm ( );
@@ -165,8 +170,8 @@ void game_masterroot ( int iUseVRTest )
 			}
 			else
 			{
-				//  Single player
-				if (  Len(t.game.jumplevel_s.Get())>1 ) 
+				// Single player
+				if ( Len(t.game.jumplevel_s.Get())>1 ) 
 				{
 					// can override jumplevel with 'advanced warning level filename' when LOAD level from MAIN MENU
 					if ( strcmp ( t.game.pAdvanceWarningOfLevelFilename, "" ) != NULL )
@@ -179,7 +184,6 @@ void game_masterroot ( int iUseVRTest )
 					//g.projectfilename_s = ""; 
 					//g.projectfilename_s = g.projectfilename_s + "mapbank\\" + t.game.jumplevel_s;
 					g.projectfilename_s = g.mysystem.mapbank_s + t.game.jumplevel_s;
-					
 					if ( cstr(Lower(Right(g.projectfilename_s.Get(),4))) != ".fpm" )
 						g.projectfilename_s=g.projectfilename_s+".fpm";
 
@@ -229,21 +233,21 @@ void game_masterroot ( int iUseVRTest )
 				}
 			}
 
-			//reload gunspecs
+			// reload gunspecs
 			if (g.reloadWeaponGunspecs == 1)
 			{
 				gun_scaninall_dataonly();
 			}
 
-			//  we first load extra guns into gun array EARLY (ahead of entity data load which assigns gunids to isweapon hasweapon)
+			// we first load extra guns into gun array EARLY (ahead of entity data load which assigns gunids to isweapon hasweapon)
 			gun_tagmpgunstolist ( );
 
-			//  just load the entity data for now (rest in _game_loadinleveldata)
+			// just load the entity data for now (rest in _game_loadinleveldata)
 			timestampactivity(0,"_game_loadinentitiesdatainlevel");
-			if (  t.game.gameisexe == 1 || t.game.runasmultiplayer == 1 ) 
+			if ( t.game.gameisexe == 1 || t.game.runasmultiplayer == 1 ) 
 			{
 				//  extra precaution, delete any old entities and LM objects
-				if (  t.game.runasmultiplayer == 1 ) 
+				if ( t.game.runasmultiplayer == 1 ) 
 				{
 					entity_delete ( );
 					lm_removeold ( );
@@ -270,38 +274,38 @@ void game_masterroot ( int iUseVRTest )
 				t.tfoundAMultiplayerScript = 0;
 				for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 				{
-					//  reset all updates
+					// reset all updates
 					t.entityelement[t.e].mp_updateOn = 0;
-					//  for chars like zombies
+					// for chars like zombies
 					t.entityelement[t.e].mp_isLuaChar = 0;
 					t.entityelement[t.e].mp_rotateType = 0;
 					t.entid=t.entityelement[t.e].bankindex;
-					if (  t.entid>0 ) 
+					if ( t.entid>0 ) 
 					{
-						if (  t.entityprofile[t.entid].ismarker == 7 && t.plrindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
+						if ( t.entityprofile[t.entid].ismarker == 7 && t.plrindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 						{
 
-							//  to ensure mp game script always runs from any distance
+							// to ensure mp game script always runs from any distance
 							t.entityelement[t.e].eleprof.phyalways = 1;
-							if (  t.entityelement[t.e].eleprof.aimain_s  ==  "" ) 
+							if ( t.entityelement[t.e].eleprof.aimain_s == "" ) 
 							{
 								t.entityelement[t.e].eleprof.aimain_s = "multiplayer_firstto10.lua";
 							}
-							if (  t.entityelement[t.e].eleprof.teamfield  !=  0 ) 
+							if ( t.entityelement[t.e].eleprof.teamfield  !=  0 ) 
 							{
 								g.mp.team = 1;
 							}
 	
 							//  only let one marker end up with a script otherwise we end up running the same script 8 times
-							if (  t.tfoundAMultiplayerScript  ==  0 ) 
+							if ( t.tfoundAMultiplayerScript == 0 ) 
 							{
 								t.tfoundAMultiplayerScript = 1;
-								//  12032015 0XX - Team Multiplayer - check for team mode
-								if (  FileOpen(3)  ==  1  )  CloseFile (  3 );
+								// 12032015 0XX - Team Multiplayer - check for team mode
+								if ( FileOpen(3)  ==  1  )  CloseFile (  3 );
 								t.strwork = "" ; t.strwork = t.strwork + "scriptbank\\"+t.entityelement[t.e].eleprof.aimain_s;
 								OpenToRead (  3, t.strwork.Get() );
 								g.mp.friendlyfireoff = 0;
-								while (  FileEnd(3)  ==  0 ) 
+								while ( FileEnd(3) == 0 ) 
 								{
 									t.tScriptLine_s = ReadString (  3 );
 									t.tScriptLine_s = Lower(t.tScriptLine_s.Get());
@@ -317,7 +321,6 @@ void game_masterroot ( int iUseVRTest )
 								t.entityelement[t.e].eleprof.aimain_s = "";
 							}
 							++t.plrindex;
-
 						}
 						else
 						{

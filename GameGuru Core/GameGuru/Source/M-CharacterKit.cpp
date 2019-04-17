@@ -3543,8 +3543,7 @@ void characterkit_checkAvatarExists ( void )
 
 void characterkit_loadMyAvatarInfo ( void )
 {
-
-	//  blank out the data first
+	// blank out the data first
 	g.mp.myAvatar_s = "";
 	g.mp.myAvatarName_s = "";
 	g.mp.myAvatarHeadTexture_s = "";
@@ -3556,8 +3555,8 @@ void characterkit_loadMyAvatarInfo ( void )
 		t.mp_playerAvatarOwners_s[t.c] = "";
 	}
 
-	if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
-	if (  FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() )  ==  1 ) 
+	if ( FileOpen(1)  ==  1  )  CloseFile (  1 );
+	if ( FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() )  ==  1 ) 
 	{
 		OpenToRead (  1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get()  );
 		g.mp.myAvatar_s = ReadString ( 1 );
@@ -3571,7 +3570,7 @@ void characterkit_loadMyAvatarInfo ( void )
 		}
 		CloseFile (  1 );
 
-		if (  t.tShowAvatarSprite  ==  1 ) 
+		if ( t.tShowAvatarSprite == 1 ) 
 		{
 			t.tShowAvatarSprite = 0;
 			if (  g.charactercreatorEditorImageoffset > 1 ) 
@@ -3585,9 +3584,6 @@ void characterkit_loadMyAvatarInfo ( void )
 		}
 
 	}
-
-return;
-
 }
 
 void characterkit_customHead ( void )

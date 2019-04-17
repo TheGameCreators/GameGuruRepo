@@ -15,6 +15,10 @@
 #include "D3dx9math.h"
 #include "BlitzTerrain.h"
 
+#include <iostream>
+#include <exception>
+using namespace std;
+
 // Externs
 extern GlobStruct*				g_pGlob;
 extern LPGGDEVICE				m_pD3D;
@@ -1919,7 +1923,16 @@ int GGVR_PlayerData::GetLHandObjID()
 int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath, int iDebugMode )
 {
 	DebugGGVRlog ( "Calling GGWMR_CreateHolographicSpace1" );
-	return GGWMR_CreateHolographicSpace1 ( hWnd, iDebugMode );
+	try
+	{
+		return GGWMR_CreateHolographicSpace1 ( hWnd, iDebugMode );
+	}
+	catch (exception& e)
+	{
+		const char* pWhatStr = e.what();
+		MessageBox ( NULL, pWhatStr, "GGWMR_CreateHolographicSpace1 Exception", MB_OK );   
+	}
+	return 987;
 }
 
 int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext )
