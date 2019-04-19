@@ -12,7 +12,7 @@ namespace ExitGames
 {
 	namespace LoadBalancing
 	{
-		class Client;
+		class PhotonClient;
 		class Room;
 
 		namespace Internal
@@ -21,7 +21,7 @@ namespace ExitGames
 			{
 				static void cache(Room& room, const Common::Hashtable& properties);
 
-				friend class LoadBalancing::Client;
+				friend class LoadBalancing::PhotonClient;
 			};
 		}
 	}

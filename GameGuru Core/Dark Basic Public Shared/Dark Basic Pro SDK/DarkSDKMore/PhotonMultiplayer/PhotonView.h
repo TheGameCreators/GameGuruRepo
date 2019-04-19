@@ -1,6 +1,12 @@
 #include "LoadBalancing-cpp/inc/Client.h"
 #include <vector>
 
+struct sGlobalStates
+{
+	int iGameStarting;
+	int EveryoneLoadedAndReady;
+};
+
 class PhotonView
 {
 	public:
@@ -29,6 +35,8 @@ class PhotonView
 		bool bConnecting;
 		bool bConnected;
 		bool bInGameRoom;
+
+		sGlobalStates GlobalStates;
 
 		std::vector< LPSTR > sRoomList;
 		std::vector< LPSTR > sPlayerList;

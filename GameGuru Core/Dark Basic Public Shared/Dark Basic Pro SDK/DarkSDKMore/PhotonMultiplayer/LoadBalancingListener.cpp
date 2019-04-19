@@ -8,61 +8,16 @@
 using namespace ExitGames::Common;
 using namespace ExitGames::LoadBalancing;
 
-/*
-static int randomColor(int from=0, int to=256)
-{
-	int r = from + rand() % (to - from);
-	int g = from + rand() % (to - from);
-	int b = from + rand() % (to - from);
-	return (r << 16) + (g << 8) + b;
-}
-
-const JString PeerStatesStr[] = {
-	L"Uninitialized",
-	L"PeerCreated",
-	L"ConnectingToNameserver",
-	L"ConnectedToNameserver",
-	L"DisconnectingFromNameserver",
-	L"Connecting",
-	L"Connected",
-	L"WaitingForCustomAuthenticationNextStepCall",
-	L"Authenticated",
-	L"JoinedLobby",
-	L"DisconnectingFromMasterserver",
-	L"ConnectingToGameserver",
-	L"ConnectedToGameserver",
-	L"AuthenticatedOnGameServer",
-	L"Joining",
-	L"Joined",
-	L"Leaving",
-	L"Left",
-	L"DisconnectingFromGameserver",
-	L"ConnectingToMasterserver",
-	L"ConnectedComingFromGameserver",
-	L"AuthenticatedComingFromGameserver",
-	L"Disconnecting",
-	L"Disconnected"
-};
-*/
-
-/*
-// Checker below checks count match only
-class PeerStatesStrChecker
-{
-public:
-	PeerStatesStrChecker(void)
-	{
-		DEBUG_ASSERT(sizeof(PeerStatesStr)/sizeof(JString) == PeerStates::Disconnected + 1);
-	}
-} checker;
-
-LocalPlayer::LocalPlayer(void) : x(0), y(0), color(randomColor(100)), lastUpdateTime(0)
-{
-}
-*/
-
 LoadBalancingListener::LoadBalancingListener(PhotonView* pView) : mpLbc(NULL), mPhotonView(pView), mLocalPlayerNr(0), mMap("Forest")
 {
+	// clear tracked player array
+	for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
+	{
+		m_rgpPlayer[i] = NULL;
+		m_rgpPlayerLoadedAndReady[i] = 0;
+	}
+	miCurrentServerPlayerID = -1;
+	mbIsServer = false;
 }
 
 LoadBalancingListener::~LoadBalancingListener(void)
@@ -118,6 +73,7 @@ void LoadBalancingListener::createRoomReturn(int localPlayerNr, const Hashtable&
 {
 	if(errorCode == ErrorCode::OK)
 	{
+		muPlayerIndex = localPlayerNr;
 		afterRoomJoined(localPlayerNr);
 		mPhotonView->setInGameRoom(true);
 	}
@@ -149,6 +105,35 @@ void LoadBalancingListener::joinRoomReturn(int localPlayerNr, const Hashtable& g
 	}
 }
 
+void LoadBalancingListener::setPlayerIDAsCurrentServerPlayer ( void )
+{
+	int mylocalplayernr = mpLbc->getLocalPlayer().getNumber();
+	miCurrentServerPlayerID = mylocalplayernr;
+	mbIsServer = true;
+}
+
+bool LoadBalancingListener::isEveryoneLoadedAndReady(void)
+{
+	bool allReady = true;
+	for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
+	{
+		if ( m_rgpPlayer[i] )
+		{
+			if ( m_rgpPlayerLoadedAndReady[i] == 0 )
+			{
+				allReady = false;
+				break;
+			}
+		}
+	}
+	return allReady;
+}
+
+int LoadBalancingListener::getLocalPlayerID(void)
+{
+	return mpLbc->getLocalPlayer().getNumber();
+}
+
 void LoadBalancingListener::updatePlayerList(void)
 {
 	MutableRoom& myRoom = mpLbc->getCurrentlyJoinedRoom();
@@ -161,7 +146,52 @@ void LoadBalancingListener::updatePlayerList(void)
 		int playernr = players[i]->getNumber();
 		mPhotonView->AddPlayerToList((LPSTR)str);
 	}
+	manageTrackedPlayerList();
+}
+
+void LoadBalancingListener::manageTrackedPlayerList ( void )
+{
+	// will create/destroy a player list that matches across all user sessions (i.e. player 2 here is player 2 everywhere else)
+	MutableRoom& myRoom = mpLbc->getCurrentlyJoinedRoom();
+	const JVector<Player*>& players = myRoom.getPlayers();
 	int mylocalplayernr = mpLbc->getLocalPlayer().getNumber();
+	for ( unsigned int i = 0; i < players.getSize(); ++i)
+	{
+		const Player* player = players[i];
+		int playernr = player->getNumber();
+		if ( playernr < MAX_PLAYERS_PER_SERVER )
+		{
+			if ( player->getIsInactive() == false )
+			{
+				// Check if we have a player created locally for this player slot, if not create it
+				if ( !m_rgpPlayer[playernr] )
+				{
+					m_rgpPlayer[playernr] = new CPlayer();
+					const char* str = player->getName().ANSIRepresentation().cstr();
+				}
+
+				// is the local player
+				if ( playernr == mylocalplayernr )
+					m_rgpPlayer[playernr]->SetIsLocalPlayer( 1 );
+				else
+					m_rgpPlayer[playernr]->SetIsLocalPlayer( 0 );
+			}
+			else
+			{
+				// Make sure we don't have a player locally for this slot
+				if ( m_rgpPlayer[playernr] )
+				{
+					delete m_rgpPlayer[playernr];
+					m_rgpPlayer[playernr] = NULL;
+				}
+			}
+		}
+		else
+		{
+			// player number exceeded
+			OutputDebugString ( "player number exceeded tracked player array size" );
+		}
+	}
 }
 
 void LoadBalancingListener::afterRoomJoined(int localPlayerNr)
@@ -169,7 +199,6 @@ void LoadBalancingListener::afterRoomJoined(int localPlayerNr)
 	this->mLocalPlayerNr = localPlayerNr;
 	MutableRoom& myRoom = mpLbc->getCurrentlyJoinedRoom();
 	Hashtable props = myRoom.getCustomProperties();
-	//updateGridSize(props);
 	if(props.contains(L"m"))
 		mMap = ((ValueObject<JString>*)props.getValue(L"m"))->getDataCopy();
 
@@ -200,26 +229,12 @@ int LoadBalancingListener::service(void)
 			int yOffs[] = {1, 1, 1, 0, 0, -1, -1, -1};
 			int x = mLocalPlayerx + xOffs[d];
 			int y = mLocalPlayery += yOffs[d];
-			//if(x < 0)
-			//	x = 1;
-			//if(x >= mGridSize)
-			//	x = mGridSize - 2;
-			//if(y < 0)
-			//	y = 1;
-			//if(y >= mGridSize)
-			//	y = mGridSize - 2;
-
-			//int prevGroup = getGroupByPos();
 			mLocalPlayerx = x;
 			mLocalPlayery = y;
-			//if(prevGroup != getGroupByPos())
-			//	updateGroups();
-
 			Hashtable data;
 			nByte coords[] ={static_cast<nByte>(mLocalPlayerx), static_cast<nByte>(mLocalPlayery)};
 			data.put((nByte)1, coords, 2);
-			mpLbc->opRaiseEvent(false, data, 2, RaiseEventOptions().setInterestGroup(0));
-
+			mpLbc->opRaiseEvent(false, data, eGlobalEventPlayerPosition, RaiseEventOptions().setInterestGroup(0));
 		}
 	}
 
@@ -227,10 +242,169 @@ int LoadBalancingListener::service(void)
 	return iMPState;
 }
 
+void LoadBalancingListener::sendGlobalVarState ( int iVarEventIndex, int iVarValue )
+{
+	Hashtable data;
+	data.put((nByte)1, iVarValue);
+	mpLbc->opRaiseEvent(true, data, iVarEventIndex, RaiseEventOptions().setEventCaching(ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE).setInterestGroup(0));
+}
+
+void LoadBalancingListener::sendMessage ( nByte* msg, DWORD msgSize, bool bReliable )
+{
+	Hashtable data;
+	data.put((nByte)1, msg, msgSize);
+	mpLbc->opRaiseEvent(bReliable, data, eGlobalEventMessage, RaiseEventOptions().setInterestGroup(0));
+}
+
+void LoadBalancingListener::SetSendFileCount ( int count )
+{
+	// only server sends files
+	if ( mbIsServer == true )
+	{
+		// send file count to all
+		MsgClientSetSendFileCount_t msg;
+		msg.count = count;
+		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientSetSendFileCount_t), k_EP2PSendReliable );
+		sendMessage ( (nByte*)&msg, sizeof(MsgClientSetSendFileCount_t), true );
+
+		// clear flags server uses to confirm all players have the files
+		for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
+			miServerClientsFileSynced[i] = 0;
+
+		ServerFilesToReceive = count;
+		ServerFilesReceived = count;
+		/*
+		IamSyncedWithServerFiles = 1;
+		IamLoadedAndReady = 0;
+		isEveryoneLoadedAndReady = 0;
+		IamReadyToPlay = 0;
+		isEveryoneReadyToPlay = 0;
+
+		for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
+		{
+			serverClientsFileSynced[i] = 0;
+			serverClientsLoadedAndReady[i] = 0;
+			serverClientsReadyToPlay[i] = 0;
+		}
+		*/
+	}
+}
+
+void LoadBalancingListener::SendFileBegin ( int index , LPSTR pString )
+{
+	// only server sends files
+	if ( mbIsServer == true )
+	{
+		//HowManyPlayersDoWeHave = 0;
+
+		// specify filename of file
+		MsgClientSendFileBegin_t msg;
+		msg.index = index;
+		strcpy ( msg.fileName , pString );
+
+		// open file ready to read data and send as chunks
+		mhServerFile = fopen ( pString, "rb" );
+		if ( mhServerFile )
+		{
+			// instruct to start sending file data
+			fseek ( mhServerFile, 0, SEEK_END );
+			msg.fileSize = ftell ( mhServerFile );
+			rewind ( mhServerFile );
+			serverHowManyFileChunks = (int)ceil( (float)msg.fileSize / float(FILE_CHUNK_SIZE) );
+			serverChunkToSendCount = 1;
+			//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientSendFileBegin_t), k_EP2PSendReliable );
+			sendMessage ( (nByte*)&msg, sizeof(MsgClientSendFileBegin_t), true );
+		}
+	}
+}
+
+int LoadBalancingListener::SendFileDone()
+{
+	// only server sends files
+	if ( mbIsServer == true )
+	{
+		// if file open and ready to read data
+		if ( mhServerFile )
+		{
+			// send a chunk of the file data
+			MsgClientSendChunk_t msg;
+			msg.index = serverChunkToSendCount;
+			fread ( &msg.chunk, 1 , FILE_CHUNK_SIZE , mhServerFile );
+			//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientSendChunk_t), k_EP2PSendReliable );
+			sendMessage ( (nByte*)&msg, sizeof(MsgClientSendChunk_t), true );
+
+			// increase to next chunk
+			serverChunkToSendCount++;
+			if ( serverChunkToSendCount > serverHowManyFileChunks )
+			{
+				//IamLoadedAndReady = 0;
+				//isEveryoneLoadedAndReady = 0;
+				//for( uint32 i = 1; i < MAX_PLAYERS_PER_SERVER; i++ )
+				//{
+				//	serverClientsLoadedAndReady[i] = 0;
+				//}
+				// close file when al chunks sent
+				fclose ( mhServerFile );
+				mhServerFile = NULL;
+				return 1;
+			}
+			return 0;
+		}
+	}
+	return 0;
+}
+
+int LoadBalancingListener::IsEveryoneFileSynced()
+{
+	// only server sends files
+	if ( mbIsServer == true )
+	{
+		//IamLoadedAndReady = 0;
+		//isEveryoneLoadedAndReady = 0;
+		//for( uint32 i = 1; i < MAX_PLAYERS_PER_SERVER; i++ )
+		//	serverClientsLoadedAndReady[i] = 0;
+
+		// check from 1 since the client hosting the server is player 0 and always synced
+		for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
+			if ( i != miCurrentServerPlayerID && m_rgpPlayer[i] && miServerClientsFileSynced[i] == 0 )
+				return 0;
+
+		// all non-server players synced, we are a go
+		return 1;
+	}
+	return 0;
+}
+
+//void LoadBalancingListener::raiseColorEvent(void)
+//{
+	//Hashtable data;
+	//data.put((nByte)1, 42);//mLocalPlayer.color);
+	//mpLbc->opRaiseEvent(true, data, 1, RaiseEventOptions().setEventCaching(ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE).setInterestGroup(0));
+//}
+
+//void LoadBalancingListener::changeRandomColor(void)
+//{
+	//mLocalPlayer.color = randomColor(100);
+	//raiseColorEvent();
+	//mpView->changePlayerColor(mLocalPlayerNr, mLocalPlayer.color);
+//}
+
+/*
+void LoadBalancingListener::nextGridSize(void)
+{
+	mGridSize = mGridSize << 1;
+	//if(mGridSize > GRID_SIZE_MAX)
+	//	mGridSize = GRID_SIZE_MIN;
+	//Console::get().writeLine(JString("nextGridSize: ") + mGridSize);
+	mpLbc->getCurrentlyJoinedRoom().addCustomProperty(L"s", mGridSize);
+	//mpView->setupScene(mGridSize);
+}
+*/
+
 void LoadBalancingListener::customEventAction(int playerNr, nByte eventCode, const Object& eventContentObj)
 {
 	ExitGames::Common::Hashtable eventContent = ExitGames::Common::ValueObject<ExitGames::Common::Hashtable>(eventContentObj).getDataCopy();
-	if(eventCode == 1)
+	if(eventCode == eGlobalEventGameStarting)
 	{
 		Object const* obj = eventContent.getValue("1");
 		if(!obj) obj = eventContent.getValue((nByte)1);
@@ -238,11 +412,23 @@ void LoadBalancingListener::customEventAction(int playerNr, nByte eventCode, con
 		if(!obj) obj = eventContent.getValue(1.0);
 		if(obj)
 		{
-			int color = (int)(obj->getType() == TypeCode::DOUBLE ?  ((ValueObject<double>*)obj)->getDataCopy() : ((ValueObject<int>*)obj)->getDataCopy());
-			//mpView->changePlayerColor(playerNr, color);
+			int value = (int)(obj->getType() == TypeCode::DOUBLE ? ((ValueObject<double>*)obj)->getDataCopy() : ((ValueObject<int>*)obj)->getDataCopy());
+			mPhotonView->GlobalStates.iGameStarting = value;
 		}
 	}
-	else if(eventCode == 2)
+	else if(eventCode == eGlobalEventEveryoneLoadedAndReady)
+	{
+		Object const* obj = eventContent.getValue("1");
+		if(!obj) obj = eventContent.getValue((nByte)1);
+		if(!obj) obj = eventContent.getValue(1);
+		if(!obj) obj = eventContent.getValue(1.0);
+		if(obj)
+		{
+			int value = (int)(obj->getType() == TypeCode::DOUBLE ? ((ValueObject<double>*)obj)->getDataCopy() : ((ValueObject<int>*)obj)->getDataCopy());
+			mPhotonView->GlobalStates.EveryoneLoadedAndReady = value;
+		}
+	}
+	else if(eventCode == eGlobalEventPlayerPosition)
 	{
 		Object const* obj = eventContent.getValue("1");
 		if(!obj)
@@ -290,6 +476,812 @@ void LoadBalancingListener::customEventAction(int playerNr, nByte eventCode, con
 			//mpView->changePlayerPos(playerNr, x, y);
 		}
 	}
+	else if(eventCode == eGlobalEventMessage)
+	{
+		// receive message
+		Object const* obj = eventContent.getValue("1");
+		if(!obj) obj = eventContent.getValue((nByte)1);
+		if(!obj) obj = eventContent.getValue(1);
+		if(!obj) obj = eventContent.getValue(1.0);
+		if(obj && obj->getDimensions() == 1 )
+		{
+			nByte* data = ((ValueObject<nByte*>*)obj)->getDataCopy();
+			EMessage eMsg = (EMessage)LittleDWord( *(DWORD*)data );
+			handleMessage ( playerNr, eMsg, obj->getSizes()[0], data );
+			MemoryManagement::deallocateArray(data);
+		}
+	}
+}
+
+void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cubMsgSize, nByte* pchRecvBuf )
+{
+	switch ( eMsg )
+	{
+		/*
+		case k_EMsgReceipt:
+			{
+				if ( cubMsgSize == sizeof( MsgReceipt_t ) )
+				{
+					MsgReceipt_t* pmsg = (MsgReceipt_t*)pchRecvBuf;
+					int index = pmsg->logID;
+					GotReceipt(index);
+				}
+			} break;
+		case k_EMsgClientPlayerName:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayerName_t ) )
+				{
+					MsgClientPlayerName_t* pmsg = (MsgClientPlayerName_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerName_t), k_EP2PSendReliable );
+					}
+				}
+			}
+			break;
+		case k_EMsgClientPlayerScore:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayerScore_t ) )
+				{
+					MsgClientPlayerScore_t* pmsg = (MsgClientPlayerScore_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerScore_t), k_EP2PSendReliable );
+					}
+				}
+			}
+			break;
+		case k_EMsgClientShoot:
+			{
+				if ( cubMsgSize == sizeof( MsgClientShoot_t ) )
+				{
+					MsgClientShoot_t* pmsg = (MsgClientShoot_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientShoot_t), k_EP2PSendUnreliable );
+					}
+				}
+			}
+			break;
+		case k_EMsgClientSetCollision:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSetCollision_t ) )
+				{
+					MsgClientSetCollision_t* pmsg = (MsgClientSetCollision_t*)pchRecvBuf;
+					int index = pmsg->playerIndex;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientSetCollision_t), k_EP2PSendReliable );
+					}
+				}
+			}
+			break;
+		case k_EMsgClientPlayAnimation:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayAnimation_t ) )
+				{
+					MsgClientPlayAnimation_t* pmsg = (MsgClientPlayAnimation_t*)pchRecvBuf;
+					int index = pmsg->playerIndex;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+						{
+							if ( ShouldISend ( k_EMsgClientPlayAnimation , 0 , m_rgpPlayer[i]->newx, m_rgpPlayer[i]->newy, m_rgpPlayer[i]->newz, index ) )
+								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayAnimation_t), k_EP2PSendReliable );
+						}
+					}
+				}
+			}
+			break;
+		case k_EMsgClientPlayerBullet:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayerBullet_t ) )
+				{
+					MsgClientPlayerBullet_t* pmsg = (MsgClientPlayerBullet_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] )//&& i != pmsg->playerID )
+						{
+							if ( ShouldISend ( k_EMsgClientPlayerBullet , pmsg->index, pmsg->x, pmsg->y, pmsg->z, i ) )
+								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerBullet_t), k_EP2PSendUnreliable );
+
+							if ( pmsg->on == 0 ) 
+							{
+								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerBullet_t), k_EP2PSendReliable );
+								bulletSeen[pmsg->index][i] = false;
+							}
+						}
+					}
+				}
+			}
+			break;
+		case k_EMsgClientPlayerKeyState:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayerKeyState_t ) )
+				{
+					MsgClientPlayerKeyState_t* pmsg = (MsgClientPlayerKeyState_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerKeyState_t), k_EP2PSendUnreliable );
+					}
+				}
+			}
+			break;
+		case k_EMsgClientPlayerApplyDamage:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayerApplyDamage_t ) )
+				{
+					MsgClientPlayerApplyDamage_t* pmsg = (MsgClientPlayerApplyDamage_t*)pchRecvBuf;
+					int index = pmsg->index;
+
+					if ( m_rgpPlayer[pmsg->source] )
+					{
+						MsgReceipt_t msg;
+						msg.logID = pmsg->logID;
+						SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[pmsg->source].m_SteamIDUser, &msg, sizeof(MsgReceipt_t), k_EP2PSendUnreliable );
+					}
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i == index )
+						{
+
+							MsgClientPlayerApplyDamage_t* pmsg2;
+							pmsg2 = new MsgClientPlayerApplyDamage_t();
+							pmsg2->logID = packetSendLogServerID;
+							pmsg2->index = pmsg->index;
+							pmsg2->source = pmsg->source;
+							pmsg2->amount = pmsg->amount;
+							pmsg2->x = pmsg->x;
+							pmsg2->y = pmsg->x;
+							pmsg2->z = pmsg->z;
+							pmsg2->force = pmsg->force;
+							pmsg2->limb = pmsg->limb;
+
+							packetSendLogServer_t log;
+							log.LogID = packetSendLogServerID++;
+							log.packetType = k_EMsgClientPlayerApplyDamage;
+							log.pPacket = pmsg2;
+							log.timeStamp = GetCounterPassedTotal();
+							log.playerID = i;
+
+							PacketSend_Log_Server.push_back(log);
+
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg2, sizeof(MsgClientPlayerApplyDamage_t), k_EP2PSendUnreliable );
+						}
+					}
+				}
+			}
+			break;
+		case k_EMsgClientPlayerSetPlayerAlive:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayerSetPlayerAlive_t ) )
+				{
+					MsgClientPlayerSetPlayerAlive_t* pmsg = (MsgClientPlayerSetPlayerAlive_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerSetPlayerAlive_t), k_EP2PSendUnreliable );
+					}
+
+				}
+			}
+			break;
+		case k_EMsgClientSpawnObject:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSpawnObject_t ) )
+				{
+					MsgClientSpawnObject_t* pmsg = (MsgClientSpawnObject_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientSpawnObject_t), k_EP2PSendReliable );
+					}
+
+				}
+			}
+			break;
+		case k_EMsgClientLua:
+			{
+				if ( cubMsgSize == sizeof( MsgClientLua_t ) )
+				{
+					MsgClientLua_t* pmsg = (MsgClientLua_t*)pchRecvBuf;
+					int index = pmsg->index;
+
+					// if set animation or play animation they need to be sent in order
+					if ( pmsg->code < 5 )
+					{			
+
+						MsgServerLua_t msg;
+						msg.logID = packetSendLogServerID;
+						msg.code = pmsg->code;
+						msg.e = pmsg->e;
+						msg.v = pmsg->v;
+
+						for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+						{
+							if ( m_rgpPlayer[i] && i != index )
+							{
+								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, &msg, sizeof(MsgServerLua_t), k_EP2PSendReliable );
+							}
+						}
+					}
+					else
+					{
+
+						// no ticket if goto position
+						if ( pmsg->code != 18 && pmsg->code != 19 )
+						{
+							if ( m_rgpPlayer[pmsg->index] )
+							{
+								MsgReceipt_t msg;
+								msg.logID = pmsg->logID;
+								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[pmsg->index].m_SteamIDUser, &msg, sizeof(MsgReceipt_t), k_EP2PSendUnreliable );
+							}
+					
+							// add kill, remove kill and add death only get sent to the server
+							if ( pmsg->code >= 12 && pmsg->code <= 14 )
+							{
+								if ( m_rgpPlayer[0] )
+								{
+									MsgServerLua_t* pmsg2;
+									pmsg2 = new MsgServerLua_t();
+									pmsg2->logID = packetSendLogServerID;
+									pmsg2->code = pmsg->code;
+									pmsg2->e = pmsg->e;
+									pmsg2->v = pmsg->v;
+
+									packetSendLogServer_t log;
+									log.LogID = packetSendLogServerID++;
+									log.packetType = k_EMsgServerLua;
+									log.pPacket = pmsg2;
+									log.timeStamp = GetCounterPassedTotal();
+									log.playerID = index;
+
+									PacketSend_Log_Server.push_back(log);
+
+									SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[0].m_SteamIDUser, pmsg2, sizeof(MsgServerLua_t), k_EP2PSendUnreliable );
+								}
+								return;
+							}
+
+							for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+							{
+								if ( m_rgpPlayer[i] && i != index )
+								{
+									MsgServerLua_t* pmsg2;
+									pmsg2 = new MsgServerLua_t();
+									pmsg2->logID = packetSendLogServerID;
+									pmsg2->code = pmsg->code;
+									pmsg2->e = pmsg->e;
+									pmsg2->v = pmsg->v;
+
+									packetSendLogServer_t log;
+									log.LogID = packetSendLogServerID++;
+									log.packetType = k_EMsgServerLua;
+									log.pPacket = pmsg2;
+									log.timeStamp = GetCounterPassedTotal();
+									log.playerID = index;
+
+									PacketSend_Log_Server.push_back(log);
+
+									SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg2, sizeof(MsgServerLua_t), k_EP2PSendUnreliable );
+								}
+							}
+						}
+						else
+						{			
+
+							MsgServerLua_t msg;
+							msg.logID = packetSendLogServerID;
+							msg.code = pmsg->code;
+							msg.e = pmsg->e;
+							msg.v = pmsg->v;
+
+							for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+							{
+								if ( m_rgpPlayer[i] && i != index )
+								{
+									SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, &msg, sizeof(MsgServerLua_t), k_EP2PSendUnreliable );
+								}
+							}
+						}
+					}
+
+				}
+			}
+			break;
+		case k_EMsgClientLuaString:
+			{
+				if ( cubMsgSize == sizeof( MsgClientLuaString_t ) )
+				{
+					MsgClientLuaString_t* pmsg = (MsgClientLuaString_t*)pchRecvBuf;
+					int index = pmsg->index;
+
+					if ( m_rgpPlayer[pmsg->index] )
+					{
+						MsgReceipt_t msg;
+						msg.logID = pmsg->logID;
+						SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[pmsg->index].m_SteamIDUser, &msg, sizeof(MsgReceipt_t), k_EP2PSendUnreliable );
+					}
+					
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+						{
+							MsgServerLuaString_t* pmsg2;
+							pmsg2 = new MsgServerLuaString_t();
+							pmsg2->logID = packetSendLogServerID;
+							pmsg2->code = pmsg->code;
+							pmsg2->e = pmsg->e;
+							strcpy ( pmsg2->s , pmsg->s );
+
+							packetSendLogServer_t log;
+							log.LogID = packetSendLogServerID++;
+							log.packetType = k_EMsgServerLua;
+							log.pPacket = pmsg2;
+							log.timeStamp = GetCounterPassedTotal();
+							log.playerID = index;
+
+							PacketSend_Log_Server.push_back(log);
+
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg2, sizeof(MsgServerLuaString_t), k_EP2PSendUnreliable );
+						}
+					}
+
+				}
+			}
+			break;			
+		case k_EMsgClientAvatarDoWeHaveHeadTex:
+			{
+				if ( cubMsgSize == sizeof( MsgClientAvatarDoWeHaveHeadTex_t ) )
+				{
+					MsgClientAvatarDoWeHaveHeadTex_t* pmsg = (MsgClientAvatarDoWeHaveHeadTex_t*)pchRecvBuf;
+					int index = pmsg->index;
+
+					if ( m_rgpPlayer[pmsg->index] )
+					{
+						MsgReceipt_t msg;
+						msg.logID = pmsg->logID;
+						SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[pmsg->index].m_SteamIDUser, &msg, sizeof(MsgReceipt_t), k_EP2PSendUnreliable );
+
+						serverClientsHaveAvatarTexture[index] = pmsg->flag;
+					}					
+
+				}
+			}
+			break;
+		case k_EMsgClientDeleteObject:
+			{
+				if ( cubMsgSize == sizeof( MsgClientDeleteObject_t ) )
+				{
+					MsgClientDeleteObject_t* pmsg = (MsgClientDeleteObject_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientDeleteObject_t), k_EP2PSendReliable );
+					}
+
+				}
+			}
+			break;
+		case k_EMsgClientDestroyObject:
+			{
+				if ( cubMsgSize == sizeof( MsgClientDestroyObject_t ) )
+				{
+					MsgClientDestroyObject_t* pmsg = (MsgClientDestroyObject_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientDestroyObject_t), k_EP2PSendReliable );
+					}
+
+				}
+			}
+			break;
+		case k_EMsgClientKilledBy:
+			{
+				if ( cubMsgSize == sizeof( MsgClientKilledBy_t ) )
+				{
+					MsgClientKilledBy_t* pmsg = (MsgClientKilledBy_t*)pchRecvBuf;
+					int index = pmsg->index;
+
+					if ( m_rgpPlayer[index] )
+					{
+						MsgReceipt_t msg;
+						msg.logID = pmsg->logID;
+						SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[index].m_SteamIDUser, &msg, sizeof(MsgReceipt_t), k_EP2PSendUnreliable );
+					}
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] )
+						{
+
+							MsgClientKilledBy_t* pmsg2;
+							pmsg2 = new MsgClientKilledBy_t();
+							pmsg2->index = pmsg->index;
+							pmsg2->logID = packetSendLogServerID;
+							pmsg2->killedBy = pmsg->killedBy;
+							pmsg2->x = pmsg->x;
+							pmsg2->y = pmsg->y;
+							pmsg2->z = pmsg->z;
+							pmsg2->force = pmsg->force;
+							pmsg2->limb = pmsg->limb;
+
+							packetSendLogServer_t log;
+							log.LogID = packetSendLogServerID++;
+							log.packetType = k_EMsgClientKilledBy;
+							log.pPacket = pmsg2;
+							log.timeStamp = GetCounterPassedTotal();
+							log.playerID = i;
+
+							PacketSend_Log_Server.push_back(log);
+
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg2, sizeof(MsgClientKilledBy_t), k_EP2PSendUnreliable );
+						}
+					}
+
+				}
+			}
+			break;
+		case k_EMsgChat:
+			{
+				if ( cubMsgSize == sizeof( MsgChat_t ) )
+				{
+					MsgChat_t* pmsg = (MsgChat_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+						{
+
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgChat_t), k_EP2PSendReliable );
+						}
+					}
+
+				}
+			}
+			break;
+		case k_EMsgClientKilledSelf:
+			{
+				if ( cubMsgSize == sizeof( MsgClientKilledSelf_t ) )
+				{
+					MsgClientKilledSelf_t* pmsg = (MsgClientKilledSelf_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientKilledSelf_t), k_EP2PSendUnreliable );
+					}
+
+				}
+			}
+			break;
+		case k_EMsgClientPlayerAppearance:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayerAppearance_t ) )
+				{
+					MsgClientPlayerAppearance_t* pmsg = (MsgClientPlayerAppearance_t*)pchRecvBuf;
+					int index = pmsg->index;
+	
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+						{
+							//if ( ShouldISend ( k_EMsgClientPlayerAppearance , 0 , m_rgpPlayer[i]->newx, m_rgpPlayer[i]->newy, m_rgpPlayer[i]->newz, index ) )
+								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerAppearance_t), k_EP2PSendUnreliable );
+						}
+					}
+
+				}
+			}
+			break;
+		*/
+		case k_EMsgClientSetSendFileCount:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSetSendFileCount_t ) )
+				{
+					MsgClientSetSendFileCount_t* pmsg = (MsgClientSetSendFileCount_t*)pchRecvBuf;
+					ServerFilesToReceive = pmsg->count;
+					ServerFilesReceived = 0;
+					//IamSyncedWithServerFiles = 0;
+					//IamLoadedAndReady = 0;
+					//isEveryoneLoadedAndReady = 0;
+					//IamReadyToPlay = 0;
+					//isEveryoneReadyToPlay = 0;
+				}
+			}
+			break;			
+		case k_EMsgClientSendFileBegin:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSendFileBegin_t ) )
+				{
+					MsgClientSendFileBegin_t* pmsg = (MsgClientSendFileBegin_t*)pchRecvBuf;
+					if ( mhServerFile ) fclose ( mhServerFile );
+					mhServerFile = fopen ( pmsg->fileName, "wb" );
+					serverHowManyFileChunks = (int)ceil( (float)pmsg->fileSize / float(FILE_CHUNK_SIZE) );
+					serverFileFileSize = pmsg->fileSize;
+					//IsWorkshopLoadingOn = 1;
+					miFileProgress = 0;
+				}
+			}
+			break;
+		case k_EMsgClientSendChunk:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSendChunk_t ) )
+				{
+					MsgClientSendChunk_t* pmsg = (MsgClientSendChunk_t*)pchRecvBuf;
+					if ( mhServerFile ) 
+					{
+						int chunkSize = FILE_CHUNK_SIZE;
+						if ( pmsg->index == serverHowManyFileChunks )
+						{
+							if ( serverHowManyFileChunks == 1 )
+								chunkSize = serverFileFileSize;
+							else
+								chunkSize = serverFileFileSize - ((serverHowManyFileChunks-1) * FILE_CHUNK_SIZE	);				
+						}
+
+						miFileProgress = (int)ceil(((float)(pmsg->index * FILE_CHUNK_SIZE) / (float)serverFileFileSize )  * 100.0f);
+
+						fwrite( &pmsg->chunk[0] , 1 , chunkSize , mhServerFile );
+
+						if ( pmsg->index == serverHowManyFileChunks )
+						{
+							fclose ( mhServerFile );
+							mhServerFile = NULL;
+							ServerFilesReceived++;
+							if ( ServerFilesReceived == 0 ) ServerFilesReceived = 1;
+							if ( ServerFilesReceived >= ServerFilesToReceive ) 
+							{
+								//IamSyncedWithServerFiles = 1;
+
+								MsgClientPlayerIamSyncedWithServerFiles_t msg;
+								msg.index = muPlayerIndex;
+								//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerIamSyncedWithServerFiles_t), k_EP2PSendReliable );
+								sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerIamSyncedWithServerFiles_t), true );
+							}
+							//else
+							//	IamSyncedWithServerFiles = 0;
+						}
+					}
+				}
+			}
+			break;
+		/*
+		case k_EMsgClientSendAvatarFileBeginClient:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSendAvatarFileBeginClient_t ) )
+				{
+					MsgClientSendAvatarFileBeginClient_t* pmsg = (MsgClientSendAvatarFileBeginClient_t*)pchRecvBuf;
+
+					int index = pmsg->index;
+					
+					//Dont need to send this to the owning client as they already have their own avatar
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientSendAvatarFileBeginClient_t), k_EP2PSendReliable );
+					}
+
+				}
+			}
+			break;
+		case k_EMsgClientSendAvatarChunkClient:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSendAvatarChunkClient_t ) )
+				{
+					MsgClientSendAvatarChunkClient_t* pmsg = (MsgClientSendAvatarChunkClient_t*)pchRecvBuf;
+					
+					//Dont need to send this to the owning client as they already have their own avatar
+					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					{
+						if ( m_rgpPlayer[i] && i != pmsg->index )
+							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientSendAvatarChunkClient_t), k_EP2PSendReliable );
+					}
+
+				}
+			}
+			break;			
+		case k_EMsgClientSendAvatarDone:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSendAvatarDone_t ) )
+				{
+					MsgClientSendAvatarDone_t* pmsg = (MsgClientSendAvatarDone_t*)pchRecvBuf;
+
+					int index = pmsg->index;
+					
+					if ( serverClientsHaveAvatarTexture[index] != 0 )
+					{
+						serverClientsHaveAvatarTexture[index] = 0;
+						ServerAvatarfilesReceived++;
+					}
+
+				}
+			}
+			break;
+		*/
+		case k_EMsgClientPlayerIamSyncedWithServerFiles:
+			{
+				if ( cubMsgSize == sizeof( MsgClientPlayerIamSyncedWithServerFiles_t ) )
+				{
+					MsgClientPlayerIamSyncedWithServerFiles_t* pmsg = (MsgClientPlayerIamSyncedWithServerFiles_t*)pchRecvBuf;
+					int index = pmsg->index;
+					if ( m_rgpPlayer[index] )
+						miServerClientsFileSynced[index] = 1;							
+				}
+			}
+			break;
+		case k_EMsgClientPlayerSendIAmLoadedAndReady:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSendIAmLoadedAndReady_t ) )
+				{
+					MsgClientSendIAmLoadedAndReady_t* pmsg = (MsgClientSendIAmLoadedAndReady_t*)pchRecvBuf;
+					int index = pmsg->index;					
+					if ( m_rgpPlayer[index] )
+					{
+						// set this player as loaded and ready
+						m_rgpPlayerLoadedAndReady[index] = 1;
+					}
+				}
+			}
+			break;
+		/*
+		case k_EMsgClientPlayerSendIAmReadyToPlay:
+			{
+				if ( cubMsgSize == sizeof( MsgClientSendIAmReadyToPlay_t ) )
+				{
+					MsgClientSendIAmReadyToPlay_t* pmsg = (MsgClientSendIAmReadyToPlay_t*)pchRecvBuf;
+
+					// change to how many we ended up with for real rather than how many were in the initial lobby
+					HowManyPlayersDoWeHave = m_uPlayerCount;
+
+					int index = pmsg->index;
+
+					// send back receipt
+					// dont need to store the fact we sent one in this instance
+					if ( m_rgpPlayer[index] )
+					{
+						MsgReceipt_t msg;
+						msg.logID = pmsg->logID;
+						SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[index].m_SteamIDUser, &msg, sizeof(MsgReceipt_t), k_EP2PSendUnreliable );
+					}
+					
+					if ( m_rgpPlayer[index] )
+					{
+						serverClientsReadyToPlay[index] = 1;		
+
+						bool allReady = true;
+
+						//Client attached to the server needs to be loaded and ready too!
+						for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
+						{
+							if ( m_rgpPlayer[i] && serverClientsReadyToPlay[i] == 0 )
+							{
+								allReady = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+			break;
+		case k_EMsgClientInitiateConnection:
+			{
+				// We always let clients do this without even checking for room on the server since we reserve that for 
+				// the authentication phase of the connection which comes next
+				MsgServerSendInfo_t msg;
+				msg.SetSteamIDServer( SteamGameServer()->GetSteamID().ConvertToUint64() );
+				msg.SetServerName( m_sServerName );
+				SteamGameServerNetworking()->SendP2PPacket( steamIDRemote, &msg, sizeof( MsgServerSendInfo_t ), k_EP2PSendReliable );
+			}
+			break;
+		case k_EMsgClientBeginAuthentication:
+			{
+				if ( cubMsgSize != sizeof( MsgClientBeginAuthentication_t ) )
+				{
+					OutputDebugString( "Bad connection attempt msg\n" );
+					continue;
+				}
+				MsgClientBeginAuthentication_t *pMsg = (MsgClientBeginAuthentication_t*)pchRecvBuf;
+				OnClientBeginAuthentication( steamIDRemote, 0 );
+			}
+			break;
+		case k_EMsgClientSendLocalUpdate:
+			{
+				if ( cubMsgSize != sizeof( MsgClientSendLocalUpdate_t ) )
+				{
+					OutputDebugString( "Bad client update msg\n" );
+					continue;
+				}
+
+				// Find the connection that should exist for this users address
+				bool bFound = false;
+				for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+				{
+					if ( m_rgClientData[i].m_SteamIDUser == steamIDRemote ) 
+					{
+						bFound = true;
+						MsgClientSendLocalUpdate_t *pMsg = (MsgClientSendLocalUpdate_t*)pchRecvBuf;
+						OnReceiveClientUpdateData( i, pMsg->AccessUpdateData() );
+						break;
+					}
+				}
+				if ( !bFound )
+					OutputDebugString( "Got a client data update, but couldn't find a matching client\n" );
+			}
+			break;
+		case k_EMsgClientPing:
+			{
+				// send back a response
+				MsgServerPingResponse_t msg;
+				SteamGameServerNetworking()->SendP2PPacket( steamIDRemote, &msg, sizeof( msg ), k_EP2PSendUnreliable );
+			}
+			break;
+		case k_EMsgClientLeavingServer:
+			{
+				if ( cubMsgSize != sizeof( MsgClientLeavingServer_t ) )
+				{
+					OutputDebugString( "Bad leaving server msg\n" );
+					continue;
+				}
+				// Find the connection that should exist for this users address
+				bool bFound = false;
+				for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+				{
+					if ( m_rgClientData[i].m_SteamIDUser == steamIDRemote )
+					{
+						bFound = true;
+						RemovePlayerFromServer( i );
+						break;
+					}
+
+					// Also check for pending connections that may match
+					if ( m_rgPendingClientData[i].m_SteamIDUser == steamIDRemote )
+					{
+						// Clear our data on the user
+						memset( &m_rgPendingClientData[i], 0 , sizeof( ClientConnectionData_t ) );
+						break;
+					}
+				}
+				if ( !bFound )
+					OutputDebugString( "Got a client leaving server msg, but couldn't find a matching client\n" );
+			}
+		*/
+		default:
+			char rgch[128];
+			sprintf_safe( rgch, "Invalid message %x\n", eMsg );
+			rgch[ sizeof(rgch) - 1 ] = 0;
+			OutputDebugString( rgch );
+	}
 }
 
 void LoadBalancingListener::leaveRoom(void)
@@ -305,36 +1297,10 @@ void LoadBalancingListener::leaveRoomReturn(int errorCode, const JString& errorS
 	}
 }
 
-void LoadBalancingListener::raiseColorEvent(void)
-{
-	Hashtable data;
-	data.put((nByte)1, 42);//mLocalPlayer.color);
-	mpLbc->opRaiseEvent(true, data, 1, RaiseEventOptions().setEventCaching(ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE).setInterestGroup(0));
-}
-
 void LoadBalancingListener::debugReturn(int debugLevel, const JString& string)
 {
 	//Console::get().debugReturn(debugLevel, string);
 }
-
-void LoadBalancingListener::changeRandomColor(void)
-{
-	//mLocalPlayer.color = randomColor(100);
-	raiseColorEvent();
-	//mpView->changePlayerColor(mLocalPlayerNr, mLocalPlayer.color);
-}
-
-/*
-void LoadBalancingListener::nextGridSize(void)
-{
-	mGridSize = mGridSize << 1;
-	//if(mGridSize > GRID_SIZE_MAX)
-	//	mGridSize = GRID_SIZE_MIN;
-	//Console::get().writeLine(JString("nextGridSize: ") + mGridSize);
-	mpLbc->getCurrentlyJoinedRoom().addCustomProperty(L"s", mGridSize);
-	//mpView->setupScene(mGridSize);
-}
-*/
 
 /*
 void LoadBalancingListener::updateGroups(void)

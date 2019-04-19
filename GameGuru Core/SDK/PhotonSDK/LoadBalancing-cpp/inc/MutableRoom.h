@@ -61,7 +61,7 @@ namespace ExitGames
 		protected:
 			using Room::payloadToString;
 
-			MutableRoom(const Common::JString& name, const Common::Hashtable& properties, Client* pClient, const Common::JVector<Common::JString>& propsListedInLobby, int playerTtl, int emptyRoomTtl, bool suppressRoomEvents, const Common::JVector<Common::JString>* pPlugins, bool publishUserID, const Common::JVector<Common::JString>& expectedUsers);
+			MutableRoom(const Common::JString& name, const Common::Hashtable& properties, PhotonClient* pClient, const Common::JVector<Common::JString>& propsListedInLobby, int playerTtl, int emptyRoomTtl, bool suppressRoomEvents, const Common::JVector<Common::JString>* pPlugins, bool publishUserID, const Common::JVector<Common::JString>& expectedUsers);
 
 			virtual bool getIsMutable(void) const;
 
@@ -87,7 +87,7 @@ namespace ExitGames
 
 			typedef Room super;
 
-			Client* mpLoadBalancingClient;
+			PhotonClient* mpLoadBalancingClient;
 			bool mIsVisible;
 			Common::JVector<Player*> mPlayers;
 			int mMasterClientID;

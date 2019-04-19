@@ -12,8 +12,8 @@
 #include "time.h"
 #include <math.h>
 
-CSteamServer *g_pServer = NULL;
-CSteamServer* Server() { return g_pServer; }
+CServer *g_pServer = NULL;
+CServer* Server() { return g_pServer; }
 
 #ifdef _DEBUG_LOG_
 extern int DEBUG_FLAG_ON;
@@ -24,18 +24,19 @@ int ServerAvatarfilesReceived = 0;
 //-----------------------------------------------------------------------------
 // Purpose: Constructor -- note the syntax for setting up Steam API callback handlers
 //-----------------------------------------------------------------------------
-CSteamServer::CSteamServer( ) 
-:
-	m_CallbackSteamServersConnected( this, &CSteamServer::OnSteamServersConnected ),
-	m_CallbackSteamServersDisconnected( this, &CSteamServer::OnSteamServersDisconnected ),
-	m_CallbackSteamServersConnectFailure( this, &CSteamServer::OnSteamServersConnectFailure ),
-	m_CallbackPolicyResponse( this, &CSteamServer::OnPolicyResponse ),
-	m_CallbackGSAuthTicketResponse( this, &CSteamServer::OnValidateAuthTicketResponse ),
-	m_CallbackP2PSessionConnectFail( this, &CSteamServer::OnP2PSessionConnectFail ),
-	m_CallbackP2PSessionRequest( this, &CSteamServer::OnP2PSessionRequest )
+CServer::CServer( ) 
+//:
+	//m_CallbackSteamServersConnected( this, &CSteamServer::OnSteamServersConnected ),
+	//m_CallbackSteamServersDisconnected( this, &CSteamServer::OnSteamServersDisconnected ),
+	//m_CallbackSteamServersConnectFailure( this, &CSteamServer::OnSteamServersConnectFailure ),
+	//m_CallbackPolicyResponse( this, &CSteamServer::OnPolicyResponse ),
+	//m_CallbackGSAuthTicketResponse( this, &CSteamServer::OnValidateAuthTicketResponse ),
+	//m_CallbackP2PSessionConnectFail( this, &CSteamServer::OnP2PSessionConnectFail ),
+	//m_CallbackP2PSessionRequest( this, &CSteamServer::OnP2PSessionRequest )
 {
-	m_bConnectedToSteam = false;
+	//m_bConnectedToSteam = false;
 
+	/*
 	const char *pchGameDir = "";
 	uint32 unIP = INADDR_ANY;
 	uint16 usMasterServerUpdaterPort = STEAM_MASTER_SERVER_UPDATER_PORT;
@@ -122,6 +123,7 @@ CSteamServer::CSteamServer( )
 
 	// Initialize players
 	ResetPlayers();
+	*/
 
 	g_pServer = this;
 }
@@ -130,13 +132,9 @@ CSteamServer::CSteamServer( )
 //-----------------------------------------------------------------------------
 // Purpose: Destructor
 //-----------------------------------------------------------------------------
-CSteamServer::~CSteamServer()
+CServer::~CServer()
 {
-#ifdef USE_GS_AUTH_API
-	// Notify Steam master server we are going offline
-	SteamGameServer()->EnableHeartbeats( false );
-#endif
-
+	/*
 	for( uint32 i=0; i < MAX_PLAYERS_PER_SERVER; ++i )
 	{
 		if ( m_rgpPlayer[i] )
@@ -155,9 +153,17 @@ CSteamServer::~CSteamServer()
 
 	// release our reference to the steam client library
 	SteamGameServer_Shutdown();
+	*/
 }
 
+int CServer::IsServerRunning()
+{
+	return 1;
+	//if ( m_bConnectedToSteam ) return 1;
+	//return 0;
+}
 
+/* see what of rest we need when we need it
 //-----------------------------------------------------------------------------
 // Purpose: Handle clients connecting
 //-----------------------------------------------------------------------------
@@ -382,15 +388,6 @@ void CSteamServer::OnAuthCompleted( bool bAuthSuccessful, uint32 iPendingAuthInd
 			if ( m_rgClientData[i].m_bActive )
 				++uPlayers;
 		}
-
-		// If we just got the second player, immediately reset round as a draw.  This will prevent
-		// the existing player getting a win, and it will cause a new round to start right off
-		// so that the one player can't just float around not letting the new one get into the game.
-		/*if ( uPlayers == 2 )
-		{
-			if ( m_eGameState != k_EServerWaitingForPlayers )
-				SetGameState( k_EServerDraw );
-		}*/
 	}
 }
 
@@ -428,42 +425,6 @@ void CSteamServer::AddPlayer( uint32 uPosition )
 	m_rgpPlayer[uPosition]->y = 0;
 	m_rgpPlayer[uPosition]->z = 0;
 	m_rgpPlayer[uPosition]->angle = 0;
-
-	/*switch( uPosition )
-	{
-	case 0:
-		m_rgpPlayer[uPosition] = new CPlayer();
-		m_rgpPlayer[uPosition]->x = 0;
-		m_rgpPlayer[uPosition]->y = 0;
-		m_rgpPlayer[uPosition]->z = 0;
-		m_rgpPlayer[uPosition]->angle = 0;
-		break;
-	case 1:
-		m_rgpPlayer[uPosition] = new CPlayer();
-		m_rgpPlayer[uPosition]->x = 0;
-		m_rgpPlayer[uPosition]->y = 0;
-		m_rgpPlayer[uPosition]->z = 100;
-		m_rgpPlayer[uPosition]->angle = 0;
-		break;
-	case 2:
-		m_rgpPlayer[uPosition] = new CPlayer();
-		m_rgpPlayer[uPosition]->x = 100;
-		m_rgpPlayer[uPosition]->y = 0;
-		m_rgpPlayer[uPosition]->z = 0;
-		m_rgpPlayer[uPosition]->angle = 0;
-		break;
-	case 3:
-		m_rgpPlayer[uPosition] = new CPlayer();
-		m_rgpPlayer[uPosition]->x = 100;
-		m_rgpPlayer[uPosition]->y = 0;
-		m_rgpPlayer[uPosition]->z = 100;
-		m_rgpPlayer[uPosition]->angle = 0;
-		break;
-	default:
-		OutputDebugString( "AddPlayer() code needs updating for more than 4 players\n" );
-	}*/
-
-
 }
 
 
@@ -527,12 +488,9 @@ void CSteamServer::ResetPlayers()
 		}
 	}
 }
+*/
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Used to transition game state
-//-----------------------------------------------------------------------------
-void CSteamServer::SetGameState( EServerGameState eState )
+void CServer::SetGameState( EServerGameState eState )
 {
 	if ( m_eGameState == eState )
 		return;
@@ -540,19 +498,16 @@ void CSteamServer::SetGameState( EServerGameState eState )
 	// If we were in waiting for players and are now going active clear old scores
 	if ( m_eGameState == k_EServerWaitingForPlayers && eState == k_EServerActive )
 	{
-		ResetScores();
-		ResetPlayers();
+		//ResetScores();
+		//ResetPlayers();
 	}
 
 	m_ulStateTransitionTime = (uint64)GetCounterPassedTotal(); // dave
 	m_eGameState = eState;
 }
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Receives incoming network data
-//-----------------------------------------------------------------------------
-void CSteamServer::ReceiveNetworkData()
+/*
+void CServer::ReceiveNetworkData ( EMessage eMsg, char* pchRecvBuf, uint32 cubMsgSize )
 {
 	char *pchRecvBuf = NULL;
 	uint32 cubMsgSize;
@@ -581,6 +536,8 @@ void CSteamServer::ReceiveNetworkData()
 			if ( DEBUG_FLAG_ON )
 				log("Server Message Received" , eMsg );
 #endif
+*/
+		/*
 		switch ( eMsg )
 		{
 		case k_EMsgReceipt:
@@ -589,24 +546,6 @@ void CSteamServer::ReceiveNetworkData()
 				{
 					MsgReceipt_t* pmsg = (MsgReceipt_t*)pchRecvBuf;
 					int index = pmsg->logID;
-
-#ifdef _DEBUG_LOG_
-			if ( DEBUG_FLAG_ON )
-			{
-				int found = -1;
-				for ( unsigned int i = 0; i < PacketSend_Log_Server.size() ; i++ )
-				{
-					if ( PacketSend_Log_Server[i].LogID == pmsg->logID ) 
-					{
-						found = i;
-						break;
-					}
-				}
-
-				log("Server Message Receipt Code" , PacketSend_Log_Server[found].packetType );
-			}
-#endif
-
 					GotReceipt(index);
 				}
 			} break;
@@ -1309,20 +1248,6 @@ void CSteamServer::ReceiveNetworkData()
 								break;
 							}
 						}
-
-						// everyone is ready to play, send out the message to start the game proper
-						/*if ( allReady )
-						{
-							MsgClientEveryoneReadyToPlay_t msg ;
-
-							for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
-							{
-								if ( m_rgpPlayer[i] )
-								{
-									SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, &msg, sizeof(MsgClientEveryoneReadyToPlay_t), k_EP2PSendReliable );
-								}
-							}
-						}*/
 					}
 				}
 			}
@@ -1426,17 +1351,22 @@ void CSteamServer::ReceiveNetworkData()
 			rgch[ sizeof(rgch) - 1 ] = 0;
 			OutputDebugString( rgch );
 		}
+		*/
+/*
 	}
 
 	if ( pchRecvBuf )
 		free( pchRecvBuf );
+
 }
+*/
 
 //-----------------------------------------------------------------------------
 // Purpose: Main frame function, updates the state of the world and performs rendering
 //-----------------------------------------------------------------------------
-void CSteamServer::RunFrame()
+void CServer::RunFrame()
 {
+	/*
 	// Run any Steam Game Server API callbacks
 	SteamGameServer_RunCallbacks();
 
@@ -1539,9 +1469,10 @@ void CSteamServer::RunFrame()
 
 	// Send client updates (will internal limit itself to the tick rate desired)
 	SendUpdateDataToAllClients();
+	*/
 }
 
-
+/*
 //-----------------------------------------------------------------------------
 // Purpose: Sends updates to all connected clients
 //-----------------------------------------------------------------------------
@@ -1583,7 +1514,7 @@ void CSteamServer::SendUpdateDataToAllClients()
 //-----------------------------------------------------------------------------
 // Purpose: Receives update data from clients
 //-----------------------------------------------------------------------------
-void CSteamServer::OnReceiveClientUpdateData( uint32 uIndex, ClientSteamUpdateData_t *pUpdateData )
+void CSteamServer::OnReceiveClientUpdateData( uint32 uIndex, ClientUpdateData_t *pUpdateData )
 {
 	if ( m_rgClientData[uIndex].m_bActive && m_rgpPlayer[uIndex] )
 	{
@@ -1591,30 +1522,6 @@ void CSteamServer::OnReceiveClientUpdateData( uint32 uIndex, ClientSteamUpdateDa
 		m_rgpPlayer[uIndex]->OnReceiveClientUpdate( pUpdateData );
 	}
 }
-
-
-//-----------------------------------------------------------------------------
-// Purpose: Checks various game objects for collisions and updates state 
-//			appropriately if they have occurred
-//-----------------------------------------------------------------------------
-void CSteamServer::CheckForCollisions()
-{
-/*
-	// draw
-	if ( 0 ) // dave it is a draw - everyone dead
-	{
-		SetGameState( k_EServerDraw );
-	}
-	else if ( 0 ) // winner
-	{
-		// one player alive, they win
-		m_uPlayerWhoWonGame = 0; // dave the winner
-		m_rguPlayerScores[0]++; // dave winner
-		SetGameState( k_EServerWinner );
-	}
-	*/
-}
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Take any action we need to on Steam notifying us we are now logged in
@@ -1815,12 +1722,6 @@ void CSteamServer::KickPlayerOffServer( CSteamID steamID )
 		}
 	}
 	m_uPlayerCount = uPlayerCount;
-}
-
-int CSteamServer::SteamIsServerRunning()
-{
-	if ( m_bConnectedToSteam ) return 1;
-	return 0;
 }
 
 void CSteamServer::ResetTimeouts()
@@ -2047,11 +1948,6 @@ void CSteamServer::ServerEndGame( int index )
 
 void CSteamServer::CheckReceipts()
 {
-
-	/*char s[256];
-	sprintf ( s, "Server Outstanding:%d" , PacketSend_Log_Server.size() );
-	Print ( s );*/
-
 	double timeNow = GetCounterPassedTotal();
 
 	for ( unsigned int c = 0; c < PacketSend_Log_Server.size() ; c++ )
@@ -2120,3 +2016,4 @@ void CSteamServer::GotReceipt( int c )
 		PacketSend_Log_Server.erase(PacketSend_Log_Server.begin()+found);
 	}
 }
+*/

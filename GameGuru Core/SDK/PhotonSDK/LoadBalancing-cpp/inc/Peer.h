@@ -59,7 +59,7 @@ namespace ExitGames
 
 			typedef PhotonPeer super;
 
-			friend class Client;
+			friend class PhotonClient;
 		};
 
 

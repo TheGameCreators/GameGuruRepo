@@ -8707,7 +8707,6 @@ CDarkLUA::CDarkLUA()
 
 bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 {
-
 	if ( !VirtualFilename ) return false;
 	if ( strlen ( VirtualFilename ) < 3 ) return false;
 
@@ -8750,6 +8749,9 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 	}
 	// end of encrypted file check
 
+	// Workshop handling
+	#ifdef PHOTONMP
+	#else
 		char szWorkshopFilename[_MAX_PATH];
 		char szWorkshopFilenameFolder[_MAX_PATH];
 		char szWorkShopItemPath[_MAX_PATH];
@@ -8813,15 +8815,6 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 			strcat ( szTempName , "\\" );
 			strcat ( szTempName , szWorkshopFilenameFolder );
 
-			/*FILE* tempy = NULL;
-			tempy = fopen ( "f:\\DUMPFILE.txt" ,"a" );
-			if ( tempy )
-			{
-				fputs ( szTempName , tempy );
-				fputs ( "\n" , tempy );
-				fclose ( tempy );
-			}*/
-
 			FILE* tempFile = NULL;
 			tempFile = fopen ( szTempName ,"r" );
 			if ( tempFile )
@@ -8830,20 +8823,6 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 				int szTempNamelength = strlen(szTempName);
 				int virtualfilelength = strlen(VirtualFilename);				
 				strcpy ( VirtualFilename , szTempName );
-
-				/*FILE* tempy = NULL;
-				tempy = fopen ( "f:\\DUMPFILE.txt" ,"a" );
-				if ( tempy )
-				{					
-					fputs ( szWorkShopItemPath , tempy );
-					fputs ( "\n" , tempy );
-					fputs ( VirtualFilename , tempy );
-					fputs ( "\n" , tempy );
-					fputs ( "============" , tempy );
-					fputs ( "\n" , tempy );
-					fclose ( tempy );
-				}*/
-
 				return true;
 			}
 			else // check for encrypted version
@@ -8870,9 +8849,8 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 				}
 			}
 		}
-
+	#endif
 	return false;
-	// END OF CHECK FOR WORKSHOP ITEM
 }
 
 

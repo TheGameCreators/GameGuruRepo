@@ -1,13 +1,7 @@
-//========= Copyright © 1996-2008, Valve LLC, All rights reserved. ============
-//
-// Purpose: Main class for the space war game server
-//
-// $NoKeywords: $
-//=============================================================================
+#ifndef SERVER_H
+#define SERVER_H
 
-#ifndef STEAMSERVER_H
-#define STEAMSERVER_H
-
+// Includes
 #include "PhotonMultiplayer.h"
 #include "CPlayer.h"
 
@@ -21,15 +15,19 @@ struct ClientConnectionData_t
 	uint64 m_ulTickCountLastData;	// What was the last time we got data from the player?
 };
 
-class CSteamServer
+class CServer
 {
 public:
-	//Constructor
-	CSteamServer( );
+	CServer( );
+	~CServer();
 
-	// Destructor
-	~CSteamServer();
+	int IsServerRunning();
+	bool IsConnectedToSteam()		{ return m_bConnectedToSteam; }
 
+	void RunFrame();
+	void SetGameState( EServerGameState eState );
+
+	/*
 	bool ShouldISend ( int p , int id, float thisx, float thisy, float thisz, int playerID );
 
 	void ServerCheckEveryoneIsLoadedAndReady();
@@ -42,14 +40,14 @@ public:
 	// Run a game frame
 	void RunFrame();
 
-	int SteamIsServerRunning();
-
 	// Set game state
 	void SetGameState( EServerGameState eState );
+	*/
 
 	// Checks for any incoming network data, then dispatches it
-	void ReceiveNetworkData();
+	//void ReceiveNetworkData ( EMessage eMsg, char* pchRecvBuf, uint32 cubMsgSize );
 
+	/*
 	// Reset player scores (occurs when starting a new game)
 	void ResetScores();
 
@@ -67,18 +65,16 @@ public:
 	void ServerEndGame( int index );
 
 	// data accessors
-	bool IsConnectedToSteam()		{ return m_bConnectedToSteam; }
 	CSteamID GetSteamID();
 
 	int AvatarCheck( int check );
+	*/
 
 private:
-	//
-	// Various callback functions that Steam will call to let us know about events related to our
-	// connection to the Steam servers for authentication purposes.
-	//
 
+	bool m_bConnectedToSteam;
 
+	/*
 	// Tells us when we have successfully connected to Steam
 	STEAM_GAMESERVER_CALLBACK( CSteamServer, OnSteamServersConnected, SteamServersConnected_t, m_CallbackSteamServersConnected );
 
@@ -107,7 +103,7 @@ private:
 	void SendUpdatedServerDetailsToSteam();
 
 	// Receive updates from client
-	void OnReceiveClientUpdateData( uint32 uIndex, ClientSteamUpdateData_t *pUpdateData );
+	void OnReceiveClientUpdateData( uint32 uIndex, ClientUpdateData_t *pUpdateData );
 
 	// Send data to a client at the given ship index
 	bool BSendDataToClient( uint32 uShipIndex, char *pData, uint32 nSizeOfData );
@@ -130,10 +126,6 @@ private:
 	// Send world update to all clients
 	void SendUpdateDataToAllClients();
 
-	// Track whether our server is connected to Steam ok (meaning we can restrict who plays based on 
-	// ownership and VAC bans, etc...)
-	bool m_bConnectedToSteam;
-
 	// Ships for players, doubles as a way to check for open slots (pointer is NULL meaning open)
 	CPlayer *m_rgpPlayer[MAX_PLAYERS_PER_SERVER];
 
@@ -145,6 +137,7 @@ private:
 
 	// Who just won the game? Should be set if we go into the k_EGameWinner state
 	uint32 m_uPlayerWhoWonGame;
+	*/
 
 	// Last time state changed
 	uint64 m_ulStateTransitionTime;
@@ -158,6 +151,7 @@ private:
 	// Current game state
 	EServerGameState m_eGameState;
 
+	/*
 	// Vector to keep track of client connections
 	ClientConnectionData_t m_rgClientData[MAX_PLAYERS_PER_SERVER];
 
@@ -166,10 +160,10 @@ private:
 
 	void CheckReceipts();
 	void GotReceipt( int c );
+	*/
 };
 
-extern CSteamServer *g_pServer;
-CSteamServer *Server();
+extern CServer *g_pServer;
+CServer *Server();
 
-
-#endif // STEAMSERVER_H
+#endif // SERVER_H

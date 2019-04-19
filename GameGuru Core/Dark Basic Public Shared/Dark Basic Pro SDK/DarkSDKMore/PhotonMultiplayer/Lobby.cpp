@@ -5,6 +5,7 @@
 //
 //=============================================================================
 
+/*
 #include "stdafx.h"
 #include "Lobby.h"
 #include "CClient.h"
@@ -368,3 +369,4 @@ void CLobbyBrowser::OnLobbyDataUpdatedCallback( LobbyDataUpdate_t *pCallback )
 		}
 	}
 }
+*/

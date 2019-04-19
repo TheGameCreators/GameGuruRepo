@@ -1,33 +1,15 @@
-﻿//========= Copyright � 1996-2008, Valve LLC, All rights reserved. ============
-//
-// Purpose: Main class for the space war game client
-//
-// $NoKeywords: $
-//=============================================================================
-
-#ifndef Client_H
+﻿#ifndef Client_H
 #define Client_H
 
-
+// Includes
 #include "CPlayer.h"
 #include "PhotonMultiplayer.h"
 #include "Messages.h"
-#include "StatsAndAchievements.h"
-#include "RemoteStorage.h"
+#include "LoadBalancingListener.h"
 
 // Forward class declaration
-/*class CConnectingMenu;
-class CMainMenu; 
-class CQuitMenu;*/
-class CSteamServer;
-class CServerBrowser;
-class CLobbyBrowser;
-class CLobby;
-class CLeaderboards;
-class CClanChatRoom;
-class CP2PAuthPlayer;
-class CP2PAuthedGame;
-class CVoiceChat;
+class CServer;
+//class CVoiceChat;
 
 // Height of the HUD font
 #define HUD_FONT_HEIGHT 18
@@ -43,80 +25,22 @@ enum EClientConnectionState
 	k_EClientConnectedAndAuthenticated,				// Final phase, server has authed us, we are actually able to play on it
 };
 
-// a game server as shown in the find servers menu
-struct ServerBrowserMenuData_t
-{
-	EClientGameState m_eStateToTransitionTo;
-	CSteamID m_steamIDGameServer;
-};
-
-// a lobby as shown in the find lobbies menu
-struct LobbyBrowserMenuItem_t
-{
-	CSteamID m_steamIDLobby;
-	EClientGameState m_eStateToTransitionTo;
-};
-
-// a user as shown in the lobby screen
-struct LobbyMenuItem_t
-{
-	enum ELobbyMenuItemCommand
-	{
-		k_ELobbyMenuItemUser,
-		k_ELobbyMenuItemStartGame,
-		k_ELobbyMenuItemToggleReadState,
-		k_ELobbyMenuItemLeaveLobby,
-		k_ELobbyMenuItemInviteToLobby
-	};
-
-	CSteamID m_steamIDUser;		// the user who this is in the lobby
-	ELobbyMenuItemCommand m_eCommand;
-	CSteamID m_steamIDLobby;	// set if k_ELobbyMenuItemInviteToLobby	
-};
-
-// a leaderboard item
-struct LeaderboardMenuItem_t
-{
-	bool m_bBack;
-	bool m_bNextLeaderboard;
-};
-
-#define MAX_WORKSHOP_ITEMS 16
-
-// a Steam Workshop item
-/*class CWorkshopItem : public CVectorEntity
-{
-public:
-
-	CWorkshopItem( uint32 uCollisionRadius ) : CVectorEntity( uCollisionRadius )
-	{
-		memset( &m_ItemDetails, 0, sizeof(m_ItemDetails) );
-	}
-	
-	void OnUGCDetailsResult(SteamUGCRequestUGCDetailsResult_t *pCallback, bool bIOFailure)
-	{
-		m_ItemDetails = pCallback->m_details;
-	}
-
-	SteamUGCDetails_t m_ItemDetails; // meta data
-	CCallResult<CWorkshopItem, SteamUGCRequestUGCDetailsResult_t> m_SteamCallResultUGCDetails;
-};*/
-
-
-
-
 class CClient 
 {
 public:
 	//Constructor
 	CClient( void );
-
-	// Shared init for all constructors
-	void Init( void );
-
-	// Destructor
 	~CClient();
+	void Init();// LoadBalancingListener* mpLbl );
 
+	//LoadBalancingListener* m_pLbl;
+
+	void StartServer();
+	int IsServerRunning();
+	int IsGameRunning();
+	int GetMyPlayerIndex();
+	
+	/*
 	void SteamCreateLobby();
 	int SteamIsLobbyCreated();
 	void SteamGetLobbyList();
@@ -130,7 +54,6 @@ public:
 	int SteamHasJoinedLobby();
 	int SteamGetUsersInLobbyCount();
 	int SteamIsGameRunning();
-	int SteamGetMyPlayerIndex();
 	void SteamSetPlayerPositionX( float _x);
 	void SteamSetPlayerPositionY( float _y );
 	void SteamSetPlayerPositionZ( float _z );
@@ -184,57 +107,29 @@ public:
 	void SteamEndGame();
 	void AvatarSendWeHaveHeadTextureToServer(int flag);
 	void SteamSendAvatarFileClient ( int index , LPSTR pString );
+	*/
 
 	// Run a game frame
 	void RunFrame();
 
 	// Checks for any incoming network data, then dispatches it
-	void ReceiveNetworkData();
+	void ReceiveNetworkData ( EMessage eMsg, char* pchRecvBuf, uint32 cubMsgSize );
 
-	// Connect to a server at a given IP address or game server steamID
-	void InitiateServerConnection( CSteamID steamIDGameServer );
-	void InitiateServerConnection( uint32 unServerAddress, const int32 nPort );
-
+	/*
 	// Send data to a client at the given ship index
 	bool BSendServerData( const void *pData, uint32 nSizeOfData );
 
 	// Menu callback handler (handles a bunch of menus that just change state with no extra data)
 	void OnMenuSelection( EClientGameState eState ) { SetGameState( eState ); }
 
-	// Menu callback handler (handles server browser selections with extra data)
-	void OnMenuSelection( ServerBrowserMenuData_t selection ) 
-	{ 
-		if ( selection.m_eStateToTransitionTo == k_EClientGameConnecting )
-		{
-			InitiateServerConnection( selection.m_steamIDGameServer );
-		}
-		else
-		{
-			SetGameState( selection.m_eStateToTransitionTo ); 
-		}
-	}
-
-	void OnMenuSelection( LobbyBrowserMenuItem_t selection )
-	{
-		// start joining the lobby
-		if ( selection.m_eStateToTransitionTo == k_EClientJoiningLobby )
-		{
-			SteamAPICall_t hSteamAPICall = SteamMatchmaking()->JoinLobby( selection.m_steamIDLobby );
-			// set the function to call when this API completes
-			m_SteamCallResultLobbyEntered.Set( hSteamAPICall, this, &CClient::OnLobbyEntered );
-		}
-
-		SetGameState( selection.m_eStateToTransitionTo );
-	}
-
-	void OnMenuSelection( LobbyMenuItem_t selection );
-	void OnMenuSelection( LeaderboardMenuItem_t selection );
 	void OnMenuSelection( ERemoteStorageSyncMenuCommand selection );
+	*/
 
 	// Set game state
 	void SetGameState( EClientGameState eState );
 	EClientGameState GetGameState() { return m_eGameState; }
 
+	/*
 	// set failure text
 	void SetConnectionFailureText( const char *pchErrorText );
 
@@ -252,26 +147,28 @@ public:
 
 	// Scale screen size to "real" size
 	float PixelsToFeet( float flPixels );
-
-	void RetrieveEncryptedAppTicket();
-
-	void ExecCommandLineConnect( const char *pchServerAddress, const char *pchLobbyID );
+	*/
 
 	double timeElapsed;
-
 	bool m_gotPlayerInfoFromServer;
 
 private:
 
+	// Our player position in the array below
+	uint32 m_uPlayerIndex;
+
+	/*
 	// Receive a response from the server for a connection attempt
 	void OnReceiveServerInfo( CSteamID steamIDGameServer, bool bVACSecure, const char *pchServerName );
 
 	// Receive a response from the server for a connection attempt
 	void OnReceiveServerAuthenticationResponse( bool bSuccess, uint32 uPlayerPosition );
+	*/
 
 	// Receive a state update from the server
-	void OnReceiveServerUpdate( ServerSteamUpdateData_t *pUpdateData );
+	void OnReceiveServerUpdate( ServerUpdateData_t *pUpdateData );
 
+	/*
 	// Handle the server exiting
 	void OnReceiveServerExiting();
 
@@ -302,27 +199,21 @@ private:
 	// Updates what we show to friends about what we're doing and how to connect
 	void UpdateRichPresenceConnectionInfo();
 
-	// Draw description for all subscribed workshop items
-//	void DrawWorkshopItems();
-
-	// load subscribed workshop items
-//	void LoadWorkshopItems();
-
-	// load a workshop item from file
-//	bool LoadWorkshopItem( PublishedFileId_t workshopItemID );
-//	CWorkshopItem *LoadWorkshopItemFromFile( const char *pszFileName );
-
 	// SteamID for the local user on this client
 	CSteamID m_SteamIDLocalUser;
 
-	// Our player position in the array below
-	uint32 m_uPlayerIndex;
-
 	// List of steamIDs for each player
 	CSteamID m_rgSteamIDPlayers[MAX_PLAYERS_PER_SERVER];
+	*/
 
 	//Players, doubles as a way to check for open slots (pointer is NULL meaning open)
 	public:
+
+	CServer *m_pServer;
+
+	EClientGameState m_eGameState;
+
+	/*
 	// Server we are connected to
 	CSteamServer *m_pServer;
 	CPlayer *m_rgpPlayer[MAX_PLAYERS_PER_SERVER];
@@ -335,9 +226,6 @@ private:
 
 	// Who just won the game? Should be set if we go into the k_EGameWinner state
 	uint32 m_uPlayerWhoWonGame;
-
-	// Current game state
-	EClientGameState m_eGameState;
 
 	// true if we only just transitioned state
 	bool m_bTransitionedGameState;
@@ -356,12 +244,6 @@ private:
 
 	// Text to display if we are in an error state
 	char m_rgchErrorText[256];
-
-	// Server address data
-	CSteamID m_steamIDGameServer;
-	uint32 m_unServerIP;
-	uint16 m_usServerPort;
-	HAuthTicket m_hAuthTicket;
 
 	// keep track of if we opened the overlay for a gamewebcallback
 	bool m_bSentWebOpen;
@@ -403,94 +285,25 @@ private:
 		{
 			m_hGameServerQuery = HSERVERQUERY_INVALID;
 		}
+	*/
 
+	/*
 	private:
 		HServerQuery m_hGameServerQuery;	// we're ping a game server, so we can convert IP:Port to a steamID
 		CClient *m_pSpaceWarsClient;
 	};
 	CGameServerPing m_GameServerPing;
-	
+	*/
 
 	// Track whether we are connected to a server (and what specific state that connection is in)
 	EClientConnectionState m_eConnectedStatus;
 
-	// Steam Workshop items
-	//CWorkshopItem *m_rgpWorkshopItems[ MAX_WORKSHOP_ITEMS ];
-	//int m_nNumWorkshopItems; // items in m_rgpWorkshopItems
-
-	// Main menu instance
-	/*CMainMenu *m_pMainMenu;
-
-	// Connecting menu instance
-	CConnectingMenu *m_pConnectingMenu;
-
-	// Pause menu instance
-	CQuitMenu *m_pQuitMenu;*/
-
-	CStatsAndAchievements *m_pStatsAndAchievements;
-
-	CLeaderboards *m_pLeaderboards;
-	CClanChatRoom *m_pClanChatRoom;
-	CServerBrowser *m_pServerBrowser;
-
-	CRemoteStorage *m_pRemoteStorage;
-
-	// lobby handling
-	// the name of the lobby we're connected to
-	CSteamID m_steamIDLobby;
-	// callback for when we're creating a new lobby
-	void OnLobbyCreated( LobbyCreated_t *pCallback, bool bIOFailure );
-	CCallResult<CClient, LobbyCreated_t> m_SteamCallResultLobbyCreated;
-
-	// callback for when we've joined a lobby
-	void OnLobbyEntered( LobbyEnter_t *pCallback, bool bIOFailure );
-	CCallResult<CClient, LobbyEnter_t> m_SteamCallResultLobbyEntered;
-
-	// callback for when the lobby game server has started
-	STEAM_CALLBACK( CClient, OnLobbyGameCreated, LobbyGameCreated_t, m_LobbyGameCreated );
-	STEAM_CALLBACK( CClient, OnGameJoinRequested, GameRichPresenceJoinRequested_t, m_GameJoinRequested );
-	STEAM_CALLBACK( CClient, OnAvatarImageLoaded, AvatarImageLoaded_t, m_AvatarImageLoadedCreated );
-	STEAM_CALLBACK( CClient, OnLobbyChatMessage , LobbyChatMsg_t, m_LobbyChatMsg );
-
-	// callbacks for Steam connection state
-	STEAM_CALLBACK( CClient, OnSteamServersConnected, SteamServersConnected_t, m_SteamServersConnected );
-	STEAM_CALLBACK( CClient, OnSteamServersDisconnected, SteamServersDisconnected_t, m_SteamServersDisconnected );
-	STEAM_CALLBACK( CClient, OnSteamServerConnectFailure, SteamServerConnectFailure_t, m_SteamServerConnectFailure );
-	STEAM_CALLBACK( CClient, OnGameOverlayActivated, GameOverlayActivated_t, m_CallbackGameOverlayActivated );
-	
-	// callback when getting the results of a web call
-	STEAM_CALLBACK( CClient, OnGameWebCallback, GameWebCallback_t, m_CallbackGameWebCallback );
-
-	// callback when new Workshop item was installed
-	STEAM_CALLBACK(CClient, OnWorkshopItemInstalled, ItemInstalled_t, m_CallbackWorkshopItemInstalled);
-
-	// lobby browser menu
-	CLobbyBrowser *m_pLobbyBrowser;
-
-	// local lobby display
-	CLobby *m_pLobby;
-	
-	// p2p game auth manager
-	CP2PAuthedGame *m_pP2PAuthedGame;
-	
-	// connection handler
-	STEAM_CALLBACK( CClient, OnP2PSessionConnectFail, P2PSessionConnectFail_t, m_CallbackP2PSessionConnectFail );
-
-	// ipc failure handler
-	STEAM_CALLBACK( CClient, OnIPCFailure, IPCFailure_t, m_IPCFailureCallback );
-
-	// Steam wants to shut down, Game for Windows applications should shutdown too
-	STEAM_CALLBACK( CClient, OnSteamShutdown, SteamShutdown_t, m_SteamShutdownCallback );
-
-	// Called when SteamUser()->RequestEncryptedAppTicket() returns asynchronously
-	void OnRequestEncryptedAppTicket( EncryptedAppTicketResponse_t *pEncryptedAppTicketResponse, bool bIOFailure );
-	CCallResult< CClient, EncryptedAppTicketResponse_t > m_SteamCallResultEncryptedAppTicket;
-
 	bool m_bLastControllerStateInMenu;
 
 public:
-	// p2p voice chat 
-	CVoiceChat *m_pVoiceChat;
+
+	// voice chat 
+	//CVoiceChat *m_pVoiceChat;
 };
 
 // Must define this stuff before BaseMenu.h as it depends on calling back into us through these accessors

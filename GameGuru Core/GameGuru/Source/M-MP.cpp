@@ -664,12 +664,12 @@ void mp_loop ( void )
 				g.mp.needToResetOnStartup = 1;
 				t.toldsteamfolder_s=GetDir();
 				SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
-				t.tPlayerIndex = SteamGetMyPlayerIndex();
-				#ifdef PHOTONMP
-				 PhotonSetSendFileCount ( 1 );
-				#else
-				 SteamSetSendFileCount ( 1 );
-				#endif
+				t.tPlayerIndex = PhotonGetMyPlayerIndex();
+				//#ifdef PHOTONMP - done later!!
+				// PhotonSetSendFileCount ( 1 );
+				//#else
+				// SteamSetSendFileCount ( 1 );
+				//#endif
 			}
 			else
 			{
@@ -705,6 +705,7 @@ void mp_loop ( void )
 		if ( g.mp.iHaveSaidIAmReady == 0 ) 
 		{
 			#ifdef PHOTONMP
+			 PhotonSetThisPlayerAsCurrentServer ( );
 			 PhotonSendIAmLoadedAndReady ( );
 			#else
 			 SteamSendIAmLoadedAndReady ( );
@@ -724,7 +725,10 @@ void mp_loop ( void )
 				if ( Timer() - t.tsteamiseveryoneloadedandreadytime > 1000 ) 
 				{
 					t.tsteamiseveryoneloadedandreadytime = Timer();
-					if ( SteamIsEveryoneLoadedAndReady() == 1 ) t.tempsteamingameinitialwaitingdelay = -30000;
+					if ( PhotonIsEveryoneLoadedAndReady() == 1 )
+					{
+						t.tempsteamingameinitialwaitingdelay = -30000;
+					}
 				}
 			}
 			t.tskipLevelSync = Timer();
@@ -1237,16 +1241,11 @@ void mp_delete_entities ( void )
 		}
 		SteamGetNextDestroy (  );
 	}
-
-
-return;
-
 }
 
 void mp_pre_game_file_sync ( void )
 {
-
-	if (  g.mp.isGameHost  ==  1 ) 
+	if ( g.mp.isGameHost == 1 ) 
 	{
 		mp_pre_game_file_sync_server ( );
 	}
@@ -1254,159 +1253,150 @@ void mp_pre_game_file_sync ( void )
 	{
 		mp_pre_game_file_sync_client ( );
 	}
-
-return;
-
 }
 
 void mp_pre_game_file_sync_server ( void )
 {
-
-//  if we have lost connection, head back to main menu
-t.tconnectionStatus = SteamGetClientServerConnectionStatus();
-if (  t.tconnectionStatus  ==  0 ) 
-{
-	t.tsteamconnectionlostmessage_s = "Lost Connection";
-	mp_lostConnection ( );
-	return;
-}
-
-mp_sendAvatarInfo ( );
-//  check if we have finished sending and receiving textures with the server
-//  (the actual process is handled by steam dll)
-if (  g.mp.isGameHost  ==  0 || g.mp.me  !=  0  )  return;
-if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 ) 
-{
-	t.tstring_s = "Syncing Avatars";
-	mp_textDots(-1,50,3,t.tstring_s.Get());
-	return;
-}
-
-	switch (  g.mp.syncedWithServerMode ) 
-	{
-
-		case 0:
-			//  for solo testing to prevent sending files
-			if (  g.mp.usersInServersLobbyAtServerCreation  ==  1 ) 
-			{
-				g.mp.syncedWithServerMode = 3;
-				return;
-			}
-	
-			g.mp.serverusingworkshop = 0;
-	
-			SteamSetSendFileCount (  1 );
-			if (  g.mp.levelContainsCustomContent  ==  0 ) 
-			{
-				SteamSendFileBegin (  1,"__multiplayerlevel__.fpm" );
-				g.mp.serverusingworkshop = 1;
-			}
-			else
-			{
-				t.tempsteamfiletosend_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
-				if (  FileExist (t.tempsteamfiletosend_s.Get())  ==  1  )  DeleteAFile (  t.tempsteamfiletosend_s.Get() );
-				if (  FileOpen(1)  )  CloseFile (  1 );
-				OpenToWrite (  1,t.tempsteamfiletosend_s.Get() );
-				WriteString (  1,g.mp.workshopid.Get() );
-				CloseFile (  1 );
-				SteamSendFileBegin (  1,"__multiplayerworkshopitemid__.dat" );
-			}
-			g.mp.syncedWithServerMode = 1;
-			mp_textDots(-1,30,3,"Setting up data for clients")  ;    
-
-		break;
-
-		case 1:
-			if (  SteamSendFileDone()  ==  1 ) 
-			{
-					g.mp.syncedWithServerMode = 2;
-			}
-				mp_textDots(-1,50,3,"Sending data to clients");
-		break;
-
-		case 2:
-			mp_textDots(-1,30,3,"Waiting for clients to receive data");
-
-			if (  SteamIsEveryoneFileSynced()  ==  1 ) 
-			{
-			//the client hosting the server needs to have loaded everything in also
-				SteamSendIAmLoadedAndReady (  );
-				g.mp.syncedWithServerMode = 3;
-				g.mp.oldtime = Timer();
-			}
-		break;
-
-	case 3:
-		if (  SteamIsEveryoneLoadedAndReady()  ==  1 ) 
-		{
-			if (  g.mp.serverusingworkshop  ==  1 ) 
-			{
-					mp_textDots(-1,30,3,"Waiting for clients to receive data");
-					if (  Timer() - g.mp.oldtime > 3000 ) 
-					{
-						g.mp.oldtime = Timer();
-						g.mp.syncedWithServer = 1;
-						g.mp.syncedWithServerMode = 99;
-						SetDir (  t.toldsteamfolder_s.Get() );
-						SetDir (  g.mp.originalpath.Get() );
-					}
-				}
-				else
-				{
-					g.mp.oldtime = Timer();
-					g.mp.syncedWithServer = 1;
-					g.mp.syncedWithServerMode = 99;
-					SetDir (  t.toldsteamfolder_s.Get() );
-					SetDir (  g.mp.originalpath.Get() );
-				}
-			}
-			else
-			{
-				if (  Timer() - g.mp.oldtime > 150 ) 
-				{
-					g.mp.oldtime = Timer();
-					t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
-					if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
-				}
-				if (  Timer() - t.tempMPsendingready > 2000 ) 
-				{
-					SteamSendIAmLoadedAndReady (  );
-					t.tempMPsendingready = Timer();
-				}
-				t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
-				mp_text(-1,50,3,t.tstring_s.Get());
-				t.tstring_s = "";
-			}
-	break;
-	}//~ ` 
-
-return;
-
-}
-
-void mp_pre_game_file_sync_client ( void )
-{
-	//  if we have lost connection, head back to main menu
-	t.tconnectionStatus = SteamGetClientServerConnectionStatus();
-	if (  t.tconnectionStatus  ==  0 ) 
+	// if we have lost connection, head back to main menu
+	t.tconnectionStatus = PhotonGetClientServerConnectionStatus();
+	if ( t.tconnectionStatus  ==  0 ) 
 	{
 		t.tsteamconnectionlostmessage_s = "Lost Connection";
 		mp_lostConnection ( );
 		return;
 	}
 
-	mp_sendAvatarInfo ( );
-	//  check if we have finished sending and receiving textures with the server
-	//  (the actual process is handled by steam dll)
-	if (  g.mp.isGameHost  ==  1 || g.mp.me  ==  0  )  return;
-	if (  SteamCheckSyncedAvatarTexturesWithServer()  ==  0 ) 
+	//mp_sendAvatarInfo ( );
+	// check if we have finished sending and receiving textures with the server
+	// (the actual process is handled by steam dll)
+	if ( g.mp.isGameHost == 0 || g.mp.me != 0 ) return;
+	//if ( SteamCheckSyncedAvatarTexturesWithServer() == 0 ) 
+	//{
+	//	t.tstring_s = "Syncing Avatars";
+	//	mp_textDots(-1,50,3,t.tstring_s.Get());
+	//	return;
+	//}
+
+	// file send transfer sequence
+	switch ( g.mp.syncedWithServerMode ) 
 	{
-		t.tstring_s = "Syncing Avatars";
-		mp_textDots(-1,50,3,t.tstring_s.Get());
+		case 0:
+			
+			// for solo testing to prevent sending files
+			if ( 0 ) // to test file transfer!! g.mp.usersInServersLobbyAtServerCreation  ==  1 ) 
+			{
+				g.mp.syncedWithServerMode = 3;
+				return;
+			}
+	
+			//g.mp.serverusingworkshop = 0;
+	
+			PhotonSetSendFileCount ( 1 );
+			//if ( g.mp.levelContainsCustomContent  ==  0 ) 
+			//{
+			PhotonSendFileBegin ( 1, "__multiplayerlevel__.fpm" );
+			//g.mp.serverusingworkshop = 1;
+			//}
+			//else
+			//{
+			//	t.tempsteamfiletosend_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
+			//	if (  FileExist (t.tempsteamfiletosend_s.Get())  ==  1  )  DeleteAFile (  t.tempsteamfiletosend_s.Get() );
+			//	if (  FileOpen(1)  )  CloseFile (  1 );
+			//	OpenToWrite (  1,t.tempsteamfiletosend_s.Get() );
+			//	WriteString (  1,g.mp.workshopid.Get() );
+			//	CloseFile (  1 );
+			//	SteamSendFileBegin (  1,"__multiplayerworkshopitemid__.dat" );
+			//}
+			g.mp.syncedWithServerMode = 1;
+			mp_textDots(-1,30,3,"Setting up data for clients")  ;    
+			break;
+
+		case 1:
+			mp_textDots(-1,50,3,"Sending data to clients");
+			if ( PhotonSendFileDone() == 1 ) 
+			{
+				g.mp.syncedWithServerMode = 2;
+			}
+			break;
+
+		case 2:
+			mp_textDots(-1,30,3,"Waiting for clients to receive data");
+			if ( PhotonIsEveryoneFileSynced() == 1 ) 
+			{
+				// the client hosting the server needs to have loaded everything in also
+				PhotonSendIAmLoadedAndReady (  );
+				g.mp.syncedWithServerMode = 3;
+				g.mp.oldtime = Timer();
+			}
+			break;
+
+		case 3:
+			if ( PhotonIsEveryoneLoadedAndReady() == 1 ) 
+			{
+				//if ( g.mp.serverusingworkshop == 1 ) 
+				//{
+				//	mp_textDots(-1,30,3,"Waiting for clients to receive data");
+				//	if (  Timer() - g.mp.oldtime > 3000 ) 
+				//	{
+				//		g.mp.oldtime = Timer();
+				//		g.mp.syncedWithServer = 1;
+				//		g.mp.syncedWithServerMode = 99;
+				//		SetDir (  t.toldsteamfolder_s.Get() );
+				//		SetDir (  g.mp.originalpath.Get() );
+				//	}
+				//}
+				//else
+				//{
+				g.mp.oldtime = Timer();
+				g.mp.syncedWithServer = 1;
+				SetDir ( t.toldsteamfolder_s.Get() );
+				SetDir ( g.mp.originalpath.Get() );
+				g.mp.syncedWithServerMode = 99;
+				//}
+			}
+			else
+			{
+				if ( Timer() - g.mp.oldtime > 150 ) 
+				{
+					g.mp.oldtime = Timer();
+					t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
+					if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
+				}
+				if ( Timer() - t.tempMPsendingready > 2000 ) 
+				{
+					PhotonSendIAmLoadedAndReady ( );
+					t.tempMPsendingready = Timer();
+				}
+				t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
+				mp_text(-1,50,3,t.tstring_s.Get());
+			}
+			break;
+	} 
+}
+
+void mp_pre_game_file_sync_client ( void )
+{
+	// if we have lost connection, head back to main menu
+	t.tconnectionStatus = SteamGetClientServerConnectionStatus();
+	if ( t.tconnectionStatus == 0 ) 
+	{
+		t.tsteamconnectionlostmessage_s = "Lost Connection";
+		mp_lostConnection ( );
 		return;
 	}
 
-	if ( SteamGetClientServerConnectionStatus()  ==  0 ) 
+	//mp_sendAvatarInfo ( );
+	// check if we have finished sending and receiving textures with the server
+	// (the actual process is handled by steam dll)
+	if ( g.mp.isGameHost == 1 || g.mp.me == 0 )  return;
+	//if ( PhotonCheckSyncedAvatarTexturesWithServer() == 0 ) 
+	//{
+	//	t.tstring_s = "Syncing Avatars";
+	//	mp_textDots(-1,50,3,t.tstring_s.Get());
+	//	return;
+	//}
+
+	if ( PhotonGetClientServerConnectionStatus() == 0 ) 
 	{
 		t.tsteamlostconnectioncustommessage_s = "Lost connect to server (Error MP010)";
 		g.mp.backtoeditorforyou = 0;
@@ -1415,29 +1405,30 @@ void mp_pre_game_file_sync_client ( void )
 		return;
 	}
 
-	switch (  g.mp.syncedWithServerMode ) 
+	switch ( g.mp.syncedWithServerMode ) 
 	{
 		case 0:
-			if (  SteamAmIFileSynced()  ==  1 ) 
+
+			if ( PhotonAmIFileSynced() == 1 ) 
 			{
-				t.tempMPshopidfile_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
-				if (  FileExist(t.tempMPshopidfile_s.Get()) ) 
-				{
-					if (  FileOpen(10)  ==  1  )  CloseFile (  10 );
-					OpenToRead (  10,t.tempMPshopidfile_s.Get() );
-					g.mp.workshopid = ReadString ( 10 );
-					CloseFile (  10 );
-					cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
-					if (  FileExist( mlevel_s.Get() ) )  DeleteAFile ( mlevel_s.Get() );
-					SteamDownloadWorkshopItem (  g.mp.workshopid.Get() );
-					g.mp.syncedWithServerMode = 2;
-				}
-				else
-				{
-					g.mp.fileLoaded = 1;
-					SteamSendIAmLoadedAndReady (  );
-					g.mp.syncedWithServerMode = 1;
-				}
+				//t.tempMPshopidfile_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
+				//if ( FileExist(t.tempMPshopidfile_s.Get()) ) 
+				//{
+				//	if ( FileOpen(10) == 1 ) CloseFile ( 10 );
+				//	OpenToRead (  10,t.tempMPshopidfile_s.Get() );
+				//	g.mp.workshopid = ReadString ( 10 );
+				//	CloseFile (  10 );
+				//	cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
+				//	if ( FileExist( mlevel_s.Get() ) ) DeleteAFile ( mlevel_s.Get() );
+				//	SteamDownloadWorkshopItem ( g.mp.workshopid.Get() );
+				//	g.mp.syncedWithServerMode = 2;
+				//}
+				//else
+				//{
+				g.mp.fileLoaded = 1;
+				SteamSendIAmLoadedAndReady (  );
+				g.mp.syncedWithServerMode = 1;
+				//}
 			}
 			else
 			{
@@ -1445,35 +1436,36 @@ void mp_pre_game_file_sync_client ( void )
 				t.tstring_s = cstr("Receiving '")+g.mp.levelnametojoin+"': " + Str(t.tProgress) + "%";
 				mp_text(-1,85,3,t.tstring_s.Get());
 			}
-		break;
+			break;
 
 		case 1:
-			if (  SteamIsEveryoneLoadedAndReady()  ==  1 ) 
+			if ( SteamIsEveryoneLoadedAndReady()  ==  1 ) 
 			{
 				g.mp.syncedWithServer = 1;
+				SetDir ( t.toldsteamfolder_s.Get() );
+				SetDir ( g.mp.originalpath.Get() );
 				g.mp.syncedWithServerMode = 99;
-				SetDir (  t.toldsteamfolder_s.Get() );
-				SetDir (  g.mp.originalpath.Get() );
 			}
-			else
-			{
-				if (  Timer() - g.mp.oldtime > 150 ) 
-				{
-					g.mp.oldtime = Timer();
-					t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
-					if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
-				}
-				if (  Timer() - t.tempMPsendingready > 2000 ) 
-				{
-					SteamSendIAmLoadedAndReady (  );
-					t.tempMPsendingready = Timer();
-				}
-				t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
-				mp_text(-1,50,3,t.tstring_s.Get());
-				t.tstring_s = "";
-			}
-		break;
+			//else
+			//{
+			//	if ( Timer() - g.mp.oldtime > 150 ) 
+			//	{
+			//		g.mp.oldtime = Timer();
+			//		t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
+			//		if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
+			//	}
+			//	if (  Timer() - t.tempMPsendingready > 2000 ) 
+			//	{
+			//		SteamSendIAmLoadedAndReady (  );
+			//		t.tempMPsendingready = Timer();
+			//	}
+			//	t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
+			//	mp_text(-1,50,3,t.tstring_s.Get());
+			//	t.tstring_s = "";
+			//}
+			break;
 
+		/*
 		case 2:
 			if (  SteamIsWorkshopItemDownloaded()  ==  -1 ) 
 			{
@@ -1509,8 +1501,8 @@ void mp_pre_game_file_sync_client ( void )
 				mp_text(-1,50,3,t.tstring_s.Get());
 				t.tstring_s = "";
 			}
-		break;
-
+			break;
+		*/
 	} 
 	return;
 }
@@ -4904,8 +4896,6 @@ return;
 void mp_resetGameStats ( void )
 {
 	mp_nukeTestmap ( );
-	//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm").Get() );
-	//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get())  )  DeleteAFile (  cstr(g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat").Get() );
 	cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
 	if ( FileExist( mlevel_s.Get())  )  DeleteAFile ( mlevel_s.Get() );
 	cstr mlevelworkshop_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerworkshopitemid__.dat";
@@ -4931,7 +4921,7 @@ void mp_resetGameStats ( void )
 	 if ( PhotonGetPlayerName() != NULL )
 	 {
 		g.mp.playerName = PhotonGetPlayerName();
-		g.mp.playerID = 123;//PhotonGetPlayerID(); // not used it seems
+		g.mp.playerID = 123;//PhotonGetPlayerID();
 	 }
 	#else
 	 if ( SteamGetPlayerName() != NULL )

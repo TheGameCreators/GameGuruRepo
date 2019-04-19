@@ -12,11 +12,9 @@
 #include "stdlib.h"
 #include "time.h"
 #include "ServerBrowser.h"
-#include "Leaderboards.h"
 #include "Lobby.h"
 #include "p2pauth.h"
-#include "voicechat.h"
-#include "steam/steamencryptedappticket.h"
+//#include "voicechat.h"
 #include "globstruct.h"
 #ifdef WIN32
 #include <direct.h>
@@ -25,17 +23,9 @@
 #define _getcwd getcwd
 #endif
 
-#ifdef _DEBUG_LOG_
-int DEBUG_FLAG_ON = 0;
-#endif
-
-//#define INTERPOLATE_SMOOTHING 0.15
-//#define INTERPOLATE_SMOOTHING 0.25
-//#define INTERPOLATE_SMOOTHING 0.1f // prevous setting, too smooth and skiddy
-// This works great - DO NOT CHANGE!!!!!!!!!!!!!!!!
-#define INTERPOLATE_SMOOTHING 0.2f
-#define INTERPOLATE_SMOOTHING_MIN 0.25f
-#define INTERPOLATE_SMOOTHING_TURN 0.1f
+//#define INTERPOLATE_SMOOTHING 0.2f
+//#define INTERPOLATE_SMOOTHING_MIN 0.25f
+//#define INTERPOLATE_SMOOTHING_TURN 0.1f
 
 extern void ParseCommandLine( const char *pchCmdLine, const char **ppchServerAddress, const char **ppchLobbyID, bool *pbUseVR );
 
@@ -48,40 +38,32 @@ CClient* Client() { return g_pClient; }
 #define atoll _atoi64
 #endif
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CClient::CClient( ) :
-		m_CallbackP2PSessionConnectFail( this, &CClient::OnP2PSessionConnectFail ),
-		m_LobbyGameCreated( this, &CClient::OnLobbyGameCreated ),
-		m_LobbyChatMsg ( this, &CClient::OnLobbyChatMessage  ),
-		m_AvatarImageLoadedCreated( this, &CClient::OnAvatarImageLoaded ),
-		m_IPCFailureCallback( this, &CClient::OnIPCFailure ),
-		m_SteamShutdownCallback( this, &CClient::OnSteamShutdown ),
-		m_SteamServersConnected( this, &CClient::OnSteamServersConnected ),
-		m_SteamServersDisconnected( this, &CClient::OnSteamServersDisconnected ),
-		m_SteamServerConnectFailure( this, &CClient::OnSteamServerConnectFailure ),
-		m_GameJoinRequested( this, &CClient::OnGameJoinRequested ),
-		m_CallbackGameOverlayActivated( this, &CClient::OnGameOverlayActivated ),
-		m_CallbackGameWebCallback( this, &CClient::OnGameWebCallback ),
-		m_CallbackWorkshopItemInstalled( this, &CClient::OnWorkshopItemInstalled )
+CClient::CClient( )
+		//m_CallbackP2PSessionConnectFail( this, &CClient::OnP2PSessionConnectFail ),
+		//m_LobbyGameCreated( this, &CClient::OnLobbyGameCreated ),
+		//m_LobbyChatMsg ( this, &CClient::OnLobbyChatMessage  ),
+		//m_AvatarImageLoadedCreated( this, &CClient::OnAvatarImageLoaded ),
+		//m_IPCFailureCallback( this, &CClient::OnIPCFailure ),
+		//m_SteamShutdownCallback( this, &CClient::OnSteamShutdown ),
+		//m_SteamServersConnected( this, &CClient::OnSteamServersConnected ),
+		//m_SteamServersDisconnected( this, &CClient::OnSteamServersDisconnected ),
+		//m_SteamServerConnectFailure( this, &CClient::OnSteamServerConnectFailure ),
+		//m_GameJoinRequested( this, &CClient::OnGameJoinRequested ),
+		//m_CallbackGameOverlayActivated( this, &CClient::OnGameOverlayActivated ),
+		//m_CallbackGameWebCallback( this, &CClient::OnGameWebCallback ),
+		//m_CallbackWorkshopItemInstalled( this, &CClient::OnWorkshopItemInstalled )
 {
-	Init( );
 }
 
-
-
-//-----------------------------------------------------------------------------
-// Purpose: initialize our client for use
-//-----------------------------------------------------------------------------
-void CClient::Init()
+void CClient::Init ( )//LoadBalancingListener* mpLbl )
 {
+	// need ptr to LBclient to make direct calls to network
+	//m_pLbl = mpLbl;
 
-#ifdef _DEBUG_LOG_
-	log("CClient::Init()" , m_eGameState );
-#endif
-
+	/*
 	if ( SteamUser()->BLoggedOn() )
 	{
 		m_SteamIDLocalUser = SteamUser()->GetSteamID();
@@ -104,9 +86,11 @@ void CClient::Init()
 	g_pClient = this;
 	m_uPlayerWhoWonGame = 0;
 	m_ulLastNetworkDataReceivedTime = 0;
+	*/
 	m_pServer = NULL;
 	m_uPlayerIndex = 0;
 	m_eConnectedStatus = k_EClientNotConnected;
+	/*
 	m_bTransitionedGameState = true;
 	m_rgchErrorText[0] = 0;
 	m_unServerIP = 0;
@@ -129,13 +113,6 @@ void CClient::Init()
 
 	// Seed random num generator
 	srand( (uint32)time( NULL ) );
-
-
-	/*m_nNumWorkshopItems = 0;
-	for (uint32 i = 0; i < MAX_WORKSHOP_ITEMS; ++i)
-	{
-		m_rgpWorkshopItems[i] = NULL;
-	}*/
 
 	// initialize P2P auth engine
 	m_pP2PAuthedGame = new CP2PAuthedGame( );
@@ -161,19 +138,15 @@ void CClient::Init()
 	//m_pVoiceChat = new CVoiceChat();
 
 	//LoadWorkshopItems();
+	*/
 }
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Destructor
-//-----------------------------------------------------------------------------
 CClient::~CClient()
 {
+	// clear reference
+	//m_pLbl = NULL;
 
-#ifdef _DEBUG_LOG_
-	log("CClient::~CClient()" , m_eGameState );
-#endif
-
+	/*
 	DisconnectFromServer();
 
 	if ( m_pP2PAuthedGame )
@@ -182,6 +155,7 @@ CClient::~CClient()
 		delete m_pP2PAuthedGame;
 		m_pP2PAuthedGame = NULL;
 	}
+	*/
 
 	if ( m_pServer )
 	{
@@ -189,6 +163,7 @@ CClient::~CClient()
 		m_pServer = NULL; 
 	}
 
+	/*
 	if ( m_pStatsAndAchievements )
 		delete m_pStatsAndAchievements;
 
@@ -206,18 +181,427 @@ CClient::~CClient()
 			m_rgpPlayer[i] = NULL;
 		}
 	}
-	
-	/*for (uint32 i = 0; i < MAX_WORKSHOP_ITEMS; ++i)
+	*/
+}
+
+// Core Client Functions
+
+void CClient::StartServer()
+{
+	// make sure we're not already starting a server
+	if ( m_pServer )
+		return;
+
+	// broadcast to everyone in the lobby that the game is starting
+	//SteamMatchmaking()->SetLobbyData( m_steamIDLobby, "game_starting", "1" );
+	//m_pLbl->sendGlobalVarState ( eGlobalEventGameStarting, 1 );
+		
+	// start a local game server
+	ServerHowManyJoined = 0;
+	ServerCreationTime = (uint64)GetCounterPassedTotal();
+
+	m_pServer = new CServer();
+}
+
+int CClient::IsServerRunning()
+{
+	if ( !m_pServer ) return 0;
+	return m_pServer->IsServerRunning();
+}
+
+int CClient::IsGameRunning()
+{
+	m_gotPlayerInfoFromServer = false;
+	if ( m_eGameState == k_EClientGameActive ) return 1;
+	return 0;
+}
+
+int CClient::GetMyPlayerIndex()
+{
+	return m_uPlayerIndex;
+}
+
+void CClient::RunFrame()
+{
+	/*
+	// Get any new data off the network to begin with
+	ReceiveNetworkData();
+
+	CheckReceipts();
+
+	if ( m_eConnectedStatus != k_EClientNotConnected && GetCounterPassedTotal() - m_ulLastNetworkDataReceivedTime > MILLISECONDS_CONNECTION_TIMEOUT ) // dave
 	{
-		if ( m_rgpWorkshopItems[i] )
+		SetConnectionFailureText( "Game server connection failure." );
+#ifdef _DEBUG_LOG_
+	log("DisconnectFromServer() due to timeout" , m_eGameState );
+#endif
+		DisconnectFromServer(); // cleanup on our side, even though server won't get our disconnect msg
+		SetGameState( k_EClientGameConnectionFailure );
+	}
+
+	// Run Steam client callbacks
+	SteamAPI_RunCallbacks();
+
+	// For now, run stats/achievements every frame
+	//m_pStatsAndAchievements->RunFrame();
+
+	// if we just transitioned state, perform on change handlers
+	if ( m_bTransitionedGameState )
+	{
+		m_bTransitionedGameState = false;
+		OnGameStateChanged( m_eGameState );
+	}
+
+	bool bInMenuNow = false;
+	switch( m_eGameState )
+	{
+	case k_EClientGameMenu:
+	case k_EClientGameQuitMenu:
+		bInMenuNow = true;
+		break;
+	default:
+		bInMenuNow = false;
+		break;
+	}
+
+	// Update steam controller override mode appropriately
+	if ( bInMenuNow && !m_bLastControllerStateInMenu )
+	{
+		m_bLastControllerStateInMenu = true;
+		//SteamController()->SetOverrideMode( "menu" );
+	}
+	else if ( !bInMenuNow && m_bLastControllerStateInMenu )
+	{
+		m_bLastControllerStateInMenu = false;
+		//SteamController()->SetOverrideMode( "" );
+	}
+
+	// Update state for everything
+	switch ( m_eGameState )
+	{
+	case k_EClientConnectingToSteam:
+		//m_pConnectingMenu->RunFrame();
+		break;
+	case k_EClientRetrySteamConnection:
+
+		OutputDebugString( "Invalidate state k_EClientRetrySteamConnection hit on non-PS3 platform" );
+
+		break;
+	case k_EClientLinkSteamAccount:
+
+		OutputDebugString( "Invalidate state k_EClientLinkSteamAccount hit on non-PS3 platform" );
+
+		break;
+	case k_EClientAutoCreateAccount:
+
+		OutputDebugString( "Invalidate state k_EClientAutoCreateAccount hit on non-PS3 platform" );
+
+		break;
+	case k_EClientGameMenu:
+		playerDamage = 0;
+		//m_pMainMenu->RunFrame();
+		break;
+	case k_EClientFindInternetServers:
+	case k_EClientFindLANServers:
+		m_pServerBrowser->RunFrame();
+		break;
+	
+	case k_EClientCreatingLobby:
+		// draw some text about creating lobby (may take a second or two)
+		break;
+
+	case k_EClientInLobby:
+		// display the lobby
+		m_pLobby->RunFrame();
+		
+		// see if we have a game server ready to play on
+		if ( m_pServer && m_pServer->IsConnectedToSteam() )
 		{
-			delete m_rgpWorkshopItems[i];
-			m_rgpWorkshopItems[i] = NULL;
+			// server is up; tell everyone else to connect
+			SteamMatchmaking()->SetLobbyGameServer( m_steamIDLobby, 0, 0, m_pServer->GetSteamID() );
+			// start connecting ourself via localhost (this will automatically leave the lobby)
+			InitiateServerConnection( m_pServer->GetSteamID() );
 		}
-	}*/
+		break;
+
+	case k_EClientFindLobby:
+
+		// display the list of lobbies
+		m_pLobbyBrowser->RunFrame();
+		break;
+
+	case k_EClientJoiningLobby:
+		
+		// Check if we've waited too long and should time out the connection
+		if ( GetCounterPassedTotal()- m_ulStateTransitionTime > MILLISECONDS_CONNECTION_TIMEOUT ) // dave
+		{
+			SetConnectionFailureText( "Timed out connecting to lobby." );
+			SetGameState( k_EClientGameConnectionFailure );
+		}
+		break;
+
+	case k_EClientGameConnectionFailure:
+		DrawConnectionFailureText();
+		break;
+	case k_EClientGameConnecting:
+
+		// Draw text telling the user a connection attempt is in progress
+
+		m_bSentPlayerName = false;
+
+		// Check if we've waited too long and should time out the connection
+		if (  GetCounterPassedTotal()- m_ulStateTransitionTime > MILLISECONDS_CONNECTION_TIMEOUT ) // dave
+		{
+			if ( m_pP2PAuthedGame )
+				m_pP2PAuthedGame->EndGame();
+			if ( m_eConnectedStatus == k_EClientConnectedAndAuthenticated )
+			{
+				SteamUser()->TerminateGameConnection( m_unServerIP, m_usServerPort );
+			}
+			m_GameServerPing.CancelPing();
+			SetConnectionFailureText( "Timed out connecting to game server" );
+			SetGameState( k_EClientGameConnectionFailure );
+		}
+
+		break;
+	case k_EClientGameQuitMenu:
+
+		// Update all the entities (this is client side interpolation)...
+		for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+		{
+			if ( m_rgpPlayer[i] )
+			{
+				//m_rgpPlayer[i]->RunFrame();
+			}
+		}
+
+		// Now draw the menu
+		//m_pQuitMenu->RunFrame();
+		break;
+	case k_EClientGameInstructions:
+		//DrawInstructions();
+
+		//if ( bEscapePressed )
+		//	SetGameState( k_EClientGameMenu );
+		break;
+	case k_EClientWorkshop:
+		//DrawWorkshopItems();
+
+		//if (bEscapePressed)
+		//	SetGameState(k_EClientGameMenu);
+		break;
+
+	case k_EClientStatsAchievements:
+		//m_pStatsAndAchievements->Render();
+
+		//if ( bEscapePressed )
+			//SetGameState( k_EClientGameMenu );
+		break;
+	case k_EClientLeaderboards:
+		m_pLeaderboards->RunFrame();		
+
+		//if ( bEscapePressed )
+			//SetGameState( k_EClientGameMenu );
+		break;
+
+	case k_EClientClanChatRoom:
+		//m_pClanChatRoom->RunFrame();		
+
+		//if ( bEscapePressed )
+			//SetGameState( k_EClientGameMenu );
+		break;
+
+	case k_EClientRemoteStorage:
+		//m_pRemoteStorage->Render();
+		break;
+
+	case k_EClientMinidump:
+#ifdef _WIN32
+		RaiseException( EXCEPTION_NONCONTINUABLE_EXCEPTION,
+			EXCEPTION_NONCONTINUABLE,
+			0, NULL );
+#endif
+		SetGameState( k_EClientGameMenu );
+		break;
+
+	case k_EClientGameStartServer:
+		if ( !m_pServer )
+		{
+			m_pServer = new CSteamServer( );
+		}
+
+		if ( m_pServer && m_pServer->IsConnectedToSteam() )
+		{
+			// server is ready, connect to it
+			InitiateServerConnection( m_pServer->GetSteamID() );
+		}
+		break;
+	case k_EClientGameDraw:
+	case k_EClientGameWinner:
+	case k_EClientGameWaitingForPlayers:
+
+		// Update all the entities (this is client side interpolation)...
+		for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+		{
+			if ( m_rgpPlayer[i] )
+			{
+				//m_rgpPlayer[i]->RunFrame();
+			}
+		}
+
+		//DrawHUDText();
+		//DrawWinnerDrawOrWaitingText();
+
+		if ( m_pVoiceChat )
+			m_pVoiceChat->RunFrame();
+
+		break;
+
+	case k_EClientGameActive:
+
+		// Update all the entities...
+		for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+		{
+			if ( m_rgpPlayer[i] )
+			{
+				//m_rgpPlayer[i]->RunFrame();
+			}
+		}
+
+		//Send name to server
+		if ( (!m_bSentPlayerName && m_rgpPlayer[ m_uPlayerIndex ]) || needToSendMyName == true )
+		{
+			if ( ServerSaysItIsOkayToStart )
+			{
+				MsgClientPlayerName_t msg;
+				msg.index = m_uPlayerIndex;
+				strcpy ( msg.name , SteamFriends()->GetPersonaName() ); 
+				strcpy ( m_rgpPlayerName[m_uPlayerIndex] , msg.name );
+				if (!m_bSentPlayerName || needToSendMyName == true )
+				{
+					if ( SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerName_t), k_EP2PSendReliable ) )
+					{
+						m_bSentPlayerName = true;
+						needToSendMyName = false;
+					}
+				}
+			}
+		}
+
+		//DrawHUDText();
+
+		//m_pStatsAndAchievements->RunFrame();
+
+		// Voice Chat
+		if ( m_pVoiceChat )
+			m_pVoiceChat->RunFrame();
+
+		break;
+	case k_EClientGameExiting:
+#ifdef _DEBUG_LOG_
+	log("DisconnectFromServer() due to client game exiting" , m_eGameState );
+#endif
+		DisconnectFromServer();
+		return;
+	case k_EClientWebCallback:
+
+		if ( !m_bSentWebOpen )
+		{
+			m_bSentWebOpen = true;
+#ifndef _PS3
+			char szCurDir[MAX_PATH];
+			_getcwd( szCurDir, sizeof(szCurDir) );
+			char szURL[MAX_PATH];
+			sprintf_safe( szURL, "file:///%s/test.html", szCurDir );
+			// load the test html page, it just has a steam://gamewebcallback link in it
+			SteamFriends()->ActivateGameOverlayToWebPage( szURL );
+			SetGameState( k_EClientGameMenu );
+#endif
+		}
+
+		break;
+	case k_EClientMusic:
+		break;
+	default:
+		OutputDebugString( "Unhandled game state in CSpaceWar::RunFrame\n" );
+	}
+
+
+	// Send an update on our local ship to the server
+	if ( m_eConnectedStatus == k_EClientConnectedAndAuthenticated &&  m_rgpPlayer[ m_uPlayerIndex ] )
+	{
+		MsgClientSendLocalUpdate_t msg;
+		msg.SetShipPosition( m_uPlayerIndex );
+
+		// If this fails, it probably just means its not time to send an update yet
+		if ( m_rgpPlayer[ m_uPlayerIndex ]->BGetClientUpdateData( msg.AccessUpdateData() ) )
+			BSendServerData( &msg, sizeof( msg ) );
+	}
+
+	if ( m_pP2PAuthedGame )
+	{
+		if ( m_pServer )
+		{
+			// Now if we are the owner of the game, lets make sure all of our players are legit.
+			// if they are not, we tell the server to kick them off
+			// Start at 1 to skip myself
+			for ( int i = 1; i < MAX_PLAYERS_PER_SERVER; i++ )
+			{
+				if ( m_pP2PAuthedGame->m_rgpP2PAuthPlayer[i] && !m_pP2PAuthedGame->m_rgpP2PAuthPlayer[i]->BIsAuthOk() )
+				{
+					m_pServer->KickPlayerOffServer( m_pP2PAuthedGame->m_rgpP2PAuthPlayer[i]->m_steamID );
+				}
+			}
+		}
+		else
+		{
+			// If we are not the owner of the game, lets make sure the game owner is legit
+			// if he is not, we leave the game
+			if ( m_pP2PAuthedGame->m_rgpP2PAuthPlayer[0] )
+			{
+				if ( !m_pP2PAuthedGame->m_rgpP2PAuthPlayer[0]->BIsAuthOk() )
+				{
+					// leave the game
+ 					SetGameState( k_EClientGameMenu );
+				}
+			}
+		}
+	}
+	*/
+
+	// If we've started a local server run it
+	if ( m_pServer )
+	{
+		m_pServer->RunFrame();
+	}
+
+	/*
+	// Render everything that might have been updated by the server
+	switch ( m_eGameState )
+	{
+	case k_EClientGameDraw:
+	case k_EClientGameWinner:
+	case k_EClientGameActive:
+		// Now render all the objects
+
+		for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+		{
+			if ( m_rgpPlayer[i] )
+			{
+			//	m_rgpPlayer[i]->Render();
+			}
+		}
+		break;
+	default:
+		// Any needed drawing was already done above before server updates
+		break;
+	}
+	*/
 }
 
 
+
+/*
 //-----------------------------------------------------------------------------
 // Purpose: Tell the connected server we are disconnecting (if we are connected)
 //-----------------------------------------------------------------------------
@@ -383,25 +767,11 @@ void CClient::OnReceiveServerAuthenticationResponse( bool bSuccess, uint32 uPlay
 #ifdef _DEBUG_LOG_ 
 EClientGameState oldState = k_EClientGameStartServer;
 #endif
+*/
 
-//-----------------------------------------------------------------------------
-// Purpose: Handles receiving a state update from the game server
-//-----------------------------------------------------------------------------
-void CClient::OnReceiveServerUpdate( ServerSteamUpdateData_t *pUpdateData )
+void CClient::OnReceiveServerUpdate( ServerUpdateData_t *pUpdateData )
 {
-
-
-#ifdef _DEBUG_LOG_
-	if ( oldState != m_eGameState )
-	{
-		log("CClient::OnReceiveServerUpdate() - state changed " , m_eGameState , m_eConnectedStatus );
-		oldState = m_eGameState;
-	}
-
-#endif
-
 	// Update our client state based on what the server tells us
-	
 	switch( pUpdateData->GetServerGameState() )
 	{
 	case k_EServerWaitingForPlayers:
@@ -451,16 +821,8 @@ void CClient::OnReceiveServerUpdate( ServerSteamUpdateData_t *pUpdateData )
 		SetGameState( k_EClientGameMenu );
 		break;
 	}
-
-	// Update scores
-	/*for( int i=0; i < MAX_PLAYERS_PER_SERVER; ++i )
-	{
-		m_rguPlayerScores[i] = pUpdateData->GetPlayerScore(i);
-	}*/
-
-	// Update who won last
-	//m_uPlayerWhoWonGame = pUpdateData->GetPlayerWhoWon();
-
+	
+	/* no auth!
 	if ( m_pP2PAuthedGame )
 	{
 		// has the player list changed?
@@ -510,11 +872,13 @@ void CClient::OnReceiveServerUpdate( ServerSteamUpdateData_t *pUpdateData )
 			}
 		}
 	}
+	*/
 
 	// update all players that are active
-	if ( m_pVoiceChat )
-		m_pVoiceChat->MarkAllPlayersInactive();
+	//if ( m_pVoiceChat )
+	//	m_pVoiceChat->MarkAllPlayersInactive();
 
+	/*
 	// Update the players
 	for( uint32 i=0; i < MAX_PLAYERS_PER_SERVER; ++i )
 	{
@@ -542,8 +906,8 @@ void CClient::OnReceiveServerUpdate( ServerSteamUpdateData_t *pUpdateData )
 
 			m_rgpPlayer[i]->OnReceiveServerUpdate( pUpdateData->AccessPlayerUpdateData( i ) );			
 
-			if ( m_pVoiceChat )
-				m_pVoiceChat->MarkPlayerAsActive( m_rgSteamIDPlayers[i] );
+			//if ( m_pVoiceChat )
+			//	m_pVoiceChat->MarkPlayerAsActive( m_rgSteamIDPlayers[i] );
 
 		}
 		else
@@ -556,33 +920,23 @@ void CClient::OnReceiveServerUpdate( ServerSteamUpdateData_t *pUpdateData )
 			}
 		}
 	}
+	*/
 }
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Used to transition game state
-//-----------------------------------------------------------------------------
 void CClient::SetGameState( EClientGameState eState )
 {
 	if ( m_eGameState == eState )
 		return;
 
-#ifdef _DEBUG_LOG_
-		log("** CLIENT - NEW STATE **" , m_eGameState , m_eConnectedStatus );
-#endif
-
-	m_bTransitionedGameState = true;
-	m_ulStateTransitionTime = (uint64)GetCounterPassedTotal();
+	//m_bTransitionedGameState = true;
+	//m_ulStateTransitionTime = (uint64)GetCounterPassedTotal();
 	m_eGameState = eState;
 
-	// Let the stats handler check the state (so it can detect wins, losses, etc...)
-	//m_pStatsAndAchievements->OnGameStateChange( eState );
-
 	// update any rich presence state
-	UpdateRichPresenceConnectionInfo();
+	//UpdateRichPresenceConnectionInfo();
 }
 
-
+/*
 //-----------------------------------------------------------------------------
 // Purpose: set the error string to display in the UI
 //-----------------------------------------------------------------------------
@@ -705,13 +1059,11 @@ void CClient::OnP2PSessionConnectFail( P2PSessionConnectFail_t *pCallback )
 		OnReceiveServerExiting();
 	}
 }
+*/
 
-
-//-----------------------------------------------------------------------------
-// Purpose: Receives incoming network data
-//-----------------------------------------------------------------------------
-void CClient::ReceiveNetworkData()
+void CClient::ReceiveNetworkData ( EMessage eMsg, char* pchRecvBuf, uint32 cubMsgSize )
 {
+	/* getting packet data comes from listener function
 	char rgchRecvBuf[1024];
 	char *pchRecvBuf = rgchRecvBuf;
 	uint32 cubMsgSize;
@@ -762,6 +1114,8 @@ void CClient::ReceiveNetworkData()
 			if ( DEBUG_FLAG_ON )
 				log("Client Message Received" , eMsg );
 #endif
+*/
+			/*
 			switch ( eMsg )
 			{
 			case k_EMsgReceipt:
@@ -861,7 +1215,6 @@ void CClient::ReceiveNetworkData()
 						MsgClientPlayerBullet_t* pmsg = (MsgClientPlayerBullet_t*)pchRecvBuf;
 						int index = pmsg->index;
 
-						//if ( m_rgpPlayer[index] )
 						{
 
 							if  ( bullets[index].on == 0 && pmsg->on == 1 )
@@ -917,12 +1270,7 @@ void CClient::ReceiveNetworkData()
 					if ( cubMsgSize == sizeof( MsgClientServerReadyForSpawn_t ) )
 					{
 						MsgClientServerReadyForSpawn_t* pmsg = (MsgClientServerReadyForSpawn_t*)pchRecvBuf;
-						//int index = pmsg->index;
-
-						//if ( m_rgpPlayer[index] )
-						//{
-							ServerSaysItIsOkayToStart = 1;
-						//}
+						ServerSaysItIsOkayToStart = 1;
 					}
 				}
 				break;
@@ -1270,8 +1618,6 @@ void CClient::ReceiveNetworkData()
 
 						avatarHowManyFileChunks[index] = (int)ceil( (float)pmsg->fileSize / float(FILE_CHUNK_SIZE) );
 						avatarFileFileSize[index] = pmsg->fileSize;
-
-						//fileProgress = 0;
 					}
 				}
 				break;
@@ -1295,8 +1641,6 @@ void CClient::ReceiveNetworkData()
 								else
 									chunkSize = avatarFileFileSize[index] - ((avatarHowManyFileChunks[index]-1) * (FILE_CHUNK_SIZE)	);				
 							}
-
-							//fileProgress = ceil(((float)(pmsg->index * FILE_CHUNK_SIZE) / (float)serverFileFileSize )  * 100.0f);
 
 							fwrite( &pmsg->chunk[0] , 1 , chunkSize , avatarFile[index] );
 
@@ -1410,6 +1754,8 @@ void CClient::ReceiveNetworkData()
 				OutputDebugString( "Unhandled message from server\n" );
 				break;
 			}
+			*/
+/*
 		}
 		else 
 		{
@@ -1429,15 +1775,16 @@ void CClient::ReceiveNetworkData()
 			OutputDebugString( "Received unknown message on our listen socket\n" );
 		}
 	}
+*/
 
 	// if we're running a server, do that as well
-	if ( m_pServer )
-	{
-		m_pServer->ReceiveNetworkData();
-	}
+	//if ( m_pServer )
+	//{
+		//m_pServer->ReceiveNetworkData();
+	//}
 }
 
-
+/*
 //-----------------------------------------------------------------------------
 // Purpose: Handle the server telling us it is exiting
 //-----------------------------------------------------------------------------
@@ -1754,7 +2101,7 @@ void CClient::OnGameStateChanged( EClientGameState eGameStateNew )
 		if ( !m_SteamCallResultLobbyCreated.IsActive() )
 		{
 			// ask steam to create a lobby
-			SteamAPICall_t hSteamAPICall = SteamMatchmaking()->CreateLobby( k_ELobbyTypePublic /* public lobby, anyone can find it */, MAX_PLAYERS_PER_SERVER );
+			SteamAPICall_t hSteamAPICall = SteamMatchmaking()->CreateLobby( k_ELobbyTypePublic, MAX_PLAYERS_PER_SERVER );
 			// set the function to call when this completes
 			m_SteamCallResultLobbyCreated.Set( hSteamAPICall, this, &CClient::OnLobbyCreated );
 		}
@@ -2079,11 +2426,6 @@ void CClient::RunFrame()
 
 	case k_EClientGameConnectionFailure:
 		DrawConnectionFailureText();
-
-		/*
-		if ( bEscapePressed )
-			SetGameState( k_EClientGameMenu );*/
-
 		break;
 	case k_EClientGameConnecting:
 
@@ -2197,9 +2539,6 @@ void CClient::RunFrame()
 		if ( m_pVoiceChat )
 			m_pVoiceChat->RunFrame();
 
-		/*if ( bEscapePressed )
-			SetGameState( k_EClientGameQuitMenu );*/
-
 		break;
 
 	case k_EClientGameActive:
@@ -2226,30 +2565,12 @@ void CClient::RunFrame()
 				{
 					if ( SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerName_t), k_EP2PSendReliable ) )
 					{
-						// check if all names are filled out, if so, no need to send further names
-						/*char tStr[256];
-						bool gotAllNames = true;
-						for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
-						{
-							if ( strcmp ( m_rgpPlayerName[i] , "Player" ) == 0 )
-								gotAllNames = false;
-						}
-
-						if ( gotAllNames )
-							m_bSentPlayerName = true;*/
 						m_bSentPlayerName = true;
 						needToSendMyName = false;
 					}
 				}
 			}
 		}
-
-		/*for (uint32 i = 0; i < MAX_WORKSHOP_ITEMS; ++i)
-		{
-			if (m_rgpWorkshopItems[i])
-				m_rgpWorkshopItems[i]->RunFrame();
-		}*/
-
 
 		//DrawHUDText();
 
@@ -2258,9 +2579,6 @@ void CClient::RunFrame()
 		// Voice Chat
 		if ( m_pVoiceChat )
 			m_pVoiceChat->RunFrame();
-		
-		/*if ( bEscapePressed )
-			SetGameState( k_EClientGameQuitMenu );*/
 
 		break;
 	case k_EClientGameExiting:
@@ -2287,11 +2605,6 @@ void CClient::RunFrame()
 
 		break;
 	case k_EClientMusic:
-
-		/*if ( bEscapePressed )
-		{
-			SetGameState( k_EClientGameMenu );
-		}*/
 		break;
 	default:
 		OutputDebugString( "Unhandled game state in CSpaceWar::RunFrame\n" );
@@ -2345,13 +2658,6 @@ void CClient::RunFrame()
 		m_pServer->RunFrame();
 	}
 
-	// Accumulate stats
-	/*for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
-	{
-		if ( m_rgpPlayer[i] )
-			m_rgpPlayer[i]->AccumulateStats( m_pStatsAndAchievements );
-	}*/
-
 	// Render everything that might have been updated by the server
 	switch ( m_eGameState )
 	{
@@ -2367,13 +2673,6 @@ void CClient::RunFrame()
 			//	m_rgpPlayer[i]->Render();
 			}
 		}
-
-		/*for (uint32 i = 0; i < MAX_WORKSHOP_ITEMS; ++i)
-		{
-			if ( m_rgpWorkshopItems[i] )
-				m_rgpWorkshopItems[i]->Render();
-		}*/
-
 		break;
 	default:
 		// Any needed drawing was already done above before server updates
@@ -2387,136 +2686,6 @@ void CClient::RunFrame()
 //-----------------------------------------------------------------------------
 void CClient::DrawHUDText()
 {
-	/*
-	// Padding from the edge of the screen for hud elements
-#ifdef _PS3
-	// Larger padding on PS3, since many of our test HDTVs truncate 
-	// edges of the screen and can't be calibrated properly.
-	const int32 nHudPaddingVertical = 20;
-	const int32 nHudPaddingHorizontal = 35;
-#else
-	const int32 nHudPaddingVertical = 15;
-	const int32 nHudPaddingHorizontal = 15;
-#endif
-
-
-	const int32 width = 0;//m_pGameEngine->GetViewportWidth();
-	const int32 height = 0;//m_pGameEngine->GetViewportHeight();
-
-	const int32 nAvatarWidth = 64;
-	const int32 nAvatarHeight = 64;
-
-	const int32 nSpaceBetweenAvatarAndScore = 6;
-
-	LONG scorewidth = 100;//LONG((m_pGameEngine->GetViewportWidth() - nHudPaddingHorizontal*2.0f)/4.0f);
-
-	char rgchBuffer[256];
-	for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
-	{
-		// Draw nothing in the spot for an inactive player
-		if ( !m_rgpPlayer[i] )
-			continue;
-
-
-		// We use Steam persona names for our players in-game name.  To get these we 
-		// just call SteamFriends()->GetFriendPersonaName() this call will work on friends, 
-		// players on the same game server as us (if using the Steam game server auth API) 
-		// and on ourself.
-		char rgchPlayerName[128];
-		CSteamID playerSteamID( m_rgSteamIDPlayers[i] );
-
-		if ( m_rgSteamIDPlayers[i].IsValid() )
-		{
-			sprintf_safe( rgchPlayerName, "%s", SteamFriends()->GetFriendPersonaName( playerSteamID ) );
-		}
-		else
-		{
-			sprintf_safe( rgchPlayerName, "Unknown Player" );
-		}
-
-		// We also want to use the Steam Avatar image inside the HUD if it is available.
-		// We look it up via GetMediumFriendAvatar, which returns an image index we use
-		// to look up the actual RGBA data below.
-		int iImage = SteamFriends()->GetMediumFriendAvatar( playerSteamID );
-
-
-		RECT rect;
-		switch( i )
-		{
-		case 0:
-			rect.top = nHudPaddingVertical;
-			rect.bottom = rect.top+nAvatarHeight;
-			rect.left = nHudPaddingHorizontal;
-			rect.right = rect.left + scorewidth;
-
-			if ( hTexture )
-			{
-				m_pGameEngine->BDrawTexturedQuad( (float)rect.left, (float)rect.top, (float)rect.left+nAvatarWidth, (float)rect.bottom, 
-					0.0f, 0.0f, 1.0, 1.0, GGCOLOR_ARGB( 255, 255, 255, 255 ), hTexture );
-				rect.left += nAvatarWidth + nSpaceBetweenAvatarAndScore;
-				rect.right += nAvatarWidth + nSpaceBetweenAvatarAndScore;
-			}
-			
-			sprintf_safe( rgchBuffer, "%s\nScore: %2u %s", rgchPlayerName, m_rguPlayerScores[i], pszVoiceState );
-			m_pGameEngine->BDrawString( m_hHUDFont, rect, g_rgPlayerColors[i], TEXTPOS_LEFT|TEXTPOS_VCENTER, rgchBuffer );
-			break;
-		case 1:
-
-			rect.top = nHudPaddingVertical;
-			rect.bottom = rect.top+nAvatarHeight;
-			rect.left = width-nHudPaddingHorizontal-scorewidth;
-			rect.right = width-nHudPaddingHorizontal;
-
-			if ( hTexture )
-			{
-				m_pGameEngine->BDrawTexturedQuad( (float)rect.right - nAvatarWidth, (float)rect.top, (float)rect.right, (float)rect.bottom, 
-					0.0f, 0.0f, 1.0, 1.0, GGCOLOR_ARGB( 255, 255, 255, 255 ), hTexture );
-				rect.right -= nAvatarWidth + nSpaceBetweenAvatarAndScore;
-				rect.left -= nAvatarWidth + nSpaceBetweenAvatarAndScore;
-			}
-
-			sprintf_safe( rgchBuffer, "%s\nScore: %2u ", rgchPlayerName, m_rguPlayerScores[i] );
-			m_pGameEngine->BDrawString( m_hHUDFont, rect, g_rgPlayerColors[i], TEXTPOS_RIGHT|TEXTPOS_VCENTER, rgchBuffer );
-			break;
-		case 2:
-			rect.top = height-nHudPaddingVertical-nAvatarHeight;
-			rect.bottom = rect.top+nAvatarHeight;
-			rect.left = nHudPaddingHorizontal;
-			rect.right = rect.left + scorewidth;
-
-			if ( hTexture )
-			{
-				m_pGameEngine->BDrawTexturedQuad( (float)rect.left, (float)rect.top, (float)rect.left+nAvatarWidth, (float)rect.bottom, 
-					0.0f, 0.0f, 1.0, 1.0, GGCOLOR_ARGB( 255, 255, 255, 255 ), hTexture );
-				rect.right += nAvatarWidth + nSpaceBetweenAvatarAndScore;
-				rect.left += nAvatarWidth + nSpaceBetweenAvatarAndScore;
-			}
-
-			sprintf_safe( rgchBuffer, "%s\nScore: %2u %s", rgchPlayerName, m_rguPlayerScores[i], pszVoiceState );
-			m_pGameEngine->BDrawString( m_hHUDFont, rect, g_rgPlayerColors[i], TEXTPOS_LEFT|TEXTPOS_BOTTOM, rgchBuffer );
-			break;
-		case 3:
-			rect.top = height-nHudPaddingVertical-nAvatarHeight;
-			rect.bottom = rect.top+nAvatarHeight;
-			rect.left = width-nHudPaddingHorizontal-scorewidth;
-			rect.right = width-nHudPaddingHorizontal;
-
-			if ( hTexture )
-			{
-				m_pGameEngine->BDrawTexturedQuad( (float)rect.right - nAvatarWidth, (float)rect.top, (float)rect.right, (float)rect.bottom, 
-					0.0f, 0.0f, 1.0, 1.0, GGCOLOR_ARGB( 255, 255, 255, 255 ), hTexture );
-				rect.right -= nAvatarWidth + nSpaceBetweenAvatarAndScore;
-				rect.left -= nAvatarWidth + nSpaceBetweenAvatarAndScore;
-			}
-
-			sprintf_safe( rgchBuffer, "%s\nScore: %2u %s", rgchPlayerName, m_rguPlayerScores[i], pszVoiceState );
-			m_pGameEngine->BDrawString( m_hHUDFont, rect, g_rgPlayerColors[i], TEXTPOS_RIGHT|TEXTPOS_BOTTOM, rgchBuffer );
-			break;
-		default:
-			OutputDebugString( "DrawHUDText() needs updating for more players\n" );
-			break;
-		}
-	}*/
 }
 
 
@@ -2525,32 +2694,6 @@ void CClient::DrawHUDText()
 //-----------------------------------------------------------------------------
 void CClient::DrawInstructions()
 {
-/*	const int32 width = m_pGameEngine->GetViewportWidth();
-
-	RECT rect;
-	rect.top = 0;
-	rect.bottom = m_pGameEngine->GetViewportHeight();
-	rect.left = 0;
-	rect.right = width;
-
-	char rgchBuffer[256];
-#ifdef _PS3
-	sprintf_safe( rgchBuffer, "Turn Ship Left: 'Left'\nTurn Ship Right: 'Right'\nForward Thrusters: 'R2'\nReverse Thrusters: 'L2'\nFire Photon Beams: 'Cross'" );
-#else
-	sprintf_safe( rgchBuffer, "Turn Ship Left: 'A'\nTurn Ship Right: 'D'\nForward Thrusters: 'W'\nReverse Thrusters: 'S'\nFire Photon Beams: 'Space'" );
-#endif
-
-	m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB( 255, 25, 200, 25 ), TEXTPOS_CENTER|TEXTPOS_VCENTER, rgchBuffer );
-
-	
-	rect.left = 0;
-	rect.right = width;
-	rect.top = LONG(m_pGameEngine->GetViewportHeight() * 0.7);
-	rect.bottom = m_pGameEngine->GetViewportHeight();
-
-	sprintf_safe( rgchBuffer, "Press ESC to return to the Main Menu" );
-	m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB( 255, 25, 200, 25 ), TEXTPOS_CENTER|TEXTPOS_TOP, rgchBuffer );
-	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -2558,31 +2701,6 @@ void CClient::DrawInstructions()
 //-----------------------------------------------------------------------------
 void CClient::DrawConnectionAttemptText()
 {
-/*	const int32 width = m_pGameEngine->GetViewportWidth();
-
-	RECT rect;
-	rect.top = 0;
-	rect.bottom = m_pGameEngine->GetViewportHeight();
-	rect.left = 0;
-	rect.right = width;
-
-	// Figure out how long we are still willing to wait for success
-	uint32 uSecondsLeft = (MILLISECONDS_CONNECTION_TIMEOUT - uint32(m_pGameEngine->GetGameTickCount() - m_ulStateTransitionTime ))/1000;
-
-	char rgchTimeoutString[256];
-	if ( uSecondsLeft < 25 )
-		sprintf_safe( rgchTimeoutString, ", timeout in %u...\n", uSecondsLeft );
-	else
-		sprintf_safe( rgchTimeoutString, "...\n" );
-		
-
-	char rgchBuffer[256];
-	if ( m_eGameState == k_EClientJoiningLobby )
-		sprintf_safe( rgchBuffer, "Connecting to lobby%s", rgchTimeoutString );
-	else
-		sprintf_safe( rgchBuffer, "Connecting to server%s", rgchTimeoutString );
-
-	m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB( 255, 25, 200, 25 ), TEXTPOS_CENTER|TEXTPOS_VCENTER, rgchBuffer );*/
 }
 
 
@@ -2591,25 +2709,6 @@ void CClient::DrawConnectionAttemptText()
 //-----------------------------------------------------------------------------
 void CClient::DrawConnectionFailureText()
 {
-/*	const int32 width = m_pGameEngine->GetViewportWidth();
-
-	RECT rect;
-	rect.top = 0;
-	rect.bottom = m_pGameEngine->GetViewportHeight();
-	rect.left = 0;
-	rect.right = width;
-
-	char rgchBuffer[256];
-	sprintf_safe( rgchBuffer, "%s\n", m_rgchErrorText );
-	m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB( 255, 25, 200, 25 ), TEXTPOS_CENTER|TEXTPOS_VCENTER, rgchBuffer );
-
-	rect.left = 0;
-	rect.right = width;
-	rect.top = LONG(m_pGameEngine->GetViewportHeight() * 0.7);
-	rect.bottom = m_pGameEngine->GetViewportHeight();
-
-	sprintf_safe( rgchBuffer, "Press ESC to return to the Main Menu" );
-	m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB( 255, 25, 200, 25 ), TEXTPOS_CENTER|TEXTPOS_TOP, rgchBuffer );*/
 }
 
 
@@ -2618,47 +2717,6 @@ void CClient::DrawConnectionFailureText()
 //-----------------------------------------------------------------------------
 void CClient::DrawWinnerDrawOrWaitingText()
 {
-	/*int nSecondsToRestart = ((MILLISECONDS_BETWEEN_ROUNDS - (int)(m_pGameEngine->GetGameTickCount() - m_ulStateTransitionTime) )/1000) + 1;
-
-	RECT rect;
-	rect.top = 0;
-	rect.bottom = int(m_pGameEngine->GetViewportHeight()*0.6f);
-	rect.left = 0;
-	rect.right = m_pGameEngine->GetViewportWidth();
-
-	char rgchBuffer[256];
-	if ( m_eGameState == k_EClientGameWaitingForPlayers )
-	{
-		sprintf_safe( rgchBuffer, "Server is waiting for players.\n\nStarting in %d seconds...", nSecondsToRestart );
-		m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB( 255, 25, 200, 25 ), TEXTPOS_CENTER|TEXTPOS_VCENTER, rgchBuffer );
-	} 
-	else if ( m_eGameState == k_EClientGameDraw )
-	{
-		sprintf_safe( rgchBuffer, "The round is a draw!\n\nStarting again in %d seconds...", nSecondsToRestart );
-		m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB( 255, 25, 200, 25 ), TEXTPOS_CENTER|TEXTPOS_VCENTER, rgchBuffer );
-	} 
-	else if ( m_eGameState == k_EClientGameWinner )
-	{
-		if ( m_uPlayerWhoWonGame >= MAX_PLAYERS_PER_SERVER )
-		{
-			OutputDebugString( "Invalid winner value\n" );
-			return;
-		}
-
-		char rgchPlayerName[128];
-		if ( m_rgSteamIDPlayers[m_uPlayerWhoWonGame].IsValid() )
-		{
-			sprintf_safe( rgchPlayerName, "%s", SteamFriends()->GetFriendPersonaName( m_rgSteamIDPlayers[m_uPlayerWhoWonGame] ) );
-		}
-		else
-		{
-			sprintf_safe( rgchPlayerName, "Unknown Player" );
-		}
-
-		sprintf_safe( rgchBuffer, "%s wins!\n\nStarting again in %d seconds...", rgchPlayerName, nSecondsToRestart );
-		
-		m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB( 255, 25, 200, 25 ), TEXTPOS_CENTER|TEXTPOS_VCENTER, rgchBuffer );
-	}*/
 }
 
 
@@ -2702,49 +2760,6 @@ float CClient::PixelsToFeet( float flPixels )
 
 	return flReturn;
 }
-
-
-//-----------------------------------------------------------------------------
-// Purpose: Get a specific Steam image RGBA as a game texture
-//-----------------------------------------------------------------------------
-/*HGAMETEXTURE CClient::GetSteamImageAsTexture( int iImage )
-{
-	HGAMETEXTURE hTexture = 0;
-
-	// iImage of 0 from steam means no avatar is set
-	if ( iImage )
-	{
-		std::map<int, HGAMETEXTURE>::iterator iter;
-		iter = m_MapSteamImagesToTextures.find( iImage );
-		if ( iter == m_MapSteamImagesToTextures.end() )
-		{
-			// We haven't created a texture for this image index yet, do so now
-
-			// Get the image size from Steam, making sure it looks valid afterwards
-			uint32 uAvatarWidth, uAvatarHeight;
-			SteamUtils()->GetImageSize( iImage, &uAvatarWidth, &uAvatarHeight );
-			if ( uAvatarWidth > 0 && uAvatarHeight > 0 )
-			{
-				// Get the actual raw RGBA data from Steam and turn it into a texture in our game engine
-				byte *pAvatarRGBA = new byte[ uAvatarWidth * uAvatarHeight * 4];
-				SteamUtils()->GetImageRGBA( iImage, (uint8*)pAvatarRGBA, uAvatarWidth * uAvatarHeight * 4 );
-				hTexture = m_pGameEngine->HCreateTexture( pAvatarRGBA, uAvatarWidth, uAvatarHeight );
-				delete[] pAvatarRGBA;
-				if ( hTexture )
-				{
-					m_MapSteamImagesToTextures[ iImage ] = hTexture;
-				}
-			}
-		}
-		else
-		{
-			hTexture = iter->second;
-		}
-	}
-
-	return hTexture;
-	return NULL;
-}*/
 
 
 //-----------------------------------------------------------------------------
@@ -2898,130 +2913,6 @@ void CClient::ExecCommandLineConnect( const char *pchServerAddress, const char *
 	}
 }
 
-
-//-----------------------------------------------------------------------------
-// Purpose: parse CWorkshopItem from text file
-//-----------------------------------------------------------------------------
-/*CWorkshopItem *CClient::LoadWorkshopItemFromFile( const char *pszFileName )
-{
-	FILE *file = fopen( pszFileName, "rt");
-	if (!file)
-		return NULL;
-
-	CWorkshopItem *pItem = NULL;
-
-	char szLine[1024];
-
-	if ( fgets(szLine, sizeof(szLine), file) )
-	{
-		float flXPos, flYPos, flXVelocity, flYVelocity;
-		// initialize object
-		if ( sscanf(szLine, "%f %f %f %f", &flXPos, &flYPos, &flXVelocity, &flYVelocity) )
-		{
-			pItem = new CWorkshopItem( m_pGameEngine, 0 );
-
-			pItem->SetPosition( flXPos, flYPos );
-			pItem->SetVelocity( flXVelocity, flYVelocity );
-
-			while (!feof(file))
-			{
-				float xPos0, yPos0, xPos1, yPos1;
-				DWORD dwColor;
-				fgets(szLine, sizeof(szLine), file);
-
-				if (sscanf(szLine, "%f %f %f %f %x", &xPos0, &yPos0, &xPos1, &yPos1, &dwColor) >= 5)
-				{
-					// Add a line to the entity
-					pItem->AddLine(xPos0, yPos0, xPos1, yPos1, dwColor);
-				}
-			}
-		}
-	}
-
-	fclose(file);
-
-	return pItem;
-}*/
-
-
-//-----------------------------------------------------------------------------
-// Purpose: load a Workshop item by PublishFileID
-//-----------------------------------------------------------------------------
-/*bool CClient::LoadWorkshopItem( PublishedFileId_t workshopItemID )
-{
-	if ( m_nNumWorkshopItems == MAX_WORKSHOP_ITEMS )
-		return false; // too much
-
-	uint64 unSizeOnDisk = 0;
-	char szItemFolder[1024] = { 0 };
-	if ( !SteamUGC()->GetItemInstallInfo( workshopItemID, &unSizeOnDisk, szItemFolder, sizeof(szItemFolder) ) )
-		return false;
-
-	char szFile[1024];
-	_snprintf(szFile, sizeof(szFile), "%s/workshopitem.txt", szItemFolder);
-
-	CWorkshopItem *pItem = LoadWorkshopItemFromFile( szFile );
-
-	if ( !pItem )
-		return false;
-	
-	pItem->m_ItemDetails.m_nPublishedFileId = workshopItemID;
-	m_rgpWorkshopItems[m_nNumWorkshopItems++] = pItem;
-
-	// get Workshop item details
-	SteamAPICall_t hSteamAPICall = SteamUGC()->RequestUGCDetails( workshopItemID, 60 );
-	pItem->m_SteamCallResultUGCDetails.Set(hSteamAPICall, pItem, &CWorkshopItem::OnUGCDetailsResult);
-	
-	return true;
-}*/
-
-
-//-----------------------------------------------------------------------------
-// Purpose: load all subscribed workshop items 
-//-----------------------------------------------------------------------------
-/*void CClient::LoadWorkshopItems()
-{
-	// reset workshop Items
-	for (uint32 i = 0; i < MAX_WORKSHOP_ITEMS; ++i)
-	{
-		if ( m_rgpWorkshopItems[i] )
-		{
-			delete m_rgpWorkshopItems[i];
-			m_rgpWorkshopItems[i] = NULL;
-		}
-	}
-
-	m_nNumWorkshopItems = 0; // load default test item*
-
-	PublishedFileId_t vecSubscribedItems[MAX_WORKSHOP_ITEMS];
-
-	int numSubscribedItems = SteamUGC()->GetSubscribedItems( vecSubscribedItems, MAX_WORKSHOP_ITEMS );
-	
-	if ( numSubscribedItems > MAX_WORKSHOP_ITEMS )
-		numSubscribedItems = MAX_WORKSHOP_ITEMS; // crop
-	
-	// load all subscribed workshop items
-	for ( int iSubscribedItem=0; iSubscribedItem<numSubscribedItems; iSubscribedItem++ )
-	{
-		PublishedFileId_t workshopItemID = vecSubscribedItems[iSubscribedItem];
-		LoadWorkshopItem( workshopItemID );
-	}
-
-	// load local test item 
-	if ( m_nNumWorkshopItems < MAX_WORKSHOP_ITEMS )
-	{
-		CWorkshopItem *pItem = LoadWorkshopItemFromFile("workshop/workshopitem.txt");
-
-		if ( pItem )
-		{
-			strncpy( pItem->m_ItemDetails.m_rgchTitle, "Test Item", k_cchPublishedDocumentTitleMax );
-			strncpy( pItem->m_ItemDetails.m_rgchDescription, "This is a local test item for debugging", k_cchPublishedDocumentDescriptionMax );
-			m_rgpWorkshopItems[m_nNumWorkshopItems++] = pItem;
-		}
-	}
-}*/
-
-
 //-----------------------------------------------------------------------------
 // Purpose: new Workshop was installed, load it instantly
 //-----------------------------------------------------------------------------
@@ -3031,57 +2922,7 @@ void CClient::OnWorkshopItemInstalled( ItemInstalled_t *pParam )
 #ifdef _DEBUG_LOG_
 	log("CClient::OnWorkshopItemInstalled()" , m_eGameState , m_eConnectedStatus );
 #endif
-
-/*	if ( pParam->m_unAppID == SteamUtils()->GetAppID() )
-		LoadWorkshopItem( pParam->m_nPublishedFileId );*/
 }
-
-
-//-----------------------------------------------------------------------------
-// Purpose: Draws PublishFileID, title & description for each subscribed Workshop item
-//-----------------------------------------------------------------------------
-/*void CClient::DrawWorkshopItems()
-{
-	const int32 width = m_pGameEngine->GetViewportWidth();
-
-	RECT rect;
-	rect.top = 0;
-	rect.bottom = 64;
-	rect.left = 0;
-	rect.right = width;
-
-	char rgchBuffer[1024];
-	sprintf_safe(rgchBuffer, "Subscribed Workshop Items");
-	m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB(255, 25, 200, 25), TEXTPOS_CENTER |TEXTPOS_VCENTER, rgchBuffer);
-
-	rect.left = 32;
-	rect.top = 64;
-	rect.bottom = 96;
-	
-	for (int iSubscribedItem = 0; iSubscribedItem < MAX_WORKSHOP_ITEMS; iSubscribedItem++)
-	{
-		CWorkshopItem *pItem = m_rgpWorkshopItems[ iSubscribedItem ];
-
-		if ( !pItem )
-			continue;
-
-		rect.top += 32;
-		rect.bottom += 32;
-
-		sprintf_safe( rgchBuffer, "%u. \"%s\" (%llu) : %s", iSubscribedItem+1,
-			pItem->m_ItemDetails.m_rgchTitle, pItem->m_ItemDetails.m_nPublishedFileId, pItem->m_ItemDetails.m_rgchDescription );
-
-		m_pGameEngine->BDrawString( m_hInstructionsFont, rect, GGCOLOR_ARGB(255, 25, 200, 25), TEXTPOS_LEFT |TEXTPOS_VCENTER, rgchBuffer);
-	}
-	
-	rect.left = 0;
-	rect.right = width;
-	rect.top = LONG(m_pGameEngine->GetViewportHeight() * 0.8);
-	rect.bottom = m_pGameEngine->GetViewportHeight();
-
-	sprintf_safe(rgchBuffer, "Press ESC to return to the Main Menu");
-	m_pGameEngine->BDrawString(m_hInstructionsFont, rect, GGCOLOR_ARGB(255, 25, 200, 25), TEXTPOS_CENTER | TEXTPOS_TOP, rgchBuffer);
-}*/
 
 void CClient::SteamCreateLobby()
 {
@@ -3095,7 +2936,7 @@ void CClient::SteamCreateLobby()
 		{
 			SetGameState(k_EClientCreatingLobby);
 			// ask steam to create a lobby
-			SteamAPICall_t hSteamAPICall = SteamMatchmaking()->CreateLobby( k_ELobbyTypePublic /* public lobby, anyone can find it */, MAX_PLAYERS_PER_SERVER );
+			SteamAPICall_t hSteamAPICall = SteamMatchmaking()->CreateLobby( k_ELobbyTypePublic, MAX_PLAYERS_PER_SERVER );
 			// set the function to call when this completes
 			m_SteamCallResultLobbyCreated.Set( hSteamAPICall, this, &CClient::OnLobbyCreated );
 		}
@@ -3240,11 +3081,6 @@ int CClient::SteamIsGameRunning()
 
 }
 
-int CClient::SteamGetMyPlayerIndex()
-{
-	return m_uPlayerIndex;
-}
-
 void CClient::SteamSetPlayerPositionX( float _x )
 {
 	if ( m_rgpPlayer[m_uPlayerIndex] )
@@ -3273,12 +3109,6 @@ float CClient::SteamGetPlayerPositionX ( int index )
 {
 	if ( m_rgpPlayer[index] )
 	{
-		/*if ( tweening[index] == 0 || alive[index] == 0 )
-		{
-			m_rgpPlayer[index]->x = m_rgpPlayer[index]->newx;
-			return m_rgpPlayer[index]->x;
-		}*/
-
 		m_rgpPlayer[index]->x = CosineInterpolate ( m_rgpPlayer[index]->x , m_rgpPlayer[index]->newx , INTERPOLATE_SMOOTHING );
 		return m_rgpPlayer[index]->x;
 	}
@@ -3290,12 +3120,6 @@ float CClient::SteamGetPlayerPositionY ( int index )
 {
 	if ( m_rgpPlayer[index] )
 	{
-
-		/*if ( tweening[index] == 0 || alive[index] == 0 )
-		{
-			m_rgpPlayer[index]->y = m_rgpPlayer[index]->newy;
-			return m_rgpPlayer[index]->y;
-		}*/
 		m_rgpPlayer[index]->y = CosineInterpolate ( m_rgpPlayer[index]->y , m_rgpPlayer[index]->newy , INTERPOLATE_SMOOTHING );
 		return m_rgpPlayer[index]->y;
 	}
@@ -3307,13 +3131,6 @@ float CClient::SteamGetPlayerPositionZ ( int index )
 {
 	if ( m_rgpPlayer[index] )
 	{
-
-		/*if ( tweening[index] == 0 || alive[index] == 0 )
-		{
-			m_rgpPlayer[index]->z = m_rgpPlayer[index]->newz;
-			return m_rgpPlayer[index]->z;
-		}*/
-
 		m_rgpPlayer[index]->z = CosineInterpolate ( m_rgpPlayer[index]->z , m_rgpPlayer[index]->newz , INTERPOLATE_SMOOTHING );
 		return m_rgpPlayer[index]->z;
 	}
@@ -3325,13 +3142,6 @@ float CClient::SteamGetPlayerAngle ( int index )
 {
 	if ( m_rgpPlayer[index] )
 	{
-
-		/*if ( tweening[index] == 0 || alive[index] == 0 )
-		{
-			m_rgpPlayer[index]->angle = m_rgpPlayer[index]->newangle;
-			return m_rgpPlayer[index]->angle;
-		}*/
-
 		//m_rgpPlayer[index]->angle = m_rgpPlayer[index]->newangle;
 		m_rgpPlayer[index]->angle = CosineInterpolateAngle( m_rgpPlayer[index]->angle , m_rgpPlayer[index]->newangle , INTERPOLATE_SMOOTHING_TURN );
 		return m_rgpPlayer[index]->angle;
@@ -3589,12 +3399,6 @@ void CClient::SteamSendLua ( int code, int e, int v )
 
 	if ( m_steamIDGameServer.IsValid() )
 	{
-		/*
-		MsgClientLua_t msg;
-		msg.index = m_uPlayerIndex;
-		msg.code = code;
-		msg.e = e;
-		msg.v = v;*/
 		if ( code < 5 )
 		{
 			MsgClientLua_t msg;
@@ -3646,13 +3450,6 @@ void CClient::SteamSendLuaString ( int code, int e, LPSTR s )
 { 
 	if ( m_steamIDGameServer.IsValid() )
 	{
-		/*
-		MsgClientLua_t msg;
-		msg.index = m_uPlayerIndex;
-		msg.code = code;
-		msg.e = e;
-		msg.v = v;*/
-
 		MsgClientLuaString_t* pmsg;
 		pmsg = new MsgClientLuaString_t();
 		pmsg->index = m_uPlayerIndex;
@@ -4030,11 +3827,6 @@ void CClient::AvatarSendWeHaveHeadTextureToServer(int flag)
 
 void CClient::CheckReceipts()
 {
-
-	/*char s[256];
-	sprintf ( s, "Client Outstanding:%d" , PacketSend_Log_Client.size() );
-	Print ( s );*/
-
 	double timeNow = GetCounterPassedTotal();
 
 	for ( unsigned int c = 0; c < PacketSend_Log_Client.size() ; c++ )
@@ -4096,3 +3888,4 @@ void CClient::GotReceipt( int c )
 		PacketSend_Log_Client.erase(PacketSend_Log_Client.begin()+found);
 	}
 }
+*/

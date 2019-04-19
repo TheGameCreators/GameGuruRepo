@@ -4,17 +4,14 @@
 #include "CClient.h"
 #include "PhotonMultiplayer.h"
 
-bool CSteamServer::ShouldISend ( int p , int id, float thisx, float thisy, float thisz, int playerID )
+/*
+bool CServer::ShouldISend ( int p , int id, float thisx, float thisy, float thisz, int playerID )
 {
 	//return true;
 	float dx = Client()->m_rgpPlayer[playerID]->newx - thisx;
 	float dy = Client()->m_rgpPlayer[playerID]->newy - thisy;
 	float dz = Client()->m_rgpPlayer[playerID]->newz - thisz;
 	float dist = sqrt(dx*dx + dy*dy* + dz*dz);
-
-	/*char s[256];
-	sprintf ( s, "Dist = %f, for player %i" , dist, playerID );
-	Print (s);*/
 
 	switch ( p )
 	{
@@ -37,3 +34,4 @@ bool CSteamServer::ShouldISend ( int p , int id, float thisx, float thisy, float
 	return true;
 
 }
+*/

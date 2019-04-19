@@ -33,7 +33,7 @@ namespace ExitGames
 			template<typename ktype> void removeCustomProperty(const ktype& key, const WebFlags& webflags=WebFlags());
 			template<typename ktype> void removeCustomProperties(const ktype* keys, unsigned int count, const WebFlags& webflags=WebFlags());
 		protected:
-			MutablePlayer(int number, const Common::Hashtable& properties, const MutableRoom* pRoom, Client* pClient);
+			MutablePlayer(int number, const Common::Hashtable& properties, const MutableRoom* pRoom, PhotonClient* pClient);
 
 			virtual bool getIsMutable(void) const;
 
@@ -41,7 +41,7 @@ namespace ExitGames
 		private:
 			typedef Player super;
 
-			Client* mpLoadBalancingClient;
+			PhotonClient* mpLoadBalancingClient;
 
 			friend class Internal::MutablePlayerFactory;
 		};

@@ -31,7 +31,7 @@ namespace ExitGames
 			int mPeerCount;
 			int mRoomCount;
 
-			friend class Client;
+			friend class PhotonClient;
 		};
 	}
 }

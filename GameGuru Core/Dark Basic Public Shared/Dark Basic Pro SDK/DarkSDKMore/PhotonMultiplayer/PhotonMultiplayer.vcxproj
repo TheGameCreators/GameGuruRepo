@@ -152,19 +152,14 @@
     <ClInclude Include="CPlayer.h" />
     <ClInclude Include="CServer.h" />
     <ClInclude Include="globstruct.h" />
-    <ClInclude Include="Leaderboards.h" />
     <ClInclude Include="LoadBalancingListener.h" />
-    <ClInclude Include="Lobby.h" />
     <ClInclude Include="Messages.h" />
     <ClInclude Include="MPAudio.h" />
     <ClInclude Include="p2pauth.h" />
     <ClInclude Include="PhotonMultiplayer.h" />
     <ClInclude Include="PhotonView.h" />
-    <ClInclude Include="RemoteStorage.h" />
-    <ClInclude Include="remotestoragesync.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ServerBrowser.h" />
-    <ClInclude Include="StatsAndAchievements.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="timer.h" />
@@ -174,18 +169,13 @@
   <ItemGroup>
     <ClCompile Include="CClient.cpp" />
     <ClCompile Include="CServer.cpp" />
-    <ClCompile Include="Leaderboards.cpp" />
     <ClCompile Include="LoadBalancingListener.cpp" />
-    <ClCompile Include="Lobby.cpp" />
     <ClCompile Include="MPAudio.cpp" />
     <ClCompile Include="p2pauth.cpp" />
     <ClCompile Include="PhotonMultiplayer.cpp" />
     <ClCompile Include="PhotonView.cpp" />
-    <ClCompile Include="RemoteStorage.cpp" />
-    <ClCompile Include="remotestoragesync.cpp" />
     <ClCompile Include="ServerBrowser.cpp" />
     <ClCompile Include="ShouldISend.cpp" />
-    <ClCompile Include="StatsAndAchievements.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">Create</PrecompiledHeader>

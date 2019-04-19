@@ -2,6 +2,8 @@
 
 #include "LoadBalancing-cpp/inc/Client.h"
 #include "PhotonView.h"
+#include "Messages.h"
+#include "CPlayer.h"
 
 //struct LocalPlayer
 //{
@@ -11,6 +13,16 @@
 //	int color;
 //	unsigned long lastUpdateTime;
 //};
+
+// Enum for global var states
+enum EGlobalEventIndices
+{
+	eGlobalEventNoState,
+	eGlobalEventGameStarting,
+	eGlobalEventPlayerPosition,
+	eGlobalEventMessage,
+	eGlobalEventEveryoneLoadedAndReady,
+};
 
 class LoadBalancingListener : public ExitGames::LoadBalancing::Listener
 {
@@ -23,12 +35,26 @@ public:
 	void createRoom(LPSTR name);
 	void updateRoomList(void);
 	void joinRoom(const ExitGames::Common::JString& pRoomName);
-	void updatePlayerList(void);
-	int service(void);
-	void leaveRoom(void);
 
-	void changeRandomColor(void);
-	void nextGridSize(void);
+	void setPlayerIDAsCurrentServerPlayer(void);
+	bool isServer(void) { return mbIsServer; }
+	bool isEveryoneLoadedAndReady(void);
+
+	int getLocalPlayerID(void);
+	void updatePlayerList(void);
+	void manageTrackedPlayerList ( void );
+
+	int service(void);
+	void sendGlobalVarState ( int iVarEventIndex, int iVarValue );
+	void sendMessage ( nByte* msg, DWORD msgSize, bool bReliable );
+	void handleMessage ( int playerNr, EMessage msg, DWORD cubMsgSize, nByte* pchRecvBuf );
+
+	void SetSendFileCount ( int count );
+	void SendFileBegin ( int index , LPSTR pString );
+	int SendFileDone();
+	int IsEveryoneFileSynced();
+
+	void leaveRoom(void);
 
 private:
 	//From Common::BaseListener
@@ -67,10 +93,21 @@ private:
 
 	void afterRoomJoined(int localPlayerNr);
 	//bool updateGridSize(const ExitGames::Common::Hashtable& props);
-	void raiseColorEvent(void);
+	//void raiseColorEvent(void);
 
 	ExitGames::LoadBalancing::Client* mpLbc;
 	PhotonView* mPhotonView;
+
+	bool mbIsServer = false;
+	FILE* mhServerFile = NULL;
+	int miFileProgress = 0;
+	int miServerClientsFileSynced[MAX_PLAYERS_PER_SERVER];
+
+public:
+	int muPlayerIndex = 0;
+	int miCurrentServerPlayerID = 0;
+	CPlayer* m_rgpPlayer[MAX_PLAYERS_PER_SERVER];
+	int m_rgpPlayerLoadedAndReady[MAX_PLAYERS_PER_SERVER];
 
 	int mLocalPlayerx = 0;
 	int mLocalPlayery = 0;

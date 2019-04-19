@@ -3,11 +3,16 @@
 //========================================================================================
 #define FPSCR
 
-// photon commands
+// photon core commands
 int PhotonInit();
 void PhotonFree();
-
 void PhotonLoop(void);
+void PhotonInitClient();
+void PhotonResetClient();
+//void PhotonCleanupClient();
+void PhotonResetGameStats();
+
+// photon creating/listing lobby/gamerooms
 void PhotonGetLobbyList();
 int PhotonIsLobbyListCreated();
 int PhotonGetLobbyListSize();
@@ -15,12 +20,13 @@ LPSTR PhotonGetLobbyListName( int index );
 void PhotonSetLobbyName(LPSTR name);
 void PhotonCreateLobby();
 void PhotonJoinLobby(LPSTR name);
-
 int PhotonGetLobbyUserCount();
 int PhotonHasJoinedLobby();
 void PhotonLeaveLobby();
 LPSTR PhotonGetLobbyUserName( int index);
 LPSTR PhotonGetPlayerName(void);
+
+// photon setting up and starting game
 int PhotonGetClientServerConnectionStatus();
 void PhotonStartServer();
 int PhotonIsServerRunning();
@@ -28,6 +34,12 @@ int PhotonIsGameRunning();
 int PhotonGetMyPlayerIndex();
 void PhotonSetRoot(LPSTR string );
 void PhotonSetSendFileCount(int count);
+void PhotonSendFileBegin ( int index , LPSTR pString );
+int PhotonSendFileDone();
+int PhotonAmIFileSynced();
+int PhotonIsEveryoneFileSynced();
+
+void PhotonSetThisPlayerAsCurrentServer();
 void PhotonSendIAmLoadedAndReady();
 int PhotonIsEveryoneLoadedAndReady();
 

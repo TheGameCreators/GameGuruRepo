@@ -12,7 +12,7 @@ namespace ExitGames
 {
 	namespace LoadBalancing
 	{
-		class Client;
+		class PhotonClient;
 		class MutablePlayer;
 		class MutableRoom;
 		class Peer;
@@ -24,10 +24,10 @@ namespace ExitGames
 			protected:
 				virtual ~MutablePlayerFactory(void);
 
-				virtual MutablePlayer* create(int number, const Common::Hashtable& properties, const MutableRoom* pRoom, Client* pClient);
+				virtual MutablePlayer* create(int number, const Common::Hashtable& properties, const MutableRoom* pRoom, PhotonClient* pClient);
 				virtual void destroy(const MutablePlayer* pPlayer);
 			private:
-				friend class LoadBalancing::Client;
+				friend class LoadBalancing::PhotonClient;
 			};
 		}
 	}

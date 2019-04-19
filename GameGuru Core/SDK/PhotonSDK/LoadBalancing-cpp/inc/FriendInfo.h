@@ -30,7 +30,7 @@ namespace ExitGames
 			bool mIsOnline;
 			Common::JString mRoom;
 
-			friend class Client;
+			friend class PhotonClient;
 		};
 	}
 }

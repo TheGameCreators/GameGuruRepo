@@ -81,12 +81,9 @@ enum EMessage
 	k_EMsgVoiceChatPing = k_EMsgVoiceChatBegin+1,	// just a keep alive message
 	k_EMsgVoiceChatData = k_EMsgVoiceChatBegin+2,	// voice data from another player
 
-
-
 	// force 32-bit size enum so the wire protocol doesn't get outgrown later
 	k_EForceDWORD  = 0x7fffffff, 
 };
-
 
 // Msg from the server to the client which is sent right after communications are established
 // and tells the client what SteamID the game server is using as well as whether the server is secure
@@ -140,11 +137,11 @@ struct MsgServerUpdateWorld_t
 	MsgServerUpdateWorld_t() : m_dwMessageType( LittleDWord( k_EMsgServerUpdateWorld ) ) {}
 	DWORD GetMessageType() { return LittleDWord( m_dwMessageType ); }
 
-	ServerSteamUpdateData_t *AccessUpdateData() { return &m_ServerUpdateData; }
+	ServerUpdateData_t *AccessUpdateData() { return &m_ServerUpdateData; }
 
 private:
 	const DWORD m_dwMessageType;
-	ServerSteamUpdateData_t m_ServerUpdateData;
+	ServerUpdateData_t m_ServerUpdateData;
 };
 
 // Msg from server to clients when it is exiting
@@ -183,10 +180,6 @@ struct MsgClientBeginAuthentication_t
 	MsgClientBeginAuthentication_t() : m_dwMessageType( LittleDWord( k_EMsgClientBeginAuthentication ) ) {}
 	DWORD GetMessageType() { return LittleDWord( m_dwMessageType ); }
 
-	void SetToken( const char *pchToken, uint32 unLen ) { m_uTokenLen = LittleDWord( unLen ); memcpy( m_rgchToken, pchToken, MIN( unLen, sizeof( m_rgchToken ) ) ); }
-	uint32 GetTokenLen() { return LittleDWord( m_uTokenLen ); }
-	const char *GetTokenPtr() { return m_rgchToken; }
-
 	void SetSteamID( uint64 ulSteamID ) { m_ulSteamID = LittleQWord( ulSteamID ); }
 	uint64 GetSteamID() { return LittleQWord( m_ulSteamID ); }
 
@@ -194,9 +187,6 @@ private:
 	const DWORD m_dwMessageType;
 	
 	uint32 m_uTokenLen;
-#ifdef USE_GS_AUTH_API
-	char m_rgchToken[1024];
-#endif
 	uint64 m_ulSteamID;
 };
 
@@ -207,13 +197,13 @@ struct MsgClientSendLocalUpdate_t
 	DWORD GetMessageType() { return LittleDWord( m_dwMessageType ); }
 	
 	void SetShipPosition( uint32 uPos ) { m_uShipPosition = LittleDWord( uPos ); }
-	ClientSteamUpdateData_t *AccessUpdateData() { return &m_ClientUpdateData; }
+	ClientUpdateData_t *AccessUpdateData() { return &m_ClientUpdateData; }
 
 private:
 	const DWORD m_dwMessageType;
 
 	uint32 m_uShipPosition;
-	ClientSteamUpdateData_t m_ClientUpdateData;
+	ClientUpdateData_t m_ClientUpdateData;
 };
 
 // Msg from the client telling the server it is about to leave

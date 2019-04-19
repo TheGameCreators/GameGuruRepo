@@ -1,7 +1,6 @@
-
+// Includes
 #include "PhotonMultiplayer.h"
-#include "CClient.h"
-#include "StatsAndAchievements.h"
+//#include "CClient.h"
 
 #ifndef __CPLAYER__
 #define __CPLAYER__
@@ -30,7 +29,7 @@ public:
 	uint64		m_ulLastClientUpdateTick; // Last time we sent an update on our local data to the server
 	uint64		m_ulLastNetworkDataReceivedTime;
 
-	ClientSteamUpdateData_t m_ClientUpdateData;
+	ClientUpdateData_t m_ClientUpdateData;
 
 	CPlayer()
 	{
@@ -44,14 +43,6 @@ public:
 		angle = 0;
 		isDisabled = false;
 		ClientTime = 0;
-	}
-
-	void AccumulateStats( CStatsAndAchievements *pStats )
-	{
-		if ( isLocalPlayer )
-		{
-			//pStats->AddDistanceTraveled( GetDistanceTraveledLastFrame() );
-		}
 	}
 
 	void SetIsLocalPlayer(int v)
@@ -76,25 +67,13 @@ public:
 		newangle = (float)pUpdateData->angle;
 	}
 
-	void OnReceiveClientUpdate( ClientSteamUpdateData_t *pUpdateData )
+	void OnReceiveClientUpdate( ClientUpdateData_t *pUpdateData )
 	{
-		/*if ( !m_bIsServerInstance )
-		{
-			OutputDebugString( "Should not be receiving client updates on non-server instances\n" );
-			return;
-		}*/
-		memcpy( &m_ClientUpdateData, pUpdateData, sizeof( ClientSteamUpdateData_t ) );
-
+		memcpy( &m_ClientUpdateData, pUpdateData, sizeof( ClientUpdateData_t ) );
 		x = (float)pUpdateData->x;
 		y = (float)pUpdateData->y;
 		z = (float)pUpdateData->z;
 		angle = (float)pUpdateData->angle;
-
-		/*newx = (float)pUpdateData->x;
-		newy = (float)pUpdateData->y;
-		newz = (float)pUpdateData->z;
-		newangle = (float)pUpdateData->angle;*/
-
 	}
 
 	void SetDisabled ( int v )
@@ -102,7 +81,6 @@ public:
 		isDisabled = v;
 	}
 
-	// Purpose: Build the update data to send from server to clients
 	void BuildServerUpdate( ServerPlayerUpdateData_t *pUpdateData )
 	{
 		pUpdateData->x = (unsigned short)x;
@@ -116,10 +94,10 @@ public:
 		return name;
 	}
 
-	bool BGetClientUpdateData( ClientSteamUpdateData_t *pUpdateData  )
+	bool BGetClientUpdateData( ClientUpdateData_t *pUpdateData  )
 	{
 		// Limit the rate at which we send updates, even if our internal frame rate is higher
-		if ( GetCounterPassedTotal() - ClientTime < 1000.0f/CLIENT_UPDATE_SEND_RATE ) // dave
+		if ( GetCounterPassedTotal() - ClientTime < 1000.0f/CLIENT_UPDATE_SEND_RATE )
 			return false;
 
 		ClientTime = (uint64)GetCounterPassedTotal();
@@ -129,19 +107,11 @@ public:
 		m_ClientUpdateData.z = (unsigned short)z;
 		m_ClientUpdateData.angle = (unsigned short)angle;
 
-		// Update playername before sending
-		/*if ( isLocalPlayer )
-		{
-			strcpy ( m_ClientUpdateData.name , SteamFriends()->GetFriendPersonaName( SteamUser()->GetSteamID() ));
-		}*/
-
-		memcpy( pUpdateData, &m_ClientUpdateData, sizeof( ClientSteamUpdateData_t ) );
+		memcpy( pUpdateData, &m_ClientUpdateData, sizeof( ClientUpdateData_t ) );
 		memset( &m_ClientUpdateData, 0, sizeof( m_ClientUpdateData ) );
 
 		return true;
 	}
-
-	
 };
 
 #endif

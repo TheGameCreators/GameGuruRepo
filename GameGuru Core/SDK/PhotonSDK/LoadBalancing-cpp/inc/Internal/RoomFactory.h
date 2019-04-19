@@ -12,7 +12,7 @@ namespace ExitGames
 {
 	namespace LoadBalancing
 	{
-		class Client;
+		class PhotonClient;
 		class Room;
 
 		namespace Internal
@@ -22,7 +22,7 @@ namespace ExitGames
 				static Room* create(const Common::JString& name, const Common::Hashtable& properties);
 				static void destroy(const Room* pRoom);
 
-				friend class LoadBalancing::Client;
+				friend class LoadBalancing::PhotonClient;
 			};
 		}
 	}

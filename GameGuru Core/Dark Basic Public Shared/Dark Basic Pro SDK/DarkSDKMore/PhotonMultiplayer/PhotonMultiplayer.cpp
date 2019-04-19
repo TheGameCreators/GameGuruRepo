@@ -4,7 +4,10 @@
 // Includes
 #include "stdafx.h"
 #include ".\globstruct.h"
+#include "PhotonCommands.h"
+#include "PhotonMultiplayer.h"
 #include "LoadBalancingListener.h"
+//#include "CClient.h"
 
 // Namespaces
 using namespace ExitGames::LoadBalancing;
@@ -15,7 +18,7 @@ using namespace ExitGames::Photon;
 static const ExitGames::Common::JString appID = L"f6c9acc6-a6a2-4704-9618-cd4a5ebe4db6";
 static const ExitGames::Common::JString appVersion = L"0.1";
 
-// Globals
+// Globals - main connections
 bool gUseTcp = false;
 PhotonView* g_pPhotonView = NULL;
 LoadBalancingListener* g_pLBL = NULL;
@@ -23,12 +26,122 @@ Client* g_pLBC = NULL;
 JString g_sPlayerName = "";
 char hostsLobbyName[256];
 
+// Globals - setting up and playing game
+int HowManyPlayersDoWeHave = 0;
+//uint64 server_timeout_milliseconds = SERVER_TIMEOUT_MILLISECONDS_LONG;
+//bool serverActive = false;
+
+/* move these up as we implement them (if relevant!)
+bool OnlineMultiplayerModeForSharingFiles = false;
+#define KEYDOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
+#define KEYUP(vk_code)   ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
+CSteamID lobbyIAmInID;
+int scores[MAX_PLAYERS_PER_SERVER];
+int keystate[MAX_PLAYERS_PER_SERVER][256];
+int alive[MAX_PLAYERS_PER_SERVER];
+tbullet bullets[180];
+bool bulletSeen[180][MAX_PLAYERS_PER_SERVER];
+int playerDamage = 0;
+int damageSource = 0;
+int damageX = 0;
+int damageY = 0;
+int damageZ = 0;
+int damageForce = 0;
+int damageLimb = 0;
+int killedSource[MAX_PLAYERS_PER_SERVER];
+int killedX[MAX_PLAYERS_PER_SERVER];
+int killedY[MAX_PLAYERS_PER_SERVER];
+int killedZ[MAX_PLAYERS_PER_SERVER];
+int killedForce[MAX_PLAYERS_PER_SERVER];
+int killedLimb[MAX_PLAYERS_PER_SERVER];
+CSteamID playerSteamIDs[MAX_PLAYERS_PER_SERVER];
+int playerAppearance[MAX_PLAYERS_PER_SERVER];
+int playerShoot[MAX_PLAYERS_PER_SERVER];
+int tweening[MAX_PLAYERS_PER_SERVER];
+char workshopItemName[256];
+char steamRootPath[MAX_PATH];
+bool needToSendMyName = true;
+int ClientDeathNumber = 1;
+int ServerClientLastDeathNumber[MAX_PLAYERS_PER_SERVER];
+int SteamOverlayActive = 0;
+int ServerIsShuttingDown = 0;
+PublishedFileId_t WorkShopItemID = NULL;
+UGCUpdateHandle_t WorkShopItemUpdateHandle = NULL;
+uint64 WorkshopItemToDownloadID = NULL;
+char WorkshopItemPath[MAX_PATH] = "";
+int IsWorkshopLoadingOn = 0;
+char hostsLobbyName[256];
+bool isPlayingOnAServer = false;
+extern GlobStruct* g_pGlob;
+extern CClient *g_pClient;
+int packetSendLogClientID = 0;
+int packetSendLogServerID = 0;
+std::vector <packetSendLogClient_t> PacketSend_Log_Client;
+std::vector <packetSendLogServer_t> PacketSend_Log_Server;
+std::vector <packetSendReceiptLogClient_t> PacketSendReceipt_Log_Client;
+std::vector <packetSendReceiptLogServer_t> PacketSendReceipt_Log_Server;
+std::vector <tSpawn> spawnList;
+std::vector <tLua> luaList;
+std::vector <int> deleteList;
+std::vector <int> deleteListSource;
+std::vector <int> destroyList;
+std::vector <tMessage> messageList;
+std::vector <tCollision> collisionList;
+std::vector <tAnimation> animationList;
+std::vector <tChat> chatList;
+std::vector <uint32> lobbyChatIDs;
+int ServerHowManyToStart = 0;
+int ServerHowManyJoined = 0;
+int ServerSaysItIsOkayToStart = 0;
+int ServerHaveIToldClientsToStart = 0;
+*/
+int ServerFilesToReceive = 0;
+int ServerFilesReceived = 0;
+/*
+int IamSyncedWithServerFiles = 0;
+int IamLoadedAndReady = 0;
+int isEveryoneLoadedAndReady = 0;
+int HowManyPlayersDoWeHave = 0;
+int IamReadyToPlay = 0;
+int isEveryoneReadyToPlay = 0;
+*/
+int serverHowManyFileChunks = 0;
+int serverChunkToSendCount = 0;
+int serverFileFileSize = 0;
+/*
+uint64 ServerCreationTime = 0;
+int fileProgress = 0;
+int voiceChatOn = 0;
+int syncedAvatarTextureMode = SYNC_AVATAR_TEX_BEGIN;
+int syncedAvatarTextureModeServer = SYNC_AVATAR_TEX_BEGIN;
+char myAvatarTextureName[MAX_PATH];
+int syncedAvatarHowManyTextures = 0;
+int syncedAvatarHowManyTexturesReceived = 0;
+FILE* avatarFile[MAX_PLAYERS_PER_SERVER];
+int avatarHowManyFileChunks[MAX_PLAYERS_PER_SERVER];
+int avatarFileFileSize[MAX_PLAYERS_PER_SERVER] ;
+int serverClientsFileSynced[MAX_PLAYERS_PER_SERVER];
+*/
+int serverClientsLoadedAndReady[MAX_PLAYERS_PER_SERVER];
+int serverClientsReadyToPlay[MAX_PLAYERS_PER_SERVER];
+/*
+int serverClientsHaveAvatarTexture[MAX_PLAYERS_PER_SERVER];
+FILE* serverFile = NULL;
+tSpawn currentSpawnObject;
+tLua currentLua;
+int currentDeleteObject;
+int currentDeleteObjectSource;
+int currentDestroyObject;
+tCollision currentCollisionObject;
+tAnimation currentAnimationObject;
+*/
+
+// photon core commands
+
 int PhotonInit()
 {
 	// create photon classes
 	g_pPhotonView = new PhotonView();
-	//LoadBalancingListener lbl(g_pPhotonView);
-	//Client lbc(lbl, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
 	g_pLBL = new LoadBalancingListener(g_pPhotonView);
 	g_pLBC = new Client(*g_pLBL, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
 
@@ -43,86 +156,12 @@ int PhotonInit()
 	g_sPlayerName = JString(L"PLR")+GETTIMEMS();
 	g_pLBL->connect(g_sPlayerName);
 
-	/* rest shows creating, joinging, exchanging data, mp updating
-	int iCreateGameRoom = 0;
-	int iJoinGameRoom = 0;
-	int iUseRoom = 0;
-	int iLeaveGameRoom = 0;
-	int iDisconnectSession = 0;
-	while(true)
-	{
-		// create game room to act as 'pseudo lobby' and active game
-		if ( iCreateGameRoom == 1 )
-		{
-			lbl.createRoom();
-			iCreateGameRoom = 0;
-		}
-
-		// view all rooms
-		lbl.updateRoomList();
-		int iRoomCount = g_pPhotonView->GetRoomCount();
-		if ( iRoomCount > 0 ) 
-		{
-			for ( int iRoomIndex = 0; iRoomIndex < iRoomCount; iRoomIndex++ )
-			{
-				JString pName = g_pPhotonView->GetRoomName ( iRoomIndex );
-				pName = pName;
-			}
-		}
-
-		// join a room
-		if ( iJoinGameRoom == 1 && iRoomCount > 0 )
-		{
-			int iRoomIndex = 0;
-			JString pRoomName = g_pPhotonView->GetRoomName ( iRoomIndex );
-			lbl.joinRoom ( pRoomName );
-			iJoinGameRoom = 0;
-		}
-
-		// share dharing data in the room
-		if ( g_pPhotonView->isInGameRoom() == true )
-		{
-			// run logic in game room
-			int iMPState = lbl.service();
-
-			// list players in room
-			lbl.updatePlayerList();
-			int iPlayerCount = g_pPhotonView->GetPlayerCount();
-			if ( iPlayerCount > 0 ) 
-			{
-				for ( int iPlayerIndex = 0; iPlayerIndex < iPlayerCount; iPlayerIndex++ )
-				{
-					JString pName = g_pPhotonView->GetPlayerName ( iPlayerIndex );
-					pName = pName;
-				}
-			}
-		}
-
-		// leave a room
-		if ( iLeaveGameRoom == 1 )
-		{
-			lbl.leaveRoom();
-			iLeaveGameRoom = 0;
-		}
-
-		// disconnect handling
-		if ( iDisconnectSession == 1 )
-		{
-			lbc.disconnect();
-			iDisconnectSession = 0;
-		}
-		if ( g_pPhotonView->isConnecting() == false && g_pPhotonView->isConnected() == false ) break;
-
-		// multiplayer update
-		lbc.serviceBasic();
-		while(lbc.dispatchIncomingCommands());
-		while(lbc.sendOutgoingCommands());
-	}
-
-	// free any resources
-	SAFE_DELETE ( g_pPhotonView );
-	MessageBox ( NULL, "end of Photon test", "", MB_OK );
-	*/
+	// inits - after much tracing through this old code, it has too many Steam specific hooks
+	// we can create simpler state management in a way that allows easy 'host migration'
+	//PhotonInitClient();
+	//PhotonCleanupClient();
+	//PhotonResetGameStats();
+	//PhotonInitClient();
 
 	// success
 	return 1;
@@ -130,6 +169,7 @@ int PhotonInit()
 
 void PhotonFree()
 {
+	// free MP resources
 	SAFE_DELETE ( g_pLBC );
 	SAFE_DELETE ( g_pLBL );
 	SAFE_DELETE ( g_pPhotonView );
@@ -141,30 +181,15 @@ void PhotonLoop(void)
 	if ( g_pPhotonView )
 	{
 		// disconnect handling
-		if ( 0 ) //iDisconnectSession == 1 )
+		if ( 0 ) 
 		{
 			g_pLBC->disconnect();
-			//iDisconnectSession = 0;
 		}
 		if ( g_pPhotonView->isConnecting() == false && g_pPhotonView->isConnected() == false ) 
 		{
 			MessageBox ( NULL, "disconnected now", "", MB_OK );
 			//break;
 		}
-
-		/* now done with specific commands
-		// view all rooms
-		g_pLBL->updateRoomList();
-		int iRoomCount = g_pPhotonView->GetRoomCount();
-		if ( iRoomCount > 0 ) 
-		{
-			for ( int iRoomIndex = 0; iRoomIndex < iRoomCount; iRoomIndex++ )
-			{
-				JString pName = g_pPhotonView->GetRoomName ( iRoomIndex );
-				pName = pName;
-			}
-		}
-		*/
 
 		// share dharing data in the room
 		if ( g_pPhotonView->isInGameRoom() == true )
@@ -173,28 +198,113 @@ void PhotonLoop(void)
 			// eventually use the data exchange to organise users playing the game, transfering levels and avatars
 			// and of course, running all the game logic when in-game!!
 			int iMPState = g_pLBL->service();
-
-			/* now done with specific commands
-			// list players in room
-			g_pLBL->updatePlayerList();
-			int iPlayerCount = g_pPhotonView->GetPlayerCount();
-			if ( iPlayerCount > 0 ) 
-			{
-				for ( int iPlayerIndex = 0; iPlayerIndex < iPlayerCount; iPlayerIndex++ )
-				{
-					JString pName = g_pPhotonView->GetPlayerName ( iPlayerIndex );
-					pName = pName;
-				}
-			}
-			*/
 		}
 
 		// sync network services
 		g_pLBC->serviceBasic();
 		while(g_pLBC->dispatchIncomingCommands());
 		while(g_pLBC->sendOutgoingCommands());
+
+		// client specific updates (includes server runframe)
+		//Client()->timeElapsed = GetCounterPassed();
+		//Client()->RunFrame();
+		//Client()->ReceiveNetworkData();
 	}
 }
+
+void PhotonInitClient()
+{
+	//g_pClient = new CClient();
+	//g_pClient->Init(g_pLBL);
+}
+
+void PhotonResetClient()
+{
+	//PhotonCleanupClient();
+	//PhotonResetGameStats();
+
+	//SAFE_DELETE ( g_pClient );
+	//g_pClient = new CClient();
+	//g_pClient->Init(g_pLBL);
+
+	/*
+	deleteList.clear();
+	deleteListSource.clear();
+	destroyList.clear();
+	messageList.clear();
+	chatList.clear();
+	lobbyChatIDs.clear();
+	*/
+}
+
+//void PhotonCleanupClient()
+//{
+//	PhotonResetGameStats();
+//}
+
+void PhotonResetGameStats()
+{
+	/*
+	serverActive = false;
+	IsWorkshopLoadingOn = 0;
+	ServerIsShuttingDown = 0;
+
+	char fileToDelete[MAX_PATH];
+	for ( int c = 0; c < MAX_PLAYERS_PER_SERVER ; c++ )
+	{
+		scores[c] = 0;
+		for ( int k = 0 ; k < 256 ; k++ ) keystate[c][k];
+		alive[c] = 1;
+		playerAppearance[c] = 0;
+
+		serverClientsFileSynced[c] = 0;
+		serverClientsLoadedAndReady[c] = 0;
+		serverClientsReadyToPlay[c] = 0;
+		playerShoot[c] = 0;
+		tweening[c] = 1;
+		HowManyPlayersDoWeHave = 0;
+
+		avatarFile[c] = NULL;
+		avatarHowManyFileChunks[c] = 0;
+		avatarFileFileSize[c] = 0;
+
+		sprintf ( fileToDelete, "%sentitybank\\user\\charactercreator\\customAvatar_%i_cc.dds" , steamRootPath , c );
+		DeleteFile ( fileToDelete );
+
+		sprintf ( fileToDelete, "%sentitybank\\user\\charactercreator\\customAvatar_%i.fpe" , steamRootPath , c );
+		DeleteFile ( fileToDelete );
+	}
+
+	for ( int i = 0 ; i < 179 ; i++ )
+	{
+		bullets[i].on = 0;
+		for ( int a = 0 ; a < MAX_PLAYERS_PER_SERVER; a++ )
+			bulletSeen[i][a] = false;
+	}
+
+	server_timeout_milliseconds = SERVER_TIMEOUT_MILLISECONDS_LONG;
+
+	ServerFilesToReceive = 0;
+	ServerFilesReceived = 0;
+	IamSyncedWithServerFiles = 0;
+	IamLoadedAndReady = 0;
+	IamReadyToPlay = 0;
+	isEveryoneLoadedAndReady = 0;
+	isEveryoneReadyToPlay = 0;
+	serverChunkToSendCount = 0;
+	fileProgress = 0;
+	HowManyPlayersDoWeHave = 0;
+	ServerHowManyToStart = 0;
+
+	if ( serverFile )
+	{
+		fclose (serverFile );
+		serverFile = NULL;
+	}
+	*/
+}
+
+// photon creating/listing lobby/gamerooms
 
 void PhotonGetLobbyList()
 {
@@ -317,6 +427,8 @@ void PhotonLeaveLobby()
 	}
 }
 
+// photon setting up and starting game
+
 int PhotonGetClientServerConnectionStatus() 
 { 
 	if ( g_pPhotonView )
@@ -327,42 +439,131 @@ int PhotonGetClientServerConnectionStatus()
 	return 0;
 }
 
-void PhotonStartServer() 
+void PhotonStartServer()
+{
+	if ( g_pPhotonView )
+	{
+		//server_timeout_milliseconds = SERVER_TIMEOUT_MILLISECONDS_LONG;
+		//Client()->StartServer();
+		//serverActive = true;
+	}
+}
+
+int PhotonIsServerRunning()
+{
+	if ( g_pPhotonView )
+	{
+		return 1;
+		//return Client()->IsServerRunning();
+	}
+	return 0;
+}
+
+int PhotonIsGameRunning()
+{
+	if ( g_pPhotonView )
+	{
+		return 1;
+		//int ret = Client()->IsGameRunning();
+		//serverActive = 0;
+		//if ( ret == 1 )
+		//	serverActive = 1;
+		//return ret;
+	}
+	return 0;
+}
+
+int PhotonGetMyPlayerIndex()
+{
+	//if ( g_pPhotonView )
+	//	return Client()->GetMyPlayerIndex();
+	return 0;
+}
+
+void PhotonSetRoot(LPSTR string )
 {
 }
 
-int PhotonIsServerRunning() 
-{ 
-	return 0; 
-}
-
-int PhotonIsGameRunning() 
-{ 
-	return 0; 
-}
-
-int PhotonGetMyPlayerIndex() 
-{ 
-	return 0; 
-}
-
-void PhotonSendIAmLoadedAndReady() 
+void PhotonSetSendFileCount(int count)
 {
+	if ( g_pPhotonView )
+	{
+		g_pLBL->SetSendFileCount(count);	
+	}
 }
 
-int PhotonIsEveryoneLoadedAndReady() 
+void PhotonSendFileBegin ( int index , LPSTR pString )
 {
-	return 0; 
+	if ( g_pPhotonView )
+	{
+		g_pLBL->SendFileBegin( index, pString );	
+	}
 }
 
-void PhotonSetRoot(LPSTR string ) 
+int PhotonSendFileDone()
 {
+	if ( g_pPhotonView )
+	{
+		return g_pLBL->SendFileDone();
+	}
+	return 0;
 }
 
-void PhotonSetSendFileCount(int count) 
+int PhotonAmIFileSynced()
 {
+	if ( g_pPhotonView )
+	{
+		return 0;//IamSyncedWithServerFiles;
+	}
+	return 0;
 }
 
+int PhotonIsEveryoneFileSynced()
+{
+	if ( g_pPhotonView )
+	{
+		return g_pLBL->IsEveryoneFileSynced();
+	}
+	return 0;
+}
+
+void PhotonSetThisPlayerAsCurrentServer()
+{
+	if ( g_pPhotonView )
+	{
+		g_pLBL->setPlayerIDAsCurrentServerPlayer();
+	}
+}
+
+void PhotonSendIAmLoadedAndReady()
+{
+	MsgClientSendIAmLoadedAndReady_t msg;
+	msg.index = g_pLBL->getLocalPlayerID();
+	//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientSendIAmLoadedAndReady_t), k_EP2PSendReliable );
+	g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientSendIAmLoadedAndReady_t), true );
+	if ( g_pLBL->isServer() == true )
+	{
+		g_pLBL->m_rgpPlayerLoadedAndReady[g_pLBL->miCurrentServerPlayerID] = 1;
+	}
+}
+
+int PhotonIsEveryoneLoadedAndReady()
+{
+	// LEE, the 'PhotonSendIAmLoadedAndReady' is only done by non-server players
+	if ( g_pLBL->isServer() == true )
+	{
+		// so when calling this its the server player which waits for responses
+		if ( g_pLBL->isEveryoneLoadedAndReady() == true )
+		{
+			// and finally issues the global state message to change EveryoneLoadedAndReady to 1
+			g_pLBL->sendGlobalVarState ( eGlobalEventEveryoneLoadedAndReady, 1 );
+			g_pPhotonView->GlobalStates.EveryoneLoadedAndReady = 1;
+		}
+	}
+
+	// and the above global state gets propagated to all players
+	return g_pPhotonView->GlobalStates.EveryoneLoadedAndReady;
+}
 
 //
 // empty functions so can compile code with Steam Multiplayer references

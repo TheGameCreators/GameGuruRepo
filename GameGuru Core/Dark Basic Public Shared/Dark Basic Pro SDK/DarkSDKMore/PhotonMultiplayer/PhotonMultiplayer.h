@@ -11,33 +11,7 @@
 #include "stdafx.h"
 #include <vector>
 
-//#define _DEBUG_LOG_
-
-#ifdef _DEBUG_LOG_
-extern FILE* logFile;
-#endif
-
 void Print (char* c);
-
-// The Steamworks API's are modular, you can use some subsystems without using others
-// When USE_GS_AUTH_API is defined you get the following Steam features:
-// - Strong user authentication and authorization
-// - Game server matchmaking
-// - VAC cheat protection
-// - Access to achievement/community API's
-// - P2P networking capability
-
-// Remove this define to disable using the native Steam authentication and matchmaking system
-// You can use this as a sample of how to integrate your game without replacing an existing matchmaking system
-// When you un-define USE_GS_AUTH_API you get:
-// - Access to achievement/community API's
-// - P2P networking capability
-// You CANNOT use:
-// - VAC cheat protection
-// - Game server matchmaking
-// as these function depend on using Steam authentication
-#define USE_GS_AUTH_API 
-
 
 // Current game server version
 #define STEAM_SERVER_VERSION "1.0.0.0"
@@ -140,7 +114,7 @@ extern int serverHowManyFileChunks;
 extern int serverChunkToSendCount;
 extern int serverFileFileSize;
 extern int fileProgress;
-extern FILE* serverFile;
+//extern FILE* serverFile;
 extern int voiceChatOn;
 extern char hostsLobbyName[256];
 //
@@ -153,7 +127,6 @@ extern char steamRootPath[MAX_PATH];
 extern FILE* avatarFile[MAX_PLAYERS_PER_SERVER];
 extern int avatarHowManyFileChunks[MAX_PLAYERS_PER_SERVER];
 extern int avatarFileFileSize[MAX_PLAYERS_PER_SERVER] ;
-
 
 struct tbullet
 {
@@ -283,7 +256,6 @@ inline T QWordSwap( T dw )
 #define LEADERBOARD_QUICKEST_WIN "Quickest Win"
 #define LEADERBOARD_FEET_TRAVELED "Feet Traveled"
 
-
 // Enum for possible game states on the client
 enum EClientGameState
 {
@@ -377,24 +349,16 @@ struct ServerPlayerUpdateData_t
 	unsigned short y;
 	unsigned short z;
 	unsigned short angle;
-	//char name[256];
 };
 
-
 // This is the data that gets sent from the server to each client for each update
-struct ServerSteamUpdateData_t
+struct ServerUpdateData_t
 {
 	void SetServerGameState( EServerGameState eState ) { m_eCurrentGameState = LittleDWord( (unsigned char)eState ); }
 	EServerGameState GetServerGameState() { return (EServerGameState)LittleDWord( (uint32)m_eCurrentGameState ); }
-
-	//void SetPlayerWhoWon( uint32 iIndex ) { m_uPlayerWhoWonGame = LittleDWord( iIndex ); }
-	//uint32 GetPlayerWhoWon() { return LittleDWord( m_uPlayerWhoWonGame ); }
-
+	
 	void SetPlayerActive( uint32 iIndex, bool bIsActive ) { m_rgPlayersActive[iIndex] = bIsActive; }
 	bool GetPlayerActive( uint32 iIndex ) { return m_rgPlayersActive[iIndex]; }
-
-	//void SetPlayerScore( uint32 iIndex, uint32 unScore ) { m_rgPlayerScores[iIndex] = LittleDWord(unScore); }
-	//uint32 GetPlayerScore( uint32 iIndex ) { return LittleDWord(m_rgPlayerScores[iIndex]); }
 
 	void SetPlayerSteamID( uint32 iIndex, uint64 ulSteamID ) { m_rgPlayerSteamIDs[iIndex] = LittleQWord(ulSteamID); }
 	uint64 GetPlayerSteamID( uint32 iIndex ) { return LittleQWord(m_rgPlayerSteamIDs[iIndex]); }
@@ -404,16 +368,10 @@ struct ServerSteamUpdateData_t
 private:
 	// What state the game is in
 	unsigned char m_eCurrentGameState;
-
-	// Who just won the game? -- only valid when m_eCurrentGameState == k_EGameWinner
-	//uint32 m_uPlayerWhoWonGame;
-
+	
 	// which player slots are in use
 	bool m_rgPlayersActive[MAX_PLAYERS_PER_SERVER];
-
-	// what are the scores for each player?
-	//uint32 m_rgPlayerScores[MAX_PLAYERS_PER_SERVER];
-
+	
 	// array of ship data
 	ServerPlayerUpdateData_t m_rgShipData[MAX_PLAYERS_PER_SERVER];
 
@@ -421,19 +379,15 @@ private:
 	uint64 m_rgPlayerSteamIDs[MAX_PLAYERS_PER_SERVER];
 };
 
-
 // This is the data that gets sent from each client to the server for each update
-struct ClientSteamUpdateData_t
+struct ClientUpdateData_t
 {
 	unsigned short x;
 	unsigned short y;
 	unsigned short z;
 	unsigned short angle;
-	//char name[256];
 };
 
-
-//====================================
 extern int packetSendLogClientID;
 extern int packetSendLogServerID;
 
@@ -454,7 +408,6 @@ struct packetSendLogServer_t
 	double timeStamp;
 };
 
-
 struct packetSendReceiptLogClient_t
 {
 	int LogID;
@@ -467,7 +420,6 @@ struct packetSendReceiptLogServer_t
 	int playerID;
 	double timeStamp;
 };
-
 
 extern std::vector <packetSendLogClient_t> PacketSend_Log_Client;
 extern std::vector <packetSendLogServer_t> PacketSend_Log_Server;
