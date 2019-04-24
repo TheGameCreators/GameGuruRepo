@@ -8,12 +8,11 @@
 
 bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 {
-	// photon has no workshop
-	return false;
+	// actually checks for existence of _e_ file in place of original!
 
+	// some quick rejections
 	if ( !VirtualFilename ) return false;
 	if ( strlen ( VirtualFilename ) < 3 ) return false;
-
 	char* tempCharPointerCheck = NULL;
 	tempCharPointerCheck = strrchr( VirtualFilename, '\\' );
 	if ( tempCharPointerCheck == VirtualFilename+strlen(VirtualFilename)-1 ) return false;
@@ -33,6 +32,7 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 			szEncryptedFilenameFolder[c] = '\\';
 	}
 
+	// assemble _e_ filename
 	tempCharPointer = strrchr( szEncryptedFilenameFolder, '\\' );
 	if ( tempCharPointer && tempCharPointer != szEncryptedFilenameFolder+strlen(szEncryptedFilenameFolder)-1 )
 	{
@@ -43,6 +43,8 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 	{
 		sprintf ( szEncryptedFilename , "_e_%s" , szEncryptedFilenameFolder );
 	}
+
+	// check it exists
 	FILE* tempFile = NULL;
 	tempFile = fopen ( szEncryptedFilename ,"r" );
 	if ( tempFile )
@@ -53,6 +55,9 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 	}
 	// end of encrypted file check
 
+	#ifdef PHOTONMP
+		// Photon has no workshop support
+	#else
 		char szWorkshopFilename[_MAX_PATH];
 		char szWorkshopFilenameFolder[_MAX_PATH];
 		char szWorkShopItemPath[_MAX_PATH];
@@ -119,15 +124,6 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 			strcat ( szTempName , "\\" );
 			strcat ( szTempName , szWorkshopFilenameFolder );
 
-			/*FILE* tempy = NULL;
-			tempy = fopen ( "f:\\DUMPFILE.txt" ,"a" );
-			if ( tempy )
-			{
-				fputs ( szTempName , tempy );
-				fputs ( "\n" , tempy );
-				fclose ( tempy );
-			}*/
-
 			FILE* tempFile = NULL;
 			tempFile = fopen ( szTempName ,"r" );
 			if ( tempFile )
@@ -136,20 +132,6 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 				int szTempNamelength = strlen(szTempName);
 				int virtualfilelength = strlen(VirtualFilename);				
 				strcpy ( VirtualFilename , szTempName );
-
-				/*FILE* tempy = NULL;
-				tempy = fopen ( "f:\\DUMPFILE.txt" ,"a" );
-				if ( tempy )
-				{					
-					fputs ( szWorkShopItemPath , tempy );
-					fputs ( "\n" , tempy );
-					fputs ( VirtualFilename , tempy );
-					fputs ( "\n" , tempy );
-					fputs ( "============" , tempy );
-					fputs ( "\n" , tempy );
-					fclose ( tempy );
-				}*/
-
 				return true;
 			}
 			else // check for encrypted version
@@ -176,7 +158,7 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 				}
 			}
 		}
-
+	#endif
 	return false;
 }
 

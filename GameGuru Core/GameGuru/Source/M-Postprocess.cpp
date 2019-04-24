@@ -29,12 +29,12 @@ void postprocess_init ( void )
 	else
 	{
 		//  Initialise or Activate existing
-		if (  t.gpostprocessmode == 0 ) 
+		if ( t.gpostprocessmode == 0 ) 
 		{
-			//  kind of post process (gpostprocessing)
-			//  1 - bloom
+			// kind of post process (gpostprocessing)
+			// 1 - bloom
 			timestampactivity(0,"postprocessing check");
-			if (  g.gpostprocessing == 1 ) 
+			if ( g.gpostprocessing == 1 ) 
 			{
 				//  new camera 3 holds post-process screen quad
 				g.gfinalrendercameraid=3;
@@ -362,58 +362,62 @@ void postprocess_applycheapshadow ( void )
 
 void postprocess_free ( void )
 {
-	// free GGVR if used
-	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	// only free if enagaged
+	if ( t.gpostprocessmode > 0 )
 	{
-		GGVR_Shutdown();
-	}
-
-	//  free post processing objects
-	if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  DeleteObject (  g.postprocessobjectoffset+0 );
-	if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  DeleteObject (  g.postprocessobjectoffset+1 );
-	if (  ObjectExist(g.postprocessobjectoffset+2) == 1  )  DeleteObject (  g.postprocessobjectoffset+2 );
-	if (  ObjectExist(g.postprocessobjectoffset+3) == 1  )  DeleteObject (  g.postprocessobjectoffset+3 );
-	if (  ImageExist(g.postprocessimageoffset+2) == 1  )  DeleteImage (  g.postprocessimageoffset+2 );
-	if (  ImageExist(g.postprocessimageoffset+3) == 1  )  DeleteImage (  g.postprocessimageoffset+3 );
-
-	//  free any resources created by post process technique
-	if (  GetEffectExist(g.postprocesseffectoffset+0) == 1  )  DeleteEffect (  g.postprocesseffectoffset+0 );
-	if (  GetEffectExist(g.postprocesseffectoffset+2) == 1  )  DeleteEffect (  g.postprocesseffectoffset+2 );
-	if (  GetEffectExist(g.postprocesseffectoffset+3) == 1  )  DeleteEffect (  g.postprocesseffectoffset+3 );
-	if (  GetEffectExist(g.postprocesseffectoffset+4) == 1  )  DeleteEffect (  g.postprocesseffectoffset+4 );
-	if (  g.gfinalrendercameraid>0 ) 
-	{
-		if (  CameraExist(g.gfinalrendercameraid) == 1 ) 
+		// free GGVR if used
+		if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 		{
-			DestroyCamera (  g.gfinalrendercameraid );
+			GGVR_Shutdown();
 		}
-		g.gfinalrendercameraid=0;
-	}
 
-	//  free lightray shader
-	if (  GetEffectExist(g.postprocesseffectoffset+1) == 1  )  DeleteEffect (  g.postprocesseffectoffset+1 );
-	if (  t.glightraycameraid>0 ) 
-	{
-		if (  CameraExist(t.glightraycameraid) == 1 ) 
+		//  free post processing objects
+		if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  DeleteObject (  g.postprocessobjectoffset+0 );
+		if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  DeleteObject (  g.postprocessobjectoffset+1 );
+		if (  ObjectExist(g.postprocessobjectoffset+2) == 1  )  DeleteObject (  g.postprocessobjectoffset+2 );
+		if (  ObjectExist(g.postprocessobjectoffset+3) == 1  )  DeleteObject (  g.postprocessobjectoffset+3 );
+		if (  ImageExist(g.postprocessimageoffset+2) == 1  )  DeleteImage (  g.postprocessimageoffset+2 );
+		if (  ImageExist(g.postprocessimageoffset+3) == 1  )  DeleteImage (  g.postprocessimageoffset+3 );
+
+		//  free any resources created by post process technique
+		if (  GetEffectExist(g.postprocesseffectoffset+0) == 1  )  DeleteEffect (  g.postprocesseffectoffset+0 );
+		if (  GetEffectExist(g.postprocesseffectoffset+2) == 1  )  DeleteEffect (  g.postprocesseffectoffset+2 );
+		if (  GetEffectExist(g.postprocesseffectoffset+3) == 1  )  DeleteEffect (  g.postprocesseffectoffset+3 );
+		if (  GetEffectExist(g.postprocesseffectoffset+4) == 1  )  DeleteEffect (  g.postprocesseffectoffset+4 );
+		if (  g.gfinalrendercameraid>0 ) 
 		{
-			DestroyCamera (  t.glightraycameraid );
+			if (  CameraExist(g.gfinalrendercameraid) == 1 ) 
+			{
+				DestroyCamera (  g.gfinalrendercameraid );
+			}
+			g.gfinalrendercameraid=0;
 		}
-		t.glightraycameraid=0;
+
+		//  free lightray shader
+		if (  GetEffectExist(g.postprocesseffectoffset+1) == 1  )  DeleteEffect (  g.postprocesseffectoffset+1 );
+		if (  t.glightraycameraid>0 ) 
+		{
+			if (  CameraExist(t.glightraycameraid) == 1 ) 
+			{
+				DestroyCamera (  t.glightraycameraid );
+			}
+			t.glightraycameraid=0;
+		}
+
+		//  Total reset
+		g.gpostprocessingnotransparency=0;
+		t.gpostprocessmode=0;
+
+		//  Restore main camera
+		SetCurrentCamera (  0 );
+		SetCameraView (  0,0,0,GetDesktopWidth(),GetDesktopHeight() );
+		SetCameraToImage (  0,-1,0,0,0 );
 	}
-
-	//  Total reset
-	g.gpostprocessingnotransparency=0;
-	t.gpostprocessmode=0;
-
-	//  Restore main camera
-	SetCurrentCamera (  0 );
-	SetCameraView (  0,0,0,GetDesktopWidth(),GetDesktopHeight() );
-	SetCameraToImage (  0,-1,0,0,0 );
 }
 
 void postprocess_off ( void )
 {
-	if (  t.gpostprocessmode>0 ) 
+	if ( t.gpostprocessmode>0 ) 
 	{
 		if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  HideObject (  g.postprocessobjectoffset+0 );
 		if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  HideObject (  g.postprocessobjectoffset+1 );
@@ -432,17 +436,17 @@ void postprocess_off ( void )
 
 void postprocess_on ( void )
 {
-	if (  t.gpostprocessmode>0 ) 
+	if ( t.gpostprocessmode>0 ) 
 	{
-		if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  ShowObject (  g.postprocessobjectoffset+0 );
-		if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  ShowObject (  g.postprocessobjectoffset+1 );
-		if (  ObjectExist(g.postprocessobjectoffset+2) == 1  )  ShowObject (  g.postprocessobjectoffset+2 );
+		if ( ObjectExist(g.postprocessobjectoffset+0) == 1  )  ShowObject (  g.postprocessobjectoffset+0 );
+		if ( ObjectExist(g.postprocessobjectoffset+1) == 1  )  ShowObject (  g.postprocessobjectoffset+1 );
+		if ( ObjectExist(g.postprocessobjectoffset+2) == 1  )  ShowObject (  g.postprocessobjectoffset+2 );
 		SetCameraToImage (  0,g.postprocessimageoffset+0,GetDisplayWidth(),GetDisplayHeight(),2 );
-		if (  g.gfinalrendercameraid>0 ) 
+		if ( g.gfinalrendercameraid>0 ) 
 		{
 			SetCameraView (  g.gfinalrendercameraid,0,0,GetDisplayWidth(),GetDisplayHeight() );
 		}
-		if (  t.glightraycameraid>0 ) 
+		if ( t.glightraycameraid>0 ) 
 		{
 			SetCameraView (  t.glightraycameraid,0,0,GetDisplayWidth(),GetDisplayHeight() );
 		}

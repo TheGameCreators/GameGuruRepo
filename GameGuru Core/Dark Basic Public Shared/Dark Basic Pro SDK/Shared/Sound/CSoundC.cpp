@@ -47,14 +47,15 @@ HWND									m_hWndSOUND;			// handle to window
 
 DBPRO_GLOBAL CSoundManager*				g_pSoundManager			= NULL;
 DBPRO_GLOBAL IDirectSound3DListener*	pDSListener				= NULL;
-DBPRO_GLOBAL GGVECTOR3				vecListenerPosition		= GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
-DBPRO_GLOBAL GGVECTOR3				vecListenerFront		= GGVECTOR3 ( 0.0f, 0.0f, 1.0f );
-DBPRO_GLOBAL GGVECTOR3				vecListenerTop			= GGVECTOR3 ( 0.0f, 1.0f, 0.0f );
-DBPRO_GLOBAL GGVECTOR3				vecListenerAngle		= GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
+DBPRO_GLOBAL GGVECTOR3					vecListenerPosition		= GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
+DBPRO_GLOBAL GGVECTOR3					vecListenerFront		= GGVECTOR3 ( 0.0f, 0.0f, 1.0f );
+DBPRO_GLOBAL GGVECTOR3					vecListenerTop			= GGVECTOR3 ( 0.0f, 1.0f, 0.0f );
+DBPRO_GLOBAL GGVECTOR3					vecListenerAngle		= GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
 DBPRO_GLOBAL UINT						g_wDeviceID				= 0;
 DBPRO_GLOBAL int						g_iSoundToRecordOver	= 0;
 DBPRO_GLOBAL int						g_iReduce3DSoundCalc	= 0;
-extern GlobStruct*				g_pGlob;
+extern GlobStruct*						g_pGlob;
+HWND									g_currentSoundHWND		= NULL;
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
@@ -212,6 +213,14 @@ DARKSDK void UpdateSound ( void )
 			pDSListener->CommitDeferredSettings();
 			g_iReduce3DSoundCalc=0;
 		}
+	}
+
+	// Set cooperative level of original HWND if available
+	HWND hWnd = GetForegroundWindow();
+	if ( g_currentSoundHWND != hWnd )
+	{
+		g_currentSoundHWND = hWnd;
+		HRESULT hr = g_pSoundManager->m_pDS->SetCooperativeLevel( hWnd, DSSCL_PRIORITY );
 	}
 }
 
@@ -459,6 +468,8 @@ DARKSDK void LoadRawSoundCore ( LPSTR szFilename, int iID, bool b3DSound, int iS
 	g_pGlob->dwInternalFunctionCode=15004;
 	if ( strnicmp ( (char*)szFilename+strlen((char*)szFilename)-4, ".ogg", 4 )==NULL )
 	{
+		//char pLookSee[1024];
+		//GetCurrentDirectory ( 1024, pLookSee );
 		LoadRawSoundCoreOgg ( szFilename, iID, b3DSound, iSilentFail );
 		if ( m_ptr->pDSBuffer3D==NULL && m_ptr->pSound->m_apDSBuffer==NULL )
 		{

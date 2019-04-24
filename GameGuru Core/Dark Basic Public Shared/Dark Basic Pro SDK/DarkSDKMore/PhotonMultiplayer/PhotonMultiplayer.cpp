@@ -38,7 +38,9 @@ bool OnlineMultiplayerModeForSharingFiles = false;
 CSteamID lobbyIAmInID;
 int scores[MAX_PLAYERS_PER_SERVER];
 int keystate[MAX_PLAYERS_PER_SERVER][256];
+*/
 int alive[MAX_PLAYERS_PER_SERVER];
+/*
 tbullet bullets[180];
 bool bulletSeen[180][MAX_PLAYERS_PER_SERVER];
 int playerDamage = 0;
@@ -57,7 +59,9 @@ int killedLimb[MAX_PLAYERS_PER_SERVER];
 CSteamID playerSteamIDs[MAX_PLAYERS_PER_SERVER];
 int playerAppearance[MAX_PLAYERS_PER_SERVER];
 int playerShoot[MAX_PLAYERS_PER_SERVER];
+*/
 int tweening[MAX_PLAYERS_PER_SERVER];
+/*
 char workshopItemName[256];
 char steamRootPath[MAX_PATH];
 bool needToSendMyName = true;
@@ -97,8 +101,9 @@ int ServerHaveIToldClientsToStart = 0;
 */
 int ServerFilesToReceive = 0;
 int ServerFilesReceived = 0;
-/*
 int IamSyncedWithServerFiles = 0;
+int serverOnlySendMapToSpecificPlayer = 0;
+/*
 int IamLoadedAndReady = 0;
 int isEveryoneLoadedAndReady = 0;
 int HowManyPlayersDoWeHave = 0;
@@ -144,6 +149,9 @@ int PhotonInit()
 	g_pPhotonView = new PhotonView();
 	g_pLBL = new LoadBalancingListener(g_pPhotonView);
 	g_pLBC = new Client(*g_pLBL, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
+	
+	// for debugging and testing, allow 20 MINUTES timeout grace for debugging
+	g_pLBC->setDisconnectTimeout(120000*10);
 
 	// initialise photon
 	g_pLBC->setDebugOutputLevel(DEBUG_RELEASE(ExitGames::Common::DebugLevel::INFO, ExitGames::Common::DebugLevel::WARNINGS));
@@ -163,6 +171,9 @@ int PhotonInit()
 	//PhotonResetGameStats();
 	//PhotonInitClient();
 
+	// inits
+	g_pPhotonView->iTriggerLeaveMode = 0;
+
 	// success
 	return 1;
 }
@@ -180,18 +191,36 @@ void PhotonLoop(void)
 	// if photon active
 	if ( g_pPhotonView )
 	{
-		// disconnect handling
-		if ( 0 ) 
+		// monitor players in this game (when game is running; for leaves and new joins)
+		g_pLBL->manageTrackedPlayerList();
+
+		// disconnect player handling sequence
+		if ( g_pPhotonView->iTriggerLeaveMode == 2 )
 		{
-			g_pLBC->disconnect();
+			// Timeout stale player connections, also update player count data
+			g_pLBL->leaveRoom();
+			g_pPhotonView->iTriggerLeaveMode = 3;
 		}
-		if ( g_pPhotonView->isConnecting() == false && g_pPhotonView->isConnected() == false ) 
+		if ( g_pPhotonView->iTriggerLeaveMode == 1 )
 		{
-			MessageBox ( NULL, "disconnected now", "", MB_OK );
-			//break;
+			// Timeout stale player connections, also update player count data
+			g_pLBL->migrateHostIfServer();
+			g_pPhotonView->iTriggerLeaveMode = 2;
+		}
+		if ( g_pPhotonView->iTriggerLeaveMode == 3 ) 
+		{
+			if ( g_pPhotonView->isInGameRoom()==false )
+			{
+				g_pPhotonView->iTriggerLeaveMode = 4;
+				g_pLBC->disconnect();
+			}
+		}
+		if ( g_pPhotonView->iTriggerLeaveMode == 4 && g_pPhotonView->isConnecting() == false && g_pPhotonView->isConnected() == false ) 
+		{
+			g_pPhotonView->iTriggerLeaveMode = 99;
 		}
 
-		// share dharing data in the room
+		// sharing data in the room
 		if ( g_pPhotonView->isInGameRoom() == true )
 		{
 			// run logic in game room
@@ -204,12 +233,28 @@ void PhotonLoop(void)
 		g_pLBC->serviceBasic();
 		while(g_pLBC->dispatchIncomingCommands());
 		while(g_pLBC->sendOutgoingCommands());
-
-		// client specific updates (includes server runframe)
-		//Client()->timeElapsed = GetCounterPassed();
-		//Client()->RunFrame();
-		//Client()->ReceiveNetworkData();
 	}
+}
+
+int PhotonCloseConnection()
+{
+	// trigger player to leave
+	if ( g_pPhotonView->iTriggerLeaveMode == 0 )
+		g_pPhotonView->iTriggerLeaveMode = 1;
+
+	// determine when connection ended
+	if ( g_pPhotonView->iTriggerLeaveMode == 99 )
+		return 1;
+	else
+		return 0;
+}
+
+bool PhotonPlayerLeaving()
+{
+	if ( g_pPhotonView->iTriggerLeaveMode > 0 )
+		return true;
+	else
+		return false;
 }
 
 void PhotonInitClient()
@@ -283,10 +328,11 @@ void PhotonResetGameStats()
 	}
 
 	server_timeout_milliseconds = SERVER_TIMEOUT_MILLISECONDS_LONG;
-
+	*/
 	ServerFilesToReceive = 0;
 	ServerFilesReceived = 0;
 	IamSyncedWithServerFiles = 0;
+	/*
 	IamLoadedAndReady = 0;
 	IamReadyToPlay = 0;
 	isEveryoneLoadedAndReady = 0;
@@ -295,13 +341,8 @@ void PhotonResetGameStats()
 	fileProgress = 0;
 	HowManyPlayersDoWeHave = 0;
 	ServerHowManyToStart = 0;
-
-	if ( serverFile )
-	{
-		fclose (serverFile );
-		serverFile = NULL;
-	}
 	*/
+	g_pLBL->CloseFileNow();
 }
 
 // photon creating/listing lobby/gamerooms
@@ -443,6 +484,7 @@ void PhotonStartServer()
 {
 	if ( g_pPhotonView )
 	{
+		g_pLBL->sendGlobalVarState ( eGlobalEventGameRunning, 1 );
 		//server_timeout_milliseconds = SERVER_TIMEOUT_MILLISECONDS_LONG;
 		//Client()->StartServer();
 		//serverActive = true;
@@ -463,20 +505,16 @@ int PhotonIsGameRunning()
 {
 	if ( g_pPhotonView )
 	{
-		return 1;
-		//int ret = Client()->IsGameRunning();
-		//serverActive = 0;
-		//if ( ret == 1 )
-		//	serverActive = 1;
-		//return ret;
+		return g_pPhotonView->GlobalStates.iGameRunning;
 	}
 	return 0;
 }
 
 int PhotonGetMyPlayerIndex()
 {
-	//if ( g_pPhotonView )
 	//	return Client()->GetMyPlayerIndex();
+	if ( g_pPhotonView )
+		return g_pLBL->getLocalPlayerID();
 	return 0;
 }
 
@@ -484,11 +522,11 @@ void PhotonSetRoot(LPSTR string )
 {
 }
 
-void PhotonSetSendFileCount(int count)
+void PhotonSetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer )
 {
 	if ( g_pPhotonView )
 	{
-		g_pLBL->SetSendFileCount(count);	
+		g_pLBL->SetSendFileCount(count,iOnlySendMapToSpecificPlayer);	
 	}
 }
 
@@ -513,7 +551,16 @@ int PhotonAmIFileSynced()
 {
 	if ( g_pPhotonView )
 	{
-		return 0;//IamSyncedWithServerFiles;
+		return IamSyncedWithServerFiles;
+	}
+	return 0;
+}
+
+int PhotonGetFileProgress()
+{
+	if ( g_pPhotonView )
+	{
+		return g_pLBL->GetFileProgress();
 	}
 	return 0;
 }
@@ -564,6 +611,122 @@ int PhotonIsEveryoneLoadedAndReady()
 	// and the above global state gets propagated to all players
 	return g_pPhotonView->GlobalStates.EveryoneLoadedAndReady;
 }
+
+void PhotonSetPlayerPositionX( float _x )
+{
+	if ( g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex] )
+	{
+		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->x = _x;
+		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->newx = _x;
+	}
+}
+
+void PhotonSetPlayerPositionY( float _y )
+{
+	if ( g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex] )
+	{
+		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->y = _y;
+		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->newy = _y;
+	}
+}
+
+void PhotonSetPlayerPositionZ( float _z )
+{
+	if ( g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex] )
+	{
+		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->z = _z;
+		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->newz = _z;
+	}
+}
+
+void PhotonSetPlayerAngle( float _angle )
+{
+	if ( g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex] )
+	{
+		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->angle = _angle;
+		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->newangle = _angle;
+	}
+}
+
+void PhotonSetPlayerAlive ( int state )
+{
+	if ( g_pPhotonView )
+	{
+		alive[g_pLBL->muPlayerIndex] = state;
+		MsgClientPlayerSetPlayerAlive_t msg;
+		msg.index = g_pLBL->muPlayerIndex;
+		msg.state = state;
+		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerSetPlayerAlive_t), k_EP2PSendUnreliable );
+		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerSetPlayerAlive_t), false );
+	}
+}
+
+int PhotonGetPlayerAlive ( int index )
+{
+	if ( g_pPhotonView )
+	{
+		return alive[index];
+	}
+	return 0;
+}
+
+float PhotonGetPlayerPositionX ( int index )
+{
+	if ( g_pPhotonView )
+	{
+		if ( g_pLBL->m_rgpPlayer[index] )
+		{
+			g_pLBL->m_rgpPlayer[index]->x = CosineInterpolate ( g_pLBL->m_rgpPlayer[index]->x , g_pLBL->m_rgpPlayer[index]->newx , INTERPOLATE_SMOOTHING );
+			return g_pLBL->m_rgpPlayer[index]->x;
+		}
+	}
+	return 0;
+}
+
+float PhotonGetPlayerPositionY ( int index )
+{
+	if ( g_pPhotonView )
+	{
+		if ( g_pLBL->m_rgpPlayer[index] )
+		{
+			g_pLBL->m_rgpPlayer[index]->y = CosineInterpolate ( g_pLBL->m_rgpPlayer[index]->y , g_pLBL->m_rgpPlayer[index]->newy , INTERPOLATE_SMOOTHING );
+			return g_pLBL->m_rgpPlayer[index]->y;
+		}
+	}
+	return 0;
+}
+
+float PhotonGetPlayerPositionZ ( int index )
+{
+	if ( g_pPhotonView )
+	{
+		if ( g_pLBL->m_rgpPlayer[index] )
+		{
+			g_pLBL->m_rgpPlayer[index]->z = CosineInterpolate ( g_pLBL->m_rgpPlayer[index]->z , g_pLBL->m_rgpPlayer[index]->newz , INTERPOLATE_SMOOTHING );
+			return g_pLBL->m_rgpPlayer[index]->z;
+		}
+	}
+	return 0;
+}
+
+float PhotonGetPlayerAngle ( int index )
+{
+	if ( g_pPhotonView )
+	{
+		if ( g_pLBL->m_rgpPlayer[index] )
+		{
+			g_pLBL->m_rgpPlayer[index]->angle = CosineInterpolateAngle( g_pLBL->m_rgpPlayer[index]->angle , g_pLBL->m_rgpPlayer[index]->newangle , INTERPOLATE_SMOOTHING_TURN );
+			return g_pLBL->m_rgpPlayer[index]->angle;
+		}
+	}
+	return 0;
+}
+
+void PhotonSetTweening(int index , int flag)
+{
+	tweening[index] = flag;
+}
+
 
 //
 // empty functions so can compile code with Steam Multiplayer references
@@ -865,20 +1028,19 @@ extern "C" void __cdecl SteamAPIDebugTextHook( int nSeverity, const char *pchDeb
 		x = x;
 	}
 }
+*/
 
 #define PI 3.14159
 
 float CosineInterpolate( float y1,float y2, float mu)
 {
    float mu2;
-
    mu2 = (float)((1-cos(mu*PI))/2);
    return(y1*(1-mu2)+y2*mu2);
 }
 
 float CosineInterpolateAngle( float y1,float y2, float mu)
 {
-
 	while (y1 > 360 ) y1-=360;
 	while (y2 > 360 ) y2-=360;
 	while (y1 < 0 ) y1+=360;
@@ -901,11 +1063,11 @@ float CosineInterpolateAngle( float y1,float y2, float mu)
 	}
 
 	float mu2;
-
 	mu2 = (float)((1-cos(mu*PI))/2);
 	return(y1*(1-mu2)+y2*mu2);
 }
 
+/*
 float CosineInterpolateAngle2( float y1,float y2, float mu)
 {
 	while (y1 > 360 ) y1-=360;
@@ -940,7 +1102,6 @@ float CosineInterpolateAngle2( float y1,float y2, float mu)
 
    // return fmod (value, rangeZero);
 }
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Extracts some feature from the command line

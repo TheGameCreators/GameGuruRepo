@@ -18,7 +18,7 @@
 enum EGlobalEventIndices
 {
 	eGlobalEventNoState,
-	eGlobalEventGameStarting,
+	eGlobalEventGameRunning,
 	eGlobalEventPlayerPosition,
 	eGlobalEventMessage,
 	eGlobalEventEveryoneLoadedAndReady,
@@ -35,6 +35,9 @@ public:
 	void createRoom(LPSTR name);
 	void updateRoomList(void);
 	void joinRoom(const ExitGames::Common::JString& pRoomName);
+	void migrateHostIfServer ( void );
+	void removePlayer ( int playernr );
+	//void removePlayerFromServer( int uPosition );
 
 	void setPlayerIDAsCurrentServerPlayer(void);
 	bool isServer(void) { return mbIsServer; }
@@ -47,12 +50,15 @@ public:
 	int service(void);
 	void sendGlobalVarState ( int iVarEventIndex, int iVarValue );
 	void sendMessage ( nByte* msg, DWORD msgSize, bool bReliable );
+	void sendMessageToPlayer ( int iPlayerIndex, nByte* msg, DWORD msgSize, bool bReliable );
 	void handleMessage ( int playerNr, EMessage msg, DWORD cubMsgSize, nByte* pchRecvBuf );
 
-	void SetSendFileCount ( int count );
+	void SetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer);
 	void SendFileBegin ( int index , LPSTR pString );
 	int SendFileDone();
+	void CloseFileNow ( void );
 	int IsEveryoneFileSynced();
+	int GetFileProgress();
 
 	void leaveRoom(void);
 
@@ -99,6 +105,7 @@ private:
 	PhotonView* mPhotonView;
 
 	bool mbIsServer = false;
+
 	FILE* mhServerFile = NULL;
 	int miFileProgress = 0;
 	int miServerClientsFileSynced[MAX_PLAYERS_PER_SERVER];

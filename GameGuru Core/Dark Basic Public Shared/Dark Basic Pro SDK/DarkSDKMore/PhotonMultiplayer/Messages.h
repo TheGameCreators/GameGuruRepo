@@ -59,7 +59,7 @@ enum EMessage
 	k_EMsgClientPlayerSendIAmReadyToPlay = k_EMsgClientBegin+25,
 	k_EMsgClientEveryoneReadyToPlay = k_EMsgClientBegin+26,
 	k_EMsgClientShoot = k_EMsgClientBegin+27,
-	k_EMsgClientLeft = k_EMsgClientBegin+28,
+	k_EMsgNewHostChosen = k_EMsgClientBegin+28,
 	k_EMsgClientDestroyObject = k_EMsgClientBegin+29,
 	k_EMsgClientLua = k_EMsgClientBegin+30,
 	k_EMsgClientKilledSelf = k_EMsgClientBegin+31,
@@ -71,6 +71,7 @@ enum EMessage
 	k_EMsgClientSendAvatarFileBeginClient = k_EMsgClientBegin+37,
 	k_EMsgClientSendAvatarChunkClient = k_EMsgClientBegin+38,
 	k_EMsgClientSendAvatarDone = k_EMsgClientBegin+39,
+	k_EMsgGetGlobalStates = k_EMsgClientBegin+40,
 
 	// P2P authentication messages
 	k_EMsgP2PBegin = 600, 
@@ -202,6 +203,7 @@ struct MsgClientSendLocalUpdate_t
 private:
 	const DWORD m_dwMessageType;
 
+public:
 	uint32 m_uShipPosition;
 	ClientUpdateData_t m_ClientUpdateData;
 };
@@ -497,9 +499,9 @@ public:
 	char index;
 };
 
-struct MsgClientLeft_t
+struct MsgNewHostChosen_t
 {
-	MsgClientLeft_t() : m_dwMessageType( LittleDWord( k_EMsgClientLeft ) ) {}
+	MsgNewHostChosen_t() : m_dwMessageType( LittleDWord( k_EMsgNewHostChosen ) ) {}
 	DWORD GetMessageType() { return LittleDWord( m_dwMessageType ); }
 
 private:
@@ -674,6 +676,16 @@ public:
 struct MsgClientPing_t
 {
 	MsgClientPing_t() : m_dwMessageType( LittleDWord( k_EMsgClientPing ) ) {}
+	DWORD GetMessageType() { return LittleDWord( m_dwMessageType ); }
+
+private:
+	const DWORD m_dwMessageType;
+};
+
+// server ping
+struct MsgGetGlobalStates_t
+{
+	MsgGetGlobalStates_t() : m_dwMessageType( LittleDWord( k_EMsgGetGlobalStates ) ) {}
 	DWORD GetMessageType() { return LittleDWord( m_dwMessageType ); }
 
 private:

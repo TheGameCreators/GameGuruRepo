@@ -7,6 +7,8 @@
 int PhotonInit();
 void PhotonFree();
 void PhotonLoop(void);
+int PhotonCloseConnection();
+bool PhotonPlayerLeaving();
 void PhotonInitClient();
 void PhotonResetClient();
 //void PhotonCleanupClient();
@@ -33,15 +35,27 @@ int PhotonIsServerRunning();
 int PhotonIsGameRunning();
 int PhotonGetMyPlayerIndex();
 void PhotonSetRoot(LPSTR string );
-void PhotonSetSendFileCount(int count);
+void PhotonSetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer );
 void PhotonSendFileBegin ( int index , LPSTR pString );
 int PhotonSendFileDone();
 int PhotonAmIFileSynced();
+int PhotonGetFileProgress();
 int PhotonIsEveryoneFileSynced();
-
 void PhotonSetThisPlayerAsCurrentServer();
 void PhotonSendIAmLoadedAndReady();
 int PhotonIsEveryoneLoadedAndReady();
+
+void PhotonSetPlayerPositionX( float _x );
+void PhotonSetPlayerPositionY( float _y );
+void PhotonSetPlayerPositionZ( float _z );
+void PhotonSetPlayerAngle( float _angle );
+void PhotonSetPlayerAlive ( int state );
+int PhotonGetPlayerAlive ( int index );
+float PhotonGetPlayerPositionX ( int index );
+float PhotonGetPlayerPositionY ( int index );
+float PhotonGetPlayerPositionZ ( int index );
+float PhotonGetPlayerAngle ( int index );
+void PhotonSetTweening(int index , int flag);
 
 // empty functions so can compile code with Steam Multiplayer references
 FPSCR bool SteamOwned ( void );

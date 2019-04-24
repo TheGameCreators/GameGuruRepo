@@ -39,7 +39,7 @@ void mapeditorexecutable ( void )
 	char pVRSystemString[1024];
 	sprintf ( pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled );
 	timestampactivity(0,pVRSystemString);
-	GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles );
+	GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
 
 	//  Set device to get multisampling AA active in editor
 	t.multisamplingfactor=0;
@@ -1644,9 +1644,13 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	
 	//  set-up test game screen prompt assets
 	loadscreenpromptassets(iUseVRTest);
-	if (  t.game.runasmultiplayer == 1 ) 
+	if ( t.game.runasmultiplayer == 1 ) 
 	{
-		printscreenprompt("ENTERING MULTIPLAYER MODE");
+		#ifdef PHOTONMP
+		 printscreenprompt("ENTERING SOCIAL VR");
+		#else
+		 printscreenprompt("ENTERING MULTIPLAYER MODE");
+		#endif
 	}
 	else
 	{
@@ -1657,14 +1661,14 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	timestampactivity(0,"PREVIEWMAP: Save config");
 	editor_savecfg ( );
 
-	//  And save the level to levelbank\testmap before launch preview
-	//  so we can restore to this level if it crashes
+	// And save the level to levelbank\testmap before launch preview
+	// so we can restore to this level if it crashes
 	g.gpretestsavemode=1;
 	gridedit_save_test_map ( );
 	g.gpretestsavemode=0;
 
-	//  Now saves all part-files into temp FPM file (which multiplayer can pick up later)
-	if (  t.game.runasmultiplayer == 1 ) 
+	// Now saves all part-files into temp FPM file (which multiplayer can pick up later)
+	if ( t.game.runasmultiplayer == 1 ) 
 	{
 		//  save temp copy of current level
 		g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"worklevel.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
@@ -1672,15 +1676,15 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		mapfile_saveproject_fpm ( );
 	}
 
-	//  GCStore could have assed assets since the last 'test game' so refresh internal lists
+	// GCStore could have assed assets since the last 'test game' so refresh internal lists
 	sky_init ( );
 	terrain_initstyles ( );
 
-	//  Re-acquire indices now the lists have changed
-	//  takes visuals.sky$ visuals.terrain$ visuals.vegetation$
+	// Re-acquire indices now the lists have changed
+	// takes visuals.sky$ visuals.terrain$ visuals.vegetation$
 	visuals_updateskyterrainvegindex ( );
 
-	//  Ensure game visuals settings used
+	// Ensure game visuals settings used
 	t.gamevisuals.skyindex=t.visuals.skyindex;
 	t.gamevisuals.sky_s=t.visuals.sky_s;
 	t.gamevisuals.terrainindex=t.visuals.terrainindex;
@@ -1690,23 +1694,16 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	t.visuals=t.gamevisuals;
 	t.visuals.refreshshaders=1;
 	t.visuals.refreshvegtexture=1;
-	
-	// switch to game PBR mode for terrain/veg
-	//t.terrain.iForceTerrainVegShaderUpdate = 1;
-	//if ( t.visuals.shaderlevels.lighting == 3 )
-	//	t.terrain.iTerrainPBRMode = 1;
-	//else
-	//	t.terrain.iTerrainPBRMode = 0;
 
-	//  Hide camera while prepare test map
+	// Hide camera while prepare test map
 	t.storecx_f=CameraPositionX();
 	t.storecy_f=CameraPositionY();
 	t.storecz_f=CameraPositionZ();
 
-	//  default start position is edit-camera XZ
+	// default start position is edit-camera XZ
 	t.terrain.playerx_f=CameraPositionX(0);
 	t.terrain.playerz_f=CameraPositionZ(0);
-	if (  t.terrain.TerrainID>0 ) 
+	if ( t.terrain.TerrainID>0 ) 
 	{
 		t.terrain.playery_f=BT_GetGroundHeight(t.terrain.TerrainID,t.terrain.playerx_f,t.terrain.playerz_f)+150.0;
 	}
@@ -1718,7 +1715,7 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	t.terrain.playeray_f=0.0;
 	t.terrain.playeraz_f=0.0;
 
-	//  store all editor entity positions and rotations
+	// store all editor entity positions and rotations
 	t.storedentityelementlist=g.entityelementlist;
 	t.storedentityviewcurrentobj=g.entityviewcurrentobj;
 	Dim (  t.storedentityelement,g.entityelementlist );
@@ -1727,8 +1724,8 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		t.storedentityelement[t.e]=t.entityelement[t.e];
 	}
 
-	//  hide all markers
-	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+	// hide all markers
+	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
 		t.obj=t.entityelement[t.e].obj;
@@ -1750,30 +1747,30 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		}
 	}
 
-	//  ensure all locked entity transparency resolves
+	// ensure all locked entity transparency resolves
 	for ( t.tte = 1 ; t.tte<=  g.entityelementlist; t.tte++ )
 	{
-		if (  t.entityelement[t.tte].editorlock == 1 || t.entityelement[t.tte].underground == 1 ) 
+		if ( t.entityelement[t.tte].editorlock == 1 || t.entityelement[t.tte].underground == 1 ) 
 		{
 			t.tobj=t.entityelement[t.tte].obj;
-			if (  t.tobj>0 ) 
+			if ( t.tobj>0 ) 
 			{
-				if (  ObjectExist(t.tobj) == 1 ) 
+				if ( ObjectExist(t.tobj) == 1 ) 
 				{
-					if (  t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].isclone = 1;
+					if ( t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].isclone = 1;
 					entity_converttoinstance ( );
 				}
 			}
 		}
 	}
 
-	//  hide all waypoints and zones
+	// hide all waypoints and zones
 	waypoint_hideall ( );
 
 	// hide editor objects too
 	for ( t.obj = t.editor.objectstartindex+1; t.obj <= t.editor.objectstartindex+1+10 ;  t.obj++ ) //?//t.editor.objectstartindex+10;
 	{
-		if (  ObjectExist(t.obj) == 1 ) 
+		if ( ObjectExist(t.obj) == 1 ) 
 		{
 			HideObject (  t.obj );
 		}
@@ -1796,18 +1793,16 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		}
 	}
 
-	//  ensure no collision from DBP!
+	// ensure no collision from legacy engine
 	AutomaticCameraCollision (  0,0,0 );
 	SetGlobalCollisionOff (  );
 
-	//  Setup game view camera?
-	SetCameraFOV (  75 );
-	// `set camera range 1,4000 ` set in _editor_overallfunctionality
-
+	// Setup game view camera
+	SetCameraFOV ( 75 );
 	g.grav_f=-5.0;
 
-	//  store original terrain heights
-	if (  t.terrain.TerrainID>0 ) 
+	// store original terrain heights
+	if ( t.terrain.TerrainID>0 ) 
 	{
 		for ( t.z = 0 ; t.z<=  1024; t.z++ )
 		{
@@ -1819,8 +1814,8 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		}
 	}
 
-	//  Create heightmap from this terrain (for quad reduction)
-	if (  t.terrain.TerrainID>0 ) 
+	// Create heightmap from this terrain (for quad reduction)
+	if ( t.terrain.TerrainID>0 ) 
 	{
 		t.terrain.terrainregionupdate=0;
 		terrain_refreshterrainmatrix ( );
@@ -1828,14 +1823,14 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		terrain_createheightmapfromheightdata ( );
 	}
 
-	//  full speed
-	SyncRate (  0 );
+	// full speed
+	SyncRate ( 0 );
 
-	//  Work out the amount of memory used for the TEST GAME session
+	// Work out the amount of memory used for the TEST GAME session
 	t.tmemorybeforetestgame=SMEMAvailable(1);
 
 	//
-	//  launch game root with IDE 'test at cursor position' settings
+	// launch game root with IDE 'test at cursor position' settings
 	//
 	t.game.gameisexe=0;
 	t.game.set.resolution=0;
@@ -1844,7 +1839,7 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	game_masterroot ( iUseVRTest );
 	t.game.set.ismapeditormode=1;
 
-	//  Restore entities (remove light map objects for return to IDE editor)
+	// Restore entities (remove light map objects for return to IDE editor)
 	lm_restoreall ( );
 
 	// restore any EBE site markers (limb zeros)
@@ -1864,15 +1859,15 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		}
 	}
 
-	//  Revert mode to only render NEAR technique
+	// Revert mode to only render NEAR technique
 	visuals_restoreterrainshaderforeditor ( );
-	BT_ForceTerrainTechnique (  1 );
+	BT_ForceTerrainTechnique ( 1 );
 
-	//  editor speed max
-	SyncMask (  1 );
-	SyncRate (  0 );
+	// editor speed max
+	SyncMask ( 1 );
+	SyncRate ( 0 );
 
-	//  restore mouse pos and visbility
+	// restore mouse pos and visbility
 	game_showmouse ( );
 
 	// prompt informing user we are saving the level changes
@@ -1887,17 +1882,17 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	// 101115 - restore all characters to use regular character shader
 	game_setup_character_shader_entities ( false );
 
-	//  if additional entities added, remove and restore orig count
-	if (  g.entityelementlist>t.storedentityelementlist ) 
+	// if additional entities added, remove and restore orig count
+	if ( g.entityelementlist>t.storedentityelementlist ) 
 	{
 		for ( t.e = t.storedentityelementlist+1 ; t.e<= g.entityelementlist ; t.e++ )
 		{
 			t.obj=t.entityelement[t.e].obj;
-			if (  t.obj>0 ) 
+			if ( t.obj>0 ) 
 			{
-				if (  ObjectExist(t.obj) == 1 ) 
+				if ( ObjectExist(t.obj) == 1 ) 
 				{
-					DeleteObject (  t.obj );
+					DeleteObject ( t.obj );
 				}
 			}
 			t.entityelement[t.e].obj=0;
@@ -1907,97 +1902,92 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		g.entityviewcurrentobj=t.storedentityviewcurrentobj;
 	}
 
-	//  restore all editor entity positions and rotations
+	// restore all editor entity positions and rotations
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.obj=t.entityelement[t.e].obj;
-		if (  t.obj>0 ) 
+		if ( t.obj>0 ) 
 		{
-			if (  ObjectExist(t.obj) == 1 ) 
+			if ( ObjectExist(t.obj) == 1 ) 
 			{
-				//  only if still exists - could have been deleted
+				// only if still exists - could have been deleted
 				t.entityelement[t.e]=t.storedentityelement[t.e];
 			}
 		}
 	}
-	UnDim (  t.storedentityelement );
+	UnDim ( t.storedentityelement );
 
-	//  restore entity positions and rotations
-	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+	// restore entity positions and rotations
+	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
 		t.obj=t.entityelement[t.e].obj;
-		if (  t.obj>0 ) 
+		if ( t.obj>0 ) 
 		{
-			if (  ObjectExist(t.obj) == 1 ) 
+			if ( ObjectExist(t.obj) == 1 ) 
 			{
-				if (  t.entityprofile[t.entid].ismarker == 0 ) 
+				if ( t.entityprofile[t.entid].ismarker == 0 ) 
 				{
 					PositionObject (  t.obj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );
 					RotateObject (  t.obj,t.entityelement[t.e].rx,t.entityelement[t.e].ry,t.entityelement[t.e].rz );
 					ShowObject (  t.obj );
-
-					//PE: Still problems with bNewZLayerObject , this will hide clip objects.
-					//PE: Not sure what changed from DX9 version to DX11 with bNewZLayerObject , you remember Lee ?
-					//PE: Anyway we need pObject->bNewZLayerObject = false;
-
 					EnableObjectZDepth(t.obj);
 				}
-				if (  t.entityprofile[t.entid].addhandlelimb>0 ) 
+				if ( t.entityprofile[t.entid].addhandlelimb>0 ) 
 				{
-					ShowLimb (  t.obj,t.entityprofile[t.entid].addhandlelimb );
+					ShowLimb ( t.obj,t.entityprofile[t.entid].addhandlelimb );
 				}
 			}
 		}
 	}
 
-	//  show all markers
+	// show all markers
 	t.gridentityhidemarkers=0;
 	editor_updatemarkervisibility ( );
 
-	//  ensure all locked entity transparency shown again
+	// ensure all locked entity transparency shown again
 	for ( t.tte = 1 ; t.tte<=  g.entityelementlist; t.tte++ )
 	{
-		if (  t.entityelement[t.tte].editorlock == 1 ) 
+		if ( t.entityelement[t.tte].editorlock == 1 ) 
 		{
 			t.tobj=t.entityelement[t.tte].obj;
-			if (  t.tobj>0 ) 
+			if ( t.tobj>0 ) 
 			{
-				if (  ObjectExist(t.tobj) == 1 ) 
+				if ( ObjectExist(t.tobj) == 1 ) 
 				{
 					t.entityelement[t.tte].isclone=0;
 					entity_converttoclonetransparent ( );
 				}
 			}
 		}
-		if (  t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].beenmoved = 1;
+		if ( t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].beenmoved = 1;
 	}
 
-	//  signal that we have finished Test Level, restore mapeditor windows
+	// signal that we have finished Test Level, restore mapeditor windows
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetFileMapDWORD (  1, 970, 1 );
 	SetEventAndWait (  1 );
 
-	//  wait until all mouse activity over and escape key released
+	// wait until all mouse activity over and escape key released
 	while ( MouseClick() != 0 ) {}
 	while ( ScanCode() != 0 ) {}
 
-	//  Restore camera
+	// Restore camera
 	editor_restoreeditcamera ( );
 	t.updatezoom=1;
 
-	//  Restore ambience for editor when done
+	// Restore ambience for editor when done
 	SetTextFont (  "Verdana"  ); SetTextToBold (  );
 	Ink (  Rgb(255,255,225),0  ); SetTextSize (  26 );
 
-	//  restore object visibilities
+	// restore object visibilities
 	editor_refresheditmarkers ( );
 
-	//  remember game states for next time
+	// remember game states for next time
 	visuals_save ( );
 	t.gamevisuals=t.visuals;
 
-	//  restore shader constants with editor visuals (and bring back some settings we want to retain)
+	// restore shader constants with editor visuals (and bring back some settings we want to retain)
 	t.visuals=t.editorvisuals;
 	t.visuals.skyindex=t.gamevisuals.skyindex;
 	t.visuals.sky_s=t.gamevisuals.sky_s;
@@ -2006,22 +1996,18 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	t.visuals.vegetationindex=t.gamevisuals.vegetationindex;
 	t.visuals.vegetation_s=t.gamevisuals.vegetation_s;
 
-	// switch to editor non-PBR mode for terrain/veg
-	//t.terrain.iTerrainPBRMode = 0;
-	//t.terrain.iForceTerrainVegShaderUpdate = 1;
-
-	//  and refresh assets based on restore
+	// and refresh assets based on restore
 	t.visuals.refreshshaders=1;
 	visuals_loop ( );
 	visuals_shaderlevels_update ( );
 
-	//  use infinilights to show dynamic lighting in editor
+	// use infinilights to show dynamic lighting in editor
 	lighting_init ( );
 
-	//  Second call will toggle keyboard/mouse back to FOREGROUND
-	SetWindowModeOn (  );
+	// Second call will toggle keyboard/mouse back to FOREGROUND
+	SetWindowModeOn ( );
 
-	//  Close popup message
+	// Close popup message
 	if ( t.conkit.modified == 1 ) 
 	{
 		SleepNow ( 1000 );
@@ -2029,11 +2015,11 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		t.conkit.modified=0;
 	}
 
-	//  Ensure no terrain/entity editing carried back
+	// Ensure no terrain/entity editing carried back
 	t.terrain.terrainpainteroneshot=0;
 
-	//  Set editor to use a true 1;1 pixel mapping for Text ( , Steam GUI and other overlay images )
-	SetChildWindowTruePixel (  1 );
+	// Set editor to use a true 1;1 pixel mapping for Text ( , Steam GUI and other overlay images )
+	SetChildWindowTruePixel ( 1 );
 	common_refreshDisplaySize ( );
 
 	// restore if project modified
@@ -2042,7 +2028,7 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	g.projectmodifiedstatic = tstoreprojectmodifiedstatic; 
 	t.tignoreinvalidateobstacles=0;
 
-	//PE: Something is clipping objects when returning to editor.
+	// Something is clipping objects when returning to editor
 	editor_loadcfg();
 	editor_refreshcamerarange();
 }
@@ -2057,7 +2043,7 @@ void editor_multiplayermode ( void )
 
 	//  Set multiplayer flags here
 	t.game.runasmultiplayer=1;
-	editor_previewmapormultiplayer ( 0 );
+	editor_previewmapormultiplayer ( 1 );
 
 	//  As multiplayer can load OTHER things, restore level to state before we clicked MM button
 	t.tfile_s=g.mysystem.editorsGridedit_s+"cfg.cfg";//"editors\\gridedit\\cfg.cfg";

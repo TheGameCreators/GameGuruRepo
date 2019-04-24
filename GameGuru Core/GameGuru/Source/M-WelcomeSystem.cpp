@@ -8,6 +8,7 @@
 #include "CInputC.h"
 
 // Globals
+extern char g_pCloudKeyErrorString[10240];
 int g_welcomesystemclosedown = 0;
 struct welcomepagetype
 {
@@ -72,23 +73,32 @@ void welcome_init ( int iLoadingPart )
 	if ( iLoadingPart == 1 )
 	{
 		// only interested in anim backdrop for now
-		welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
 		if ( g.vrqcontrolmode != 0 )
+		{
+			welcome_loadasset ( welcomePath, "welcome\\branded\\animated-backdrop.png", g.editorimagesoffset+12 );
 			welcome_loadasset ( welcomePath, "welcome-assets\\branded\\splash-logo.bmp", g.editorimagesoffset+41 );
+		}
 		else
+		{
+			welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
 			welcome_loadasset ( welcomePath, "welcome-assets\\splash-logo.bmp", g.editorimagesoffset+41 );
+		}
 	}
 	if ( iLoadingPart == 2 )
 	{
-		// load welcome system assets
-		welcome_loadasset ( welcomePath, "welcome\\welcome-page.png", g.editorimagesoffset+8 );
-
 		// what you get
 		if ( g.vrqcontrolmode != 0 )
+		{
+			welcome_loadasset ( welcomePath, "welcome\\branded\\welcome-page.png", g.editorimagesoffset+8 );
 			welcome_loadasset ( welcomePath, "welcome-assets\\branded\\product-logo.png", g.editorimagesoffset+9 );
+			welcome_loadasset ( welcomePath, "welcome\\branded\\animated-backdrop.png", g.editorimagesoffset+12 );
+		}
 		else
+		{
+			welcome_loadasset ( welcomePath, "welcome\\welcome-page.png", g.editorimagesoffset+8 );
 			welcome_loadasset ( welcomePath, "welcome-assets\\product-logo.png", g.editorimagesoffset+9 );
-		welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
+			welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
+		}
 
 		// load in 3x3 pieces
 		welcome_loadasset ( welcomePath, "welcome\\welcome-line-1.png", g.editorimagesoffset+31 );
@@ -423,7 +433,7 @@ void welcome_serialcode_page ( int iHighlightingButton )
 	#ifdef CLOUDKEYSYSTEM
 		LPSTR pCodeTitle = "CLOUD KEY ENTRY\n";
 		LPSTR pCodeEnterText = "Enter the cloud key (XXXXX-XXXXX-XXXXX-XXXXX) to activate";
-		LPSTR pCodeWrong = "Cloud key has been entered incorrectly or has expired.";
+		LPSTR pCodeWrong = g_pCloudKeyErrorString;//"Cloud key has been entered incorrectly or has expired.";
 		iCodeDigitsRequiredCount = 23;
 	#else
 		LPSTR pCodeTitle = "SERIAL CODE ENTRY\n";
@@ -758,6 +768,11 @@ void welcome_exitapp_page ( int iHighlightingButton )
 {
 	// draw page
 	welcome_drawbox ( 0, 10, 23, 90, 81 );
+	if ( g.iTriggerSoftwareToQuit == 1 )
+	{
+		welcome_text ( "Software Not Validated", 1, 50, 2+(2*5), 192, true, false );
+		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 15+(15*5), 192, true, false );
+	}
 	if ( g.iTriggerSoftwareToQuit == 2 )
 	{
 		welcome_text ( "Steam not running or free weekend is over", 1, 50, 2+(2*5), 192, true, false );
@@ -881,13 +896,16 @@ void welcome_runloop ( int iPageIndex )
 			{
 				if ( GetFileMapDWORD( 1, 908 ) == 1 )  break;
 			}
-			if ( GetFileMapDWORD( 1, 516 ) > 0 )  break;
-			if ( GetFileMapDWORD( 1, 400 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 408 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 434 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 758 ) != 0 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 762 ) != 0 ) { t.interactive.active = 0  ; break; }
+			if ( iPageIndex != WELCOME_EXITAPP )
+			{
+				if ( GetFileMapDWORD( 1, 516 ) > 0 )  break;
+				if ( GetFileMapDWORD( 1, 400 ) == 1 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 408 ) == 1 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 434 ) == 1 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 758 ) != 0 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 762 ) != 0 ) { t.interactive.active = 0  ; break; }
+			}
 			t.terrain.gameplaycamera=0;
 			terrain_shadowupdate ( );
 			terrain_update ( );

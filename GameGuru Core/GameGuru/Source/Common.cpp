@@ -21,6 +21,7 @@ extern float g_fVR920Sensitivity;
 
 // Globals
 int g_PopupControlMode = 0;
+char g_pCloudKeyErrorString[10240];
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
@@ -89,6 +90,9 @@ void common_init ( void )
 
 	//  Activate RealSense if available
 	///realsense_init ( );
+
+	// some important resets
+	strcpy ( g_pCloudKeyErrorString, "Unknown Validation Error");
 
 	//  flashlight
 	g.flashlighton = 0;
@@ -714,8 +718,8 @@ void common_init_globals ( void )
 	Dim (  t.mp_isDying,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_jetpackOn,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_lobbies_s,MP_MAX_NUMBER_OF_LOBBIES  );
-	Dim (  t.mp_playerEntityID,MP_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.mp_forcePosition,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim ( t.mp_playerEntityID,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim ( t.mp_forcePosition,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_health,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_chat,MP_MAX_CHAT_LINES  );
 	Dim (  t.mp_subbedItems,20  );
@@ -1915,8 +1919,8 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					// 4 : RESERVED - HOLDING VALUE (see code)
 					// 5 : detects VR920/iWear (switches OFF if not found)
 					// 6 : special case, side by side rendering
-					//t.tryfield_s = "vrmode" ; if (  t.field_s == t.tryfield_s  )  { g.gvrmode = t.value1; g.gvrmodeoriginal = t.value1; }
-					//t.tryfield_s = "vrmodemag" ; if (  t.field_s == t.tryfield_s  )  g.gvrmodemag = t.value1;
+					t.tryfield_s = "vrmode" ; if (  t.field_s == t.tryfield_s  )  { g.gvrmode = t.value1; g.gvrmodeoriginal = t.value1; }
+					t.tryfield_s = "vrmodemag" ; if (  t.field_s == t.tryfield_s  )  g.gvrmodemag = t.value1;
 
 					t.tryfield_s = "dynamiclighting" ; if (  t.field_s == t.tryfield_s  )  g.gdynamiclightingstate = t.value1;
 					t.tryfield_s = "dynamicshadows" ; if (  t.field_s == t.tryfield_s ) g.gdynamicshadowsstate = t.value1  ; t.newdynamicshadows = t.value1;
@@ -2398,7 +2402,8 @@ int common_isserialcodevalid ( LPSTR pSerialCode )
 				strcpy ( pMessage, strstr ( pChop, ":" ) + 1 );
 				char* pCurly = strstr ( pMessage, "}" );
 				if ( pCurly ) *pCurly = ' ';
-				MessageBox ( NULL, pMessage, "Cloud Key Validation Failed", MB_OK );
+				strcpy ( g_pCloudKeyErrorString, pMessage );
+				//MessageBox ( NULL, pMessage, "Cloud Key Validation Failed", MB_OK );
 			}
 		}
 		else
@@ -2409,12 +2414,13 @@ int common_isserialcodevalid ( LPSTR pSerialCode )
 			{
 				char* pCurly = strstr ( pMessageValue, "}" );
 				if ( pCurly ) *pCurly = ' ';
-				MessageBox ( NULL, pMessageValue, "Cloud Key Validation Check", MB_OK );
+				strcpy ( g_pCloudKeyErrorString, pMessageValue );
+				//MessageBox ( NULL, pMessageValue, "Cloud Key Validation Check", MB_OK );
 			}
 			else
 			{
-				//MessageBox ( NULL, "Unknown Error", "Cloud Key Validation Check", MB_OK );
-				MessageBox ( NULL, pChop, "Cloud Key Validation Check", MB_OK );
+				strcpy ( g_pCloudKeyErrorString, pChop );
+				//MessageBox ( NULL, pChop, "Cloud Key Validation Check", MB_OK );
 			}
 		}
 
@@ -3258,7 +3264,7 @@ void FPSC_Setup ( void )
 		char pVRSystemString[1024];
 		sprintf ( pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled );
 		timestampactivity(0,pVRSystemString);
-		GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles );
+		GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
 
 		// Need editor 14.PNG for teleport graphic
 		LoadImage ( "editors\\gfx\\14.png",g.editorimagesoffset+14 );
@@ -3331,11 +3337,11 @@ void FPSC_Setup ( void )
 		SetCameraRange (  1,4000 );
 		g.grav_f=-5.0;
 	
-		//  temporarily hide main screen (post process will show it when ready)
-		SetCameraView (  0,0,0,1,1 );
+		// temporarily hide main screen (post process will show it when ready)
+		SetCameraView ( 0,0,0,1,1 );
 	
-		//  full speed
-		SyncRate (  0 );
+		// full speed
+		SyncRate ( 0 );
 	
 		//
 		//  Launch game in EXE mode
@@ -5353,7 +5359,11 @@ void loadscreenpromptassets ( int iUseVRTest )
 					// 050917 - check if this file exists for consideration
 					if ( t.game.gameisexe == 1 ) 
 					{
-						sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
+						if ( iUseVRTest == 1 )
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
+						else
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
+
 						if ( FileExist ( t.szwork ) == 1 )
 						{
 							tclosest=tdiff;
@@ -5387,7 +5397,10 @@ void loadscreenpromptassets ( int iUseVRTest )
 				{
 					// could not find any matching resolution files, just pick any file in the watermark folder
 					LPSTR pOldDir = GetDir();
-					sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark", g.language_s.Get() );
+					if ( iUseVRTest == 1 )
+						sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded", g.language_s.Get() );
+					else
+						sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark", g.language_s.Get() );
 					SetDir(t.szwork);
 					ChecklistForFiles (  );
 					for ( int c = 1 ; c<=  ChecklistQuantity(); c++ )
@@ -5405,14 +5418,17 @@ void loadscreenpromptassets ( int iUseVRTest )
 					SetDir(pOldDir);
 				}
 			}
-			if (  t.game.gameisexe == 1 ) 
+			if ( t.game.gameisexe == 1 ) 
 			{
 				if ( g.iStandaloneIsReloading==0 )
 				{
 					// show splash initially
 					tfile_s = respart_s;
-					sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
-					SetMipmapNum(1); //PE: mipmaps not needed.
+					if ( iUseVRTest == 1 )
+						sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\branded\\%s", g.language_s.Get(), tfile_s.Get() );
+					else
+						sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
+					SetMipmapNum(1);
 					LoadImage ( t.szwork, g.testgamesplashimage );
 					SetMipmapNum(-1);
 				}

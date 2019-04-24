@@ -295,7 +295,7 @@ void GGVR_Mat34toYPR(vr::HmdMatrix34_t *Mat, vr::HmdVector3_t *YPR, vr::HmdVecto
 
 // Generic
 
-void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive )
+void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbsPathToDLL )
 {
 	// Assign VR System Mode to Use
 	g_iDebuggingActive = iDebuggingActive;
@@ -313,7 +313,7 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive )
 		// 2 = Microsoft WMR
 		if ( GGVR_EnabledMode == 2 )
 		{
-			hGGWMRDLL = LoadLibrary ( "F:\\GameGuruRepo\\GameGuru\\GGWMR.dll" );
+			hGGWMRDLL = LoadLibrary ( pAbsPathToDLL );//g.fpscrootdir_s+"\\GGWMR.dll" ); // "F:\\GameGuruRepo\\GameGuru\\GGWMR.dll" ); idiot Lee!!
 			if ( hGGWMRDLL )
 			{
 				// get proc calls
@@ -333,6 +333,10 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive )
 			}
 		}
 	}
+
+	// to prevent first appearance of WMR portal wiping out directsound device, do this early
+	int iErrorCode = GGVR_PreSubmit(2+g_iDebuggingActive);
+	if ( iErrorCode == 0 ) iErrorCode = GGVR_PreSubmit(2+g_iDebuggingActive);
 }
 
 int	GGVR_IsHmdPresent()
@@ -1949,6 +1953,7 @@ int GGVR_PreSubmit ( int iDebugMode )
 		DebugGGVRlog ( "GGVR_EnabledState Stage" );
 		if ( GGVR_EnabledState == 1 )
 		{
+			// initialise VR hardware
 			DebugGGVRlog ( "Calling GGVR_CreateHolographicSpace1" );
 			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "", iDebugMode );
 			char pErrStr[1024];
@@ -1959,6 +1964,15 @@ int GGVR_PreSubmit ( int iDebugMode )
 			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }
 			ShowWindow(g_pGlob->hOriginalhWnd, SW_SHOW);
 			UpdateWindow(g_pGlob->hOriginalhWnd);
+
+			// small delay to allow WMR portal to show properly
+			Sleep ( 1000 );
+
+			// if Windows Mixed Reality Portal pushed its way to the front, reassert desktop window to the front
+			SetForegroundWindow(g_pGlob->hWnd);
+			SetWindowPos(g_pGlob->hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+			// state to start rendering
 			GGVR_EnabledState = 2;
 		}
 	}
@@ -1969,7 +1983,7 @@ int GGVR_PreSubmit ( int iDebugMode )
 			GGVR_EnabledState = 1;
 		}
 	}
-	if ( GGVR_EnabledMode == 2 )
+	if ( GGVR_EnabledMode == 2 && iDebugMode < 2 )
 	{
 		if ( GGVR_EnabledState == 2 )
 		{

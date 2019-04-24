@@ -3,7 +3,7 @@
 
 struct sGlobalStates
 {
-	int iGameStarting;
+	int iGameRunning;
 	int EveryoneLoadedAndReady;
 };
 
@@ -35,6 +35,7 @@ class PhotonView
 		bool bConnecting;
 		bool bConnected;
 		bool bInGameRoom;
+		int iTriggerLeaveMode;
 
 		sGlobalStates GlobalStates;
 

@@ -5,7 +5,7 @@
 //#define USINGOPENVR
 
 // Generic
-void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive );
+void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbsPathToDLL );
 int GGVR_IsHmdPresent();
 void GGVR_SetTrackingSpace( int space );
 int GGVR_GetTrackingSpace ( void );

@@ -44,7 +44,7 @@ bool OccluderCheckingForMultiplayer ( void )
 void mp_loop ( void )
 {
 	#ifdef PHOTONMP
-	 PhotonLoop (  );
+	 PhotonLoop();
 	#else
 	 SteamLoop (  );
 	#endif
@@ -406,8 +406,8 @@ void mp_loop ( void )
 			}
 			if ( g.mp.haveToldAboutSolo == 1 && t.tUserCount  <=  1 ) 
 			{
-				mp_textColor(-1,70,1,"No-one has joined your lobby yet. If you start now you will be playing alone.",255,100,100);
-				mp_textColor(-1,75,1,"Press Start Server again to start anyway.",255,100,100);
+				mp_textColor(-1,70,1,"No-one has joined yet. If you start now you will be playing alone.",255,100,100);
+				mp_textColor(-1,75,1,"Press Start again to start anyway.",255,100,100);
 			}
 
 			// Handle server launch (start MP game)
@@ -420,9 +420,9 @@ void mp_loop ( void )
 					return;
 				}
 				#ifdef PHOTONMP
-				 PhotonStartServer (  );
+				 PhotonStartServer ( );
 				#else
-				 SteamStartServer (  );
+				 SteamStartServer ( );
 				#endif
 				g.mp.mode = MP_WAITING_FOR_SERVER_CREATION;
 				g.mp.oldtime = Timer();
@@ -458,15 +458,15 @@ void mp_loop ( void )
 				t.ta = MouseMoveX() + MouseMoveY();
 			}
 		}
-		if ( t.tjoinedLobby == 0 ) 
-		{
-			if ( Timer() - g.mp.AttemptedToJoinLobbyTime > MP_JOIN_LOBBY_TIMEOUT ) 
-			{
-				g.mp.mode = MP_MODE_MAIN_MENU;
-				t.tmsg_s = "Could not join";
-				mp_setMessage ( );
-			}
-		}
+		///if ( t.tjoinedLobby == 0 ) 
+		///{
+		///	if ( Timer() - g.mp.AttemptedToJoinLobbyTime > MP_JOIN_LOBBY_TIMEOUT ) 
+		///	{
+		///		g.mp.mode = MP_MODE_MAIN_MENU;
+		///		t.tmsg_s = "Could not join";
+		///		mp_setMessage ( );
+		///	}
+		///}
 		#ifdef PHOTONMP
 		 // reduced all code below to a simple display of users in this game room (Photon can migrate host so not important if hosts leaves)
 		 int iHasJoinedLobby = PhotonHasJoinedLobby();
@@ -508,6 +508,9 @@ void mp_loop ( void )
 			if ( iClientServerConnectionStatus == 0 ) 
 			{
 				t.tsteamlostconnectioncustommessage_s = "Lost connection";
+				#ifdef PHOTONMP
+				g.mp.mode = MP_MODE_MAIN_MENU;
+				#endif
 				mp_lostConnection ( );
 				return;
 			}
@@ -665,11 +668,6 @@ void mp_loop ( void )
 				t.toldsteamfolder_s=GetDir();
 				SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 				t.tPlayerIndex = PhotonGetMyPlayerIndex();
-				//#ifdef PHOTONMP - done later!!
-				// PhotonSetSendFileCount ( 1 );
-				//#else
-				// SteamSetSendFileCount ( 1 );
-				//#endif
 			}
 			else
 			{
@@ -715,6 +713,7 @@ void mp_loop ( void )
 			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 			{
 				g.mp.syncedWithServerMode = 0;
+				g.mp.onlySendMapToSpecificPlayer = -1;
 				g.mp.okayToLoadLevel = 0;
 				#ifdef PHOTONMP
 				 PhotonLoop(); // dangerous - risk of recursion!
@@ -765,7 +764,7 @@ void mp_loop ( void )
 			}
 			if ( g.mp.okayToLoadLevel == 0 ) 
 			{
-				mp_pre_game_file_sync_server ( );
+				mp_pre_game_file_sync_server ( -1 );
 			}
 		}
 	}
@@ -794,6 +793,7 @@ void mp_loop ( void )
 			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 			{
 				g.mp.syncedWithServerMode = 0;
+				g.mp.onlySendMapToSpecificPlayer = -1;
 				g.mp.okayToLoadLevel = 0;
 				mp_textDots(-1,50,3,"Waiting for other players");
 				#ifdef PHOTONMP
@@ -803,7 +803,7 @@ void mp_loop ( void )
 				#endif
 				if ( Timer() - t.tsteamtimeoutongamerunning > 16000 ) 
 				{
-					if ( SteamGetClientServerConnectionStatus() == 0 ) 
+					if ( PhotonGetClientServerConnectionStatus() == 0 ) 
 					{
 						t.tsteamlostconnectioncustommessage_s = "Lost connection to host (Error MP009)";
 						mp_lostConnection ( );
@@ -1247,7 +1247,7 @@ void mp_pre_game_file_sync ( void )
 {
 	if ( g.mp.isGameHost == 1 ) 
 	{
-		mp_pre_game_file_sync_server ( );
+		mp_pre_game_file_sync_server ( -1 );
 	}
 	else
 	{
@@ -1255,13 +1255,16 @@ void mp_pre_game_file_sync ( void )
 	}
 }
 
-void mp_pre_game_file_sync_server ( void )
+void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 {
 	// if we have lost connection, head back to main menu
 	t.tconnectionStatus = PhotonGetClientServerConnectionStatus();
 	if ( t.tconnectionStatus  ==  0 ) 
 	{
 		t.tsteamconnectionlostmessage_s = "Lost Connection";
+		#ifdef PHOTONMP
+		g.mp.mode = MP_MODE_MAIN_MENU;
+		#endif
 		mp_lostConnection ( );
 		return;
 	}
@@ -1291,7 +1294,7 @@ void mp_pre_game_file_sync_server ( void )
 	
 			//g.mp.serverusingworkshop = 0;
 	
-			PhotonSetSendFileCount ( 1 );
+			PhotonSetSendFileCount ( 1, iOnlySendMapToSpecificPlayer );
 			//if ( g.mp.levelContainsCustomContent  ==  0 ) 
 			//{
 			PhotonSendFileBegin ( 1, "__multiplayerlevel__.fpm" );
@@ -1316,6 +1319,7 @@ void mp_pre_game_file_sync_server ( void )
 			if ( PhotonSendFileDone() == 1 ) 
 			{
 				g.mp.syncedWithServerMode = 2;
+				g.mp.oldtime = Timer();
 			}
 			break;
 
@@ -1323,15 +1327,24 @@ void mp_pre_game_file_sync_server ( void )
 			mp_textDots(-1,30,3,"Waiting for clients to receive data");
 			if ( PhotonIsEveryoneFileSynced() == 1 ) 
 			{
-				// the client hosting the server needs to have loaded everything in also
-				PhotonSendIAmLoadedAndReady (  );
+				//PhotonSendIAmLoadedAndReady (  );
 				g.mp.syncedWithServerMode = 3;
 				g.mp.oldtime = Timer();
 			}
+			#ifdef PHOTONMP
+			if ( Timer() - g.mp.oldtime > 120000 ) 
+			{
+				// after 2 minutes, one or more players have not reported they got the file
+				// fornow, get back to main menu
+				t.tsteamconnectionlostmessage_s = "Timed out waiting for receipt of delivery of player files";
+				g.mp.mode = MP_MODE_MAIN_MENU;
+				mp_lostConnection ( );
+			}
+			#endif
 			break;
 
 		case 3:
-			if ( PhotonIsEveryoneLoadedAndReady() == 1 ) 
+			if ( 1 ) //PhotonIsEveryoneLoadedAndReady() == 1 ) redundant already passed this to get here
 			{
 				//if ( g.mp.serverusingworkshop == 1 ) 
 				//{
@@ -1362,11 +1375,11 @@ void mp_pre_game_file_sync_server ( void )
 					t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
 					if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
 				}
-				if ( Timer() - t.tempMPsendingready > 2000 ) 
-				{
-					PhotonSendIAmLoadedAndReady ( );
-					t.tempMPsendingready = Timer();
-				}
+				//if ( Timer() - t.tempMPsendingready > 2000 ) 
+				//{
+					//PhotonSendIAmLoadedAndReady ( );
+				//	t.tempMPsendingready = Timer();
+				//}
 				t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
 				mp_text(-1,50,3,t.tstring_s.Get());
 			}
@@ -1377,10 +1390,13 @@ void mp_pre_game_file_sync_server ( void )
 void mp_pre_game_file_sync_client ( void )
 {
 	// if we have lost connection, head back to main menu
-	t.tconnectionStatus = SteamGetClientServerConnectionStatus();
+	t.tconnectionStatus = PhotonGetClientServerConnectionStatus();
 	if ( t.tconnectionStatus == 0 ) 
 	{
 		t.tsteamconnectionlostmessage_s = "Lost Connection";
+		#ifdef PHOTONMP
+		g.mp.mode = MP_MODE_MAIN_MENU;
+		#endif
 		mp_lostConnection ( );
 		return;
 	}
@@ -1388,7 +1404,7 @@ void mp_pre_game_file_sync_client ( void )
 	//mp_sendAvatarInfo ( );
 	// check if we have finished sending and receiving textures with the server
 	// (the actual process is handled by steam dll)
-	if ( g.mp.isGameHost == 1 || g.mp.me == 0 )  return;
+	//if ( g.mp.isGameHost == 1 || g.mp.me == 0 )  return;
 	//if ( PhotonCheckSyncedAvatarTexturesWithServer() == 0 ) 
 	//{
 	//	t.tstring_s = "Syncing Avatars";
@@ -1396,14 +1412,14 @@ void mp_pre_game_file_sync_client ( void )
 	//	return;
 	//}
 
-	if ( PhotonGetClientServerConnectionStatus() == 0 ) 
-	{
-		t.tsteamlostconnectioncustommessage_s = "Lost connect to server (Error MP010)";
-		g.mp.backtoeditorforyou = 0;
-		g.mp.mode = 0;
-		mp_lostConnection ( );
-		return;
-	}
+	//if ( PhotonGetClientServerConnectionStatus() == 0 ) 
+	//{
+	//	t.tsteamlostconnectioncustommessage_s = "Lost connect to server (Error MP010)";
+	//	g.mp.backtoeditorforyou = 0;
+	//	g.mp.mode = 0;
+	//	mp_lostConnection ( );
+	//	return;
+	//}
 
 	switch ( g.mp.syncedWithServerMode ) 
 	{
@@ -1426,20 +1442,20 @@ void mp_pre_game_file_sync_client ( void )
 				//else
 				//{
 				g.mp.fileLoaded = 1;
-				SteamSendIAmLoadedAndReady (  );
+				//PhotonSendIAmLoadedAndReady ( ); // redundanyt?
 				g.mp.syncedWithServerMode = 1;
 				//}
 			}
 			else
 			{
-				t.tProgress = SteamGetFileProgress();
+				t.tProgress = PhotonGetFileProgress();
 				t.tstring_s = cstr("Receiving '")+g.mp.levelnametojoin+"': " + Str(t.tProgress) + "%";
 				mp_text(-1,85,3,t.tstring_s.Get());
 			}
 			break;
 
 		case 1:
-			if ( SteamIsEveryoneLoadedAndReady()  ==  1 ) 
+			if ( 1 ) // PhotonIsEveryoneLoadedAndReady() == 1 )  redundant already passed this to get here
 			{
 				g.mp.syncedWithServer = 1;
 				SetDir ( t.toldsteamfolder_s.Get() );
@@ -1509,32 +1525,31 @@ void mp_pre_game_file_sync_client ( void )
 
 void mp_sendAvatarInfo ( void )
 {
-		if (  g.mp.haveSentMyAvatar  ==  0 ) 
+	if (  g.mp.haveSentMyAvatar  ==  0 ) 
+	{
+		#ifdef PHOTONMP
+		 g.mp.me = PhotonGetMyPlayerIndex();
+		#else
+		 g.mp.me = SteamGetMyPlayerIndex();
+		#endif
+		if (  g.mp.isGameHost  ==  1 || g.mp.me  !=  0 ) 
 		{
-			g.mp.me = SteamGetMyPlayerIndex();
-			if (  g.mp.isGameHost  ==  1 || g.mp.me  !=  0 ) 
-			{
-				g.mp.haveSentMyAvatar = 1;
-				SteamSendLuaString (  MP_LUA_SendAvatarName,g.mp.me,SteamGetPlayerName() );
-				SteamSendLuaString (  MP_LUA_SendAvatar,g.mp.me,g.mp.myAvatar_s.Get() );
+			g.mp.haveSentMyAvatar = 1;
+			SteamSendLuaString (  MP_LUA_SendAvatarName,g.mp.me,SteamGetPlayerName() );
+			SteamSendLuaString (  MP_LUA_SendAvatar,g.mp.me,g.mp.myAvatar_s.Get() );
 
-				//  store our own info for loading in our avatar
-				t.mp_playerAvatarOwners_s[g.mp.me] = SteamGetPlayerName();
-				t.mp_playerAvatars_s[g.mp.me] = g.mp.myAvatar_s;
-				//  send out custom texture (mp.myAvatarHeadTexture$ will be "" if we don't have one)
-				SteamSetMyAvatarHeadTextureName (  g.mp.myAvatarHeadTexture_s.Get() );
-			}
+			//  store our own info for loading in our avatar
+			t.mp_playerAvatarOwners_s[g.mp.me] = SteamGetPlayerName();
+			t.mp_playerAvatars_s[g.mp.me] = g.mp.myAvatar_s;
+			//  send out custom texture (mp.myAvatarHeadTexture$ will be "" if we don't have one)
+			SteamSetMyAvatarHeadTextureName (  g.mp.myAvatarHeadTexture_s.Get() );
 		}
-//  `endif
-
+	}
 	mp_lua ( );
-return;
-
 }
 
 void mp_animation ( void )
 {
-
 	while (  SteamGetAnimationList() ) 
 	{
 		t.tEnt = SteamGetAnimationIndex();
@@ -1547,52 +1562,45 @@ void mp_animation ( void )
 
 		SteamGetNextAnimation (  );
 	}
-
-return;
-//  Send our position and angle to steam
 }
 
 void mp_update_player ( void )
 {
-if (  g.mp.endplay  ==  1  )  return;
+	if ( g.mp.endplay == 1 ) return;
 
-// once we are alive, no immunity
-t.huddamage.immunity = 1000;
-if (  Timer() - g.mp.invincibleTimer > 6000 ) 
-{
-	t.huddamage.immunity = 0;
-}
-else
-{
+	/*
+	// once we are alive, no immunity
 	t.huddamage.immunity = 1000;
-	t.tthrowawaythisdamage = SteamGetPlayerDamageAmount();
-}
-//  check if we have taken damage
-t.tdamage = SteamGetPlayerDamageAmount();
-// `if player(plrid).health > 100 then player(plrid).health  ==  100
-
-if (  t.tdamage > 0 ) 
-{
-
-	t.tsteamlastdamageincounter = t.tsteamlastdamageincounter + 1;
-	//  Receives; tdamage, te, tDrownDamageFlag
-	t.te = t.mp_playerEntityID[SteamGetPlayerDamageSource()];
-	t.tDrownDamageFlag = 0;
-	physics_player_takedamage ( );
-
-	if (  t.player[t.plrid].health  <=  0 ) 
+	if ( Timer() - g.mp.invincibleTimer > 6000 ) 
 	{
-		g.mp.killedByPlayerFlag = 1;
-		g.mp.playerThatKilledMe = SteamGetPlayerDamageSource();
-		t.tsteamforce = SteamGetPlayerDamageForce();
-		SteamKilledBy (  g.mp.playerThatKilledMe , SteamGetPlayerDamageX(), SteamGetPlayerDamageY(), SteamGetPlayerDamageZ(), t.tsteamforce, SteamGetPlayerDamageLimb() );
-
-
-		g.mp.dyingTime = Timer();
+		t.huddamage.immunity = 0;
 	}
-}
+	else
+	{
+		t.huddamage.immunity = 1000;
+		t.tthrowawaythisdamage = SteamGetPlayerDamageAmount();
+	}
+	//  check if we have taken damage
+	t.tdamage = SteamGetPlayerDamageAmount();
+	if (  t.tdamage > 0 ) 
+	{
+		t.tsteamlastdamageincounter = t.tsteamlastdamageincounter + 1;
+		//  Receives; tdamage, te, tDrownDamageFlag
+		t.te = t.mp_playerEntityID[SteamGetPlayerDamageSource()];
+		t.tDrownDamageFlag = 0;
+		physics_player_takedamage ( );
 
-t.mp_health[g.mp.me] = t.player[t.plrid].health;
+		if (  t.player[t.plrid].health  <=  0 ) 
+		{
+			g.mp.killedByPlayerFlag = 1;
+			g.mp.playerThatKilledMe = SteamGetPlayerDamageSource();
+			t.tsteamforce = SteamGetPlayerDamageForce();
+			SteamKilledBy (  g.mp.playerThatKilledMe , SteamGetPlayerDamageX(), SteamGetPlayerDamageY(), SteamGetPlayerDamageZ(), t.tsteamforce, SteamGetPlayerDamageLimb() );
+			g.mp.dyingTime = Timer();
+		}
+	}
+
+	t.mp_health[g.mp.me] = t.player[t.plrid].health;
 
 	//  check if we have changed guns
 	if (  g.mp.gunid  !=  t.gunid ) 
@@ -1612,8 +1620,6 @@ t.mp_health[g.mp.me] = t.player[t.plrid].health;
 			t.steamhasgunname_s=t.mp_gunname[t.tfound-1];
 			g.mp.appearance = t.tfound;
 			t.toldappearancevariable = t.tfound;
-//    `mp.gunid = gunid
-
 		}
 		else
 		{
@@ -1621,45 +1627,54 @@ t.mp_health[g.mp.me] = t.player[t.plrid].health;
 		}
 		g.mp.gunid = t.gunid;
 	}
+	*/
 
-	//  Send our positional data to the server
-//  `t.tTime = Timer()
-
-//  `if t.tTime - mp.lastSendPositionTime < MP_POSITION_UPDATE_DELAY then return
-	
-	
-//  `mp.lastSendPositionTime = t.tTime
-
-	
-	SteamSetPlayerPositionX (  CameraPositionX() );
+	#ifdef PHOTONMP
+	 PhotonSetPlayerPositionX ( CameraPositionX() );
+	 if ( g.mp.crouchOn == 0 ) 
+	 {
+		PhotonSetPlayerPositionY ( CameraPositionY()-64 );
+	 }
+	 else
+	 {
+		PhotonSetPlayerPositionY ( CameraPositionY()-64+30 );
+ 	 }
+	 PhotonSetPlayerPositionZ ( CameraPositionZ() );
+	 PhotonSetPlayerAngle ( CameraAngleY() );
+	#else
+	 SteamSetPlayerPositionX ( CameraPositionX() );
+	 if ( g.mp.crouchOn == 0 ) 
+	 {
+		SteamSetPlayerPositionY ( CameraPositionY()-64 );
+	 }
+	 else
+	 {
+		SteamSetPlayerPositionY ( CameraPositionY()-64+30 );
+ 	 }
+	 SteamSetPlayerPositionZ ( CameraPositionZ() );
+	 SteamSetPlayerAngle ( CameraAngleY() );
+	#endif
 	g.mp.lastx = CameraPositionX();
-
-		if (  g.mp.crouchOn  ==  0 ) 
-		{
-			SteamSetPlayerPositionY (  CameraPositionY()-64 );
-			g.mp.lasty = CameraPositionY()-64;
-		}
-		else
-		{
-			SteamSetPlayerPositionY (  CameraPositionY()-64+30 );
-			g.mp.lasty = CameraPositionY()-64+30;
-		}
-
-	SteamSetPlayerPositionZ (  CameraPositionZ() );
+	if ( g.mp.crouchOn == 0 ) 
+	{
+		g.mp.lasty = CameraPositionY()-64;
+	}
+	else
+	{
+		g.mp.lasty = CameraPositionY()-64+30;
+	}
 	g.mp.lastz = CameraPositionZ();
-
-	SteamSetPlayerAngle (  CameraAngleY() );
 	g.mp.lastangley = CameraAngleY();
 
 	t.tpe = t.mp_playerEntityID[g.mp.me];
 	t.entityelement[t.tpe].x=g.mp.lastx;
 	t.entityelement[t.tpe].y=g.mp.lasty;
 	t.entityelement[t.tpe].z=g.mp.lastz;
-	if (  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj > 0 ) 
+	if ( t.entityelement[t.mp_playerEntityID[g.mp.me]].obj > 0 ) 
 	{
-		if (  ObjectExist(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj) ) 
+		if ( ObjectExist(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj) ) 
 		{
-			PositionObject (  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj, g.mp.lastx, g.mp.lasty+10, g.mp.lastz );
+			PositionObject ( t.entityelement[t.mp_playerEntityID[g.mp.me]].obj, g.mp.lastx, g.mp.lasty+10, g.mp.lastz );
 		}
 	}
 	t.te = t.tpe;
@@ -1668,67 +1683,79 @@ t.mp_health[g.mp.me] = t.player[t.plrid].health;
 	entity_updatepos ( );
 	entity_lua_rotateupdate ( );
 	t.e = t.tolde;
-
-return;
-
 }
 
 void mp_updatePlayerPositions ( void )
 {
+	if ( g.mp.endplay == 1 ) return;
 
-	if (  g.mp.endplay  ==  1  )  return;
-
-	//  Get player data from the server
-	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	// Get player data from the server
+	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
-
-		if (  t.mp_forcePosition[t.c] > 0 && SteamGetPlayerAlive(t.c)  ==  1 ) 
+		// get server data
+		#ifdef PHOTONMP
+		 int iAlive = PhotonGetPlayerAlive(t.c);
+		 float fX = PhotonGetPlayerPositionX(t.c);
+		 float fY = PhotonGetPlayerPositionY(t.c);
+		 float fZ = PhotonGetPlayerPositionZ(t.c);
+		 float fAngle = PhotonGetPlayerAngle(t.c);
+		#else
+		 int iAlive = SteamGetPlayerAlive(t.c);
+		 float fX = SteamGetPlayerPositionX(t.c);
+		 float fY = SteamGetPlayerPositionY(t.c);
+		 float fZ = SteamGetPlayerPositionZ(t.c);
+		 float fAngle = SteamGetPlayerAngle(t.c);
+		#endif
+		if ( t.mp_forcePosition[t.c] > 0 && iAlive == 1 ) 
 		{
-			if (  t.mp_forcePosition[t.c]  ==  1  )  t.mp_forcePosition[t.c]  =  Timer();
-			if (  Timer() - t.mp_forcePosition[t.c] > 1000 ) 
+			if ( t.mp_forcePosition[t.c] == 1 ) t.mp_forcePosition[t.c] = Timer();
+			if ( Timer() - t.mp_forcePosition[t.c] > 1000 ) 
 			{
 				t.mp_forcePosition[t.c] = 0;
-				t.x_f = SteamGetPlayerPositionX(t.c);
-				t.y_f = SteamGetPlayerPositionY(t.c);
-				t.z_f = SteamGetPlayerPositionZ(t.c);
-				SteamSetTweening (  t.c,1 );
+				t.x_f = fX; // seem redundant 9and are if you look below!!)
+				t.y_f = fY;
+				t.z_f = fZ;
+				#ifdef PHOTONMP
+				 PhotonSetTweening ( t.c, 1 );
+				#else
+				 SteamSetTweening ( t.c, 1 );
+				#endif
 			}
 			else
 			{
-				SteamSetTweening (  t.c,0 );
+				#ifdef PHOTONMP
+				 PhotonSetTweening ( t.c, 0 );
+				#else
+				 SteamSetTweening ( t.c, 0 );
+				#endif
 			}
-
-			t.x_f = SteamGetPlayerPositionX(t.c);
-			t.y_f = SteamGetPlayerPositionY(t.c);
-			t.z_f = SteamGetPlayerPositionZ(t.c);
-			t.angle_f = SteamGetPlayerAngle(t.c);
-
+			t.x_f = fX;
+			t.y_f = fY;
+			t.z_f = fZ;
+			t.angle_f = fAngle;
 		}
+
 		//  Get other players tweened positional data
-		t.x_f = SteamGetPlayerPositionX(t.c);
-		t.y_f = SteamGetPlayerPositionY(t.c);
-		t.z_f = SteamGetPlayerPositionZ(t.c);
-		t.angle_f = SteamGetPlayerAngle(t.c);
-		if (  t.c  !=  g.mp.me ) 
+		t.x_f = fX;
+		t.y_f = fY;
+		t.z_f = fZ;
+		t.angle_f = fAngle;
+		if ( t.c != g.mp.me ) 
 		{
-			if (  SteamGetPlayerAlive(t.c)  ==  1 && t.mp_forcePosition[t.c]  ==  0 ) 
+			if ( iAlive == 1 && t.mp_forcePosition[t.c] == 0 ) 
 			{
 				t.e = t.mp_playerEntityID[t.c];
 				t.entityelement[t.e].x=t.x_f;
 				t.entityelement[t.e].y=t.y_f;
 				t.entityelement[t.e].z=t.z_f;
 				t.entityelement[t.e].ry=t.angle_f;
-				PositionObject (  t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z );
+				PositionObject ( t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z );
 				t.te = t.e;
 				entity_updatepos ( );
 				entity_lua_rotateupdate ( );
 			}
 		}
 	}
-
-return;
-
-//  Display message from server
 }
 
 void mp_server_message ( void )
@@ -1760,258 +1787,359 @@ return;
 
 void mp_updatePlayerNamePlates ( void )
 {
-
-//  `if mp.endplay  ==  1 then return
-	
-
-	if (  g.mp.nameplatesOff  ==  1 ) 
+	if ( g.mp.nameplatesOff == 1 ) 
 	{
 		for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 		{
-			if (  ObjectExist(g.steamplayermodelsoffset+500+t.c) ) 
+			if ( ObjectExist(g.steamplayermodelsoffset+500+t.c) ) 
 			{
-				PositionObject (  g.steamplayermodelsoffset+500+t.c,500000,-500000,500000 );
+				PositionObject ( g.steamplayermodelsoffset+500+t.c,500000,-500000,500000 );
 			}
 		}
 		return;
 	}
+
 	//  Display players names and stats
-	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
-			//  if it isnt me, display their details above their head
-			if (  g.mp.sentmyname  ==  1 ) 
-			{
-				if (  ObjectExist(g.steamplayermodelsoffset+500+t.c)  ==  1  )  DeleteObject (  g.steamplayermodelsoffset+500+t.c );
-			}
-			if (  ObjectExist(g.steamplayermodelsoffset+500+t.c) ) 
-			{
-				PositionObject (  g.steamplayermodelsoffset+500+t.c,500000,-500000,500000 );
-			}
+		//  if it isnt me, display their details above their head
+		if ( g.mp.sentmyname == 1 ) 
+		{
+			if ( ObjectExist(g.steamplayermodelsoffset+500+t.c) == 1 )  DeleteObject ( g.steamplayermodelsoffset+500+t.c );
+		}
+		if ( ObjectExist(g.steamplayermodelsoffset+500+t.c) ) 
+		{
+			PositionObject ( g.steamplayermodelsoffset+500+t.c,500000,-500000,500000 );
+		}
 
-			if (  t.entityelement[t.mp_playerEntityID[t.c]].obj > 0 ) 
+		if ( t.entityelement[t.mp_playerEntityID[t.c]].obj > 0 ) 
+		{
+			if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].obj)  ==  1 ) 
 			{
-				if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].obj)  ==  1 ) 
+				if ( t.c != g.mp.me ) 
 				{
-					if (  t.c  !=  g.mp.me ) 
+					#ifdef PHOTONMP
+						int iAlive = PhotonGetPlayerAlive(t.c);
+						t.tname_s = "Player";//PhotonGetOtherPlayerName(t.c);
+					#else
+						int iAlive = SteamGetPlayerAlive(t.c);
+						t.tname_s = SteamGetOtherPlayerName(t.c);
+					#endif
+					if ( t.mp_forcePosition[t.c] == 0 && iAlive == 1 ) 
 					{
-						if (  t.mp_forcePosition[t.c]  ==  0 && SteamGetPlayerAlive(t.c)  ==  1 ) 
+						if ( GetInScreen(t.entityelement[t.mp_playerEntityID[t.c]].obj) ) 
 						{
-							if (  GetInScreen(t.entityelement[t.mp_playerEntityID[t.c]].obj) ) 
+							if ( t.tname_s != "Player" ) 
 							{
-								t.tname_s = SteamGetOtherPlayerName(t.c);
-								if (  t.tname_s != "Player" ) 
+								t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
+								if ( ObjectExist(g.steamplayermodelsoffset+500+t.c)  ==  0 ) 
 								{
-									t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
-									if (  ObjectExist(g.steamplayermodelsoffset+500+t.c)  ==  0 ) 
+									t.tResult = MakeNewObjectPanel(g.steamplayermodelsoffset+500+t.c,Len(t.tname_s.Get()));
+									if ( t.tResult ) 
 									{
-										t.tResult = MakeNewObjectPanel(g.steamplayermodelsoffset+500+t.c,Len(t.tname_s.Get()));
-										if (  t.tResult ) 
+										t.index = 3;
+										t.twidth=0;
+										for ( t.n = 1 ; t.n<=  Len(t.tname_s.Get()); t.n++ )
 										{
-											t.index = 3;
-											t.twidth=0;
-											for ( t.n = 1 ; t.n<=  Len(t.tname_s.Get()); t.n++ )
-											{
-												t.charindex=Asc(Mid(t.tname_s.Get(),t.n));
-												t.twidth += t.bitmapfont[t.index][t.charindex].w;
-											}
-											t.tx = -(t.twidth/2.0);
-
-											t.timg = g.bitmapfontimagetart+t.index;
-											for ( t.n = 1 ; t.n<=  Len(t.tname_s.Get()); t.n++ )
-											{
-												t.charindex=Asc(Mid(t.tname_s.Get(),t.n));
-												t.u1_f=t.bitmapfont[t.index][t.charindex].x1;
-												t.v1_f=t.bitmapfont[t.index][t.charindex].y1;
-												t.u2_f=t.bitmapfont[t.index][t.charindex].x2;
-												t.v2_f=t.bitmapfont[t.index][t.charindex].y2;
-												t.r = 255;
-												t.g = 50;
-												t.b = 50;
-												if (  g.mp.team  ==  1 ) 
-												{
-													if (  t.mp_team[t.c]  ==  t.mp_team[g.mp.me] ) 
-													{
-														t.r = 100;
-														t.g = 255;
-														t.b = 100;
-													}
-												}
-												SetObjectPanelQuad (  g.steamplayermodelsoffset+500+t.c,t.n-1,t.tx,0,t.bitmapfont[t.index][t.charindex].w,t.bitmapfont[t.index][t.charindex].h,t.u1_f,t.v1_f,t.u2_f,t.v2_f,t.r,t.g,t.b );
-												t.tx += t.bitmapfont[t.index][t.charindex].w;
-											}
-											FinishObjectPanel (  g.steamplayermodelsoffset+500+t.c,32,10 );
-
-											SetCharacterCreatorTones (  g.steamplayermodelsoffset+500+t.c,0,t.r,t.g,t.b,1.0 );
-											SetObjectLight (  g.steamplayermodelsoffset+500+t.c,0 );
-											YRotateObject (  g.steamplayermodelsoffset+500+t.c,180 );
-											FixObjectPivot (  g.steamplayermodelsoffset+500+t.c );
-											SetObjectTransparency (  g.steamplayermodelsoffset+500+t.c, 6 );
-											ScaleObject (  g.steamplayermodelsoffset+500+t.c,60,60,100 );
-											SetSphereRadius (  g.steamplayermodelsoffset+500+t.c,0 );
-											SetObjectMask (  g.steamplayermodelsoffset+500+t.c, 1 );
-											//  apply special overlay_basic shader which also handles depth render for DOF avoidance
-											t.teffectid=loadinternaleffect("effectbank\\reloaded\\overlay_basic.fx");
-											TextureObject (  g.steamplayermodelsoffset+500+t.c,t.timg );
-											SetObjectEffect (  g.steamplayermodelsoffset+500+t.c,t.teffectid );
+											t.charindex=Asc(Mid(t.tname_s.Get(),t.n));
+											t.twidth += t.bitmapfont[t.index][t.charindex].w;
 										}
+										t.tx = -(t.twidth/2.0);
+
+										t.timg = g.bitmapfontimagetart+t.index;
+										for ( t.n = 1 ; t.n<=  Len(t.tname_s.Get()); t.n++ )
+										{
+											t.charindex=Asc(Mid(t.tname_s.Get(),t.n));
+											t.u1_f=t.bitmapfont[t.index][t.charindex].x1;
+											t.v1_f=t.bitmapfont[t.index][t.charindex].y1;
+											t.u2_f=t.bitmapfont[t.index][t.charindex].x2;
+											t.v2_f=t.bitmapfont[t.index][t.charindex].y2;
+											t.r = 255;
+											t.g = 50;
+											t.b = 50;
+											if ( g.mp.team == 1 ) 
+											{
+												if ( t.mp_team[t.c] == t.mp_team[g.mp.me] ) 
+												{
+													t.r = 100;
+													t.g = 255;
+													t.b = 100;
+												}
+											}
+											SetObjectPanelQuad ( g.steamplayermodelsoffset+500+t.c,t.n-1,t.tx,0,t.bitmapfont[t.index][t.charindex].w,t.bitmapfont[t.index][t.charindex].h,t.u1_f,t.v1_f,t.u2_f,t.v2_f,t.r,t.g,t.b );
+											t.tx += t.bitmapfont[t.index][t.charindex].w;
+										}
+										FinishObjectPanel (  g.steamplayermodelsoffset+500+t.c,32,10 );
+										SetCharacterCreatorTones (  g.steamplayermodelsoffset+500+t.c,0,t.r,t.g,t.b,1.0 );
+										SetObjectLight (  g.steamplayermodelsoffset+500+t.c,0 );
+										YRotateObject (  g.steamplayermodelsoffset+500+t.c,180 );
+										FixObjectPivot (  g.steamplayermodelsoffset+500+t.c );
+										SetObjectTransparency (  g.steamplayermodelsoffset+500+t.c, 6 );
+										ScaleObject (  g.steamplayermodelsoffset+500+t.c,60,60,100 );
+										SetSphereRadius (  g.steamplayermodelsoffset+500+t.c,0 );
+										SetObjectMask (  g.steamplayermodelsoffset+500+t.c, 1 );
+										//  apply special overlay_basic shader which also handles depth render for DOF avoidance
+										t.teffectid=loadinternaleffect("effectbank\\reloaded\\overlay_basic.fx");
+										TextureObject (  g.steamplayermodelsoffset+500+t.c,t.timg );
+										SetObjectEffect (  g.steamplayermodelsoffset+500+t.c,t.teffectid );
+									}
+								}
+								else
+								{
+									if ( iAlive == 1 && g.mp.endplay == 0 ) 
+									{
+										t.tnameplatey_f = ObjectPositionY(t.tobj)+ ObjectSizeY(t.tobj,1);
+										if (  t.mp_playerAvatars_s[t.c]  !=  ""  )  t.tnameplatey_f  =  t.tnameplatey_f + 15.0;
+										ShowObject (  g.steamplayermodelsoffset+500+t.c );
+										PositionObject((g.steamplayermodelsoffset+500+t.c), ObjectPositionX(t.tobj), t.tnameplatey_f , ObjectPositionZ(t.tobj));
+										PointObject (  g.steamplayermodelsoffset+500+t.c,CameraPositionX(), CameraPositionY(), CameraPositionZ() );
 									}
 									else
 									{
-//          `show it
-
-										if (  SteamGetPlayerAlive(t.c)  ==  1 && g.mp.endplay  ==  0 ) 
-										{
-											t.tnameplatey_f = ObjectPositionY(t.tobj)+ ObjectSizeY(t.tobj,1);
-											if (  t.mp_playerAvatars_s[t.c]  !=  ""  )  t.tnameplatey_f  =  t.tnameplatey_f + 15.0;
-											ShowObject (  g.steamplayermodelsoffset+500+t.c );
-											PositionObject((g.steamplayermodelsoffset+500+t.c), ObjectPositionX(t.tobj), t.tnameplatey_f , ObjectPositionZ(t.tobj));
-											PointObject (  g.steamplayermodelsoffset+500+t.c,CameraPositionX(), CameraPositionY(), CameraPositionZ() );
-										}
-										else
-										{
-											HideObject (  g.steamplayermodelsoffset+500+t.c );
-										}
+										HideObject (  g.steamplayermodelsoffset+500+t.c );
 									}
 								}
 							}
 						}
-						else
+					}
+					else
+					{
+						if ( ObjectExist(g.steamplayermodelsoffset+500+t.c) ) 
 						{
-							if (  ObjectExist(g.steamplayermodelsoffset+500+t.c) ) 
-							{
-								PositionObject (  g.steamplayermodelsoffset+500+t.c,500000,-500000,500000 );
-							}
+							PositionObject ( g.steamplayermodelsoffset+500+t.c,500000,-500000,500000 );
 						}
 					}
 				}
 			}
 		}
-
-		g.mp.sentmyname = 0;
-
-return;
-
+	}
+	g.mp.sentmyname = 0;
 }
 
 void mp_updatePlayerAnimations ( void )
 {
-
 	//  Update animations
 	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
+		t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
 
-			t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
+		t.thasNade = 0;
+		t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+		if ( t.gun[t.tgunid].projectileframe != 0 ) t.thasNade = 1;
 
-			t.thasNade = 0;
-			t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-			if ( t.gun[t.tgunid].projectileframe != 0 ) t.thasNade = 1;
+		t.mp_playerShooting[t.c] = SteamGetShoot(t.c);
 
-			t.mp_playerShooting[t.c] = SteamGetShoot(t.c);
+		//  if the player is reloading we will try and show it (only works if idle or ducking at present)
+		if (  SteamGetPlayerAppearance(t.c)  ==  201  )  t.mp_reload[t.c]  =  1;
 
-			//  if the player is reloading we will try and show it (only works if idle or ducking at present)
-			if (  SteamGetPlayerAppearance(t.c)  ==  201  )  t.mp_reload[t.c]  =  1;
+		//  update animations
+		g.mp.isAnimating = 0;
+		if (  SteamGetPlayerAlive(t.c)  ==  1 ) 
+		{
+			t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
+			RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
 
-			//  update animations
-			g.mp.isAnimating = 0;
-			if (  SteamGetPlayerAlive(t.c)  ==  1 ) 
+			if (  (SteamGetPlayerAppearance(t.c) < 102 || SteamGetPlayerAppearance(t.c) > 200) ) 
 			{
-					t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
-					RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
-
-				if (  (SteamGetPlayerAppearance(t.c) < 102 || SteamGetPlayerAppearance(t.c) > 200) ) 
+				//  Melee
+				if (  SteamGetKeyState(t.c,16)  ==  1 || t.mp_meleePlaying[t.c]  ==  1 ) 
 				{
-					//  Melee
-					if (  SteamGetKeyState(t.c,16)  ==  1 || t.mp_meleePlaying[t.c]  ==  1 ) 
+					g.mp.isAnimating = 1;
+					if (  t.mp_meleePlaying[t.c]  ==  0 ) 
 					{
-						g.mp.isAnimating = 1;
-						if (  t.mp_meleePlaying[t.c]  ==  0 ) 
+						t.mp_meleePlaying[t.c] = 1;
+					}
+					else
+					{
+						if (  GetPlaying(t.tobj)  ==  0  )  t.mp_meleePlaying[t.c]  =  0;
+						if (  GetLooping(t.tobj)  ==  1  )  t.mp_meleePlaying[t.c]  =  0;
+					}
+				}
+				//  Forwards
+				if (  SteamGetKeyState(t.c,17)  ==  1 ) 
+				{
+					g.mp.isAnimating = 1;
+					//  are they moving left also
+					if (  SteamGetKeyState(t.c,30)  ==  1 ) 
+					{
+						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
+						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+					}
+					//  or perhaps they are moving right also
+					if (  SteamGetKeyState(t.c,32)  ==  1 ) 
+					{
+						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
+						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+					}
+					if (  SteamGetKeyState(t.c,42)  ==  0 || SteamGetKeyState(t.c,46)  ==  1 ) 
+					{
+						if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
 						{
-							t.mp_meleePlaying[t.c] = 1;
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=300;
 						}
 						else
 						{
-							if (  GetPlaying(t.tobj)  ==  0  )  t.mp_meleePlaying[t.c]  =  0;
-							if (  GetLooping(t.tobj)  ==  1  )  t.mp_meleePlaying[t.c]  =  0;
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
 						}
 					}
-					//  Forwards
-					if (  SteamGetKeyState(t.c,17)  ==  1 ) 
+					else
 					{
-						g.mp.isAnimating = 1;
-						//  are they moving left also
-						if (  SteamGetKeyState(t.c,30)  ==  1 ) 
+						if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
 						{
-							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
-							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-						}
-						//  or perhaps they are moving right also
-						if (  SteamGetKeyState(t.c,32)  ==  1 ) 
-						{
-							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
-							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-						}
-						if (  SteamGetKeyState(t.c,42)  ==  0 || SteamGetKeyState(t.c,46)  ==  1 ) 
-						{
-							if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
-							{
-								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=300;
-							}
-							else
-							{
-								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
-							}
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=600;
 						}
 						else
 						{
-							if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=200;
+						}
+					}
+					if (  SteamGetKeyState(t.c,46)  ==  0 ) 
+					{
+						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKING ) 
+						{
+							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+							t.tweapstyle=t.gun[t.tgunid].weapontype;
+							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 							{
-								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=600;
+								t.tplaycsi=t.csi_stoodmoverunANIM[t.tweapstyle];
 							}
 							else
 							{
-								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=200;
+								t.tplaycsi=g.csi_unarmedmoverunANIM;
 							}
-						}
-						if (  SteamGetKeyState(t.c,46)  ==  0 ) 
-						{
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKING ) 
-							{
+							mp_switchAnim ( );
 
+							if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+							{
+								t.tplaycsi=g.csi_unarmedANIM0;
+								mp_switchAnim ( );
+							}
+							entity_lua_setanimationframes ( );
+							t.e = t.mp_playerEntityID[t.c];
+							entity_lua_loopanimation ( );
+							g.mp.isAnimating = 1;
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKING;
+						}
+					}
+					else
+					{
+						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
+						{
+							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+							t.tweapstyle=t.gun[t.tgunid].weapontype;
+							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+							t.tplaycsi=t.csi_crouchmoverunANIM[t.tweapstyle];
+							mp_switchAnim ( );
+
+							entity_lua_setanimationframes ( );
+							t.e = t.mp_playerEntityID[t.c];
+							entity_lua_loopanimation ( );
+							g.mp.isAnimating = 1;
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
+						}
+					}
+				}
+				//  Backwards
+				if (  SteamGetKeyState(t.c,31)  ==  1 ) 
+				{
+					g.mp.isAnimating = 1;
+					//  are they moving left also
+					if (  SteamGetKeyState(t.c,30)  ==  1 ) 
+					{
+						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
+						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+					}
+					//  or perhaps they are moving right also
+					if (  SteamGetKeyState(t.c,32)  ==  1 ) 
+					{
+						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
+						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+					}
+					if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+					{
+						t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-300;
+					}
+					else
+					{
+						t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-100;
+					}
+					if (  SteamGetKeyState(t.c,46)  ==  0 ) 
+					{
+						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKINGBACKWARDS ) 
+						{
+							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+							t.tweapstyle=t.gun[t.tgunid].weapontype;
+							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+							{
+								t.tplaycsi=t.csi_stoodmoverunANIM[t.tweapstyle];
+							}
+							else
+							{
+								t.tplaycsi=g.csi_unarmedmoverunANIM;
+							}
+							mp_switchAnim ( );
+
+							if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+							{
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
-								{
-									t.tplaycsi=t.csi_stoodmoverunANIM[t.tweapstyle];
-								}
-								else
-								{
-									t.tplaycsi=g.csi_unarmedmoverunANIM;
-								}
+								t.tplaycsi=t.csi_stoodnormalANIM[t.tweapstyle];
 								mp_switchAnim ( );
-
-								if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
-								{
-									t.tplaycsi=g.csi_unarmedANIM0;
-									mp_switchAnim ( );
-								}
-								entity_lua_setanimationframes ( );
-								t.e = t.mp_playerEntityID[t.c];
-								entity_lua_loopanimation ( );
-								g.mp.isAnimating = 1;
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKING;
 							}
+							entity_lua_setanimationframes ( );
+							t.e = t.mp_playerEntityID[t.c];
+							entity_lua_loopanimation ( );
+							g.mp.isAnimating = 1;
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKINGBACKWARDS;
+						}
+					}
+					else
+					{
+						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKINGBACKWARDS ) 
+						{
+							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+							t.tweapstyle=t.gun[t.tgunid].weapontype;
+							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+							t.tplaycsi=t.csi_crouchmoverunANIM[t.tweapstyle];
+							mp_switchAnim ( );
+
+							entity_lua_setanimationframes ( );
+							t.e = t.mp_playerEntityID[t.c];
+							entity_lua_loopanimation ( );
+							g.mp.isAnimating = 1;
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKINGBACKWARDS;
+						}
+					}
+				}
+
+				//  strafe left
+				if (  SteamGetKeyState(t.c,30)  ==  1 ) 
+				{
+					if (  g.mp.isAnimating  ==  0 ) 
+					{
+						g.mp.isAnimating = 1;
+						if (  SteamGetKeyState(t.c,42)  ==  0 ) 
+						{
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
 						}
 						else
 						{
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
+						}
+						if (  SteamGetKeyState(t.c,46)  ==  1 ) 
+						{
 							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
 							{
-
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_crouchmoverunANIM[t.tweapstyle];
+								t.tplaycsi=t.csi_crouchmoveleftANIM[t.tweapstyle];
 								mp_switchAnim ( );
 
 								entity_lua_setanimationframes ( );
@@ -2021,41 +2149,76 @@ void mp_updatePlayerAnimations ( void )
 								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
 							}
 						}
-					}
-					//  Backwards
-					if (  SteamGetKeyState(t.c,31)  ==  1 ) 
-					{
-						g.mp.isAnimating = 1;
-						//  are they moving left also
-						if (  SteamGetKeyState(t.c,30)  ==  1 ) 
-						{
-							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
-							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-						}
-						//  or perhaps they are moving right also
-						if (  SteamGetKeyState(t.c,32)  ==  1 ) 
-						{
-							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
-							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-						}
-						if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
-						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-300;
-						}
 						else
 						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-100;
-						}
-						if (  SteamGetKeyState(t.c,46)  ==  0 ) 
-						{
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKINGBACKWARDS ) 
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFELEFT ) 
 							{
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
-									t.tplaycsi=t.csi_stoodmoverunANIM[t.tweapstyle];
+									t.tplaycsi=t.csi_stoodmoverunleftANIM[t.tweapstyle];
+								}
+								else
+								{
+									RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+									t.tplaycsi=g.csi_unarmedmoverunANIM;
+								}
+								mp_switchAnim ( );
+
+								entity_lua_setanimationframes ( );
+								t.e = t.mp_playerEntityID[t.c];
+								entity_lua_loopanimation ( );
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFELEFT;
+							}
+						}
+					}
+				}
+
+				//  strafe right
+				if (  SteamGetKeyState(t.c,32)  ==  1 ) 
+				{
+					if (  g.mp.isAnimating  ==  0 ) 
+					{
+						g.mp.isAnimating = 1;
+						if (  SteamGetKeyState(t.c,42)  ==  0 ) 
+						{
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
+						}
+						else
+						{
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
+						}
+						if (  SteamGetKeyState(t.c,46)  ==  1 ) 
+						{
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
+							{
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tweapstyle=t.gun[t.tgunid].weapontype;
+								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+								t.tplaycsi=t.csi_crouchmoverightANIM[t.tweapstyle];
+								mp_switchAnim ( );
+
+								entity_lua_setanimationframes ( );
+								t.e = t.mp_playerEntityID[t.c];
+								entity_lua_loopanimation ( );
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
+							}
+						}
+						else
+						{
+							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFERIGHT ) 
+							{
+
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tweapstyle=t.gun[t.tgunid].weapontype;
+								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+								{
+									t.tplaycsi=t.csi_stoodmoverunrightANIM[t.tweapstyle];
 								}
 								else
 								{
@@ -2063,528 +2226,304 @@ void mp_updatePlayerAnimations ( void )
 								}
 								mp_switchAnim ( );
 
-								if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
-								{
-									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-									t.tweapstyle=t.gun[t.tgunid].weapontype;
-									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-									t.tplaycsi=t.csi_stoodnormalANIM[t.tweapstyle];
-									mp_switchAnim ( );
-								}
 								entity_lua_setanimationframes ( );
 								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
-								g.mp.isAnimating = 1;
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKINGBACKWARDS;
-							}
-						}
-						else
-						{
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKINGBACKWARDS ) 
-							{
-
-								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_crouchmoverunANIM[t.tweapstyle];
-								mp_switchAnim ( );
-
-								entity_lua_setanimationframes ( );
-								t.e = t.mp_playerEntityID[t.c];
-								entity_lua_loopanimation ( );
-								g.mp.isAnimating = 1;
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKINGBACKWARDS;
-							}
-						}
-					}
-
-					//  strafe left
-					if (  SteamGetKeyState(t.c,30)  ==  1 ) 
-					{
-						if (  g.mp.isAnimating  ==  0 ) 
-						{
-							g.mp.isAnimating = 1;
-							if (  SteamGetKeyState(t.c,42)  ==  0 ) 
-							{
-								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
-							}
-							else
-							{
-								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
-							}
-							if (  SteamGetKeyState(t.c,46)  ==  1 ) 
-							{
-								if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
-								{
-
-								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_crouchmoveleftANIM[t.tweapstyle];
-								mp_switchAnim ( );
-
-									entity_lua_setanimationframes ( );
-									t.e = t.mp_playerEntityID[t.c];
-									entity_lua_loopanimation ( );
-									g.mp.isAnimating = 1;
-									t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
-								}
-							}
-							else
-							{
-								if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFELEFT ) 
-								{
-									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-									t.tweapstyle=t.gun[t.tgunid].weapontype;
-									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-									if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
-									{
-										t.tplaycsi=t.csi_stoodmoverunleftANIM[t.tweapstyle];
-									}
-									else
-									{
-										RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-										t.tplaycsi=g.csi_unarmedmoverunANIM;
-									}
-									mp_switchAnim ( );
-
-									entity_lua_setanimationframes ( );
-									t.e = t.mp_playerEntityID[t.c];
-									entity_lua_loopanimation ( );
-									t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFELEFT;
-								}
-							}
-						}
-					}
-
-					//  strafe right
-					if (  SteamGetKeyState(t.c,32)  ==  1 ) 
-					{
-						if (  g.mp.isAnimating  ==  0 ) 
-						{
-							g.mp.isAnimating = 1;
-							if (  SteamGetKeyState(t.c,42)  ==  0 ) 
-							{
-								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
-							}
-							else
-							{
-								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
-							}
-							if (  SteamGetKeyState(t.c,46)  ==  1 ) 
-							{
-								if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
-								{
-
-									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-									t.tweapstyle=t.gun[t.tgunid].weapontype;
-									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-									if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-									t.tplaycsi=t.csi_crouchmoverightANIM[t.tweapstyle];
-									mp_switchAnim ( );
-
-									entity_lua_setanimationframes ( );
-									t.e = t.mp_playerEntityID[t.c];
-									entity_lua_loopanimation ( );
-									g.mp.isAnimating = 1;
-									t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
-								}
-							}
-							else
-							{
-								if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFERIGHT ) 
-								{
-
-									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-									t.tweapstyle=t.gun[t.tgunid].weapontype;
-									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-									if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
-									{
-										t.tplaycsi=t.csi_stoodmoverunrightANIM[t.tweapstyle];
-									}
-									else
-									{
-										t.tplaycsi=g.csi_unarmedmoverunANIM;
-									}
-									mp_switchAnim ( );
-
-									entity_lua_setanimationframes ( );
-									t.e = t.mp_playerEntityID[t.c];
-									entity_lua_loopanimation ( );
 								
-									t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFERIGHT;
-								}
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFERIGHT;
 							}
 						}
 					}
-
-					if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFELEFT ) 
-					{
-						if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
-						{
-							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
-						}
-					}
-
-					if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFERIGHT ) 
-					{
-						if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
-						{
-							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
-						}
-					}
-
-
-					//  Ducking
-					if (  SteamGetKeyState(t.c,46)  ==  1 && t.mp_jetpackOn[t.c]  ==  0 ) 
-					{
-						if (  g.mp.isAnimating  ==  0 && t.mp_reload[t.c]  ==  0 ) 
-						{
-							g.mp.isAnimating = 1;
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKING ) 
-							{
-
-								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_crouchidlenormalANIM1[t.tweapstyle];
-								mp_switchAnim ( );
-
-								entity_lua_setanimationframes ( );
-								t.e = t.mp_playerEntityID[t.c];
-								t.entityelement[t.e].eleprof.animspeed=100;
-								entity_lua_playanimation ( );
-								g.mp.isAnimating = 1;
-
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
-
-							}
-						}
-					}
-
 				}
 
-				if (  t.thasNade  ==  1 ) 
+				if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFELEFT ) 
 				{
-					if (  t.mp_reload[t.c]  ==  1  )  t.mp_reload[t.c]  =  0;
+					if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+					{
+						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
+					}
 				}
 
-				if (  t.mp_reload[t.c]  ==  1 ) 
+				if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFERIGHT ) 
 				{
-						if (  g.mp.isAnimating  ==  0 || t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
-						{
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_RELOAD ) 
-							{
+					if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+					{
+						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
+					}
+				}
 
-								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_stoodreloadANIM[t.tweapstyle];
-								mp_switchAnim ( );
-
-								if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
-								{
-
-								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_crouchreloadANIM[t.tweapstyle];
-								mp_switchAnim ( );
-
-								}
-								entity_lua_setanimationframes ( );
-								t.e = t.mp_playerEntityID[t.c];
-								t.entityelement[t.e].eleprof.animspeed=200;
-								entity_lua_playanimation ( );
-								g.mp.isAnimating = 1;
-
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_RELOAD;
-							}
-						}
+				//  Ducking
+				if (  SteamGetKeyState(t.c,46)  ==  1 && t.mp_jetpackOn[t.c]  ==  0 ) 
+				{
+					if (  g.mp.isAnimating  ==  0 && t.mp_reload[t.c]  ==  0 ) 
+					{
 						g.mp.isAnimating = 1;
-						//  if the reload anim has finished or the player starts shooting, turn reloading off
-						if (  GetFrame(t.tobj)  ==  605 || GetFrame(t.tobj)  ==  2010 || t.mp_playerShooting[t.c]  ==  1 ) 
+						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKING ) 
 						{
-							t.mp_reload[t.c] = 0;
-							if (  GetFrame(t.tobj)  ==  2010 ) 
-							{
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
-							}
-							else
-							{
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-								g.mp.isAnimating = 0;
-							}
-//        `print "DUCKING SPOT 2 <----------------------------------------------"
+							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+							t.tweapstyle=t.gun[t.tgunid].weapontype;
+							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							t.tplaycsi=t.csi_crouchidlenormalANIM1[t.tweapstyle];
+							mp_switchAnim ( );
 
+							entity_lua_setanimationframes ( );
+							t.e = t.mp_playerEntityID[t.c];
+							t.entityelement[t.e].eleprof.animspeed=100;
+							entity_lua_playanimation ( );
+							g.mp.isAnimating = 1;
+
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
 						}
+					}
 				}
+			}
 
-				t.tjetpacktempanim = 0;
-				if (  SteamGetPlayerAppearance(t.c)  ==  102 ) 
+			if (  t.thasNade  ==  1 ) 
+			{
+				if (  t.mp_reload[t.c]  ==  1  )  t.mp_reload[t.c]  =  0;
+			}
+
+			if (  t.mp_reload[t.c]  ==  1 ) 
+			{
+				if (  g.mp.isAnimating  ==  0 || t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
 				{
-					t.tjetpacktempanim = 1;
-					if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
+					if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_RELOAD ) 
+					{
+						t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+						t.tweapstyle=t.gun[t.tgunid].weapontype;
+						if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+						t.tplaycsi=t.csi_stoodreloadANIM[t.tweapstyle];
+						mp_switchAnim ( );
+
+						if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
+						{
+							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+							t.tweapstyle=t.gun[t.tgunid].weapontype;
+							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							t.tplaycsi=t.csi_crouchreloadANIM[t.tweapstyle];
+							mp_switchAnim ( );
+						}
+						entity_lua_setanimationframes ( );
+						t.e = t.mp_playerEntityID[t.c];
+						t.entityelement[t.e].eleprof.animspeed=200;
+						entity_lua_playanimation ( );
+						g.mp.isAnimating = 1;
+
+						t.mp_playingAnimation[t.c] = MP_ANIMATION_RELOAD;
+					}
+				}
+				g.mp.isAnimating = 1;
+				//  if the reload anim has finished or the player starts shooting, turn reloading off
+				if (  GetFrame(t.tobj)  ==  605 || GetFrame(t.tobj)  ==  2010 || t.mp_playerShooting[t.c]  ==  1 ) 
+				{
+					t.mp_reload[t.c] = 0;
+					if (  GetFrame(t.tobj)  ==  2010 ) 
+					{
+						t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
+					}
+					else
 					{
 						t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 						g.mp.isAnimating = 0;
 					}
 				}
+			}
 
-				if (  t.thasNade  ==  1 ) 
+			t.tjetpacktempanim = 0;
+			if (  SteamGetPlayerAppearance(t.c)  ==  102 ) 
+			{
+				t.tjetpacktempanim = 1;
+				if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
 				{
-					if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_IDLE ) 
+					t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+					g.mp.isAnimating = 0;
+				}
+			}
+
+			if (  t.thasNade  ==  1 ) 
+			{
+				if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_IDLE ) 
+				{
+					if (  t.mp_playerShooting[t.c]  ==  1 ) 
 					{
-						if (  t.mp_playerShooting[t.c]  ==  1 ) 
+						if (   GetFrame(t.tobj) < 2390 || GetFrame(t.tobj) > 2444 ) 
 						{
-							if (   GetFrame(t.tobj) < 2390 || GetFrame(t.tobj) > 2444 ) 
-							{
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-								g.mp.isAnimating = 0;
-							}
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+							g.mp.isAnimating = 0;
 						}
+					}
 
-						if (  t.mp_playerShooting[t.c]  ==  0 ) 
+					if (  t.mp_playerShooting[t.c]  ==  0 ) 
+					{
+						if (  GetFrame(t.tobj)  ==  2444 ) 
 						{
-							if (  GetFrame(t.tobj)  ==  2444 ) 
-							{
-								SetObjectFrame(t.tobj,2443);
-								StopObject (  t.tobj );
-								g.mp.isAnimating = 0;
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-							}
+							SetObjectFrame(t.tobj,2443);
+							StopObject (  t.tobj );
+							g.mp.isAnimating = 0;
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 						}
-
 					}
 				}
+			}
 
-				if (  g.mp.isAnimating  ==  0 ) 
+			if (  g.mp.isAnimating  ==  0 ) 
+			{
+				mp_update_waist_rotation ( );
+				if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
 				{
-					mp_update_waist_rotation ( );
-//      `print "IDLING"
-
-					if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
+					if (  abs(t.mp_oldplayerx[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].x) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 					{
-						if (  abs(t.mp_oldplayerx[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].x) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+						if (  abs(t.mp_oldplayery[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].y) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 						{
-							if (  abs(t.mp_oldplayery[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].y) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+							if (  abs(t.mp_oldplayerz[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].z) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 							{
-								if (  abs(t.mp_oldplayerz[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].z) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+								t.tIsThrowingNade = 0;
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tweapstyle=t.gun[t.tgunid].weapontype;
+								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
-									t.tIsThrowingNade = 0;
-									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-									t.tweapstyle=t.gun[t.tgunid].weapontype;
-									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-									if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+									t.tplaycsi=t.csi_stoodnormalANIM[t.tweapstyle];
+									mp_switchAnim ( );
+								}
+								else
+								{
+									if (  t.thasNade  ==  1 && t.mp_playerShooting[t.c]  ==  1 ) 
 									{
-
-										t.tplaycsi=t.csi_stoodnormalANIM[t.tweapstyle];
-										mp_switchAnim ( );
-
+										t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
+										t.e=2390;
+										t.v=2444;
+										entity_lua_setanimationframes ( );
+										t.e = t.mp_playerEntityID[t.c];
+										t.entityelement[t.e].eleprof.animspeed=200;
+										t.tLuaDontSendLua = 1;
+										t.q=-1;
+										entity_lua_playanimation ( );
+										t.tLuaDontSendLua = 0;
+										t.tIsThrowingNade = 1;
 									}
 									else
 									{
-
-										if (  t.thasNade  ==  1 && t.mp_playerShooting[t.c]  ==  1 ) 
-										{
-											t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
-											t.e=2390;
-											t.v=2444;
-											entity_lua_setanimationframes ( );
-											t.e = t.mp_playerEntityID[t.c];
-											t.entityelement[t.e].eleprof.animspeed=200;
-											t.tLuaDontSendLua = 1;
-											t.q=-1;
-											entity_lua_playanimation ( );
-											t.tLuaDontSendLua = 0;
-											t.tIsThrowingNade = 1;
-										}
-										else
-										{
-											t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-											t.tweapstyle=t.gun[t.tgunid].weapontype;
-											if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-											t.tplaycsi=g.csi_unarmedANIM0;
-											mp_switchAnim ( );
-										}
-
+										t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+										t.tweapstyle=t.gun[t.tgunid].weapontype;
+										if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+										t.tplaycsi=g.csi_unarmedANIM0;
+										mp_switchAnim ( );
 									}
-									if (  t.tIsThrowingNade  ==  0 ) 
-									{
-										entity_lua_setanimationframes ( );
-										t.e = t.mp_playerEntityID[t.c];
-										t.entityelement[t.e].eleprof.animspeed=100;
-										entity_lua_loopanimation ( );
-									}
-									t.mp_playingAnimation[t.c] = MP_ANIMATION_IDLE;
 								}
+								if (  t.tIsThrowingNade  ==  0 ) 
+								{
+									entity_lua_setanimationframes ( );
+									t.e = t.mp_playerEntityID[t.c];
+									t.entityelement[t.e].eleprof.animspeed=100;
+									entity_lua_loopanimation ( );
+								}
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_IDLE;
 							}
 						}
-					}
-				}
-				else
-				{
-					//  reset the idle turn if animating
-					t.mp_lastIdleReset[t.c] = 1;
-//      `print "last idle reset = 1"
-
-				}
-
-			}
-
-			//  
-
-			if (  SteamGetPlayerAlive(t.c)  ==  0 && g.mp.gameAlreadySpawnedBefore  !=  0 ) 
-			{
-				t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-				t.mp_lastIdleReset[t.c] = 1;
-				t.mp_forcePosition[t.c] = 1;
-
-				if (  t.mp_jetpackparticles[t.c]  !=  -1 ) 
-				{
-					t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.c];
-					ravey_particles_delete_emitter ( );
-					t.mp_jetpackparticles[t.c]=-1;
-				}
-
-				if (  t.mp_isDying[t.c]  ==  0 && t.mp_playerHasSpawned[t.c]  ==  1 ) 
-				{
-
-					t.mp_isDying[t.c] = 1;
-					t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-					t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
-					RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
-					t.e = t.mp_playerEntityID[t.c];
-					if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
-					{
-						t.tweight=t.entityelement[t.e].eleprof.phyweight;
-						t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
-						ODECreateDynamicBox (  g.steamplayermodelsoffset+t.c+121,-1,0,t.tweight,t.tfriction,-1 );
-					}
-
-					//  NON-CHARACTER, but can still have ragdoll flagged (like Zombies)
-					t.ttentid=t.entityelement[t.e].bankindex;
-					t.ttte = t.e;
-					t.mp_playingRagdoll[t.c] = 1;
-					if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
-					{
-						if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
-						t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = 0;
-					}
-					t.entityprofile[t.ttentid].ragdoll=1;
-					if (  t.entityprofile[t.ttentid].ragdoll == 1 ) 
-					{
-
-						//  can only ragdoll clones not instances
-						t.tte=t.ttte;
-						entity_converttoclone ( );
-
-						//  create ragdoll and stop any further manipulation of the object
-						t.tphye=t.ttte;
-						t.tphyobj=t.entityelement[t.ttte].obj;
-						t.oldc = t.c;
-						ragdoll_setcollisionmask ( t.entityelement[t.ttte].eleprof.colondeath );
-						ragdoll_create ( );
-						t.c = t.oldc;
-
-						/*      
-						MoveObjectLeft (  t.entityelement[t.ttte].obj,60 );
-						t.x_f = ObjectPositionX(t.entityelement[t.ttte].obj);
-						t.y_f = ObjectPositionY(t.entityelement[t.ttte].obj)+50;
-						t.z_f = ObjectPositionZ(t.entityelement[t.ttte].obj);
-						MoveObjectRight (  t.entityelement[t.ttte].obj,60 );
-						t.tforce_f = 1000;
-						tlimb = Rnd(6);
-						switch (  tlimb ) 
-						{
-						case 0; tlimb  =  8 ; break 
-:
-						case 1; tlimb  =  10 ; break 
-:
-						case 2; tlimb  =  12 ; break 
-:
-						case 3; tlimb  =  16 ; break 
-:
-						case 4; tlimb  =  17 ; break 
-:
-						case 5; tlimb  =  24 ; break 
-:
-						case 6; tlimb  =  25 ; break 
-:
-						}						//~       remend
-						*/    
-
-						//  use the real raycast if we shot them
-//       `if Steam Get Player Killed Source(c) = mp.me
-
-//        `ttx# = brayx2#-brayx1#
-
-//        `tty# = brayy2#-brayy1#
-
-//        `ttz# = brayz2#-brayz1#
-
-//        `ttforce# = tforce#
-
-//        `ttlimb = bulletraylimbhit
-
-//       `else
-
-							//  grab the details from the server if someone else shot them
-							t.ttx_f = SteamGetPlayerKilledX(t.c);
-							t.tty_f = SteamGetPlayerKilledY(t.c);
-							t.ttz_f = SteamGetPlayerKilledZ(t.c);
-							t.ttforce_f = SteamGetPlayerKilledForce(t.c);
-							t.ttlimb = SteamGetPlayerKilledLimb(t.c);
-//       `endif
-
-	
-						//  and apply bullet directional force (tforce#=from gun settings)
-						t.entityelement[t.ttte].ragdollified=1;
-//       `entityelement(ttte).ragdollifiedforcex#=(x#)*0.8
-
-//       `entityelement(ttte).ragdollifiedforcey#=(y#)*1.2
-
-//       `entityelement(ttte).ragdollifiedforcez#=(z#)*0.8
-
-						t.entityelement[t.ttte].ragdollifiedforcex_f=(t.ttx_f)*0.8;
-						t.entityelement[t.ttte].ragdollifiedforcey_f=(t.tty_f)*1.2;
-						t.entityelement[t.ttte].ragdollifiedforcez_f=(t.ttz_f)*0.8;
-						t.entityelement[t.ttte].ragdollifiedforcevalue_f=t.ttforce_f*8000.0;
-						t.entityelement[t.ttte].ragdollifiedforcelimb=t.ttlimb;
 					}
 				}
 			}
 			else
 			{
-				if (  t.mp_forcePosition[t.c]  ==  0 ) 
-				{
-					if (  t.mp_isDying[t.c]  ==  1 ) 
-					{
-						if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
-						{
-							ODEDestroyObject (  g.steamplayermodelsoffset+t.c+121 );
-							RotateObject (  g.steamplayermodelsoffset+t.c+121,0,0,0 );
-							PositionObject (  g.steamplayermodelsoffset+t.c+121,0,-99999,0 );
-							HideObject (  g.steamplayermodelsoffset+t.c+121 );
-							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-						}
-						t.mp_isDying[t.c] = 0;
-					}
-				}
+				//  reset the idle turn if animating
+				t.mp_lastIdleReset[t.c] = 1;
+			}
+		}
+
+		if (  SteamGetPlayerAlive(t.c)  ==  0 && g.mp.gameAlreadySpawnedBefore  !=  0 ) 
+		{
+			t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+			t.mp_lastIdleReset[t.c] = 1;
+			t.mp_forcePosition[t.c] = 1;
+
+			if (  t.mp_jetpackparticles[t.c]  !=  -1 ) 
+			{
+				t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.c];
+				ravey_particles_delete_emitter ( );
+				t.mp_jetpackparticles[t.c]=-1;
 			}
 
-			t.mp_oldplayerx[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].x;
-			t.mp_oldplayery[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].y;
-			t.mp_oldplayerz[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].z;
+			if (  t.mp_isDying[t.c]  ==  0 && t.mp_playerHasSpawned[t.c]  ==  1 ) 
+			{
+				t.mp_isDying[t.c] = 1;
+				t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+				t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
+				RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
+				t.e = t.mp_playerEntityID[t.c];
+				if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
+				{
+					t.tweight=t.entityelement[t.e].eleprof.phyweight;
+					t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
+					ODECreateDynamicBox (  g.steamplayermodelsoffset+t.c+121,-1,0,t.tweight,t.tfriction,-1 );
+				}
 
-}
+				//  NON-CHARACTER, but can still have ragdoll flagged (like Zombies)
+				t.ttentid=t.entityelement[t.e].bankindex;
+				t.ttte = t.e;
+				t.mp_playingRagdoll[t.c] = 1;
+				if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
+				{
+					if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
+					t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = 0;
+				}
+				t.entityprofile[t.ttentid].ragdoll=1;
+				if (  t.entityprofile[t.ttentid].ragdoll == 1 ) 
+				{
+					//  can only ragdoll clones not instances
+					t.tte=t.ttte;
+					entity_converttoclone ( );
 
-return;
+					//  create ragdoll and stop any further manipulation of the object
+					t.tphye=t.ttte;
+					t.tphyobj=t.entityelement[t.ttte].obj;
+					t.oldc = t.c;
+					ragdoll_setcollisionmask ( t.entityelement[t.ttte].eleprof.colondeath );
+					ragdoll_create ( );
+					t.c = t.oldc;
 
+					//  grab the details from the server if someone else shot them
+					t.ttx_f = SteamGetPlayerKilledX(t.c);
+					t.tty_f = SteamGetPlayerKilledY(t.c);
+					t.ttz_f = SteamGetPlayerKilledZ(t.c);
+					t.ttforce_f = SteamGetPlayerKilledForce(t.c);
+					t.ttlimb = SteamGetPlayerKilledLimb(t.c);
+
+					//  and apply bullet directional force (tforce#=from gun settings)
+					t.entityelement[t.ttte].ragdollified=1;
+					t.entityelement[t.ttte].ragdollifiedforcex_f=(t.ttx_f)*0.8;
+					t.entityelement[t.ttte].ragdollifiedforcey_f=(t.tty_f)*1.2;
+					t.entityelement[t.ttte].ragdollifiedforcez_f=(t.ttz_f)*0.8;
+					t.entityelement[t.ttte].ragdollifiedforcevalue_f=t.ttforce_f*8000.0;
+					t.entityelement[t.ttte].ragdollifiedforcelimb=t.ttlimb;
+				}
+			}
+		}
+		else
+		{
+			if (  t.mp_forcePosition[t.c]  ==  0 ) 
+			{
+				if (  t.mp_isDying[t.c]  ==  1 ) 
+				{
+					if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
+					{
+						ODEDestroyObject (  g.steamplayermodelsoffset+t.c+121 );
+						RotateObject (  g.steamplayermodelsoffset+t.c+121,0,0,0 );
+						PositionObject (  g.steamplayermodelsoffset+t.c+121,0,-99999,0 );
+						HideObject (  g.steamplayermodelsoffset+t.c+121 );
+						t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+					}
+					t.mp_isDying[t.c] = 0;
+				}
+			}
+		}
+
+		t.mp_oldplayerx[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].x;
+		t.mp_oldplayery[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].y;
+		t.mp_oldplayerz[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].z;
+	}
 }
 
 void mp_switchAnim ( void )
@@ -2979,14 +2918,10 @@ void mp_showdeath ( void )
 				characterkit_checkForCharacters ( );
 				characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( );
 			}
-
-return;
-
 }
 
 void mp_respawn ( void )
 {
-
 	t.characterkitcontrol.showmyhead = 1;
 	if ( g.autoloadgun != 0 ) { g.autoloadgun=0 ; gun_change ( ); }
 	if (  t.player[t.plrid].health < 100  )  t.player[t.plrid].health  =  100;
@@ -3006,8 +2941,6 @@ void mp_respawn ( void )
 
 	if (  g.mp.coop  ==  1 ) 
 	{
-//  `remstart
-
 		if (  g.mp.originalEntitycount  ==  0 ) 
 		{
 			//  Store the count here incase other elements get added later (like guns)
@@ -3018,13 +2951,10 @@ void mp_respawn ( void )
 				t.steamStoreentityelement[t.te]=t.entityelement[t.te];
 			}
 		}
-//   `remend
-
 	}
 
 	t.playercontrol.deadtime = Timer() + 2000;
 	t.playercontrol.redDeathFog_f = 0;
-//physics_disableplayer ( );
 	t.aisystem.processplayerlogic=0;
 	g.mp.noplayermovement = 1;
 	
@@ -3033,7 +2963,6 @@ void mp_respawn ( void )
 		SteamSendIAmReadyToPlay (  );
 		g.mp.syncedWithServer = 1;
 		g.mp.sentreadytime = Timer();
-//   `print "SENDING I AM READY"
 
 		//  are we the server? if so, let lua know
 		if (  g.mp.isGameHost  ==  1 ) 
@@ -3056,90 +2985,89 @@ void mp_respawn ( void )
 	
 	if (  g.mp.gameAlreadySpawnedBefore  ==  0 || Timer() - g.mp.dyingTime > 1500 ) 
 	{
-			if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
+		if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
+		{
+			//  13032015 0XX - Team Multiplayer
+			if (  g.mp.team  ==  1 ) 
 			{
-
-				//  13032015 0XX - Team Multiplayer
-				if (  g.mp.team  ==  1 ) 
+				for ( t.tteam = 1 ; t.tteam<=  MP_MAX_NUMBER_OF_PLAYERS; t.tteam++ )
 				{
-					for ( t.tteam = 1 ; t.tteam<=  MP_MAX_NUMBER_OF_PLAYERS; t.tteam++ )
-					{
-						t.tnothing = LuaExecute( cstr(cstr("mp_playerTeam[") + Str(t.tteam) + "] = " + Str(t.mp_team[t.tteam-1])).Get() );
-					}
-						t.tnothing = LuaExecute( cstr(cstr("mp_teambased = ") + Str(g.mp.team)).Get() );
+					t.tnothing = LuaExecute( cstr(cstr("mp_playerTeam[") + Str(t.tteam) + "] = " + Str(t.mp_team[t.tteam-1])).Get() );
 				}
-
-				t.tindex = g.mp.me+1;
-				g.mp.myOriginalSpawnPoint = t.tindex;
-
-				if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
-				{
-					t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
-					t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y+20;
-					t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
-					t.terrain.playerax_f=0;
-					t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
-					t.terrain.playeraz_f=0;
-
-					g.mp.lastx=t.terrain.playerx_f;
-					g.mp.lasty=t.terrain.playery_f;
-					g.mp.lastz=t.terrain.playerz_f;
-					g.mp.lastangley=t.terrain.playeray_f;
-
-				}
-				else
-				{
-					t.tfound = 0;
-					t.ttempindex = t.tindex/2;
-					if (  t.ttempindex > 0 ) 
-					{
-						if (  t.mpmultiplayerstart[t.ttempindex].active == 1 ) 
-						{
-							g.mp.myOriginalSpawnPoint = t.ttempindex;
-							t.tfound = 1;
-							t.terrain.playerx_f=t.mpmultiplayerstart[t.ttempindex].x;
-							t.terrain.playery_f=t.mpmultiplayerstart[t.ttempindex].y+20;
-							t.terrain.playerz_f=t.mpmultiplayerstart[t.ttempindex].z;
-							t.terrain.playerax_f=0;
-							t.terrain.playeray_f=t.mpmultiplayerstart[t.ttempindex].angle;
-							t.terrain.playeraz_f=0;
-
-							g.mp.lastx=t.terrain.playerx_f;
-							g.mp.lasty=t.terrain.playery_f;
-							g.mp.lastz=t.terrain.playerz_f;
-							g.mp.lastangley=t.terrain.playeray_f;
-						}
-					}
-					if (  t.tfound  ==  0 ) 
-					{
-						if (  t.mpmultiplayerstart[1].active == 1 ) 
-						{
-							g.mp.myOriginalSpawnPoint = 1;
-							t.tfound = 1;
-							t.terrain.playerx_f=t.mpmultiplayerstart[1].x;
-							t.terrain.playery_f=t.mpmultiplayerstart[1].y+20;
-							t.terrain.playerz_f=t.mpmultiplayerstart[1].z;
-							t.terrain.playerax_f=0;
-							t.terrain.playeray_f=t.mpmultiplayerstart[1].angle;
-							t.terrain.playeraz_f=0;
-	
-							g.mp.lastx=t.terrain.playerx_f;
-							g.mp.lasty=t.terrain.playery_f;
-							g.mp.lastz=t.terrain.playerz_f;
-							g.mp.lastangley=t.terrain.playeray_f;
-						}
-					}
-					if (  t.tfound  ==  0 ) 
-					{
-						physics_resetplayer_core ( );
-					}
-				}
+					t.tnothing = LuaExecute( cstr(cstr("mp_teambased = ") + Str(g.mp.team)).Get() );
 			}
 
-			SteamSetPlayerPositionX (  t.terrain.playerx_f );
-			SteamSetPlayerPositionY (  t.terrain.playery_f );
-			SteamSetPlayerPositionZ (  t.terrain.playerz_f );
-			SteamSetPlayerAngle (  t.terrain.playeray_f );
+			t.tindex = g.mp.me+1;
+			g.mp.myOriginalSpawnPoint = t.tindex;
+
+			if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
+			{
+				t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
+				t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y+20;
+				t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
+				t.terrain.playerax_f=0;
+				t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
+				t.terrain.playeraz_f=0;
+
+				g.mp.lastx=t.terrain.playerx_f;
+				g.mp.lasty=t.terrain.playery_f;
+				g.mp.lastz=t.terrain.playerz_f;
+				g.mp.lastangley=t.terrain.playeray_f;
+
+			}
+			else
+			{
+				t.tfound = 0;
+				t.ttempindex = t.tindex/2;
+				if (  t.ttempindex > 0 ) 
+				{
+					if (  t.mpmultiplayerstart[t.ttempindex].active == 1 ) 
+					{
+						g.mp.myOriginalSpawnPoint = t.ttempindex;
+						t.tfound = 1;
+						t.terrain.playerx_f=t.mpmultiplayerstart[t.ttempindex].x;
+						t.terrain.playery_f=t.mpmultiplayerstart[t.ttempindex].y+20;
+						t.terrain.playerz_f=t.mpmultiplayerstart[t.ttempindex].z;
+						t.terrain.playerax_f=0;
+						t.terrain.playeray_f=t.mpmultiplayerstart[t.ttempindex].angle;
+						t.terrain.playeraz_f=0;
+
+						g.mp.lastx=t.terrain.playerx_f;
+						g.mp.lasty=t.terrain.playery_f;
+						g.mp.lastz=t.terrain.playerz_f;
+						g.mp.lastangley=t.terrain.playeray_f;
+					}
+				}
+				if (  t.tfound  ==  0 ) 
+				{
+					if (  t.mpmultiplayerstart[1].active == 1 ) 
+					{
+						g.mp.myOriginalSpawnPoint = 1;
+						t.tfound = 1;
+						t.terrain.playerx_f=t.mpmultiplayerstart[1].x;
+						t.terrain.playery_f=t.mpmultiplayerstart[1].y+20;
+						t.terrain.playerz_f=t.mpmultiplayerstart[1].z;
+						t.terrain.playerax_f=0;
+						t.terrain.playeray_f=t.mpmultiplayerstart[1].angle;
+						t.terrain.playeraz_f=0;
+	
+						g.mp.lastx=t.terrain.playerx_f;
+						g.mp.lasty=t.terrain.playery_f;
+						g.mp.lastz=t.terrain.playerz_f;
+						g.mp.lastangley=t.terrain.playeray_f;
+					}
+				}
+				if (  t.tfound  ==  0 ) 
+				{
+					physics_resetplayer_core ( );
+				}
+			}
+		}
+
+		SteamSetPlayerPositionX (  t.terrain.playerx_f );
+		SteamSetPlayerPositionY (  t.terrain.playery_f );
+		SteamSetPlayerPositionZ (  t.terrain.playerz_f );
+		SteamSetPlayerAngle (  t.terrain.playeray_f );
 	}
 
 	if (  SteamIsEveryoneReadyToPlay()  ==  0 || g.mp.syncedWithServer  ==  0 ) 
@@ -3176,17 +3104,6 @@ void mp_respawn ( void )
 			t.angle_f = SteamGetPlayerAngle(t.c);
 	}
 
-	//steam set voice chat mp.voiceChatOn;
-	//  Hide gun since we go to 3rd person for spawn in
-//  `steam set player position x -100000
-
-//  `steam set player position y -100000
-
-//  `steam set player position z -100000
-
-//  `steam set player alive 0
-
-
 	t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
 
 	if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
@@ -3197,15 +3114,11 @@ void mp_respawn ( void )
 			g.mp.checkedWhoKilledMe = 1;
 			if (  g.mp.killedByPlayerFlag  ==  0 ) 
 			{
-//     `mp.kills = mp.kills -1
-
 				if (  g.mp.coop  ==  0 ) 
 				{
 					SteamSendLua (  MP_LUA_ServerSetPlayerRemoveKill,0,g.mp.me+1 );
 					SteamKilledSelf (  );
 				}
-//     `tnothing = LuaExecute("mp_playerKills[" + Str(mp.me+1) + "] = " + Str(mp.kills))
-
 			}
 			else
 			{
@@ -3213,14 +3126,8 @@ void mp_respawn ( void )
 				{
 					SteamSendLua (  MP_LUA_ServerSetPlayerAddKill,0,g.mp.playerThatKilledMe+1 );
 				}
-//     `tnothing = LuaExecute("mp_playerKills[" + Str(mp.playerThatKilledMe+1) + "] = mp_playerKills[" + Str(mp.playerThatKilledMe+1) + "] + 1")
-
 			}
-//    `mp.deaths = mp.deaths + 1
-
 			SteamSendLua (  MP_LUA_ServerSetPlayerAddDeath,0,g.mp.me+1 );
-//    `tnothing = LuaExecute("mp_playerDeaths[" + Str(mp.me+1) + "] = " + Str(mp.deaths))
-
 		}
 	}
 
@@ -3229,8 +3136,6 @@ void mp_respawn ( void )
 	if (  SteamReadyToSpawn()  ==  0 ) 
 	{
 		mp_text(-1,20,3,"WAITING FOR PLAYERS");
-//   `text GetDisplayWidth()/2 - Text (  width("WAITING FOR PLAYERS")/2, GetDisplayHeight()/2-30, "WAITING FOR PLAYERS" )
-
 		return;
 	}
 	if (  g.mp.syncedWithServer  ==  0 ) 
@@ -3249,12 +3154,9 @@ void mp_respawn ( void )
 	{
 		mp_panel(40,45,60,65);
 		mp_text(-1,52,3,"SPAWNING IN");
-//   `text GetDisplayWidth()/2 - Text (  width("RESPAWNING")/2, GetDisplayHeight()/2-30, "RESPAWNING" )
 
 		t.s_s = Str(5-g.mp.respawnLeft);
 		mp_text(-1,58,3,t.s_s.Get());
-//   `text GetDisplayWidth()/2 - Text (  width(s$)/2, GetDisplayHeight()/2, s$ )
-
 
 		if (  g.mp.coop  ==  0 ) 
 		{
@@ -3332,7 +3234,7 @@ void mp_respawn ( void )
 
 			if (  g.mp.maxHealth  ==  0  )  g.mp.maxHealth  =  100;
 			g.mp.reloading = 0;
-//    `steam set player alive 1
+			//    `steam set player alive 1
 
 			t.mp_health[g.mp.me] = g.mp.maxHealth;
 			t.entityelement[t.mp_playerEntityID[g.mp.me]].health = g.mp.maxHealth;
@@ -3406,9 +3308,6 @@ void mp_respawn ( void )
 					{
 						physics_resetplayer_core ( );
 					}
-	
-//      `endif
-
 				}
 			}
 			else
@@ -3497,18 +3396,8 @@ void mp_respawn ( void )
 	
 			if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
 			{
-				//  send our name on first respawn to ensure everyone gets it
-				//  as this is the moment everyone is definately there
-				//  steam can sometimes fail to get the name for a while
-				//  so we will send it a few times
-//     `if Timer() - mp.lastsendmynametime > 1000
-
-//      `mp.lastsendmynametime = Timer()
-
-					SteamSendMyName (  );
-					g.mp.sentmyname = 1;
-//     `endif
-
+				SteamSendMyName (  );
+				g.mp.sentmyname = 1;
 
 				if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 ) 
 				{
@@ -3521,8 +3410,6 @@ void mp_respawn ( void )
 							{
 								t.entityelement[t.e].mp_coopControlledByPlayer = -1;
 								t.entityelement[t.e].mp_coopLastTimeSwitchedTarget = 0;
-//         `if entityelement(e).speedmodulator# < 1.0 then entityelement(e).speedmodulator#  ==  1.0
-
 							}
 						}
 					}
@@ -3534,7 +3421,7 @@ void mp_respawn ( void )
 			g.mp.gameAlreadySpawnedBefore = 1;
 			for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 			{
-					t.mp_forcePosition[t.c] = 1;
+				t.mp_forcePosition[t.c] = 1;
 			}
 			g.mp.respawnLeft = 0;
 
@@ -3550,12 +3437,7 @@ void mp_respawn ( void )
 		g.mp.noplayermovement = 0;
 		g.mp.invincibleTimer = Timer();
 		g.mp.lastSpawnedTime = g.mp.invincibleTimer;
-
-
 	}
-
-return;
-
 }
 
 void mp_getPlaceToSpawn ( void )
@@ -3883,21 +3765,14 @@ void mp_setLuaResetStats ( void )
 
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
-			t.entityelement[t.e].mp_networkkill = 0;
+		t.entityelement[t.e].mp_networkkill = 0;
 	}
 
 	t.tsteamwasnetworkdamage = 0;
-
-return;
-
 }
 
 void mp_updatePlayerInput ( void )
 {
-
-//  `print "RELOADING: " + Str(plrreloading)
-
-	
 	if (  t.playercontrol.plrhitfloormaterial  ==  0 ) 
 	{
 		if (  g.mp.oldfootfloortime  ==  0  )  g.mp.oldfootfloortime  =  Timer();
@@ -4410,43 +4285,44 @@ return;
 
 void mp_NearOtherPlayers ( void )
 {
-
 	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
-		if (  t.c  !=  g.mp.me ) 
+		if ( t.c != g.mp.me ) 
 		{
-				t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
-				if (  t.tobj > 0 ) 
+			t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
+			if ( t.tobj > 0 ) 
+			{
+				if ( ObjectExist(t.tobj) ) 
 				{
-					if (  ObjectExist(t.tobj) ) 
+					#ifdef PHOTONMP
+						int iAlive = PhotonGetPlayerAlive(t.c);
+					#else
+						int iAlive = SteamGetPlayerAlive(t.c);
+					#endif
+					if ( iAlive == 1 ) 
 					{
-						if (  SteamGetPlayerAlive(t.c)  ==  1 ) 
+						t.tplrproxx_f=CameraPositionX()-ObjectPositionX(t.tobj);
+						if ( g.mp.crouchOn == 0 ) 
 						{
-							t.tplrproxx_f=CameraPositionX()-ObjectPositionX(t.tobj);
-							if (  g.mp.crouchOn  ==  0 ) 
-							{
-								t.tplrproyy_f=(CameraPositionY()-64)-ObjectPositionY(t.tobj);
-							}
-							else
-							{
-								t.tplrproyy_f=(CameraPositionY()-64+30)-ObjectPositionY(t.tobj);
-							}
-							t.tplrproxz_f=CameraPositionZ()-ObjectPositionZ(t.tobj);
-							t.tplrproxd_f=Sqrt(abs(t.tplrproxx_f*t.tplrproxx_f)+abs(t.tplrproyy_f*t.tplrproyy_f)+abs(t.tplrproxz_f*t.tplrproxz_f));
-							t.tplrproxa_f=atan2deg(t.tplrproxx_f,t.tplrproxz_f);
-							if (  t.tplrproxd_f<50.0 ) 
-							{
-								t.playercontrol.pushforce_f=0.5;
-								t.playercontrol.pushangle_f=t.tplrproxa_f;
-							}
+							t.tplrproyy_f=(CameraPositionY()-64)-ObjectPositionY(t.tobj);
+						}
+						else
+						{
+							t.tplrproyy_f=(CameraPositionY()-64+30)-ObjectPositionY(t.tobj);
+						}
+						t.tplrproxz_f=CameraPositionZ()-ObjectPositionZ(t.tobj);
+						t.tplrproxd_f=Sqrt(abs(t.tplrproxx_f*t.tplrproxx_f)+abs(t.tplrproyy_f*t.tplrproyy_f)+abs(t.tplrproxz_f*t.tplrproxz_f));
+						t.tplrproxa_f=atan2deg(t.tplrproxx_f,t.tplrproxz_f);
+						if ( t.tplrproxd_f<50.0 ) 
+						{
+							t.playercontrol.pushforce_f=0.5;
+							t.playercontrol.pushangle_f=t.tplrproxa_f;
 						}
 					}
 				}
+			}
 		}
 	}
-
-return;
-
 }
 
 void mp_check_respawn_objects ( void )
@@ -4454,151 +4330,161 @@ void mp_check_respawn_objects ( void )
 	t.tTime = Timer();
 	for ( t.i = 0 ; t.i<=  MP_RESPAWN_TIME_OBJECT_LIST_SIZE; t.i++ )
 	{
-			if (  t.mp_respawn_timed[t.i].inuse  ==  1 ) 
+		if (  t.mp_respawn_timed[t.i].inuse  ==  1 ) 
+		{
+			if (  t.tTime - t.mp_respawn_timed[t.i].time > MP_RESPAWN_TIME_DELAY ) 
 			{
-				if (  t.tTime - t.mp_respawn_timed[t.i].time > MP_RESPAWN_TIME_DELAY ) 
-				{
-					t.mp_respawn_timed[t.i].inuse = 0;
+				t.mp_respawn_timed[t.i].inuse = 0;
 
-					t.e = t.mp_respawn_timed[t.i].e;
-					t.entityelement[t.e].active = 1;
-					entity_lua_spawn ( );
-					entity_lua_collisionon ( );
-					t.entityelement[t.e].activated = 0;
-					t.entityelement[t.e].collected = 0;
-					StopObject (  t.entityelement[t.e].obj );
-					SetObjectFrame (  t.entityelement[t.e].obj,0 );
-					ShowObject (  t.entityelement[t.e].obj );
-
-				}
+				t.e = t.mp_respawn_timed[t.i].e;
+				t.entityelement[t.e].active = 1;
+				entity_lua_spawn ( );
+				entity_lua_collisionon ( );
+				t.entityelement[t.e].activated = 0;
+				t.entityelement[t.e].collected = 0;
+				StopObject (  t.entityelement[t.e].obj );
+				SetObjectFrame (  t.entityelement[t.e].obj,0 );
+				ShowObject (  t.entityelement[t.e].obj );
 			}
+		}
 	}
-return;
-
 }
 
 void mp_checkForEveryoneLeft ( void )
 {
-		if (  g.mp.howmanyjoinedatstart > 1 ) 
+	if ( g.mp.howmanyjoinedatstart > 1 ) 
+	{
+		t.tsteamhowmanynow = 0;
+		for ( t.tcount = 0 ; t.tcount<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tcount++ )
 		{
-			t.tsteamhowmanynow = 0;
-			for ( t.tcount = 0 ; t.tcount<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tcount++ )
-			{
-				t.tname_s = SteamGetOtherPlayerName(t.tcount);
-				if (  t.tname_s != "Player"  )  ++t.tsteamhowmanynow;
-			}
-
-			if (  t.tsteamhowmanynow  <= 1 ) 
-			{
-				t.tsteamlostconnectioncustommessage_s = "Everyone else left the game! (Code MP014)";
-				g.mp.backtoeditorforyou = 1;
-				mp_lostConnection ( );
-				return;
-			}
+			t.tname_s = SteamGetOtherPlayerName(t.tcount);
+			if ( t.tname_s != "Player"  )  ++t.tsteamhowmanynow;
 		}
-return;
-
+		if ( t.tsteamhowmanynow  <= 1 ) 
+		{
+			t.tsteamlostconnectioncustommessage_s = "Everyone else left the game! (Code MP014)";
+			g.mp.backtoeditorforyou = 1;
+			mp_lostConnection ( );
+			return;
+		}
+	}
 }
 
 void mp_lostConnection ( void )
 {
-		t.tTime = Timer();
-		editor_hideall3d ( );
-		SetDir (  cstr(g.fpscrootdir_s + "\\Files").Get() );
-		if (  t.tsteamconnectionlostmessage_s  ==  "GAMEOVER"  )  g.mp.backtoeditorforyou  =  1;
-		t.tsteamconnectionlostmessage_s = "Lost connection to server";
-		if (  t.tsteamlostconnectioncustommessage_s != ""  )  t.tsteamconnectionlostmessage_s  =  t.tsteamlostconnectioncustommessage_s;
-		while (  Timer() - t.tTime < 5000 ) 
-		{
-			Cls (  );
-			mp_text(-1,30,3,t.tsteamconnectionlostmessage_s.Get());
-			if (  t.tsteamconnectionlostmessage_s  ==  "Could not build workshop item (Error MP015)" ) 
-			{
-				mp_text(-1,40,3,"The workshop item did not upload to Steam");
-				mp_text(-1,45,3,"Please t.try again in t.a few moments.");
-				mp_text(-1,50,3,"If the problem persists t.try closing");
-				mp_text(-1,55,3,"Game Guru and restarting Steam.");
-			}
-			SteamLoop (  );
-			Sync (  );
-		}
-		t.tsteamlostconnectioncustommessage_s = "";
-//mp_free_game ( );
-		mp_setMessage ( );
-		if (  g.mp.mode  ==  MP_IN_GAME_CLIENT || g.mp.mode  ==  MP_IN_GAME_SERVER || g.mp.backtoeditorforyou > 0 ) 
-		{
-			mp_resetGameStats ( );
-			if (  g.mp.backtoeditorforyou  !=  2 ) 
-			{
-				mp_setLuaResetStats ( );
-			}
-			else
-			{
-				g.mp.goBackToEditor = 1;
-			}
-		}
-		g.mp.backtoeditorforyou = 0;
+	t.tTime = Timer();
+	editor_hideall3d ( );
+	SetDir ( cstr(g.fpscrootdir_s + "\\Files").Get() );
+	if ( t.tsteamconnectionlostmessage_s == "GAMEOVER" )  g.mp.backtoeditorforyou = 1;
+	t.tsteamconnectionlostmessage_s = "Lost connection to server";
+	if ( t.tsteamlostconnectioncustommessage_s != "" )  t.tsteamconnectionlostmessage_s = t.tsteamlostconnectioncustommessage_s;
+	while ( Timer() - t.tTime < 5000 ) 
+	{
+		Cls ( );
+		mp_text(-1,30,3,t.tsteamconnectionlostmessage_s.Get());
+		#ifdef PHOTONMP
+		 PhotonLoop ( );
+		#else
+		 if (  t.tsteamconnectionlostmessage_s  ==  "Could not build workshop item (Error MP015)" ) 
+		 {
+			mp_text(-1,40,3,"The workshop item did not upload to Steam");
+			mp_text(-1,45,3,"Please t.try again in t.a few moments.");
+			mp_text(-1,50,3,"If the problem persists t.try closing");
+			mp_text(-1,55,3,"Game Guru and restarting Steam.");
+		 }
+		 SteamLoop (  );
+		#endif
+		Sync (  );
+	}
+	t.tsteamlostconnectioncustommessage_s = "";
+	mp_setMessage ( );
+	if ( g.mp.mode == MP_IN_GAME_CLIENT || g.mp.mode == MP_IN_GAME_SERVER || g.mp.backtoeditorforyou > 0 ) 
+	{
 		mp_resetGameStats ( );
-		mp_quitGame ( );
+		if ( g.mp.backtoeditorforyou != 2 ) 
+		{
+			mp_setLuaResetStats ( );
+		}
+		else
+		{
+			g.mp.goBackToEditor = 1;
+		}
+	}
+	g.mp.backtoeditorforyou = 0;
+	mp_resetGameStats ( );
+	mp_quitGame ( );
 }
 
 void mp_gameLoop ( void )
 {
+	// check we have finished loading, if not exit out
+	if ( g.mp.finishedLoadingMap == 0 ) return;
 
-//  check we have finished loading, if not exit out
-if (  g.mp.finishedLoadingMap  ==  0  )  return;
+	// and only if player not in process of leaving
+	#ifdef PHOTONMP	
+	 // handle player leaving
+	 if ( PhotonPlayerLeaving() == true ) 
+	 {
+		 // only handle code to process withdrawal
+		 PhotonLoop();
+		 return;
+	 }
+	 // handle new player arriving while game is running
+	 if ( 0 )  // handle WED
+	 {
+		// triggers serve to send map file//.
+		//g.mp.syncedWithServerMode = 0;
+		//g.mp.onlySendMapToSpecificPlayer = the new player
+	 }
+	 if ( g.mp.syncedWithServerMode != 99 ) 
+	 {
+		 // handles server job to send map file to newly arrived player
+		 mp_pre_game_file_sync_server ( g.mp.onlySendMapToSpecificPlayer );
+	 }
+	#endif
 
-//  HideMouse (  when menu finished )
-if (  t.thaveShownMouse >0 ) 
-{
-	game_hidemouse ( );
-	--t.thaveShownMouse;
-}
+	// HideMouse ( when menu finished )
+	if ( t.thaveShownMouse > 0 ) 
+	{
+		game_hidemouse ( );
+		--t.thaveShownMouse;
+	}
 
-mp_updateAIForCOOP ( );
-mp_howManyEnemiesLeftToKill ( );
-
-//  some debug stuff
-// `print "destroycount = " + Str(tempsteamdestroycount)
-
-// `if UpKey() then tempsteamdestroycount  ==  0
-
-// `if guntimercount  ==  0 then guntimercount  ==  6
-
-//  `print guntimercount
-
-//  `print ttemppotato
-
-//  `print gunmode
-
-
+	/*
+	mp_updateAIForCOOP ( );
+	mp_howManyEnemiesLeftToKill ( );
+	*/
 	mp_NearOtherPlayers ( );
 
-	//  if we have lost connection, head back to main menu
-	t.tconnectionStatus = SteamGetClientServerConnectionStatus();
-	if (  t.tconnectionStatus  ==  0 ) 
+	// if we have lost connection, head back to main menu
+	#ifdef PHOTONMP
+	 t.tconnectionStatus = PhotonGetClientServerConnectionStatus();
+	#else
+	 t.tconnectionStatus = SteamGetClientServerConnectionStatus();
+	#endif
+	if ( t.tconnectionStatus == 0 ) 
 	{
 		t.tsteamconnectionlostmessage_s = "GAMEOVER";
 		mp_lostConnection ( );
 		return;
 	}
-	if (  t.tconnectionStatus  ==  2 ) 
+	if ( t.tconnectionStatus == 2 ) 
 	{
 		t.tsteamconnectionlostmessage_s = "GAMEOVER";
-		t.tsteamlostconnectioncustommessage_s = "Game Over. The host closed the server.";
+		t.tsteamlostconnectioncustommessage_s = "Game Over. The server closed.";
 		mp_lostConnection ( );
 		return;
 	}
 
+	/*
 	mp_lua ( );
 	mp_setLuaPlayerNames ( );
 	mp_check_respawn_objects ( );
-
-//mp_checkVoiceChat ( );
-
-	if (  Timer() - g.mp.showscoresdelay > 2000 ) 
+	
+	// show scores key
+	if ( Timer() - g.mp.showscoresdelay > 2000 ) 
 	{
-		if (  KeyState(g.keymap[15])  ==  1 && g.mp.chaton  ==  0 ) 
+		if ( KeyState(g.keymap[15]) == 1 && g.mp.chaton == 0 ) 
 		{
 			t.tnothing = LuaExecute("mp_showscores = 1");
 			g.mp.showscoresdelay = Timer();
@@ -4609,84 +4495,98 @@ mp_howManyEnemiesLeftToKill ( );
 			g.mp.showscoresdelay = -2000;
 		}
 	}
+	*/
 
-	//  Find out which index we are (server will always be 0)
-	g.mp.me = SteamGetMyPlayerIndex();
-	//  Hide our own player model but show everyone elses
-	//  TO DO; if a player has d/c or never joined, need to hide their model rather than show a zombie standing there doing nothing
-	for ( t.a = 0 ; t.a<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
+	// Find out which index we are
+	#ifdef PHOTONMP
+	 g.mp.me = PhotonGetMyPlayerIndex();
+	#else
+	 g.mp.me = SteamGetMyPlayerIndex();
+	#endif
+
+	// Hide our own player model but show everyone elses
+	for ( t.a = 0 ; t.a <= MP_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
 	{
-			if (  t.mp_playingRagdoll[t.a]  ==  1 && SteamGetPlayerAlive(t.a)  ==  1 ) 
+		/*
+		if ( t.mp_playingRagdoll[t.a] == 1 && SteamGetPlayerAlive(t.a) == 1 ) 
+		{
+			t.mp_playingRagdoll[t.a] = 0;
+			t.tphyobj=t.entityelement[t.mp_playerEntityID[t.a]].obj;
+			ragdoll_destroy ( );
+			RotateObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj,0,180,0 );
+			FixObjectPivot (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
+			t.e = t.mp_playerEntityID[t.a];
+			t.entityelement[t.e].health=g.mp.maxHealth;
+			//  set appearance back to default so they repick the gun up they had before
+			t.mp_oldAppearance[t.a] = 0;
+			t.mp_playingAnimation[t.a] = MP_ANIMATION_NONE;
+		}
+		*/
+		if ( t.a == g.mp.me ) 
+		{
+			if ( t.entityelement[t.mp_playerEntityID[g.mp.me]].obj > 0 ) 
 			{
-				t.mp_playingRagdoll[t.a] = 0;
-				t.tphyobj=t.entityelement[t.mp_playerEntityID[t.a]].obj;
-				ragdoll_destroy ( );
-				RotateObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj,0,180,0 );
-				FixObjectPivot (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
-				t.e = t.mp_playerEntityID[t.a];
-				t.entityelement[t.e].health=g.mp.maxHealth;
-				//  set appearance back to default so they repick the gun up they had before
-				t.mp_oldAppearance[t.a] = 0;
-				t.mp_playingAnimation[t.a] = MP_ANIMATION_NONE;
-			}
-			if (  t.a  ==  g.mp.me ) 
-			{
-				if (  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj > 0 ) 
+				if ( ObjectExist(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj) ) 
 				{
-					if (  ObjectExist(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj) ) 
-					{
-						HideObject (  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj );
-					}
+					HideObject ( t.entityelement[t.mp_playerEntityID[g.mp.me]].obj );
 				}
 			}
-			else
+		}
+		else
+		{
+			if ( t.entityelement[t.mp_playerEntityID[t.a]].obj > 0 ) 
 			{
-				if (  t.entityelement[t.mp_playerEntityID[t.a]].obj > 0 ) 
+				if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].obj) ) 
 				{
-					if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].obj) ) 
+					#ifdef PHOTONMP
+					 int iAlive = PhotonGetPlayerAlive(t.a);
+					#else
+					 int iAlive = SteamGetPlayerAlive(t.a);
+					#endif
+					if ( t.mp_forcePosition[t.a] > 0 && iAlive == 1 ) 
 					{
-						if (  t.mp_forcePosition[t.a] > 0 && SteamGetPlayerAlive(t.a)  ==  1 ) 
+						t.mp_playerHasSpawned[t.a] = 1;
+						HideObject ( t.entityelement[t.mp_playerEntityID[t.a]].obj );
+						if ( t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
 						{
-							t.mp_playerHasSpawned[t.a]=1;
-							HideObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
-							if (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
+							if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj) ==  1 )  HideObject ( t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
+						}
+					}
+					else
+					{
+						if ( iAlive == 0 ) t.mp_playerHasSpawned[t.a] = 0;
+						if ( t.mp_playerHasSpawned[t.a] == 1 ) 
+						{
+							ShowObject ( t.entityelement[t.mp_playerEntityID[t.a]].obj );
+							if ( t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
 							{
-								if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj)  ==  1  )  HideObject (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
+								if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj) == 1 )  ShowObject ( t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
 							}
 						}
 						else
 						{
-							if (  t.mp_playerHasSpawned[t.a]  ==  1 ) 
+							HideObject ( t.entityelement[t.mp_playerEntityID[t.a]].obj );
+							if ( t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
 							{
-								ShowObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
-								if (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
-								{
-									if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj)  ==  1  )  ShowObject (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
-								}
-							}
-							else
-							{
-								HideObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj );
-								if (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj > 0 ) 
-								{
-									if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj)  ==  1  )  HideObject (  t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
-								}
+								if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj) == 1 )  HideObject ( t.entityelement[t.mp_playerEntityID[t.a]].attachmentobj );
 							}
 						}
 					}
 				}
 			}
+		}
 	}
 
-	//  Player is respawning or dead
+	 /*
+	// Player is respawning or dead
 	t.characterkitcontrol.showmyhead = 0;
-	if (  t.mp_health[g.mp.me]  <=  0 ) 
+	if ( t.mp_health[g.mp.me] <= 0 ) 
 	{
 		t.tTime = Timer();
-		if (  t.tTime - g.mp.lastSendAliveTime > MP_ALIVE_UPDATE_DELAY ) 
+		if ( t.tTime - g.mp.lastSendAliveTime > MP_ALIVE_UPDATE_DELAY ) 
 		{
 			g.mp.lastSendAliveTime = t.tTime;
-			SteamSetPlayerAlive (  0 );
+			SteamSetPlayerAlive ( 0 );
 		}
 		mp_showdeath ( );
 		mp_respawn ( );
@@ -4698,65 +4598,66 @@ mp_howManyEnemiesLeftToKill ( );
 		mp_loop ( );
 		mp_check_for_attachments ( );
 		mp_update_all_projectiles ( );
-		if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
+		if ( g.mp.gameAlreadySpawnedBefore  ==  0 ) 
 		{
 			mp_dontShowOtherPlayers ( );
 		}
 
-		if (  t.mp_health[g.mp.me] > 0  )  g.mp.lastSendAliveTime  =  0;
+		if ( t.mp_health[g.mp.me] > 0 )  g.mp.lastSendAliveTime = 0;
 		return;
 	}
+	*/
 
-	//  Player is alive
+	// Player is alive
 	t.tTime = Timer();
-	if (  t.tTime - g.mp.lastSendAliveTime > MP_ALIVE_UPDATE_DELAY ) 
+	if ( t.tTime - g.mp.lastSendAliveTime > MP_ALIVE_UPDATE_DELAY ) 
 	{
 		g.mp.lastSendAliveTime = t.tTime;
-		SteamSetPlayerAlive (  1 );
+		#ifdef PHOTONMP
+		 PhotonSetPlayerAlive ( 1 );
+		#else
+		 SteamSetPlayerAlive ( 1 );
+		#endif
 	}
 	mp_update_player ( );
 	mp_updatePlayerPositions ( );
+	/*
 	mp_updatePlayerInput ( );
 	mp_updatePlayerNamePlates ( );
 	mp_updatePlayerAnimations ( );
 	mp_delete_entities ( );
+	*/
 	mp_loop ( );
+	/*
 	mp_server_message ( );
 	mp_check_for_attachments ( );
 	mp_update_all_projectiles ( );
 
 	if ( g.mp.endplay == 1 ) mp_ending_game ( );
-
-	if (  t.mp_health[g.mp.me]  <=  0  )  g.mp.lastSendAliveTime  =  0;
+	if ( t.mp_health[g.mp.me]  <=  0  )  g.mp.lastSendAliveTime  =  0;
 
 	t.tTime = Timer();
 
-if ( g.mp.isGameHost == 1 ) mp_checkForEveryoneLeft ( );
-
-return;
-
+	if ( g.mp.isGameHost == 1 ) mp_checkForEveryoneLeft ( );
+	*/
 }
 
-//  used when restarting a match so you don't see everyone dropping out of the sky
+// used when restarting a match so you don't see everyone dropping out of the sky
 void mp_dontShowOtherPlayers ( void )
 {
-
 	for ( t.a = 0 ; t.a<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
 	{
-		if (  t.a  !=  g.mp.me ) 
+		if ( t.a != g.mp.me ) 
 		{
-			if (  t.entityelement[t.mp_playerEntityID[t.a]].obj > 0 ) 
+			if ( t.entityelement[t.mp_playerEntityID[t.a]].obj > 0 ) 
 			{
-				if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].obj) ) 
+				if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].obj) ) 
 				{
-					PositionObject (  t.entityelement[t.mp_playerEntityID[t.a]].obj,-100000,-100000,-100000 );
+					PositionObject ( t.entityelement[t.mp_playerEntityID[t.a]].obj,-100000,-100000,-100000 );
 				}
 			}
 		}
 	}
-
-return;
-	
 }
 
 void mp_ending_game ( void )
@@ -4769,15 +4670,13 @@ void mp_ending_game ( void )
 		t.tobj=t.entityelement[t.mp_playerEntityID[t.a]].obj;
 		if (  t.tobj > 0 ) 
 		{
-				if (  ObjectExist(t.tobj) ) 
-				{
-					PositionObject (  t.tobj, t.terrain.playerx_f, t.terrain.playery_f-20, t.terrain.playerz_f );
-					HideObject (  t.tobj );
-				}
+			if (  ObjectExist(t.tobj) ) 
+			{
+				PositionObject (  t.tobj, t.terrain.playerx_f, t.terrain.playery_f-20, t.terrain.playerz_f );
+				HideObject (  t.tobj );
+			}
 		}
 	}
-return;
-
 }
 
 void mp_free_game ( void )
@@ -4852,10 +4751,6 @@ void mp_free_game ( void )
 
 	if (  ImageExist(g.panelimageoffset+10)  )  DeleteImage (  g.panelimageoffset+10 );
 	if (  SpriteExist(g.steamchatpanelsprite)  ==  1  )  DeleteSprite (  g.steamchatpanelsprite );
-
-return;
-
-//  needs tlobbytring$ to be set to the lobby name
 }
 
 void mp_subbedToItem ( void )
@@ -4868,9 +4763,6 @@ void mp_subbedToItem ( void )
 			break;
 		}
 	}
-return;
-
-//  needs tlobbytring$ to be set to the lobby name
 }
 
 void mp_checkItemSubbed ( void )
@@ -4889,8 +4781,6 @@ void mp_checkItemSubbed ( void )
 			break;
 		}
 	}
-return;
-
 }
 
 void mp_resetGameStats ( void )
@@ -4945,6 +4835,7 @@ void mp_resetGameStats ( void )
 	g.mp.previousMessage_s = "";
 	g.mp.syncedWithServer = 0;
 	g.mp.syncedWithServerMode = 0;
+	g.mp.onlySendMapToSpecificPlayer = -1;
 	g.mp.oldtime = 0;
 	g.mp.me = 0;
 	g.mp.playedMyDeathAnim = 0;
@@ -5024,6 +4915,12 @@ void mp_resetGameStats ( void )
 		t.mp_lastIdleReset[t.tc] = 1;
 		t.mp_jetpackparticles[t.tc] = -1;
 		t.mp_joined[t.tc] = "";
+	}
+
+	// until spawn fully implemented, this triggers 1 second appearance of 'alive and existing' players
+	for ( t.tc = 0 ; t.tc <= MP_MAX_NUMBER_OF_PLAYERS-1; t.tc++ )
+	{
+		t.mp_forcePosition[t.tc] = 1;
 	}
 
 	t.twhichteam = 1;
@@ -5236,30 +5133,30 @@ void mp_update_all_projectiles ( void )
 				}
 			}
 	}
-	
-//  `print "Multiplayer rockets in use: " + Str(debugHowManyInUse)
-
-return;
-
-
-//Direct Multiplayer Instructions
-
-
 }
 
 void mp_destroyentity ( void )
 {
 	//  takes ttte
 	SteamDeleteObject (  t.ttte );
-return;
-
 }
 
 void mp_refresh ( void )
 {
-	SteamLoop (  );
-return;
+	#ifdef PHOTONMP
+	 PhotonLoop (  );
+	#else
+	 SteamLoop (  );
+	#endif
+}
 
+int mp_closeconnection ( void )
+{
+	#ifdef PHOTONMP
+	 return PhotonCloseConnection();
+	#else
+	 return 1;
+	#endif
 }
 
 void mp_setMessage ( void )
@@ -5267,8 +5164,6 @@ void mp_setMessage ( void )
 	//  takes tmsg$
 	g.mp.message = t.tmsg_s;
 	g.mp.messageTime = Timer();
-return;
-
 }
 
 void mp_setMessageDots ( void )

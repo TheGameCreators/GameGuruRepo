@@ -449,6 +449,27 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
 	
 	// Set tool bar tooltips from external text file
+	//m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "1" ) );
+	//m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "2" ) );
+	//m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "3" ) );
+	//m_wndToolBar.SetToolBarBtnTooltip ( 3,  GetLanguageData ( "Tooltips", "9" ) );
+	//m_wndToolBar.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "10" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "19" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "18" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "20" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 3, GetLanguageData ( "Tooltips", "33" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "26" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 5,  GetLanguageData ( "Tooltips", "27" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 6, GetLanguageData ( "Tooltips", "28" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 7, GetLanguageData ( "Tooltips", "29" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 8, GetLanguageData ( "Tooltips", "30" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 9, GetLanguageData ( "Tooltips", "31" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 10, GetLanguageData ( "Tooltips", "35" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 11, GetLanguageData ( "Tooltips", "32" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 12, GetLanguageData ( "Tooltips", "34" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 13, GetLanguageData ( "Tooltips", "36" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 14, GetLanguageData ( "Tooltips", "39" ) );
+	/* old original order before branded artist rearranged them
 	m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "1" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "2" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "3" ) );
@@ -469,6 +490,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndToolBar.SetToolBarBtnTooltip ( 17, GetLanguageData ( "Tooltips", "34" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 18, GetLanguageData ( "Tooltips", "36" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 19, GetLanguageData ( "Tooltips", "39" ) );
+	*/
 
 	/* replaced separate tooltips with one master bar - prevents docking fracture
 	// Build individual toolbar
@@ -987,7 +1009,6 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 		pButtons [ 6 ]            = pMenuPopup->GetMenuItem ( 6 );				// tile
 
 		pButtons [ 0 ]->m_strText = szPopup [ 0 ];
-				
 		pButtons [ 1 ]->m_strText = szPopup [ 1 ];
 		pButtons [ 2 ]->m_strText = szPopup [ 2 ];
 		pButtons [ 3 ]->m_strText = szPopup [ 3 ];

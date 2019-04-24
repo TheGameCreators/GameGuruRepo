@@ -1205,7 +1205,12 @@ void characterkit_save_entity ( void )
 		}
 	}
 
-	t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
+	#ifdef PHOTONMP
+	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Character.fpe";
+	#else
+	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
+	#endif
+
 	t.tcopyto_s = t.tSaveFile_s;
 	if (  cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
 
@@ -1448,7 +1453,12 @@ void characterkit_makeMultiplayerCharacterCreatorAvatar ( void )
 		}
 	}
 
-	t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
+	#ifdef PHOTONMP
+	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Character.fpe";
+	#else
+	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
+	#endif
+
 	t.tcopyto_s = t.tSaveFile_s;
 	if (  cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
 

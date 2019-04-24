@@ -505,6 +505,7 @@ struct mptype
 	int killedByPlayer;
 	cstr previousMessage_s;
 	int syncedWithServerMode;
+	int onlySendMapToSpecificPlayer;
 	int oldtime;
 	int me;
 	int playedMyDeathAnim;
@@ -735,6 +736,7 @@ struct mptype
 		 me = 0;
 		 oldtime = 0;
 		 syncedWithServerMode = 0;
+		 onlySendMapToSpecificPlayer = -1;
 		 previousMessage_s = "";
 		 killedByPlayer = 0;
 		 gameAlreadySpawnedBefore = 0;
@@ -3481,6 +3483,7 @@ struct gametype
 	int levelloadprogress;
 	int lostthegame;
 	int gameloop;
+	int gameloopwinddown;
 	float levelendingcycle;
 	int quitflag;
 	int runasmultiplayer;

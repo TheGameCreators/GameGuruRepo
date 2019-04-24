@@ -104,9 +104,6 @@ BOOL APIENTRY GGWMRMain(HMODULE hModule,
 
 DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd, int iDebugLoggingActive )
 {
-	// hack this in for now
-	MessageBox ( NULL, "Reached GGWMR_CreateHolographicSpace1", "", MB_OK );
-
 	// set debugging flag
 	g_iDebugLoggingActive = iDebugLoggingActive;
 

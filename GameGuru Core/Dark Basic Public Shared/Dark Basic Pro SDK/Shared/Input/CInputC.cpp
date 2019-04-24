@@ -571,9 +571,12 @@ DARKSDK BOOL CALLBACK ChecklistAddFFValueFlag(LPDIDEVICEINSTANCE pdinst, LPVOID 
 
 DARKSDK void UpdateKeyboard ( void )
 {
+	// vars
+	HRESULT  hr;
 	bool bInvalid=true;
 
-	HRESULT  hr;
+	// ensure coop level assigned to foreground window (see updatemouse for m_lpDIKeyboard->SetCooperativeLevel)
+
 	if ( FAILED ( hr = m_lpDIKeyboard->GetDeviceState ( sizeof ( m_KeyBuffer ), ( LPVOID ) &m_KeyBuffer ) ) )
 	{
 		// the device has probably been lost if the get device state has failed, attempt to reacquire it
@@ -596,9 +599,20 @@ DARKSDK void UpdateKeyboard ( void )
 
 DARKSDK void UpdateMouse ( void )
 {
+	// vars
+	HRESULT hr;
 	bool bInvalid=true;
 
-	HRESULT  hr;
+	// ensure coop level assigned to foreground window
+	HWND hCurrentHWND = GetForegroundWindow();
+	if ( hCurrentHWND != g_phWnd )
+	{
+		g_phWnd = hCurrentHWND;
+		hr = m_lpDIMouse->SetCooperativeLevel ( g_phWnd, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND );
+		hr = m_lpDIKeyboard->SetCooperativeLevel ( g_phWnd, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND );
+	}
+
+	// get data
     if ( FAILED ( hr = m_lpDIMouse->GetDeviceState ( sizeof ( m_MouseBuffer ), ( LPVOID ) &m_MouseBuffer ) ) )
 	{
 		// the device has probably been lost if the get device state has failed, attempt to reacquire it

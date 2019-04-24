@@ -662,6 +662,7 @@ void mapfile_savestandalone ( void )
 	addtocollection("scriptbank\\global.lua");
 	addtocollection("scriptbank\\music.lua");
 	addfoldertocollection(cstr(cstr("languagebank\\")+g.language_s+"\\artwork\\watermark").Get() );
+	addfoldertocollection(cstr(cstr("languagebank\\")+g.language_s+"\\artwork\\watermark\\branded").Get() );
 	addfoldertocollection("scriptbank\\ai");
 	addfoldertocollection("scriptbank\\images");
 	addfoldertocollection("audiobank\\materials");
@@ -1376,7 +1377,7 @@ void mapfile_savestandalone ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
-	for ( int iCritDLLs = 1; iCritDLLs <= 6; iCritDLLs++ )
+	for ( int iCritDLLs = 1; iCritDLLs <= 7; iCritDLLs++ )
 	{
 		LPSTR pCritDLLFilename = "";
 		switch ( iCritDLLs )
@@ -1387,6 +1388,7 @@ void mapfile_savestandalone ( void )
 			case 4 : pCritDLLFilename = "avformat-57.dll"; break;
 			case 5 : pCritDLLFilename = "avutil-55.dll"; break;
 			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
+			case 7 : pCritDLLFilename = "GGWMR.dll"; break;
 		}
 		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
@@ -1547,7 +1549,8 @@ void mapfile_savestandalone ( void )
 			}
 			else
 			{
-				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=1"; ++t.i;
+				// Also no controller in new VR mode
+				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xbox=0"; ++t.i;
 				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxcontrollertype=2"; ++t.i;
 				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxinvert=0" ; ++t.i;
 				t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag=100" ; ++t.i;

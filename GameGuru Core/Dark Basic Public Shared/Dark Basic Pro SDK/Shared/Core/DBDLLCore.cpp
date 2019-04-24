@@ -1423,11 +1423,6 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		g_pGlob->hWnd = CreateWindow( pAppNameUnique, pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
 	}
 
-	// Init MP API
-	// TEST TEST
-	///PhotonInit();
-	// TEST TEST
-
 	// Main Setup init
 	g_pGlob->hOriginalhWnd = g_pGlob->hWnd;
 	bool bDXFailed=false;

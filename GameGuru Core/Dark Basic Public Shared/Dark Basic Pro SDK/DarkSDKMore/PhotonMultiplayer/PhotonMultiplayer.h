@@ -57,6 +57,10 @@ extern uint64 server_timeout_milliseconds;
 
 #define FILE_CHUNK_SIZE 1024*8
 
+#define INTERPOLATE_SMOOTHING 0.2f
+#define INTERPOLATE_SMOOTHING_MIN 0.25f
+#define INTERPOLATE_SMOOTHING_TURN 0.1f
+
 float CosineInterpolate( float y1,float y2, float mu);
 float CosineInterpolateAngle( float y1,float y2, float mu);
 float CosineInterpolateAngle2( float y1,float y2, float mu);
@@ -106,6 +110,7 @@ extern int ServerHaveIToldClientsToStart;
 extern int ServerFilesToReceive;
 extern int ServerFilesReceived;
 extern int IamSyncedWithServerFiles;
+extern int serverOnlySendMapToSpecificPlayer;
 extern int IamLoadedAndReady;
 extern int IamReadyToPlay;
 extern int isEveryoneLoadedAndReady;

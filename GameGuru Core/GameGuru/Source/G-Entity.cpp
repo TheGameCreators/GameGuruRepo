@@ -577,32 +577,37 @@ void entity_loop ( void )
 					// only glue head if enemy is visible
 					t.tconstantlygluehead=0;
 					if ( t.tobj>0 ) {  if ( GetVisible(t.tobj)==1 ) { t.tconstantlygluehead=1; } } 
-					if (  t.game.runasmultiplayer == 1 ) 
+					if ( t.game.runasmultiplayer == 1 ) 
 					{
-						//  deal with multiplayer issues
-						//  if (  its me,  )  only show me when im dead
-						if (  t.characterkitcontrol.showmyhead == 1 && t.e == t.mp_playerEntityID[g.mp.me] ) 
+						// deal with multiplayer issues
+						// if (  its me,  )  only show me when im dead
+						if ( t.characterkitcontrol.showmyhead == 1 && t.e == t.mp_playerEntityID[g.mp.me] ) 
 						{
 							t.tconstantlygluehead=1;
 						}
 						//  if other players are dead and transitioning to a new spawn postion
 						for ( t.ttemploop = 0 ; t.ttemploop<=  MP_MAX_NUMBER_OF_PLAYERS; t.ttemploop++ )
 						{
-							if (  t.ttemploop != g.mp.me ) 
+							if ( t.ttemploop != g.mp.me ) 
 							{
-								if (  t.e == t.mp_playerEntityID[t.ttemploop] && t.mp_forcePosition[t.ttemploop]>0 && SteamGetPlayerAlive(t.ttemploop) == 1 ) 
+								#ifdef PHOTONMP
+								 int iAlive = PhotonGetPlayerAlive(t.ttemploop);
+								#else
+								 int iAlive = SteamGetPlayerAlive(t.ttemploop);
+								#endif
+								if ( t.e == t.mp_playerEntityID[t.ttemploop] && t.mp_forcePosition[t.ttemploop]>0 && iAlive == 1 ) 
 								{
 									t.tconstantlygluehead=0;
 								}
 							}
 						}
 					}
-					//  if head is flagged to by glued, attach to body now
-					if (  t.tconstantlygluehead == 1 ) 
+					// if head is flagged to by glued, attach to body now
+					if ( t.tconstantlygluehead == 1 ) 
 					{
-						//  NOTE; re-searching for head limb is a performance hit
+						// NOTE; re-searching for head limb is a performance hit
 						t.tSourcebip01_head=getlimbbyname(t.entityelement[t.e].obj, "Bip01_Head");
-						if (  t.tSourcebip01_head>0 ) 
+						if ( t.tSourcebip01_head>0 ) 
 						{
 							//Dave - fix to heads being backwards for characters when switched off (3000 units away)
 							float tdx = CameraPositionX(0) - ObjectPositionX(t.entityelement[t.e].obj);
