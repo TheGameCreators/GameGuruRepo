@@ -157,7 +157,7 @@ float4 PS(output IN) : COLOR
    return float4(diffuse.xyz,0.5f);
 }
 
-float4 PS_Fresnel_Reflect(output IN) : COLOR 
+float4 Fresnel_Reflect_Core(output IN,float nosky)
 {
    #ifdef USEWATERFORFLOOR
    float2 refluv = IN.ReflProj.xy / IN.ReflProj.w;
@@ -228,7 +228,7 @@ float4 PS_Fresnel_Reflect(output IN) : COLOR
    lighting.y = clamp(lighting.y,0.8,1.0); 
              
    float2 refluv = IN.ReflProj.xy / IN.ReflProj.w;
-   float3 Reflection = WaterreflectTX.Sample(SampleClamp,refluv+dudv.rg).xyz;
+   float3 Reflection = WaterreflectTX.Sample(SampleClamp,refluv+dudv.rg).xyz * nosky;
    //float3 Reflection = (ReflectionTex*WaterTint.xyz);
 
    float3 MaterialSpecularColor = float3(0.35,0.35,0.35);
@@ -274,6 +274,16 @@ float4 PS_Fresnel_Reflect(output IN) : COLOR
    #endif
 } 
 
+float4 PS_Fresnel_Reflect(output IN) : COLOR 
+{
+	return Fresnel_Reflect_Core ( IN, 1.0 );
+}
+
+float4 PS_Fresnel_ReflectNoSky(output IN) : COLOR 
+{
+	return Fresnel_Reflect_Core ( IN, 0.0 );
+}
+
 float4 PS_Fresnel_NoReflect(output IN) : COLOR 
 {
    float Mask=WatermaskTX.Sample(SampleClamp,IN.Tex0).r;
@@ -308,6 +318,16 @@ technique11 UseReflection
     {
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetPixelShader(CompileShader(ps_5_0, PS_Fresnel_Reflect()));
+        SetGeometryShader(NULL);
+    }
+}
+
+technique11 UseReflectionNoSky
+{
+    pass MainPass
+    {
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetPixelShader(CompileShader(ps_5_0, PS_Fresnel_ReflectNoSky()));
         SetGeometryShader(NULL);
     }
 }

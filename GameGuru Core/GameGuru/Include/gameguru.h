@@ -578,6 +578,7 @@ struct Sglobals
 	int flashlightrange;
 	DWORD g_filemapoffset;
 	int gadapterordinal;
+	int gadapterd3d11only;
 	DWORD gameperfphysics;
 	float gamewarmupcount;
 	int gdisablepeeking;
@@ -1687,6 +1688,7 @@ struct Sglobals
 		 gamewarmupcount = 0.0f;
 		 gameperfphysics = 0;
 		 gadapterordinal = 0;
+		 gadapterd3d11only = 0;
 		 g_filemapoffset = 0;
 		 flashlightrange = 0;
 		 FactionArrayMax = 0;

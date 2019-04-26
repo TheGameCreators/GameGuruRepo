@@ -26,7 +26,7 @@ namespace DX
         void Present(winrt::Windows::Graphics::Holographic::HolographicFrame frame);
 
         // Public methods related to holographic devices.
-        void SetHolographicSpace(winrt::Windows::Graphics::Holographic::HolographicSpace space, ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+        int SetHolographicSpace(winrt::Windows::Graphics::Holographic::HolographicSpace space, ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
         void EnsureCameraResources(
             winrt::Windows::Graphics::Holographic::HolographicFrame frame,
             winrt::Windows::Graphics::Holographic::HolographicFramePrediction prediction);
@@ -58,7 +58,7 @@ namespace DX
     private:
         // Private methods related to the Direct3D device, and resources based on that device.
         void CreateDeviceIndependentResources();
-        void InitializeUsingHolographicSpace(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
+        int InitializeUsingHolographicSpace(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
         void CreateDeviceResources(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
 
         // Direct3D objects.

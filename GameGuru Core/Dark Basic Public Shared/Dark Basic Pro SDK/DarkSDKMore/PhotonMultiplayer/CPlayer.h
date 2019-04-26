@@ -28,6 +28,7 @@ public:
 	uint64		ClientTime;
 	uint64		m_ulLastClientUpdateTick; // Last time we sent an update on our local data to the server
 	uint64		m_ulLastNetworkDataReceivedTime;
+	int			newplayer;
 
 	ClientUpdateData_t m_ClientUpdateData;
 

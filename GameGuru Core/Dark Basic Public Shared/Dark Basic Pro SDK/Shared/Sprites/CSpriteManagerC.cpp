@@ -785,6 +785,8 @@ void CSpriteManager::RenderDrawList ( tagSpriteData** pList, int iListSize, int 
 
 void CSpriteManager::GetDisplaySize()
 {
+	if ( g_pBackBuffer == NULL ) return;
+
     // Build display size from the viewport rather than the resolution...
 	#ifdef DX11
 	D3D11_TEXTURE2D_DESC ddsd;

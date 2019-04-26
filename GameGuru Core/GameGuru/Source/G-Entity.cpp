@@ -576,16 +576,15 @@ void entity_loop ( void )
 				{
 					// only glue head if enemy is visible
 					t.tconstantlygluehead=0;
-					if ( t.tobj>0 ) {  if ( GetVisible(t.tobj)==1 ) { t.tconstantlygluehead=1; } } 
+					if ( t.tobj>0 ) { if ( GetVisible(t.tobj)==1 ) { t.tconstantlygluehead=1; } } 
 					if ( t.game.runasmultiplayer == 1 ) 
 					{
-						// deal with multiplayer issues
-						// if (  its me,  )  only show me when im dead
+						// deal with multiplayer issues - if ( its me, ) only show me when im dead
 						if ( t.characterkitcontrol.showmyhead == 1 && t.e == t.mp_playerEntityID[g.mp.me] ) 
 						{
 							t.tconstantlygluehead=1;
 						}
-						//  if other players are dead and transitioning to a new spawn postion
+						// if other players are dead and transitioning to a new spawn postion
 						for ( t.ttemploop = 0 ; t.ttemploop<=  MP_MAX_NUMBER_OF_PLAYERS; t.ttemploop++ )
 						{
 							if ( t.ttemploop != g.mp.me ) 
@@ -2449,7 +2448,10 @@ void entity_createobj ( void )
 		//		bUniqueSpecular = true;
 		//  Create new object
 		bool bUniqueSpecular = entity_isuniquespecularoruv ( t.tupdatee );
-		if ( t.entityprofile[t.tentid].ismarker != 0 || t.entityprofile[t.tentid].cpuanims != 0 || t.entityprofile[t.gridentity].isebe != 0 || bUniqueSpecular == true ) 
+		bool bCreateAsClone = false;
+		if ( t.entityprofile[t.tentid].ismarker != 0 || t.entityprofile[t.tentid].cpuanims != 0 || t.entityprofile[t.gridentity].isebe != 0 || bUniqueSpecular == true ) bCreateAsClone = true;
+		if ( t.entityprofile[t.tentid].ischaractercreator == 1 ) bCreateAsClone = true; // needed to keep head attached!
+		if ( bCreateAsClone == true )
 		{
 			CloneObject (  t.obj,t.sourceobj,1 );
 			if (  t.tupdatee != -1  )  t.entityelement[t.tupdatee].isclone = 1;

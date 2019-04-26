@@ -978,7 +978,12 @@ void visuals_updatespecificobjectmasks ( int e, int obj )
 
 void visuals_updateobjectmasks ( void )
 {
-	//  can be called from _loop and also from terrain (reflection update when not looking at water pixels)
+	// actually used relfection value
+	int iUseThisReflectionValue = t.visuals.reflectionmode;
+	if ( g.gvrmode != 0 && iUseThisReflectionValue > 10 ) 
+		iUseThisReflectionValue = 10;
+
+	// can be called from _loop and also from terrain (reflection update when not looking at water pixels)
 	if ( 1 ) 
 	{
 		if ( g.globals.riftmode>0 || (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) ) 
@@ -1016,7 +1021,7 @@ void visuals_updateobjectmasks ( void )
 			t.tmaskforcameras=t.tmaskforcameras+16;
 			t.tmaskforcamerasnoshad=t.tmaskforcamerasnoshad+16;
 		}
-		if (  t.visuals.reflectionmodemodified>0 ) 
+		if ( iUseThisReflectionValue > 0 ) // t.visuals.reflectionmodemodified>0 ) 
 		{
 			t.tmaskforcameras=t.tmaskforcameras+4;
 			t.tmaskforcamerasnoshad=t.tmaskforcamerasnoshad+4;
@@ -1029,11 +1034,11 @@ void visuals_updateobjectmasks ( void )
 		}
 
 		//  grass can be excluded with specific reflection mode
-		if (  t.visuals.reflectionmode <= 99 ) 
+		if ( iUseThisReflectionValue <= 99 ) 
 		{
 			//  ensure grass does not render in reflection render
 			t.tmask=t.tmaskforcamerasnoreflectionlightrayshadowsflag;
-			if (  t.visuals.reflectionmode == 0 ) 
+			if ( iUseThisReflectionValue == 0 ) 
 			{
 				//  no water at all
 				t.hardwareinfoglobals.nowater=2;
@@ -1048,7 +1053,7 @@ void visuals_updateobjectmasks ( void )
 				//  restore water feature
 				if (  t.hardwareinfoglobals.nowater == 2  )  t.hardwareinfoglobals.nowater = 0;
 				//  work out which entities should reflect in reflection render
-				t.thideatthissize=(100-t.visuals.reflectionmode)*20;
+				t.thideatthissize=(100-iUseThisReflectionValue)*20;
 				for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 				{
 					t.entid=t.entityelement[t.e].bankindex;
@@ -1202,15 +1207,15 @@ void visuals_CheckSetGlobalDepthSkipSystem ( void )
 
 void visuals_loop ( void )
 {
-	//  Shortcut-keys to adjust visual settings
-	if (  t.conkit.editmodeactive == 0 ) 
+	// Shortcut-keys to adjust visual settings
+	if ( t.conkit.editmodeactive == 0 ) 
 	{
-		if (  ScanCode() == 0  )  t.visuals.pressed = 0;
-		if (  t.visuals.pressed == 0 ) 
+		if ( ScanCode() == 0  )  t.visuals.pressed = 0;
+		if ( t.visuals.pressed == 0 ) 
 		{
-			if (  t.visuals.pressed == 1 ) 
+			if ( t.visuals.pressed == 1 ) 
 			{
-				if (  t.visuals.promptstatetimer == 0 ) 
+				if ( t.visuals.promptstatetimer == 0 ) 
 				{
 					t.visuals.showpromptssavestate=t.aisystem.showprompts;
 				}
@@ -1225,39 +1230,39 @@ void visuals_loop ( void )
 			}
 		}
 	}
-	if (  t.visuals.promptstatetimer > 0 ) 
+	if ( t.visuals.promptstatetimer > 0 ) 
 	{
 		t.tvisualprompt_s="";
 		t.tvisualprompt_s=t.tvisualprompt_s+" : "+StrEx(t.visuals.value_f,2);
-		if (  Timer()>t.visuals.promptstatetimer ) 
+		if ( Timer()>t.visuals.promptstatetimer ) 
 		{
 			t.visuals.promptstatetimer=0;
 			t.aisystem.showprompts=t.visuals.showpromptssavestate;
 		}
 		t.tvisualalpha=255;
-		if (  Timer()>t.visuals.promptstatetimer-255  )  t.tvisualalpha = (t.visuals.promptstatetimer-Timer());
-		if (  t.tvisualalpha<0  )  t.tvisualalpha = 0;
-		if (  t.tvisualalpha>255  )  t.tvisualalpha = 255;
+		if ( Timer()>t.visuals.promptstatetimer-255  )  t.tvisualalpha = (t.visuals.promptstatetimer-Timer());
+		if ( t.tvisualalpha<0  )  t.tvisualalpha = 0;
+		if ( t.tvisualalpha>255  )  t.tvisualalpha = 255;
 		pastebitmapfont(t.tvisualprompt_s.Get(),20,(GetDisplayHeight()-50),1,t.tvisualalpha);
 	}
 
-	//  General prompt
-	if (  t.visuals.generalpromptstatetimer>0 ) 
+	// General prompt
+	if ( t.visuals.generalpromptstatetimer>0 ) 
 	{
-		if (  t.postprocessings.fadeinvalue_f == 1.0 ) 
+		if ( t.postprocessings.fadeinvalue_f == 1.0 ) 
 		{
 			t.tvisualprompt_s=t.visuals.generalprompt_s;
-			if (  Timer()>t.visuals.generalpromptstatetimer ) 
+			if ( Timer()>t.visuals.generalpromptstatetimer ) 
 			{
 				t.visuals.generalpromptstatetimer=0;
 				t.visuals.generalpromptalignment=0;
 			}
 			t.tvisualalpha=255;
-			if (  Timer()>t.visuals.generalpromptstatetimer-255  )  t.tvisualalpha = (t.visuals.generalpromptstatetimer-Timer());
-			if (  t.tvisualalpha<0  )  t.tvisualalpha = 0;
-			if (  t.tvisualalpha>255  )  t.tvisualalpha = 255;
+			if ( Timer()>t.visuals.generalpromptstatetimer-255  )  t.tvisualalpha = (t.visuals.generalpromptstatetimer-Timer());
+			if ( t.tvisualalpha<0  )  t.tvisualalpha = 0;
+			if ( t.tvisualalpha>255  )  t.tvisualalpha = 255;
 			t.txwidth=getbitmapfontwidth(t.tvisualprompt_s.Get(),1);
-			if (  t.visuals.generalpromptalignment == 1  )  t.tprmpty = GetDisplayHeight()-50; else t.tprmpty = 50;
+			if ( t.visuals.generalpromptalignment == 1  )  t.tprmpty = GetDisplayHeight()-50; else t.tprmpty = 50;
 			pastebitmapfont(t.tvisualprompt_s.Get(),(GetDisplayWidth()-t.txwidth)/2,t.tprmpty,1,t.tvisualalpha);
 		}
 		else
@@ -1267,70 +1272,57 @@ void visuals_loop ( void )
 	}
 
 	//  Apply visual settings when change detected
-	if (  t.visuals.pressed == 1 || t.visuals.refreshshaders == 1 ) 
+	if ( t.visuals.pressed == 1 || t.visuals.refreshshaders == 1 ) 
 	{
-		//  One refresh per request
+		// One refresh per request
 		t.visuals.refreshshaders=0;
 
-		//  If change in debug objects flag should update relevant modules
+		// If change in debug objects flag should update relevant modules
 		darkai_updatedebugobjects ( );
 
 		// 091115 - new system to SKIP the depth render of all qualifying shader (using a pass called "RenderDepthPixelsPass")
-		//Dave moved the code off into a function as lua scripts can call it also
 		visuals_CheckSetGlobalDepthSkipSystem();
 
-		//  Code to update ALL OBJECT MASKS to decide which cameras will get them
-		//  Done on a refresh as this process is expensive (20% of empty level)
-		if (  1 ) 
+		// Code to update ALL OBJECT MASKS to decide which cameras will get them
+		// Done on a refresh as this process is expensive (20% of empty level)
+		if ( 1 ) 
 		{
-			//  Set the object masks based on graphic options (uses reflectionmodemodified)
+			// Set the object masks based on graphic options (uses reflectionmodemodified)
 			visuals_updateobjectmasks ( );
 
-			//  reflection settings can hide/show plane of water
+			// reflection settings can hide/show plane of water
 			terrain_updatewaterphysics ( );
-			if (  t.hardwareinfoglobals.nowater != 0 ) 
+			if ( t.hardwareinfoglobals.nowater != 0 ) 
 			{
-				if (  ObjectExist(t.terrain.objectstartindex+5) == 1  )  HideObject (  t.terrain.objectstartindex+5 );
+				if ( ObjectExist(t.terrain.objectstartindex+5) == 1  )  HideObject (  t.terrain.objectstartindex+5 );
 			}
 			else
 			{
-				if (  ObjectExist(t.terrain.objectstartindex+5) == 1  )  ShowObject (  t.terrain.objectstartindex+5 );
+				if ( ObjectExist(t.terrain.objectstartindex+5) == 1  )  ShowObject (  t.terrain.objectstartindex+5 );
 			}
-
-			//  Clear dynamic cheap shadow camera
-			//t.gdynamicterrainshadowcameragenerate=2;
 
 			// However, ensure reflection sky remains (even if game objects culled away)
 			t.tskymaskforcamerasnoshadow = t.tmaskforcameras & 1073741823;
-			if (  ObjectExist(t.terrain.objectstartindex+4) == 1 ) 
+			if ( ObjectExist(t.terrain.objectstartindex+4) == 1 ) 
 			{
-				//DX11SetObjectMask (  t.terrain.objectstartindex+4,(t.tskymaskforcamerasnoshadow | 4 ),0,0,0 );
 				SetObjectMask (  t.terrain.objectstartindex+4,(t.tskymaskforcamerasnoshadow),0,0,0 );
 			}
-			if (  ObjectExist(t.terrain.objectstartindex+8) == 1 ) 
+			if ( ObjectExist(t.terrain.objectstartindex+8) == 1 ) 
 			{
-				//DX11SetObjectMask (  t.terrain.objectstartindex+8,(t.tskymaskforcamerasnoshadow | 4 ),0,0,0 );
 				SetObjectMask (  t.terrain.objectstartindex+8,(t.tskymaskforcamerasnoshadow),0,0,0 );
 			}
-			if (  ObjectExist(t.terrain.objectstartindex+9) == 1 ) 
+			if ( ObjectExist(t.terrain.objectstartindex+9) == 1 ) 
 			{
-				//DX11SetObjectMask (  t.terrain.objectstartindex+9,(t.tskymaskforcamerasnoshadow | 4 ),0,0,0 );
-				SetObjectMask (  t.terrain.objectstartindex+9,(t.tskymaskforcamerasnoshadow),0,0,0 );
+				SetObjectMask (  t.terrain.objectstartindex+9,1);//(t.tskymaskforcamerasnoshadow),0,0,0 ); no relfection of scroll
 			}
 
-			//  And, ensure terrain physics objects (used for occlusion) are never rendered
-			if (  t.terrain.TerrainLODOBJStart>0 ) 
-			{
-				for ( t.o = t.terrain.TerrainLODOBJStart ; t.o<=  t.terrain.TerrainLODOBJFinish; t.o++ )
-				{
-					if (  ObjectExist(t.o) == 1 ) 
-					{
-						SetObjectMask (  t.o,0,0,0,0 );
-					}
-				}
-			}
+			// And, ensure terrain physics objects (used for occlusion) are never rendered
+			if ( t.terrain.TerrainLODOBJStart>0 ) 
+				for ( t.o = t.terrain.TerrainLODOBJStart ; t.o <= t.terrain.TerrainLODOBJFinish; t.o++ )
+					if ( ObjectExist(t.o) == 1 ) 
+						SetObjectMask ( t.o,0,0,0,0 );
 
-			//  Update in-game objects that only appear in main camera
+			// Update in-game objects that only appear in main camera
 			if ( g.globals.riftmode>0 || (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) )  
 			{
 				if ( g.vrglobals.GGVREnabled > 0 )
@@ -1342,83 +1334,121 @@ void visuals_loop ( void )
 			{
 				t.tmaskmaincamera=1;
 			}
-			//  guns only for main camera
-			for ( t.o = g.gunbankoffset ; t.o<=  g.editorwaypointoffset-1; t.o++ )
+
+			// guns only for main camera (HUD objects for camera zero only)
+			for ( t.o = g.gunbankoffset ; t.o <= g.editorwaypointoffset-1; t.o++ )
 			{
-				if (  ObjectExist(t.o) == 1 ) 
+				if ( ObjectExist(t.o) == 1 ) 
 				{
-					SetObjectMask (  t.o,t.tmaskmaincamera,0,0,0 );
+					//SetObjectMask ( t.o, t.tmaskmaincamera, 0, 0, 0 ); //until have a VR friendly way to show HUD objects
+					SetObjectMask ( t.o, 1, 0, 0, 0 );
 				}
 			}
-			//  Water plane only for main camera
-			if (  ObjectExist(t.terrain.objectstartindex+5)>0 ) 
+
+			// Water plane only for main camera
+			if ( ObjectExist(t.terrain.objectstartindex+5)>0 ) 
 			{
-				SetObjectMask (  t.terrain.objectstartindex+5,1 );
+				SetObjectMask ( t.terrain.objectstartindex+5, t.tmaskmaincamera );//1 ); need to see water in VR renders
+			}
+
+			// go through all entities to ensure they render to VR scenes
+			for ( t.e = 1; t.e <= g.entityelementlist; t.e++ )
+			{
+				t.entid = t.entityelement[t.e].bankindex;
+				if ( t.entid > 0 ) 
+				{
+					//this may conflict with visuals_updateobjectmasks()
+					//t.tobj = t.entityelement[t.e].obj;
+					//if ( t.tobj > 0 ) 
+					//{
+					//	if ( ObjectExist(t.tobj) == 1 ) 
+					//	{
+					//		if (  t.entityprofile[t.entid].ismarker != 0 || t.entityprofile[t.entid].zdepth == 0 )
+					//			SetObjectMask ( t.tobj, t.tmaskmaincamera );
+					//		else
+					//			SetObjectMask ( t.tobj, t.tmaskmaincamera+(1<<31) );
+					//	}
+					//}
+					if ( t.entityprofile[t.entid].ischaractercreator == 1 ) 
+					{
+						for ( int iParts = 0; iParts < 2; iParts++ )
+						{
+							t.tccobj = (g.charactercreatorrmodelsoffset+((t.e*3)-t.characterkitcontrol.offset))+iParts;
+							if ( ObjectExist(t.tccobj) == 1 ) 
+							{
+								SetObjectMask ( t.tccobj, t.tmaskmaincamera+(1<<31) );
+							}
+						}
+					}
+				}
 			}
 		}
 
-		//  Shader updates
+		// Shader updates
 		visuals_justshaderupdate ( );
 
-		//  Calculate 'reasonable' camera FOV (void zero and 100)
+		// Calculate 'reasonable' camera FOV (void zero and 100)
 		g.greasonableWeaponFOV_f=t.visuals.WeaponFOV_f;
 
-		//  Set selected object FOV's
+		// Set selected object FOV's
 		for ( t.tgunid = 1 ; t.tgunid<=  g.gunmax; t.tgunid++ )
 		{
 			t.tgunobj=t.gun[t.tgunid].obj;
-			if (  t.tgunobj>0 ) 
+			if ( t.tgunobj>0 ) 
 			{
-				if (  ObjectExist(t.tgunobj) == 1 ) 
+				if ( ObjectExist(t.tgunobj) == 1 ) 
 				{
-					SetObjectFOV (  t.tgunobj,g.greasonableWeaponFOV_f );
+					SetObjectFOV ( t.tgunobj,g.greasonableWeaponFOV_f );
 				}
 			}
 		}
-		//  Muzzle Flash(es)
+
+		// Muzzle Flash(es)
 		for ( t.t = 0 ; t.t<=  1; t.t++ )
 		{
-			if (  t.t == 0  )  t.tobj = g.hudbankoffset+5;
-			if (  t.t == 1  )  t.tobj = g.hudbankoffset+32;
-			if (  ObjectExist(t.tobj) == 1  )  SetObjectFOV (  t.tobj,g.greasonableWeaponFOV_f );
+			if ( t.t == 0  )  t.tobj = g.hudbankoffset+5;
+			if ( t.t == 1  )  t.tobj = g.hudbankoffset+32;
+			if ( ObjectExist(t.tobj) == 1  )  SetObjectFOV (  t.tobj,g.greasonableWeaponFOV_f );
 		}
-		//  Brass
+
+		// Brass
 		for ( t.t = 6 ; t.t<=  20; t.t++ )
 		{
 			t.tobj=g.hudbankoffset+t.t;
-			if (  ObjectExist(t.tobj) == 1  )  SetObjectFOV (  t.tobj,g.greasonableWeaponFOV_f );
+			if ( ObjectExist(t.tobj) == 1  )  SetObjectFOV (  t.tobj,g.greasonableWeaponFOV_f );
 		}
-		//  Smoke
+
+		// Smoke
 		for ( t.t = 21 ; t.t<=  30; t.t++ )
 		{
 			t.tobj=g.hudbankoffset+t.t;
-			if (  ObjectExist(t.tobj) == 1  )  SetObjectFOV (  t.tobj,g.greasonableWeaponFOV_f );
+			if ( ObjectExist(t.tobj) == 1  )  SetObjectFOV (  t.tobj,g.greasonableWeaponFOV_f );
 		}
 
-		//  Adjust resolution of reflection based on slider value
-		if (  t.visuals.reflectionmode>0 ) 
+		// Adjust resolution of reflection based on slider value
+		if ( t.visuals.reflectionmode>0 ) 
 		{
-			if (  ImageExist(t.terrain.imagestartindex+6) == 1 ) 
+			if ( ImageExist(t.terrain.imagestartindex+6) == 1 ) 
 			{
-				if (  t.terrain.reflsizer != g.greflectionrendersize ) 
+				if ( t.terrain.reflsizer != g.greflectionrendersize ) 
 				{
 					t.terrain.reflsizer=g.greflectionrendersize;
-					SetCameraToImage (  2,-1,0,0 );
-					SetCameraToImage (  2,t.terrain.imagestartindex+6,t.terrain.reflsizer,t.terrain.reflsizer );
-					TextureObject (  t.terrain.objectstartindex+5,2,t.terrain.imagestartindex+6 );
+					SetCameraToImage ( 2,-1,0,0 );
+					SetCameraToImage ( 2,t.terrain.imagestartindex+6,t.terrain.reflsizer,t.terrain.reflsizer );
+					TextureObject ( t.terrain.objectstartindex+5,2,t.terrain.imagestartindex+6 );
 				}
 			}
 		}
 
-		//  Set terrain LOD distances (700 is slightly larger than width of terrain segment piece)
-		if (  t.terrain.TerrainID>0 ) 
+		// Set terrain LOD distances (700 is slightly larger than width of terrain segment piece)
+		if ( t.terrain.TerrainID>0 ) 
 		{
-			BT_SetTerrainLODDistance (  t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
-			BT_SetTerrainLODDistance (  t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
-			SetTerrainRenderLevel (  t.visuals.TerrainSize_f );
+			BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
+			BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
+			SetTerrainRenderLevel ( t.visuals.TerrainSize_f );
 		}
 
-		//  Ensures LOW FPS detector not fooled by setting changes
+		// Ensures LOW FPS detector not fooled by setting changes
 		g.lowfpstarttimer=Timer();
 
 		// and trigger camera refresh (but flag can be triggered elsewhere, like LUA command to change camera)
@@ -1428,7 +1458,7 @@ void visuals_loop ( void )
 	// 070918 - have separate control of camera refresh
 	if ( t.visuals.refreshmaincameras == 1 )
 	{
-		//  Set camera settings
+		// Set camera settings
 		g.greasonableCameraFOV_f=t.visuals.CameraFOV_f;
 		for ( t.tcamid = 0 ; t.tcamid <= 4; t.tcamid++ )
 		{
@@ -1448,20 +1478,20 @@ void visuals_loop ( void )
 		t.visuals.refreshmaincameras = 0;
 	}
 
-	//  Update vegetation when required. Wait for mouse release because it takes a long time when updating during a drag
-	if (  t.visuals.refreshvegetation == 1 ) 
+	// Update vegetation when required. Wait for mouse release because it takes a long time when updating during a drag
+	if ( t.visuals.refreshvegetation == 1 ) 
 	{
 		if (  MouseClick() == 0 ) 
 		{
-			//  Set grass grid and fade
+			// Set grass grid and fade
 			terrain_fastveg_setgrassgridandfade ( );
-			//  Only update the vegetation grid if the view distance is far enough, otherwise just clear it
-			if (  t.terrain.vegetationgridsize>1 ) 
+			// Only update the vegetation grid if the view distance is far enough, otherwise just clear it
+			if ( t.terrain.vegetationgridsize>1 ) 
 			{
 				SetEffectConstantF (  t.terrain.terrainshaderindex,"GrassFadeDistance",t.tGrassFadeDistance );
-				if (  t.terrain.vegetationshaderindex>0 ) 
+				if ( t.terrain.vegetationshaderindex>0 ) 
 				{
-					if (  GetEffectExist(t.terrain.vegetationshaderindex) == 1 ) 
+					if ( GetEffectExist(t.terrain.vegetationshaderindex) == 1 ) 
 					{
 						SetEffectConstantF (  t.terrain.vegetationshaderindex,"GrassFadeDistance",t.tGrassFadeDistance );
 						terrain_fastveg_init ( );
@@ -1481,7 +1511,7 @@ void visuals_loop ( void )
 		}
 	}
 
-	//  refreshterrain super texture (when switch terrain bank)
+	// refreshterrain super texture (when switch terrain bank)
 	if ( t.visuals.refreshterrainsupertexture>0 ) 
 	{
 		if ( t.visuals.refreshterrainsupertexture == 2 ) 
@@ -1497,10 +1527,10 @@ void visuals_loop ( void )
 		}
 	}
 
-	//  Update world settings (sky, terrain, veg texture)
-	if (  t.visuals.refreshskysettings == 1 ) 
+	// Update world settings (sky, terrain, veg texture)
+	if ( t.visuals.refreshskysettings == 1 ) 
 	{
-		//  change day sky
+		// change day sky
 		g.skyindex = t.visuals.skyindex ; if (  g.skyindex>g.skymax  )  g.skyindex = g.skymax;
 		t.visuals.sky_s=t.skybank_s[g.skyindex];
 		t.terrainskyspecinitmode=0 ; terrain_skyspec_init ( );
@@ -1521,12 +1551,11 @@ void visuals_loop ( void )
 		if ( t.visuals.refreshterraintexture == 2 ) 
 		{
 			// first check if CUSTOM available (texture_d.dds present)
-			//if ( t.visuals.terrainindex > 1 || (t.visuals.terrainindex==1 && FileExist ( cstr(cstr(g.fpscrootdir_s) + "\\Files\\levelbank\\testmap\\Texture_D.dds").Get() ) == 1) )
 			if ( t.visuals.terrainindex > 1 || (t.visuals.terrainindex==1 && FileExist ( cstr(g.mysystem.levelBankTestMapAbs_s+"Texture_D.dds").Get() ) == 1) )
 			{
 				// change terrain textures
 				g.terrainstyleindex=t.visuals.terrainindex;
-				if (  g.terrainstyleindex>g.terrainstylemax  )  g.terrainstyleindex = g.terrainstylemax;
+				if ( g.terrainstyleindex>g.terrainstylemax  )  g.terrainstyleindex = g.terrainstylemax;
 				t.visuals.terrain_s=t.terrainstylebank_s[g.terrainstyleindex];
 				terrain_changestyle ( );
 			}
@@ -1556,9 +1585,9 @@ void visuals_loop ( void )
 	}
 
 	// Update veg texture
-	if (  t.visuals.refreshvegtexture == 1 ) 
+	if ( t.visuals.refreshvegtexture == 1 ) 
 	{
-		//  change vegetation textures
+		// change vegetation textures
 		g.vegstyleindex=t.visuals.vegetationindex;
 		if (  g.vegstyleindex>g.vegstylemax  )  g.vegstyleindex = g.vegstylemax;
 		t.visuals.vegetation_s=t.vegstylebank_s[g.vegstyleindex];
@@ -1567,35 +1596,21 @@ void visuals_loop ( void )
 		g.lowfpstarttimer=Timer();
 	}
 
-	// 270917 - allow some visual aspects to be forced to update (when change shaders, etc)
-	//if ( t.terrain.iForceTerrainVegShaderUpdate == 1 )
-	//{
-	//	t.terrain.iForceTerrainVegShaderUpdate = 0;
-	//	terrain_applyshader();
-	//	terrain_fastveg_applyshader();
-	//	if ( t.terrain.iTerrainPBRMode != t.terrain.iLastEntityPBRMode )
-	//	{
-	//		// only if PBR mode different from when last loaded texture/effects for entities
-	//		entity_reloadallshaders();
-	//	}
-	//	t.visuals.refreshshaders = 1;
-	//}
-
-	//  Depth Of Field can be overridden any time by weapon
-	if (  GetEffectExist(g.postprocesseffectoffset+0) == 1 ) 
+	// Depth Of Field can be overridden any time by weapon
+	if ( GetEffectExist(g.postprocesseffectoffset+0) == 1 ) 
 	{
 		t.tMotionIntensity_f=t.visuals.MotionIntensity_f;
 		t.tDepthOfFieldDistance_f=t.visuals.DepthOfFieldDistance_f;
 		t.tDepthOfFieldIntensity_f=t.visuals.DepthOfFieldIntensity_f;
-		if (  t.gunid>0 && g.firemodes[t.gunid][g.firemode].settings.dofintensity>0 ) 
+		if ( t.gunid>0 && g.firemodes[t.gunid][g.firemode].settings.dofintensity>0 ) 
 		{
-			if (  t.gunzoommode>1 ) 
+			if ( t.gunzoommode>1 ) 
 			{
 				t.tMotionIntensity_f=0.0;
 				t.tDepthOfFieldDistance_f=(g.firemodes[t.gunid][g.firemode].settings.dofdistance+0.0)/100.0;
 				t.tpercfadein_f=(t.gunzoommode+0.0)/10.0;
-				if (  t.tpercfadein_f<0.0  )  t.tpercfadein_f = 0.0;
-				if (  t.tpercfadein_f>1.0  )  t.tpercfadein_f = 1.0;
+				if ( t.tpercfadein_f<0.0  )  t.tpercfadein_f = 0.0;
+				if ( t.tpercfadein_f>1.0  )  t.tpercfadein_f = 1.0;
 				t.tnewDOFIntensity_f=(g.firemodes[t.gunid][g.firemode].settings.dofintensity+0.0)/100.0;
 				t.tDepthOfFieldIntensity_f=(t.tnewDOFIntensity_f*t.tpercfadein_f)+(t.tDepthOfFieldIntensity_f*(1.0-t.tpercfadein_f));
 			}
@@ -1611,11 +1626,8 @@ void visuals_loop ( void )
 		SetEffectConstantV (  g.postprocesseffectoffset+iPPS,"DepthOfField",g.generalvectorindex+1 );
 		SetVector4 ( g.generalvectorindex+1,t.tFogNear_f,t.tFogFar_f,0,t.tFogA_f/255.0 );
 		SetEffectConstantV ( g.postprocesseffectoffset+iPPS,"HudFogDistAndAlpha",g.generalvectorindex+1 );
-		//if ( t.visuals.SAOIntensity_f > 0.0f )
-		//{
-			SetVector4 ( g.generalvectorindex+1, t.visuals.SAORadius_f, t.visuals.SAOIntensity_f, t.visuals.SAOQuality_f, t.visuals.LensFlare_f );
-			SetEffectConstantV (  g.postprocesseffectoffset+iPPS,"SAOSettings",g.generalvectorindex+1 );
-		//}
+		SetVector4 ( g.generalvectorindex+1, t.visuals.SAORadius_f, t.visuals.SAOIntensity_f, t.visuals.SAOQuality_f, t.visuals.LensFlare_f );
+		SetEffectConstantV (  g.postprocesseffectoffset+iPPS,"SAOSettings",g.generalvectorindex+1 );
 	}
 }
 

@@ -73,8 +73,8 @@ int iReturnStringPoolCount = 0;
 LPSTR GetReturnStringFromTEXTWorkString(char* WorkString = m_pTEXTWorkString)
 {
 	LPSTR pReturnString=NULL;
-	//if(WorkString)
-	//{
+	if(WorkString)
+	{
 		DWORD dwSize=strlen(WorkString);
 		//g_pCreateDeleteStringFunction((DWORD*)&pReturnString, dwSize+1);
 		pReturnString = szReturnStringPool[iReturnStringPoolCount];
@@ -84,8 +84,8 @@ LPSTR GetReturnStringFromTEXTWorkString(char* WorkString = m_pTEXTWorkString)
 		else
 			strcpy(pReturnString, "");
 		return pReturnString;
-	//}	
-	//return "";
+	}	
+	return "";
 }
 
 DARKSDK bool UpdatePtr ( int iID )
@@ -986,7 +986,7 @@ DARKSDK LPSTR StrEx	( float fValue, int iDecPlaces )
 DARKSDK LPSTR Str	( int iValue )
 {
 	// Work string
-	sprintf(m_pTEXTWorkString, "%d", iValue);
+	if ( m_pTEXTWorkString ) sprintf(m_pTEXTWorkString, "%d", iValue);
 
 	// Create and return string
 	LPSTR pReturnString=GetReturnStringFromTEXTWorkString();

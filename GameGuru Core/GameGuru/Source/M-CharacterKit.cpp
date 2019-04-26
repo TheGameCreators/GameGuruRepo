@@ -1168,32 +1168,32 @@ void characterkit_update_object ( void )
 
 void characterkit_save_entity ( void )
 {
-	//  Store old dir
+	// Store old dir
 	t.tolddir_s=GetDir();
 
-	//  Check if user folder exists, if not create it
-	if (  PathExist( cstr( g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() )  ==  0 ) 
+	// Check if user folder exists, if not create it
+	if ( PathExist( cstr( g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() )  ==  0 ) 
 	{
-		MakeDirectory (  cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() );
+		MakeDirectory ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() );
 	}
-	if (  PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() )  ==  0 ) 
+	if ( PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() )  ==  0 ) 
 	{
-		MakeDirectory (  cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() );
+		MakeDirectory ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() );
 	}
 
+	// allow mouse for file dialog
 	ShowMouse (  );
 
-	//  Save dialog
+	// Save dialog
 	t.tSaveFile_s="";
 	t.tentityprotected=1;
 	t.ttitlemessage_s="Save Entity";
-	while (  t.tentityprotected == 1 ) 
+	while ( t.tentityprotected == 1 ) 
 	{
 		t.tSaveFile_s=openFileBox("FPSC Entity (.fpe)|*.fpe|All Files|*.*|", cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\").Get(), t.ttitlemessage_s.Get(), ".fpe", CHARACTERKITSAVEFILE);
 		if (  t.tSaveFile_s == "Error"  )  return;
 		t.tentityprotected=0;
 	}
-
 	t.tname_s = t.tSaveFile_s;
 	if (  cstr(Lower(Right(t.tname_s.Get(),4)))  ==  ".fpe"  )  t.tname_s  =  Left(t.tname_s.Get(),Len(t.tname_s.Get())-4);
 	for ( t.tloop = Len(t.tname_s.Get()) ; t.tloop>=  1 ; t.tloop+= -1 )
@@ -1205,42 +1205,43 @@ void characterkit_save_entity ( void )
 		}
 	}
 
+	// soldier or civilian
 	#ifdef PHOTONMP
 	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Character.fpe";
 	#else
 	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
 	#endif
 
+	// prepare destination file
 	t.tcopyto_s = t.tSaveFile_s;
-	if (  cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
-
-	if (  FileExist(t.tcopyto_s.Get())  ==  1  )  DeleteAFile (  t.tcopyto_s.Get() );
-
-	if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
-	if (  FileOpen(2)  ==  1  )  CloseFile (  2 );
-
+	if ( cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
+	if ( FileExist(t.tcopyto_s.Get())  ==  1  )  DeleteAFile (  t.tcopyto_s.Get() );
+	if ( FileOpen(1) == 1 )  CloseFile ( 1 );
+	if ( FileOpen(2) == 1 )  CloseFile ( 2 );
 	OpenToRead (  1, t.tcopyfrom_s.Get() );
 	OpenToWrite (  2,t.tcopyto_s.Get() );
 
 	// go through all source FPE
 	t.tcount = 0;
-	while (  FileEnd(1)  ==  0 ) 
+	while ( FileEnd(1)  ==  0 ) 
 	{
 		// get line by line
 		t.ts_s = ReadString ( 1 );
 
 		// adjust offset for male/female
-		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "offy" ) 
-		{
-			t.ts_s = "offy          = -6";
-			if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale" || cstr(Lower(Left(t.ts_s.Get(),7)))  ==  "1_fmale"  )  t.ts_s  =  "offy           =  -4";
-		}
+		//if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "offy" ) 
+		//{
+		//	t.ts_s = "offy          = -6";
+		//	if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale" || cstr(Lower(Left(t.ts_s.Get(),7)))  ==  "1_fmale"  )  t.ts_s  =  "offy           =  -4";
+		//}
 
 		// update description
-		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
+		if ( cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
 
 		// update weapon carried by character if any
-		if (  cstr(Lower(Left(t.ts_s.Get(),9)))  ==  "hasweapon" ) 
+		#ifdef PHOTONMP
+		#else
+		if ( cstr(Lower(Left(t.ts_s.Get(),9)))  ==  "hasweapon" ) 
 		{
 			t.ts_s = "";
 			if ( strlen( t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s.Get()) > 1 )
@@ -1249,8 +1250,11 @@ void characterkit_save_entity ( void )
 			}
 			if (  t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s  ==  "None"  )  t.ts_s  =  "";
 		}
+		#endif
 
 		// profile controls the animation sets exported
+		#ifdef PHOTONMP
+		#else
 		if ( cstr(Lower(Left(t.ts_s.Get(),7))) == "animmax" 
 		||   cstr(Lower(Left(t.ts_s.Get(),16))) == "playanimineditor" 
 		||   cstr(Lower(Left(t.ts_s.Get(),13))) == "ignorecsirefs" 			
@@ -1268,6 +1272,7 @@ void characterkit_save_entity ( void )
 			// first step is blank out old animation data from source FPE
 			continue;
 		}
+		#endif
 		if ( cstr(Lower(Left(t.ts_s.Get(),5))) == ";anim" )
 		{
 			// get anim profile name (references file of same name)
@@ -1285,24 +1290,53 @@ void characterkit_save_entity ( void )
 				}
 				CloseFile(3);
 			}
-			else
-			{
-				WriteString ( 2, ";Animation Profile Not Found" );
-			}
 
 			// go to next line in source FPE
 			continue;
 		}
 
-		// write line (changed or not) to the destination FPE
-		WriteString ( 2, t.ts_s.Get() );
+		bool bSkipWritingReadLine = false;
+		bool bWriteCharacterCreationDetail = false;
+		#ifdef PHOTONMP
+		if ( cstr(Lower(Left(t.ts_s.Get(),16))) == "charactercreator" )
+		{
+			// replace with this custom character creation
+			bWriteCharacterCreationDetail = true;
+			bSkipWritingReadLine = true;
+		}
+		if ( cstr(Lower(Left(t.ts_s.Get(),16))) == "soundset" )
+		{
+			// replace with this custom character creation
+			if ( cstr(Lower(Left(t.characterkit.head_s.Get(),5))) == "fmale" || cstr(Lower(Left(t.characterkit.head_s.Get(),7))) == "1_fmale" ) 
+			{
+				WriteString ( 2,"soundset      = Female" );
+				bSkipWritingReadLine = true;
+			}
+		}
 
+		// write line (changed or not) to the destination FPE
+		if ( bSkipWritingReadLine == false )
+		{
+			WriteString ( 2, t.ts_s.Get() );
+		}
+
+		#else
 		// on the second line write, add lines for character creator specific data
 		++t.tcount;
 		if ( t.tcount == 2 ) 
 		{
+			if ( cstr(Lower(Left(t.characterkit.head_s.Get(),5))) == "fmale" || cstr(Lower(Left(t.characterkit.head_s.Get(),7))) == "1_fmale" ) 
+			{
+				WriteString ( 2,";sound" );
+				WriteString ( 2,"soundset      = Female" );
+			}
 			WriteString (  2,"" );
 			WriteString (  2,";character creator" );
+			bWriteCharacterCreationDetail = true;
+		}
+		#endif
+		if ( bWriteCharacterCreationDetail == true )
+		{
 			t.tcc_s = "charactercreator = t.v:2:";
 			t.tcc_s = t.tcc_s + t.characterkit.body_s+":"+t.characterkit.head_s+":"+t.characterkit.facialhair_s+":"+t.characterkit.hat_s+":";
 			t.tcc_s = t.tcc_s +Str(t.tnewred_f)+":"+Str(t.tnewgreen_f)+":"+Str(t.tnewblue_f)+":";
@@ -1312,11 +1346,6 @@ void characterkit_save_entity ( void )
 			t.tcc_s = t.tcc_s +Str(t.tnewredshoes_f)+":"+Str(t.tnewgreenshoes_f)+":"+Str(t.tnewblueshoes_f)+":";
 			t.tcc_s = t.tcc_s +Str(t.tnewredhat_f)+":"+Str(t.tnewgreenhat_f)+":"+Str(t.tnewbluehat_f);
 			WriteString (  2,t.tcc_s.Get() );
-			if (  cstr(Lower(Left(t.characterkit.head_s.Get(),5)))  ==  "fmale" || cstr(Lower(Left(t.characterkit.head_s.Get(),7)))  ==  "1_fmale" ) 
-			{
-				WriteString (  2,";sound" );
-				WriteString (  2,"soundset      = Female" );
-			}
 		}
 	}
 	
@@ -1328,13 +1357,13 @@ void characterkit_save_entity ( void )
 	CreateBitmap (  32,64,64 );
 	SetCurrentBitmap (  32 );
 	SetCameraAspect (  1.0 );
-	//  Make a white background Box (  )
+
+	// Make a Thumbnail
 	t.twhiteobj = 1;
 	t.tfound = 0;
-	//  Find a free object number
-	while (  t.tfound  ==  0 ) 
+	while ( t.tfound  ==  0 ) 
 	{
-		if (  ObjectExist(t.twhiteobj)  ==  1 ) 
+		if ( ObjectExist(t.twhiteobj) == 1 ) 
 		{
 			++t.twhiteobj;
 		}
@@ -1343,13 +1372,12 @@ void characterkit_save_entity ( void )
 			t.tfound = 1;
 		}
 	}
-	MakeObjectBox (  t.twhiteobj,200000,200000,1 );
-	SetObjectLight (  t.twhiteobj,0 );
-	LockObjectOn (  t.twhiteobj );
-	PositionObject (  t.twhiteobj,0,0,1000 );
+	MakeObjectBox ( t.twhiteobj,200000,200000,1 );
+	SetObjectLight ( t.twhiteobj,0 );
+	LockObjectOn ( t.twhiteobj );
+	PositionObject ( t.twhiteobj,0,0,1000 );
 	SetObjectEffect ( t.twhiteobj, g.guishadereffectindex );
 	SetObjectEmissive ( t.twhiteobj, Rgb(255,255,255) );
-
 	for ( t.tloop = 1 ; t.tloop<=  4; t.tloop++ )
 	{
 		if (  t.tloop  ==  1 ) 
@@ -1386,6 +1414,7 @@ void characterkit_save_entity ( void )
 		}
 	}
 
+	// Save Thumbnail
 	t.tSaveThumb_s = cstr(Left(t.tcopyto_s.Get(),Len(t.tcopyto_s.Get())-4)) + ".bmp";
 	if (  FileExist ( t.tSaveThumb_s.Get())  ==  1  )  DeleteAFile (  t.tSaveThumb_s.Get() ) ;
 	GrabImage (  g.importermenuimageoffset+50,0,0,64,64,3 );
@@ -1394,31 +1423,29 @@ void characterkit_save_entity ( void )
 	{
 		++t.tSprite;
 	}
-	SaveImage (  t.tSaveThumb_s.Get(), g.importermenuimageoffset+50 );
+	SaveImage ( t.tSaveThumb_s.Get(), g.importermenuimageoffset+50 );
+	DeleteImage ( g.importermenuimageoffset+50 );
+	DeleteObject ( t.twhiteobj );
 
-	DeleteImage (  g.importermenuimageoffset+50 );
-
-	DeleteObject (  t.twhiteobj );
-
-	//  check for custom head texture
+	// check for custom head texture
 	t.tcustomeHeadSave_s = cstr(Left(t.tcopyto_s.Get(),Len(t.tcopyto_s.Get())-4)) + "_cc.dds";
-	if (  FileExist(t.tcustomeHeadSave_s.Get())  ==  1  )  DeleteAFile (  t.tcustomeHeadSave_s.Get() );
-	if (  cstr(Lower(Left(t.characterkit.head_s.Get(),12)))  ==  "1_projection" || cstr(Lower(Left(t.characterkit.head_s.Get(),18)))  ==  "1_fmale_projection" ) 
+	if ( FileExist(t.tcustomeHeadSave_s.Get())  ==  1  )  DeleteAFile (  t.tcustomeHeadSave_s.Get() );
+	if ( cstr(Lower(Left(t.characterkit.head_s.Get(),12)))  ==  "1_projection" || cstr(Lower(Left(t.characterkit.head_s.Get(),18)))  ==  "1_fmale_projection" ) 
 	{
-		if (  ImageExist(t.characterkit.imagestart+14)  ==  1 ) 
+		if ( ImageExist(t.characterkit.imagestart+14)  ==  1 ) 
 		{
 			SaveImage (  t.tcustomeHeadSave_s.Get(),t.characterkit.imagestart+14 );
 		}
 	}
 
-	//  restore camera view
+	// restore camera view
 	t.aspect_f=GetDesktopWidth() ; t.aspect_f=t.aspect_f/GetDesktopHeight();
 	SetCameraAspect (  t.aspect_f );
 	SetCurrentBitmap (  0 );
 	characterkit_draw ( );
 	Sync (  );
 
-	//  Restore old dir
+	// Restore old dir
 	SetDir (  t.tolddir_s.Get() );
 }
 
@@ -3559,46 +3586,44 @@ void characterkit_loadMyAvatarInfo ( void )
 	g.mp.myAvatarHeadTexture_s = "";
 	g.mp.haveSentMyAvatar = 0;
 
-	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 		t.mp_playerAvatars_s[t.c] = "";
 		t.mp_playerAvatarOwners_s[t.c] = "";
 	}
 
-	if ( FileOpen(1)  ==  1  )  CloseFile (  1 );
-	if ( FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() )  ==  1 ) 
+	if ( FileOpen(1) == 1 ) CloseFile ( 1 );
+	if ( FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() ) == 1 ) 
 	{
-		OpenToRead (  1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get()  );
+		OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() );
 		g.mp.myAvatar_s = ReadString ( 1 );
 		g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
 		g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
-		//  store the name of the head texture
-		if (  g.mp.myAvatarHeadTexture_s  !=  "" ) 
+		// store the name of the head texture
+		if ( g.mp.myAvatarHeadTexture_s != "" ) 
 		{
 			g.mp.myAvatarHeadTexture_s = g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+ g.mp.myAvatarHeadTexture_s + "_cc.dds";
-			if (  FileExist(g.mp.myAvatarHeadTexture_s.Get())  ==  0  )  g.mp.myAvatarHeadTexture_s  =  "";
+			if ( FileExist(g.mp.myAvatarHeadTexture_s.Get()) == 0 ) g.mp.myAvatarHeadTexture_s = "";
 		}
-		CloseFile (  1 );
+		CloseFile ( 1 );
 
 		if ( t.tShowAvatarSprite == 1 ) 
 		{
 			t.tShowAvatarSprite = 0;
-			if (  g.charactercreatorEditorImageoffset > 1 ) 
+			if ( g.charactercreatorEditorImageoffset > 1 ) 
 			{
-				if (  ImageExist(g.charactercreatorEditorImageoffset)  ==  1  )  DeleteImage (  g.charactercreatorEditorImageoffset );
-				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() )  ==  1 ) 
+				if ( ImageExist(g.charactercreatorEditorImageoffset) == 1 )  DeleteImage ( g.charactercreatorEditorImageoffset );
+				if ( FileExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() ) == 1 ) 
 				{
-					LoadImage (  cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() ,g.charactercreatorEditorImageoffset );
+					LoadImage ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() ,g.charactercreatorEditorImageoffset );
 				}
 			}
 		}
-
 	}
 }
 
 void characterkit_customHead ( void )
 {
-
 	switch (  t.characterkitcontrol.customHeadMode ) 
 	{
 		//  choose image

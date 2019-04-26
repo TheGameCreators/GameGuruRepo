@@ -8,7 +8,7 @@
 using namespace ExitGames::Common;
 using namespace ExitGames::LoadBalancing;
 
-LoadBalancingListener::LoadBalancingListener(PhotonView* pView) : mpLbc(NULL), mPhotonView(pView), mLocalPlayerNr(0), mMap("Forest")
+LoadBalancingListener::LoadBalancingListener ( PhotonView* pView, LPSTR pRootPath ) : mpLbc(NULL), mPhotonView(pView), mLocalPlayerNr(0), mMap("Forest")
 {
 	// clear tracked player array
 	for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
@@ -18,6 +18,7 @@ LoadBalancingListener::LoadBalancingListener(PhotonView* pView) : mpLbc(NULL), m
 	}
 	miCurrentServerPlayerID = -1;
 	mbIsServer = false;
+	strcpy ( mpRootPath, pRootPath );
 }
 
 LoadBalancingListener::~LoadBalancingListener(void)
@@ -161,7 +162,7 @@ void LoadBalancingListener::migrateHostIfServer ( void )
 		// need to migrate responsibility elsewhere, which will be the top player in the list
 		for ( unsigned int i = 0; i < MAX_PLAYERS_PER_SERVER; ++i)
 		{
-			if ( m_rgpPlayer[i] )
+			if ( m_rgpPlayer[i] && i != muPlayerIndex )
 			{
 				// found a new server player, inform everyone
 				MsgNewHostChosen_t msg;
@@ -183,7 +184,6 @@ void LoadBalancingListener::removePlayer ( int playernr )
 	// also declare dead so object will disappear
 	alive[playernr] = 0;
 }
-
 
 void LoadBalancingListener::manageTrackedPlayerList ( void )
 {
@@ -207,6 +207,7 @@ void LoadBalancingListener::manageTrackedPlayerList ( void )
 				{
 					m_rgpPlayer[playernr] = new CPlayer();
 					const char* str = player->getName().ANSIRepresentation().cstr();
+					m_rgpPlayer[playernr]->newplayer = 1;
 				}
 
 				// is the local player
@@ -244,6 +245,22 @@ void LoadBalancingListener::manageTrackedPlayerList ( void )
 		// player number exceeded
 		OutputDebugString ( "player number exceeded tracked player array size" );
 	}
+}
+
+int LoadBalancingListener::findANewlyArrivedPlayer ( void )
+{
+	for ( unsigned int i = 0; i < MAX_PLAYERS_PER_SERVER; ++i)
+	{
+		if ( m_rgpPlayer[i] )
+		{
+			if ( m_rgpPlayer[i]->newplayer == 1 )
+			{
+				m_rgpPlayer[i]->newplayer = 0;
+				return i;
+			}
+		}
+	}
+	return -1;
 }
 
 void LoadBalancingListener::afterRoomJoined(int localPlayerNr)
@@ -404,7 +421,7 @@ void LoadBalancingListener::SetSendFileCount ( int count, int iOnlySendMapToSpec
 	}
 }
 
-void LoadBalancingListener::SendFileBegin ( int index , LPSTR pString )
+void LoadBalancingListener::SendFileBegin ( int index , LPSTR pString, LPSTR pRootPath )
 {
 	// only server sends files
 	if ( mbIsServer == true )
@@ -416,8 +433,14 @@ void LoadBalancingListener::SendFileBegin ( int index , LPSTR pString )
 		msg.index = index;
 		strcpy ( msg.fileName , pString );
 
+		// now get full asbolute path to file
+		char pAbsFilename[2048];
+		strcpy ( pAbsFilename, pRootPath );
+		strcat ( pAbsFilename, "\\Files\\" );
+		strcat ( pAbsFilename, pString );
+
 		// open file ready to read data and send as chunks
-		mhServerFile = fopen ( pString, "rb" );
+		mhServerFile = fopen ( pAbsFilename, "rb" );
 		if ( mhServerFile )
 		{
 			// instruct to start sending file data
@@ -431,7 +454,6 @@ void LoadBalancingListener::SendFileBegin ( int index , LPSTR pString )
 				sendMessage ( (nByte*)&msg, sizeof(MsgClientSendFileBegin_t), true );
 			else
 				sendMessageToPlayer ( serverOnlySendMapToSpecificPlayer, (nByte*)&msg, sizeof(MsgClientSendFileBegin_t), true );
-
 		}
 	}
 }
@@ -494,10 +516,20 @@ int LoadBalancingListener::IsEveryoneFileSynced()
 		//for( uint32 i = 1; i < MAX_PLAYERS_PER_SERVER; i++ )
 		//	serverClientsLoadedAndReady[i] = 0;
 
-		// check from 1 since the client hosting the server is player 0 and always synced
+		// go through players, ensure all have reported that they are synced
 		for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
-			if ( i != miCurrentServerPlayerID && m_rgpPlayer[i] && miServerClientsFileSynced[i] == 0 )
-				return 0;
+		{
+			if ( m_rgpPlayer[i] )
+			{
+				if ( i != miCurrentServerPlayerID && miServerClientsFileSynced[i] == 0 )
+				{
+					return 0;
+				}
+
+				// reset new player flag (only used when players join a game already in session)
+				m_rgpPlayer[i]->newplayer = 0;
+			}
+		}
 
 		// all non-server players synced, we are a go
 		return 1;
@@ -1191,7 +1223,14 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 				{
 					MsgClientSendFileBegin_t* pmsg = (MsgClientSendFileBegin_t*)pchRecvBuf;
 					if ( mhServerFile ) fclose ( mhServerFile );
-					mhServerFile = fopen ( pmsg->fileName, "wb" );
+
+					// get full asbolute path to file for writing
+					char pAbsFilename[2048];
+					strcpy ( pAbsFilename, mpRootPath );
+					strcat ( pAbsFilename, "\\Files\\" );
+					strcat ( pAbsFilename, pmsg->fileName );
+
+					mhServerFile = fopen ( pAbsFilename, "wb" );
 					serverHowManyFileChunks = (int)ceil( (float)pmsg->fileSize / float(FILE_CHUNK_SIZE) );
 					serverFileFileSize = pmsg->fileSize;
 					//IsWorkshopLoadingOn = 1;

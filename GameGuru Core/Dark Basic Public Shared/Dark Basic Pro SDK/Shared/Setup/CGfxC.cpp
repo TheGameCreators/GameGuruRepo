@@ -92,6 +92,7 @@ DBPRO_GLOBAL int							m_iModBackbufferHeight = 0;
 DBPRO_GLOBAL UINT							m_uAdapterChoice = GGADAPTER_DEFAULT;
 DBPRO_GLOBAL bool							m_bNVPERFHUD = false;
 DBPRO_GLOBAL int							m_iForceAdapterOrdinal = 0;
+DBPRO_GLOBAL int							m_iForceAdapterD3D11ONLY = 0;
 
 DBPRO_GLOBAL GGFORMAT						m_Depth;			// final back bufferformat
 DBPRO_GLOBAL GGFORMAT						m_StencilDepth;		// final stencil buffer format
@@ -155,6 +156,7 @@ extern LPGG									m_pDX;				// interface to D3D
 extern LPGGDEVICE							m_pD3D;				// D3D device
 extern GlobStruct*							g_pGlob;
 extern PTR_FuncCreateStr					g_pCreateDeleteStringFunction;
+DBPRO_GLOBAL D3D_FEATURE_LEVEL				g_featureLevel;
 
 DBPRO_GLOBAL HWND							g_OldHwnd						= NULL;
 DBPRO_GLOBAL bool							g_bWindowOverride				= false;
@@ -186,6 +188,13 @@ namespace DisplayLibrary
 DARKSDK GlobStruct* GetGlobalData ( void )
 {
 	return g_pGlob;
+}
+
+void GetD3DExtraInfo ( int *piAdapterOrdinal, LPSTR pAdapterName, int* piFeatureLevel )
+{
+	*piAdapterOrdinal = m_uAdapterChoice;
+	strcpy ( pAdapterName, m_pAdapterName );
+	*piFeatureLevel = g_featureLevel;
 }
 
 static LONG WINAPI DelayLoadDllExceptionFilter(PEXCEPTION_POINTERS pep, std::string& strError)
@@ -475,18 +484,23 @@ DARKSDK bool SETUPConstructor ( void )
 #ifdef DX11
 DARKSDK HRESULT SwapChainPresent ( int iID )
 {
-	int iSyncInterval = 0;
-	if ( m_bVSync )
+	if ( m_pSwapChain [ iID ] )
 	{
-		// CAP TO MONITOR REFRESH RATE - NO TEARING
-		iSyncInterval = m_iVSyncInterval;
+		int iSyncInterval = 0;
+		if ( m_bVSync )
+		{
+			// CAP TO MONITOR REFRESH RATE - NO TEARING
+			iSyncInterval = m_iVSyncInterval;
+		}
+		else
+		{
+			// FAST AS YOU CAN - HAS HORIZ TEARING
+			iSyncInterval = 0;
+		}
+		return m_pSwapChain [ iID ]->Present( iSyncInterval, 0 );
 	}
 	else
-	{
-		// FAST AS YOU CAN - HAS HORIZ TEARING
-		iSyncInterval = 0;
-	}
-	return m_pSwapChain [ iID ]->Present( iSyncInterval, 0 );
+		return 0;
 }
 #endif
 
@@ -1550,7 +1564,7 @@ HRESULT StandardPresent ( void )
 	}
 	#endif
 
-	if ( g_bWindowOverride && g_dwChildWindowTruePixel )
+	if ( g_bWindowOverride && g_dwChildWindowTruePixel && m_pSwapChain[0] )
 	{
 		// no stretch present equivilant in DX11, so resize backbuffer instead
 		// resize swapchain to suit correct child window size
@@ -2119,6 +2133,33 @@ DARKSDK bool SetupDX11 ( void )
     //if(SUCCEEDED(CreateDXGIFactory(__uuidof(IDXGIFactory) ,(void**)&pFactory))) GGVR needs this!
     if(SUCCEEDED(CreateDXGIFactory1(__uuidof(IDXGIFactory) ,(void**)&pFactory)))
     {
+		// special mode to search for a non-Intel GPU adapter (typically a dedicated higher powered one)
+		if ( m_uAdapterChoice == 99 )
+		{
+			m_uAdapterChoice = 0; // in any event, use default adapter if cannot find a better adapter
+			for ( int iAdapterIndex = 0; iAdapterIndex < 10; iAdapterIndex++ )
+			{
+				if ( pFactory->EnumAdapters(iAdapterIndex, &pAdapter) != DXGI_ERROR_NOT_FOUND )
+				{
+					DXGI_ADAPTER_DESC adapterDesc;
+					pAdapter->GetDesc(&adapterDesc);
+					memset ( m_pAdapterName, 0, sizeof ( m_pAdapterName ) );
+					const int size = ::WideCharToMultiByte( CP_UTF8, 0, adapterDesc.Description, -1, NULL, 0, 0, NULL );
+					::WideCharToMultiByte( CP_UTF8, 0, adapterDesc.Description, -1, m_pAdapterName, size, 0, NULL );
+					strlwr ( m_pAdapterName );
+					if ( strstr ( m_pAdapterName, "intel" ) != NULL )
+					{
+						// this adapter is likely an integrated Intel processor, skip this one
+					}
+					else
+					{
+						// a found non-Intel adapter
+						m_uAdapterChoice = iAdapterIndex;
+						break;
+					}
+				}
+			}
+		}
 		if ( pFactory->EnumAdapters(m_uAdapterChoice, &pAdapter) != DXGI_ERROR_NOT_FOUND )
 		{
 			DXGI_ADAPTER_DESC adapterDesc;
@@ -2141,14 +2182,16 @@ DARKSDK bool SetupDX11 ( void )
 	bool bWindowed = true;
 	int numerator = 0;
 	int denominator = 0;
+	D3D_FEATURE_LEVEL featureLevelsD3D11ONLY[] =
+    {
+        D3D_FEATURE_LEVEL_11_1,
+	};
 	D3D_FEATURE_LEVEL featureLevels[] =
     {
-    //    D3D_FEATURE_LEVEL_11_0
-    //};
         D3D_FEATURE_LEVEL_11_1,
         D3D_FEATURE_LEVEL_11_0,
 	};
-	D3D_FEATURE_LEVEL g_featureLevel = D3D_FEATURE_LEVEL_11_0;
+	g_featureLevel = D3D_FEATURE_LEVEL_11_0;
     DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory ( &sd, sizeof( sd ) );
     sd.BufferCount							= 1;
@@ -2180,9 +2223,20 @@ DARKSDK bool SetupDX11 ( void )
 	#ifdef _DEBUG
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 	#endif
-	HRESULT hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevels, ARRAYSIZE(featureLevels),
+	HRESULT hr;
+	m_pSwapChain[0] = NULL;
+	if ( m_iForceAdapterD3D11ONLY == 1 )
+	{
+		hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevelsD3D11ONLY, ARRAYSIZE(featureLevelsD3D11ONLY),
 												D3D11_SDK_VERSION, &sd, &m_pSwapChain[0], &m_pD3D, 
 												&g_featureLevel, &m_pImmediateContext );
+	}
+	else
+	{
+		hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevels, ARRAYSIZE(featureLevels),
+												D3D11_SDK_VERSION, &sd, &m_pSwapChain[0], &m_pD3D, 
+												&g_featureLevel, &m_pImmediateContext );
+	}
     if( FAILED( hr ) )
 	{
 		if ( hr == D3D11_ERROR_FILE_NOT_FOUND ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_FILE_NOT_FOUND\n" );
@@ -2206,11 +2260,13 @@ DARKSDK bool SetupDX11 ( void )
 	}
 
 	// Set Full screen state (or not)
-	m_pSwapChain[0]->SetFullscreenState ( !bWindowed, NULL );
-
-	// Create back buffer and depth buffer (with views) from swapchain
-	if ( GetBackBufferAndDepthBuffer() == false )
-		return false;
+	if ( m_pSwapChain[0] ) 
+	{
+		m_pSwapChain[0]->SetFullscreenState ( !bWindowed, NULL );
+		// Create back buffer and depth buffer (with views) from swapchain
+		if ( GetBackBufferAndDepthBuffer() == false )
+			return false;
+	}
 
 	// Create the depth stencil STATE for 3D rendering
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -4258,6 +4314,11 @@ DARKSDK void				SetNvPerfHUD						( int iUsePerfHUD )
 DARKSDK void				ForceAdapterOrdinal ( int iForceOrdinal )
 {
 	m_iForceAdapterOrdinal = iForceOrdinal;
+}
+
+DARKSDK void				ForceAdapterD3D11ONLY ( int iForceD3D11ONLY )
+{
+	m_iForceAdapterD3D11ONLY = iForceD3D11ONLY;
 }
 
 DARKSDK void				SetCaptureName						( DWORD pFilename )

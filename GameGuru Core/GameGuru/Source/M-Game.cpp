@@ -115,7 +115,7 @@ void game_masterroot ( int iUseVRTest )
 			//  called 'multiplayer_level.zip' (has to be a loop for Steam)
 			//  EXTRACT the ZIP into the testmap folder ready for the code below
 			#ifdef PHOTONMP
-			 PhotonInit();
+			 PhotonInit(g.fpscrootdir_s.Get());
 			#else
 			 // Steam initialised at very start (for other Steam features)
 			#endif
@@ -463,8 +463,11 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				//  if multiplayer and not coop, disable ai characters
-				if ( t.game.runasmultiplayer == 1 && g.mp.coop == 0 ) 
-				{
+				#ifdef PHOTONMP
+				 // Photon retains all characters in map
+				#else
+				 if ( t.game.runasmultiplayer == 1 && g.mp.coop == 0 ) 
+				 {
 					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
@@ -476,7 +479,8 @@ void game_masterroot ( int iUseVRTest )
 							}
 						}
 					}
-				}
+				 }
+				#endif
 
 				// if multiplayer and coop, setup ai for switching who control them, depending on gameplay circumstances
 				if ( t.game.runasmultiplayer == 1 && g.mp.coop == 1 ) 
@@ -484,9 +488,9 @@ void game_masterroot ( int iUseVRTest )
 					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
-						if (  t.entid>0 ) 
+						if ( t.entid>0 ) 
 						{
-							if (  t.entityprofile[t.entid].ischaracter  ==  1 || t.entityelement[t.e].mp_isLuaChar ) 
+							if ( t.entityprofile[t.entid].ischaracter  ==  1 || t.entityelement[t.e].mp_isLuaChar ) 
 							{
 								t.entityelement[t.e].mp_coopControlledByPlayer = -1;
 							}
@@ -494,8 +498,8 @@ void game_masterroot ( int iUseVRTest )
 					}
 				}
 
-				//  if no multiplayer markers, put some at the default height
-				if ( t.tnumberofstartmarkers  ==  0 ) 
+				// if no multiplayer markers, put some at the default height
+				if ( t.tnumberofstartmarkers == 0 ) 
 				{
 					for ( t.tloop = 1 ; t.tloop<=  MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
 					{
@@ -532,11 +536,15 @@ void game_masterroot ( int iUseVRTest )
 				t.tubindex[0]=t.entid;
 				t.entityprofile[t.tubindex[0]].ischaracter=0;
 				t.entityprofile[t.tubindex[0]].collisionmode=12;
+
 				// No lua script for player chars
 				t.entityprofile[t.tubindex[0]].aimain_s = "";
 
-				if ( g.mp.team == 1 && g.mp.coop == 0 ) 
-				{
+				#ifdef PHOTONMP
+				 // No teams - no combat!
+				#else
+				 if ( g.mp.team == 1 && g.mp.coop == 0 ) 
+				 {
 					t.ent_s=g.rootdir_s+"entitybank\\characters\\Uber Soldier Red.fpe";
 					entity_addtoselection_core ( );
 					t.tubindex[1]=t.entid;
@@ -545,13 +553,14 @@ void game_masterroot ( int iUseVRTest )
 					// No lua script for player chars
 					t.entityprofile[t.tubindex[1]].aimain_s = "";
 					t.tti = 1;
-				}
+				 }
+				#endif
 
-				//  add any character creator player avatars in
-				for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
+				// add any character creator player avatars in
+				for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount <= MP_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
 				{
 					// check if there is a custom avatar
-					if ( t.mp_playerAvatars_s[t.tcustomAvatarCount]  !=  "" ) 
+					if ( t.mp_playerAvatars_s[t.tcustomAvatarCount] != "" ) 
 					{
 						// there is so lets built a temp fpe file from it
 						t.ent_s=g.rootdir_s+"entitybank\\user\\charactercreator\\customAvatar_"+Str(t.tcustomAvatarCount)+".fpe";
@@ -582,8 +591,9 @@ void game_masterroot ( int iUseVRTest )
 						t.ttiswitch = 0;
 					}
 					t.tti = t.ttiswitch;
-					//  check if the player has their own avatar
-					if (  t.mp_playerAvatars_s[t.plrindex-1]  !=  "" ) 
+
+					// check if the player has their own avatar
+					if ( t.mp_playerAvatars_s[t.plrindex-1] != "" ) 
 					{
 						t.tti = t.plrindex-1+2;
 					}
@@ -674,8 +684,13 @@ void game_masterroot ( int iUseVRTest )
 			{
 				if ( t.game.runasmultiplayer == 1 ) 
 				{
-					t.visuals.generalpromptstatetimer=Timer()+1000;
-					t.visuals.generalprompt_s="Press RETURN to Chat";
+					#ifdef PHOTONMP
+					 t.visuals.generalpromptstatetimer=Timer()+1000;
+					 t.visuals.generalprompt_s="Welcome to VR Quest Social VR";
+					#else
+					 t.visuals.generalpromptstatetimer=Timer()+1000;
+					 t.visuals.generalprompt_s="Press RETURN to Chat";
+					#endif
 				}
 				else
 				{
@@ -2474,7 +2489,8 @@ void game_main_loop ( void )
 
 		// 111115 - had to add t.visuals.shaderlevels.entities==1 so HIGHEST entities allow self shadow characters and detailed entities which flicker when shadow update is delayed!
 		// but also need constant updates for third person (as can see delay!)
-		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.playercontrol.thirdperson.enabled != 0 )
+		// 250419 - and default MEDIUM has flicker on lower-end PCs, so bite bullet and allow full shadow rendering (no delay) for medium too
+		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.visuals.shaderlevels.entities==2 || t.playercontrol.thirdperson.enabled != 0 )
 		{
 			terrainshadowdelay = 0;
 			terrain_shadowupdate ( );

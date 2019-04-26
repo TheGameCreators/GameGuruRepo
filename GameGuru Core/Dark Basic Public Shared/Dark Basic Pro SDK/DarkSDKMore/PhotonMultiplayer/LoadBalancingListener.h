@@ -27,7 +27,7 @@ enum EGlobalEventIndices
 class LoadBalancingListener : public ExitGames::LoadBalancing::Listener
 {
 public: 
-	LoadBalancingListener(PhotonView* pView);
+	LoadBalancingListener(PhotonView* pView, LPSTR pRootPath);
 	~LoadBalancingListener(void);
 
 	void setLBC(ExitGames::LoadBalancing::Client* pLbc);
@@ -46,6 +46,7 @@ public:
 	int getLocalPlayerID(void);
 	void updatePlayerList(void);
 	void manageTrackedPlayerList ( void );
+	int findANewlyArrivedPlayer ( void );
 
 	int service(void);
 	void sendGlobalVarState ( int iVarEventIndex, int iVarValue );
@@ -54,7 +55,7 @@ public:
 	void handleMessage ( int playerNr, EMessage msg, DWORD cubMsgSize, nByte* pchRecvBuf );
 
 	void SetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer);
-	void SendFileBegin ( int index , LPSTR pString );
+	void SendFileBegin ( int index , LPSTR pString, LPSTR pRootPath );
 	int SendFileDone();
 	void CloseFileNow ( void );
 	int IsEveryoneFileSynced();
@@ -106,6 +107,7 @@ private:
 
 	bool mbIsServer = false;
 
+	char mpRootPath[2048];
 	FILE* mhServerFile = NULL;
 	int miFileProgress = 0;
 	int miServerClientsFileSynced[MAX_PLAYERS_PER_SERVER];

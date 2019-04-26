@@ -145,11 +145,15 @@ DLLEXPORT int GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContex
 
 		// complete holographic space creation using existing device and context from engine
 		DebugVRlog("CreateHolographicSpaceB");
-	    int iErrorCode = app.CreateHolographicSpaceB((ID3D11Device*)pD3DDevice, (ID3D11DeviceContext*)pD3DContext);
-		if ( iErrorCode > 0 ) return iErrorCode;
+	    int iSuccess = app.CreateHolographicSpaceB((ID3D11Device*)pD3DDevice, (ID3D11DeviceContext*)pD3DContext);
+		if ( iSuccess == 0 ) 
+		{
+			// failed to complete CreateHolographicSpaceB - suspect inappropriate D3D device used (adapter choice?)
+			return 456;
+		}
 	}
 
-	// success
+	// no error code
 	return 0;
 }
 
@@ -277,14 +281,15 @@ int App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pCon
     // uses this ID3D11Device to create and manage device-based resources such as
     // swap chains.
 	DebugVRlog("deviceResources SetHolographicSpace");
-    m_deviceResources->SetHolographicSpace ( m_holographicSpace, pDevice, pContext );
+    int iSuccess = m_deviceResources->SetHolographicSpace ( m_holographicSpace, pDevice, pContext );
+	if ( iSuccess == 0 ) return 0;
 
     // The main class uses the holographic space for updates and rendering.
 	DebugVRlog("main SetHolographicSpace");
     m_main->SetHolographicSpace(m_holographicSpace, &m_interactionManager);
 
 	// success
-	return 0;
+	return 1;
 }
 
 void App::UpdateFrame()

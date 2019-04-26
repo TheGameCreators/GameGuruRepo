@@ -39,7 +39,13 @@ void mapeditorexecutable ( void )
 	char pVRSystemString[1024];
 	sprintf ( pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled );
 	timestampactivity(0,pVRSystemString);
-	GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
+	int iErrorCode = GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
+	if ( iErrorCode > 0 )
+	{
+		char pErrorStr[1024];
+		sprintf ( pErrorStr, "Error Choosing VR System : Code %d", iErrorCode );
+		timestampactivity(0,pErrorStr);
+	}
 
 	//  Set device to get multisampling AA active in editor
 	t.multisamplingfactor=0;

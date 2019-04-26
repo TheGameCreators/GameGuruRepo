@@ -443,7 +443,7 @@ void mp_loop ( void )
 			g.mp.mode = MP_IN_GAME_CLIENT;
 			g.mp.needToResetOnStartup = 1;
 			t.toldsteamfolder_s=GetDir();
-			SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
+			//SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 			t.tsteamtimeoutongamerunning = Timer();
 
 			// Reset player var
@@ -665,8 +665,8 @@ void mp_loop ( void )
 			{
 				g.mp.mode = MP_IN_GAME_SERVER;
 				g.mp.needToResetOnStartup = 1;
-				t.toldsteamfolder_s=GetDir();
-				SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
+				//t.toldsteamfolder_s=GetDir();
+				//SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 				t.tPlayerIndex = PhotonGetMyPlayerIndex();
 			}
 			else
@@ -795,6 +795,7 @@ void mp_loop ( void )
 				g.mp.syncedWithServerMode = 0;
 				g.mp.onlySendMapToSpecificPlayer = -1;
 				g.mp.okayToLoadLevel = 0;
+				g.mp.oldtime = Timer();
 				mp_textDots(-1,50,3,"Waiting for other players");
 				#ifdef PHOTONMP
 				 PhotonLoop(); // dangerous - risk of recursion!
@@ -1257,6 +1258,9 @@ void mp_pre_game_file_sync ( void )
 
 void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 {
+	// vars
+	cstr pFullPathAndFile = "";
+
 	// if we have lost connection, head back to main menu
 	t.tconnectionStatus = PhotonGetClientServerConnectionStatus();
 	if ( t.tconnectionStatus  ==  0 ) 
@@ -1269,10 +1273,16 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 		return;
 	}
 
-	//mp_sendAvatarInfo ( );
+	// handle sending of avatar info
+	mp_sendAvatarInfo ( );
+
 	// check if we have finished sending and receiving textures with the server
 	// (the actual process is handled by steam dll)
-	if ( g.mp.isGameHost == 0 || g.mp.me != 0 ) return;
+	#ifdef PHOTONMP
+	 if ( g.mp.isGameHost == 0 ) return;
+	#else
+	 if ( g.mp.isGameHost == 0 || g.mp.me != 0 ) return;
+	#endif
 	//if ( SteamCheckSyncedAvatarTexturesWithServer() == 0 ) 
 	//{
 	//	t.tstring_s = "Syncing Avatars";
@@ -1297,7 +1307,9 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 			PhotonSetSendFileCount ( 1, iOnlySendMapToSpecificPlayer );
 			//if ( g.mp.levelContainsCustomContent  ==  0 ) 
 			//{
-			PhotonSendFileBegin ( 1, "__multiplayerlevel__.fpm" );
+			pFullPathAndFile = "editors\\gridedit\\__multiplayerlevel__.fpm";
+			PhotonSendFileBegin ( 1, pFullPathAndFile.Get(), g.fpscrootdir_s.Get() );
+			//PhotonSendFileBegin ( 1, "__multiplayerlevel__.fpm" );
 			//g.mp.serverusingworkshop = 1;
 			//}
 			//else
@@ -1362,8 +1374,8 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 				//{
 				g.mp.oldtime = Timer();
 				g.mp.syncedWithServer = 1;
-				SetDir ( t.toldsteamfolder_s.Get() );
-				SetDir ( g.mp.originalpath.Get() );
+				//SetDir ( t.toldsteamfolder_s.Get() );
+				//SetDir ( g.mp.originalpath.Get() );
 				g.mp.syncedWithServerMode = 99;
 				//}
 			}
@@ -1401,7 +1413,9 @@ void mp_pre_game_file_sync_client ( void )
 		return;
 	}
 
-	//mp_sendAvatarInfo ( );
+	// handle sending of avatar info
+	mp_sendAvatarInfo ( );
+
 	// check if we have finished sending and receiving textures with the server
 	// (the actual process is handled by steam dll)
 	//if ( g.mp.isGameHost == 1 || g.mp.me == 0 )  return;
@@ -1448,8 +1462,21 @@ void mp_pre_game_file_sync_client ( void )
 			}
 			else
 			{
+				// after 30 seconds, and still transferring, produce timeout
+				if ( Timer() - g.mp.oldtime > 1000*30 ) 
+				{
+					t.tsteamconnectionlostmessage_s = "Timed out waiting for transfer of file";
+					g.mp.mode = MP_MODE_MAIN_MENU;
+					mp_lostConnection ( );
+				}
+
+				// report progress of file download
 				t.tProgress = PhotonGetFileProgress();
-				t.tstring_s = cstr("Receiving '")+g.mp.levelnametojoin+"': " + Str(t.tProgress) + "%";
+				#ifdef PHOTONMP
+				 t.tstring_s = cstr("Receiving file : ") + Str(t.tProgress) + "%";
+				#else
+				 t.tstring_s = cstr("Receiving '")+g.mp.levelnametojoin+"': " + Str(t.tProgress) + "%";
+				#endif
 				mp_text(-1,85,3,t.tstring_s.Get());
 			}
 			break;
@@ -1525,24 +1552,42 @@ void mp_pre_game_file_sync_client ( void )
 
 void mp_sendAvatarInfo ( void )
 {
-	if (  g.mp.haveSentMyAvatar  ==  0 ) 
+	//
+	// working on avatars now
+	//
+	return;
+
+	if ( g.mp.haveSentMyAvatar == 0 ) 
 	{
 		#ifdef PHOTONMP
 		 g.mp.me = PhotonGetMyPlayerIndex();
+		 if ( g.mp.me <= 0 ) g.mp.me = 0;
 		#else
 		 g.mp.me = SteamGetMyPlayerIndex();
 		#endif
-		if (  g.mp.isGameHost  ==  1 || g.mp.me  !=  0 ) 
+		if ( g.mp.isGameHost == 1 || g.mp.me != 0 ) 
 		{
 			g.mp.haveSentMyAvatar = 1;
-			SteamSendLuaString (  MP_LUA_SendAvatarName,g.mp.me,SteamGetPlayerName() );
-			SteamSendLuaString (  MP_LUA_SendAvatar,g.mp.me,g.mp.myAvatar_s.Get() );
+			#ifdef PHOTONMP
+			 LPSTR pPlayerName = PhotonGetPlayerName();
+			 PhotonSendLuaString ( MP_LUA_SendAvatarName, g.mp.me, pPlayerName );
+			 PhotonSendLuaString ( MP_LUA_SendAvatar, g.mp.me, g.mp.myAvatar_s.Get() );
+			#else
+			 LPSTR pPlayerName = SteamGetPlayerName();
+			 SteamSendLuaString ( MP_LUA_SendAvatarName, g.mp.me, pPlayerName );
+			 SteamSendLuaString ( MP_LUA_SendAvatar, g.mp.me, g.mp.myAvatar_s.Get() );
+			#endif
 
 			//  store our own info for loading in our avatar
-			t.mp_playerAvatarOwners_s[g.mp.me] = SteamGetPlayerName();
+			t.mp_playerAvatarOwners_s[g.mp.me] = pPlayerName;
 			t.mp_playerAvatars_s[g.mp.me] = g.mp.myAvatar_s;
-			//  send out custom texture (mp.myAvatarHeadTexture$ will be "" if we don't have one)
-			SteamSetMyAvatarHeadTextureName (  g.mp.myAvatarHeadTexture_s.Get() );
+
+			// send out custom texture (mp.myAvatarHeadTexture$ will be "" if we don't have one)
+			#ifdef PHOTONMP
+			 // No custom face image
+			#else
+			 SteamSetMyAvatarHeadTextureName (  g.mp.myAvatarHeadTexture_s.Get() );
+			#endif
 		}
 	}
 	mp_lua ( );
@@ -1779,10 +1824,6 @@ if (  t.s_s  ==  ""  )  t.s_s  =  g.mp.previousMessage_s;
 g.mp.previousMessage_s = t.s_s;
 if (  Timer() - t.tsteamdisplaymessagetimer < 2000  )  mp_text(-1,10,3,t.s_s.Get());
 // `text GetDisplayWidth()/2 - Text (  width(s$)/2, 100, s$ )
-
-
-return;
-
 }
 
 void mp_updatePlayerNamePlates ( void )
@@ -1889,7 +1930,7 @@ void mp_updatePlayerNamePlates ( void )
 									if ( iAlive == 1 && g.mp.endplay == 0 ) 
 									{
 										t.tnameplatey_f = ObjectPositionY(t.tobj)+ ObjectSizeY(t.tobj,1);
-										if (  t.mp_playerAvatars_s[t.c]  !=  ""  )  t.tnameplatey_f  =  t.tnameplatey_f + 15.0;
+										if ( t.mp_playerAvatars_s[t.c] != "" )  t.tnameplatey_f  =  t.tnameplatey_f + 15.0;
 										ShowObject (  g.steamplayermodelsoffset+500+t.c );
 										PositionObject((g.steamplayermodelsoffset+500+t.c), ObjectPositionX(t.tobj), t.tnameplatey_f , ObjectPositionZ(t.tobj));
 										PointObject (  g.steamplayermodelsoffset+500+t.c,CameraPositionX(), CameraPositionY(), CameraPositionZ() );
@@ -3569,9 +3610,6 @@ void mp_getPlaceToSpawn ( void )
 			}
 		}
 	}
-	
-return;
-
 }
 
 void mp_getInitialPlayerCount ( void )
@@ -3582,8 +3620,6 @@ void mp_getInitialPlayerCount ( void )
 		t.tname_s = SteamGetOtherPlayerName(t.c);
 		if (  t.tname_s != "Player"  )  ++g.mp.howmanyjoinedatstart;
 	}
-return;
-
 }
 
 void mp_nukeTestmap ( void )
@@ -4420,6 +4456,14 @@ void mp_gameLoop ( void )
 	// check we have finished loading, if not exit out
 	if ( g.mp.finishedLoadingMap == 0 ) return;
 
+	// Find out which index we are
+	#ifdef PHOTONMP
+	 g.mp.me = PhotonGetMyPlayerIndex();
+	 if ( g.mp.me <= 0 ) g.mp.me = 0;
+	#else
+	 g.mp.me = SteamGetMyPlayerIndex();
+	#endif
+
 	// and only if player not in process of leaving
 	#ifdef PHOTONMP	
 	 // handle player leaving
@@ -4430,16 +4474,39 @@ void mp_gameLoop ( void )
 		 return;
 	 }
 	 // handle new player arriving while game is running
-	 if ( 0 )  // handle WED
+	 if ( g.mp.isGameHost == 1 )
 	 {
-		// triggers serve to send map file//.
-		//g.mp.syncedWithServerMode = 0;
-		//g.mp.onlySendMapToSpecificPlayer = the new player
+		 // if game already started
+		 if ( PhotonIsGameRunning() == 1 )
+		 {
+			 // host needs to send the map to the new arrival
+			 if ( g.mp.syncedWithServerMode == 99 )
+			 {
+				 // if new arrival
+				 int iNewPlayerArrived = PhotonPlayerArrived();
+				 if ( iNewPlayerArrived != -1 )
+				 {
+					// triggers server to send map file
+					g.mp.syncedWithServerMode = 0;
+					g.mp.onlySendMapToSpecificPlayer = iNewPlayerArrived;
+				 }
+			 }
+			 else
+			 {
+				 // handles server job to send map file to newly arrived player
+				 mp_pre_game_file_sync_server ( g.mp.onlySendMapToSpecificPlayer );
+			 }
+		 }
 	 }
-	 if ( g.mp.syncedWithServerMode != 99 ) 
+	 else
 	 {
-		 // handles server job to send map file to newly arrived player
-		 mp_pre_game_file_sync_server ( g.mp.onlySendMapToSpecificPlayer );
+		 // other players dont need to do anything when a new player arrives
+		 int iNewPlayerArrived = PhotonPlayerArrived();
+	 }
+	 // if player becomes host, ensure it is flagged
+	 if ( PhotonIsPlayerTheServer() == 1 )
+	 {
+		 g.mp.isGameHost = 1;
 	 }
 	#endif
 
@@ -4496,13 +4563,6 @@ void mp_gameLoop ( void )
 		}
 	}
 	*/
-
-	// Find out which index we are
-	#ifdef PHOTONMP
-	 g.mp.me = PhotonGetMyPlayerIndex();
-	#else
-	 g.mp.me = SteamGetMyPlayerIndex();
-	#endif
 
 	// Hide our own player model but show everyone elses
 	for ( t.a = 0 ; t.a <= MP_MAX_NUMBER_OF_PLAYERS-1; t.a++ )
@@ -5749,8 +5809,6 @@ void mp_searchForLobbies ( void )
 	SteamGetLobbyList (  );
 	g.mp.mode = MP_MODE_LOBBY;
 	g.mp.isGameHost = 0;
-return;
-
 }
 
 void mp_searchForFpms ( void )
@@ -5832,9 +5890,6 @@ void mp_selectedALevel ( void )
 			g.mp.workshopid = t.tMPshopTheIDNumber_s;
 		}
 	}
-
-return;
-
 }
 
 void mp_checkIfLevelHasCustomContent ( void )

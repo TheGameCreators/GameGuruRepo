@@ -85,7 +85,9 @@ std::vector <packetSendLogServer_t> PacketSend_Log_Server;
 std::vector <packetSendReceiptLogClient_t> PacketSendReceipt_Log_Client;
 std::vector <packetSendReceiptLogServer_t> PacketSendReceipt_Log_Server;
 std::vector <tSpawn> spawnList;
+*/
 std::vector <tLua> luaList;
+/*
 std::vector <int> deleteList;
 std::vector <int> deleteListSource;
 std::vector <int> destroyList;
@@ -133,7 +135,9 @@ int serverClientsReadyToPlay[MAX_PLAYERS_PER_SERVER];
 int serverClientsHaveAvatarTexture[MAX_PLAYERS_PER_SERVER];
 FILE* serverFile = NULL;
 tSpawn currentSpawnObject;
+*/
 tLua currentLua;
+/*
 int currentDeleteObject;
 int currentDeleteObjectSource;
 int currentDestroyObject;
@@ -143,11 +147,11 @@ tAnimation currentAnimationObject;
 
 // photon core commands
 
-int PhotonInit()
+int PhotonInit(LPSTR pRootPath)
 {
 	// create photon classes
 	g_pPhotonView = new PhotonView();
-	g_pLBL = new LoadBalancingListener(g_pPhotonView);
+	g_pLBL = new LoadBalancingListener(g_pPhotonView, pRootPath);
 	g_pLBC = new Client(*g_pLBL, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
 	
 	// for debugging and testing, allow 20 MINUTES timeout grace for debugging
@@ -168,7 +172,7 @@ int PhotonInit()
 	// we can create simpler state management in a way that allows easy 'host migration'
 	//PhotonInitClient();
 	//PhotonCleanupClient();
-	//PhotonResetGameStats();
+	PhotonResetGameStats();
 	//PhotonInitClient();
 
 	// inits
@@ -214,6 +218,10 @@ void PhotonLoop(void)
 				g_pPhotonView->iTriggerLeaveMode = 4;
 				g_pLBC->disconnect();
 			}
+			if ( g_pPhotonView->isConnected() == false )
+			{
+				g_pPhotonView->iTriggerLeaveMode = 4;
+			}
 		}
 		if ( g_pPhotonView->iTriggerLeaveMode == 4 && g_pPhotonView->isConnecting() == false && g_pPhotonView->isConnected() == false ) 
 		{
@@ -257,6 +265,11 @@ bool PhotonPlayerLeaving()
 		return false;
 }
 
+int PhotonPlayerArrived()
+{
+	return g_pLBL->findANewlyArrivedPlayer();
+}
+
 void PhotonInitClient()
 {
 	//g_pClient = new CClient();
@@ -289,6 +302,7 @@ void PhotonResetClient()
 
 void PhotonResetGameStats()
 {
+	luaList.clear();
 	/*
 	serverActive = false;
 	IsWorkshopLoadingOn = 0;
@@ -501,6 +515,16 @@ int PhotonIsServerRunning()
 	return 0;
 }
 
+int PhotonIsPlayerTheServer()
+{
+	if ( g_pPhotonView )
+	{
+		if ( g_pLBL->isServer() == true )
+			return 1;
+	}
+	return 0;
+}
+
 int PhotonIsGameRunning()
 {
 	if ( g_pPhotonView )
@@ -530,11 +554,11 @@ void PhotonSetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer )
 	}
 }
 
-void PhotonSendFileBegin ( int index , LPSTR pString )
+void PhotonSendFileBegin ( int index , LPSTR pString, LPSTR pRootPath )
 {
 	if ( g_pPhotonView )
 	{
-		g_pLBL->SendFileBegin( index, pString );	
+		g_pLBL->SendFileBegin( index, pString, pRootPath );	
 	}
 }
 
@@ -727,6 +751,128 @@ void PhotonSetTweening(int index , int flag)
 	tweening[index] = flag;
 }
 
+// LUA
+
+void PhotonSendLua ( int code, int e, int v )
+{
+	if ( g_pPhotonView )
+	{
+		//if (!serverActive) return;
+		if ( 1 ) // m_steamIDGameServer.IsValid() )
+		{
+			if ( code < 5 )
+			{
+				MsgClientLua_t msg;
+				msg.index = g_pLBL->muPlayerIndex;
+				msg.code = code;
+				msg.e = e;
+				msg.v = v;
+				//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientLua_t), k_EP2PSendReliable );
+				g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), true );
+			}
+			else
+			{
+				// no ticket if goto position
+				if ( code != 18 && code != 19 )
+				{
+					MsgClientLua_t* pmsg;
+					pmsg = new MsgClientLua_t();
+					pmsg->index = g_pLBL->muPlayerIndex;
+					pmsg->code = code;
+					pmsg->e = e;
+					pmsg->v = v;
+					//pmsg->logID = packetSendLogClientID;
+					packetSendLogClient_t log;
+					//log.LogID = packetSendLogClientID++;
+					log.packetType = k_EMsgClientLua;
+					log.pPacket = pmsg;
+					log.timeStamp = GetCounterPassedTotal();
+					//PacketSend_Log_Client.push_back(log);
+					//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, pmsg, sizeof(MsgClientLua_t), k_EP2PSendUnreliable );
+					g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLua_t), false );
+				}
+				else
+				{
+					MsgClientLua_t msg;
+					msg.index = g_pLBL->muPlayerIndex;
+					msg.code = code;
+					msg.e = e;
+					msg.v = v;
+					//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientLua_t), k_EP2PSendUnreliable );
+					g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), false );
+				}
+			}
+		}
+	}
+}
+
+void PhotonSendLuaString ( int code, int e, LPSTR s )
+{
+	if ( g_pPhotonView )
+	{
+		//if (!serverActive) return;
+		if ( 1 ) // m_steamIDGameServer.IsValid() )
+		{
+			MsgClientLuaString_t* pmsg;
+			pmsg = new MsgClientLuaString_t();
+			pmsg->index = g_pLBL->muPlayerIndex;
+			pmsg->code = code;
+			pmsg->e = e;
+			strcpy ( pmsg->s , s );
+			//pmsg->logID = packetSendLogClientID;
+			packetSendLogClient_t log;
+			//log.LogID = packetSendLogClientID++;
+			log.packetType = k_EMsgClientLuaString;
+			log.pPacket = pmsg;
+			log.timeStamp = GetCounterPassedTotal();
+			//PacketSend_Log_Client.push_back(log);
+			//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, pmsg, sizeof(MsgClientLuaString_t), k_EP2PSendUnreliable );
+			g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLuaString_t), false );
+		}
+	}
+}
+
+int PhotonGetLuaList()
+{
+	if ( luaList.size() > 0 )
+	{
+		currentLua.code = luaList.back().code;
+		currentLua.e = luaList.back().e;
+		currentLua.v = luaList.back().v;
+		if ( strlen(luaList.back().s) >= CURRENT_LUA_STRING_SIZE ) MessageBox ( NULL , "Lua String Exceeded Max", "Multiplayer Error", MB_OK );
+		strncpy ( currentLua.s , luaList.back().s , CURRENT_LUA_STRING_SIZE );
+		currentLua.s[CURRENT_LUA_STRING_SIZE-1] = 0;
+		return 1;
+	}
+	return 0;
+}
+
+void PhotonGetNextLua()
+{
+	if ( luaList.size() > 0 )
+		luaList.pop_back();
+}
+
+int PhotonGetLuaCommand()
+{
+	return currentLua.code;
+}
+
+int PhotonGetLuaE()
+{
+	return currentLua.e;
+}
+
+int PhotonGetLuaV()
+{
+	return currentLua.v;
+}
+
+LPSTR PhotonGetLuaS(void)
+{
+	return currentLua.s;//GetReturnStringFromTEXTWorkString( currentLua.s );
+}
+
 
 //
 // empty functions so can compile code with Steam Multiplayer references
@@ -881,154 +1027,6 @@ FPSCR void SteamSetMyAvatarHeadTextureName(LPSTR sAvatarTexture) {}
 void SteamAvatarClient() {}
 void SteamAvatarServer() {}
 FPSCR int SteamStrCmp( LPSTR s1, LPSTR s2 ) { return 0; }
-
-/*
-// flag to switch workshop handling from workshop to game managed, by default set to false, set to true for multiplayer mode
-bool OnlineMultiplayerModeForSharingFiles = false;
-
-#ifdef MAKE_MULTIPLAYER_LOG
-void debugLog(LPSTR str );
-void debugLog(LPSTR str, int code , int e , int v );
-#endif
-
-#ifdef _DEBUG_LOG_
-FILE* logFile = NULL;
-#endif
-
-#define KEYDOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
-#define KEYUP(vk_code)   ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
-
-uint64 server_timeout_milliseconds = SERVER_TIMEOUT_MILLISECONDS_LONG;
-
-CSteamID lobbyIAmInID;
-int scores[MAX_PLAYERS_PER_SERVER];
-int keystate[MAX_PLAYERS_PER_SERVER][256];
-int alive[MAX_PLAYERS_PER_SERVER];
-tbullet bullets[180];
-bool bulletSeen[180][MAX_PLAYERS_PER_SERVER];
-int playerDamage = 0;
-int damageSource = 0;
-int damageX = 0;
-int damageY = 0;
-int damageZ = 0;
-int damageForce = 0;
-int damageLimb = 0;
-int killedSource[MAX_PLAYERS_PER_SERVER];
-int killedX[MAX_PLAYERS_PER_SERVER];
-int killedY[MAX_PLAYERS_PER_SERVER];
-int killedZ[MAX_PLAYERS_PER_SERVER];
-int killedForce[MAX_PLAYERS_PER_SERVER];
-int killedLimb[MAX_PLAYERS_PER_SERVER];
-CSteamID playerSteamIDs[MAX_PLAYERS_PER_SERVER];
-int playerAppearance[MAX_PLAYERS_PER_SERVER];
-int playerShoot[MAX_PLAYERS_PER_SERVER];
-int tweening[MAX_PLAYERS_PER_SERVER];
-char workshopItemName[256];
-char steamRootPath[MAX_PATH];
-bool needToSendMyName = true;
-int ClientDeathNumber = 1;
-int ServerClientLastDeathNumber[MAX_PLAYERS_PER_SERVER];
-int SteamOverlayActive = 0;
-int ServerIsShuttingDown = 0;
-
-PublishedFileId_t WorkShopItemID = NULL;
-UGCUpdateHandle_t WorkShopItemUpdateHandle = NULL;
-uint64 WorkshopItemToDownloadID = NULL;
-char WorkshopItemPath[MAX_PATH] = "";
-int IsWorkshopLoadingOn = 0;
-char hostsLobbyName[256];
-bool serverActive = false;
-
-// set when we have actually joined a game
-bool isPlayingOnAServer = false;
-
-extern GlobStruct* g_pGlob;
-
-bool g_SteamRunning = false;
-
-extern CClient *g_pClient;
-
-int packetSendLogClientID = 0;
-int packetSendLogServerID = 0;
-
-//Guarenteed UDP
-std::vector <packetSendLogClient_t> PacketSend_Log_Client;
-std::vector <packetSendLogServer_t> PacketSend_Log_Server;
-std::vector <packetSendReceiptLogClient_t> PacketSendReceipt_Log_Client;
-std::vector <packetSendReceiptLogServer_t> PacketSendReceipt_Log_Server;
-//===========
-
-std::vector <tSpawn> spawnList;
-std::vector <tLua> luaList;
-std::vector <int> deleteList;
-std::vector <int> deleteListSource;
-std::vector <int> destroyList;
-std::vector <tMessage> messageList;
-std::vector <tCollision> collisionList;
-std::vector <tAnimation> animationList;
-std::vector <tChat> chatList;
-std::vector <uint32> lobbyChatIDs;
-
-int ServerHowManyToStart = 0;
-int ServerHowManyJoined = 0;
-int ServerSaysItIsOkayToStart = 0;
-int ServerHaveIToldClientsToStart = 0;
-int ServerFilesToReceive = 0;
-int ServerFilesReceived = 0;
-int IamSyncedWithServerFiles = 0;
-int IamLoadedAndReady = 0;
-int isEveryoneLoadedAndReady = 0;
-int HowManyPlayersDoWeHave = 0;
-int IamReadyToPlay = 0;
-int isEveryoneReadyToPlay = 0;
-int serverHowManyFileChunks = 0;
-int serverChunkToSendCount = 0;
-int serverFileFileSize = 0;
-uint64 ServerCreationTime = 0;
-int fileProgress = 0;
-int voiceChatOn = 0;
-
-int syncedAvatarTextureMode = SYNC_AVATAR_TEX_BEGIN;
-int syncedAvatarTextureModeServer = SYNC_AVATAR_TEX_BEGIN;
-char myAvatarTextureName[MAX_PATH];
-int syncedAvatarHowManyTextures = 0;
-int syncedAvatarHowManyTexturesReceived = 0;
-FILE* avatarFile[MAX_PLAYERS_PER_SERVER];
-int avatarHowManyFileChunks[MAX_PLAYERS_PER_SERVER];
-int avatarFileFileSize[MAX_PLAYERS_PER_SERVER] ;
-
-int serverClientsFileSynced[MAX_PLAYERS_PER_SERVER];
-int serverClientsLoadedAndReady[MAX_PLAYERS_PER_SERVER];
-int serverClientsReadyToPlay[MAX_PLAYERS_PER_SERVER];
-int serverClientsHaveAvatarTexture[MAX_PLAYERS_PER_SERVER];
-
-FILE* serverFile = NULL;
-
-tSpawn currentSpawnObject;
-tLua currentLua;
-int currentDeleteObject;
-int currentDeleteObjectSource;
-int currentDestroyObject;
-tCollision currentCollisionObject;
-tAnimation currentAnimationObject;
-
-#define SAFE_DELETE( p )  { if ( p ) { delete ( p );       ( p ) = NULL; } }
-#define SAFE_RELEASE( p )  { if ( p ) { ( p )->Release ( ); ( p ) = NULL; } }
-
-extern "C" void __cdecl SteamAPIDebugTextHook( int nSeverity, const char *pchDebugText )
-{
-	// if you're running in the debugger, only warnings (nSeverity >= 1) will be sent
-	// if you add -debug_steamapi to the command-line, a lot of extra informational messages will also be sent
-	::OutputDebugString( pchDebugText );
-
-	if ( nSeverity >= 1 )
-	{
-		// place to set a breakpoint for catching API errors
-		int x = 3;
-		x = x;
-	}
-}
-*/
 
 #define PI 3.14159
 

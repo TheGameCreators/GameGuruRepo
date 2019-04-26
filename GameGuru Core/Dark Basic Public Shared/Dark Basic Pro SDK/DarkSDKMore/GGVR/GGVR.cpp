@@ -14,6 +14,7 @@
 #include "dxdiag.h"
 #include "D3dx9math.h"
 #include "BlitzTerrain.h"
+#include "CGfxC.h"
 
 #include <iostream>
 #include <exception>
@@ -294,8 +295,7 @@ void GGVR_Mat34toYPR(vr::HmdMatrix34_t *Mat, vr::HmdVector3_t *YPR, vr::HmdVecto
 }
 
 // Generic
-
-void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbsPathToDLL )
+int GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbsPathToDLL )
 {
 	// Assign VR System Mode to Use
 	g_iDebuggingActive = iDebuggingActive;
@@ -337,6 +337,10 @@ void GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAb
 	// to prevent first appearance of WMR portal wiping out directsound device, do this early
 	int iErrorCode = GGVR_PreSubmit(2+g_iDebuggingActive);
 	if ( iErrorCode == 0 ) iErrorCode = GGVR_PreSubmit(2+g_iDebuggingActive);
+	if ( iErrorCode > 0 ) return iErrorCode;
+
+	// no error code
+	return 0;
 }
 
 int	GGVR_IsHmdPresent()
@@ -1929,6 +1933,14 @@ int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath, int iDebugMode )
 	DebugGGVRlog ( "Calling GGWMR_CreateHolographicSpace1" );
 	try
 	{
+		int iAdapterOrdinal = 0;
+		char pAdapterName[2048];
+		int iFeatureLevel = 0;
+		GetD3DExtraInfo ( &iAdapterOrdinal, pAdapterName, &iFeatureLevel );
+		char pDebugStr[2048];
+		sprintf ( pDebugStr, "Graphics Adapter Ordinal : %d", iAdapterOrdinal ); DebugGGVRlog ( pDebugStr );
+		sprintf ( pDebugStr, "Graphics Adapter Name : %s", pAdapterName ); DebugGGVRlog ( pDebugStr );
+		sprintf ( pDebugStr, "Graphics Feature Level : %d", iFeatureLevel ); DebugGGVRlog ( pDebugStr );
 		return GGWMR_CreateHolographicSpace1 ( hWnd, iDebugMode );
 	}
 	catch (exception& e)
@@ -1947,15 +1959,17 @@ int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext )
 int GGVR_PreSubmit ( int iDebugMode )
 {
 	// WMR prepares the views to be rendered to (not taking renders after they have done as with GGVR_Submit)
-	DebugGGVRlog ( "GGVR_EnabledMode Stage" );
 	if ( GGVR_EnabledMode == 2 )
 	{
-		DebugGGVRlog ( "GGVR_EnabledState Stage" );
 		if ( GGVR_EnabledState == 1 )
 		{
+			// true debug mode
+			int iTrueDebugMode = iDebugMode;
+			if ( iTrueDebugMode >=2 ) iTrueDebugMode -= 2;
+
 			// initialise VR hardware
 			DebugGGVRlog ( "Calling GGVR_CreateHolographicSpace1" );
-			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "", iDebugMode );
+			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "", iTrueDebugMode );
 			char pErrStr[1024];
 			sprintf ( pErrStr, "Error Value From GGVR_CreateHolographicSpace1 : %d", iErrorCode );
 			DebugGGVRlog ( pErrStr );

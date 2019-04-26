@@ -28,22 +28,38 @@ void DX::DeviceResources::CreateDeviceIndependentResources()
 {
 }
 
-void DX::DeviceResources::SetHolographicSpace(HolographicSpace holographicSpace,ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
+int DX::DeviceResources::SetHolographicSpace(HolographicSpace holographicSpace,ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
 {
     // Cache the holographic space. Used to re-initalize during device-lost scenarios.
     m_holographicSpace = holographicSpace;
 
 	DebugVRlog("InitializeUsingHolographicSpace");
-    InitializeUsingHolographicSpace(pDevice,pContext);
+    return InitializeUsingHolographicSpace(pDevice,pContext);
 }
 
-void DX::DeviceResources::InitializeUsingHolographicSpace(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
+int DX::DeviceResources::InitializeUsingHolographicSpace(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
 {
 	DebugVRlog("CreateDeviceResources");
     CreateDeviceResources(pDevice,pContext);
 
 	DebugVRlog("SetDirect3D11Device");
-	m_holographicSpace.SetDirect3D11Device(m_d3dInteropDevice);
+	char pD3DCall[2048];
+	sprintf_s ( pD3DCall, "%d.SetDirect3D11Device(%d)", (int)(m_holographicSpace != nullptr), (int)(m_d3dInteropDevice != nullptr) );
+	DebugVRlog(pD3DCall);
+	try
+	{
+		m_holographicSpace.SetDirect3D11Device(m_d3dInteropDevice);
+	}
+	catch ( ... )
+	{
+		char pErrorStr[2048];
+		sprintf_s ( pErrorStr, "failed to call m_holographicSpace.SetDirect3D11Device : d=%d, c=%d", (int)pDevice, (int)pContext );
+		DebugVRlog(pErrorStr);
+		return 0;
+	}
+
+	// success
+	return 1;
 }
 
 // Configures the Direct3D device, and stores handles to it and the device context.
@@ -92,7 +108,6 @@ void DX::DeviceResources::EnsureCameraResources(
 		{
 			for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
 			{
-				DebugVRlog("GetRenderingParameters");
 				HolographicCameraRenderingParameters renderingParameters = frame.GetRenderingParameters(cameraPose);
 				CameraResources* pCameraResources = cameraResourceMap[cameraPose.HolographicCamera().Id()].get();
 				pCameraResources->CreateResourcesForBackBuffer(this, renderingParameters);

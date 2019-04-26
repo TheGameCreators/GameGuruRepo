@@ -1696,6 +1696,7 @@ void FPSC_SetDefaults ( void )
 	g.gprofileinstandalone = 0;
 	g.greflectionrendersize = 512;
 	g.gadapterordinal = 0;
+	g.gadapterd3d11only = 0;
 	g.ghideallhuds = 0;
 	g.gskipobstaclecreation = 0;
 	g.gskipterrainobstaclecreation = 0;
@@ -1831,6 +1832,7 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 
 					//  Control of display mode
 					t.tryfield_s = "adapterordinal" ; if (  t.field_s == t.tryfield_s  )  g.gadapterordinal = t.value1;
+					t.tryfield_s = "adapterd3d11only" ; if (  t.field_s == t.tryfield_s  )  g.gadapterd3d11only = t.value1;
 					t.tryfield_s = "hideallhuds" ; if (  t.field_s == t.tryfield_s  )  g.ghideallhuds = t.value1;
 					t.tryfield_s = "skipobstaclecreation" ; if (  t.field_s == t.tryfield_s  )  g.gskipobstaclecreation = t.value1;
 					t.tryfield_s = "skipterrainobstaclecreation" ; if (  t.field_s == t.tryfield_s  )  g.gskipterrainobstaclecreation = t.value1;
@@ -2725,11 +2727,12 @@ void FPSC_Setup ( void )
 	else
 		SetDefaultCPUAnimState ( 0 );
 
-	//  set adapter ordinal for next time display mode is set (below)
-	if (  g.gadapterordinal>0 ) 
+	// set adapter ordinal for next time display mode is set (below)
+	if ( g.gadapterordinal>0 ) 
 	{
-		ForceAdapterOrdinal (  g.gadapterordinal );
+		ForceAdapterOrdinal ( g.gadapterordinal );
 	}
+	ForceAdapterD3D11ONLY ( g.gadapterd3d11only );
 
 	// true nae of app to log
 	backuptimestampactivity();
@@ -3264,7 +3267,13 @@ void FPSC_Setup ( void )
 		char pVRSystemString[1024];
 		sprintf ( pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled );
 		timestampactivity(0,pVRSystemString);
-		GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
+		int iErrorCode = GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
+		if ( iErrorCode > 0 )
+		{
+			char pErrorStr[1024];
+			sprintf ( pErrorStr, "Error Choosing VR System : Code %d", iErrorCode );
+			timestampactivity(0,pErrorStr);
+		}
 
 		// Need editor 14.PNG for teleport graphic
 		LoadImage ( "editors\\gfx\\14.png",g.editorimagesoffset+14 );

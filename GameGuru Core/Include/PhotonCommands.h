@@ -4,11 +4,12 @@
 #define FPSCR
 
 // photon core commands
-int PhotonInit();
+int PhotonInit(LPSTR pRootPath);
 void PhotonFree();
 void PhotonLoop(void);
 int PhotonCloseConnection();
 bool PhotonPlayerLeaving();
+int PhotonPlayerArrived();
 void PhotonInitClient();
 void PhotonResetClient();
 //void PhotonCleanupClient();
@@ -32,11 +33,12 @@ LPSTR PhotonGetPlayerName(void);
 int PhotonGetClientServerConnectionStatus();
 void PhotonStartServer();
 int PhotonIsServerRunning();
+int PhotonIsPlayerTheServer();
 int PhotonIsGameRunning();
 int PhotonGetMyPlayerIndex();
 void PhotonSetRoot(LPSTR string );
 void PhotonSetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer );
-void PhotonSendFileBegin ( int index , LPSTR pString );
+void PhotonSendFileBegin ( int index , LPSTR pString, LPSTR pRootPath );
 int PhotonSendFileDone();
 int PhotonAmIFileSynced();
 int PhotonGetFileProgress();
@@ -56,6 +58,15 @@ float PhotonGetPlayerPositionY ( int index );
 float PhotonGetPlayerPositionZ ( int index );
 float PhotonGetPlayerAngle ( int index );
 void PhotonSetTweening(int index , int flag);
+
+void PhotonSendLua ( int code, int e, int v );
+void PhotonSendLuaString ( int code, int e, LPSTR s );
+int PhotonGetLuaList();
+void PhotonGetNextLua();
+int PhotonGetLuaCommand();
+int PhotonGetLuaE();
+int PhotonGetLuaV();
+LPSTR PhotonGetLuaS(void);
 
 // empty functions so can compile code with Steam Multiplayer references
 FPSCR bool SteamOwned ( void );

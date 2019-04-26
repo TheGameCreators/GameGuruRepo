@@ -18,7 +18,6 @@ DX::CameraResources::CameraResources(HolographicCamera const& camera) :
     m_isStereo(camera.IsStereo()),
     m_d3dRenderTargetSize(camera.RenderTargetSize())
 {
-	DebugVRlog("SetNearPlaneDistance");
 	m_holographicCamera.SetNearPlaneDistance(1.0f);
 	m_holographicCamera.SetFarPlaneDistance(70000.0f);
 
@@ -37,24 +36,20 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
     HolographicCameraRenderingParameters const& cameraParameters
 )
 {
-	DebugVRlog("SetNearPlaneDistance");
     ID3D11Device* device = pDeviceResources->GetD3DDevice();
 
     // Get the WinRT object representing the holographic camera's back buffer.
-	DebugVRlog("SetNearPlaneDistance");
     IDirect3DSurface surface = cameraParameters.Direct3D11BackBuffer();
 
     // Get the holographic camera's back buffer.
     // Holographic apps do not create a swap chain themselves; instead, buffers are
     // owned by the system. The Direct3D back buffer resources are provided to the
     // app using WinRT interop APIs.
-	DebugVRlog("GetInterface");
     ComPtr<ID3D11Texture2D> cameraBackBuffer;
     winrt::check_hresult(surface.as<::Windows::Graphics::DirectX::Direct3D11::IDirect3DDxgiInterfaceAccess>()->GetInterface(IID_PPV_ARGS(&cameraBackBuffer)));
 
     // Determine if the back buffer has changed. If so, ensure that the render target view
     // is for the current back buffer.
-	DebugVRlog("m_d3dBackBuffer != cameraBackBuffer");
     if (m_d3dBackBuffer.Get() != cameraBackBuffer.Get())
     {
         // This can change every frame as the system moves to the next buffer in the
@@ -63,13 +58,11 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
         m_d3dBackBuffer = cameraBackBuffer;
 
         // Get the DXGI format for the back buffer.
-		DebugVRlog("GetDesc");
         D3D11_TEXTURE2D_DESC backBufferDesc;
         m_d3dBackBuffer->GetDesc(&backBufferDesc);
         m_dxgiFormat = backBufferDesc.Format;
 
 		// instead, split backbuffer into left and right render target views
-		DebugVRlog("CreateRenderTargetView");
 		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
 		rtvDesc.Format = m_dxgiFormat;//DXGI_FORMAT_R8G8B8A8_UNORM;
 		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
@@ -81,7 +74,6 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
         winrt::check_hresult(device->CreateRenderTargetView(m_d3dBackBuffer.Get(),&rtvDesc,&m_d3dRenderTargetRightView));
 
         // Check for render target size changes.
-		DebugVRlog("RenderTargetSize");
         winrt::Windows::Foundation::Size currentSize = m_holographicCamera.RenderTargetSize();
         if (m_d3dRenderTargetSize != currentSize)
         {

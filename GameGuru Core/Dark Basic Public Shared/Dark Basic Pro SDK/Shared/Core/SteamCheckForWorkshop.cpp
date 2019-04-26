@@ -1,5 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#define PHOTONMP
+
 #include "SteamCheckForWorkshop.h"
 #include <stdio.h>
 

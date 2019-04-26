@@ -4678,17 +4678,17 @@ void terrain_water_setfog ( void )
 
 void terrain_water_loop ( void )
 {
-	//  Adjust reflective processing based on actual number of water pixels in final scene
+	// Adjust reflective processing based on actual number of water pixels in final scene
 	t.visuals.reflectionmodepixelsrendered=0;
-	if (  t.visuals.reflectionmode>0 ) 
+	if ( t.visuals.reflectionmode>0 ) 
 	{
-		if (  ObjectExist(t.terrain.objectstartindex+5) == 1 ) 
+		if ( ObjectExist(t.terrain.objectstartindex+5) == 1 ) 
 		{
 			// DX11 had the query removed so cannot count pixels rendered (would also fix 'one cycle' no reflection issue)
 			t.visuals.reflectionmodepixelsrendered=1;//GetObjectOcclusionValue(t.terrain.objectstartindex+5);
-			if (  t.visuals.reflectionmodepixelsrendered>0 ) 
+			if ( t.visuals.reflectionmodepixelsrendered>0 ) 
 			{
-				if (  t.visuals.reflectionmodemodified == 0 ) 
+				if ( t.visuals.reflectionmodemodified == 0 ) 
 				{
 					t.visuals.reflectionmodemodified=t.visuals.reflectionmode;
 					visuals_updateobjectmasks ( );
@@ -4696,7 +4696,7 @@ void terrain_water_loop ( void )
 			}
 			else
 			{
-				if (  t.visuals.reflectionmodemodified>0 ) 
+				if ( t.visuals.reflectionmodemodified>0 ) 
 				{
 					t.visuals.reflectionmodemodified=0;
 					visuals_updateobjectmasks ( );
@@ -4705,68 +4705,94 @@ void terrain_water_loop ( void )
 		}
 	}
 
-	//  Update Water plain
-	if (  ObjectExist(t.terrain.objectstartindex+5) == 1 && t.visuals.reflectionmodepixelsrendered>0 ) 
+	// Update Water plain
+	if ( ObjectExist(t.terrain.objectstartindex+5) == 1 && t.visuals.reflectionmodepixelsrendered>0 ) 
 	{
-		PositionObject (  t.terrain.objectstartindex+5,ObjectPositionX(t.terrain.objectstartindex+5),t.terrain.waterliney_f,ObjectPositionZ(t.terrain.objectstartindex+5) );
+		PositionObject ( t.terrain.objectstartindex+5,ObjectPositionX(t.terrain.objectstartindex+5),t.terrain.waterliney_f,ObjectPositionZ(t.terrain.objectstartindex+5) );
 		t.terrain.WaterCamY_f=CameraPositionY()-t.terrain.waterliney_f;
-		//  Refraction camera (looks bad with stuff floating in it)
-		HideObject (  t.terrain.objectstartindex+5 );
-		//  Reflection camera
-		if (  t.visuals.reflectionmode>0 ) 
+		// Refraction camera (looks bad with stuff floating in it)
+		HideObject ( t.terrain.objectstartindex+5 );
+		// Reflection camera
+		if ( t.visuals.reflectionmode>0 )
 		{
-			//  special render technique for terrain reflection
-			SetEffectTechnique ( t.terrain.effectstartindex+1, "UseReflection" );
-
-			//  set sky position to be relative to reflection render
-			PositionObject (  t.terrain.objectstartindex+4,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
-			if (  ObjectExist(t.terrain.objectstartindex+8) == 1  )  PositionObject (  t.terrain.objectstartindex+8,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
-			PositionCamera (  2,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
-			RotateCamera (  2,-CameraAngleX(),CameraAngleY(),CameraAngleZ() );
-			//  only render terrain/objects if mode allows
-			if (  t.visuals.reflectionmode>25 ) 
+			// if in VR mode, lef/right eye math messy, so dont change reflected sky angle for clean render
+			if ( g.gvrmode != 0 )//&& CameraExist(6) == 1 ) 
 			{
-				//  full reflection mode renders terrain
-				if (  t.terrain.WaterCamY_f>0 ) 
-				{
-					SetCameraClip (  2,1,0,t.terrain.waterliney_f-0.0,0,0,1,0 );
-				}
-				else
-				{
-					SetCameraClip (  2,1,0,t.terrain.waterliney_f+50.0,0,0,-1,0 );
-				}
-				//  if terrain exists, render it
-				if (  t.terrain.TerrainID>0 ) 
-				{
-					BT_SetCurrentCamera (  2 );
-					BT_SetTerrainLODDistance (  t.terrain.TerrainID,1,700.0 );
-					BT_SetTerrainLODDistance (  t.terrain.TerrainID,2,701.0 );
-					BT_UpdateTerrainLOD (  t.terrain.TerrainID );
-					BT_UpdateTerrainCull (  t.terrain.TerrainID );
-					BT_RenderTerrain (  t.terrain.TerrainID );
-					BT_SetCurrentCamera (  0 );
-					BT_SetTerrainLODDistance (  t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
-					BT_SetTerrainLODDistance (  t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
-				}
+				// special render technique for terrain reflection
+				SetEffectTechnique ( t.terrain.effectstartindex+1, "UseReflectionNoSky" );
 			}
 			else
 			{
-				//  no terrain in reflection render
-			}
-			if (t.visuals.reflectionmode == 1) {
-				//PE: Special mode that only clear the reflection image mainly for underwater.
-				SetCameraClip(2, 1, 0, t.terrain.waterliney_f - 100000.0, 0, 0, -1, 0);
-			}
-			SyncMask (  1<<2 );
+				// special render technique for terrain reflection
+				SetEffectTechnique ( t.terrain.effectstartindex+1, "UseReflection" );
 
-			//  simpler terrain for reflection render
-			if (  GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex,"ReflectedOnly" );
-			FastSync (  );
-			//  restore terrain shader technique
-			if ( GetEffectExist(t.terrain.terrainshaderindex) == 1  ) visuals_shaderlevels_terrain_update ( );
-			//  restore sky position to main camera
-			PositionObject (  t.terrain.objectstartindex+4,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-			if (  ObjectExist(t.terrain.objectstartindex+8) == 1  )  PositionObject (  t.terrain.objectstartindex+8,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
+				// set sky position to be relative to reflection render
+				PositionObject ( t.terrain.objectstartindex+4,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
+				if ( ObjectExist(t.terrain.objectstartindex+8) == 1 ) PositionObject ( t.terrain.objectstartindex+8,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
+
+				/* how to get true reflection vector from HMD view angle (left/right?) VR!
+				float fAX = ObjectAngleX(t.terrain.objectstartindex+5);
+				float fAY = ObjectAngleY(t.terrain.objectstartindex+5);
+				float fAZ = ObjectAngleZ(t.terrain.objectstartindex+5);
+				SetCurrentCamera ( 6 );
+				SetObjectToCameraOrientation(t.terrain.objectstartindex+5);
+				SetCurrentCamera ( 2 );
+				SetCameraToObjectOrientation(t.terrain.objectstartindex+5);
+				RotateCamera ( 2, -CameraAngleX(2), CameraAngleY(2), CameraAngleZ(2) );
+				PositionCamera ( 2,CameraPositionX(6),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ(6) );
+				RotateObject ( t.terrain.objectstartindex+5, fAX, fAY, fAZ );
+				SetCurrentCamera ( 0 );
+				*/
+
+				PositionCamera ( 2,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
+				RotateCamera ( 2,-CameraAngleX(),CameraAngleY(),CameraAngleZ() );
+
+				// only render terrain/objects if mode allows
+				if ( t.visuals.reflectionmode>25 ) 
+				{
+					// full reflection mode renders terrain
+					if ( t.terrain.WaterCamY_f>0 ) 
+					{
+						SetCameraClip ( 2,1,0,t.terrain.waterliney_f-0.0,0,0,1,0 );
+					}
+					else
+					{
+						SetCameraClip ( 2,1,0,t.terrain.waterliney_f+50.0,0,0,-1,0 );
+					}
+					// if terrain exists, render it
+					if ( t.terrain.TerrainID>0 ) 
+					{
+						BT_SetCurrentCamera ( 2 );
+						BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,700.0 );
+						BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,701.0 );
+						BT_UpdateTerrainLOD ( t.terrain.TerrainID );
+						BT_UpdateTerrainCull ( t.terrain.TerrainID );
+						BT_RenderTerrain ( t.terrain.TerrainID );
+						BT_SetCurrentCamera (  0 );
+						BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
+						BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
+					}
+				}
+				else
+				{
+					// no terrain in reflection render
+				}
+				if (t.visuals.reflectionmode == 1) 
+				{
+					//PE: Special mode that only clear the reflection image mainly for underwater.
+					SetCameraClip(2, 1, 0, t.terrain.waterliney_f - 100000.0, 0, 0, -1, 0);
+				}
+				SyncMask ( 1<<2 );
+
+				// simpler terrain for reflection render
+				if ( GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex, "ReflectedOnly" );
+				FastSync ( );
+				// restore terrain shader technique
+				if ( GetEffectExist(t.terrain.terrainshaderindex) == 1  ) visuals_shaderlevels_terrain_update ( );
+				// restore sky position to main camera
+				PositionObject ( t.terrain.objectstartindex+4,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
+				if ( ObjectExist(t.terrain.objectstartindex+8) == 1  )  PositionObject (  t.terrain.objectstartindex+8,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
+			}
 		}
 		else
 		{
@@ -4774,15 +4800,15 @@ void terrain_water_loop ( void )
 		}
 	}
 
-	//  Restore regular rendering
-	SyncMask (  0xfffffff9 );
+	// Restore regular rendering
+	SyncMask ( 0xfffffff9 );
 
-	//  Show water again for main rendering
-	if (  t.hardwareinfoglobals.nowater == 0 ) 
+	// Show water again for main rendering
+	if ( t.hardwareinfoglobals.nowater == 0 ) 
 	{
-		if (  ObjectExist(t.terrain.objectstartindex+5) == 1 ) 
+		if ( ObjectExist(t.terrain.objectstartindex+5) == 1 ) 
 		{
-			ShowObject (  t.terrain.objectstartindex+5 );
+			ShowObject ( t.terrain.objectstartindex+5 );
 		}
 	}
 }
