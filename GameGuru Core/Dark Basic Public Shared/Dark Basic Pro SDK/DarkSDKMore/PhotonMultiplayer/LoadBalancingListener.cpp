@@ -182,7 +182,7 @@ void LoadBalancingListener::removePlayer ( int playernr )
 	m_rgpPlayer[playernr] = NULL;
 
 	// also declare dead so object will disappear
-	alive[playernr] = 0;
+	if ( playernr > 0 ) alive[playernr-1] = 0;
 }
 
 void LoadBalancingListener::manageTrackedPlayerList ( void )
@@ -846,7 +846,7 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 					int index = pmsg->index;
 					if ( m_rgpPlayer[index] )
 					{
-						alive[index] = pmsg->state;
+						if ( index > 0 ) alive[index-1] = pmsg->state;
 					}
 				}
 				/* from old server code - it rebroadcast it to other players (no need with Photon)
@@ -993,47 +993,23 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 				}
 			}
 			break;
+		*/
 		case k_EMsgClientLuaString:
 			{
 				if ( cubMsgSize == sizeof( MsgClientLuaString_t ) )
 				{
 					MsgClientLuaString_t* pmsg = (MsgClientLuaString_t*)pchRecvBuf;
 					int index = pmsg->index;
-
-					if ( m_rgpPlayer[pmsg->index] )
-					{
-						MsgReceipt_t msg;
-						msg.logID = pmsg->logID;
-						SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[pmsg->index].m_SteamIDUser, &msg, sizeof(MsgReceipt_t), k_EP2PSendUnreliable );
-					}
-					
-					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
-					{
-						if ( m_rgpPlayer[i] && i != index )
-						{
-							MsgServerLuaString_t* pmsg2;
-							pmsg2 = new MsgServerLuaString_t();
-							pmsg2->logID = packetSendLogServerID;
-							pmsg2->code = pmsg->code;
-							pmsg2->e = pmsg->e;
-							strcpy ( pmsg2->s , pmsg->s );
-
-							packetSendLogServer_t log;
-							log.LogID = packetSendLogServerID++;
-							log.packetType = k_EMsgServerLua;
-							log.pPacket = pmsg2;
-							log.timeStamp = GetCounterPassedTotal();
-							log.playerID = index;
-
-							PacketSend_Log_Server.push_back(log);
-
-							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg2, sizeof(MsgServerLuaString_t), k_EP2PSendUnreliable );
-						}
-					}
-
+					tLua l;
+					l.code = pmsg->code;
+					l.e = pmsg->e;
+					l.v = 0;
+					strcpy ( l.s , pmsg->s );
+					luaList.insert( luaList.begin(),l);
 				}
 			}
 			break;			
+		/*
 		case k_EMsgClientAvatarDoWeHaveHeadTex:
 			{
 				if ( cubMsgSize == sizeof( MsgClientAvatarDoWeHaveHeadTex_t ) )

@@ -1451,24 +1451,24 @@ void characterkit_save_entity ( void )
 
 void characterkit_makeMultiplayerCharacterCreatorAvatar ( void )
 {
-	//  delete it if it exists (it shouldn't, but just in case)
-	if (  FileExist(t.avatarFile_s.Get())  ==  1  )  DeleteAFile (  t.avatarFile_s.Get() );
+	// delete it if it exists (it shouldn't, but just in case)
+	if ( FileExist(t.avatarFile_s.Get())  ==  1  )  DeleteAFile (  t.avatarFile_s.Get() );
 
-	//  Store old dir
+	// Store old dir
 	t.tolddir_s=GetDir();
 
-	//  Check if user folder exists, if not create it
-	if (  PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() )  ==  0 ) 
+	// Check if user folder exists, if not create it
+	if ( PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() )  ==  0 ) 
 	{
 		MakeDirectory ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() );
 	}
-	if (  PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() )  ==  0 ) 
+	if ( PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() )  ==  0 ) 
 	{
 		MakeDirectory ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() );
 	}
 
+	// create correct name
 	t.tSaveFile_s = t.avatarFile_s;
-
 	t.tname_s = t.tSaveFile_s;
 	if (  cstr(Lower(Right(t.tname_s.Get(),4)))  ==  ".fpe"  )  t.tname_s  =  Left(t.tname_s.Get(),Len(t.tname_s.Get())-4);
 	for ( t.tloop = Len(t.tname_s.Get()) ; t.tloop >= 1 ; t.tloop+= -1 )
@@ -1480,34 +1480,48 @@ void characterkit_makeMultiplayerCharacterCreatorAvatar ( void )
 		}
 	}
 
+	// template reference
 	#ifdef PHOTONMP
 	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Character.fpe";
 	#else
 	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
 	#endif
-
 	t.tcopyto_s = t.tSaveFile_s;
-	if (  cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
+	if ( cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
 
-	if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
-	if (  FileOpen(2)  ==  1  )  CloseFile (  2 );
-
-	OpenToRead (  1, t.tcopyfrom_s.Get() );
-	OpenToWrite (  2,t.tcopyto_s.Get() );
-
+	// now modify the copy
+	if ( FileOpen(1)  ==  1  )  CloseFile (  1 );
+	if ( FileOpen(2)  ==  1  )  CloseFile (  2 );
+	OpenToRead ( 1, t.tcopyfrom_s.Get() );
+	OpenToWrite ( 2,t.tcopyto_s.Get() );
 	t.tcount = 0;
-	while (  FileEnd(1)  ==  0 ) 
+	while ( FileEnd(1) == 0 ) 
 	{
+		// line by line
 		t.ts_s = ReadString ( 1 );
-		//  adjust offset for male/female
-		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "offy" ) 
+
+		// adjust offset for male/female
+		bool bIsFemale = false;
+		if ( cstr(Lower(Left(t.ts_s.Get(),4))) == "offy" ) 
 		{
 			t.ts_s = "offy          = -6";
-			if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale"  )  t.ts_s  =  "offy           =  -4";
+			if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale"  )  
+			{
+				t.ts_s  =  "offy           =  -4";
+				bIsFemale = true;
+			}
 		}
-		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
+		if ( cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
 
-		WriteString (  2,t.ts_s.Get() );
+		// replace charactercreator and soundset fields
+		if ( cstr(Lower(Left(t.ts_s.Get(),16))) == "charactercreator" ) t.ts_s = cstr(cstr("charactercreator = ") + t.avatarString_s).Get();
+		if ( cstr(Lower(Left(t.ts_s.Get(),8))) == "soundset" ) t.ts_s = "soundset      = female";
+
+		// write back out
+		WriteString ( 2, t.ts_s.Get() );
+
+		#ifdef PHOTONMP
+		#else
 		++t.tcount;
 		if (  t.tcount  ==  2 ) 
 		{
@@ -1515,6 +1529,7 @@ void characterkit_makeMultiplayerCharacterCreatorAvatar ( void )
 			WriteString (  2,";character creator" );
 			WriteString (  2, cstr(cstr("charactercreator = ") + t.avatarString_s).Get() );
 		}
+		#endif
 	}
 
 	CloseFile (  1 );

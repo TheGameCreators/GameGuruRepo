@@ -585,12 +585,12 @@ void entity_loop ( void )
 							t.tconstantlygluehead=1;
 						}
 						// if other players are dead and transitioning to a new spawn postion
-						for ( t.ttemploop = 0 ; t.ttemploop<=  MP_MAX_NUMBER_OF_PLAYERS; t.ttemploop++ )
+						for ( t.ttemploop = 0 ; t.ttemploop <= MP_MAX_NUMBER_OF_PLAYERS; t.ttemploop++ )
 						{
 							if ( t.ttemploop != g.mp.me ) 
 							{
 								#ifdef PHOTONMP
-								 int iAlive = PhotonGetPlayerAlive(t.ttemploop);
+								 int iAlive = PhotonGetPlayerAlive(1+t.ttemploop);
 								#else
 								 int iAlive = SteamGetPlayerAlive(t.ttemploop);
 								#endif

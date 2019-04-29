@@ -895,299 +895,561 @@ void mp_spawn_objects ( void )
 	}
 }
 
+#ifdef PHOTONMP
 void mp_lua ( void )
 {
-
-	while (  SteamGetLuaList() ) 
+	while ( PhotonGetLuaList() ) 
 	{
-		t.steamLuaCode = SteamGetLuaCommand();
-		t.e = SteamGetLuaE();
-		t.v = SteamGetLuaV();
-	
+		t.steamLuaCode = PhotonGetLuaCommand();
+		t.e = PhotonGetLuaE();
+		t.v = PhotonGetLuaV();	
 		t.tLuaDontSendLua = 1;
 	
-		switch (  t.steamLuaCode ) 
+		switch ( t.steamLuaCode ) 
 		{
-		case MP_LUA_SetActivated:
-			if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_setactivated() ; ++t.activatedCount;
-		break;
-		case MP_LUA_SetAnimation:
-			entity_lua_setanimation() ; ++t.animCount;
-		break;
-		case MP_LUA_PlayAnimation:
-			if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_playanimation() ; ++t.playanimCount;
-		break;
-		case MP_LUA_ActivateIfUsed:
-			if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_activateifused() ; ++t.activateCount;
-		break;
-		case MP_LUA_PlaySound:
-			entity_lua_playsound ( );
-		break;
-		case MP_LUA_StartTimer:
-			entity_lua_starttimer ( );
-		break;
-		case MP_LUA_CollisionOff:
-			entity_lua_collisionoff ( );
-		break;
-		case MP_LUA_CollisionOn:
-			entity_lua_collisionon ( );
-		break;
-		case MP_LUA_ServerSetLuaGameMode:
-			LuaSetInt (  "mp_gameMode",t.v );
-		break;
-		case MP_LUA_ServerSetPlayerKills:
-			t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.e) + "] = " + Str(t.v)).Get() );
-		break;
-		case MP_LUA_ServerSetPlayerDeaths:
-			t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.e) + "] = " + Str(t.v)).Get() );
-		break;
-		case MP_LUA_ServerSetPlayerAddKill:
-			t.mp_kills[t.v] = t.mp_kills[t.v] + 1;
-			SteamSendLua (  MP_LUA_ServerSetPlayerKills,t.v,t.mp_kills[t.v] );
-			t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.mp_kills[t.v])).Get() );
-		break;
-		case MP_LUA_ServerSetPlayerRemoveKill:
-			//  check if they already have the kills needed to win
-			//  because they may kill someone else first, then themselves, which has already triggered a win
-			//  so we only remove a kill if they havent yet won
-			if (  g.mp.setserverkillstowin  <= 0  )  g.mp.setserverkillstowin  =  100;
-			if (  t.mp_kills[t.v] < g.mp.setserverkillstowin ) 
-			{
-				t.mp_kills[t.v] = t.mp_kills[t.v] - 1;
+			/*
+			case MP_LUA_SetActivated:
+				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_setactivated() ; ++t.activatedCount;
+			break;
+			case MP_LUA_SetAnimation:
+				entity_lua_setanimation() ; ++t.animCount;
+			break;
+			case MP_LUA_PlayAnimation:
+				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_playanimation() ; ++t.playanimCount;
+			break;
+			case MP_LUA_ActivateIfUsed:
+				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_activateifused() ; ++t.activateCount;
+			break;
+			case MP_LUA_PlaySound:
+				entity_lua_playsound ( );
+			break;
+			case MP_LUA_StartTimer:
+				entity_lua_starttimer ( );
+			break;
+			case MP_LUA_CollisionOff:
+				entity_lua_collisionoff ( );
+			break;
+			case MP_LUA_CollisionOn:
+				entity_lua_collisionon ( );
+			break;
+			case MP_LUA_ServerSetLuaGameMode:
+				LuaSetInt (  "mp_gameMode",t.v );
+			break;
+			case MP_LUA_ServerSetPlayerKills:
+				t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.e) + "] = " + Str(t.v)).Get() );
+			break;
+			case MP_LUA_ServerSetPlayerDeaths:
+				t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.e) + "] = " + Str(t.v)).Get() );
+			break;
+			case MP_LUA_ServerSetPlayerAddKill:
+				t.mp_kills[t.v] = t.mp_kills[t.v] + 1;
 				SteamSendLua (  MP_LUA_ServerSetPlayerKills,t.v,t.mp_kills[t.v] );
 				t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.mp_kills[t.v])).Get() );
-			}
-		break;
-		case MP_LUA_ServerSetPlayerAddDeath:
-			t.mp_deaths[t.v] = t.mp_deaths[t.v] + 1;
-			SteamSendLua (  MP_LUA_ServerSetPlayerDeaths,t.v,t.mp_deaths[t.v] );
-			t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.v) + "] = " + Str(t.mp_deaths[t.v])).Get() );
-		break;
-		case MP_LUA_SetServerTimer:
-			t.tnothing = LuaExecute( cstr(cstr("mp_servertimer = ") + Str(t.v)).Get() );
-		break;
-		case MP_LUA_ServerRespawnAll:
-			mp_restoreEntities ( );
-			mp_setLuaResetStats ( );
-			mp_respawnEntities ( );
-			t.playercontrol.jetpackhidden=0;
-			t.playercontrol.jetpackmode=0;
-			physics_no_gun_zoom ( );
-			t.aisystem.processplayerlogic=1;
-			g.mp.gameAlreadySpawnedBefore = 0;
-			t.mp_playerHasSpawned[g.mp.me] = 0;
-			if (  g.mp.myOriginalSpawnPoint  !=  -1 ) 
-			{
-				t.tindex = g.mp.myOriginalSpawnPoint;
-			}
-			else
-			{
-				t.tindex = 1;
-			}
-			if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
-			{
-				t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
-				t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y;
-				t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
-				t.terrain.playerax_f=0;
-				t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
-				t.terrain.playeraz_f=0;
-
-				g.mp.lastx=t.terrain.playerx_f;
-				g.mp.lasty=t.terrain.playery_f;
-				g.mp.lastz=t.terrain.playerz_f;
-				g.mp.lastangley=t.terrain.playeray_f;
-
-				t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
-				if (  t.tobj > 0 ) 
+			break;
+			case MP_LUA_ServerSetPlayerRemoveKill:
+				//  check if they already have the kills needed to win
+				//  because they may kill someone else first, then themselves, which has already triggered a win
+				//  so we only remove a kill if they havent yet won
+				if (  g.mp.setserverkillstowin  <= 0  )  g.mp.setserverkillstowin  =  100;
+				if (  t.mp_kills[t.v] < g.mp.setserverkillstowin ) 
 				{
-					PositionObject (  t.tobj, t.terrain.playerx_f, t.terrain.playery_f-50, t.terrain.playerz_f );
-					RotateObject (  t.tobj, t.terrain.playerax_f, t.terrain.playeray_f, t.terrain.playeraz_f );
+					t.mp_kills[t.v] = t.mp_kills[t.v] - 1;
+					SteamSendLua (  MP_LUA_ServerSetPlayerKills,t.v,t.mp_kills[t.v] );
+					t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.mp_kills[t.v])).Get() );
 				}
-			}
-
-			g.autoloadgun=0  ; gun_change ( );
-			g.mp.endplay = 0;
-			t.player[t.plrid].health = 0;
-			t.mp_health[g.mp.me] = 0;
-			physics_resetplayer_core ( );
-		break;
-		case MP_LUA_ServerEndPlay:
+			break;
+			case MP_LUA_ServerSetPlayerAddDeath:
+				t.mp_deaths[t.v] = t.mp_deaths[t.v] + 1;
+				SteamSendLua (  MP_LUA_ServerSetPlayerDeaths,t.v,t.mp_deaths[t.v] );
+				t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.v) + "] = " + Str(t.mp_deaths[t.v])).Get() );
+			break;
+			case MP_LUA_SetServerTimer:
+				t.tnothing = LuaExecute( cstr(cstr("mp_servertimer = ") + Str(t.v)).Get() );
+			break;
+			case MP_LUA_ServerRespawnAll:
+				mp_restoreEntities ( );
+				mp_setLuaResetStats ( );
+				mp_respawnEntities ( );
 				t.playercontrol.jetpackhidden=0;
 				t.playercontrol.jetpackmode=0;
 				physics_no_gun_zoom ( );
-				t.aisystem.processplayerlogic=0;
-				g.mp.endplay = 1;
-				g.autoloadgun=0 ; gun_change ( );
-		break;
-		case MP_LUA_AiGoToX:
-			t.tSteamX_f = t.v;
-		break;
-		case MP_LUA_AiGoToZ:
-			t.tSteamZ_f = t.v;
-			if (  t.e > 0 ) 
-			{
-				if (  ObjectExist(t.e)  ==  1 ) 
+				t.aisystem.processplayerlogic=1;
+				g.mp.gameAlreadySpawnedBefore = 0;
+				t.mp_playerHasSpawned[g.mp.me] = 0;
+				if (  g.mp.myOriginalSpawnPoint  !=  -1 ) 
 				{
-					AISetEntityActive (  t.e,1 );
-					mp_COOP_aiMoveTo ( );
+					t.tindex = g.mp.myOriginalSpawnPoint;
 				}
-			}
-			for ( t.tee = 1 ; t.tee<=  g.entityelementlist; t.tee++ )
-			{
-				if (  t.entityelement[t.tee].obj  ==  t.e ) 
+				else
 				{
-					t.entityelement[t.tee].mp_updateOn = 1;
-					t.entityelement[t.tee].active = 1;
-//      `print "updating object " + Str(tee)
+					t.tindex = 1;
+				}
+				if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
+				{
+					t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
+					t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y;
+					t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
+					t.terrain.playerax_f=0;
+					t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
+					t.terrain.playeraz_f=0;
 
-					break;
+					g.mp.lastx=t.terrain.playerx_f;
+					g.mp.lasty=t.terrain.playery_f;
+					g.mp.lastz=t.terrain.playerz_f;
+					g.mp.lastangley=t.terrain.playeray_f;
+
+					t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
+					if (  t.tobj > 0 ) 
+					{
+						PositionObject (  t.tobj, t.terrain.playerx_f, t.terrain.playery_f-50, t.terrain.playerz_f );
+						RotateObject (  t.tobj, t.terrain.playerax_f, t.terrain.playeray_f, t.terrain.playeraz_f );
+					}
 				}
-			}
-		break;
-		case MP_LUA_setcharactertowalkrun:
-			entity_lua_setcharactertowalkrun ( );
-			if (  t.entityelement[t.e].obj > 0 ) 
-			{
-				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+
+				g.autoloadgun=0  ; gun_change ( );
+				g.mp.endplay = 0;
+				t.player[t.plrid].health = 0;
+				t.mp_health[g.mp.me] = 0;
+				physics_resetplayer_core ( );
+			break;
+			case MP_LUA_ServerEndPlay:
+					t.playercontrol.jetpackhidden=0;
+					t.playercontrol.jetpackmode=0;
+					physics_no_gun_zoom ( );
+					t.aisystem.processplayerlogic=0;
+					g.mp.endplay = 1;
+					g.autoloadgun=0 ; gun_change ( );
+			break;
+			case MP_LUA_AiGoToX:
+				t.tSteamX_f = t.v;
+			break;
+			case MP_LUA_AiGoToZ:
+				t.tSteamZ_f = t.v;
+				if (  t.e > 0 ) 
 				{
-					t.entityelement[t.e].mp_updateOn = 1;
-					t.entityelement[t.e].active = 1;
+					if (  ObjectExist(t.e)  ==  1 ) 
+					{
+						AISetEntityActive (  t.e,1 );
+						mp_COOP_aiMoveTo ( );
+					}
 				}
-			}
-		break;
-		case MP_LUA_CharacterControlManual:
-			entity_lua_charactercontrolmanual ( );
-			t.entityelement[t.e].mp_updateOn = 1;
-			t.entityelement[t.e].active = 1;
-		break;
-		case MP_LUA_CharacterControlLimbo:
-			entity_lua_charactercontrollimbo ( );
-			t.entityelement[t.e].mp_updateOn = 1;
-			t.entityelement[t.e].active = 1;
-		break;
-		case MP_LUA_CharacterControlArmed:
-			entity_lua_charactercontrolarmed ( );
-			t.entityelement[t.e].mp_updateOn = 1;
-			t.entityelement[t.e].active = 1;
-			AISetEntityActive (  t.entityelement[t.e].obj,1 );
-		break;
-		case MP_LUA_CharacterControlUnarmed:
-			entity_lua_charactercontrolunarmed ( );
-			t.entityelement[t.e].mp_updateOn = 1;
-			t.entityelement[t.e].active = 1;
-		break;
-		case MP_LUA_LookAtPlayer:
-			if (  t.entityelement[t.e].obj > 0 ) 
-			{
-				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+				for ( t.tee = 1 ; t.tee<=  g.entityelementlist; t.tee++ )
 				{
-					AISetEntityActive (  t.entityelement[t.e].obj,1 );
-					mp_entity_lua_lookatplayer ( );
-					t.entityelement[t.e].mp_updateOn = 1;
-					t.entityelement[t.e].active = 1;
-					t.entityelement[t.e].mp_rotateTimer = Timer();
-					t.entityelement[t.e].mp_rotateType = 1;
+					if (  t.entityelement[t.tee].obj  ==  t.e ) 
+					{
+						t.entityelement[t.tee].mp_updateOn = 1;
+						t.entityelement[t.tee].active = 1;
+						break;
+					}
 				}
-			}
-		break;
-		case MP_LUA_TakenAggro:
-			if (  t.entityelement[t.e].obj > 0 ) 
-			{
+			break;
+			case MP_LUA_setcharactertowalkrun:
+				entity_lua_setcharactertowalkrun ( );
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+					}
+				}
+			break;
+			case MP_LUA_CharacterControlManual:
+				entity_lua_charactercontrolmanual ( );
+				t.entityelement[t.e].mp_updateOn = 1;
+				t.entityelement[t.e].active = 1;
+			break;
+			case MP_LUA_CharacterControlLimbo:
+				entity_lua_charactercontrollimbo ( );
+				t.entityelement[t.e].mp_updateOn = 1;
+				t.entityelement[t.e].active = 1;
+			break;
+			case MP_LUA_CharacterControlArmed:
+				entity_lua_charactercontrolarmed ( );
+				t.entityelement[t.e].mp_updateOn = 1;
+				t.entityelement[t.e].active = 1;
 				AISetEntityActive (  t.entityelement[t.e].obj,1 );
-				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+			break;
+			case MP_LUA_CharacterControlUnarmed:
+				entity_lua_charactercontrolunarmed ( );
+				t.entityelement[t.e].mp_updateOn = 1;
+				t.entityelement[t.e].active = 1;
+			break;
+			case MP_LUA_LookAtPlayer:
+				if (  t.entityelement[t.e].obj > 0 ) 
 				{
-//      `if mp.me  ==  0 then SteamSendLua (  MP_LUA_TakenAggro,e,v )
-
-					t.entityelement[t.e].mp_coopControlledByPlayer = t.v;
-					t.entityelement[t.e].mp_coopLastTimeSwitchedTarget = Timer();
-//      `if v  ==  mp.me then inc entityelement(e).mp_coopLastTimeSwitchedTarget,5000
-					
-					t.entityelement[t.e].mp_updateOn = 1;
-					t.entityelement[t.e].active = 1;
-					//  set them to run - not totally ideal for zombies (some walk) but okay for now
-					t.v = 1;
-					entity_lua_setcharactertowalkrun ( );
-//      `AI Entity Stop entityelement(e).obj
-
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						AISetEntityActive (  t.entityelement[t.e].obj,1 );
+						mp_entity_lua_lookatplayer ( );
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						t.entityelement[t.e].mp_rotateTimer = Timer();
+						t.entityelement[t.e].mp_rotateType = 1;
+					}
 				}
-			}
-		break;
-		case MP_LUA_HaveAggro:
-			if (  t.entityelement[t.e].obj > 0 ) 
-			{
-				AISetEntityActive (  t.entityelement[t.e].obj,1 );
-				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+			break;
+			case MP_LUA_TakenAggro:
+				if (  t.entityelement[t.e].obj > 0 ) 
 				{
-//      `if mp.me  ==  0 then SteamSendLua (  MP_LUA_TakenAggro,e,v )
-					
-					t.entityelement[t.e].mp_coopControlledByPlayer = t.v;
-					t.entityelement[t.e].mp_updateOn = 1;
-					t.entityelement[t.e].active = 1;
-					//  set them to run - not totally ideal for zombies (some walk) but okay for now
-					t.v = 1;
-					entity_lua_setcharactertowalkrun ( );
-//      `AI Entity Stop entityelement(e).obj
-
-				}
-			}
-		break;
-		case MP_LUA_FireWeaponEffectOnly:
-			if (  t.entityelement[t.e].obj > 0 ) 
-			{
-				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
-				{
-					mp_entity_lua_fireweaponEffectOnly ( );
-					t.entityelement[t.e].mp_updateOn = 1;
-					t.entityelement[t.e].active = 1;
 					AISetEntityActive (  t.entityelement[t.e].obj,1 );
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						t.entityelement[t.e].mp_coopControlledByPlayer = t.v;
+						t.entityelement[t.e].mp_coopLastTimeSwitchedTarget = Timer();
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						//  set them to run - not totally ideal for zombies (some walk) but okay for now
+						t.v = 1;
+						entity_lua_setcharactertowalkrun ( );
+					}
 				}
-			}
-		break;
-		case MP_LUA_RotateToPlayer:
-			if (  t.entityelement[t.e].obj > 0 ) 
-			{
-				if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+			break;
+			case MP_LUA_HaveAggro:
+				if (  t.entityelement[t.e].obj > 0 ) 
 				{
-					mp_coop_rotatetoplayer ( );
-					t.entityelement[t.e].mp_updateOn = 1;
-					t.entityelement[t.e].active = 1;
-					t.entityelement[t.e].mp_rotateTimer = Timer();
-					t.entityelement[t.e].mp_rotateType = 2;
 					AISetEntityActive (  t.entityelement[t.e].obj,1 );
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						t.entityelement[t.e].mp_coopControlledByPlayer = t.v;
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						//  set them to run - not totally ideal for zombies (some walk) but okay for now
+						t.v = 1;
+						entity_lua_setcharactertowalkrun ( );
+					}
 				}
-			}
-		break;
-		case MP_LUA_SetAnimationFrames:
-			entity_lua_setanimationframes ( );
-		break;
-		case MP_LUA_AISetEntityControl:
-			AISetEntityControl (  t.e,t.v );
-		break;
-		case MP_LUA_AIMoveX:
-			t.tsteamPosX = t.v;
-		break;
-		case MP_LUA_AIMoveZ:
-			AISetEntityPosition (  t.e, t.tsteamPosX, BT_GetGroundHeight(t.terrain.TerrainID,t.tsteamPosX,t.v),t.v );
-		break;
-		case MP_LUA_SendAvatar:
-			t.tsteams_s = SteamGetLuaS();
-			t.mp_playerAvatars_s[t.e] = t.tsteams_s;
-		break;
-		case MP_LUA_SendAvatarName:
-			t.tsteams_s = SteamGetLuaS();
-			t.mp_playerAvatarOwners_s[t.e] = t.tsteams_s;
-		break;
-		}	//~   
+			break;
+			case MP_LUA_FireWeaponEffectOnly:
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						mp_entity_lua_fireweaponEffectOnly ( );
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						AISetEntityActive (  t.entityelement[t.e].obj,1 );
+					}
+				}
+			break;
+			case MP_LUA_RotateToPlayer:
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						mp_coop_rotatetoplayer ( );
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						t.entityelement[t.e].mp_rotateTimer = Timer();
+						t.entityelement[t.e].mp_rotateType = 2;
+						AISetEntityActive (  t.entityelement[t.e].obj,1 );
+					}
+				}
+			break;
+			case MP_LUA_SetAnimationFrames:
+				entity_lua_setanimationframes ( );
+			break;
+			case MP_LUA_AISetEntityControl:
+				AISetEntityControl (  t.e,t.v );
+			break;
+			case MP_LUA_AIMoveX:
+				t.tsteamPosX = t.v;
+			break;
+			case MP_LUA_AIMoveZ:
+				AISetEntityPosition (  t.e, t.tsteamPosX, BT_GetGroundHeight(t.terrain.TerrainID,t.tsteamPosX,t.v),t.v );
+			break;
+			*/
+			case MP_LUA_SendAvatar:
+				t.tsteams_s = PhotonGetLuaS();
+				t.mp_playerAvatars_s[t.e] = t.tsteams_s;
+			break;
+			case MP_LUA_SendAvatarName:
+				t.tsteams_s = PhotonGetLuaS();
+				t.mp_playerAvatarOwners_s[t.e] = t.tsteams_s;
+			break;
+		}
 	
-		t.tLuaDontSendLua = 0;
-	
-		SteamGetNextLua (  );
+		t.tLuaDontSendLua = 0;	
+		PhotonGetNextLua ( );
 	}
-
-return;
-
 }
+#else
+void mp_lua ( void )
+{
+	while ( SteamGetLuaList() ) 
+	{
+		t.steamLuaCode = SteamGetLuaCommand();
+		t.e = SteamGetLuaE();
+		t.v = SteamGetLuaV();	
+		t.tLuaDontSendLua = 1;
+	
+		switch ( t.steamLuaCode ) 
+		{
+			case MP_LUA_SetActivated:
+				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_setactivated() ; ++t.activatedCount;
+			break;
+			case MP_LUA_SetAnimation:
+				entity_lua_setanimation() ; ++t.animCount;
+			break;
+			case MP_LUA_PlayAnimation:
+				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_playanimation() ; ++t.playanimCount;
+			break;
+			case MP_LUA_ActivateIfUsed:
+				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_activateifused() ; ++t.activateCount;
+			break;
+			case MP_LUA_PlaySound:
+				entity_lua_playsound ( );
+			break;
+			case MP_LUA_StartTimer:
+				entity_lua_starttimer ( );
+			break;
+			case MP_LUA_CollisionOff:
+				entity_lua_collisionoff ( );
+			break;
+			case MP_LUA_CollisionOn:
+				entity_lua_collisionon ( );
+			break;
+			case MP_LUA_ServerSetLuaGameMode:
+				LuaSetInt (  "mp_gameMode",t.v );
+			break;
+			case MP_LUA_ServerSetPlayerKills:
+				t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.e) + "] = " + Str(t.v)).Get() );
+			break;
+			case MP_LUA_ServerSetPlayerDeaths:
+				t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.e) + "] = " + Str(t.v)).Get() );
+			break;
+			case MP_LUA_ServerSetPlayerAddKill:
+				t.mp_kills[t.v] = t.mp_kills[t.v] + 1;
+				SteamSendLua (  MP_LUA_ServerSetPlayerKills,t.v,t.mp_kills[t.v] );
+				t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.mp_kills[t.v])).Get() );
+			break;
+			case MP_LUA_ServerSetPlayerRemoveKill:
+				//  check if they already have the kills needed to win
+				//  because they may kill someone else first, then themselves, which has already triggered a win
+				//  so we only remove a kill if they havent yet won
+				if (  g.mp.setserverkillstowin  <= 0  )  g.mp.setserverkillstowin  =  100;
+				if (  t.mp_kills[t.v] < g.mp.setserverkillstowin ) 
+				{
+					t.mp_kills[t.v] = t.mp_kills[t.v] - 1;
+					SteamSendLua (  MP_LUA_ServerSetPlayerKills,t.v,t.mp_kills[t.v] );
+					t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(t.v) + "] = " + Str(t.mp_kills[t.v])).Get() );
+				}
+			break;
+			case MP_LUA_ServerSetPlayerAddDeath:
+				t.mp_deaths[t.v] = t.mp_deaths[t.v] + 1;
+				SteamSendLua (  MP_LUA_ServerSetPlayerDeaths,t.v,t.mp_deaths[t.v] );
+				t.tnothing = LuaExecute( cstr(cstr("mp_playerDeaths[") + Str(t.v) + "] = " + Str(t.mp_deaths[t.v])).Get() );
+			break;
+			case MP_LUA_SetServerTimer:
+				t.tnothing = LuaExecute( cstr(cstr("mp_servertimer = ") + Str(t.v)).Get() );
+			break;
+			case MP_LUA_ServerRespawnAll:
+				mp_restoreEntities ( );
+				mp_setLuaResetStats ( );
+				mp_respawnEntities ( );
+				t.playercontrol.jetpackhidden=0;
+				t.playercontrol.jetpackmode=0;
+				physics_no_gun_zoom ( );
+				t.aisystem.processplayerlogic=1;
+				g.mp.gameAlreadySpawnedBefore = 0;
+				t.mp_playerHasSpawned[g.mp.me] = 0;
+				if (  g.mp.myOriginalSpawnPoint  !=  -1 ) 
+				{
+					t.tindex = g.mp.myOriginalSpawnPoint;
+				}
+				else
+				{
+					t.tindex = 1;
+				}
+				if (  t.mpmultiplayerstart[t.tindex].active == 1 ) 
+				{
+					t.terrain.playerx_f=t.mpmultiplayerstart[t.tindex].x;
+					t.terrain.playery_f=t.mpmultiplayerstart[t.tindex].y;
+					t.terrain.playerz_f=t.mpmultiplayerstart[t.tindex].z;
+					t.terrain.playerax_f=0;
+					t.terrain.playeray_f=t.mpmultiplayerstart[t.tindex].angle;
+					t.terrain.playeraz_f=0;
+
+					g.mp.lastx=t.terrain.playerx_f;
+					g.mp.lasty=t.terrain.playery_f;
+					g.mp.lastz=t.terrain.playerz_f;
+					g.mp.lastangley=t.terrain.playeray_f;
+
+					t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
+					if (  t.tobj > 0 ) 
+					{
+						PositionObject (  t.tobj, t.terrain.playerx_f, t.terrain.playery_f-50, t.terrain.playerz_f );
+						RotateObject (  t.tobj, t.terrain.playerax_f, t.terrain.playeray_f, t.terrain.playeraz_f );
+					}
+				}
+
+				g.autoloadgun=0  ; gun_change ( );
+				g.mp.endplay = 0;
+				t.player[t.plrid].health = 0;
+				t.mp_health[g.mp.me] = 0;
+				physics_resetplayer_core ( );
+			break;
+			case MP_LUA_ServerEndPlay:
+					t.playercontrol.jetpackhidden=0;
+					t.playercontrol.jetpackmode=0;
+					physics_no_gun_zoom ( );
+					t.aisystem.processplayerlogic=0;
+					g.mp.endplay = 1;
+					g.autoloadgun=0 ; gun_change ( );
+			break;
+			case MP_LUA_AiGoToX:
+				t.tSteamX_f = t.v;
+			break;
+			case MP_LUA_AiGoToZ:
+				t.tSteamZ_f = t.v;
+				if (  t.e > 0 ) 
+				{
+					if (  ObjectExist(t.e)  ==  1 ) 
+					{
+						AISetEntityActive (  t.e,1 );
+						mp_COOP_aiMoveTo ( );
+					}
+				}
+				for ( t.tee = 1 ; t.tee<=  g.entityelementlist; t.tee++ )
+				{
+					if (  t.entityelement[t.tee].obj  ==  t.e ) 
+					{
+						t.entityelement[t.tee].mp_updateOn = 1;
+						t.entityelement[t.tee].active = 1;
+						break;
+					}
+				}
+			break;
+			case MP_LUA_setcharactertowalkrun:
+				entity_lua_setcharactertowalkrun ( );
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+					}
+				}
+			break;
+			case MP_LUA_CharacterControlManual:
+				entity_lua_charactercontrolmanual ( );
+				t.entityelement[t.e].mp_updateOn = 1;
+				t.entityelement[t.e].active = 1;
+			break;
+			case MP_LUA_CharacterControlLimbo:
+				entity_lua_charactercontrollimbo ( );
+				t.entityelement[t.e].mp_updateOn = 1;
+				t.entityelement[t.e].active = 1;
+			break;
+			case MP_LUA_CharacterControlArmed:
+				entity_lua_charactercontrolarmed ( );
+				t.entityelement[t.e].mp_updateOn = 1;
+				t.entityelement[t.e].active = 1;
+				AISetEntityActive (  t.entityelement[t.e].obj,1 );
+			break;
+			case MP_LUA_CharacterControlUnarmed:
+				entity_lua_charactercontrolunarmed ( );
+				t.entityelement[t.e].mp_updateOn = 1;
+				t.entityelement[t.e].active = 1;
+			break;
+			case MP_LUA_LookAtPlayer:
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						AISetEntityActive (  t.entityelement[t.e].obj,1 );
+						mp_entity_lua_lookatplayer ( );
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						t.entityelement[t.e].mp_rotateTimer = Timer();
+						t.entityelement[t.e].mp_rotateType = 1;
+					}
+				}
+			break;
+			case MP_LUA_TakenAggro:
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					AISetEntityActive (  t.entityelement[t.e].obj,1 );
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						t.entityelement[t.e].mp_coopControlledByPlayer = t.v;
+						t.entityelement[t.e].mp_coopLastTimeSwitchedTarget = Timer();
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						//  set them to run - not totally ideal for zombies (some walk) but okay for now
+						t.v = 1;
+						entity_lua_setcharactertowalkrun ( );
+					}
+				}
+			break;
+			case MP_LUA_HaveAggro:
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					AISetEntityActive (  t.entityelement[t.e].obj,1 );
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						t.entityelement[t.e].mp_coopControlledByPlayer = t.v;
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						//  set them to run - not totally ideal for zombies (some walk) but okay for now
+						t.v = 1;
+						entity_lua_setcharactertowalkrun ( );
+					}
+				}
+			break;
+			case MP_LUA_FireWeaponEffectOnly:
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						mp_entity_lua_fireweaponEffectOnly ( );
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						AISetEntityActive (  t.entityelement[t.e].obj,1 );
+					}
+				}
+			break;
+			case MP_LUA_RotateToPlayer:
+				if (  t.entityelement[t.e].obj > 0 ) 
+				{
+					if (  ObjectExist(t.entityelement[t.e].obj)  ==  1 ) 
+					{
+						mp_coop_rotatetoplayer ( );
+						t.entityelement[t.e].mp_updateOn = 1;
+						t.entityelement[t.e].active = 1;
+						t.entityelement[t.e].mp_rotateTimer = Timer();
+						t.entityelement[t.e].mp_rotateType = 2;
+						AISetEntityActive (  t.entityelement[t.e].obj,1 );
+					}
+				}
+			break;
+			case MP_LUA_SetAnimationFrames:
+				entity_lua_setanimationframes ( );
+			break;
+			case MP_LUA_AISetEntityControl:
+				AISetEntityControl (  t.e,t.v );
+			break;
+			case MP_LUA_AIMoveX:
+				t.tsteamPosX = t.v;
+			break;
+			case MP_LUA_AIMoveZ:
+				AISetEntityPosition (  t.e, t.tsteamPosX, BT_GetGroundHeight(t.terrain.TerrainID,t.tsteamPosX,t.v),t.v );
+			break;
+			case MP_LUA_SendAvatar:
+				t.tsteams_s = SteamGetLuaS();
+				t.mp_playerAvatars_s[t.e] = t.tsteams_s;
+			break;
+			case MP_LUA_SendAvatarName:
+				t.tsteams_s = SteamGetLuaS();
+				t.mp_playerAvatarOwners_s[t.e] = t.tsteams_s;
+			break;
+		}
+	
+		t.tLuaDontSendLua = 0;	
+		SteamGetNextLua ( );
+	}
+}
+#endif
 
 void mp_delete_entities ( void )
 {
@@ -1552,20 +1814,15 @@ void mp_pre_game_file_sync_client ( void )
 
 void mp_sendAvatarInfo ( void )
 {
-	//
-	// working on avatars now
-	//
-	return;
-
 	if ( g.mp.haveSentMyAvatar == 0 ) 
 	{
 		#ifdef PHOTONMP
-		 g.mp.me = PhotonGetMyPlayerIndex();
-		 if ( g.mp.me <= 0 ) g.mp.me = 0;
+		 g.mp.me = PhotonGetMyPlayerIndex() - 1;
+		 //if ( g.mp.me <= 0 ) g.mp.me = 0;
 		#else
 		 g.mp.me = SteamGetMyPlayerIndex();
 		#endif
-		if ( g.mp.isGameHost == 1 || g.mp.me != 0 ) 
+		if ( 1 ) //g.mp.isGameHost == 1 || g.mp.me != 0 ) 
 		{
 			g.mp.haveSentMyAvatar = 1;
 			#ifdef PHOTONMP
@@ -1578,7 +1835,7 @@ void mp_sendAvatarInfo ( void )
 			 SteamSendLuaString ( MP_LUA_SendAvatar, g.mp.me, g.mp.myAvatar_s.Get() );
 			#endif
 
-			//  store our own info for loading in our avatar
+			// store our own info for loading in our avatar
 			t.mp_playerAvatarOwners_s[g.mp.me] = pPlayerName;
 			t.mp_playerAvatars_s[g.mp.me] = g.mp.myAvatar_s;
 
@@ -1739,11 +1996,11 @@ void mp_updatePlayerPositions ( void )
 	{
 		// get server data
 		#ifdef PHOTONMP
-		 int iAlive = PhotonGetPlayerAlive(t.c);
-		 float fX = PhotonGetPlayerPositionX(t.c);
-		 float fY = PhotonGetPlayerPositionY(t.c);
-		 float fZ = PhotonGetPlayerPositionZ(t.c);
-		 float fAngle = PhotonGetPlayerAngle(t.c);
+		 int iAlive = PhotonGetPlayerAlive(1+t.c);
+		 float fX = PhotonGetPlayerPositionX(1+t.c);
+		 float fY = PhotonGetPlayerPositionY(1+t.c);
+		 float fZ = PhotonGetPlayerPositionZ(1+t.c);
+		 float fAngle = PhotonGetPlayerAngle(1+t.c);
 		#else
 		 int iAlive = SteamGetPlayerAlive(t.c);
 		 float fX = SteamGetPlayerPositionX(t.c);
@@ -1761,7 +2018,7 @@ void mp_updatePlayerPositions ( void )
 				t.y_f = fY;
 				t.z_f = fZ;
 				#ifdef PHOTONMP
-				 PhotonSetTweening ( t.c, 1 );
+				 PhotonSetTweening ( 1+t.c, 1 );
 				#else
 				 SteamSetTweening ( t.c, 1 );
 				#endif
@@ -1769,7 +2026,7 @@ void mp_updatePlayerPositions ( void )
 			else
 			{
 				#ifdef PHOTONMP
-				 PhotonSetTweening ( t.c, 0 );
+				 PhotonSetTweening ( 1+t.c, 0 );
 				#else
 				 SteamSetTweening ( t.c, 0 );
 				#endif
@@ -1860,7 +2117,7 @@ void mp_updatePlayerNamePlates ( void )
 				if ( t.c != g.mp.me ) 
 				{
 					#ifdef PHOTONMP
-						int iAlive = PhotonGetPlayerAlive(t.c);
+						int iAlive = PhotonGetPlayerAlive(1+t.c);
 						t.tname_s = "Player";//PhotonGetOtherPlayerName(t.c);
 					#else
 						int iAlive = SteamGetPlayerAlive(t.c);
@@ -4331,7 +4588,7 @@ void mp_NearOtherPlayers ( void )
 				if ( ObjectExist(t.tobj) ) 
 				{
 					#ifdef PHOTONMP
-						int iAlive = PhotonGetPlayerAlive(t.c);
+						int iAlive = PhotonGetPlayerAlive(1+t.c);
 					#else
 						int iAlive = SteamGetPlayerAlive(t.c);
 					#endif
@@ -4458,8 +4715,8 @@ void mp_gameLoop ( void )
 
 	// Find out which index we are
 	#ifdef PHOTONMP
-	 g.mp.me = PhotonGetMyPlayerIndex();
-	 if ( g.mp.me <= 0 ) g.mp.me = 0;
+	 g.mp.me = PhotonGetMyPlayerIndex() - 1;
+	 //if ( g.mp.me <= 0 ) g.mp.me = 0;
 	#else
 	 g.mp.me = SteamGetMyPlayerIndex();
 	#endif
@@ -4599,7 +4856,7 @@ void mp_gameLoop ( void )
 				if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].obj) ) 
 				{
 					#ifdef PHOTONMP
-					 int iAlive = PhotonGetPlayerAlive(t.a);
+					 int iAlive = PhotonGetPlayerAlive(1+t.a);
 					#else
 					 int iAlive = SteamGetPlayerAlive(t.a);
 					#endif
@@ -5231,36 +5488,24 @@ void mp_setMessageDots ( void )
 	//  takes tmsg$
 	g.mp.messageDots = t.tmsg_s;
 	g.mp.messageTimeDots = Timer();
-return;
-
 }
 
 void mp_message ( void )
 {
-	if (  g.mp.message  !=  "" ) 
+	if ( g.mp.message  !=  "" ) 
 	{
-//   `x = (GetDisplayWidth()/2) - (Text (  width(mp.message)/2) )
-
-//   `text x,200,mp.message
-
 		mp_text(-1,15,3,g.mp.message.Get());
-		if (  Timer() - g.mp.messageTime > MP_MESSAGE_TIMOUT ) 
+		if ( Timer() - g.mp.messageTime > MP_MESSAGE_TIMOUT ) 
 		{
 			g.mp.message = "";
 		}
 	}
-return;
-
 }
 
 void mp_messageDots ( void )
 {
 	if (  g.mp.messageDots  !=  "" ) 
 	{
-//   `x = (GetDisplayWidth()/2) - (Text (  width(mp.message)/2) )
-
-//   `text x,200,mp.message
-
 		mp_textDots(-1,15,3,g.mp.messageDots.Get());
 		if (  Timer() - g.mp.messageTimeDots > MP_MESSAGE_TIMOUT ) 
 		{
@@ -7544,11 +7789,6 @@ void mp_IKilledAnAI ( void )
 	t.mp_kills[g.mp.me+1] = t.mp_kills[g.mp.me+1] + 1;
 	SteamSendLua (  MP_LUA_ServerSetPlayerKills,g.mp.me+1,t.mp_kills[g.mp.me+1] );
 	t.tnothing = LuaExecute( cstr(cstr("mp_playerKills[") + Str(g.mp.me+1) + "] = " + Str(t.mp_kills[g.mp.me+1])).Get());
-return;
-
-// `////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 }
 
 void mp_text ( int x, int y, int size, char* txt_s )

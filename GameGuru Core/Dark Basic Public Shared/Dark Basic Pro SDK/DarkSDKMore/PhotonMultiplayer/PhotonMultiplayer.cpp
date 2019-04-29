@@ -676,7 +676,7 @@ void PhotonSetPlayerAlive ( int state )
 {
 	if ( g_pPhotonView )
 	{
-		alive[g_pLBL->muPlayerIndex] = state;
+		alive[g_pLBL->muPlayerIndex-1] = state;
 		MsgClientPlayerSetPlayerAlive_t msg;
 		msg.index = g_pLBL->muPlayerIndex;
 		msg.state = state;
@@ -689,7 +689,7 @@ int PhotonGetPlayerAlive ( int index )
 {
 	if ( g_pPhotonView )
 	{
-		return alive[index];
+		return alive[index-1];
 	}
 	return 0;
 }
@@ -748,7 +748,7 @@ float PhotonGetPlayerAngle ( int index )
 
 void PhotonSetTweening(int index , int flag)
 {
-	tweening[index] = flag;
+	tweening[index-1] = flag;
 }
 
 // LUA
@@ -781,15 +781,15 @@ void PhotonSendLua ( int code, int e, int v )
 					pmsg->code = code;
 					pmsg->e = e;
 					pmsg->v = v;
-					//pmsg->logID = packetSendLogClientID;
-					packetSendLogClient_t log;
+					pmsg->logID = 12345;//packetSendLogClientID;
+					//packetSendLogClient_t log;
 					//log.LogID = packetSendLogClientID++;
-					log.packetType = k_EMsgClientLua;
-					log.pPacket = pmsg;
-					log.timeStamp = GetCounterPassedTotal();
+					//log.packetType = k_EMsgClientLua;
+					//log.pPacket = pmsg;
+					//log.timeStamp = GetCounterPassedTotal();
 					//PacketSend_Log_Client.push_back(log);
 					//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, pmsg, sizeof(MsgClientLua_t), k_EP2PSendUnreliable );
-					g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLua_t), false );
+					g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLua_t), true );//false ); guarenteed photon
 				}
 				else
 				{
@@ -799,7 +799,7 @@ void PhotonSendLua ( int code, int e, int v )
 					msg.e = e;
 					msg.v = v;
 					//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientLua_t), k_EP2PSendUnreliable );
-					g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), false );
+					g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), true );//false ); guarenteed photon
 				}
 			}
 		}
@@ -819,15 +819,15 @@ void PhotonSendLuaString ( int code, int e, LPSTR s )
 			pmsg->code = code;
 			pmsg->e = e;
 			strcpy ( pmsg->s , s );
-			//pmsg->logID = packetSendLogClientID;
-			packetSendLogClient_t log;
+			pmsg->logID = 12345;//packetSendLogClientID;
+			//packetSendLogClient_t log;
 			//log.LogID = packetSendLogClientID++;
-			log.packetType = k_EMsgClientLuaString;
-			log.pPacket = pmsg;
-			log.timeStamp = GetCounterPassedTotal();
+			//log.packetType = k_EMsgClientLuaString;
+			//log.pPacket = pmsg;
+			//log.timeStamp = GetCounterPassedTotal();
 			//PacketSend_Log_Client.push_back(log);
 			//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, pmsg, sizeof(MsgClientLuaString_t), k_EP2PSendUnreliable );
-			g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLuaString_t), false );
+			g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLuaString_t), true );//false ); using guarenteed packets for Photon instead of 1 second receipt system used by Steam
 		}
 	}
 }

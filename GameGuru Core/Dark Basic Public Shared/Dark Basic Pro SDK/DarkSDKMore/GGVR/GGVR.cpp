@@ -297,6 +297,9 @@ void GGVR_Mat34toYPR(vr::HmdMatrix34_t *Mat, vr::HmdVector3_t *YPR, vr::HmdVecto
 // Generic
 int GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbsPathToDLL )
 {
+	// Debug flag can only be zero or one
+	if ( iDebuggingActive > 1 ) iDebuggingActive = 1;
+
 	// Assign VR System Mode to Use
 	g_iDebuggingActive = iDebuggingActive;
 	DebugGGVRlog ( NULL );

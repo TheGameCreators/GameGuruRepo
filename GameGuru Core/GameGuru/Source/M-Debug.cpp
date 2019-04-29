@@ -59,7 +59,7 @@ void backuptimestampactivity(void)
 {
 	// 091215 - to ensure old LOG files are preserved, make a copy of any existing LOG before write a new one
 	cstr file_s = "";
-	if ( g.gproducelogfiles == 1 )
+	if ( g.gproducelogfiles > 0 )
 	{
 		cstr logfile_s;
 		if ( g.gproducelogfilesdir_s.Len() > 0 )
@@ -87,7 +87,7 @@ void timestampactivity ( int i, char* desc_s )
 	cstr file_s =  "";
 	int smem = 0;
 	int mem = 0;
-	if ( g.gproducelogfiles == 1 ) 
+	if ( g.gproducelogfiles > 0 ) 
 	{
 		if ( i == 0 ) 
 		{

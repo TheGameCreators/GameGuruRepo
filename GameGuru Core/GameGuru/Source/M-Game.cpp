@@ -762,10 +762,14 @@ void game_masterroot ( int iUseVRTest )
 			strcpy ( t.luaglobal.scriptprompt3dtext, "" );
 			
 			//  Game cycle loop
-			timestampactivity(0,"main game loop begins");
+			if ( g.gproducelogfiles == 2 )
+				timestampactivity(0,"main game loop begins in deep debug trace mode");
+			else
+				timestampactivity(0,"main game loop begins");
 			while ( t.game.gameloop == 1 ) 
 			{
 				// gameloop winddown (for multiplayer server exit time)
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"winddown mp_closeconnection");
 				if ( t.game.gameloopwinddown == 1 )
 				{
 					if ( mp_closeconnection() == 1 )
@@ -776,6 +780,7 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				// detect if standalone is a foreground window
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"obtain plrhasfocus");
 				if ( t.game.gameisexe == 1 )
 				{
 					if ( g.gvrmode == 3 )
@@ -793,19 +798,12 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				// if controller active, also detect for START button press (same as ESCAPE)
-				/*
-				char pScan[40];
-				strcpy ( pScan, "012345678901234567890123456789012345" );
-				if ( g.gxbox > 0 )
-				{
-					for ( int iA = 0; iA <= 31; iA++ ) pScan[iA] = 48+JoystickFireXL(iA);
-					pScan[iA]=0;
-				}
-				*/
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"controller start button check");
 				bool bControllerEscape = false;
 				if ( g.gxbox > 0 && JoystickFireXL(9) == 1 ) bControllerEscape = true;
 
 				//  trigger options page or exit test level
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"escape button check");
 				if ( EscapeKey() == 1 || bControllerEscape == true ) 
 				{
 					t.tremembertimer=Timer();
@@ -859,8 +857,9 @@ void game_masterroot ( int iUseVRTest )
 					t.tMousemove_f = MouseMoveX() + MouseMoveY() + MouseZ(); t.tMousemove_f  = 0;
 				}
 
-				//  Fade in gamescreen (using post process shader)
-				if (  t.postprocessings.fadeinvalue_f<1.0 ) 
+				// Fade in gamescreen (using post process shader)
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"fade game screen logic");
+				if ( t.postprocessings.fadeinvalue_f<1.0 ) 
 				{
 					// Hide Lua Sprites
 					HideOrShowLUASprites ( true );
@@ -911,6 +910,9 @@ void game_masterroot ( int iUseVRTest )
 					}
 					t.postprocessings.fadeinvalueupdate=1;
 				}
+
+				// handle fading
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handle postprocess fading");
 				if (  t.postprocessings.fadeinvalueupdate == 1 ) 
 				{
 					t.postprocessings.fadeinvalueupdate=0;
@@ -926,6 +928,7 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				//  Immunity when respawn
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handle player immunity");
 				if (  t.huddamage.immunity>0 ) 
 				{
 					t.huddamage.immunity=t.huddamage.immunity-(10*g.timeelapsed_f);
@@ -933,9 +936,11 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				//  Run all game subroutines
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_main_loop");
 				game_main_loop ( );
 
 				//  Update screen
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_sync");
 				game_sync ( );
 
 			} //  Game cycle loop end
@@ -2109,19 +2114,23 @@ extern int NumberOfObjectsShown;
 void game_main_loop ( void )
 {	
 	//  Timer (  based movement )
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_timeelapsed");
 	game_timeelapsed ( );
 
 	//  Music processing
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling music_loop");
 	music_loop ( );
 
 	//  Character sound update
 	//  110315 - 019 - If spawning in, no sound for the player
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling character_sound_update");
 	if (  t.game.runasmultiplayer  ==  0 || g.mp.noplayermovement  ==  0 ) 
 	{
 		character_sound_update ( );
 	}
 
 	//  Trigger soundloops to be snapshot (when start level and at checkpoints)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_main_snapshotsoundloopcheckpoint");
 	if (  t.playercheckpoint.soundloopcheckpointcountdown>0 ) 
 	{
 		--t.playercheckpoint.soundloopcheckpointcountdown;
@@ -2132,6 +2141,7 @@ void game_main_loop ( void )
 	}
 
 	//  Force a shader update to ensure correct shadows are used at start
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling visuals_shaderlevels_update");
 	if (  t.visuals.refreshcountdown>0 ) 
 	{
 		--t.visuals.refreshcountdown;
@@ -2145,11 +2155,13 @@ void game_main_loop ( void )
 
 	// Testgame or Standalone
 	// 250316 - when level ends, suspend all logic (including more calls to JumpTolevel or in-game last minute AI stuff)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking levelendingcycle");
 	if ( t.game.levelendingcycle == 0 )
 	{
 		if ( (t.game.gameisexe == 0 || g.gprofileinstandalone == 1) && t.game.runasmultiplayer == 0 ) 
 		{
 			// Test Game Mode
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking lightmapper handler");
 			// Handle light-mapper key
 			if (  g.globals.ideinputmode == 1 ) 
 			{
@@ -2251,6 +2263,7 @@ void game_main_loop ( void )
 			}
 
 			//  Tab Mode (only when not mid-fpswarning)
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking tab key handler");
 			if (  t.plrkeySHIFT == 0 && t.plrkeySHIFT2 == 0  )  t.tkeystate15 = KeyState(g.keymap[15]); else t.tkeystate15 = 0;
 			if (  t.game.runasmultiplayer  ==  1  )  g.tabmode  =  0;
 			if (  t.conkit.editmodeactive == 1  )  g.tabmode = 0;
@@ -2311,6 +2324,7 @@ void game_main_loop ( void )
 		t.game.perf.resttosync += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 		//  Control slider menus (based on tab page)
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_loop");
 		sliders_loop ( );
 
 		//  Lighting control
@@ -2319,15 +2333,19 @@ void game_main_loop ( void )
 		//  Flak control
 
 		//  update all projectiles
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling weapon_projectile_loop");
 		weapon_projectile_loop ( );
 
 		//  update all particles and emitters
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ravey_particles_update");
 		ravey_particles_update ( );
 
 		//  Decal control
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling decalelement_control");
 		decalelement_control ( );
 
 		//  Prompt
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking prompts");
 		if (  t.sky.currenthour_f<1.0 || t.sky.currenthour_f >= 13.0 ) 
 		{
 			t.pm=int(t.sky.currenthour_f);
@@ -2344,6 +2362,7 @@ void game_main_loop ( void )
 		//  any terrain actions
 		if (  t.hardwareinfoglobals.noterrain == 0 ) 
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_loop");
 			terrain_loop ( );
 		}
 
@@ -2351,9 +2370,11 @@ void game_main_loop ( void )
 		if (  t.hardwareinfoglobals.nophysics == 0 ) 
 		{
 			// Handle physics
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_loop");
 			physics_loop ( );
 
 			// read all slider values for player
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_readall");
 			t.slidersmenuindex=t.slidersmenunames.player; sliders_readall ( );
 
 			//  Do weapon attachments AFTER physics moved objects (and if char killed off)
@@ -2374,16 +2395,19 @@ void game_main_loop ( void )
 				t.e=t.playercontrol.thirdperson.charactere;
 				if (  t.e>0 && t.player[1].health>0 ) 
 				{
+					if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling entity_controlattachments");
 					entity_controlattachments ( );
 				}
 			}
 
 			//  Construction Kit control
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling conkit_loop");
 			conkit_loop ( );
 		}
 		t.game.perf.physics += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 		// In-Game Mode (moved from above so LUA is AFTER physics)
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking in-game edit mode");
 		if ( t.conkit.editmodeactive == 0 ) 
 		{
 			// if third person, trick AI by moving camera to protagonist location
@@ -2446,6 +2470,7 @@ void game_main_loop ( void )
 		//  Gun control
 		if ( t.hardwareinfoglobals.noguns == 0 ) 
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling gun_manager");
 			gun_manager ( );
 			t.slidersmenuindex=t.slidersmenunames.weapon ; sliders_readall ( );
 		}
@@ -2455,10 +2480,12 @@ void game_main_loop ( void )
 	//  Steam call moved here as camera changes need to be BEFORE the shadow update
 	if (  t.game.runasmultiplayer == 1 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling mp_gameLoop");
 		mp_gameLoop ( );
 	}
 
 	//  if we have character creator stuff in, we setup the characters
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling characterkit_updateCharacters");
 	if ( t.characterkitcontrol.gameHasCharacterCreatorIn == 1 ) characterkit_updateCharacters ( );
 
 	// Handle veg engine, terrain shadow, sky and water
@@ -2481,6 +2508,7 @@ void game_main_loop ( void )
 		static bool terrainvegdelay = true;
 		if ( terrainvegdelay = !terrainvegdelay )
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_fastveg_loop");
 			terrain_fastveg_loop ( );
 			t.game.perf.terrain1 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 		}
@@ -2492,6 +2520,7 @@ void game_main_loop ( void )
 		// 250419 - and default MEDIUM has flicker on lower-end PCs, so bite bullet and allow full shadow rendering (no delay) for medium too
 		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.visuals.shaderlevels.entities==2 || t.playercontrol.thirdperson.enabled != 0 )
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
 			terrainshadowdelay = 0;
 			terrain_shadowupdate ( );
 			t.game.perf.terrain2 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
@@ -2505,21 +2534,25 @@ void game_main_loop ( void )
 	{
 		if ( ++terrainshadowdelay >= 3 )
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
 			terrainshadowdelay = 0;
 			terrain_shadowupdate ( );
 		}
 	}
 	if (  t.hardwareinfoglobals.nosky == 0 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_sky_loop");
 		terrain_sky_loop ( );
 	}
 	if (  t.hardwareinfoglobals.nowater == 0 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_water_loop");
 		terrain_water_loop ( );
 	}
 	t.game.perf.terrain3 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 	//  Game Debug Prompts
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"assembling debug prompts");
 	if (  t.aisystem.showprompts == 1 ) 
 	{
 		pastebitmapfont("DEBUG PROMPTS",8,20,1,255) ; t.i=1;
@@ -2550,6 +2583,7 @@ void game_main_loop ( void )
 		{
 			// detect velocity of XZ motion of player and advance 'virtual camera' ahead of real camera
 			// in order to give occluder time to reveal visible objects in advance of getting there
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking occlusionp");
 			float plrx = CameraPositionX(0);
 			float plrz = CameraPositionZ(0);
 			g_fOccluderCamVelX = plrx - g_fOccluderLastCamX;
@@ -2591,41 +2625,51 @@ void game_main_loop ( void )
 	// Final post processing step
 
 	// Render pre-terrain post process cameras (includes lightray rendering)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling postprocess_preterrain");
 	postprocess_preterrain ( );
 
 	// Render terrain if flagged
 	if ( t.hardwareinfoglobals.noterrain == 0 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_update");
 		terrain_update ( );
 	}
 
 	//  explosions and fire
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling draw_particles");
 	draw_debris();
 	draw_particles();
 
 	//  handle fade out for level progression
 	if (  t.game.levelendingcycle > 0 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_end_of_level_check");
 		game_end_of_level_check ( );
 	}
 
 	//  Post process and visual settings system
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling postprocess_apply");
 	postprocess_apply ( );
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling visuals_loop");
 	visuals_loop ( );
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling lighting_loop");
 	lighting_loop ( );
 	t.game.perf.postprocessing += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 	// Check for player guns switched off
 	if ( g.noPlayerGuns )
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_no_gun_zoom");
 		physics_no_gun_zoom ( );
 		if ( g.autoloadgun != 0 ) { g.autoloadgun=0 ; gun_change ( ); }
 	}
 
 	//  Update HUD Layer objects (jetpack)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling hud_updatehudlayerobjects");
 	hud_updatehudlayerobjects ( );
 
 	//  Call this at end of game loop to ensure character objects sufficiently overridden
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling darkai_finalsettingofcharacterobjects");
 	darkai_finalsettingofcharacterobjects ( );
 }
 
@@ -2661,30 +2705,21 @@ extern float smallDistanceMulti;
 
 void game_sync ( void )
 {
-	// Some test stuff, can be removed
-	/*SetCursor ( 0 , 0 );
-	Print ( t.guncollectedcount );
-	Print ( smallDistanceMulti );
-	Print ( cstr(cstr("howManyOccluders = ") + cstr(howManyOccluders)).Get() );
-	Print ( cstr(cstr("howManyOccludersDrawn = ") + cstr(howManyOccludersDrawn)).Get() );
-	Print ( cstr(cstr("howManyOccludees = ") + cstr(howManyOccludees)).Get() );
-	Print ( cstr(cstr("howManyOccludeesHidden = ") + cstr(howManyOccludeesHidden)).Get() );
-	Print ( cstr(cstr("Entity Count = ") + cstr(g.entityelementlist)).Get() );
-	Print ( cstr(cstr("Entity Draw vs hidden = ") + cstr((g.entityelementlist - howManyMarkers ) - howManyOccludeesHidden)).Get() );*/
-	//Print ( cstr(cstr("Tracking = ") + cstr(trackingSize)).Get() );
 	//  Work out overall time spent per cycle
 	t.game.perf.overall += PerformanceTimer()-g.gameperfoveralltimestamp ; g.gameperfoveralltimestamp=PerformanceTimer();
 
-	//  Handle VR main camera render swap
-
 	//  HUD Damage Display
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling controlblood");
 	controlblood();
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling controldamagemarker");
 	controldamagemarker();
 
 	//  Slider menus rendered last
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_draw");
 	sliders_draw ( );
 
 	//  Detect if FPS drops (only for single player - never for MP games)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking show hide mouse");
 	if (  t.game.runasmultiplayer == 0 && g.globals.hidelowfpswarning == 0 && g.tabmode == 0 && g.ghardwareinfomode == 0 && t.visuals.generalpromptstatetimer == 0 ) 
 	{
 		if ( t.conkit.cooldown>0 )  
@@ -2720,35 +2755,33 @@ void game_sync ( void )
 
 	//  Only render main and postprocess camera (not paint camera, reflection or lightray cameras)
 	//  for globals.riftmode, left and right eyes are rendered in the _postprocess_preterrain step
-//  `if t.conkit.editmodeactive=1
-
-	//tmastersyncmask=%0000+(1<<terrain.paintcameraindex)
-//  `else
-
-		t.tmastersyncmask=0;
-//  `endif
-
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"applying sync mask");
+	t.tmastersyncmask=0;
 	SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
 
 	//  Update RealSense if any
 	///realsense_loop ( );
 
 	// show the KeyState
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling debug_fulldebugview");
 	if ( g.globals.fulldebugview == 1 ) debug_fulldebugview ( );
 
 	//  Update screen
 	//g.gameperftimestamp=PerformanceTimer();
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sync");
 	Sync (  );
-
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_dynamicRes");
 	game_dynamicRes();
 
 	//Dave Performance - let the occluder thread know it is okay to begin
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling CPU3DOcclude");
 	CPU3DOcclude (  );
 	if ( g_hOccluderBegin ) SetEvent ( g_hOccluderBegin );
 
 	t.game.perf.synctime += (PerformanceTimer()-g.gameperftimestamp) ; g.gameperftimestamp=PerformanceTimer();
 
 	//  collect main Sync (  statistics )
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking statistics");
 	t.mainstatistic1=GetStatistic(1);
 	t.mainstatistic5=GetStatistic(5);
 
@@ -2765,6 +2798,7 @@ void game_sync ( void )
 	}
 
 	//  Screen shot feature (redundant on Steam)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handling screenshot taking");
 	if (  KeyState(g.keymap[68]) == 0  )  t.game.takingsnapshotpress = 0;
 	if (  KeyState(g.keymap[68]) == 1 && t.game.takingsnapshotpress == 0 ) 
 	{
@@ -2790,6 +2824,7 @@ void game_sync ( void )
 	}
 
 	//  Work out performance metrics
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_readall");
 	t.slidersmenuindex=t.slidersmenunames.performance  ; sliders_readall ( );
 }
 
