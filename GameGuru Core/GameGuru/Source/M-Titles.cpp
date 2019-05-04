@@ -650,6 +650,8 @@ void titles_steampage ( void )
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y1=(GetDisplayHeight()-350.0*t.tva_f)-t.timghig;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y2=(GetDisplayHeight()-350.0*t.tva_f)+t.timghig;
+
+	// BACK
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
@@ -660,8 +662,19 @@ void titles_steampage ( void )
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y1=(GetDisplayHeight()-300.0*t.tva_f)-t.timghig;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y2=(GetDisplayHeight()-300.0*t.tva_f)+t.timghig;
 
+	// Add TEACHER CODE button (for extra functionalities; such as viewing ALL games across VRQ server)
+	++g.titlesbuttonmax;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="ENTER TEACHER CODE";
+	t.timgwid=200 ; t.timghig=16;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y1=(GetDisplayHeight()-200.0*t.tva_f)-t.timghig;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y2=(GetDisplayHeight()-200.0*t.tva_f)+t.timghig;
+
 	// add another button if the user has character creator entities made
-	if ( CharacterKitCheckForUserMade()  ==  1 ) 
+	if ( CharacterKitCheckForUserMade() == 1 ) 
 	{
 		++g.titlesbuttonmax;
 		t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
@@ -1491,19 +1504,21 @@ void titles_base ( void )
 			}
 		}
 
-		//  Controls
+		// Controls
 		t.tescapepress=0;
-		if (  t.mc == 1 && t.mcselected == 0  )  t.mcselected = 1;
-		if (  t.mc == 0 && t.mcselected == 1  )  t.mcselected = 2;
-		if (  EscapeKey() == 1 ) 
+		if ( t.mc == 1 && t.mcselected == 0  )  t.mcselected = 1;
+		if ( t.mc == 0 && t.mcselected == 1  )  t.mcselected = 2;
+		if ( EscapeKey() == 1 ) 
 		{
 			while ( EscapeKey() != 0 ) {}
 			t.mcselected=2 ; t.tescapepress=1;
+			t.ttitlesbuttonhighlight = 0;
 		}
-		if (  t.mcselected == 2 ) 
+		if ( t.mcselected == 2 ) 
 		{
 			t.mcselected=0;
-			//  TITLE PAGE
+
+			// TITLE PAGE
 			t.titlespagetousehere=t.titlespage;
 			if (  t.titlespagetousehere == 1 ) 
 			{
@@ -1604,8 +1619,87 @@ void titles_base ( void )
 				}
 				if (  t.ttitlesbuttonhighlight == 4 ) 
 				{
+					// enter Teacher Code
+					bool bCodeValid = false;
+					int iGotCode = 0;
+					ClearEntryBuffer();
+					char pCursor[32];
+					strcpy ( pCursor, "|" );
+					DWORD dwTimeFlash = Timer() + 500;
+					while ( iGotCode == 0 )
+					{
+						// clear screen
+						CLS ( 0 );
+
+						// title and instructions for entry system
+						pastebitmapfontcenter("TEACHER CODE ENTRY",GetDisplayWidth()/2,50,1,255);
+						pastebitmapfontcenter("Type out the 'Teacher Code' provided by your Admin",GetDisplayWidth()/2,GetDisplayHeight()-150,1,255);
+						pastebitmapfontcenter("to view all VR Quest games across the server",GetDisplayWidth()/2,GetDisplayHeight()-100,1,255);
+
+						// entry string
+						LPSTR pEntryString = Entry(0);
+						cstr pFullDisplay = cstr(pEntryString) + pCursor;
+						pastebitmapfontcenter(pFullDisplay.Get(),GetDisplayWidth()/2,GetDisplayHeight()/2,1,255);
+						if ( ReturnKey() == 1 )
+						{
+							iGotCode = 1;
+							LPSTR pValidTeacherCode = "12345";
+							if ( strnicmp ( pEntryString, pValidTeacherCode, strlen(pValidTeacherCode) ) == NULL )
+								bCodeValid = true;
+						}
+						if ( EscapeKey() == 1 )
+						{
+							iGotCode = 2;
+							t.mcselected = 0;
+						}
+
+						// Flash cursor
+						if ( Timer() > dwTimeFlash )
+						{
+							dwTimeFlash = Timer() + 500;
+							if ( strcmp ( pCursor, "|" ) == NULL )
+								strcpy ( pCursor, " " );
+							else
+								strcpy ( pCursor, "|" );
+						}
+
+						// Update screen
+						Sync();
+					}
+
+					// if escaped, ignore all we did
+					if ( iGotCode != 2 )
+					{
+						// write special file to activate teacher mode
+						if ( bCodeValid == true )
+						{
+							// teacher mode on
+							if ( FileOpen(1) ) CloseFile ( 1 );
+							OpenToWrite ( 1, cstr(g.fpscrootdir_s + "\\teacherviewallmode.dat").Get() );
+							WriteString ( 1, Str(1) );
+							CloseFile ( 1 );
+						}
+						else
+						{
+							// teacher mode off
+							LPSTR pTeacherViewAllFile = cstr(g.fpscrootdir_s + "\\teacherviewallmode.dat").Get();
+							if ( FileExist ( pTeacherViewAllFile ) ) DeleteFile ( pTeacherViewAllFile );
+						}
+
+						// reset multiplayer system and force a full init (to setup new server state)
+						mp_restartMultiplayerSystem();
+						mp_backToStart ( );
+						t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+					}
+				}
+				if (  t.ttitlesbuttonhighlight == 5 ) 
+				{
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					characterkit_chooseOnlineAvatar ( );
+					// reset multiplayer system and force a full init (to setup new server state)
+					mp_restartMultiplayerSystem();
+					mp_backToStart ( );
+					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 			}
 

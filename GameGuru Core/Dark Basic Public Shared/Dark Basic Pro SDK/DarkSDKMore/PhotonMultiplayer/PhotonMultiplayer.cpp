@@ -37,8 +37,8 @@ bool OnlineMultiplayerModeForSharingFiles = false;
 #define KEYUP(vk_code)   ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
 CSteamID lobbyIAmInID;
 int scores[MAX_PLAYERS_PER_SERVER];
-int keystate[MAX_PLAYERS_PER_SERVER][256];
 */
+int keystate[MAX_PLAYERS_PER_SERVER][256];
 int alive[MAX_PLAYERS_PER_SERVER];
 /*
 tbullet bullets[180];
@@ -57,9 +57,9 @@ int killedZ[MAX_PLAYERS_PER_SERVER];
 int killedForce[MAX_PLAYERS_PER_SERVER];
 int killedLimb[MAX_PLAYERS_PER_SERVER];
 CSteamID playerSteamIDs[MAX_PLAYERS_PER_SERVER];
+*/
 int playerAppearance[MAX_PLAYERS_PER_SERVER];
 int playerShoot[MAX_PLAYERS_PER_SERVER];
-*/
 int tweening[MAX_PLAYERS_PER_SERVER];
 /*
 char workshopItemName[256];
@@ -93,7 +93,9 @@ std::vector <int> deleteListSource;
 std::vector <int> destroyList;
 std::vector <tMessage> messageList;
 std::vector <tCollision> collisionList;
+*/
 std::vector <tAnimation> animationList;
+/*
 std::vector <tChat> chatList;
 std::vector <uint32> lobbyChatIDs;
 int ServerHowManyToStart = 0;
@@ -142,12 +144,12 @@ int currentDeleteObject;
 int currentDeleteObjectSource;
 int currentDestroyObject;
 tCollision currentCollisionObject;
-tAnimation currentAnimationObject;
 */
+tAnimation currentAnimationObject;
 
 // photon core commands
 
-int PhotonInit(LPSTR pRootPath)
+int PhotonInit(LPSTR pRootPath,LPSTR pSiteName,LPSTR pAvatarName,bool bViewAllMode)
 {
 	// create photon classes
 	g_pPhotonView = new PhotonView();
@@ -164,8 +166,26 @@ int PhotonInit(LPSTR pRootPath)
 	g_pLBL->setLBC(g_pLBC);
 	g_pLBC->setTrafficStatsEnabled(true);
 
+	// store site name for later room creation
+	g_pPhotonView->SetSiteName ( pSiteName );
+
+	// set teacher view all mode
+	g_pPhotonView->SetTeacherViewAllMode ( bViewAllMode );
+
+	// construct player name from custom-name & uniqueid
+	char pUniquePlayerName[1024];
+	if ( strlen ( pAvatarName ) > 0 )
+	{
+		strcpy ( pUniquePlayerName, pAvatarName );
+		strcat ( pUniquePlayerName, ":" );
+	}
+	else
+	{
+		sprintf ( pUniquePlayerName, "PLR%5d:", GETTIMEMS() );
+	}
+
 	// connect player to game room
-	g_sPlayerName = JString(L"PLR")+GETTIMEMS();
+	g_sPlayerName = JString(pUniquePlayerName)+GETTIMEMS();
 	g_pLBL->connect(g_sPlayerName);
 
 	// inits - after much tracing through this old code, it has too many Steam specific hooks
@@ -257,6 +277,23 @@ int PhotonCloseConnection()
 		return 0;
 }
 
+LPSTR PhotonGetSiteName()
+{
+	if ( g_pPhotonView )
+	{
+		return g_pPhotonView->GetSiteName();
+	}
+	return NULL;
+}
+
+int PhotonGetViewAllMode()
+{
+	if ( g_pPhotonView )
+		if ( g_pPhotonView->IsTeacherViewAllMode() == true )
+			return 1;
+	return 0;
+}
+
 bool PhotonPlayerLeaving()
 {
 	if ( g_pPhotonView->iTriggerLeaveMode > 0 )
@@ -307,20 +344,24 @@ void PhotonResetGameStats()
 	serverActive = false;
 	IsWorkshopLoadingOn = 0;
 	ServerIsShuttingDown = 0;
+	*/
 
-	char fileToDelete[MAX_PATH];
+	//char fileToDelete[MAX_PATH];
 	for ( int c = 0; c < MAX_PLAYERS_PER_SERVER ; c++ )
 	{
+		/*
 		scores[c] = 0;
-		for ( int k = 0 ; k < 256 ; k++ ) keystate[c][k];
 		alive[c] = 1;
+		*/
+		for ( int k = 0 ; k < 256 ; k++ ) keystate[c][k];
 		playerAppearance[c] = 0;
+		playerShoot[c] = 0;
+		tweening[c] = 1;
 
+		/*
 		serverClientsFileSynced[c] = 0;
 		serverClientsLoadedAndReady[c] = 0;
 		serverClientsReadyToPlay[c] = 0;
-		playerShoot[c] = 0;
-		tweening[c] = 1;
 		HowManyPlayersDoWeHave = 0;
 
 		avatarFile[c] = NULL;
@@ -332,8 +373,10 @@ void PhotonResetGameStats()
 
 		sprintf ( fileToDelete, "%sentitybank\\user\\charactercreator\\customAvatar_%i.fpe" , steamRootPath , c );
 		DeleteFile ( fileToDelete );
+		*/
 	}
 
+	/*
 	for ( int i = 0 ; i < 179 ; i++ )
 	{
 		bullets[i].on = 0;
@@ -357,6 +400,20 @@ void PhotonResetGameStats()
 	ServerHowManyToStart = 0;
 	*/
 	g_pLBL->CloseFileNow();
+
+	/*
+	spawnList.clear();
+	luaList.clear();
+	deleteList.clear();
+	deleteListSource.clear();
+	collisionList.clear();
+	*/
+	animationList.clear();
+	/*
+	deleteList.clear();
+	deleteListSource.clear();
+	destroyList.clear();
+	*/
 }
 
 // photon creating/listing lobby/gamerooms
@@ -395,7 +452,9 @@ LPSTR PhotonGetLobbyListName( int index )
 
 void PhotonSetLobbyName( LPSTR name )
 {
-	strcpy ( hostsLobbyName, name );
+	strcpy ( hostsLobbyName, g_pPhotonView->GetSiteName() );
+	strcat ( hostsLobbyName, ":" );
+	strcat ( hostsLobbyName, name );
 }
 
 void PhotonCreateLobby()
@@ -461,6 +520,26 @@ LPSTR PhotonGetLobbyUserName ( int index )
 		{
 			return g_pPhotonView->GetPlayerName ( index );
 		}
+	}
+	return NULL; 
+}
+
+LPSTR PhotonGetLobbyUserDisplayName ( int index ) 
+{ 
+	if ( g_pPhotonView )
+	{
+		LPSTR pFullPlayerNameWithUniqueCode = PhotonGetLobbyUserName ( index );
+		char pDisplayName[1024];
+		strcpy ( pDisplayName, pFullPlayerNameWithUniqueCode );
+		for ( int n = 0; n < strlen(pDisplayName); n++ )
+		{
+			if ( pDisplayName[n] == ':' ) 
+			{
+				pDisplayName[n] = 0;
+				break;
+			}
+		}
+		return pDisplayName;
 	}
 	return NULL; 
 }
@@ -746,10 +825,127 @@ float PhotonGetPlayerAngle ( int index )
 	return 0;
 }
 
+void PhotonSetKeyState ( int key , int state )
+{
+	if ( g_pPhotonView )
+	{
+		keystate[g_pLBL->muPlayerIndex-1][key] = state;
+		MsgClientPlayerKeyState_t msg;
+		msg.index = g_pLBL->muPlayerIndex;
+		msg.key = key;
+		msg.state = state;
+		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerKeyState_t), k_EP2PSendUnreliable );
+		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerKeyState_t), false );
+	}
+}
+
+int PhotonGetKeyState ( int index, int key )
+{
+	if ( g_pPhotonView )
+	{
+		return keystate[index-1][key];
+	}
+	return 0;
+}
+
+
+void PhotonPlayAnimation ( int index, int start, int end, int speed )
+{
+	if ( g_pPhotonView )
+	{
+		MsgClientPlayAnimation_t msg;
+		msg.playerIndex =g_pLBL->muPlayerIndex;
+		msg.index = index;
+		msg.start = start;
+		msg.end = end;
+		msg.speed = speed;
+		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayAnimation_t), k_EP2PSendReliable );
+		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayAnimation_t), false );
+	}
+}
+
+int PhotonGetAnimationList()
+{
+	if ( animationList.size() > 0 )
+	{
+		currentAnimationObject.index = animationList.back().index;
+		currentAnimationObject.start = animationList.back().start;
+		currentAnimationObject.end = animationList.back().end;
+		currentAnimationObject.speed = animationList.back().speed;
+		return 1;
+	}
+	return 0;
+}
+
+void PhotonGetNextAnimation()
+{
+	if ( animationList.size() > 0 )
+		animationList.pop_back();
+}
+
+int PhotonGetAnimationIndex()
+{
+	return currentAnimationObject.index;
+}
+
+int PhotonGetAnimationStart()
+{
+	return currentAnimationObject.start;
+}
+
+int PhotonGetAnimationEnd()
+{
+	return currentAnimationObject.end;
+}
+
+int PhotonGetAnimationSpeed()
+{
+	return currentAnimationObject.speed;
+}
+
 void PhotonSetTweening(int index , int flag)
 {
 	tweening[index-1] = flag;
 }
+
+void PhotonShoot ( void )
+{
+	if ( g_pPhotonView )
+	{
+		//MsgClientShoot_t msg;
+		//msg.index = m_uPlayerIndex;
+		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientShoot_t), k_EP2PSendUnreliable );
+	}
+}
+
+int PhotonGetShoot ( int index )
+{
+	int result = playerShoot[index-1];
+	playerShoot[index-1] = 0;
+	return result;
+}
+
+void PhotonSetPlayerAppearance( int a )
+{
+	if ( g_pPhotonView )
+	{
+		playerAppearance[g_pLBL->muPlayerIndex-1] = a;
+		MsgClientPlayerAppearance_t msg;
+		msg.index = g_pLBL->muPlayerIndex;
+		msg.appearance = a;
+		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerAppearance_t), k_EP2PSendUnreliable );
+		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerAppearance_t), false );
+	}
+}
+
+int PhotonGetPlayerAppearance( int index )
+{
+	if ( g_pPhotonView )
+		return playerAppearance[index-1];
+	else
+		return 0;
+}
+
 
 // LUA
 

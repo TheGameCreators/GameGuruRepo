@@ -69,18 +69,15 @@ void CClient::Init ( )//LoadBalancingListener* mpLbl )
 		m_SteamIDLocalUser = SteamUser()->GetSteamID();
 		m_eGameState = k_EClientGameMenu;
 	}
-
 	spawnList.clear();
 	luaList.clear();
 	deleteList.clear();
 	deleteListSource.clear();
 	collisionList.clear();
 	animationList.clear();
-
 	deleteList.clear();
 	deleteListSource.clear();
 	destroyList.clear();
-
 	m_gotPlayerInfoFromServer = false;
 	m_bLastControllerStateInMenu = false;
 	g_pClient = this;

@@ -1377,18 +1377,23 @@ void mapfile_savestandalone ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
-	for ( int iCritDLLs = 1; iCritDLLs <= 7; iCritDLLs++ )
+	#ifdef PHOTONMP
+	 int iSkipSteamFilesIfPhoton = 5;
+	#else
+	 int iSkipSteamFilesIfPhoton = 7;
+	#endif
+	for ( int iCritDLLs = 1; iCritDLLs <= iSkipSteamFilesIfPhoton; iCritDLLs++ )
 	{
 		LPSTR pCritDLLFilename = "";
 		switch ( iCritDLLs )
 		{
-			case 1 : pCritDLLFilename = "steam_api.dll"; break;
-			case 2 : pCritDLLFilename = "sdkencryptedappticket.dll"; break;
-			case 3 : pCritDLLFilename = "avcodec-57.dll"; break;
-			case 4 : pCritDLLFilename = "avformat-57.dll"; break;
-			case 5 : pCritDLLFilename = "avutil-55.dll"; break;
-			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
-			case 7 : pCritDLLFilename = "GGWMR.dll"; break;
+			case 1 : pCritDLLFilename = "avcodec-57.dll"; break;
+			case 2 : pCritDLLFilename = "avformat-57.dll"; break;
+			case 3 : pCritDLLFilename = "avutil-55.dll"; break;
+			case 4 : pCritDLLFilename = "swresample-2.dll"; break;
+			case 5 : pCritDLLFilename = "GGWMR.dll"; break;
+			case 6 : pCritDLLFilename = "steam_api.dll"; break;
+			case 7 : pCritDLLFilename = "sdkencryptedappticket.dll"; break;
 		}
 		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
@@ -1396,9 +1401,13 @@ void mapfile_savestandalone ( void )
 	}
 
 	// Copy steam files (see above)
-	t.dest_s=t.exepath_s+t.exename_s+"\\steam_appid.txt";
-	if ( FileExist(t.dest_s.Get()) == 1  ) DeleteAFile (  t.dest_s.Get() );
-	if ( FileExist("steam_appid.txt") == 1  ) CopyAFile ( "steam_appid.txt",t.dest_s.Get() );
+	#ifdef PHOTONMP
+	 // No Steam in Photon build
+	#else
+	 t.dest_s=t.exepath_s+t.exename_s+"\\steam_appid.txt";
+	 if ( FileExist(t.dest_s.Get()) == 1  ) DeleteAFile (  t.dest_s.Get() );
+	 if ( FileExist("steam_appid.txt") == 1  ) CopyAFile ( "steam_appid.txt",t.dest_s.Get() );
+	#endif
 
 	//  Copy visuals settings file
 	t.visuals=t.gamevisuals ; visuals_save ( );

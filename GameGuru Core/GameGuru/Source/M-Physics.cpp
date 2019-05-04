@@ -886,15 +886,18 @@ void physics_resumephysics ( void )
 void physics_loop ( void )
 {
 	//  Player control
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player");
 	physics_player ( );
 
 	//  Update physics system
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling timeGetSecond");
 	t.tphysicsadvance_f = timeGetSecond() - t.machineindependentphysicsupdate;
 	if (  t.tphysicsadvance_f >= (1.0/120.0) ) 
 	{
 		//  only process physics once we reach the minimum substep constant
 		if ( t.tphysicsadvance_f>0.05f ) t.tphysicsadvance_f = 0.05f;
 		t.machineindependentphysicsupdate = timeGetSecond();
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ODEUpdate");
 		ODEUpdate ( t.tphysicsadvance_f );
 	}
 }
@@ -1253,24 +1256,30 @@ return;
 int physics_player_listener_delay = 0;
 void physics_player ( void )
 {
-	if ( t.game.runasmultiplayer ==  0 || g.mp.noplayermovement == 0 ) 
+	if ( t.game.runasmultiplayer == 0 || g.mp.noplayermovement == 0 ) 
 	{
 		if ( t.aisystem.processplayerlogic == 1 ) 
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_gatherkeycontrols");
 			physics_player_gatherkeycontrols ( );
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_control");
 			physics_player_control ( );
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling gun_update_hud");
 			gun_update_hud ( );
 			if ( ++physics_player_listener_delay > 3 )
 			{
 				physics_player_listener_delay = 0;
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_listener");
 				physics_player_listener ( );
 			}
 		}
 		else
 		{
 			// prevent player physics movement
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ODEControlDynamicCharacterController");
 			ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, 0, 0, 0, 0, t.aisystem.playerducking, 0, 0, 0 );
 		}
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_handledeath");
 		physics_player_handledeath ( );
 	}
 }
@@ -1357,6 +1366,7 @@ void physics_player_gatherkeycontrols ( void )
 	}
 
 	// XBOX/Controller Keys
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking XBOX/Controller Keys");
 	if ( g.gxbox == 1 ) 
 	{
 		if ( JoystickFireC() == 1 ) 
@@ -1406,14 +1416,33 @@ void physics_player_gatherkeycontrols ( void )
 	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 	{
 		// Intialize the player to the start position and rotation and setup the GGVR Player Object
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking VR controllers");
 		if (g.vrglobals.GGVRInitialized == 0)
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_SetPlayerPosition");
 			GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_SetPlayerRotation");
 			GGVR_SetPlayerRotation(0, CameraAngleY(t.terrain.gameplaycamera), 0);
-			GGVR_UpdatePlayer(false,t.terrain.TerrainID);
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_UpdatePlayer(false,terrainID)");
+			if ( g.gproducelogfiles == 2 ) 
+			{
+				char pWhatIsPath[1024];
+				GetCurrentDirectoryA ( 1024, pWhatIsPath );
+				timestampactivity(0,pWhatIsPath);
+			}
+			try
+			{
+				GGVR_UpdatePlayer(false,t.terrain.TerrainID);
+			}
+			catch(...)
+			{
+				timestampactivity(0,"try catch failed when calling GGVR_UpdatePlayer");
+			}
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"getting GGVR_GetHMDOffsets");
 			g.vrglobals.GGVR_Old_XposOffset = GGVR_GetHMDOffsetX();
 			g.vrglobals.GGVR_Old_ZposOffset = GGVR_GetHMDOffsetZ();
 			g.vrglobals.GGVR_Old_Yangle = GGVR_GetPlayerAngleY();
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"g.vrglobals.GGVRInitialized");
 			g.vrglobals.GGVRInitialized = 1;
 		}
 		if (g.walkonkeys == 1)

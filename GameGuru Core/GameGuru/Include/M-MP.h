@@ -5,6 +5,7 @@
 #include "cstr.h"
 
 void mp_init ( void );
+void mp_fullinit ( void );
 void mp_loop ( void );
 void mp_free ( void );
 void mp_checkVoiceChat ( void );
@@ -21,6 +22,7 @@ void mp_updatePlayerPositions ( void );
 void mp_server_message ( void );
 void mp_updatePlayerNamePlates ( void );
 void mp_updatePlayerAnimations ( void );
+void mp_switchDirectAnim ( int iAnimIndex );
 void mp_switchAnim ( void );
 void mp_update_waist_rotation ( void );
 void mp_showdeath ( void );
@@ -69,6 +71,7 @@ void mp_createLobby ( void );
 void mp_searchForLobbies ( void );
 void mp_searchForFpms ( void );
 void mp_launchGame ( void );
+void mp_restartMultiplayerSystem ( void );
 void mp_backToStart ( void );
 void mp_selectedALevel ( void );
 void mp_checkIfLevelHasCustomContent ( void );

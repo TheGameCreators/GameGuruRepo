@@ -109,16 +109,53 @@ void game_masterroot ( int iUseVRTest )
 		// Standaline Multiplayer HOST/JOIN screen
 		if ( t.game.runasmultiplayer == 1 ) 
 		{
-			//  Show screen, use Steam to get friends CREATE LOBBY, wait, ready to begin
-			//  re-use title page system! (see Lee)
-			//  DOWNLOAD the level selected by the HOSTER and put it in levelbank
-			//  called 'multiplayer_level.zip' (has to be a loop for Steam)
-			//  EXTRACT the ZIP into the testmap folder ready for the code below
+			// Multiplayer init
+			/*
+			// first get any avatar the player is identified as
+			if ( FileOpen(1) == 1 ) CloseFile ( 1 );
+			if ( FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() ) == 1 ) 
+			{
+				OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() );
+				g.mp.myAvatar_s = ReadString ( 1 );
+				g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
+				g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
+				CloseFile ( 1 );
+			}
+			// second, get obfuscated site name from sitekey
+			char pSiteName[1024];
+			strcpy ( pSiteName, "site name" );
+			cstr SiteName_s;
+			char pSitename[1024];
+			strcpy ( pSitename, "12345-12345-12345-12345" );
+			if ( FileExist( cstr(g.fpscrootdir_s + "\\vrqcontrolmode.ini").Get() ) == 1 ) 
+			{
+				OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\vrqcontrolmode.ini").Get() );
+				SiteName_s = ReadString ( 1 );
+				strcpy ( pSitename, SiteName_s.Get() );
+				for ( int n = 0; n < strlen(pSitename); n++ )
+				{
+					if ( pSitename[n] == '-' ) 
+						pSitename[n] = 'Z';
+					else
+						pSitename[n] = pSitename[n] + 1;
+				}
+				CloseFile ( 1 );
+			}			
+			// third, check if teacher view all mode enabled
+			bool bViewAllMode = false;
+			if ( FileExist( cstr(g.fpscrootdir_s + "\\teacherviewallmode.dat").Get() ) == 1 ) 
+			{
+				bViewAllMode = true;
+				CloseFile ( 1 );
+			}
+			// Initialise multiplayer system
 			#ifdef PHOTONMP
-			 PhotonInit(g.fpscrootdir_s.Get());
+			 PhotonInit(g.fpscrootdir_s.Get(),pSitename,g.mp.myAvatarName_s.Get(),bViewAllMode);
 			#else
 			 // Steam initialised at very start (for other Steam features)
 			#endif
+			*/
+			mp_fullinit();
 			g.mp.mode = MP_MODE_MAIN_MENU;
 			timestampactivity(0,"_titles_steampage");
 			t.game.cancelmultiplayer=0;
@@ -1730,11 +1767,31 @@ void game_preparelevel_finally ( void )
 	//  Force a shader update to ensure correct shadows are used at start
 	t.visuals.refreshcountdown=5;
 
-	//  Let steam know we have finished loading
-	if (  t.game.runasmultiplayer  ==  1 ) 
+	// Let steam know we have finished loading
+	if ( t.game.runasmultiplayer == 1 ) 
 	{
 		g.mp.finishedLoadingMap = 1;
 	}
+
+	// One final prompt, ask user to wait for key press so can read instructions
+	#ifdef VRQUEST
+	 if ( t.game.gameisexe == 0 )
+	 {
+		 t.screenprompt_s="PRESS SPACEBAR TO START GAME";
+		 printscreenprompt(t.screenprompt_s.Get());
+		 timestampactivity(0,t.screenprompt_s.Get());
+		 while ( SpaceKey() == 0 ) 
+		 { 
+			 mp_refresh();
+			 FastSyncInputOnly();
+		 }
+		 t.screenprompt_s="STARTING GAME";
+		 printscreenprompt(t.screenprompt_s.Get());
+		 timestampactivity(0,t.screenprompt_s.Get());
+	 }
+	#else
+	 // No such wait press for regular GG
+	#endif
 
 	// The start marker may have given the play an initial gun, so lets call physics_player_refreshcount just incase it has
 	physics_player_refreshcount();

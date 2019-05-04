@@ -4,10 +4,12 @@
 #define FPSCR
 
 // photon core commands
-int PhotonInit(LPSTR pRootPath);
+int PhotonInit(LPSTR pRootPath,LPSTR pSiteName,LPSTR pAvatarName,bool bViewAllMode);
 void PhotonFree();
 void PhotonLoop(void);
 int PhotonCloseConnection();
+LPSTR PhotonGetSiteName();
+int PhotonGetViewAllMode();
 bool PhotonPlayerLeaving();
 int PhotonPlayerArrived();
 void PhotonInitClient();
@@ -27,6 +29,7 @@ int PhotonGetLobbyUserCount();
 int PhotonHasJoinedLobby();
 void PhotonLeaveLobby();
 LPSTR PhotonGetLobbyUserName( int index);
+LPSTR PhotonGetLobbyUserDisplayName( int index);
 LPSTR PhotonGetPlayerName(void);
 
 // photon setting up and starting game
@@ -57,7 +60,23 @@ float PhotonGetPlayerPositionX ( int index );
 float PhotonGetPlayerPositionY ( int index );
 float PhotonGetPlayerPositionZ ( int index );
 float PhotonGetPlayerAngle ( int index );
+
+void PhotonSetKeyState ( int key , int state );
+int PhotonGetKeyState ( int index, int key );
+
+void PhotonPlayAnimation ( int index, int start, int end, int speed );
+int PhotonGetAnimationList();
+void PhotonGetNextAnimation();
+int PhotonGetAnimationIndex();
+int PhotonGetAnimationStart();
+int PhotonGetAnimationEnd();
+int PhotonGetAnimationSpeed();
 void PhotonSetTweening(int index , int flag);
+
+void PhotonShoot ( void );
+int PhotonGetShoot ( int index );
+void PhotonSetPlayerAppearance( int a );
+int PhotonGetPlayerAppearance( int index );
 
 void PhotonSendLua ( int code, int e, int v );
 void PhotonSendLuaString ( int code, int e, LPSTR s );

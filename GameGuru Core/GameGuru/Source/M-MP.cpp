@@ -34,6 +34,56 @@ void mp_init ( void )
 	#endif
 }
 
+void mp_fullinit ( void )
+{
+	// first get any avatar the player is identified as
+	if ( FileOpen(1) == 1 ) CloseFile ( 1 );
+	if ( FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() ) == 1 ) 
+	{
+		OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() );
+		g.mp.myAvatar_s = ReadString ( 1 );
+		g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
+		g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
+		CloseFile ( 1 );
+	}
+
+	// second, get obfuscated site name from sitekey
+	char pSiteName[1024];
+	strcpy ( pSiteName, "site name" );
+	cstr SiteName_s;
+	char pSitename[1024];
+	strcpy ( pSitename, "12345-12345-12345-12345" );
+	if ( FileExist( cstr(g.fpscrootdir_s + "\\vrqcontrolmode.ini").Get() ) == 1 ) 
+	{
+		OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\vrqcontrolmode.ini").Get() );
+		SiteName_s = ReadString ( 1 );
+		strcpy ( pSitename, SiteName_s.Get() );
+		for ( int n = 0; n < strlen(pSitename); n++ )
+		{
+			if ( pSitename[n] == '-' ) 
+				pSitename[n] = 'Z';
+			else
+				pSitename[n] = pSitename[n] + 1;
+		}
+		CloseFile ( 1 );
+	}	
+
+	// third, check if teacher view all mode enabled
+	bool bViewAllMode = false;
+	if ( FileExist( cstr(g.fpscrootdir_s + "\\teacherviewallmode.dat").Get() ) == 1 ) 
+	{
+		bViewAllMode = true;
+		CloseFile ( 1 );
+	}
+
+	// Initialise multiplayer system
+	#ifdef PHOTONMP
+		PhotonInit(g.fpscrootdir_s.Get(),pSitename,g.mp.myAvatarName_s.Get(),bViewAllMode);
+	#else
+		// Steam initialised at very start (for other Steam features)
+	#endif
+}
+
 bool OccluderCheckingForMultiplayer ( void )
 {
 	if ( t.game.runasmultiplayer == 0 ) return false;
@@ -111,7 +161,19 @@ void mp_loop ( void )
 
 		// Debug Info
 		t.steamDoDropShadow = 1;
-		t.ttstring_s = cstr("Multiplayer Build ") + Str(t.mp_build);
+		#ifdef PHOTONMP
+		 if ( PhotonGetSiteName() )
+		 {
+			 if ( PhotonGetViewAllMode() == 1 )
+				 t.ttstring_s = cstr("Multiplayer Build ") + Str(t.mp_build) + "  (" + PhotonGetSiteName() + " in All Sites Mode)";
+			 else
+				 t.ttstring_s = cstr("Multiplayer Build ") + Str(t.mp_build) + "  (" + PhotonGetSiteName() + " in Site Only Mode)";
+		 }
+		 else
+			 t.ttstring_s = cstr("Multiplayer Build ") + Str(t.mp_build) + "  (Site Unknown)";
+		#else
+		 t.ttstring_s = cstr("Multiplayer Build ") + Str(t.mp_build) + g_pP;
+		#endif
 		mp_text(-1,98,2,t.ttstring_s.Get());
 	}
 	else
@@ -391,7 +453,7 @@ void mp_loop ( void )
 			for ( t.tn = 1 ; t.tn <= t.tUserCount; t.tn++ )
 			{
 				#ifdef PHOTONMP
-				 t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + PhotonGetLobbyUserName(t.tn-1);
+				 t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + PhotonGetLobbyUserDisplayName(t.tn-1);
 				 if ( PhotonGetPlayerName() != PhotonGetLobbyUserName(t.tn-1) ) t.mp_joined[t.tn-1] = PhotonGetLobbyUserName(t.tn-1);
 				#else
 				 t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + SteamGetLobbyUserName(t.tn-1);
@@ -483,7 +545,7 @@ void mp_loop ( void )
 			t.tsteamy = t.tsteamy_f;
 			for ( t.tn = 1 ; t.tn <= t.tUserCount; t.tn++ )
 			{
-				LPSTR pLobbyUserName = PhotonGetLobbyUserName(t.tn-1);
+				LPSTR pLobbyUserName = PhotonGetLobbyUserDisplayName(t.tn-1);
 				//if ( t.tn == 1 ) 
 				//{
 				//	t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pLobbyUserName + " (Host)";
@@ -1852,8 +1914,20 @@ void mp_sendAvatarInfo ( void )
 
 void mp_animation ( void )
 {
-	while (  SteamGetAnimationList() ) 
-	{
+	#ifdef PHOTONMP
+	 while ( PhotonGetAnimationList() ) 
+	 {
+		t.tEnt = PhotonGetAnimationIndex();
+		t.astart = PhotonGetAnimationStart();
+		t.aend = PhotonGetAnimationEnd();
+		t.aspeed = PhotonGetAnimationSpeed();
+		SetObjectSpeed ( t.entityelement[t.tEnt].obj,t.aspeed );
+		PlayObject ( t.entityelement[t.tEnt].obj,t.astart,t.aend );
+		PhotonGetNextAnimation (  );
+	 }
+	#else
+	 while (  SteamGetAnimationList() ) 
+	 {
 		t.tEnt = SteamGetAnimationIndex();
 		t.astart = SteamGetAnimationStart();
 		t.aend = SteamGetAnimationEnd();
@@ -1863,7 +1937,8 @@ void mp_animation ( void )
 		PlayObject (  t.entityelement[t.tEnt].obj,t.astart,t.aend );
 
 		SteamGetNextAnimation (  );
-	}
+	 }
+	#endif
 }
 
 void mp_update_player ( void )
@@ -2216,62 +2291,85 @@ void mp_updatePlayerNamePlates ( void )
 
 void mp_updatePlayerAnimations ( void )
 {
-	//  Update animations
-	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	// Update animations
+	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
+		// get player info
 		t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
-
 		t.thasNade = 0;
 		t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 		if ( t.gun[t.tgunid].projectileframe != 0 ) t.thasNade = 1;
 
-		t.mp_playerShooting[t.c] = SteamGetShoot(t.c);
+		// get multiplayer datas
+		#ifdef PHOTONMP
+ 		 int iPlayerShoot = PhotonGetShoot(1+t.c);
+		 int iPlayerAlive = PhotonGetPlayerAlive(1+t.c);
+		 int iPlayerAppearance = PhotonGetPlayerAppearance(1+t.c);
+		 int iPlayerKey16 = PhotonGetKeyState(1+t.c,16);
+		 int iPlayerKey17 = PhotonGetKeyState(1+t.c,17);
+		 int iPlayerKey30 = PhotonGetKeyState(1+t.c,30);
+		 int iPlayerKey31 = PhotonGetKeyState(1+t.c,31);
+		 int iPlayerKey32 = PhotonGetKeyState(1+t.c,32);
+		 int iPlayerKey42 = PhotonGetKeyState(1+t.c,42);
+		 int iPlayerKey46 = PhotonGetKeyState(1+t.c,46);
+		#else
+ 		 int iPlayerShoot = SteamGetShoot(t.c);
+		 int iPlayerAlive = SteamGetPlayerAlive(t.c);
+		 int iPlayerAppearance = SteamGetPlayerAppearance(t.c);
+		 int iPlayerKey16 = SteamGetKeyState(t.c,16);
+		 int iPlayerKey17 = SteamGetKeyState(t.c,17);
+		 int iPlayerKey30 = SteamGetKeyState(t.c,30);
+		 int iPlayerKey31 = SteamGetKeyState(t.c,31);
+		 int iPlayerKey32 = SteamGetKeyState(t.c,32);
+		 int iPlayerKey42 = SteamGetKeyState(t.c,42);
+		 int iPlayerKey46 = SteamGetKeyState(t.c,46);
+		#endif
+ 		t.mp_playerShooting[t.c] = iPlayerShoot;
 
-		//  if the player is reloading we will try and show it (only works if idle or ducking at present)
-		if (  SteamGetPlayerAppearance(t.c)  ==  201  )  t.mp_reload[t.c]  =  1;
+		// if the player is reloading we will try and show it (only works if idle or ducking at present)
+		if ( iPlayerAppearance == 201 ) t.mp_reload[t.c] = 1;
 
-		//  update animations
+		// update animations
 		g.mp.isAnimating = 0;
-		if (  SteamGetPlayerAlive(t.c)  ==  1 ) 
+		if ( iPlayerAlive == 1 ) 
 		{
 			t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
-			RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
+			RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
 
-			if (  (SteamGetPlayerAppearance(t.c) < 102 || SteamGetPlayerAppearance(t.c) > 200) ) 
+			if ( (iPlayerAppearance < 102 || iPlayerAppearance > 200) ) 
 			{
-				//  Melee
-				if (  SteamGetKeyState(t.c,16)  ==  1 || t.mp_meleePlaying[t.c]  ==  1 ) 
+				// Melee
+				if ( iPlayerKey16 == 1 || t.mp_meleePlaying[t.c] == 1 ) 
 				{
 					g.mp.isAnimating = 1;
-					if (  t.mp_meleePlaying[t.c]  ==  0 ) 
+					if ( t.mp_meleePlaying[t.c]  ==  0 ) 
 					{
 						t.mp_meleePlaying[t.c] = 1;
 					}
 					else
 					{
-						if (  GetPlaying(t.tobj)  ==  0  )  t.mp_meleePlaying[t.c]  =  0;
-						if (  GetLooping(t.tobj)  ==  1  )  t.mp_meleePlaying[t.c]  =  0;
+						if ( GetPlaying(t.tobj)  ==  0  )  t.mp_meleePlaying[t.c]  =  0;
+						if ( GetLooping(t.tobj)  ==  1  )  t.mp_meleePlaying[t.c]  =  0;
 					}
 				}
+
 				//  Forwards
-				if (  SteamGetKeyState(t.c,17)  ==  1 ) 
+				if ( iPlayerKey17  ==  1 ) 
 				{
 					g.mp.isAnimating = 1;
-					//  are they moving left also
-					if (  SteamGetKeyState(t.c,30)  ==  1 ) 
+					if ( iPlayerKey30  ==  1 ) 
 					{
 						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
 						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 					}
-					//  or perhaps they are moving right also
-					if (  SteamGetKeyState(t.c,32)  ==  1 ) 
+					if ( iPlayerKey32  ==  1 ) 
 					{
 						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
 						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 					}
-					if (  SteamGetKeyState(t.c,42)  ==  0 || SteamGetKeyState(t.c,46)  ==  1 ) 
+					if ( iPlayerKey42 ==  0 || iPlayerKey46 ==  1 ) 
 					{
-						if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+						if ( iPlayerAppearance ==  101 ) 
 						{
 							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=300;
 						}
@@ -2282,7 +2380,7 @@ void mp_updatePlayerAnimations ( void )
 					}
 					else
 					{
-						if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+						if ( iPlayerAppearance ==  101 ) 
 						{
 							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=600;
 						}
@@ -2291,27 +2389,26 @@ void mp_updatePlayerAnimations ( void )
 							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=200;
 						}
 					}
-					if (  SteamGetKeyState(t.c,46)  ==  0 ) 
+					if ( iPlayerKey46 ==  0 ) 
 					{
-						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKING ) 
+						if ( t.mp_playingAnimation[t.c]  != MP_ANIMATION_WALKING ) 
 						{
 							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+							if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 							{
-								t.tplaycsi=t.csi_stoodmoverunANIM[t.tweapstyle];
+								t.tplaycsioranimindex = 10;//t.csi_stoodmoverunANIM[t.tweapstyle];
 							}
 							else
 							{
-								t.tplaycsi=g.csi_unarmedmoverunANIM;
+								t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
 							}
-							mp_switchAnim ( );
-
-							if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+							mp_switchDirectAnim ( t.tplaycsioranimindex );
+							if ( iPlayerAppearance == 101 ) 
 							{
-								t.tplaycsi=g.csi_unarmedANIM0;
-								mp_switchAnim ( );
+								t.tplaycsioranimindex=g.csi_unarmedANIM0;
+								mp_switchDirectAnim ( t.tplaycsioranimindex );
 							}
 							entity_lua_setanimationframes ( );
 							t.e = t.mp_playerEntityID[t.c];
@@ -2322,15 +2419,14 @@ void mp_updatePlayerAnimations ( void )
 					}
 					else
 					{
-						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
+						if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
 						{
 							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-							t.tplaycsi=t.csi_crouchmoverunANIM[t.tweapstyle];
-							mp_switchAnim ( );
-
+							if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							if ( t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+							t.tplaycsioranimindex = 12;//t.csi_crouchmoverunANIM[t.tweapstyle];
+							mp_switchDirectAnim ( t.tplaycsioranimindex );
 							entity_lua_setanimationframes ( );
 							t.e = t.mp_playerEntityID[t.c];
 							entity_lua_loopanimation ( );
@@ -2339,23 +2435,22 @@ void mp_updatePlayerAnimations ( void )
 						}
 					}
 				}
-				//  Backwards
-				if (  SteamGetKeyState(t.c,31)  ==  1 ) 
+
+				// Backwards
+				if ( iPlayerKey31 ==  1 ) 
 				{
 					g.mp.isAnimating = 1;
-					//  are they moving left also
-					if (  SteamGetKeyState(t.c,30)  ==  1 ) 
+					if ( iPlayerKey30 ==  1 ) 
 					{
-						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
-						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						YRotateObject ( t.tobj, ObjectAngleY(t.tobj) + 45 );
+						RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 					}
-					//  or perhaps they are moving right also
-					if (  SteamGetKeyState(t.c,32)  ==  1 ) 
+					if ( iPlayerKey32 == 1 ) 
 					{
-						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
-						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						YRotateObject ( t.tobj, ObjectAngleY(t.tobj) - 45 );
+						RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 					}
-					if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+					if ( iPlayerAppearance ==  101 ) 
 					{
 						t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-300;
 					}
@@ -2363,30 +2458,29 @@ void mp_updatePlayerAnimations ( void )
 					{
 						t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-100;
 					}
-					if (  SteamGetKeyState(t.c,46)  ==  0 ) 
+					if ( iPlayerKey46 ==  0 ) 
 					{
-						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKINGBACKWARDS ) 
+						if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKINGBACKWARDS ) 
 						{
 							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+							if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 							{
-								t.tplaycsi=t.csi_stoodmoverunANIM[t.tweapstyle];
+								t.tplaycsioranimindex = 10;//t.csi_stoodmoverunANIM[t.tweapstyle];
 							}
 							else
 							{
-								t.tplaycsi=g.csi_unarmedmoverunANIM;
+								t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
 							}
-							mp_switchAnim ( );
-
-							if (  SteamGetPlayerAppearance(t.c)  ==  101 ) 
+							mp_switchDirectAnim ( t.tplaycsioranimindex );
+							if ( iPlayerAppearance ==  101 ) 
 							{
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_stoodnormalANIM[t.tweapstyle];
-								mp_switchAnim ( );
+								t.tplaycsioranimindex = 0;//t.csi_stoodnormalANIM[t.tweapstyle];
+								mp_switchDirectAnim ( t.tplaycsioranimindex );
 							}
 							entity_lua_setanimationframes ( );
 							t.e = t.mp_playerEntityID[t.c];
@@ -2397,15 +2491,14 @@ void mp_updatePlayerAnimations ( void )
 					}
 					else
 					{
-						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKINGBACKWARDS ) 
+						if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKINGBACKWARDS ) 
 						{
 							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-							t.tplaycsi=t.csi_crouchmoverunANIM[t.tweapstyle];
-							mp_switchAnim ( );
-
+							if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+							if ( t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+							t.tplaycsioranimindex = 10;//t.csi_crouchmoverunANIM[t.tweapstyle];
+							mp_switchDirectAnim ( t.tplaycsioranimindex );
 							entity_lua_setanimationframes ( );
 							t.e = t.mp_playerEntityID[t.c];
 							entity_lua_loopanimation ( );
@@ -2416,12 +2509,12 @@ void mp_updatePlayerAnimations ( void )
 				}
 
 				//  strafe left
-				if (  SteamGetKeyState(t.c,30)  ==  1 ) 
+				if ( iPlayerKey30 ==  1 ) 
 				{
-					if (  g.mp.isAnimating  ==  0 ) 
+					if ( g.mp.isAnimating  ==  0 ) 
 					{
 						g.mp.isAnimating = 1;
-						if (  SteamGetKeyState(t.c,42)  ==  0 ) 
+						if ( iPlayerKey42 ==  0 ) 
 						{
 							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
 						}
@@ -2429,17 +2522,16 @@ void mp_updatePlayerAnimations ( void )
 						{
 							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
 						}
-						if (  SteamGetKeyState(t.c,46)  ==  1 ) 
+						if ( iPlayerKey46 == 1 ) 
 						{
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
+							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
 							{
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_crouchmoveleftANIM[t.tweapstyle];
-								mp_switchAnim ( );
-
+								t.tplaycsioranimindex = 12;//t.csi_crouchmoveleftANIM[t.tweapstyle];
+								mp_switchDirectAnim ( t.tplaycsioranimindex );
 								entity_lua_setanimationframes ( );
 								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
@@ -2449,22 +2541,21 @@ void mp_updatePlayerAnimations ( void )
 						}
 						else
 						{
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFELEFT ) 
+							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFELEFT ) 
 							{
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
-									t.tplaycsi=t.csi_stoodmoverunleftANIM[t.tweapstyle];
+									t.tplaycsioranimindex = 15;//t.csi_stoodmoverunleftANIM[t.tweapstyle];
 								}
 								else
 								{
 									RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-									t.tplaycsi=g.csi_unarmedmoverunANIM;
+									t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
 								}
-								mp_switchAnim ( );
-
+								mp_switchDirectAnim ( t.tplaycsioranimindex );
 								entity_lua_setanimationframes ( );
 								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
@@ -2475,12 +2566,12 @@ void mp_updatePlayerAnimations ( void )
 				}
 
 				//  strafe right
-				if (  SteamGetKeyState(t.c,32)  ==  1 ) 
+				if ( iPlayerKey32 ==  1 ) 
 				{
-					if (  g.mp.isAnimating  ==  0 ) 
+					if ( g.mp.isAnimating  ==  0 ) 
 					{
 						g.mp.isAnimating = 1;
-						if (  SteamGetKeyState(t.c,42)  ==  0 ) 
+						if ( iPlayerKey42 ==  0 ) 
 						{
 							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
 						}
@@ -2488,17 +2579,16 @@ void mp_updatePlayerAnimations ( void )
 						{
 							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
 						}
-						if (  SteamGetKeyState(t.c,46)  ==  1 ) 
+						if ( iPlayerKey46 ==  1 ) 
 						{
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
+							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
 							{
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-								t.tplaycsi=t.csi_crouchmoverightANIM[t.tweapstyle];
-								mp_switchAnim ( );
-
+								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								if ( t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+								t.tplaycsioranimindex = 12;//t.csi_crouchmoverightANIM[t.tweapstyle];
+								mp_switchDirectAnim ( t.tplaycsioranimindex );
 								entity_lua_setanimationframes ( );
 								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
@@ -2508,94 +2598,86 @@ void mp_updatePlayerAnimations ( void )
 						}
 						else
 						{
-							if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFERIGHT ) 
+							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFERIGHT ) 
 							{
-
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
-									t.tplaycsi=t.csi_stoodmoverunrightANIM[t.tweapstyle];
+									t.tplaycsioranimindex = 16;//t.csi_stoodmoverunrightANIM[t.tweapstyle];
 								}
 								else
 								{
-									t.tplaycsi=g.csi_unarmedmoverunANIM;
+									t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
 								}
-								mp_switchAnim ( );
-
+								mp_switchDirectAnim ( t.tplaycsioranimindex );
 								entity_lua_setanimationframes ( );
 								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
-								
 								t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFERIGHT;
 							}
 						}
 					}
 				}
 
-				if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFELEFT ) 
+				// Strafing
+				if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFELEFT ) 
 				{
-					if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+					if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
 					{
-						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
+						RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						YRotateObject ( t.tobj, ObjectAngleY(t.tobj) - 45 );
 					}
 				}
-
-				if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFERIGHT ) 
+				if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFERIGHT ) 
 				{
-					if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+					if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
 					{
 						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
 					}
 				}
 
-				//  Ducking
-				if (  SteamGetKeyState(t.c,46)  ==  1 && t.mp_jetpackOn[t.c]  ==  0 ) 
+				// Ducking
+				if ( iPlayerKey46 == 1 && t.mp_jetpackOn[t.c] == 0 ) 
 				{
-					if (  g.mp.isAnimating  ==  0 && t.mp_reload[t.c]  ==  0 ) 
+					if ( g.mp.isAnimating == 0 && t.mp_reload[t.c] == 0 ) 
 					{
 						g.mp.isAnimating = 1;
-						if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKING ) 
+						if ( t.mp_playingAnimation[t.c] != MP_ANIMATION_DUCKING ) 
 						{
 							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 							t.tweapstyle=t.gun[t.tgunid].weapontype;
 							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							t.tplaycsi=t.csi_crouchidlenormalANIM1[t.tweapstyle];
-							mp_switchAnim ( );
-
+							t.tplaycsioranimindex = 8;//t.csi_crouchidlenormalANIM1[t.tweapstyle];
+							mp_switchDirectAnim ( t.tplaycsioranimindex );
 							entity_lua_setanimationframes ( );
 							t.e = t.mp_playerEntityID[t.c];
 							t.entityelement[t.e].eleprof.animspeed=100;
 							entity_lua_playanimation ( );
 							g.mp.isAnimating = 1;
-
 							t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
 						}
 					}
 				}
 			}
 
-			if (  t.thasNade  ==  1 ) 
+			/* not for Photon yet
+			// Reloading
+			if ( t.thasNade == 1 && t.mp_reload[t.c] == 1 ) t.mp_reload[t.c] = 0;
+			if ( t.mp_reload[t.c] == 1 ) 
 			{
-				if (  t.mp_reload[t.c]  ==  1  )  t.mp_reload[t.c]  =  0;
-			}
-
-			if (  t.mp_reload[t.c]  ==  1 ) 
-			{
-				if (  g.mp.isAnimating  ==  0 || t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
+				if ( g.mp.isAnimating  ==  0 || t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
 				{
-					if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_RELOAD ) 
+					if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_RELOAD ) 
 					{
 						t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 						t.tweapstyle=t.gun[t.tgunid].weapontype;
 						if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
 						t.tplaycsi=t.csi_stoodreloadANIM[t.tweapstyle];
 						mp_switchAnim ( );
-
-						if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
+						if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
 						{
 							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 							t.tweapstyle=t.gun[t.tgunid].weapontype;
@@ -2608,16 +2690,15 @@ void mp_updatePlayerAnimations ( void )
 						t.entityelement[t.e].eleprof.animspeed=200;
 						entity_lua_playanimation ( );
 						g.mp.isAnimating = 1;
-
 						t.mp_playingAnimation[t.c] = MP_ANIMATION_RELOAD;
 					}
 				}
 				g.mp.isAnimating = 1;
-				//  if the reload anim has finished or the player starts shooting, turn reloading off
-				if (  GetFrame(t.tobj)  ==  605 || GetFrame(t.tobj)  ==  2010 || t.mp_playerShooting[t.c]  ==  1 ) 
+				if ( GetFrame(t.tobj) == 605 || GetFrame(t.tobj) == 2010 || t.mp_playerShooting[t.c] == 1 ) 
 				{
+					// if the reload anim has finished or the player starts shooting, turn reloading off
 					t.mp_reload[t.c] = 0;
-					if (  GetFrame(t.tobj)  ==  2010 ) 
+					if ( GetFrame(t.tobj) == 2010 ) 
 					{
 						t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
 					}
@@ -2629,33 +2710,35 @@ void mp_updatePlayerAnimations ( void )
 				}
 			}
 
+			// Jetpack
 			t.tjetpacktempanim = 0;
-			if (  SteamGetPlayerAppearance(t.c)  ==  102 ) 
+			if ( iPlayerAppearance == 102 ) 
 			{
 				t.tjetpacktempanim = 1;
-				if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
+				if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
 				{
 					t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 					g.mp.isAnimating = 0;
 				}
 			}
 
-			if (  t.thasNade  ==  1 ) 
+			// Grenade Handling
+			if ( t.thasNade == 1 ) 
 			{
-				if (  t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_IDLE ) 
+				if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_IDLE ) 
 				{
-					if (  t.mp_playerShooting[t.c]  ==  1 ) 
+					if ( t.mp_playerShooting[t.c]  ==  1 ) 
 					{
-						if (   GetFrame(t.tobj) < 2390 || GetFrame(t.tobj) > 2444 ) 
+						if ( GetFrame(t.tobj) < 2390 || GetFrame(t.tobj) > 2444 ) 
 						{
 							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 							g.mp.isAnimating = 0;
 						}
 					}
 
-					if (  t.mp_playerShooting[t.c]  ==  0 ) 
+					if ( t.mp_playerShooting[t.c]  ==  0 ) 
 					{
-						if (  GetFrame(t.tobj)  ==  2444 ) 
+						if ( GetFrame(t.tobj)  ==  2444 ) 
 						{
 							SetObjectFrame(t.tobj,2443);
 							StopObject (  t.tobj );
@@ -2665,30 +2748,32 @@ void mp_updatePlayerAnimations ( void )
 					}
 				}
 			}
+			*/
 
-			if (  g.mp.isAnimating  ==  0 ) 
+			// Idle
+			if ( g.mp.isAnimating  ==  0 ) 
 			{
 				mp_update_waist_rotation ( );
-				if (  t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
+				if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
 				{
-					if (  abs(t.mp_oldplayerx[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].x) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+					if ( abs(t.mp_oldplayerx[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].x) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 					{
-						if (  abs(t.mp_oldplayery[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].y) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+						if ( abs(t.mp_oldplayery[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].y) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 						{
-							if (  abs(t.mp_oldplayerz[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].z) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+							if ( abs(t.mp_oldplayerz[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].z) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 							{
 								t.tIsThrowingNade = 0;
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
-									t.tplaycsi=t.csi_stoodnormalANIM[t.tweapstyle];
-									mp_switchAnim ( );
+									t.tplaycsioranimindex = 0;//t.csi_stoodnormalANIM[t.tweapstyle];
+									mp_switchDirectAnim ( t.tplaycsioranimindex );
 								}
 								else
 								{
-									if (  t.thasNade  ==  1 && t.mp_playerShooting[t.c]  ==  1 ) 
+									if ( t.thasNade  ==  1 && t.mp_playerShooting[t.c]  ==  1 ) 
 									{
 										t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
 										t.e=2390;
@@ -2707,11 +2792,11 @@ void mp_updatePlayerAnimations ( void )
 										t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 										t.tweapstyle=t.gun[t.tgunid].weapontype;
 										if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-										t.tplaycsi=g.csi_unarmedANIM0;
-										mp_switchAnim ( );
+										t.tplaycsioranimindex = 0;//g.csi_unarmedANIM0;
+										mp_switchDirectAnim ( t.tplaycsioranimindex );
 									}
 								}
-								if (  t.tIsThrowingNade  ==  0 ) 
+								if ( t.tIsThrowingNade  ==  0 ) 
 								{
 									entity_lua_setanimationframes ( );
 									t.e = t.mp_playerEntityID[t.c];
@@ -2726,32 +2811,32 @@ void mp_updatePlayerAnimations ( void )
 			}
 			else
 			{
-				//  reset the idle turn if animating
+				// reset the idle turn if animating
 				t.mp_lastIdleReset[t.c] = 1;
 			}
 		}
 
-		if (  SteamGetPlayerAlive(t.c)  ==  0 && g.mp.gameAlreadySpawnedBefore  !=  0 ) 
+		/* no dying in photon v1
+		// Handle player death
+		if ( iPlayerAlive == 0 && g.mp.gameAlreadySpawnedBefore  !=  0 ) 
 		{
 			t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 			t.mp_lastIdleReset[t.c] = 1;
 			t.mp_forcePosition[t.c] = 1;
-
-			if (  t.mp_jetpackparticles[t.c]  !=  -1 ) 
+			if ( t.mp_jetpackparticles[t.c]  !=  -1 ) 
 			{
 				t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.c];
 				ravey_particles_delete_emitter ( );
 				t.mp_jetpackparticles[t.c]=-1;
 			}
-
-			if (  t.mp_isDying[t.c]  ==  0 && t.mp_playerHasSpawned[t.c]  ==  1 ) 
+			if ( t.mp_isDying[t.c] == 0 && t.mp_playerHasSpawned[t.c]  ==  1 ) 
 			{
 				t.mp_isDying[t.c] = 1;
 				t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 				t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
 				RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
 				t.e = t.mp_playerEntityID[t.c];
-				if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
+				if ( ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
 				{
 					t.tweight=t.entityelement[t.e].eleprof.phyweight;
 					t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
@@ -2762,19 +2847,20 @@ void mp_updatePlayerAnimations ( void )
 				t.ttentid=t.entityelement[t.e].bankindex;
 				t.ttte = t.e;
 				t.mp_playingRagdoll[t.c] = 1;
-				if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
+				if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
 				{
-					if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
+					if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
 					t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = 0;
 				}
+
 				t.entityprofile[t.ttentid].ragdoll=1;
-				if (  t.entityprofile[t.ttentid].ragdoll == 1 ) 
+				if ( t.entityprofile[t.ttentid].ragdoll == 1 ) 
 				{
-					//  can only ragdoll clones not instances
+					// can only ragdoll clones not instances
 					t.tte=t.ttte;
 					entity_converttoclone ( );
 
-					//  create ragdoll and stop any further manipulation of the object
+					// create ragdoll and stop any further manipulation of the object
 					t.tphye=t.ttte;
 					t.tphyobj=t.entityelement[t.ttte].obj;
 					t.oldc = t.c;
@@ -2782,14 +2868,14 @@ void mp_updatePlayerAnimations ( void )
 					ragdoll_create ( );
 					t.c = t.oldc;
 
-					//  grab the details from the server if someone else shot them
+					// grab the details from the server if someone else shot them
 					t.ttx_f = SteamGetPlayerKilledX(t.c);
 					t.tty_f = SteamGetPlayerKilledY(t.c);
 					t.ttz_f = SteamGetPlayerKilledZ(t.c);
 					t.ttforce_f = SteamGetPlayerKilledForce(t.c);
 					t.ttlimb = SteamGetPlayerKilledLimb(t.c);
 
-					//  and apply bullet directional force (tforce#=from gun settings)
+					// and apply bullet directional force (tforce#=from gun settings)
 					t.entityelement[t.ttte].ragdollified=1;
 					t.entityelement[t.ttte].ragdollifiedforcex_f=(t.ttx_f)*0.8;
 					t.entityelement[t.ttte].ragdollifiedforcey_f=(t.tty_f)*1.2;
@@ -2801,11 +2887,11 @@ void mp_updatePlayerAnimations ( void )
 		}
 		else
 		{
-			if (  t.mp_forcePosition[t.c]  ==  0 ) 
+			if ( t.mp_forcePosition[t.c] == 0 ) 
 			{
-				if (  t.mp_isDying[t.c]  ==  1 ) 
+				if ( t.mp_isDying[t.c] == 1 ) 
 				{
-					if (  ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
+					if ( ObjectExist(g.steamplayermodelsoffset+t.c+121) == 1 ) 
 					{
 						ODEDestroyObject (  g.steamplayermodelsoffset+t.c+121 );
 						RotateObject (  g.steamplayermodelsoffset+t.c+121,0,0,0 );
@@ -2817,26 +2903,33 @@ void mp_updatePlayerAnimations ( void )
 				}
 			}
 		}
-
+		*/
 		t.mp_oldplayerx[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].x;
 		t.mp_oldplayery[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].y;
 		t.mp_oldplayerz[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].z;
 	}
 }
 
+void mp_switchDirectAnim ( int iAnimIndex )
+{
+	t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
+	t.e=t.entityanim[t.ttentid][iAnimIndex].start;
+	t.v=t.entityanim[t.ttentid][iAnimIndex].finish;
+}
+
 void mp_switchAnim ( void )
 {
 	t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
 	t.q=t.entityprofile[t.ttentid].startofaianim;
-	t.e=t.entityanim[t.ttentid][t.q+t.tplaycsi].start;
-	t.v=t.entityanim[t.ttentid][t.q+t.tplaycsi].finish;
-return;
-
+	t.e=t.entityanim[t.ttentid][t.q+t.tplaycsioranimindex].start;
+	t.v=t.entityanim[t.ttentid][t.q+t.tplaycsioranimindex].finish;
 }
 
 void mp_update_waist_rotation ( void )
 {
+	// not used
 	return;
+	/*
 	t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
 
 	if (  t.mp_lastIdleReset[t.c]  ==  1 ) 
@@ -2866,14 +2959,11 @@ void mp_update_waist_rotation ( void )
 
 	t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
 	RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),t.tAmountToRotateSpine_f,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
-
-	return;
-
+	*/
 }
 
 void mp_showdeath ( void )
 {
-
 	t.characterkitcontrol.showmyhead = 1;
 	if (  g.mp.haveshowndeath  ==  0 ) 
 	{
@@ -2893,15 +2983,9 @@ void mp_showdeath ( void )
 	visuals_underwater_off ( );
 
 		t.tobjtosee = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
-//   `playercontrol.jetobjtouse=hudlayersbankoffset+1
 
 		t.playercontrol.jetpackhidden=0;
 		t.playercontrol.jetpackmode=0;
-//   `plrzoomin# = 0
-
-//   `plrzoominchange = 1
-
-//   `gunzoommode = 0
 
 		//  new subroutine so steam can reset zoom in
 		physics_no_gun_zoom ( );
@@ -4066,31 +4150,27 @@ void mp_setLuaResetStats ( void )
 
 void mp_updatePlayerInput ( void )
 {
-	if (  t.playercontrol.plrhitfloormaterial  ==  0 ) 
+	// handle floor contact and reloading counter
+	if ( t.playercontrol.plrhitfloormaterial == 0 ) 
 	{
-		if (  g.mp.oldfootfloortime  ==  0  )  g.mp.oldfootfloortime  =  Timer();
-		if (  Timer()-g.mp.oldfootfloortime > 100  )  g.mp.footfloor  =  0;
+		if ( g.mp.oldfootfloortime == 0 ) g.mp.oldfootfloortime = Timer();
+		if ( Timer()-g.mp.oldfootfloortime > 100 )  g.mp.footfloor = 0;
 	}
 	else
 	{
 		g.mp.oldfootfloortime = 0;
 		g.mp.footfloor = 1;
 	}
-	
-	if (  g.plrreloading  ==  0 ) 
-	{
-		g.mp.reloadingCount = 0;
-	}
-
+	if ( g.plrreloading == 0 ) g.mp.reloadingCount = 0;
 	t.tTime = Timer();
 	
-	if (  t.tTime - g.mp.lastSendTimeAppearance > MP_APPEARANCE_UPDATE_DELAY ) 
+	// send appearance info
+	if ( t.tTime - g.mp.lastSendTimeAppearance > MP_APPEARANCE_UPDATE_DELAY ) 
 	{
-	
-		if (  g.plrreloading  !=  0 ) 
+		if ( g.plrreloading != 0 ) 
 		{
 			++g.mp.reloadingCount;
-			if (  g.mp.reloadingCount < 4 ) 
+			if ( g.mp.reloadingCount < 4 ) 
 			{
 				g.mp.reloading = 1;
 			}
@@ -4099,123 +4179,175 @@ void mp_updatePlayerInput ( void )
 				g.mp.reloading = 0;
 			}
 		}
-	
 		g.mp.lastSendTimeAppearance = t.tTime;
-		if (  t.playercontrol.jetpackmode  !=  2 && g.mp.reloading  ==  0 ) 
+		int iSetAPlayerAppearanceValue = -1;
+		if ( t.playercontrol.jetpackmode != 2 && g.mp.reloading == 0 ) 
 		{
-			SteamSetPlayerAppearance (  g.mp.appearance );
+			//SteamSetPlayerAppearance ( g.mp.appearance );
+			iSetAPlayerAppearanceValue = g.mp.appearance;
 		}
 		else
 		{
-			if (  t.playercontrol.jetpackmode  !=  0 ) 
+			if ( t.playercontrol.jetpackmode != 0 ) 
 			{
-				if (  g.mp.footfloor  ==  1 ) 
+				if ( g.mp.footfloor == 1 ) 
 				{
-					SteamSetPlayerAppearance (  101 );
+					//SteamSetPlayerAppearance ( 101 );
+					iSetAPlayerAppearanceValue = 101;
 				}
 				else
 				{
-					SteamSetPlayerAppearance (  102 );
+					//SteamSetPlayerAppearance ( 102 );
+					iSetAPlayerAppearanceValue = 102;
 				}
 				g.mp.reloading = 0;
 			}
 			else
 			{
-				if (  g.mp.reloading  ==  1 ) 
+				if ( g.mp.reloading == 1 ) 
 				{
-						SteamSetPlayerAppearance (  201 );
+					//SteamSetPlayerAppearance ( 201 );
+					iSetAPlayerAppearanceValue = 201;
 				}
-				if (  g.plrreloading  ==  0 ) 
+				if ( g.plrreloading == 0 ) 
 				{
 					g.mp.reloading = 0;
 				}
 			}
 		}
-//   `print "sending appearance update"
-
+		if ( iSetAPlayerAppearanceValue != -1 )
+		{
+			#ifdef PHOTONMP
+			 PhotonSetPlayerAppearance ( iSetAPlayerAppearanceValue );
+			#else
+			 SteamSetPlayerAppearance ( iSetAPlayerAppearanceValue );
+			#endif
+		}
 	}
-	
 	if (  t.tTime - g.mp.lastSendTime < MP_INPUT_UPDATE_DELAY  )  return;
-	
 	g.mp.lastSendTime = t.tTime;
-	
-//  `print "sending input update"
 
-	
-	if (  g.mp.meleeOn  ==  0 ) 
+	// send movement info
+	if ( g.mp.meleeOn == 0 ) 
 	{
-		if (  KeyState(g.keymap[17])  ==  1 || KeyState(g.keymap[200])  ==  1 ) 
+		// forward
+		int iSetAPlayerKeyStateKeyValue = -1;
+		int iSetAPlayerKeyStateKeyState = 0;
+		if ( KeyState(g.keymap[17]) == 1 || KeyState(g.keymap[200]) == 1 ) 
 		{
-			SteamSetKeyState (  17,1 );
+			//SteamSetKeyState ( 17,1 );
+			iSetAPlayerKeyStateKeyValue = 17;
+			iSetAPlayerKeyStateKeyState = 1;
 		}
 		else
 		{
-			SteamSetKeyState (  17,0 );
+			//SteamSetKeyState ( 17,0 );
+			iSetAPlayerKeyStateKeyValue = 17;
+			iSetAPlayerKeyStateKeyState = 0;
 		}
-		if (  KeyState(g.keymap[31])  ==  1 || KeyState(g.keymap[208])  ==  1 ) 
+		#ifdef PHOTONMP
+			PhotonSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
+		#else
+			SteamSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
+		#endif
+		// backward
+		if ( KeyState(g.keymap[31]) == 1 || KeyState(g.keymap[208]) == 1 ) 
 		{
-			SteamSetKeyState (  31,1 );
+			//SteamSetKeyState ( 31,1 );
+			iSetAPlayerKeyStateKeyValue = 31;
+			iSetAPlayerKeyStateKeyState = 1;
 		}
 		else
 		{
-			SteamSetKeyState (  31,0 );
+			//SteamSetKeyState ( 31,0 );
+			iSetAPlayerKeyStateKeyValue = 31;
+			iSetAPlayerKeyStateKeyState = 0;
 		}
-		if (  KeyState(g.keymap[30])  ==  1 || KeyState(g.keymap[203])  ==  1 ) 
+		#ifdef PHOTONMP
+			PhotonSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
+		#else
+			SteamSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
+		#endif
+		// left
+		if ( KeyState(g.keymap[30]) == 1 || KeyState(g.keymap[203]) == 1 ) 
 		{
-			SteamSetKeyState (  30,1 );
+			//SteamSetKeyState ( 30,1 );
+			iSetAPlayerKeyStateKeyValue = 30;
+			iSetAPlayerKeyStateKeyState = 1;
 		}
 		else
 		{
-			SteamSetKeyState (  30,0 );
+			//SteamSetKeyState (  30,0 );
+			iSetAPlayerKeyStateKeyValue = 30;
+			iSetAPlayerKeyStateKeyState = 0;
 		}
-		if (  KeyState(g.keymap[32])  ==  1 || KeyState(g.keymap[205])  ==  1 ) 
+		#ifdef PHOTONMP
+			PhotonSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
+		#else
+			SteamSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
+		#endif
+		// right
+		if ( KeyState(g.keymap[32]) == 1 || KeyState(g.keymap[205]) == 1 ) 
 		{
-			SteamSetKeyState (  32,1 );
+			//SteamSetKeyState ( 32,1 );
+			iSetAPlayerKeyStateKeyValue = 32;
+			iSetAPlayerKeyStateKeyState = 1;
 		}
 		else
 		{
-			SteamSetKeyState (  32,0 );
+			//SteamSetKeyState ( 32,0 );
+			iSetAPlayerKeyStateKeyValue = 32;
+			iSetAPlayerKeyStateKeyState = 0;
 		}
+		#ifdef PHOTONMP
+			PhotonSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
+		#else
+			SteamSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
+		#endif
 	}
-if (  KeyState(g.keymap[46])  ==  1 || KeyState(g.keymap[29])  ==  1 || KeyState(g.keymap[157])  ==  1 ) 
-{
-	SteamSetKeyState (  46,1 );
-	g.mp.crouchOn = 1;
-}
-else
-{
-	SteamSetKeyState (  46,0 );
-	g.mp.crouchOn = 0;
-}
-//  shift keys
-if (  KeyState(g.keymap[42])  ==  1 || KeyState(g.keymap[54])  ==  1 ) 
-{
-	SteamSetKeyState (  42,1 );
-}
-else
-{
-	SteamSetKeyState (  42,0 );
-}
 
-return;
+	// ducking
+	int iSetAPlayerkey46Value = - 1;
+	if ( KeyState(g.keymap[46]) == 1 || KeyState(g.keymap[29]) == 1 || KeyState(g.keymap[157]) == 1 ) 
+	{
+		//SteamSetKeyState (  46,1 );
+		iSetAPlayerkey46Value = 1;
+		g.mp.crouchOn = 1;
+	}
+	else
+	{
+		//SteamSetKeyState (  46,0 );
+		iSetAPlayerkey46Value = 0;
+		g.mp.crouchOn = 0;
+	}
+	#ifdef PHOTONMP
+		PhotonSetKeyState ( 46, iSetAPlayerkey46Value );
+	#else
+		SteamSetKeyState ( 46, iSetAPlayerkey46Value );
+	#endif
 
+	// shift keys for running
+	int iSetAPlayerkey42Value = - 1;
+	if ( KeyState(g.keymap[42]) == 1 || KeyState(g.keymap[54]) == 1 ) 
+	{
+		//SteamSetKeyState ( 42,1 );
+		iSetAPlayerkey42Value = 1;
+	}
+	else
+	{
+		//SteamSetKeyState ( 42,0 );
+		iSetAPlayerkey42Value = 0;
+	}
+	#ifdef PHOTONMP
+		PhotonSetKeyState ( 42, iSetAPlayerkey42Value );
+	#else
+		SteamSetKeyState ( 42, iSetAPlayerkey42Value );
+	#endif
 }
 
 void mp_load_guns ( void )
 {
-
-/*       Debug info
-for ( t.tgindex = 1 ; t.tgindex<=  g.gunmax; t.tgindex++ )
-	if (  t.gun[t.tgindex].activeingame == 1 ) 
-	{
-		t.tweaponname_s=t.gun[t.tgindex].t.name_s;
-		tactiveGun = t.tgindex;
-		Print (  t.tweaponname_s );
-	}
-}
-*/    
-
-g.mp.gunCount = 0;
+	g.mp.gunCount = 0;
 
 	//  all vweaps (that are active)
 	for ( t.tgindex = 1 ; t.tgindex<=  g.gunmax; t.tgindex++ )
@@ -4938,10 +5070,12 @@ void mp_gameLoop ( void )
 	}
 	mp_update_player ( );
 	mp_updatePlayerPositions ( );
-	/*
 	mp_updatePlayerInput ( );
+	/*
 	mp_updatePlayerNamePlates ( );
+	*/
 	mp_updatePlayerAnimations ( );
+	/*
 	mp_delete_entities ( );
 	*/
 	mp_loop ( );
@@ -6001,7 +6135,7 @@ void mp_createLobby ( void )
 
 	// get players lobby label
 	#ifdef PHOTONMP
-	 t.tempsteamhostlobbyname_s = cstr(PhotonGetPlayerName()) + cstr("'s Lobby:");
+	 t.tempsteamhostlobbyname_s = cstr(PhotonGetPlayerName()) + cstr(":");// + cstr("'s Lobby:");
 	#else
 	 t.tempsteamhostlobbyname_s = cstr(SteamGetPlayerName()) + cstr("'s Lobby:");
 	#endif
@@ -6034,7 +6168,7 @@ void mp_createLobby ( void )
 
 	// set unique lobbylevel name and create lobby/gameroom
 	#ifdef PHOTONMP
-	 PhotonSetLobbyName ( cstr(t.tempsteamhostlobbyname_s+t.tempsteamlevelname_s+g.mp.workshopid+":"+Str(t.tMPshopTheVersionNumber)).Get() );
+	 PhotonSetLobbyName ( cstr(t.tempsteamhostlobbyname_s+t.tempsteamlevelname_s).Get() );
 	 PhotonCreateLobby();
 	#else
 	 t.tmphopitemtocheckifchangedandversion_s = t.tempsteammaptocheck_s;
@@ -6086,6 +6220,18 @@ void mp_searchForFpms ( void )
 void mp_launchGame ( void )
 {
 	g.mp.launchServer = 1;
+}
+
+void mp_restartMultiplayerSystem ( void )
+{
+	while ( mp_closeconnection() == 0 )
+	{
+		#ifdef PHOTONMP
+		 PhotonLoop();
+		#else
+		#endif
+	}
+	mp_fullinit();
 }
 
 void mp_backToStart ( void )
@@ -6481,19 +6627,77 @@ void mp_canIJoinThisLobby ( void )
 	if ( g.mp.selectedLobbyName != "Getting Lobby details..." ) 
 	{
 		g.mp.lobbyjoinedname = t.tempMPLobbyNameFromList_s;
-		t.tempsteamstringlobbyname_s = "";
-		t.tempsteamgotto = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
-		{
-			++t.tempsteamgotto;
-			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc) ) ==  ":" ) { t.tempsteamgotto += 2 ; break; }
-			t.tempsteamstringlobbyname_s = t.tempsteamstringlobbyname_s + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
-		}
-		g.mp.levelnametojoin = "";
-		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
-		{
-			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ")" )
+		#ifdef PHOTONMP
+		 // Sitename
+		 cstr tempstringsitename_s = "";
+		// t.tempsteamgotto = 0;
+		 for ( t.tc = 1 ; t.tc <= Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
+			//++t.tempsteamgotto;
+			if ( cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc) ) ==  ":" ) { break; } //t.tempsteamgotto += 2 ; break; }
+			tempstringsitename_s = tempstringsitename_s + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
+		 }
+		 // Lobby User Name
+		 t.tempsteamstringlobbyname_s = "";
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc <= Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
+			if ( cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc)) == ":" )
+			{
+				++t.tempsteamfoundone;
+			}
+			else
+			{
+				if ( t.tempsteamfoundone == 1 ) 
+				{
+					t.tempsteamstringlobbyname_s = t.tempsteamstringlobbyname_s + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
+				}
+			}
+		 }
+		 // Unique Lobby User ID
+		 cstr userUniqueID_s = "";
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc <= Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
+			if ( cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc)) == ":" )
+			{
+				++t.tempsteamfoundone;
+			}
+			else
+			{
+				if ( t.tempsteamfoundone == 2 ) 
+				{
+					userUniqueID_s = userUniqueID_s + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
+				}
+			}
+		 }
+		 // level name
+		 g.mp.levelnametojoin = "";
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc <= Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
+			if ( cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc)) == ":" )
+			{
+				++t.tempsteamfoundone;
+			}
+			else
+			{
+				if ( t.tempsteamfoundone == 3 ) 
+				{
+					g.mp.levelnametojoin = g.mp.levelnametojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
+				}
+			}
+		 }
+		 // Assemble name for display
+		 g.mp.lobbyjoinedname = t.tempsteamstringlobbyname_s + "'s ";
+		 g.mp.lobbyjoinedname = g.mp.lobbyjoinedname + g.mp.levelnametojoin + " Game";
+
+	    #else
+		 g.mp.levelnametojoin = "";
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
+			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
 			}
@@ -6504,11 +6708,16 @@ void mp_canIJoinThisLobby ( void )
 					g.mp.levelnametojoin = g.mp.levelnametojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
-		}
+		 }
+		#endif
 		g.mp.workshopidtojoin = "";
-		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
-		{
+		#ifdef PHOTONMP
+		 // No workshop or versioning in Photon
+		 t.tsteamcanjoinlobby = 1;
+		#else
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc <= Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
 			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
@@ -6520,12 +6729,12 @@ void mp_canIJoinThisLobby ( void )
 					g.mp.workshopidtojoin = g.mp.workshopidtojoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
-		}
-		//  grab version number
-		g.mp.workshopVersionNumberToJoin = "";
-		t.tempsteamfoundone = 0;
-		for ( t.tc = 1 ; t.tc<=  Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
-		{
+		 }
+		 //  grab version number
+		 g.mp.workshopVersionNumberToJoin = "";
+		 t.tempsteamfoundone = 0;
+		 for ( t.tc = 1 ; t.tc <= Len(g.mp.lobbyjoinedname.Get()); t.tc++ )
+		 {
 			if (  cstr(Mid(g.mp.lobbyjoinedname.Get(),t.tc))  ==  ":" )
 			{
 				++t.tempsteamfoundone;
@@ -6537,12 +6746,12 @@ void mp_canIJoinThisLobby ( void )
 					g.mp.workshopVersionNumberToJoin = g.mp.workshopVersionNumberToJoin + Mid(g.mp.lobbyjoinedname.Get(),t.tc);
 				}
 			}
-		}
-		g.mp.lobbyjoinedname = t.tempsteamstringlobbyname_s;
+		 }
+		 g.mp.lobbyjoinedname = t.tempsteamstringlobbyname_s;
 
-		//  Check here if there is a workshop item, if the user has subbed and downloaded
-		if (  g.mp.workshopidtojoin  !=  "0" && g.mp.workshopidtojoin  !=  "" ) 
-		{
+		 //  Check here if there is a workshop item, if the user has subbed and downloaded
+		 if (  g.mp.workshopidtojoin  !=  "0" && g.mp.workshopidtojoin  !=  "" ) 
+		 {
 			if (  SteamIsWorkshopItemInstalled(g.mp.workshopidtojoin.Get())  ==  0 ) 
 			{
 				t.tsteamcanjoinlobby = 0;
@@ -6572,12 +6781,12 @@ void mp_canIJoinThisLobby ( void )
 					}
 				}
 			}
-		}
-		else
-		{
+		 }
+		 else
+		 {
 			t.tsteamcanjoinlobby = 1;
-		}
-
+		 }
+		#endif
 	}
 	else
 	{
@@ -7206,10 +7415,6 @@ void mp_chatNew ( void )
 			if (  cstr(Left(t.tnametocheckforjoining_s.Get(),Len(t.mp_joined[t.tn].Get())))  ==  t.mp_joined[t.tn] && t.mp_joined[t.tn]  !=  "" && cstr(Right(t.mp_joined[t.tn].Get(),6))  !=  "Joined" ) 
 			{
 				t.mp_joined[t.tn] = t.mp_joined[t.tn] + " - Joined";
-//     `if tlastchatline$  !=  tchat$ then mp_chat(MP_MAX_CHAT_LINES-1)  ==  tchat$
-
-//     `tlastchatline$ = tchat$
-
 			}
 		}
 	}

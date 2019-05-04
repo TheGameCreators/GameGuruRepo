@@ -159,7 +159,17 @@ DLLEXPORT int GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContex
 
 DLLEXPORT void GGWMR_GetUpdate ( void )
 {
-	app.UpdateFrame();
+	///MessageBox ( NULL, "Inside GGWMR_GetUpdate", "0.B", MB_OK );
+	try
+	{
+		app.UpdateFrame();
+	}
+	catch (...)
+	{
+		///MessageBox ( NULL, "FAILED TO app.UpdateFrame()", "!!", MB_OK );
+		///app.SetInitialised(true);
+		///MessageBox ( NULL, "success with app.SetInitialised(true)", "!!", MB_OK );
+	}
 }
 
 DLLEXPORT void GGWMR_GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ )
@@ -294,11 +304,23 @@ int App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pCon
 
 void App::UpdateFrame()
 {
+	///MessageBox ( NULL, "Inside UpdateFrame", "0.C", MB_OK );
+	///MessageBox ( NULL, "Hard Debug Trace", "1", MB_OK );
 	g_holographicFrame = nullptr;
+	///MessageBox ( NULL, "Hard Debug Trace", "2", MB_OK );
     if (m_holographicSpace != nullptr)
     {
+		///MessageBox ( NULL, "Hard Debug Trace", "3", MB_OK );
 		winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference pSpatialStationaryFrameOfReference = nullptr;
-        g_holographicFrame = m_main->Update(&pSpatialStationaryFrameOfReference);
+		///MessageBox ( NULL, "Hard Debug Trace", "4", MB_OK );
+		try
+		{
+	        g_holographicFrame = m_main->Update(&pSpatialStationaryFrameOfReference);
+		}
+		catch(...)
+		{
+			///MessageBox ( NULL, "FAILED g_holographicFrame = m_main->Update(&pSpatialStationaryFrameOfReference)", "4", MB_OK );
+		}
 	}
 }
 

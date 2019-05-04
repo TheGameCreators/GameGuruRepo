@@ -186,19 +186,32 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 
 int g_iDebuggingActive = 0;
 char* g_pGGVRDebugLog[10000];
+char g_pDebugAbsPath[1024];
+extern void timestampactivity ( int i, char* desc_s );
+
 int DebugGGVRlog ( const char* pReportLog )
 {
+	// dont use this for now - is it crashing istefl?
+	return 0;
+
 	// Log File
 	if ( pReportLog == NULL )
 	{
 		// Reset at VERY start
 		for ( int iFind = 0; iFind < 10000; iFind++ ) g_pGGVRDebugLog[iFind] = NULL; 
+		strcpy ( g_pDebugAbsPath, "" );
 		return 0;
 	}
 	if ( g_iDebuggingActive == 1 )
 	{
 		// the debug file
 		const char* pFilename = "GGVRDebugLog.log";
+
+		// First use of debug, get absolute path to log file
+		if ( strcmp ( g_pDebugAbsPath, "" ) == NULL )
+		{
+			GetCurrentDirectoryA ( 1024, g_pDebugAbsPath );
+		}
 
 		// New entry 
 		char pWithTime[2048];
@@ -219,7 +232,11 @@ int DebugGGVRlog ( const char* pReportLog )
 
 		// save new log file
 		DWORD bytesdone = 0;
-		HANDLE hFile = CreateFile(pFilename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		char pAbsFilename[1024];
+		strcpy ( pAbsFilename, g_pDebugAbsPath );
+		strcat ( pAbsFilename, "\\" );
+		strcat ( pAbsFilename, pFilename );
+		HANDLE hFile = CreateFile(pAbsFilename, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		if ( hFile != INVALID_HANDLE_VALUE )
 		{
 			for ( int iFind = 0; iFind < 10000; iFind++ )
@@ -579,6 +596,12 @@ int GGVR_GetPlayerLeftHandObjID( )
 
 void GGVR_UpdatePoses(void)
 {
+	// Debug Info
+	char pInfo[1024];
+	sprintf ( pInfo, "Info: EnabledMode:%d  EnabledState:%d", GGVR_EnabledMode, GGVR_EnabledState );
+	timestampactivity ( 0, pInfo );
+	DebugGGVRlog ( pInfo );
+
 	// Handles HMD orientation and Motion Controller handling
 	if ( GGVR_EnabledMode == 1 )
 	{
@@ -699,6 +722,9 @@ void GGVR_UpdatePoses(void)
 		if ( GGVR_EnabledState == 2 )
 		{
 			// WMR Tracking
+			timestampactivity ( 0, "TS: Calling GGWMR_GetUpdate" );
+			DebugGGVRlog ( "Calling GGWMR_GetUpdate" );
+			///MessageBox ( NULL, "Hard Debug Trace", "0.A", MB_OK );
 			GGWMR_GetUpdate();
 			pGamePoseArray[0].bPoseIsValid = true;
 			if ( pGamePoseArray[0].bPoseIsValid )
@@ -707,6 +733,8 @@ void GGVR_UpdatePoses(void)
 				float fPosX, fPosY, fPosZ;
 				float fUpX, fUpY, fUpZ;
 				float fDirX, fDirY, fDirZ;
+				timestampactivity ( 0, "TS: Calling GGWMR_GetHeadPosAndDir" );
+				DebugGGVRlog ( "Calling GGWMR_GetHeadPosAndDir" );
 				GGWMR_GetHeadPosAndDir ( &fPosX, &fPosY, &fPosZ, &fUpX, &fUpY, &fUpZ, &fDirX, &fDirY, &fDirZ );
 				GGMATRIX matTransform;
 				KMaths::Vector3 up = KMaths::Vector3(fUpX,fUpY,fUpZ);
@@ -739,6 +767,8 @@ void GGVR_UpdatePoses(void)
 				float fTriggerValue = 0.0f;
 				float fThumbStickX = 0.0f;
 				float fThumbStickY = 0.0f;
+				timestampactivity ( 0, "TS: Calling GGWMR_GetThumbAndTrigger" );
+				DebugGGVRlog ( "Calling GGWMR_GetThumbAndTrigger" );
 				GGWMR_GetThumbAndTrigger ( &fTriggerValue, &fThumbStickX, &fThumbStickY );
 
 				// Update controller input : GGVR_AxisType[controllerID][typeofinput]
@@ -763,6 +793,8 @@ void GGVR_UpdatePoses(void)
 				GGVR_bTouchPadPressed = false;
 				GGVR_fTouchPadX = 0.0f;
 				GGVR_fTouchPadY = 0.0f;
+				timestampactivity ( 0, "TS: Calling GGWMR_GetTouchPadData" );
+				DebugGGVRlog ( "Calling GGWMR_GetTouchPadData" );
 				GGWMR_GetTouchPadData ( &GGVR_bTouchPadTouched, &GGVR_bTouchPadPressed, &GGVR_fTouchPadX, &GGVR_fTouchPadY );
 
 				// also need position/orientation of controller
@@ -773,6 +805,8 @@ void GGVR_UpdatePoses(void)
 				float fQuatX = 0.0f;
 				float fQuatY = 0.0f;
 				float fQuatZ = 0.0f;
+				timestampactivity ( 0, "TS: Calling GGWMR_GetHandPosAndOrientation" );
+				DebugGGVRlog ( "Calling GGWMR_GetHandPosAndOrientation" );
 				GGWMR_GetHandPosAndOrientation ( &fRightHandX, &fRightHandY, &fRightHandZ, &fQuatW, &fQuatX, &fQuatY, &fQuatZ );
 				GGMATRIX matRot;
 				GGQUATERNION QuatRot = GGQUATERNION ( -fQuatX, -fQuatY, -fQuatZ, fQuatW );
@@ -800,6 +834,8 @@ void GGVR_UpdatePoses(void)
 void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 {
 	// Update the HMD and controller feedbacks
+	timestampactivity ( 0, "TS: Calling GGVR_UpdatePoses" );
+	DebugGGVRlog ( "Calling GGVR_UpdatePoses" );
 	GGVR_UpdatePoses();
 
 	//Position the Base Object offset from the origin
@@ -1949,7 +1985,7 @@ int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath, int iDebugMode )
 	catch (exception& e)
 	{
 		const char* pWhatStr = e.what();
-		MessageBox ( NULL, pWhatStr, "GGWMR_CreateHolographicSpace1 Exception", MB_OK );   
+		///MessageBox ( NULL, pWhatStr, "GGWMR_CreateHolographicSpace1 Exception", MB_OK );   
 	}
 	return 987;
 }

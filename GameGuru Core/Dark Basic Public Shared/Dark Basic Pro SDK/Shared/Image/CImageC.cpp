@@ -2440,14 +2440,29 @@ DARKSDK bool SaveImageCore ( char* szFilename, int iID, int iCompressionMode )
 		}
 
 		// save surface of image to file
-		hRes = D3DX11SaveTextureToFile( m_pImmediateContext, pTexSurface, DestFormat, szFilename );
-		if ( FAILED ( hRes ) )
+		try
 		{
-			char pStrClue[512];
-			wsprintf ( pStrClue, "tex:%d filename:%s", (int)pTexSurface, szFilename );
-			RunTimeError(RUNTIMEERROR_IMAGEERROR,pStrClue);
-			SAFE_RELEASE(pTexSurface);
-			return false;
+			hRes = D3DX11SaveTextureToFile( m_pImmediateContext, pTexSurface, DestFormat, szFilename );
+			if ( FAILED ( hRes ) )
+			{
+				char pStrClue[512];
+				wsprintf ( pStrClue, "tex:%d filename:%s", (int)pTexSurface, szFilename );
+				RunTimeError(RUNTIMEERROR_IMAGEERROR,pStrClue);
+				SAFE_RELEASE(pTexSurface);
+				return false;
+			}
+		}
+		catch (...)
+		{
+			// this can fail when file is locked, so try waiting 3 seconds, then try again, else silent fail so no crash!
+			Sleep(3000);
+			hRes = D3DX11SaveTextureToFile( m_pImmediateContext, pTexSurface, DestFormat, szFilename );
+			if ( FAILED ( hRes ) )
+			{
+				// so joy, silent fail!
+				SAFE_RELEASE(pTexSurface);
+				return false;
+			}
 		}
 	}
 

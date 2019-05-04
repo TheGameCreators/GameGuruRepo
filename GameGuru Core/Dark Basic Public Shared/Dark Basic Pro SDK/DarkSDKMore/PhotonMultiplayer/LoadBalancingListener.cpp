@@ -87,8 +87,21 @@ void LoadBalancingListener::updateRoomList(void)
 	mPhotonView->ClearRoomList();
 	for(unsigned int i=0; i<rooms.getSize(); ++i)
 	{
+		// get all rooms visible on this serber
 		const char* str = rooms[i]->getName().ANSIRepresentation().cstr();
-		mPhotonView->AddRoomToList((LPSTR)str);
+
+		// determine if showing ALL games, or just those users who are using the same LKA key 
+		bool bMatchedSiteKey = false;
+		LPSTR pSiteName = mPhotonView->GetSiteName();
+		if ( _strnicmp ( str, pSiteName, strlen("12345-12345-12345-12345") ) == NULL )
+		{
+			// this users PC and the created room have matching site keys
+			bMatchedSiteKey = true;
+		}
+
+		// add room to visible list for user to select
+		if ( bMatchedSiteKey == true || mPhotonView->IsTeacherViewAllMode() == true )
+			mPhotonView->AddRoomToList((LPSTR)str);
 	}
 }
 
@@ -734,24 +747,22 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 				}
 			}
 			break;
+		*/
 		case k_EMsgClientPlayAnimation:
 			{
 				if ( cubMsgSize == sizeof( MsgClientPlayAnimation_t ) )
 				{
 					MsgClientPlayAnimation_t* pmsg = (MsgClientPlayAnimation_t*)pchRecvBuf;
-					int index = pmsg->playerIndex;
-	
-					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
-					{
-						if ( m_rgpPlayer[i] && i != index )
-						{
-							if ( ShouldISend ( k_EMsgClientPlayAnimation , 0 , m_rgpPlayer[i]->newx, m_rgpPlayer[i]->newy, m_rgpPlayer[i]->newz, index ) )
-								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayAnimation_t), k_EP2PSendReliable );
-						}
-					}
+					tAnimation a;
+					a.index = pmsg->index;
+					a.start = pmsg->start;
+					a.end = pmsg->end;
+					a.speed = pmsg->speed;
+					animationList.push_back(a);
 				}
 			}
 			break;
+		/*
 		case k_EMsgClientPlayerBullet:
 			{
 				if ( cubMsgSize == sizeof( MsgClientPlayerBullet_t ) )
@@ -776,21 +787,21 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 				}
 			}
 			break;
+		*/
 		case k_EMsgClientPlayerKeyState:
 			{
 				if ( cubMsgSize == sizeof( MsgClientPlayerKeyState_t ) )
 				{
 					MsgClientPlayerKeyState_t* pmsg = (MsgClientPlayerKeyState_t*)pchRecvBuf;
 					int index = pmsg->index;
-	
-					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					if ( m_rgpPlayer[index] )
 					{
-						if ( m_rgpPlayer[i] && i != index )
-							SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerKeyState_t), k_EP2PSendUnreliable );
+						keystate[index-1][pmsg->key] = pmsg->state;
 					}
 				}
 			}
 			break;
+		/*
 		case k_EMsgClientPlayerApplyDamage:
 			{
 				if ( cubMsgSize == sizeof( MsgClientPlayerApplyDamage_t ) )
@@ -1157,27 +1168,20 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 				}
 			}
 			break;
-		/*
 		case k_EMsgClientPlayerAppearance:
 			{
 				if ( cubMsgSize == sizeof( MsgClientPlayerAppearance_t ) )
 				{
 					MsgClientPlayerAppearance_t* pmsg = (MsgClientPlayerAppearance_t*)pchRecvBuf;
 					int index = pmsg->index;
-	
-					for( uint32 i=0; i<MAX_PLAYERS_PER_SERVER; ++i )
+					int appearance = pmsg->appearance;
+					if ( m_rgpPlayer[index] )
 					{
-						if ( m_rgpPlayer[i] && i != index )
-						{
-							//if ( ShouldISend ( k_EMsgClientPlayerAppearance , 0 , m_rgpPlayer[i]->newx, m_rgpPlayer[i]->newy, m_rgpPlayer[i]->newz, index ) )
-								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, pmsg, sizeof(MsgClientPlayerAppearance_t), k_EP2PSendUnreliable );
-						}
+						playerAppearance[index-1] = appearance;
 					}
-
 				}
 			}
 			break;
-		*/
 		case k_EMsgClientSetSendFileCount:
 			{
 				if ( cubMsgSize == sizeof( MsgClientSetSendFileCount_t ) )

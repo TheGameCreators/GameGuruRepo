@@ -50,7 +50,11 @@ void welcome_waitfornoinput ( void )
 		t.terrain.gameplaycamera=0;
 		terrain_shadowupdate ( );
 		terrain_update ( );
-		PasteImage ( g.editorimagesoffset+12, 0, 0 );
+		//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+		// stretch anim backdrop to size of client window
+		Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+		PasteSprite ( 123, 0, 0 );
 		FastSync (  );
 	} while ( !( t.inputsys.kscancode == 0 && t.inputsys.mclick == 0 ) );
 }
@@ -206,6 +210,9 @@ void welcome_animbackdrop ( void )
 	{
 		Cls();
 		SetSpriteAlpha ( 123, iPercCol );
+		//PasteSprite ( 123, 0, 0 );
+		// stretch anim backdrop to size of client window
+		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
 		PasteSprite ( 123, 0, 0 );
 		int iLogoFade = (iPercCol*2)-255; if ( iLogoFade < 0 ) iLogoFade = 0;
 		SetSpriteAlpha ( 124, iLogoFade );
@@ -231,15 +238,13 @@ void welcome_animbackdrop ( void )
 
 void welcome_staticbackdrop ( void )
 {
-	//SetSprite ( 123, 0, 1 );
-	//Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
-	//SizeSprite ( 123, GetDesktopWidth(), GetDesktopHeight() );
 	for ( int iSyncPass = 0; iSyncPass <= 1; iSyncPass++ )
 	{
-		PasteImage ( g.editorimagesoffset+12, 0, 0 );
-		//Cls();
-		//SetSpriteAlpha ( 123, 255 );
-		//PasteSprite ( 123, 0, 0 );
+		//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+		// stretch anim backdrop to size of client window
+		Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+		PasteSprite ( 123, 0, 0 );
 		Sync();
 	}
 }
@@ -251,7 +256,13 @@ void welcome_updatebackdrop ( char* pText )
 	for ( int s = 0; s < 2; s++ )
 	{
 		Cls();
-		PasteImage ( g.editorimagesoffset+12, 0, 0 );
+
+		//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+		// stretch anim backdrop to size of client window
+		Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+		PasteSprite ( 123, 0, 0 );
+
 		Sprite ( 123, -10000, -10000, g.editorimagesoffset+41 );
 		int iImgWidth = ImageWidth(g.editorimagesoffset+41);
 		int iImgHeight = ImageHeight(g.editorimagesoffset+41);
@@ -414,6 +425,8 @@ struct welcomeserialcodetype
 	char pCode[23];
 	int iKeyPressed;
 	int iAfterError;
+	DWORD dwCodeEntryTimeStamp;
+	bool bCodeEntryCursor;
 };
 welcomeserialcodetype g_welcomeserialcode;
 
@@ -457,7 +470,21 @@ void welcome_serialcode_page ( int iHighlightingButton )
 	{
 		welcome_text ( pCodeEnterText, 1, 50, 43, 192, true, false );
 		welcome_drawbox ( 0, 30, 50, 70, 60 );
-		welcome_text ( g_welcomeserialcode.pCode, 1, 50, 55, 192, true, false );
+		char pFinalCodeDisplay[1024];
+		strcpy ( pFinalCodeDisplay, g_welcomeserialcode.pCode );
+		if ( Timer() > g_welcomeserialcode.dwCodeEntryTimeStamp )
+		{
+			g_welcomeserialcode.dwCodeEntryTimeStamp = Timer() + 500;
+			if ( g_welcomeserialcode.bCodeEntryCursor == true )
+				g_welcomeserialcode.bCodeEntryCursor = false;
+			else
+				g_welcomeserialcode.bCodeEntryCursor = true;
+		}
+		if ( g_welcomeserialcode.bCodeEntryCursor == true )
+			strcat ( pFinalCodeDisplay, "|" );
+		else
+			strcat ( pFinalCodeDisplay, " " );
+		welcome_text ( pFinalCodeDisplay, 1, 50, 55, 192, true, false );
 		welcome_text ( "You can use CTRL+V to paste contents of clipboard.", 2, 50, 65, 192, true, false );
 		iID = g_welcomeserialcode.iNextButtonID; if ( strlen(g_welcomeserialcode.pCode) < iCodeDigitsRequiredCount ) iID = 0;
 		welcome_textinbox ( iID, "CONFIRM", 1, 50, 90, g_welcomebutton[iID].alpha );
@@ -473,7 +500,7 @@ void welcome_serialcode_page ( int iHighlightingButton )
 	if ( iKeyScanCode > 0 && g_welcomeserialcode.iKeyPressed == 0)
 	{
 		unsigned char c = InKey();
-		if ( (c >= 48 && c <= 57) || (c >= 97 && c <= 122) )
+		if ( (c >= 48 && c <= 57) || (c >= 97 && c <= 122) || c == 45)
 		{
 			g_welcomeserialcode.iKeyPressed = 1;
 			if ( strlen(g_welcomeserialcode.pCode) < iCodeDigitsRequiredCount )
@@ -678,7 +705,11 @@ void welcome_main_page ( int iHighlightingButton )
 			welcome_setuppage ( WELCOME_MAIN );
 			welcome_staticbackdrop();
 			iHighlightingButton = 0;
-			PasteImage ( g.editorimagesoffset+12, 0, 0 );
+			//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+			// stretch anim backdrop to size of client window
+			Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+			SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+			PasteSprite ( 123, 0, 0 );
 		}
 		if ( iHighlightingButton == 3 ) 
 		{
@@ -910,8 +941,11 @@ void welcome_runloop ( int iPageIndex )
 			terrain_shadowupdate ( );
 			terrain_update ( );
 
-			// paste backdrop
-			PasteImage ( g.editorimagesoffset+12, 0, 0 );
+			// paste backdrop (scaled to fit client window)
+			//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+			Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+			SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+			PasteSprite ( 123, 0, 0 );
 
 			// paste page panel
 			PasteImage ( g.editorimagesoffset+8, g_welcome.iTopLeftX, g_welcome.iTopLeftY );

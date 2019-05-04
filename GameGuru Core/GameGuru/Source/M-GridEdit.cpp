@@ -8172,12 +8172,12 @@ void gridedit_import_ask ( void )
 		{
 			if (  t.tdone  ==  0 ) 
 			{
-				SetFileMapString ( 1 , 1256 , "Choose an X, 3DS or FBX file for a new object or an .fpe file for existing (*.*)" );
+				SetFileMapString ( 1 , 1256 , "Choose an X or FBX file for a new object or an .fpe file for existing (*.*)" );
 				SetFileMapString (  1, 1512, "Import New Entity" );
 			}
 			else
 			{
-				SetFileMapString (  1, 1256, "Please try again ) You must choose either an X, 3DS or FBX file or an .fpe file! (*.*)" );
+				SetFileMapString (  1, 1256, "Please try again ) You must choose either an X or FBX file or an .fpe file! (*.*)" );
 				SetFileMapString (  1, 1512, "Invalid File, Please t.try again" );
 			}
 			SetFileMapDWORD (  1, 424, 1 );
@@ -8189,7 +8189,6 @@ void gridedit_import_ask ( void )
 			t.returnstring_s=GetFileMapString(1, 1000);
 			t.tdone = 1;
 			if (	strcmp ( Lower(Right(t.returnstring_s.Get(),2)) , ".x" ) == 0 
-			||		strcmp ( Lower(Right(t.returnstring_s.Get(),4)) ,".3ds" ) == 0 
 			||		strcmp ( Lower(Right(t.returnstring_s.Get(),4)) ,".fbx" ) == 0 
 			||		strcmp ( Lower(Right(t.returnstring_s.Get(),4)) , ".dbo" ) == 0 
 			||		strcmp ( Lower(Right(t.returnstring_s.Get(),4)) , ".fpe" ) == 0 

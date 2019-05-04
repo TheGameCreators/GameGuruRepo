@@ -4532,7 +4532,7 @@ struct Stemps
 	int toverone;
 	int tpartObj;
 	int tpersone;
-	int tplaycsi;
+	int tplaycsioranimindex;
 	int tplrfell;
 	int tplrhurt;
 	float tplrx2_f;
@@ -6663,7 +6663,7 @@ struct Stemps
 		 tplrx2_f = 0.0f;
 		 tplrhurt = 0;
 		 tplrfell = 0;
-		 tplaycsi = 0;
+		 tplaycsioranimindex = 0;
 		 tpersone = 0;
 		 tpartObj = 0;
 		 toverone = 0;

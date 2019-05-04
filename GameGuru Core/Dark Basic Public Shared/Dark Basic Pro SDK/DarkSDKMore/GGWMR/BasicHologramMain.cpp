@@ -131,97 +131,118 @@ HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial
     // Before doing the timer update, there is some work to do per-frame
     // to maintain holographic rendering. First, we will get information
     // about the current frame.
+	///MessageBox ( NULL, "Hard Debug Trace", "11", MB_OK );
+	if ( m_holographicSpace == nullptr )
+	{
+		///MessageBox ( NULL, "Hard Debug Trace", "12", MB_OK );
+		DebugVRlog("m_holographicSpace not valid");
+		return nullptr;
+	}
 
     // The HolographicFrame has information that the app needs in order
     // to update and render the current frame. The app begins each new
     // frame by calling CreateNextFrame.
+	///MessageBox ( NULL, "Hard Debug Trace", "13", MB_OK );
+	DebugVRlog("CreateNextFrame");
+	///MessageBox ( NULL, "Hard Debug Trace", "14", MB_OK );
     HolographicFrame holographicFrame = m_holographicSpace.CreateNextFrame();
 
     // Wait for the frame to be ready before pose-dependent updates and rendering.
     // NOTE: This API call will throw an exception if a wait occurs at the wrong time, or out
     //       of sequence.
+	///MessageBox ( NULL, "Hard Debug Trace", "15", MB_OK );
+	DebugVRlog("WaitForNextFrameReady");
+	///MessageBox ( NULL, "Hard Debug Trace", "16", MB_OK );
     m_holographicSpace.WaitForNextFrameReady();
 
-    // Get a prediction of where holographic cameras will be when this frame
-    // is presented.
-    HolographicFramePrediction prediction = holographicFrame.CurrentPrediction();
+    // Get a prediction of where holographic cameras will be when this frame is presented.
+	///MessageBox ( NULL, "Hard Debug Trace", "17", MB_OK );
+	if ( holographicFrame == nullptr )
+	{
+		///MessageBox ( NULL, "Hard Debug Trace", "18", MB_OK );
+		DebugVRlog("holographicFrame not valid");
+		return nullptr;
+	}
 
-    // Back buffers can change from frame to frame. Validate each buffer, and recreate
-    // resource views and depth buffers as needed.
-    m_deviceResources->EnsureCameraResources(holographicFrame, prediction);
+	///MessageBox ( NULL, "Hard Debug Trace", "19", MB_OK );
+	DebugVRlog("CurrentPrediction");
+	///MessageBox ( NULL, "Hard Debug Trace", "20", MB_OK );
+	HolographicFramePrediction prediction = holographicFrame.CurrentPrediction();
+	if ( prediction == nullptr )
+	{
+		///MessageBox ( NULL, "Hard Debug Trace", "21", MB_OK );
+		DebugVRlog("CurrentPrediction not valid");
+		return nullptr;
+	}
 
-#ifdef DRAW_SAMPLE_CONTENT
-    if (m_stationaryReferenceFrame != nullptr)
-    {
-        // Check for new input state since the last frame.
-        for (GamepadWithButtonState& gamepadWithButtonState : m_gamepads)
-        {
-            bool buttonDownThisUpdate = ((gamepadWithButtonState.gamepad.GetCurrentReading().Buttons & GamepadButtons::A) == GamepadButtons::A);
-            if (buttonDownThisUpdate && !gamepadWithButtonState.buttonAWasPressedLastFrame)
-            {
-                //m_pointerPressed = true;
-            }
-            gamepadWithButtonState.buttonAWasPressedLastFrame = buttonDownThisUpdate;
-        }
-
-		// get post from predicted frame
-        SpatialPointerPose pose = nullptr;
-        pose = SpatialPointerPose::TryGetAtTimestamp(m_stationaryReferenceFrame.CoordinateSystem(), prediction.Timestamp());
-
-		// extract head position and direction
-		if ( pose != nullptr )
+	// Back buffers can change from frame to frame. Validate each buffer, and recreate
+	// resource views and depth buffers as needed.
+	///MessageBox ( NULL, "Hard Debug Trace", "22", MB_OK );
+	DebugVRlog("m_deviceResources");
+	if ( m_deviceResources )
+	{
+		///MessageBox ( NULL, "Hard Debug Trace", "23", MB_OK );
+		DebugVRlog("EnsureCameraResources");
+		m_deviceResources->EnsureCameraResources(holographicFrame, prediction);
+		if (m_stationaryReferenceFrame != nullptr)
 		{
-			m_fHeadPosX = pose.Head().Position().x;
-			m_fHeadPosY = pose.Head().Position().y;
-			m_fHeadPosZ = pose.Head().Position().z;
-			m_fHeadUpX = pose.Head().UpDirection().x;
-			m_fHeadUpY = pose.Head().UpDirection().y;
-			m_fHeadUpZ = pose.Head().UpDirection().z;
-			m_fHeadDirX = pose.Head().ForwardDirection().x;
-			m_fHeadDirY = pose.Head().ForwardDirection().y;
-			m_fHeadDirZ = pose.Head().ForwardDirection().z;
-		}
-
-		// try to get controller input directly
-		/*
-		if ( m_interactionManager )
-		{
-			auto states = m_interactionManager->GetDetectedSourcesAtTimestamp(prediction.Timestamp());
-			std::vector<Windows::Foundation::Numerics::float3> m_positions;
-			//m_positions.reserve(states.Size);
-			for (const auto& state : states)
+			///MessageBox ( NULL, "Hard Debug Trace", "24", MB_OK );
+			// Check for new input state since the last frame.
+			/*
+			DebugVRlog("gamepadWithButtonState");
+			for (GamepadWithButtonState& gamepadWithButtonState : m_gamepads)
 			{
-				// Get the location of the SpatialInteractionSource for the earlier provided timestamp in the coordinate system provided.
-				SpatialInteractionSourceLocation location = state.Properties().TryGetLocation(m_stationaryReferenceFrame.CoordinateSystem());
-				if (!location || !location.Position() || !location.Orientation())
+				bool buttonDownThisUpdate = ((gamepadWithButtonState.gamepad.GetCurrentReading().Buttons & GamepadButtons::A) == GamepadButtons::A);
+				if (buttonDownThisUpdate && !gamepadWithButtonState.buttonAWasPressedLastFrame)
 				{
-					continue;
+					//m_pointerPressed = true;
 				}
+				gamepadWithButtonState.buttonAWasPressedLastFrame = buttonDownThisUpdate;
+			}
+			*/
 
-				bool test = state.IsPressed();
-				test=test;
+			// get post from predicted frame
+			///MessageBox ( NULL, "Hard Debug Trace", "25", MB_OK );
+			SpatialPointerPose pose = nullptr;
+			DebugVRlog("TryGetAtTimestamp");
+			pose = SpatialPointerPose::TryGetAtTimestamp(m_stationaryReferenceFrame.CoordinateSystem(), prediction.Timestamp());
+
+			// extract head position and direction
+			if ( pose != nullptr )
+			{
+				///MessageBox ( NULL, "Hard Debug Trace", "26", MB_OK );
+				DebugVRlog("pose.Head().Position()");
+				m_fHeadPosX = pose.Head().Position().x;
+				m_fHeadPosY = pose.Head().Position().y;
+				m_fHeadPosZ = pose.Head().Position().z;
+				m_fHeadUpX = pose.Head().UpDirection().x;
+				m_fHeadUpY = pose.Head().UpDirection().y;
+				m_fHeadUpZ = pose.Head().UpDirection().z;
+				m_fHeadDirX = pose.Head().ForwardDirection().x;
+				m_fHeadDirY = pose.Head().ForwardDirection().y;
+				m_fHeadDirZ = pose.Head().ForwardDirection().z;
 			}
 		}
-		*/
-    }
-#endif
+	}
 
     m_timer.Tick([this]()
     {
-#ifdef DRAW_SAMPLE_CONTENT
-#endif
     });
 
+	///MessageBox ( NULL, "Hard Debug Trace", "27", MB_OK );
+	DebugVRlog("m_canCommitDirect3D11DepthBuffer");
     if (!m_canCommitDirect3D11DepthBuffer)
     {
+		///MessageBox ( NULL, "Hard Debug Trace", "28", MB_OK );
         // On versions of the platform that do not support the CommitDirect3D11DepthBuffer API, we can control
         // image stabilization by setting a focus point with optional plane normal and velocity.
+		DebugVRlog("cameraPose");
         for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
         {
-#ifdef DRAW_SAMPLE_CONTENT
-
+			///MessageBox ( NULL, "Hard Debug Trace", "29", MB_OK );
             // The HolographicCameraRenderingParameters class provides access to set
             // the image stabilization parameters.
+			DebugVRlog("GetRenderingParameters");
             HolographicCameraRenderingParameters renderingParameters = holographicFrame.GetRenderingParameters(cameraPose);
 
             // SetFocusPoint informs the system about a specific point in your scene to
@@ -231,15 +252,16 @@ HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial
                 // In this example, we put the focus point at the center of the sample hologram.
                 // You can also set the relative velocity and facing of the stabilization
                 // plane using overloads of this method.
-            if (m_stationaryReferenceFrame != nullptr)
-            {
-            }
-#endif
+            //if (m_stationaryReferenceFrame != nullptr)
+            //{
+            //}
         }
     }
 
     // The holographic frame will be used to get up-to-date view and projection matrices and to present the swap chain.
-	*pstationaryReferenceFrame = m_stationaryReferenceFrame;
+	///MessageBox ( NULL, "Hard Debug Trace", "", MB_OK );
+	DebugVRlog("m_stationaryReferenceFrame");
+	if ( pstationaryReferenceFrame ) *pstationaryReferenceFrame = m_stationaryReferenceFrame;
     return holographicFrame;
 }
 

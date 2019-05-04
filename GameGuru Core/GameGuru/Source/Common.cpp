@@ -409,7 +409,11 @@ void common_init_globals ( void )
 	g.fpscrootdir_s = GetDir();
 	g.mydocumentsdir_s = Mydocdir();
 	g.mydocumentsdir_s += "\\";
-	g.myfpscfiles_s = "Game Guru Files";
+	#ifdef VRQUEST
+	 g.myfpscfiles_s = "VR Quest Files";
+	#else
+	 g.myfpscfiles_s = "Game Guru Files";
+	#endif
 	g.myownrootdir_s = g.mydocumentsdir_s+g.myfpscfiles_s+"\\";
 
 	//  Image Resources
@@ -2310,7 +2314,9 @@ int common_isserialcodevalid ( LPSTR pSerialCode )
 	#ifdef CLOUDKEYSYSTEM
 
 		// generate unique code for install if none available
-		char* pUniqueCodeFile = "installcode.dat";
+		char pUniqueCodeFile[1024];
+		strcpy ( pUniqueCodeFile, g.fpscrootdir_s.Get() );
+		strcat ( pUniqueCodeFile, "\\installcode.dat" );
 		char pUniqueCode[33];
 		memset ( pUniqueCode, 33, 0 );
 		FILE *file = fopen(pUniqueCodeFile, "r");
@@ -2643,11 +2649,15 @@ void FPSC_Setup ( void )
 		// if non-VRQ, ensure Steam file present, otherwise exit software
 		if ( g.trueappname_s == "Guru-MapEditor" ) 
 		{
-			if ( FileExist("steam_appid.txt") == 0 ) 
-			{
+			#ifdef PHOTONMP
+			 // No Steam in Photon build
+			#else
+			 if ( FileExist("steam_appid.txt") == 0 ) 
+			 {
 				MessageBox ( NULL, "Root file missing from installation.", "System File Not Found", MB_OK );
 				g.iTriggerSoftwareToQuit = 1;
-			}
+			 }
+			#endif
 		}
 	}
 
@@ -2879,8 +2889,12 @@ void FPSC_Setup ( void )
 			}
 
 			// allow _e_ usage override
-			if ( FileExist ( cstr(g.exeroot_s + cstr("\\leeandraveyrock.txt")).Get() ) == 1 )
+			#ifdef VRQUEST
+			 SetCanUse_e_(1);
+			#else
+			 if ( FileExist ( cstr(g.exeroot_s + cstr("\\leeandraveyrock.txt")).Get() ) == 1 )
 				SetCanUse_e_(1);
+			#endif
 		}
 		else
 		{

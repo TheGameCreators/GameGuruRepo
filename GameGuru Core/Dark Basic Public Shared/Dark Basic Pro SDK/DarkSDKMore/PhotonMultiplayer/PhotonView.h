@@ -14,6 +14,11 @@ class PhotonView
 		~PhotonView ( void );
 
 	public:
+		void SetSiteName ( LPSTR pName ) { strcpy ( pSiteName, pName ); }
+		LPSTR GetSiteName ( void ) { return pSiteName; }
+		void SetTeacherViewAllMode ( bool bViewAllMode ) { bTeacherViewAllMode = bViewAllMode; }
+		bool IsTeacherViewAllMode ( void ) { return bTeacherViewAllMode; }
+
 		void setConnectingState ( bool bState ) { bConnecting = bState; }
 		bool isConnecting() { return bConnecting; }
 		void setConnectionState ( bool bState ) { bConnected = bState; }
@@ -32,6 +37,9 @@ class PhotonView
 		LPSTR GetPlayerName ( int iPlayerIndex );
 
 	public:
+		char pSiteName[1024];
+		bool bTeacherViewAllMode;
+
 		bool bConnecting;
 		bool bConnected;
 		bool bInGameRoom;
