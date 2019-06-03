@@ -9,6 +9,16 @@
 //  4-sunlight ray camera
 // 
 
+// Some convenient globals for VR controller shader and textures
+int g_iCShaderID = 0;
+int g_iCTextureID0 = 0;
+int g_iCTextureID1 = 0;
+int g_iCTextureID2 = 0;
+int g_iCTextureID3 = 0;
+int g_iCTextureID4 = 0;
+int g_iCTextureID5 = 0;
+int g_iCTextureID6 = 0;
+
 void postprocess_init ( void )
 {
 	//  postprocesseffectoffset;
@@ -119,7 +129,17 @@ void postprocess_init ( void )
 					g.vrglobals.GGVRInitialized = 0;
 					sprintf ( pErrorStr, "initialise VR System Mode %d", g.vrglobals.GGVREnabled );
 					timestampactivity(0,pErrorStr);
-					int iErrorCode = GGVR_Init(g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004, 10005, 10099, g.guishadereffectindex, g.editorimagesoffset+14);
+					if ( g_iCShaderID == 0 ) g_iCShaderID = g.controllerpbreffect;
+					if ( g_iCTextureID0 == 0 ) g_iCTextureID0 = loadinternaltextureex("gamecore\\vrcontroller\\vrcontroller_color.png", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID1 == 0 ) g_iCTextureID1 = loadinternaltextureex("effectbank\\reloaded\\media\\blank_O.dds", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID2 == 0 ) g_iCTextureID2 = loadinternaltextureex("gamecore\\vrcontroller\\vrcontroller_normal.png", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID3 == 0 ) g_iCTextureID3 = loadinternaltextureex("gamecore\\vrcontroller\\vrcontroller_metalness.png", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID4 == 0 ) g_iCTextureID4 = loadinternaltextureex("gamecore\\vrcontroller\\vrcontroller_gloss.png", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID5 == 0 ) g_iCTextureID5 = g.postprocessimageoffset+5;
+					if ( g_iCTextureID6 == 0 ) g_iCTextureID6 = t.terrain.imagestartindex+31;//loadinternaltextureex("effectbank\\reloaded\\media\\blank_I.dds", 1, t.tfullorhalfdivide);
+					sprintf ( pErrorStr, "controller asset %d %d %d %d %d %d %d %d", g_iCShaderID, g_iCTextureID0, g_iCTextureID1, g_iCTextureID2, g_iCTextureID3, g_iCTextureID4, g_iCTextureID5, g_iCTextureID6 );
+					timestampactivity(0,pErrorStr);
+					int iErrorCode = GGVR_Init ( g.rootdir_s.Get(), g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004, 10005, 10099, g.guishadereffectindex, g.editorimagesoffset+14, g_iCShaderID, g_iCTextureID0, g_iCTextureID1, g_iCTextureID2, g_iCTextureID3, g_iCTextureID4, g_iCTextureID5, g_iCTextureID6);
 					if ( iErrorCode > 0 )
 					{
 						sprintf ( pErrorStr, "Error starting VR : Code %d", iErrorCode );
@@ -464,8 +484,9 @@ void postprocess_preterrain ( void )
 			if (  GetEffectExist(t.terrain.vegetationshaderindex) == 1  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"blacktextured" );
 		}
 		if (  GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex,"blacktextured" );
-		for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+		for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 		{
+			if (  t.t == -5  ) t.teffectid = g.controllerpbreffect;
 			if ( t.t == -4  )  t.teffectid = g.lightmappbreffect;
 			if ( t.t == -3  )  t.teffectid = g.thirdpersonentityeffect;
 			if ( t.t == -2  )  t.teffectid = g.thirdpersoncharactereffect;

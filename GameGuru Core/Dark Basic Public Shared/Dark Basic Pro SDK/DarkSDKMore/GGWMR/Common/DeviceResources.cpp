@@ -104,18 +104,34 @@ void DX::DeviceResources::EnsureCameraResources(
 {
     UseHolographicCameraResources<void>([this, frame, prediction](std::map<UINT32, std::unique_ptr<CameraResources>>& cameraResourceMap)
     {
-		try
+		for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
 		{
-			for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
+			HolographicCameraRenderingParameters renderingParameters = nullptr;
+			try
 			{
-				HolographicCameraRenderingParameters renderingParameters = frame.GetRenderingParameters(cameraPose);
-				CameraResources* pCameraResources = cameraResourceMap[cameraPose.HolographicCamera().Id()].get();
+				renderingParameters = frame.GetRenderingParameters(cameraPose);
+			}
+			catch(...)
+			{
+				DebugVRlog("failed frame.GetRenderingParameters(cameraPose)");
+			}
+			CameraResources* pCameraResources = nullptr;
+			try
+			{
+				pCameraResources = cameraResourceMap[cameraPose.HolographicCamera().Id()].get();
+			}
+			catch(...)
+			{
+				DebugVRlog("failed cameraResourceMap[cameraPose.HolographicCamera().Id()].get()");
+			}
+			try
+			{
 				pCameraResources->CreateResourcesForBackBuffer(this, renderingParameters);
 			}
-		}
-		catch(...)
-		{
-			// maybe next time (this will exception if HMD not generating a valid cameraPose/frame/prediction..)
+			catch(...)
+			{
+				DebugVRlog("failed CreateResourcesForBackBuffer");
+			}
 		}
     });
 }

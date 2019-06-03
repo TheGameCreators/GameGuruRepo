@@ -21,8 +21,8 @@ extern "C"
 																float* pM02, float* pM12, float* pM22, float* pM32,
 																float* pM03, float* pM13, float* pM23, float* pM33);
 	DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
-	DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY );
-	DLLEXPORT void GGWMR_GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ );
+	DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouchedisRightHand, bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY );
+	DLLEXPORT void GGWMR_GetHandPosAndOrientation ( int iLeftHandMode, float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ );
 	DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
 	DLLEXPORT void GGWMR_Present ( void );
 }
@@ -39,8 +39,8 @@ namespace BasicHologram
 		void UpdateFrame();
 		void GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );
 		void GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
-		void GetTouchPadData ( bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY );
-		void GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ );
+		void GetTouchPadData ( bool* pbTouchedisRightHand, bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY );
+		void GetHandPosAndOrientation ( int iLeftHandMode, float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ );
 		void GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM10, float* pM20, float* pM30, 
 													float* pM01, float* pM11, float* pM21, float* pM31,
 													float* pM02, float* pM12, float* pM22, float* pM32,
@@ -88,19 +88,19 @@ namespace BasicHologram
         winrt::Windows::UI::Input::Spatial::SpatialInteractionManager       m_interactionManager = nullptr;
 
 		// store controller input
-		float																m_fTriggerValue;
-		float																m_fThumbX;
-		float																m_fThumbY;
+		float																m_fTriggerValue[2];
+		float																m_fThumbX[2];
+		float																m_fThumbY[2];
 
-		bool																m_bTouchPadTouched;
-		bool																m_bTouchPadPressed;
-		float																m_fTouchPadX;
-		float																m_fTouchPadY;
+		bool																m_bTouchPadTouched[2];
+		bool																m_bTouchPadPressed[2];
+		float																m_fTouchPadX[2];
+		float																m_fTouchPadY[2];
 
-		float																m_fRightHandX;
-		float																m_fRightHandY;
-		float																m_fRightHandZ;
-		winrt::Windows::Foundation::Numerics::quaternion					m_qRightHandOrientation;
+		float																m_fHandX[2] = {0,0};
+		float																m_fHandY[2] = {0,0};
+		float																m_fHandZ[2] = {0,0};
+		winrt::Windows::Foundation::Numerics::quaternion					m_qHandOrientation[2];
 
 
         // Event registration token.

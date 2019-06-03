@@ -596,8 +596,19 @@ void editor_detect_invalid_screen ( void )
 	}
 }
 
-void editor_showhelppage ( void )
+void editor_showhelppage ( int iHelpType )
 {
+	// image to use
+	int iEditorHelpImage = 1;
+	int iDivideBy = 1;
+	#ifdef VRQUEST
+	 switch ( iHelpType )
+	 {
+		case 1 : iEditorHelpImage = 1; break;
+		case 2 : iEditorHelpImage = 27; iDivideBy = 2; break;
+		case 3 : iEditorHelpImage = 28; iDivideBy = 2; break;
+	 }
+	#endif
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetEventAndWait (  1 );
 	do
@@ -608,9 +619,9 @@ void editor_showhelppage ( void )
 	t.inputsys.kscancode=0;
 	t.asx_f=1.0;
 	t.asy_f=1.0;
-	t.imgx_f=ImageWidth(g.editorimagesoffset+1)*t.asx_f;
-	t.imgy_f=ImageHeight(g.editorimagesoffset+1)*t.asy_f;
-	Sprite (  123,-10000,-10000,g.editorimagesoffset+1 );
+	t.imgx_f=ImageWidth(g.editorimagesoffset+iEditorHelpImage)/iDivideBy*t.asx_f;
+	t.imgy_f=ImageHeight(g.editorimagesoffset+iEditorHelpImage)/iDivideBy*t.asy_f;
+	Sprite (  123,-10000,-10000,g.editorimagesoffset+iEditorHelpImage );
 	SizeSprite (  123,t.imgx_f,t.imgy_f );
 	t.lastmousex=MouseX() ; t.lastmousey=MouseY();
 	t.tpressf1toleave=0;
@@ -2310,19 +2321,27 @@ void input_getfilemapcontrols ( void )
 					break;
 				}
 			}
-			if (  t.toolbarset == 21 ) 
+			if ( t.toolbarset == 21 ) 
 			{
-				//  HELP MENU Actions
-				switch (  t.toolbarindex ) 
+				// HELP MENU Actions
+				#if VRQUEST
+				switch ( t.toolbarindex ) 
 				{
+					case 1 : editor_showhelppage ( 1 );  break;
+					case 2 : editor_showhelppage ( 2 );  break;
+					case 3 : editor_showhelppage ( 3 );  break;
+				}
+				#else
+				 switch (  t.toolbarindex ) 
+				 {
 					case 1 :
 						editor_showhelppage ( );
 					break;
 					case 2 :
-						//  trigger interactive tutorial panel
 						if (  t.interactive.active == 0  )  t.interactive.active = 2;
 					break;
-				}		//~   endif
+				 }
+				#endif
 			}
 		}
 
@@ -2855,7 +2874,7 @@ void input_getcontrols ( void )
 		if (  t.inputsys.kscancode == 15 && t.inputsys.keypress == 0 ) { t.inputsys.dosinglelayer = 1  ; t.inputsys.keypress = 1; }
 
 		//  F1 for help page
-		if ( t.inputsys.kscancode == 59 ) editor_showhelppage ( );
+		if ( t.inputsys.kscancode == 59 ) editor_showhelppage ( 1 );
 	}
 	else
 	{
@@ -3232,8 +3251,12 @@ void editor_init ( void )
 {
 	//  Load editor images
 	SetMipmapNum(1); //PE: mipmaps not needed.
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\quick-help.png";
-	LoadImage (  t.strwork.Get() ,g.editorimagesoffset+1 );
+	#if VRQUEST
+	 t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\branded\\quick-help.png";
+	#else
+	 t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\quick-help.png";
+	#endif
+	LoadImage (  t.strwork.Get(), g.editorimagesoffset+1 );
 	LoadImage (  "editors\\gfx\\memorymeter.png",g.editorimagesoffset+2 );
 	LoadImage (  "editors\\gfx\\4.bmp",g.editorimagesoffset+3 );
 	LoadImage (  "editors\\gfx\\5.bmp",g.editorimagesoffset+4 );
@@ -3263,6 +3286,14 @@ void editor_init ( void )
 	LoadImage ( t.strwork.Get() ,g.editorimagesoffset+22 );
 	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\f9-help-conkit.png";
 	LoadImage ( t.strwork.Get() ,g.editorimagesoffset+23 );
+
+	// new images for editor extra help
+	#ifdef VRQUEST
+	 t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\branded\\testgamelayout-noweapons.png";
+ 	 LoadImage (  t.strwork.Get(), g.editorimagesoffset+27 );
+	 t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\branded\\testgamelayout-vr.png";
+ 	 LoadImage (  t.strwork.Get(), g.editorimagesoffset+28 );
+	#endif
 
 	//  Also loaded by interactive mode when active
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\interactive\\close-highlight.png",g.interactiveimageoffset+15 );
@@ -3663,49 +3694,68 @@ void editor_clearlibrary ( void )
 
 	//  Determine if extra ZONES included
 	t.tstoryzoneincluded=25;
-	//if ( g.vrqcontrolmode != 0 )
-	//{
-	//	// if VRQ, also add extra zones
-	//	t.tstoryzoneincluded=18;
-	//}
+	if ( g.vrqcontrolmode != 0 )
+		t.tstoryzoneincluded=23;
 
 	//  Default markers
 	for ( t.tt = 0 ; t.tt <= t.tstoryzoneincluded; t.tt++ )
 	{
-		if (  t.tt == 0 ) { t.t1_s = t.strarr_s[349]  ; t.t2_s = "files\\entitybank\\_markers\\player start.bmp"; }
-		if (  t.tt == 1 ) { t.t1_s = t.strarr_s[350]  ; t.t2_s = "files\\entitybank\\_markers\\player checkpoint.bmp"; }
-		if (  t.tt == 2 ) { t.t1_s = t.strarr_s[658]  ; t.t2_s = "files\\entitybank\\_markers\\cover zone.bmp"; }
-		if (  t.tt == 3 ) { t.t1_s = t.strarr_s[659]  ; t.t2_s = "files\\entitybank\\_markers\\multiplayer start.bmp"; }
-		if (  t.tt == 4 ) { t.t1_s = t.strarr_s[351]  ; t.t2_s = "files\\entitybank\\_markers\\white light.bmp"; }
-		if (  t.tt == 5 ) { t.t1_s = t.strarr_s[352]  ; t.t2_s = "files\\entitybank\\_markers\\red light.bmp"; }
-		if (  t.tt == 6 ) { t.t1_s = t.strarr_s[353]  ; t.t2_s = "files\\entitybank\\_markers\\green light.bmp"; }
-		if (  t.tt == 7 ) { t.t1_s = t.strarr_s[354]  ; t.t2_s = "files\\entitybank\\_markers\\blue light.bmp"; }
-		if (  t.tt == 8 ) { t.t1_s = t.strarr_s[355]  ; t.t2_s = "files\\entitybank\\_markers\\yellow light.bmp"; }
-		if (  t.tt == 9 ) { t.t1_s = t.strarr_s[356]  ; t.t2_s = "files\\entitybank\\_markers\\purple light.bmp"; }
-		if (  t.tt == 10 ) { t.t1_s = t.strarr_s[357]  ; t.t2_s = "files\\entitybank\\_markers\\cyan light.bmp"; }
-		if (  t.tt == 11 ) { t.t1_s = t.strarr_s[360]  ; t.t2_s = "files\\entitybank\\_markers\\win zone.bmp"; }
-		if (  t.tt == 12 ) { t.t1_s = t.strarr_s[361]  ; t.t2_s = "files\\entitybank\\_markers\\trigger zone.bmp"; }
 		if ( g.vrqcontrolmode != 0 )
 		{
-			if (  t.tt == 13 ) { t.t1_s = "Audio Zone"  ; t.t2_s = "files\\entitybank\\_markers\\audio zone.bmp"; }
-			if (  t.tt == 14 ) { t.t1_s = "Video Zone"  ; t.t2_s = "files\\entitybank\\_markers\\video zone.bmp"; }
+			if (  t.tt == 0 ) { t.t1_s = t.strarr_s[349]  ; t.t2_s = "files\\entitybank\\_markers\\player start.bmp"; }
+			if (  t.tt == 1 ) { t.t1_s = t.strarr_s[659]  ; t.t2_s = "files\\entitybank\\_markers\\multiplayer start.bmp"; }
+			if (  t.tt == 2 ) { t.t1_s = t.strarr_s[351]  ; t.t2_s = "files\\entitybank\\_markers\\white light.bmp"; }
+			if (  t.tt == 3 ) { t.t1_s = t.strarr_s[352]  ; t.t2_s = "files\\entitybank\\_markers\\red light.bmp"; }
+			if (  t.tt == 4 ) { t.t1_s = t.strarr_s[353]  ; t.t2_s = "files\\entitybank\\_markers\\green light.bmp"; }
+			if (  t.tt == 5 ) { t.t1_s = t.strarr_s[354]  ; t.t2_s = "files\\entitybank\\_markers\\blue light.bmp"; }
+			if (  t.tt == 6 ) { t.t1_s = t.strarr_s[355]  ; t.t2_s = "files\\entitybank\\_markers\\yellow light.bmp"; }
+			if (  t.tt == 7 ) { t.t1_s = t.strarr_s[356]  ; t.t2_s = "files\\entitybank\\_markers\\purple light.bmp"; }
+			if (  t.tt == 8 ) { t.t1_s = t.strarr_s[357]  ; t.t2_s = "files\\entitybank\\_markers\\cyan light.bmp"; }
+			if (  t.tt == 9 ) { t.t1_s = t.strarr_s[360]  ; t.t2_s = "files\\entitybank\\_markers\\win zone.bmp"; }
+			if (  t.tt == 10 ) { t.t1_s = t.strarr_s[361]  ; t.t2_s = "files\\entitybank\\_markers\\trigger zone.bmp"; }
+			if (  t.tt == 11 ) { t.t1_s = "Audio Zone"  ; t.t2_s = "files\\entitybank\\_markers\\audio zone.bmp"; }
+			if (  t.tt == 12 ) { t.t1_s = "Video Zone"  ; t.t2_s = "files\\entitybank\\_markers\\video zone.bmp"; }
+			if (  t.tt == 13 ) { t.t1_s = "Floor Zone"; t.t2_s = "files\\entitybank\\_markers\\floor zone.bmp"; }
+			if (  t.tt == 14 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
+			if (  t.tt == 15 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
+			if (  t.tt == 16 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
+			if (  t.tt == 17 ) { t.t1_s = "White Spotlight"; t.t2_s = "files\\entitybank\\_markers\\white light spot.bmp"; }
+			if (  t.tt == 18 ) { t.t1_s = "Red Spotlight"; t.t2_s = "files\\entitybank\\_markers\\red light spot.bmp"; }
+			if (  t.tt == 19 ) { t.t1_s = "Green Spotlight"; t.t2_s = "files\\entitybank\\_markers\\green light spot.bmp"; }
+			if (  t.tt == 20 ) { t.t1_s = "Blue Spotlight"; t.t2_s = "files\\entitybank\\_markers\\blue light spot.bmp"; }
+			if (  t.tt == 21 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
+			if (  t.tt == 22 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
+			if (  t.tt == 23 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
 		}
 		else
 		{
+			if (  t.tt == 0 ) { t.t1_s = t.strarr_s[349]  ; t.t2_s = "files\\entitybank\\_markers\\player start.bmp"; }
+			if (  t.tt == 1 ) { t.t1_s = t.strarr_s[350]  ; t.t2_s = "files\\entitybank\\_markers\\player checkpoint.bmp"; }
+			if (  t.tt == 2 ) { t.t1_s = t.strarr_s[658]  ; t.t2_s = "files\\entitybank\\_markers\\cover zone.bmp"; }
+			if (  t.tt == 3 ) { t.t1_s = t.strarr_s[659]  ; t.t2_s = "files\\entitybank\\_markers\\multiplayer start.bmp"; }
+			if (  t.tt == 4 ) { t.t1_s = t.strarr_s[351]  ; t.t2_s = "files\\entitybank\\_markers\\white light.bmp"; }
+			if (  t.tt == 5 ) { t.t1_s = t.strarr_s[352]  ; t.t2_s = "files\\entitybank\\_markers\\red light.bmp"; }
+			if (  t.tt == 6 ) { t.t1_s = t.strarr_s[353]  ; t.t2_s = "files\\entitybank\\_markers\\green light.bmp"; }
+			if (  t.tt == 7 ) { t.t1_s = t.strarr_s[354]  ; t.t2_s = "files\\entitybank\\_markers\\blue light.bmp"; }
+			if (  t.tt == 8 ) { t.t1_s = t.strarr_s[355]  ; t.t2_s = "files\\entitybank\\_markers\\yellow light.bmp"; }
+			if (  t.tt == 9 ) { t.t1_s = t.strarr_s[356]  ; t.t2_s = "files\\entitybank\\_markers\\purple light.bmp"; }
+			if (  t.tt == 10 ) { t.t1_s = t.strarr_s[357]  ; t.t2_s = "files\\entitybank\\_markers\\cyan light.bmp"; }
+			if (  t.tt == 11 ) { t.t1_s = t.strarr_s[360]  ; t.t2_s = "files\\entitybank\\_markers\\win zone.bmp"; }
+			if (  t.tt == 12 ) { t.t1_s = t.strarr_s[361]  ; t.t2_s = "files\\entitybank\\_markers\\trigger zone.bmp"; }
 			if (  t.tt == 13 ) { t.t1_s = t.strarr_s[362]  ; t.t2_s = "files\\entitybank\\_markers\\sound zone.bmp"; }
 			if (  t.tt == 14 ) { t.t1_s = t.strarr_s[607]  ; t.t2_s = "files\\entitybank\\_markers\\story zone.bmp"; }
+			if (  t.tt == 15 ) { t.t1_s = "Floor Zone"; t.t2_s = "files\\entitybank\\_markers\\floor zone.bmp"; }
+			if (  t.tt == 16 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
+			if (  t.tt == 17 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
+			if (  t.tt == 18 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
+			if (  t.tt == 19 ) { t.t1_s = "White Spotlight"; t.t2_s = "files\\entitybank\\_markers\\white light spot.bmp"; }
+			if (  t.tt == 20 ) { t.t1_s = "Red Spotlight"; t.t2_s = "files\\entitybank\\_markers\\red light spot.bmp"; }
+			if (  t.tt == 21 ) { t.t1_s = "Green Spotlight"; t.t2_s = "files\\entitybank\\_markers\\green light spot.bmp"; }
+			if (  t.tt == 22 ) { t.t1_s = "Blue Spotlight"; t.t2_s = "files\\entitybank\\_markers\\blue light spot.bmp"; }
+			if (  t.tt == 23 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
+			if (  t.tt == 24 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
+			if (  t.tt == 25 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
 		}
-		if (  t.tt == 15 ) { t.t1_s = "Floor Zone"; t.t2_s = "files\\entitybank\\_markers\\floor zone.bmp"; }
-		if (  t.tt == 16 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
-		if (  t.tt == 17 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
-		if (  t.tt == 18 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
-		if (  t.tt == 19 ) { t.t1_s = "White Spotlight"; t.t2_s = "files\\entitybank\\_markers\\white light spot.bmp"; }
-		if (  t.tt == 20 ) { t.t1_s = "Red Spotlight"; t.t2_s = "files\\entitybank\\_markers\\red light spot.bmp"; }
-		if (  t.tt == 21 ) { t.t1_s = "Green Spotlight"; t.t2_s = "files\\entitybank\\_markers\\green light spot.bmp"; }
-		if (  t.tt == 22 ) { t.t1_s = "Blue Spotlight"; t.t2_s = "files\\entitybank\\_markers\\blue light spot.bmp"; }
-		if (  t.tt == 23 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
-		if (  t.tt == 24 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
-		if (  t.tt == 25 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
 		SetFileMapDWORD (  1, 508, t.tadd );
 		SetFileMapString (  1, 1000, cstr(g.mysystem.root_s+t.t2_s).Get() );
 		SetFileMapString (  1, 1256, t.t1_s.Get() );
@@ -3719,40 +3769,62 @@ void editor_clearlibrary ( void )
 
 	//  actual entity names of the markers
 	Dim ( t.markerentitybank_s, 30 );
-	t.markerentitybank_s[1]="_markers\\player start.fpe";
-	t.markerentitybank_s[2]="_markers\\player checkpoint.fpe";
-	t.markerentitybank_s[3]="_markers\\cover zone.fpe";
-	t.markerentitybank_s[4]="_markers\\multiplayer start.fpe";
-	t.markerentitybank_s[5]="_markers\\white light.fpe";
-	t.markerentitybank_s[6]="_markers\\red light.fpe";
-	t.markerentitybank_s[7]="_markers\\green light.fpe";
-	t.markerentitybank_s[8]="_markers\\blue light.fpe";
-	t.markerentitybank_s[9]="_markers\\yellow light.fpe";
-	t.markerentitybank_s[10]="_markers\\purple light.fpe";
-	t.markerentitybank_s[11]="_markers\\cyan light.fpe";
-	t.markerentitybank_s[12]="_markers\\win zone.fpe";
-	t.markerentitybank_s[13]="_markers\\trigger zone.fpe";
-	t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
 	if ( g.vrqcontrolmode != 0 )
 	{
-		t.markerentitybank_s[14] = "_markers\\audio zone.fpe";
-		t.markerentitybank_s[15] = "_markers\\video zone.fpe";
+		t.markerentitybank_s[1]="_markers\\player start.fpe";
+		t.markerentitybank_s[2]="_markers\\multiplayer start.fpe";
+		t.markerentitybank_s[3]="_markers\\white light.fpe";
+		t.markerentitybank_s[4]="_markers\\red light.fpe";
+		t.markerentitybank_s[5]="_markers\\green light.fpe";
+		t.markerentitybank_s[6]="_markers\\blue light.fpe";
+		t.markerentitybank_s[7]="_markers\\yellow light.fpe";
+		t.markerentitybank_s[8]="_markers\\purple light.fpe";
+		t.markerentitybank_s[9]="_markers\\cyan light.fpe";
+		t.markerentitybank_s[10]="_markers\\win zone.fpe";
+		t.markerentitybank_s[11]="_markers\\trigger zone.fpe";
+		t.markerentitybank_s[12] = "_markers\\audio zone.fpe";
+		t.markerentitybank_s[13] = "_markers\\video zone.fpe";
+		t.markerentitybank_s[14] = "_markers\\floor zone.fpe";
+		t.markerentitybank_s[15] = "_markers\\image zone.fpe";
+		t.markerentitybank_s[16] = "_markers\\text zone.fpe";
+		t.markerentitybank_s[17] = "_markers\\ambience zone.fpe";
+		t.markerentitybank_s[18] = "_markers\\white light spot.fpe";
+		t.markerentitybank_s[19] = "_markers\\red light spot.fpe";
+		t.markerentitybank_s[20] = "_markers\\green light spot.fpe";
+		t.markerentitybank_s[21] = "_markers\\blue light spot.fpe";
+		t.markerentitybank_s[22] = "_markers\\yellow light spot.fpe";
+		t.markerentitybank_s[23] = "_markers\\purple light spot.fpe";
+		t.markerentitybank_s[24] = "_markers\\cyan light spot.fpe";
 	}
 	else
 	{
+		t.markerentitybank_s[1]="_markers\\player start.fpe";
+		t.markerentitybank_s[2]="_markers\\player checkpoint.fpe";
+		t.markerentitybank_s[3]="_markers\\cover zone.fpe";
+		t.markerentitybank_s[4]="_markers\\multiplayer start.fpe";
+		t.markerentitybank_s[5]="_markers\\white light.fpe";
+		t.markerentitybank_s[6]="_markers\\red light.fpe";
+		t.markerentitybank_s[7]="_markers\\green light.fpe";
+		t.markerentitybank_s[8]="_markers\\blue light.fpe";
+		t.markerentitybank_s[9]="_markers\\yellow light.fpe";
+		t.markerentitybank_s[10]="_markers\\purple light.fpe";
+		t.markerentitybank_s[11]="_markers\\cyan light.fpe";
+		t.markerentitybank_s[12]="_markers\\win zone.fpe";
+		t.markerentitybank_s[13]="_markers\\trigger zone.fpe";
 		t.markerentitybank_s[14] = "_markers\\sound zone.fpe";
 		t.markerentitybank_s[15] = "_markers\\story zone.fpe";
+		t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
+		t.markerentitybank_s[17] = "_markers\\image zone.fpe";
+		t.markerentitybank_s[18] = "_markers\\text zone.fpe";
+		t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
+		t.markerentitybank_s[20] = "_markers\\white light spot.fpe";
+		t.markerentitybank_s[21] = "_markers\\red light spot.fpe";
+		t.markerentitybank_s[22] = "_markers\\green light spot.fpe";
+		t.markerentitybank_s[23] = "_markers\\blue light spot.fpe";
+		t.markerentitybank_s[24] = "_markers\\yellow light spot.fpe";
+		t.markerentitybank_s[25] = "_markers\\purple light spot.fpe";
+		t.markerentitybank_s[26] = "_markers\\cyan light spot.fpe";
 	}
-	t.markerentitybank_s[17] = "_markers\\image zone.fpe";
-	t.markerentitybank_s[18] = "_markers\\text zone.fpe";
-	t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
-	t.markerentitybank_s[20] = "_markers\\white light spot.fpe";
-	t.markerentitybank_s[21] = "_markers\\red light spot.fpe";
-	t.markerentitybank_s[22] = "_markers\\green light spot.fpe";
-	t.markerentitybank_s[23] = "_markers\\blue light spot.fpe";
-	t.markerentitybank_s[24] = "_markers\\yellow light spot.fpe";
-	t.markerentitybank_s[25] = "_markers\\purple light spot.fpe";
-	t.markerentitybank_s[26] = "_markers\\cyan light spot.fpe";
 
 	// only if EBE enabled
 	if ( g.globals.hideebe == 0 )
@@ -6268,8 +6340,8 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 				//if (  t.entityprofile[t.gridentity].ischaracter == 1 && t.entityprofile[t.gridentity].isthirdperson == 1 ) 
 				if (  t.entityprofile[t.gridentity].ischaracter == 1 ) // 220217 - now for all characters
 				{
-					//  third person char+marker detection
-					if (  t.playercontrol.thirdperson.enabled == 0 ) 
+					// third person char+marker detection (will not work in VR edit mode)
+					if ( t.playercontrol.thirdperson.enabled == 0 && g.vrqcontrolmode == 0 ) 
 					{
 						t.tattachtothis=findentitycursorobj(-1);
 						if (  t.tattachtothis>0 ) 
@@ -9173,10 +9245,13 @@ void interface_openpropertywindow ( void )
 			}
 
 			//  Team field
+			#ifdef PHOTONMP
+			#else
 			if (  t.tflagteamfield == 1 ) 
 			{
 				setpropertylist3(t.group,t.controlindex,Str(t.grideleprof.teamfield),"Team","Specifies any team affiliation for multiplayer start marker",0) ; ++t.controlindex;
 			}
+			#endif
 
 			//  Physics Data (non-multiplayer)
 			if (  t.entityprofile[t.gridentity].ismarker == 0 && t.entityprofile[t.gridentity].islightmarker == 0 ) 

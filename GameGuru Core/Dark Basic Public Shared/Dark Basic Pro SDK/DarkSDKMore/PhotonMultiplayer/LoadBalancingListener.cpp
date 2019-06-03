@@ -894,6 +894,7 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 				}
 			}
 			break;
+		*/
 		case k_EMsgClientLua:
 			{
 				if ( cubMsgSize == sizeof( MsgClientLua_t ) )
@@ -904,7 +905,14 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 					// if set animation or play animation they need to be sent in order
 					if ( pmsg->code < 5 )
 					{			
+						tLua l;
+						l.code = pmsg->code;
+						l.e = pmsg->e;
+						l.v = pmsg->v;
+						strcpy ( l.s , "" );
+						luaList.insert( luaList.begin(), l);
 
+						/* no longer a need to retransmit to server, each client can handle these
 						MsgServerLua_t msg;
 						msg.logID = packetSendLogServerID;
 						msg.code = pmsg->code;
@@ -918,7 +926,9 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 								SteamGameServerNetworking()->SendP2PPacket( m_rgClientData[i].m_SteamIDUser, &msg, sizeof(MsgServerLua_t), k_EP2PSendReliable );
 							}
 						}
+						*/
 					}
+					/*
 					else
 					{
 
@@ -1000,11 +1010,10 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 							}
 						}
 					}
-
+					*/
 				}
 			}
 			break;
-		*/
 		case k_EMsgClientLuaString:
 			{
 				if ( cubMsgSize == sizeof( MsgClientLuaString_t ) )

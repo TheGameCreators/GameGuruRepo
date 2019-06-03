@@ -647,7 +647,7 @@ void physics_setupobject ( void )
 		if ( ObjectExist(t.tphyobj) == 1 ) 
 		{
 			SetObjectArbitaryValue (  t.tphyobj,t.entityprofile[t.entid].materialindex );
-			if ( t.tstatic == 1 || t.game.runasmultiplayer == 1 ) 
+			if ( t.tstatic == 1 ) // now allow physics entities in multiplayer || t.game.runasmultiplayer == 1 ) 
 			{
 				// if static, need to ensure FIXNEWY pivot is respected
 				if ( t.tstatic == 1 ) 
@@ -1110,7 +1110,7 @@ void physics_player_init ( void )
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
-		if (  t.entityprofile[t.entid].ismarker == 1 ) 
+		if ( t.entityprofile[t.entid].ismarker == 1 ) 
 		{
 			//  Player Start Marker Settings
 			t.terrain.playerx_f=t.entityelement[t.e].x;
@@ -1174,6 +1174,33 @@ void physics_player_init ( void )
 	if ( t.game.levelplrstatsetup == 1 )
 	{
 		if ( t.tnostartmarker == 1 ) physics_inittweakables ( );
+	}
+
+	// if multiplayer mode, change start position to the multiplayer start marker default
+	if ( t.game.runasmultiplayer == 1 ) 
+	{
+		// store good one
+		float fGoodX = t.terrain.playerx_f;
+		float fGoodY = t.terrain.playery_f;
+		float fGoodZ = t.terrain.playerz_f;
+		float fGoodA = t.terrain.playeray_f;
+
+		// chose a multiplayer start position at random
+		int iChoose = 1;
+		if ( t.tmpstartindex > 1 ) iChoose = 1 + (rand() % t.tmpstartindex);
+		t.terrain.playerx_f=t.mpmultiplayerstart[iChoose].x;
+		t.terrain.playery_f=t.mpmultiplayerstart[iChoose].y;
+		t.terrain.playerz_f=t.mpmultiplayerstart[iChoose].z;
+		t.terrain.playeray_f=t.mpmultiplayerstart[iChoose].angle;
+		if ( t.terrain.playerx_f < 100 )
+		{
+			// no start position, revert to regular start marker
+			t.terrain.playerx_f = fGoodX;
+			t.terrain.playery_f = fGoodY;
+			t.terrain.playerz_f = fGoodZ;
+			t.terrain.playeray_f = fGoodA;
+		}
+		t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 	}
 
 	//  Player start height (marker or no)

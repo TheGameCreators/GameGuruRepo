@@ -16,6 +16,7 @@ void entity_lua_show ( void );
 void entity_lua_spawn_core ( void );
 void entity_lua_spawn ( void );
 void entity_lua_setactivated ( void );
+void entity_lua_setactivatedformp ( void );
 void entity_lua_resetlimbhit ( void );
 void entity_lua_activateifused ( void );
 void entity_lua_activateifusedfromqueue ( void );

@@ -166,9 +166,7 @@ DLLEXPORT void GGWMR_GetUpdate ( void )
 	}
 	catch (...)
 	{
-		///MessageBox ( NULL, "FAILED TO app.UpdateFrame()", "!!", MB_OK );
-		///app.SetInitialised(true);
-		///MessageBox ( NULL, "success with app.SetInitialised(true)", "!!", MB_OK );
+		DebugVRlog("failed app.UpdateFrame");
 	}
 }
 
@@ -190,14 +188,15 @@ DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbSti
 	app.GetThumbAndTrigger ( pTriggerValue, pThumbStickX, pThumbStickY );
 }
 
-DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
+DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouchedisRightHand,  bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
 {
-	app.GetTouchPadData ( pbTouched, pbPressed, pfTouchPadX, pfTouchPadY );
+	app.GetTouchPadData ( pbTouchedisRightHand, pbTouched, pbPressed, pfTouchPadX, pfTouchPadY );
 }
 
-DLLEXPORT void GGWMR_GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ )
+DLLEXPORT void GGWMR_GetHandPosAndOrientation ( int iLeftHandMode, float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ )
 {
-	app.GetHandPosAndOrientation ( pRHX, pRHY, pRHZ, pQuatW, pQuatX, pQuatY, pQuatZ );
+	DebugVRlog("GetHandPosAndOrientation");
+	app.GetHandPosAndOrientation ( iLeftHandMode, pRHX, pRHY, pRHZ, pQuatW, pQuatX, pQuatY, pQuatZ );
 }
 
 DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight)
@@ -319,6 +318,7 @@ void App::UpdateFrame()
 		}
 		catch(...)
 		{
+			DebugVRlog("failed m_main->Update(&pSpatialStationaryFrameOfReference)");
 			///MessageBox ( NULL, "FAILED g_holographicFrame = m_main->Update(&pSpatialStationaryFrameOfReference)", "4", MB_OK );
 		}
 	}
@@ -344,34 +344,84 @@ void App::GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float*
 {
     if (g_holographicFrame != nullptr)
     {
-		*pTriggerValue = m_fTriggerValue;
-		*pThumbStickX = m_fThumbX;
-		*pThumbStickY = m_fThumbY;
+		if ( fabs(m_fTriggerValue[1]) > fabs(m_fTriggerValue[0]) )
+			*pTriggerValue = m_fTriggerValue[1];
+		else
+			*pTriggerValue = m_fTriggerValue[0];
+
+		if ( fabs(m_fThumbX[1])+fabs(m_fThumbY[1]) > fabs(m_fThumbX[0])+fabs(m_fThumbY[0]) )
+		{
+			*pThumbStickX = m_fThumbX[1];
+			*pThumbStickY = m_fThumbY[1];
+		}
+		else
+		{
+			*pThumbStickX = m_fThumbX[0];
+			*pThumbStickY = m_fThumbY[0];
+		}
 	}
 }
 
-void App::GetTouchPadData ( bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
+void App::GetTouchPadData ( bool* pbTouchedisRightHand, bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
 {
     if (g_holographicFrame != nullptr)
     {
-		*pbTouched = m_bTouchPadTouched;
-		*pbPressed = m_bTouchPadPressed;
-		*pfTouchPadX = m_fTouchPadX;
-		*pfTouchPadY = m_fTouchPadY;
+		if ( m_bTouchPadTouched[1] == true )
+		{
+			*pbTouched = m_bTouchPadTouched[1];
+			*pbPressed = m_bTouchPadPressed[1];
+			*pfTouchPadX = m_fTouchPadX[1];
+			*pfTouchPadY = m_fTouchPadY[1];
+			*pbTouchedisRightHand = true;
+		}
+		else
+		{
+			*pbTouched = m_bTouchPadTouched[0];
+			*pbPressed = m_bTouchPadPressed[0];
+			*pfTouchPadX = m_fTouchPadX[0];
+			*pfTouchPadY = m_fTouchPadY[0];
+			*pbTouchedisRightHand = false;
+		}
 	}
 }
 
-void App::GetHandPosAndOrientation ( float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ )
+void App::GetHandPosAndOrientation ( int iLeftHandMode, float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ )
 {
-    if (g_holographicFrame != nullptr)
-    {
-		*pRHX = m_fRightHandX;
-		*pRHY = m_fRightHandY;
-		*pRHZ = m_fRightHandZ;
-		*pQuatW = m_qRightHandOrientation.w;
-		*pQuatX = m_qRightHandOrientation.x;
-		*pQuatY = m_qRightHandOrientation.y;
-		*pQuatZ = m_qRightHandOrientation.z;
+	if ( iLeftHandMode == -1 )
+	{
+		// called to reset before next session (to hide controllers if they are not used in this session)
+		m_fHandX[0] = 0.0f;
+		m_fHandY[0] = 0.0f;
+		m_fHandZ[0] = 0.0f;	
+		m_fHandX[1] = 0.0f;
+		m_fHandY[1] = 0.0f;
+		m_fHandZ[1] = 0.0f;	
+	}
+	else
+	{
+		if (g_holographicFrame != nullptr)
+		{
+			if ( iLeftHandMode == 0 )
+			{
+				*pRHX = m_fHandX[1];
+				*pRHY = m_fHandY[1];
+				*pRHZ = m_fHandZ[1];
+				*pQuatW = m_qHandOrientation[1].w;
+				*pQuatX = m_qHandOrientation[1].x;
+				*pQuatY = m_qHandOrientation[1].y;
+				*pQuatZ = m_qHandOrientation[1].z;
+			}
+			else
+			{
+				*pRHX = m_fHandX[0];
+				*pRHY = m_fHandY[0];
+				*pRHZ = m_fHandZ[0];
+				*pQuatW = m_qHandOrientation[0].w;
+				*pQuatX = m_qHandOrientation[0].x;
+				*pQuatY = m_qHandOrientation[0].y;
+				*pQuatZ = m_qHandOrientation[0].z;
+			}
+		}
 	}
 }
 
@@ -472,33 +522,38 @@ void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSo
 		// controller properties
 		SpatialInteractionControllerProperties controllerState = state.ControllerProperties();
 
+		// left/right index
+		int iLeftRightIndex = 0;
+		if ( source.Handedness() == SpatialInteractionSourceHandedness::Right )
+			iLeftRightIndex = 1;
+
 		// get trigger value and thumbstick
-		m_fTriggerValue = (float)state.SelectPressedValue();
+		m_fTriggerValue[iLeftRightIndex] = (float)state.SelectPressedValue();
         if (controller.HasThumbstick())
         {
-			m_fThumbX = (float)controllerState.ThumbstickX();
-			m_fThumbY = (float)controllerState.ThumbstickY();
+			m_fThumbX[iLeftRightIndex] = (float)controllerState.ThumbstickX();
+			m_fThumbY[iLeftRightIndex] = (float)controllerState.ThumbstickY();
 		}
 		else
 		{
-			m_fThumbX = 0.0f;
-			m_fThumbY = 0.0f;
+			m_fThumbX[iLeftRightIndex] = 0.0f;
+			m_fThumbY[iLeftRightIndex] = 0.0f;
 		}
 
 		// get controller touch input
         if (controller.HasTouchpad())
         {
-			m_bTouchPadTouched = controllerState.IsTouchpadTouched();
-			m_bTouchPadPressed = controllerState.IsTouchpadPressed();
-			m_fTouchPadX = (float)controllerState.TouchpadX();
-			m_fTouchPadY = (float)controllerState.TouchpadY();
+			m_bTouchPadTouched[iLeftRightIndex] = controllerState.IsTouchpadTouched();
+			m_bTouchPadPressed[iLeftRightIndex] = controllerState.IsTouchpadPressed();
+			m_fTouchPadX[iLeftRightIndex] = (float)controllerState.TouchpadX();
+			m_fTouchPadY[iLeftRightIndex] = (float)controllerState.TouchpadY();
 		}
 		else
 		{
-			m_bTouchPadTouched = false;
-			m_bTouchPadPressed = false;
-			m_fTouchPadX = 0;
-			m_fTouchPadY = 0;
+			m_bTouchPadTouched[iLeftRightIndex] = false;
+			m_bTouchPadPressed[iLeftRightIndex] = false;
+			m_fTouchPadX[iLeftRightIndex] = 0;
+			m_fTouchPadY[iLeftRightIndex] = 0;
 		}
 
 		// get controller position and orientation
@@ -511,13 +566,10 @@ void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSo
 			motioncontrollerpose = pose.TryGetInteractionSourcePose(source);
 			if ( motioncontrollerpose != nullptr )
 			{
-				//if ( source.Handedness() == SpatialInteractionSourceHandedness::Right )
-				//{
-					m_fRightHandX = motioncontrollerpose.Position().x;
-					m_fRightHandY = motioncontrollerpose.Position().y;
-					m_fRightHandZ = motioncontrollerpose.Position().z;
-					m_qRightHandOrientation = motioncontrollerpose.Orientation();
-				//}
+				m_fHandX[iLeftRightIndex] = motioncontrollerpose.Position().x;
+				m_fHandY[iLeftRightIndex] = motioncontrollerpose.Position().y;
+				m_fHandZ[iLeftRightIndex] = motioncontrollerpose.Position().z;
+				m_qHandOrientation[iLeftRightIndex] = motioncontrollerpose.Orientation();
 			}
 		}
 	}

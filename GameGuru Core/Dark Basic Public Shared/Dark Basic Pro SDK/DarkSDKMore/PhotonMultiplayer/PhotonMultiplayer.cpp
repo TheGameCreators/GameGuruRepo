@@ -222,8 +222,11 @@ void PhotonLoop(void)
 		if ( g_pPhotonView->iTriggerLeaveMode == 2 )
 		{
 			// Timeout stale player connections, also update player count data
-			g_pLBL->leaveRoom();
-			g_pPhotonView->iTriggerLeaveMode = 3;
+			//g_pLBL->leaveRoom(); seems leaveroomreturn is not being called when call this, so 
+			//go direct to disconnect instead!
+			//g_pPhotonView->iTriggerLeaveMode = 3;
+			g_pPhotonView->iTriggerLeaveMode = 4;
+			g_pLBC->disconnect();
 		}
 		if ( g_pPhotonView->iTriggerLeaveMode == 1 )
 		{
@@ -949,12 +952,11 @@ int PhotonGetPlayerAppearance( int index )
 
 // LUA
 
-void PhotonSendLua ( int code, int e, int v )
+void PhotonSendLuaToPlayer ( int index, int code, int e, int v )
 {
 	if ( g_pPhotonView )
 	{
-		//if (!serverActive) return;
-		if ( 1 ) // m_steamIDGameServer.IsValid() )
+		if ( 1 )
 		{
 			if ( code < 5 )
 			{
@@ -964,8 +966,12 @@ void PhotonSendLua ( int code, int e, int v )
 				msg.e = e;
 				msg.v = v;
 				//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientLua_t), k_EP2PSendReliable );
-				g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), true );
+				if ( index == -1 )
+					g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), true );
+				else
+					g_pLBL->sendMessageToPlayer ( index, (nByte*)&msg, sizeof(MsgClientLua_t), true );
 			}
+			/*
 			else
 			{
 				// no ticket if goto position
@@ -998,8 +1004,14 @@ void PhotonSendLua ( int code, int e, int v )
 					g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), true );//false ); guarenteed photon
 				}
 			}
+			*/
 		}
 	}
+}
+
+void PhotonSendLua ( int code, int e, int v )
+{
+	PhotonSendLuaToPlayer ( -1, code, e, v );
 }
 
 void PhotonSendLuaString ( int code, int e, LPSTR s )

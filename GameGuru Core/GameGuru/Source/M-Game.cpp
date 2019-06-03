@@ -26,6 +26,51 @@ float				g_fOccluderLastCamZ = 0.0f;
 // externals
 //extern bool g_VR920RenderStereoNow;
 
+void game_scanfornewavatars ( bool bDynamicallyRecreateCharacters )
+{
+	// add any character creator player avatars in
+	if ( t.bTriggerAvatarRescanAndLoad == true )
+	{
+		for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount <= MP_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
+		{
+			// check if there is a custom avatar (and not loaded)
+			if ( t.mp_playerAvatars_s[t.tcustomAvatarCount] != "" && t.mp_playerAvatarLoaded[t.tcustomAvatarCount] == false ) 
+			{
+				// there is so lets built a temp fpe file from it
+				t.ent_s=g.rootdir_s+"entitybank\\user\\charactercreator\\customAvatar_"+Str(t.tcustomAvatarCount)+".fpe";
+				t.avatarFile_s = t.ent_s;
+				t.avatarString_s = t.mp_playerAvatars_s[t.tcustomAvatarCount];
+				characterkit_makeMultiplayerCharacterCreatorAvatar ( );
+				entity_addtoselection_core ( );
+				characterkit_removeMultiplayerCharacterCreatorAvatar ( );
+				t.tubindex[t.tcustomAvatarCount+2]=t.entid;
+				t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].ischaracter=0;
+				t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].collisionmode=12;
+				// No lua script for player chars
+				t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].aimain_s = "";
+				// avatar is now loaded
+				t.mp_playerAvatarLoaded[t.tcustomAvatarCount] = true;
+
+				// additionally, when triggered, replace actual objects with new created ones above (for dynamic loading)
+				if ( bDynamicallyRecreateCharacters == true )
+				{
+					t.e = t.mp_playerEntityID[t.tcustomAvatarCount];
+					if ( t.e > 0 )
+					{
+						// update entity element with new character object (dynamically loaded during game)
+						t.entityelement[t.e].bankindex = t.entid;
+
+						// update entity object itself
+						t.tupdatee = t.e; 
+						entity_updateentityobj ( );
+					}
+				}
+			}
+		}
+		t.bTriggerAvatarRescanAndLoad = false;
+	}
+}
+
 void game_masterroot ( int iUseVRTest )
 {
 	// prevent any VR if VRtest is off
@@ -313,12 +358,12 @@ void game_masterroot ( int iUseVRTest )
 				{
 					// reset all updates
 					t.entityelement[t.e].mp_updateOn = 0;
-					// for chars like zombies
 					t.entityelement[t.e].mp_isLuaChar = 0;
 					t.entityelement[t.e].mp_rotateType = 0;
 					t.entid=t.entityelement[t.e].bankindex;
 					if ( t.entid>0 ) 
 					{
+						/* No longer activity gtom multiplayer start markers or non characters with AI commands in them (all scripts active)
 						if ( t.entityprofile[t.entid].ismarker == 7 && t.plrindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 						{
 							// to ensure mp game script always runs from any distance
@@ -384,9 +429,11 @@ void game_masterroot ( int iUseVRTest )
 								}
 							}
 						}
+						*/
 					}
 				}
-				//  Build multiplayer start markers
+
+				// Build multiplayer start markers
 				t.thaveTeamAMarkers = 0;
 				t.thaveTeamBMarkers = 0;
 				t.tmpstartindex = 1;
@@ -400,7 +447,7 @@ void game_masterroot ( int iUseVRTest )
 							// add start markers for free for all or team a
 							if ( t.entityelement[t.e].eleprof.teamfield < 2 ) 
 							{
-								// a spawn GetPoint (  for the multiplayer )
+								// a spawn GetPoint ( for the multiplayer )
 								t.mpmultiplayerstart[t.tmpstartindex].active=1;
 								t.mpmultiplayerstart[t.tmpstartindex].x=t.entityelement[t.e].x;
 								// added 10 onto the y otherwise the players fall through the ground
@@ -414,18 +461,19 @@ void game_masterroot ( int iUseVRTest )
 						}
 					}
 				}
-				//  add team b markers if in team mode
+				// add team b markers if in team mode
+				/* no teams for now
 				if ( g.mp.team == 1 ) 
 				{
-					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
-						if (  t.entid>0 ) 
+						if ( t.entid>0 ) 
 						{
 							if ( t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 							{
 								// add start markers for team b
-								if ( t.entityelement[t.e].eleprof.teamfield  ==  2 ) 
+								if ( t.entityelement[t.e].eleprof.teamfield == 2 ) 
 								{
 									// a spawn GetPoint (  for the multiplayer )
 									t.mpmultiplayerstart[t.tmpstartindex].active=1;
@@ -442,9 +490,11 @@ void game_masterroot ( int iUseVRTest )
 						}
 					}
 				}
+				*/
 
 				// check for coop mode
 				g.mp.coop = 0;
+				/* all coop right now
 				if ( g.mp.team == 1 ) 
 				{
 					if ( (t.thaveTeamAMarkers  ==  1 && t.thaveTeamBMarkers  ==  0) || (t.thaveTeamAMarkers  ==  0 && t.thaveTeamBMarkers  ==  1) || (t.thaveTeamAMarkers  ==  0 && t.thaveTeamBMarkers  ==  0) ) 
@@ -453,6 +503,7 @@ void game_masterroot ( int iUseVRTest )
 						mp_setupCoopTeam ( );
 					}
 				}
+				*/
 
 				// perhaps it is a solo game with a start maker only
 				if ( g.mp.coop == 0 && t.tnumberofstartmarkers == 0 ) 
@@ -464,7 +515,7 @@ void game_masterroot ( int iUseVRTest )
 						{
 							if ( t.entityprofile[t.entid].ismarker == 1 ) 
 							{
-								// a spawn GetPoint (  for the multiplayer )
+								// a spawn GetPoint ( for the multiplayer )
 								t.mpmultiplayerstart[1].active=1;
 								t.mpmultiplayerstart[1].x=t.entityelement[t.e].x;
 								// added 10 onto the y otherwise the players fall through the ground
@@ -472,6 +523,8 @@ void game_masterroot ( int iUseVRTest )
 								t.mpmultiplayerstart[1].z=t.entityelement[t.e].z;
 								t.mpmultiplayerstart[1].angle=t.entityelement[t.e].ry;
 								t.entityelement[t.e].eleprof.phyalways = 1;
+
+								/* duplicated from above and not used any more
 								// switch it to multiplayer script
 								t.entityelement[t.e].eleprof.aimain_s = "multiplayer_firstto10.lua";
 								t.tnumberofstartmarkers = 1;
@@ -494,6 +547,7 @@ void game_masterroot ( int iUseVRTest )
 									}
 								}
 								CloseFile (  3 );
+								*/
 							}
 						}
 					}
@@ -520,9 +574,10 @@ void game_masterroot ( int iUseVRTest )
 				#endif
 
 				// if multiplayer and coop, setup ai for switching who control them, depending on gameplay circumstances
+				 /* no coop special mode for now
 				if ( t.game.runasmultiplayer == 1 && g.mp.coop == 1 ) 
 				{
-					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
 						if ( t.entid>0 ) 
@@ -534,11 +589,12 @@ void game_masterroot ( int iUseVRTest )
 						}
 					}
 				}
+				*/
 
 				// if no multiplayer markers, put some at the default height
 				if ( t.tnumberofstartmarkers == 0 ) 
 				{
-					for ( t.tloop = 1 ; t.tloop<=  MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
+					for ( t.tloop = 1; t.tloop <= MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
 					{
 						t.mpmultiplayerstart[t.tloop].active=1;
 						t.mpmultiplayerstart[t.tloop].x=25600;
@@ -548,7 +604,8 @@ void game_masterroot ( int iUseVRTest )
 						t.mpmultiplayerstart[t.tloop].angle=0;
 					}
 				}
-				//  if coop and only 1 marker, make some more
+				/* no coop
+				// if coop and only 1 marker, make some more
 				if ( g.mp.coop == 1 && t.tnumberofstartmarkers == 1 ) 
 				{
 					for ( t.tloop = 2 ; t.tloop <= MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
@@ -561,6 +618,7 @@ void game_masterroot ( int iUseVRTest )
 						t.mpmultiplayerstart[t.tloop].angle=t.mpmultiplayerstart[1].angle;
 					}
 				}
+				*/
 
 				// reserve max multiplayer characters (all weapon animations included)
 				Dim ( t.tubindex,2+MP_MAX_NUMBER_OF_PLAYERS  );
@@ -573,8 +631,6 @@ void game_masterroot ( int iUseVRTest )
 				t.tubindex[0]=t.entid;
 				t.entityprofile[t.tubindex[0]].ischaracter=0;
 				t.entityprofile[t.tubindex[0]].collisionmode=12;
-
-				// No lua script for player chars
 				t.entityprofile[t.tubindex[0]].aimain_s = "";
 
 				#ifdef PHOTONMP
@@ -596,25 +652,12 @@ void game_masterroot ( int iUseVRTest )
 				// add any character creator player avatars in
 				for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount <= MP_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
 				{
-					// check if there is a custom avatar
-					if ( t.mp_playerAvatars_s[t.tcustomAvatarCount] != "" ) 
-					{
-						// there is so lets built a temp fpe file from it
-						t.ent_s=g.rootdir_s+"entitybank\\user\\charactercreator\\customAvatar_"+Str(t.tcustomAvatarCount)+".fpe";
-						t.avatarFile_s = t.ent_s;
-						t.avatarString_s = t.mp_playerAvatars_s[t.tcustomAvatarCount];
-						characterkit_makeMultiplayerCharacterCreatorAvatar ( );
-						entity_addtoselection_core ( );
-						characterkit_removeMultiplayerCharacterCreatorAvatar ( );
-						t.tubindex[t.tcustomAvatarCount+2]=t.entid;
-						t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].ischaracter=0;
-						t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].collisionmode=12;
-						// No lua script for player chars
-						t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].aimain_s = "";
-					}
+					t.mp_playerAvatarLoaded[t.tcustomAvatarCount] = false;
 				}
+				t.bTriggerAvatarRescanAndLoad = true;
+				game_scanfornewavatars ( false );
 
-				//  store ttiswitch for tti as multiplayer avatars can upset the 0->1 switching!
+				// store ttiswitch for tti as multiplayer avatars can upset the 0->1 switching!
 				t.ttiswitch = 1;
 				for ( t.plrindex = 1 ; t.plrindex <= MP_MAX_NUMBER_OF_PLAYERS; t.plrindex++ )
 				{
@@ -662,7 +705,7 @@ void game_masterroot ( int iUseVRTest )
 							}
 						}
 					}
-					if ( t.tfoundone  ==  0 ) 
+					if ( t.tfoundone == 0 ) 
 					{
 						if ( t.mpmultiplayerstart[1].active == 1 ) 
 						{
@@ -688,7 +731,9 @@ void game_masterroot ( int iUseVRTest )
 					t.entityprofile[t.ubercharacterindex].hasweapon=0;
 					t.entityprofile[t.ubercharacterindex].aimain_s = "";
 				}
-				UnDim ( t.tubindex );
+
+				//need this later in game for dynamic avatar loading
+				//UnDim ( t.tubindex );
 			}
 
 			// in standalone, no IDE feeding test level, so load it in
@@ -1286,7 +1331,11 @@ void game_preparelevel ( void )
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Load weapon system
-	t.screenprompt_s="LOADING NEW WEAPONS";
+	#ifdef VRQUEST
+	 t.screenprompt_s="LOADING NEW HUD";
+	#else
+	 t.screenprompt_s="LOADING NEW WEAPONS";
+	#endif	
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	//gun_restart ( ); // 020516 - moved out of level loop (as it transcends per level assets)
@@ -2537,8 +2586,14 @@ void game_main_loop ( void )
 	//  Steam call moved here as camera changes need to be BEFORE the shadow update
 	if (  t.game.runasmultiplayer == 1 ) 
 	{
+		// debug tracing
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling mp_gameLoop");
+
+		// run multiplayer logic
 		mp_gameLoop ( );
+
+		// mp logic can trigger a new avatar to be loaded and created dynamically
+		game_scanfornewavatars ( true );
 	}
 
 	//  if we have character creator stuff in, we setup the characters

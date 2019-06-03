@@ -2328,10 +2328,12 @@ struct luaglobaltype
 	float scriptprompt3dY;
 	float scriptprompt3dZ;
 	float scriptprompt3dAY;
+	bool scriptprompt3dFaceCamera;
 
 	// Constructor
 	luaglobaltype ( )
 	{
+		 scriptprompt3dFaceCamera = false;
 		 scriptprompttextsize = 0;
 		 scriptprompttype = 0;
 		 scriptprompttime = 0;

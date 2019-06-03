@@ -1125,9 +1125,12 @@ void darkai_shooteffect ( void )
 		else
 		{
 			t.tsteamplayer = t.entityelement[t.te].mp_coopControlledByPlayer;
-			t.tplayerx_f = ObjectPositionX(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
-			t.tplayery_f = ObjectPositionY(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
-			t.tplayerz_f = ObjectPositionZ(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+			if ( t.mp_playerEntityID[t.tsteamplayer] > 0 )
+			{
+				t.tplayerx_f = ObjectPositionX(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+				t.tplayery_f = ObjectPositionY(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+				t.tplayerz_f = ObjectPositionZ(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+			}
 		}
 	}
 
@@ -2000,8 +2003,11 @@ void darkai_character_loop ( void )
 					else
 					{
 						t.tsteamotherplayer = t.entityelement[t.mp_playerEntityID[t.entityelement[t.te].mp_coopControlledByPlayer]].obj;
-						t.tdx_f=ObjectPositionX(t.tsteamotherplayer)-ObjectPositionX(t.charanimstate.obj);
-						t.tdz_f=ObjectPositionZ(t.tsteamotherplayer)-ObjectPositionZ(t.charanimstate.obj);
+						if ( t.tsteamotherplayer > 0 )
+						{
+							t.tdx_f=ObjectPositionX(t.tsteamotherplayer)-ObjectPositionX(t.charanimstate.obj);
+							t.tdz_f=ObjectPositionZ(t.tsteamotherplayer)-ObjectPositionZ(t.charanimstate.obj);
+						}
 					}
 				}
 				t.tdirectangley_f=atan2deg(t.tdx_f,t.tdz_f);

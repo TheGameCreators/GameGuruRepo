@@ -1933,7 +1933,11 @@ int GetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
+	#ifdef VRQUEST
+	 if ( GGVR_IsHmdPresent() > 0 ) id = 1;
+	#else
+	 if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
+	#endif
 	lua_pushinteger ( L , id );
 	return 1;
 }
@@ -1941,31 +1945,46 @@ int ResetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	SetupResetTracking();
+	#ifdef VRQUEST
+	#else
+	 SetupResetTracking();
+	#endif
 	lua_pushinteger ( L , id );
 	return 1;
 }
 int GetHeadTrackerYaw(lua_State *L)
 {
 	lua = L;
-	float fValue = g_fVR920TrackingYaw + g_fDriverCompensationYaw;
-	if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#ifdef VRQUEST
+	 float fValue = GGVR_GetHMDYaw();// + g_fDriverCompensationYaw;
+	#else
+	 float fValue = g_fVR920TrackingYaw + g_fDriverCompensationYaw;
+	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#endif
 	lua_pushinteger ( L , fValue );
 	return 1;
 }
 int GetHeadTrackerPitch(lua_State *L)
 {
 	lua = L;
-	float fValue = g_fVR920TrackingPitch + g_fDriverCompensationPitch;
-	if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#ifdef VRQUEST
+	 float fValue = GGVR_GetHMDPitch();// + g_fDriverCompensationYaw;
+	#else
+	 float fValue = g_fVR920TrackingPitch + g_fDriverCompensationPitch;
+	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#endif
 	lua_pushinteger ( L , fValue );
 	return 1;
 }
 int GetHeadTrackerRoll(lua_State *L)
 {
 	lua = L;
-	float fValue = g_fVR920TrackingRoll + g_fDriverCompensationRoll;
-	if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#ifdef VRQUEST
+	 float fValue = GGVR_GetHMDRoll();// + g_fDriverCompensationYaw;
+	#else
+	 float fValue = g_fVR920TrackingRoll + g_fDriverCompensationRoll;
+	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#endif
 	lua_pushinteger ( L , fValue );
 	return 1;
 }
@@ -1991,7 +2010,7 @@ int PositionPrompt3D(lua_State *L)
 	float fY = lua_tonumber(L, 2);
 	float fZ = lua_tonumber(L, 3);
 	float fAY = lua_tonumber(L, 4);
-	lua_positionprompt3d ( fX, fY, fZ, fAY );
+	lua_positionprompt3d ( fX, fY, fZ, fAY, false );
 	return 1;
 }
 

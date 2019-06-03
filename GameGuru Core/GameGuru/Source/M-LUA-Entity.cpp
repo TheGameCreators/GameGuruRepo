@@ -372,10 +372,22 @@ void entity_lua_spawn ( void )
 
 void entity_lua_setactivated ( void )
 {
-	t.entityelement[t.e].activated=t.v;
-	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	t.entityelement[t.e].activated = t.v;
+	t.entityelement[t.e].lua.flagschanged = 1;
+	//sepaate all MP influence to FORMP commands!
+	//if ( t.game.runasmultiplayer == 1 && t.tLuaDontSendLua == 0 ) 
+	//{
+	//	mp_sendlua ( MP_LUA_SetActivated, t.e, t.v );
+	//}
+}
+
+void entity_lua_setactivatedformp ( void )
+{
+	t.entityelement[t.e].activated = t.v;
+	t.entityelement[t.e].lua.flagschanged = 1;
+	if ( t.game.runasmultiplayer == 1 && t.tLuaDontSendLua == 0 ) 
 	{
-		mp_sendlua (  MP_LUA_SetActivated,t.e,t.v );
+		mp_sendlua ( MP_LUA_SetActivated, t.e, t.v );
 	}
 }
 
@@ -386,21 +398,21 @@ void entity_lua_resetlimbhit ( void )
 
 void entity_lua_activateifused ( void )
 {
-	t.tstore=t.e;
-	if (  t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	t.tstore = t.e;
+	if ( t.game.runasmultiplayer == 1 && t.tLuaDontSendLua == 0 ) 
 	{
-		mp_sendlua (  MP_LUA_ActivateIfUsed,t.e,t.v );
+		mp_sendlua ( MP_LUA_ActivateIfUsed, t.e, t.v );
 	}
-	t.tifused_s=Lower(t.entityelement[t.e].eleprof.ifused_s.Get());
-	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+	t.tifused_s = Lower(t.entityelement[t.e].eleprof.ifused_s.Get());
+	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		if ( cstr(Lower(t.entityelement[t.e].eleprof.name_s.Get())) == t.tifused_s ) 
 		{
-			//  set activate flag
+			// set activate flag
 			t.entityelement[t.e].activated=1;
 			t.entityelement[t.e].lua.flagschanged=1;
 
-			//  also spawn if target entity not yet spawned
+			// also spawn if target entity not yet spawned
 			if ( t.entityelement[t.e].eleprof.spawnatstart == 0 ) 
 			{
 				t.entitiesToActivateQueue.push_back ( t.e );	
@@ -832,16 +844,17 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 				// handle 3d object if available
 				if ( i3DMode == 1 )
 				{
-					float fStCamX = CameraAngleX();
-					float fStCamZ = CameraAngleZ();
+					//float fStCamX = CameraAngleX();
+					//float fStCamZ = CameraAngleZ();
 					RotateCamera ( 0, 0, CameraAngleY(0), 0 );
-					MoveCamera ( 0, 75.0f );
+					MoveCamera ( 0, 100.0f );
 					float fX = CameraPositionX(0);
 					float fZ = CameraPositionZ(0);
 					float fY = BT_GetGroundHeight(t.terrain.TerrainID,fX,fZ) + 50.0f;
 					float fA = CameraAngleY(0);
-					MoveCamera ( 0, -75.0f );
-					RotateCamera ( 0, fStCamX, CameraAngleY(0), fStCamZ );
+					MoveCamera ( 0, -100.0f );
+					//RotateCamera ( 0, fStCamX, CameraAngleY(0), fStCamZ );
+					RotateCamera ( 0, 0, CameraAngleY(0), 0 ); // force user to look straight on
 					PositionObject ( g.video3dobjectoffset, fX, fY, fZ );
 					PointObject ( g.video3dobjectoffset, ObjectPositionX(t.aisystem.objectstartindex), ObjectPositionY(t.aisystem.objectstartindex)+60.0f, ObjectPositionZ(t.aisystem.objectstartindex) );
 					MoveObject ( g.video3dobjectoffset, 15.0f );

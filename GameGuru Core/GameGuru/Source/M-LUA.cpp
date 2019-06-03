@@ -643,8 +643,8 @@ void lua_loop_allentities ( void )
 				{
 					// this ensures the game loads in _G[x] states BEFORE we start the game scripts
 					// to avoid issues such as the start splash appearing when loading mid-way in level from main menu
-					//  Called when entity states change
-					if (  t.entityelement[t.e].lua.flagschanged == 1 || (t.game.runasmultiplayer  ==  1 && g.mp.endplay  ==  1) ) 
+					// Called when entity states change
+					if ( t.entityelement[t.e].lua.flagschanged == 1 ) // || (t.game.runasmultiplayer  ==  1 && g.mp.endplay  ==  1) ) the MP constant call would be slow!
 					{
 						//  do not refresh activated and animating as these are set INSIDE LUA!!
 						// 190516 - ensure we can only call UpdateEntityRT if we previously called UpdateEntity!!
@@ -653,7 +653,7 @@ void lua_loop_allentities ( void )
 							LuaSetFunction (  "UpdateEntityRT",21,0 );
 							LuaPushInt (  t.e );
 							LuaPushInt (  t.tobj );
-							if ( t.game.runasmultiplayer ==  0 || g.mp.endplay  ==  0 ) 
+							if ( g.mp.endplay == 0 ) // can now run own script in multiplayer || t.game.runasmultiplayer == 0
 							{
 								// if character, update entity coordinates from visible object
 								int tentid = t.entityelement[t.e].bankindex;
@@ -727,11 +727,13 @@ void lua_loop_allentities ( void )
 					{
 						if (  Len(t.entityelement[t.e].eleprof.aimainname_s.Get())>1 ) 
 						{
-							if (  t.game.runasmultiplayer == 0 || g.mp.gameAlreadySpawnedBefore  !=  0 ) 
+							if ( 1 ) // can run LUA in multiplayer now t.game.runasmultiplayer == 0 || g.mp.gameAlreadySpawnedBefore  !=  0 ) 
 							{
+								// can call LUA main function
 								t.tcall = 1;
 
-								//  for multiplayer coop, only call the main function if we are the ones in control of the ai
+								// for multiplayer coop, only call the main function if we are the ones in control of the ai
+								/* now no scenario where call is skipped due to multiplayer
 								if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 ) 
 								{
 									t.entid=t.entityelement[t.e].bankindex;
@@ -748,6 +750,7 @@ void lua_loop_allentities ( void )
 										if (  t.entityprofile[t.entid].ismarker  ==  0  )  t.tcall  =  0;
 									}
 								}
+								*/
 								if ( t.entityelement[t.e].eleprof.aimainname_s.Lower() == "default" ) t.tcall = 0;		
 								if ( t.tcall == 1 ) 
 								{
@@ -905,6 +908,7 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "show" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_show() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "spawn" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_spawn() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setactivated" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setactivated() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setactivatedformp" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setactivatedformp() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "resetlimbhit" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_resetlimbhit() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "activateifused" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_activateifused() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "spawnifused" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_spawnifused() ; }

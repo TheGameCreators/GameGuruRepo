@@ -473,9 +473,9 @@ void mp_loop ( void )
 			}
 
 			// Handle server launch (start MP game)
-			if ( g.mp.launchServer == 1 ) 
+			if ( g.mp.launchServer == 1 && t.tUserCount > 0 ) 
 			{
-				if ( g.mp.haveToldAboutSolo == 0 && t.tUserCount <= 1 ) 
+				if ( g.mp.haveToldAboutSolo == 0 && t.tUserCount == 1 ) 
 				{
 					g.mp.haveToldAboutSolo = 1;
 					g.mp.launchServer = 0;
@@ -777,6 +777,7 @@ void mp_loop ( void )
 				g.mp.syncedWithServerMode = 0;
 				g.mp.onlySendMapToSpecificPlayer = -1;
 				g.mp.okayToLoadLevel = 0;
+				t.tLastProgress = 0;
 				#ifdef PHOTONMP
 				 PhotonLoop(); // dangerous - risk of recursion!
 				#else
@@ -858,6 +859,7 @@ void mp_loop ( void )
 				g.mp.onlySendMapToSpecificPlayer = -1;
 				g.mp.okayToLoadLevel = 0;
 				g.mp.oldtime = Timer();
+				t.tLastProgress = 0;
 				mp_textDots(-1,50,3,"Waiting for other players");
 				#ifdef PHOTONMP
 				 PhotonLoop(); // dangerous - risk of recursion!
@@ -969,18 +971,20 @@ void mp_lua ( void )
 	
 		switch ( t.steamLuaCode ) 
 		{
-			/*
 			case MP_LUA_SetActivated:
-				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_setactivated() ; ++t.activatedCount;
+				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) 
+					entity_lua_setactivated();
 			break;
+			case MP_LUA_ActivateIfUsed:
+				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) 
+					entity_lua_activateifused();
+			break;
+			/*
 			case MP_LUA_SetAnimation:
 				entity_lua_setanimation() ; ++t.animCount;
 			break;
 			case MP_LUA_PlayAnimation:
 				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_playanimation() ; ++t.playanimCount;
-			break;
-			case MP_LUA_ActivateIfUsed:
-				if ( mp_check_if_lua_entity_exists(t.e) == 1 ) entity_lua_activateifused() ; ++t.activateCount;
 			break;
 			case MP_LUA_PlaySound:
 				entity_lua_playsound ( );
@@ -1224,6 +1228,8 @@ void mp_lua ( void )
 			case MP_LUA_SendAvatar:
 				t.tsteams_s = PhotonGetLuaS();
 				t.mp_playerAvatars_s[t.e] = t.tsteams_s;
+				t.mp_playerAvatarLoaded[t.e] = false;
+				t.bTriggerAvatarRescanAndLoad = true;
 			break;
 			case MP_LUA_SendAvatarName:
 				t.tsteams_s = PhotonGetLuaS();
@@ -1570,6 +1576,7 @@ void mp_delete_entities ( void )
 
 void mp_pre_game_file_sync ( void )
 {
+	// handle file transfer activity
 	if ( g.mp.isGameHost == 1 ) 
 	{
 		mp_pre_game_file_sync_server ( -1 );
@@ -1598,7 +1605,7 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 	}
 
 	// handle sending of avatar info
-	mp_sendAvatarInfo ( );
+	//mp_sendAvatarInfo ( ); //done in game loop
 
 	// check if we have finished sending and receiving textures with the server
 	// (the actual process is handled by steam dll)
@@ -1620,7 +1627,7 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 		case 0:
 			
 			// for solo testing to prevent sending files
-			if ( 0 ) // to test file transfer!! g.mp.usersInServersLobbyAtServerCreation  ==  1 ) 
+			if ( g.mp.usersInServersLobbyAtServerCreation == 1 ) 
 			{
 				g.mp.syncedWithServerMode = 3;
 				return;
@@ -1651,7 +1658,7 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 			break;
 
 		case 1:
-			mp_textDots(-1,50,3,"Sending data to clients");
+			mp_textDots(-1,50,3,"sharing files with incoming player");
 			if ( PhotonSendFileDone() == 1 ) 
 			{
 				g.mp.syncedWithServerMode = 2;
@@ -1660,23 +1667,23 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 			break;
 
 		case 2:
-			mp_textDots(-1,30,3,"Waiting for clients to receive data");
-			if ( PhotonIsEveryoneFileSynced() == 1 ) 
-			{
+			//mp_textDots(-1,30,3,"Waiting for player to join game");
+			//if ( PhotonIsEveryoneFileSynced() == 1 ) 
+			//{
 				//PhotonSendIAmLoadedAndReady (  );
 				g.mp.syncedWithServerMode = 3;
 				g.mp.oldtime = Timer();
-			}
-			#ifdef PHOTONMP
-			if ( Timer() - g.mp.oldtime > 120000 ) 
-			{
-				// after 2 minutes, one or more players have not reported they got the file
-				// fornow, get back to main menu
-				t.tsteamconnectionlostmessage_s = "Timed out waiting for receipt of delivery of player files";
-				g.mp.mode = MP_MODE_MAIN_MENU;
-				mp_lostConnection ( );
-			}
-			#endif
+			//}
+			//#ifdef PHOTONMP
+			//if ( Timer() - g.mp.oldtime > 120000 ) 
+			///{
+			//	// after 2 minutes, one or more players have not reported they got the file
+			//	// fornow, get back to main menu
+			//	t.tsteamconnectionlostmessage_s = "Timed out waiting for receipt of delivery of player files";
+			//	g.mp.mode = MP_MODE_MAIN_MENU;
+			//	mp_lostConnection ( );
+			//}
+			//#endif
 			break;
 
 		case 3:
@@ -1703,22 +1710,22 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 				g.mp.syncedWithServerMode = 99;
 				//}
 			}
-			else
-			{
-				if ( Timer() - g.mp.oldtime > 150 ) 
-				{
-					g.mp.oldtime = Timer();
-					t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
-					if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
-				}
+			//else
+			//{
+			//	if ( Timer() - g.mp.oldtime > 150 ) 
+			//	{
+			//		g.mp.oldtime = Timer();
+			//		t.tSteamBuildingWorkshopItem_s = t.tSteamBuildingWorkshopItem_s + ".";
+			//		if (  Len(t.tSteamBuildingWorkshopItem_s.Get()) > 5  )  t.tSteamBuildingWorkshopItem_s  =  ".";
+			//	}
 				//if ( Timer() - t.tempMPsendingready > 2000 ) 
 				//{
 					//PhotonSendIAmLoadedAndReady ( );
 				//	t.tempMPsendingready = Timer();
 				//}
-				t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
-				mp_text(-1,50,3,t.tstring_s.Get());
-			}
+			//	t.tstring_s = t.tSteamBuildingWorkshopItem_s + "Waiting for everyone to be ready" + t.tSteamBuildingWorkshopItem_s;
+			//	mp_text(-1,50,3,t.tstring_s.Get());
+			//}
 			break;
 	} 
 }
@@ -1738,7 +1745,7 @@ void mp_pre_game_file_sync_client ( void )
 	}
 
 	// handle sending of avatar info
-	mp_sendAvatarInfo ( );
+	//mp_sendAvatarInfo ( ); done in game loop
 
 	// check if we have finished sending and receiving textures with the server
 	// (the actual process is handled by steam dll)
@@ -1786,16 +1793,23 @@ void mp_pre_game_file_sync_client ( void )
 			}
 			else
 			{
-				// after 30 seconds, and still transferring, produce timeout
+				// out progress downloading files from server
+				t.tProgress = PhotonGetFileProgress();
+
+				// after 30 seconds, and no percentage change, produce timeout
 				if ( Timer() - g.mp.oldtime > 1000*30 ) 
 				{
-					t.tsteamconnectionlostmessage_s = "Timed out waiting for transfer of file";
-					g.mp.mode = MP_MODE_MAIN_MENU;
-					mp_lostConnection ( );
+					g.mp.oldtime = Timer();
+					if ( t.tProgress == t.tLastProgress )
+					{
+						t.tsteamconnectionlostmessage_s = "Timed out waiting for transfer of file";
+						g.mp.mode = MP_MODE_MAIN_MENU;
+						mp_lostConnection ( );
+					}
+					t.tLastProgress = t.tProgress;
 				}
 
 				// report progress of file download
-				t.tProgress = PhotonGetFileProgress();
 				#ifdef PHOTONMP
 				 t.tstring_s = cstr("Receiving file : ") + Str(t.tProgress) + "%";
 				#else
@@ -1900,6 +1914,8 @@ void mp_sendAvatarInfo ( void )
 			// store our own info for loading in our avatar
 			t.mp_playerAvatarOwners_s[g.mp.me] = pPlayerName;
 			t.mp_playerAvatars_s[g.mp.me] = g.mp.myAvatar_s;
+			t.mp_playerAvatarLoaded[g.mp.me] = false;
+			t.bTriggerAvatarRescanAndLoad = true;
 
 			// send out custom texture (mp.myAvatarHeadTexture$ will be "" if we don't have one)
 			#ifdef PHOTONMP
@@ -2044,22 +2060,25 @@ void mp_update_player ( void )
 	g.mp.lastangley = CameraAngleY();
 
 	t.tpe = t.mp_playerEntityID[g.mp.me];
-	t.entityelement[t.tpe].x=g.mp.lastx;
-	t.entityelement[t.tpe].y=g.mp.lasty;
-	t.entityelement[t.tpe].z=g.mp.lastz;
-	if ( t.entityelement[t.mp_playerEntityID[g.mp.me]].obj > 0 ) 
+	if ( t.tpe > 0 )
 	{
-		if ( ObjectExist(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj) ) 
+		t.entityelement[t.tpe].x=g.mp.lastx;
+		t.entityelement[t.tpe].y=g.mp.lasty;
+		t.entityelement[t.tpe].z=g.mp.lastz;
+		if ( t.entityelement[t.mp_playerEntityID[g.mp.me]].obj > 0 ) 
 		{
-			PositionObject ( t.entityelement[t.mp_playerEntityID[g.mp.me]].obj, g.mp.lastx, g.mp.lasty+10, g.mp.lastz );
+			if ( ObjectExist(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj) ) 
+			{
+				PositionObject ( t.entityelement[t.mp_playerEntityID[g.mp.me]].obj, g.mp.lastx, g.mp.lasty+10, g.mp.lastz );
+			}
 		}
+		t.te = t.tpe;
+		t.tolde = t.e;
+		t.e = t.tpe;
+		entity_updatepos ( );
+		entity_lua_rotateupdate ( );
+		t.e = t.tolde;
 	}
-	t.te = t.tpe;
-	t.tolde = t.e;
-	t.e = t.tpe;
-	entity_updatepos ( );
-	entity_lua_rotateupdate ( );
-	t.e = t.tolde;
 }
 
 void mp_updatePlayerPositions ( void )
@@ -2122,14 +2141,17 @@ void mp_updatePlayerPositions ( void )
 			if ( iAlive == 1 && t.mp_forcePosition[t.c] == 0 ) 
 			{
 				t.e = t.mp_playerEntityID[t.c];
-				t.entityelement[t.e].x=t.x_f;
-				t.entityelement[t.e].y=t.y_f;
-				t.entityelement[t.e].z=t.z_f;
-				t.entityelement[t.e].ry=t.angle_f;
-				PositionObject ( t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z );
-				t.te = t.e;
-				entity_updatepos ( );
-				entity_lua_rotateupdate ( );
+				if ( t.e > 0 )
+				{
+					t.entityelement[t.e].x=t.x_f;
+					t.entityelement[t.e].y=t.y_f;
+					t.entityelement[t.e].z=t.z_f;
+					t.entityelement[t.e].ry=t.angle_f;
+					PositionObject ( t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z );
+					t.te = t.e;
+					entity_updatepos ( );
+					entity_lua_rotateupdate ( );
+				}
 			}
 		}
 	}
@@ -2200,76 +2222,79 @@ void mp_updatePlayerNamePlates ( void )
 					#endif
 					if ( t.mp_forcePosition[t.c] == 0 && iAlive == 1 ) 
 					{
-						if ( GetInScreen(t.entityelement[t.mp_playerEntityID[t.c]].obj) ) 
+						if ( t.mp_playerEntityID[t.c] > 0 )
 						{
-							if ( t.tname_s != "Player" ) 
+							if ( GetInScreen(t.entityelement[t.mp_playerEntityID[t.c]].obj) ) 
 							{
-								t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
-								if ( ObjectExist(g.steamplayermodelsoffset+500+t.c)  ==  0 ) 
+								if ( t.tname_s != "Player" ) 
 								{
-									t.tResult = MakeNewObjectPanel(g.steamplayermodelsoffset+500+t.c,Len(t.tname_s.Get()));
-									if ( t.tResult ) 
+									t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
+									if ( ObjectExist(g.steamplayermodelsoffset+500+t.c)  ==  0 ) 
 									{
-										t.index = 3;
-										t.twidth=0;
-										for ( t.n = 1 ; t.n<=  Len(t.tname_s.Get()); t.n++ )
+										t.tResult = MakeNewObjectPanel(g.steamplayermodelsoffset+500+t.c,Len(t.tname_s.Get()));
+										if ( t.tResult ) 
 										{
-											t.charindex=Asc(Mid(t.tname_s.Get(),t.n));
-											t.twidth += t.bitmapfont[t.index][t.charindex].w;
-										}
-										t.tx = -(t.twidth/2.0);
-
-										t.timg = g.bitmapfontimagetart+t.index;
-										for ( t.n = 1 ; t.n<=  Len(t.tname_s.Get()); t.n++ )
-										{
-											t.charindex=Asc(Mid(t.tname_s.Get(),t.n));
-											t.u1_f=t.bitmapfont[t.index][t.charindex].x1;
-											t.v1_f=t.bitmapfont[t.index][t.charindex].y1;
-											t.u2_f=t.bitmapfont[t.index][t.charindex].x2;
-											t.v2_f=t.bitmapfont[t.index][t.charindex].y2;
-											t.r = 255;
-											t.g = 50;
-											t.b = 50;
-											if ( g.mp.team == 1 ) 
+											t.index = 3;
+											t.twidth=0;
+											for ( t.n = 1 ; t.n<=  Len(t.tname_s.Get()); t.n++ )
 											{
-												if ( t.mp_team[t.c] == t.mp_team[g.mp.me] ) 
-												{
-													t.r = 100;
-													t.g = 255;
-													t.b = 100;
-												}
+												t.charindex=Asc(Mid(t.tname_s.Get(),t.n));
+												t.twidth += t.bitmapfont[t.index][t.charindex].w;
 											}
-											SetObjectPanelQuad ( g.steamplayermodelsoffset+500+t.c,t.n-1,t.tx,0,t.bitmapfont[t.index][t.charindex].w,t.bitmapfont[t.index][t.charindex].h,t.u1_f,t.v1_f,t.u2_f,t.v2_f,t.r,t.g,t.b );
-											t.tx += t.bitmapfont[t.index][t.charindex].w;
+											t.tx = -(t.twidth/2.0);
+
+											t.timg = g.bitmapfontimagetart+t.index;
+											for ( t.n = 1 ; t.n<=  Len(t.tname_s.Get()); t.n++ )
+											{
+												t.charindex=Asc(Mid(t.tname_s.Get(),t.n));
+												t.u1_f=t.bitmapfont[t.index][t.charindex].x1;
+												t.v1_f=t.bitmapfont[t.index][t.charindex].y1;
+												t.u2_f=t.bitmapfont[t.index][t.charindex].x2;
+												t.v2_f=t.bitmapfont[t.index][t.charindex].y2;
+												t.r = 255;
+												t.g = 50;
+												t.b = 50;
+												if ( g.mp.team == 1 ) 
+												{
+													if ( t.mp_team[t.c] == t.mp_team[g.mp.me] ) 
+													{
+														t.r = 100;
+														t.g = 255;
+														t.b = 100;
+													}
+												}
+												SetObjectPanelQuad ( g.steamplayermodelsoffset+500+t.c,t.n-1,t.tx,0,t.bitmapfont[t.index][t.charindex].w,t.bitmapfont[t.index][t.charindex].h,t.u1_f,t.v1_f,t.u2_f,t.v2_f,t.r,t.g,t.b );
+												t.tx += t.bitmapfont[t.index][t.charindex].w;
+											}
+											FinishObjectPanel (  g.steamplayermodelsoffset+500+t.c,32,10 );
+											SetCharacterCreatorTones (  g.steamplayermodelsoffset+500+t.c,0,t.r,t.g,t.b,1.0 );
+											SetObjectLight (  g.steamplayermodelsoffset+500+t.c,0 );
+											YRotateObject (  g.steamplayermodelsoffset+500+t.c,180 );
+											FixObjectPivot (  g.steamplayermodelsoffset+500+t.c );
+											SetObjectTransparency (  g.steamplayermodelsoffset+500+t.c, 6 );
+											ScaleObject (  g.steamplayermodelsoffset+500+t.c,60,60,100 );
+											SetSphereRadius (  g.steamplayermodelsoffset+500+t.c,0 );
+											SetObjectMask (  g.steamplayermodelsoffset+500+t.c, 1 );
+											//  apply special overlay_basic shader which also handles depth render for DOF avoidance
+											t.teffectid=loadinternaleffect("effectbank\\reloaded\\overlay_basic.fx");
+											TextureObject (  g.steamplayermodelsoffset+500+t.c,t.timg );
+											SetObjectEffect (  g.steamplayermodelsoffset+500+t.c,t.teffectid );
 										}
-										FinishObjectPanel (  g.steamplayermodelsoffset+500+t.c,32,10 );
-										SetCharacterCreatorTones (  g.steamplayermodelsoffset+500+t.c,0,t.r,t.g,t.b,1.0 );
-										SetObjectLight (  g.steamplayermodelsoffset+500+t.c,0 );
-										YRotateObject (  g.steamplayermodelsoffset+500+t.c,180 );
-										FixObjectPivot (  g.steamplayermodelsoffset+500+t.c );
-										SetObjectTransparency (  g.steamplayermodelsoffset+500+t.c, 6 );
-										ScaleObject (  g.steamplayermodelsoffset+500+t.c,60,60,100 );
-										SetSphereRadius (  g.steamplayermodelsoffset+500+t.c,0 );
-										SetObjectMask (  g.steamplayermodelsoffset+500+t.c, 1 );
-										//  apply special overlay_basic shader which also handles depth render for DOF avoidance
-										t.teffectid=loadinternaleffect("effectbank\\reloaded\\overlay_basic.fx");
-										TextureObject (  g.steamplayermodelsoffset+500+t.c,t.timg );
-										SetObjectEffect (  g.steamplayermodelsoffset+500+t.c,t.teffectid );
-									}
-								}
-								else
-								{
-									if ( iAlive == 1 && g.mp.endplay == 0 ) 
-									{
-										t.tnameplatey_f = ObjectPositionY(t.tobj)+ ObjectSizeY(t.tobj,1);
-										if ( t.mp_playerAvatars_s[t.c] != "" )  t.tnameplatey_f  =  t.tnameplatey_f + 15.0;
-										ShowObject (  g.steamplayermodelsoffset+500+t.c );
-										PositionObject((g.steamplayermodelsoffset+500+t.c), ObjectPositionX(t.tobj), t.tnameplatey_f , ObjectPositionZ(t.tobj));
-										PointObject (  g.steamplayermodelsoffset+500+t.c,CameraPositionX(), CameraPositionY(), CameraPositionZ() );
 									}
 									else
 									{
-										HideObject (  g.steamplayermodelsoffset+500+t.c );
+										if ( iAlive == 1 && g.mp.endplay == 0 ) 
+										{
+											t.tnameplatey_f = ObjectPositionY(t.tobj)+ ObjectSizeY(t.tobj,1);
+											if ( t.mp_playerAvatars_s[t.c] != "" )  t.tnameplatey_f  =  t.tnameplatey_f + 15.0;
+											ShowObject (  g.steamplayermodelsoffset+500+t.c );
+											PositionObject((g.steamplayermodelsoffset+500+t.c), ObjectPositionX(t.tobj), t.tnameplatey_f , ObjectPositionZ(t.tobj));
+											PointObject (  g.steamplayermodelsoffset+500+t.c,CameraPositionX(), CameraPositionY(), CameraPositionZ() );
+										}
+										else
+										{
+											HideObject (  g.steamplayermodelsoffset+500+t.c );
+										}
 									}
 								}
 							}
@@ -2294,292 +2319,132 @@ void mp_updatePlayerAnimations ( void )
 	// Update animations
 	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
-		// get player info
-		t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
-		t.thasNade = 0;
-		t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-		if ( t.gun[t.tgunid].projectileframe != 0 ) t.thasNade = 1;
-
-		// get multiplayer datas
-		#ifdef PHOTONMP
- 		 int iPlayerShoot = PhotonGetShoot(1+t.c);
-		 int iPlayerAlive = PhotonGetPlayerAlive(1+t.c);
-		 int iPlayerAppearance = PhotonGetPlayerAppearance(1+t.c);
-		 int iPlayerKey16 = PhotonGetKeyState(1+t.c,16);
-		 int iPlayerKey17 = PhotonGetKeyState(1+t.c,17);
-		 int iPlayerKey30 = PhotonGetKeyState(1+t.c,30);
-		 int iPlayerKey31 = PhotonGetKeyState(1+t.c,31);
-		 int iPlayerKey32 = PhotonGetKeyState(1+t.c,32);
-		 int iPlayerKey42 = PhotonGetKeyState(1+t.c,42);
-		 int iPlayerKey46 = PhotonGetKeyState(1+t.c,46);
-		#else
- 		 int iPlayerShoot = SteamGetShoot(t.c);
-		 int iPlayerAlive = SteamGetPlayerAlive(t.c);
-		 int iPlayerAppearance = SteamGetPlayerAppearance(t.c);
-		 int iPlayerKey16 = SteamGetKeyState(t.c,16);
-		 int iPlayerKey17 = SteamGetKeyState(t.c,17);
-		 int iPlayerKey30 = SteamGetKeyState(t.c,30);
-		 int iPlayerKey31 = SteamGetKeyState(t.c,31);
-		 int iPlayerKey32 = SteamGetKeyState(t.c,32);
-		 int iPlayerKey42 = SteamGetKeyState(t.c,42);
-		 int iPlayerKey46 = SteamGetKeyState(t.c,46);
-		#endif
- 		t.mp_playerShooting[t.c] = iPlayerShoot;
-
-		// if the player is reloading we will try and show it (only works if idle or ducking at present)
-		if ( iPlayerAppearance == 201 ) t.mp_reload[t.c] = 1;
-
-		// update animations
-		g.mp.isAnimating = 0;
-		if ( iPlayerAlive == 1 ) 
+		if ( t.mp_playerEntityID[t.c] > 0 )
 		{
-			t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
-			RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
+			// get player info
+			t.tobj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
+			t.thasNade = 0;
+			t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+			if ( t.gun[t.tgunid].projectileframe != 0 ) t.thasNade = 1;
 
-			if ( (iPlayerAppearance < 102 || iPlayerAppearance > 200) ) 
+			// get multiplayer datas
+			#ifdef PHOTONMP
+ 			 int iPlayerShoot = PhotonGetShoot(1+t.c);
+			 int iPlayerAlive = PhotonGetPlayerAlive(1+t.c);
+			 int iPlayerAppearance = PhotonGetPlayerAppearance(1+t.c);
+			 int iPlayerKey16 = PhotonGetKeyState(1+t.c,16);
+			 int iPlayerKey17 = PhotonGetKeyState(1+t.c,17);
+			 int iPlayerKey30 = PhotonGetKeyState(1+t.c,30);
+			 int iPlayerKey31 = PhotonGetKeyState(1+t.c,31);
+			 int iPlayerKey32 = PhotonGetKeyState(1+t.c,32);
+			 int iPlayerKey42 = PhotonGetKeyState(1+t.c,42);
+			 int iPlayerKey46 = PhotonGetKeyState(1+t.c,46);
+			#else
+ 			 int iPlayerShoot = SteamGetShoot(t.c);
+			 int iPlayerAlive = SteamGetPlayerAlive(t.c);
+			 int iPlayerAppearance = SteamGetPlayerAppearance(t.c);
+			 int iPlayerKey16 = SteamGetKeyState(t.c,16);
+			 int iPlayerKey17 = SteamGetKeyState(t.c,17);
+			 int iPlayerKey30 = SteamGetKeyState(t.c,30);
+			 int iPlayerKey31 = SteamGetKeyState(t.c,31);
+			 int iPlayerKey32 = SteamGetKeyState(t.c,32);
+			 int iPlayerKey42 = SteamGetKeyState(t.c,42);
+			 int iPlayerKey46 = SteamGetKeyState(t.c,46);
+			#endif
+ 			t.mp_playerShooting[t.c] = iPlayerShoot;
+
+			// if the player is reloading we will try and show it (only works if idle or ducking at present)
+			if ( iPlayerAppearance == 201 ) t.mp_reload[t.c] = 1;
+
+			// update animations
+			g.mp.isAnimating = 0;
+			if ( iPlayerAlive == 1 ) 
 			{
-				// Melee
-				if ( iPlayerKey16 == 1 || t.mp_meleePlaying[t.c] == 1 ) 
-				{
-					g.mp.isAnimating = 1;
-					if ( t.mp_meleePlaying[t.c]  ==  0 ) 
-					{
-						t.mp_meleePlaying[t.c] = 1;
-					}
-					else
-					{
-						if ( GetPlaying(t.tobj)  ==  0  )  t.mp_meleePlaying[t.c]  =  0;
-						if ( GetLooping(t.tobj)  ==  1  )  t.mp_meleePlaying[t.c]  =  0;
-					}
-				}
+				t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
+				RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
 
-				//  Forwards
-				if ( iPlayerKey17  ==  1 ) 
+				if ( (iPlayerAppearance < 102 || iPlayerAppearance > 200) ) 
 				{
-					g.mp.isAnimating = 1;
-					if ( iPlayerKey30  ==  1 ) 
-					{
-						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
-						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-					}
-					if ( iPlayerKey32  ==  1 ) 
-					{
-						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
-						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-					}
-					if ( iPlayerKey42 ==  0 || iPlayerKey46 ==  1 ) 
-					{
-						if ( iPlayerAppearance ==  101 ) 
-						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=300;
-						}
-						else
-						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
-						}
-					}
-					else
-					{
-						if ( iPlayerAppearance ==  101 ) 
-						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=600;
-						}
-						else
-						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=200;
-						}
-					}
-					if ( iPlayerKey46 ==  0 ) 
-					{
-						if ( t.mp_playingAnimation[t.c]  != MP_ANIMATION_WALKING ) 
-						{
-							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
-							{
-								t.tplaycsioranimindex = 10;//t.csi_stoodmoverunANIM[t.tweapstyle];
-							}
-							else
-							{
-								t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
-							}
-							mp_switchDirectAnim ( t.tplaycsioranimindex );
-							if ( iPlayerAppearance == 101 ) 
-							{
-								t.tplaycsioranimindex=g.csi_unarmedANIM0;
-								mp_switchDirectAnim ( t.tplaycsioranimindex );
-							}
-							entity_lua_setanimationframes ( );
-							t.e = t.mp_playerEntityID[t.c];
-							entity_lua_loopanimation ( );
-							g.mp.isAnimating = 1;
-							t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKING;
-						}
-					}
-					else
-					{
-						if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
-						{
-							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							if ( t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-							t.tplaycsioranimindex = 12;//t.csi_crouchmoverunANIM[t.tweapstyle];
-							mp_switchDirectAnim ( t.tplaycsioranimindex );
-							entity_lua_setanimationframes ( );
-							t.e = t.mp_playerEntityID[t.c];
-							entity_lua_loopanimation ( );
-							g.mp.isAnimating = 1;
-							t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
-						}
-					}
-				}
-
-				// Backwards
-				if ( iPlayerKey31 ==  1 ) 
-				{
-					g.mp.isAnimating = 1;
-					if ( iPlayerKey30 ==  1 ) 
-					{
-						YRotateObject ( t.tobj, ObjectAngleY(t.tobj) + 45 );
-						RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-					}
-					if ( iPlayerKey32 == 1 ) 
-					{
-						YRotateObject ( t.tobj, ObjectAngleY(t.tobj) - 45 );
-						RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-					}
-					if ( iPlayerAppearance ==  101 ) 
-					{
-						t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-300;
-					}
-					else
-					{
-						t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-100;
-					}
-					if ( iPlayerKey46 ==  0 ) 
-					{
-						if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKINGBACKWARDS ) 
-						{
-							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
-							{
-								t.tplaycsioranimindex = 10;//t.csi_stoodmoverunANIM[t.tweapstyle];
-							}
-							else
-							{
-								t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
-							}
-							mp_switchDirectAnim ( t.tplaycsioranimindex );
-							if ( iPlayerAppearance ==  101 ) 
-							{
-								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								t.tplaycsioranimindex = 0;//t.csi_stoodnormalANIM[t.tweapstyle];
-								mp_switchDirectAnim ( t.tplaycsioranimindex );
-							}
-							entity_lua_setanimationframes ( );
-							t.e = t.mp_playerEntityID[t.c];
-							entity_lua_loopanimation ( );
-							g.mp.isAnimating = 1;
-							t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKINGBACKWARDS;
-						}
-					}
-					else
-					{
-						if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKINGBACKWARDS ) 
-						{
-							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							if ( t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-							t.tplaycsioranimindex = 10;//t.csi_crouchmoverunANIM[t.tweapstyle];
-							mp_switchDirectAnim ( t.tplaycsioranimindex );
-							entity_lua_setanimationframes ( );
-							t.e = t.mp_playerEntityID[t.c];
-							entity_lua_loopanimation ( );
-							g.mp.isAnimating = 1;
-							t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKINGBACKWARDS;
-						}
-					}
-				}
-
-				//  strafe left
-				if ( iPlayerKey30 ==  1 ) 
-				{
-					if ( g.mp.isAnimating  ==  0 ) 
+					// Melee
+					if ( iPlayerKey16 == 1 || t.mp_meleePlaying[t.c] == 1 ) 
 					{
 						g.mp.isAnimating = 1;
-						if ( iPlayerKey42 ==  0 ) 
+						if ( t.mp_meleePlaying[t.c]  ==  0 ) 
 						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
+							t.mp_meleePlaying[t.c] = 1;
 						}
 						else
 						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
+							if ( GetPlaying(t.tobj)  ==  0  )  t.mp_meleePlaying[t.c]  =  0;
+							if ( GetLooping(t.tobj)  ==  1  )  t.mp_meleePlaying[t.c]  =  0;
 						}
-						if ( iPlayerKey46 == 1 ) 
+					}
+
+					//  Forwards
+					if ( iPlayerKey17  ==  1 ) 
+					{
+						g.mp.isAnimating = 1;
+						if ( iPlayerKey30  ==  1 ) 
 						{
-							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
+							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) - 45 );
+							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						}
+						if ( iPlayerKey32  ==  1 ) 
+						{
+							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
+							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						}
+						if ( iPlayerKey42 ==  0 || iPlayerKey46 ==  1 ) 
+						{
+							if ( iPlayerAppearance ==  101 ) 
 							{
-								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-								t.tplaycsioranimindex = 12;//t.csi_crouchmoveleftANIM[t.tweapstyle];
-								mp_switchDirectAnim ( t.tplaycsioranimindex );
-								entity_lua_setanimationframes ( );
-								t.e = t.mp_playerEntityID[t.c];
-								entity_lua_loopanimation ( );
-								g.mp.isAnimating = 1;
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=300;
+							}
+							else
+							{
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
 							}
 						}
 						else
 						{
-							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFELEFT ) 
+							if ( iPlayerAppearance ==  101 ) 
+							{
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=600;
+							}
+							else
+							{
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=200;
+							}
+						}
+						if ( iPlayerKey46 ==  0 ) 
+						{
+							if ( t.mp_playingAnimation[t.c]  != MP_ANIMATION_WALKING ) 
 							{
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
-									t.tplaycsioranimindex = 15;//t.csi_stoodmoverunleftANIM[t.tweapstyle];
+									t.tplaycsioranimindex = 10;//t.csi_stoodmoverunANIM[t.tweapstyle];
 								}
 								else
 								{
-									RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
 									t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
 								}
 								mp_switchDirectAnim ( t.tplaycsioranimindex );
+								if ( iPlayerAppearance == 101 ) 
+								{
+									t.tplaycsioranimindex=g.csi_unarmedANIM0;
+									mp_switchDirectAnim ( t.tplaycsioranimindex );
+								}
 								entity_lua_setanimationframes ( );
 								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFELEFT;
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKING;
 							}
 						}
-					}
-				}
-
-				//  strafe right
-				if ( iPlayerKey32 ==  1 ) 
-				{
-					if ( g.mp.isAnimating  ==  0 ) 
-					{
-						g.mp.isAnimating = 1;
-						if ( iPlayerKey42 ==  0 ) 
-						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
-						}
 						else
-						{
-							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
-						}
-						if ( iPlayerKey46 ==  1 ) 
 						{
 							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
 							{
@@ -2587,7 +2452,7 @@ void mp_updatePlayerAnimations ( void )
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if ( t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
-								t.tplaycsioranimindex = 12;//t.csi_crouchmoverightANIM[t.tweapstyle];
+								t.tplaycsioranimindex = 12;//t.csi_crouchmoverunANIM[t.tweapstyle];
 								mp_switchDirectAnim ( t.tplaycsioranimindex );
 								entity_lua_setanimationframes ( );
 								t.e = t.mp_playerEntityID[t.c];
@@ -2596,333 +2461,502 @@ void mp_updatePlayerAnimations ( void )
 								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
 							}
 						}
+					}
+
+					// Backwards
+					if ( iPlayerKey31 ==  1 ) 
+					{
+						g.mp.isAnimating = 1;
+						if ( iPlayerKey30 ==  1 ) 
+						{
+							YRotateObject ( t.tobj, ObjectAngleY(t.tobj) + 45 );
+							RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						}
+						if ( iPlayerKey32 == 1 ) 
+						{
+							YRotateObject ( t.tobj, ObjectAngleY(t.tobj) - 45 );
+							RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+						}
+						if ( iPlayerAppearance ==  101 ) 
+						{
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-300;
+						}
 						else
 						{
-							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFERIGHT ) 
+							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=-100;
+						}
+						if ( iPlayerKey46 ==  0 ) 
+						{
+							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_WALKINGBACKWARDS ) 
 							{
 								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 								t.tweapstyle=t.gun[t.tgunid].weapontype;
 								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
 								if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 								{
-									t.tplaycsioranimindex = 16;//t.csi_stoodmoverunrightANIM[t.tweapstyle];
+									t.tplaycsioranimindex = 10;//t.csi_stoodmoverunANIM[t.tweapstyle];
 								}
 								else
 								{
 									t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
 								}
 								mp_switchDirectAnim ( t.tplaycsioranimindex );
+								if ( iPlayerAppearance ==  101 ) 
+								{
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tweapstyle=t.gun[t.tgunid].weapontype;
+									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+									t.tplaycsioranimindex = 0;//t.csi_stoodnormalANIM[t.tweapstyle];
+									mp_switchDirectAnim ( t.tplaycsioranimindex );
+								}
 								entity_lua_setanimationframes ( );
 								t.e = t.mp_playerEntityID[t.c];
 								entity_lua_loopanimation ( );
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFERIGHT;
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_WALKINGBACKWARDS;
+							}
+						}
+						else
+						{
+							if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKINGBACKWARDS ) 
+							{
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tweapstyle=t.gun[t.tgunid].weapontype;
+								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								if ( t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+								t.tplaycsioranimindex = 10;//t.csi_crouchmoverunANIM[t.tweapstyle];
+								mp_switchDirectAnim ( t.tplaycsioranimindex );
+								entity_lua_setanimationframes ( );
+								t.e = t.mp_playerEntityID[t.c];
+								entity_lua_loopanimation ( );
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKINGBACKWARDS;
+							}
+						}
+					}
+
+					//  strafe left
+					if ( iPlayerKey30 ==  1 ) 
+					{
+						if ( g.mp.isAnimating  ==  0 ) 
+						{
+							g.mp.isAnimating = 1;
+							if ( iPlayerKey42 ==  0 ) 
+							{
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
+							}
+							else
+							{
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
+							}
+							if ( iPlayerKey46 == 1 ) 
+							{
+								if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
+								{
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tweapstyle=t.gun[t.tgunid].weapontype;
+									if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+									if (  t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+									t.tplaycsioranimindex = 12;//t.csi_crouchmoveleftANIM[t.tweapstyle];
+									mp_switchDirectAnim ( t.tplaycsioranimindex );
+									entity_lua_setanimationframes ( );
+									t.e = t.mp_playerEntityID[t.c];
+									entity_lua_loopanimation ( );
+									g.mp.isAnimating = 1;
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
+								}
+							}
+							else
+							{
+								if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFELEFT ) 
+								{
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tweapstyle=t.gun[t.tgunid].weapontype;
+									if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+									if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+									{
+										t.tplaycsioranimindex = 15;//t.csi_stoodmoverunleftANIM[t.tweapstyle];
+									}
+									else
+									{
+										RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+										t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
+									}
+									mp_switchDirectAnim ( t.tplaycsioranimindex );
+									entity_lua_setanimationframes ( );
+									t.e = t.mp_playerEntityID[t.c];
+									entity_lua_loopanimation ( );
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFELEFT;
+								}
+							}
+						}
+					}
+
+					//  strafe right
+					if ( iPlayerKey32 ==  1 ) 
+					{
+						if ( g.mp.isAnimating  ==  0 ) 
+						{
+							g.mp.isAnimating = 1;
+							if ( iPlayerKey42 ==  0 ) 
+							{
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=100;
+							}
+							else
+							{
+								t.entityelement[t.mp_playerEntityID[t.c]].eleprof.animspeed=150;
+							}
+							if ( iPlayerKey46 ==  1 ) 
+							{
+								if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_DUCKINGWALKING ) 
+								{
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tweapstyle=t.gun[t.tgunid].weapontype;
+									if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+									if ( t.tweapstyle  ==  0  )  t.tweapstyle  =  1;
+									t.tplaycsioranimindex = 12;//t.csi_crouchmoverightANIM[t.tweapstyle];
+									mp_switchDirectAnim ( t.tplaycsioranimindex );
+									entity_lua_setanimationframes ( );
+									t.e = t.mp_playerEntityID[t.c];
+									entity_lua_loopanimation ( );
+									g.mp.isAnimating = 1;
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKINGWALKING;
+								}
+							}
+							else
+							{
+								if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_STRAFERIGHT ) 
+								{
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tweapstyle=t.gun[t.tgunid].weapontype;
+									if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+									if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+									{
+										t.tplaycsioranimindex = 16;//t.csi_stoodmoverunrightANIM[t.tweapstyle];
+									}
+									else
+									{
+										t.tplaycsioranimindex = 10;//g.csi_unarmedmoverunANIM;
+									}
+									mp_switchDirectAnim ( t.tplaycsioranimindex );
+									entity_lua_setanimationframes ( );
+									t.e = t.mp_playerEntityID[t.c];
+									entity_lua_loopanimation ( );
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_STRAFERIGHT;
+								}
+							}
+						}
+					}
+
+					// Strafing
+					if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFELEFT ) 
+					{
+						if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+						{
+							RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+							YRotateObject ( t.tobj, ObjectAngleY(t.tobj) - 45 );
+						}
+					}
+					if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFERIGHT ) 
+					{
+						if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+						{
+							RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
+							YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
+						}
+					}
+
+					// Ducking
+					if ( iPlayerKey46 == 1 && t.mp_jetpackOn[t.c] == 0 ) 
+					{
+						if ( g.mp.isAnimating == 0 && t.mp_reload[t.c] == 0 ) 
+						{
+							g.mp.isAnimating = 1;
+							if ( t.mp_playingAnimation[t.c] != MP_ANIMATION_DUCKING ) 
+							{
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tweapstyle=t.gun[t.tgunid].weapontype;
+								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								t.tplaycsioranimindex = 8;//t.csi_crouchidlenormalANIM1[t.tweapstyle];
+								mp_switchDirectAnim ( t.tplaycsioranimindex );
+								entity_lua_setanimationframes ( );
+								t.e = t.mp_playerEntityID[t.c];
+								t.entityelement[t.e].eleprof.animspeed=100;
+								entity_lua_playanimation ( );
+								g.mp.isAnimating = 1;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
 							}
 						}
 					}
 				}
 
-				// Strafing
-				if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFELEFT ) 
+				/* not for Photon yet
+				// Reloading
+				if ( t.thasNade == 1 && t.mp_reload[t.c] == 1 ) t.mp_reload[t.c] = 0;
+				if ( t.mp_reload[t.c] == 1 ) 
 				{
-					if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
+					if ( g.mp.isAnimating  ==  0 || t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
 					{
-						RotateLimb ( t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-						YRotateObject ( t.tobj, ObjectAngleY(t.tobj) - 45 );
-					}
-				}
-				if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_STRAFERIGHT ) 
-				{
-					if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj  ==  0 ) 
-					{
-						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX(t.tobj,t.spinelimbofcharacter),-45,LimbAngleZ(t.tobj,t.spinelimbofcharacter) );
-						YRotateObject (  t.tobj, ObjectAngleY(t.tobj) + 45 );
-					}
-				}
-
-				// Ducking
-				if ( iPlayerKey46 == 1 && t.mp_jetpackOn[t.c] == 0 ) 
-				{
-					if ( g.mp.isAnimating == 0 && t.mp_reload[t.c] == 0 ) 
-					{
-						g.mp.isAnimating = 1;
-						if ( t.mp_playingAnimation[t.c] != MP_ANIMATION_DUCKING ) 
+						if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_RELOAD ) 
 						{
 							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
 							t.tweapstyle=t.gun[t.tgunid].weapontype;
 							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							t.tplaycsioranimindex = 8;//t.csi_crouchidlenormalANIM1[t.tweapstyle];
-							mp_switchDirectAnim ( t.tplaycsioranimindex );
+							t.tplaycsi=t.csi_stoodreloadANIM[t.tweapstyle];
+							mp_switchAnim ( );
+							if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
+							{
+								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+								t.tweapstyle=t.gun[t.tgunid].weapontype;
+								if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+								t.tplaycsi=t.csi_crouchreloadANIM[t.tweapstyle];
+								mp_switchAnim ( );
+							}
 							entity_lua_setanimationframes ( );
 							t.e = t.mp_playerEntityID[t.c];
-							t.entityelement[t.e].eleprof.animspeed=100;
+							t.entityelement[t.e].eleprof.animspeed=200;
 							entity_lua_playanimation ( );
 							g.mp.isAnimating = 1;
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_RELOAD;
+						}
+					}
+					g.mp.isAnimating = 1;
+					if ( GetFrame(t.tobj) == 605 || GetFrame(t.tobj) == 2010 || t.mp_playerShooting[t.c] == 1 ) 
+					{
+						// if the reload anim has finished or the player starts shooting, turn reloading off
+						t.mp_reload[t.c] = 0;
+						if ( GetFrame(t.tobj) == 2010 ) 
+						{
 							t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
 						}
-					}
-				}
-			}
-
-			/* not for Photon yet
-			// Reloading
-			if ( t.thasNade == 1 && t.mp_reload[t.c] == 1 ) t.mp_reload[t.c] = 0;
-			if ( t.mp_reload[t.c] == 1 ) 
-			{
-				if ( g.mp.isAnimating  ==  0 || t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
-				{
-					if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_RELOAD ) 
-					{
-						t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-						t.tweapstyle=t.gun[t.tgunid].weapontype;
-						if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-						t.tplaycsi=t.csi_stoodreloadANIM[t.tweapstyle];
-						mp_switchAnim ( );
-						if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_DUCKING ) 
+						else
 						{
-							t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-							t.tweapstyle=t.gun[t.tgunid].weapontype;
-							if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-							t.tplaycsi=t.csi_crouchreloadANIM[t.tweapstyle];
-							mp_switchAnim ( );
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+							g.mp.isAnimating = 0;
 						}
-						entity_lua_setanimationframes ( );
-						t.e = t.mp_playerEntityID[t.c];
-						t.entityelement[t.e].eleprof.animspeed=200;
-						entity_lua_playanimation ( );
-						g.mp.isAnimating = 1;
-						t.mp_playingAnimation[t.c] = MP_ANIMATION_RELOAD;
 					}
 				}
-				g.mp.isAnimating = 1;
-				if ( GetFrame(t.tobj) == 605 || GetFrame(t.tobj) == 2010 || t.mp_playerShooting[t.c] == 1 ) 
+
+				// Jetpack
+				t.tjetpacktempanim = 0;
+				if ( iPlayerAppearance == 102 ) 
 				{
-					// if the reload anim has finished or the player starts shooting, turn reloading off
-					t.mp_reload[t.c] = 0;
-					if ( GetFrame(t.tobj) == 2010 ) 
-					{
-						t.mp_playingAnimation[t.c] = MP_ANIMATION_DUCKING;
-					}
-					else
+					t.tjetpacktempanim = 1;
+					if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
 					{
 						t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
 						g.mp.isAnimating = 0;
 					}
 				}
-			}
 
-			// Jetpack
-			t.tjetpacktempanim = 0;
-			if ( iPlayerAppearance == 102 ) 
-			{
-				t.tjetpacktempanim = 1;
-				if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
+				// Grenade Handling
+				if ( t.thasNade == 1 ) 
 				{
-					t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-					g.mp.isAnimating = 0;
-				}
-			}
-
-			// Grenade Handling
-			if ( t.thasNade == 1 ) 
-			{
-				if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_IDLE ) 
-				{
-					if ( t.mp_playerShooting[t.c]  ==  1 ) 
+					if ( t.mp_playingAnimation[t.c]  ==  MP_ANIMATION_IDLE ) 
 					{
-						if ( GetFrame(t.tobj) < 2390 || GetFrame(t.tobj) > 2444 ) 
+						if ( t.mp_playerShooting[t.c]  ==  1 ) 
 						{
-							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-							g.mp.isAnimating = 0;
-						}
-					}
-
-					if ( t.mp_playerShooting[t.c]  ==  0 ) 
-					{
-						if ( GetFrame(t.tobj)  ==  2444 ) 
-						{
-							SetObjectFrame(t.tobj,2443);
-							StopObject (  t.tobj );
-							g.mp.isAnimating = 0;
-							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-						}
-					}
-				}
-			}
-			*/
-
-			// Idle
-			if ( g.mp.isAnimating  ==  0 ) 
-			{
-				mp_update_waist_rotation ( );
-				if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
-				{
-					if ( abs(t.mp_oldplayerx[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].x) < 1.0 || t.tjetpacktempanim  ==  1 ) 
-					{
-						if ( abs(t.mp_oldplayery[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].y) < 1.0 || t.tjetpacktempanim  ==  1 ) 
-						{
-							if ( abs(t.mp_oldplayerz[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].z) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+							if ( GetFrame(t.tobj) < 2390 || GetFrame(t.tobj) > 2444 ) 
 							{
-								t.tIsThrowingNade = 0;
-								t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-								t.tweapstyle=t.gun[t.tgunid].weapontype;
-								if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
-								if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+								g.mp.isAnimating = 0;
+							}
+						}
+
+						if ( t.mp_playerShooting[t.c]  ==  0 ) 
+						{
+							if ( GetFrame(t.tobj)  ==  2444 ) 
+							{
+								SetObjectFrame(t.tobj,2443);
+								StopObject (  t.tobj );
+								g.mp.isAnimating = 0;
+								t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+							}
+						}
+					}
+				}
+				*/
+
+				// Idle
+				if ( g.mp.isAnimating  ==  0 ) 
+				{
+					mp_update_waist_rotation ( );
+					if ( t.mp_playingAnimation[t.c]  !=  MP_ANIMATION_IDLE ) 
+					{
+						if ( abs(t.mp_oldplayerx[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].x) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+						{
+							if ( abs(t.mp_oldplayery[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].y) < 1.0 || t.tjetpacktempanim  ==  1 ) 
+							{
+								if ( abs(t.mp_oldplayerz[t.c] - t.entityelement[t.mp_playerEntityID[t.c]].z) < 1.0 || t.tjetpacktempanim  ==  1 ) 
 								{
-									t.tplaycsioranimindex = 0;//t.csi_stoodnormalANIM[t.tweapstyle];
-									mp_switchDirectAnim ( t.tplaycsioranimindex );
-								}
-								else
-								{
-									if ( t.thasNade  ==  1 && t.mp_playerShooting[t.c]  ==  1 ) 
+									t.tIsThrowingNade = 0;
+									t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+									t.tweapstyle=t.gun[t.tgunid].weapontype;
+									if ( t.tweapstyle > 5  )  t.tweapstyle  =  1;
+									if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 && t.thasNade  ==  0 ) 
 									{
-										t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
-										t.e=2390;
-										t.v=2444;
-										entity_lua_setanimationframes ( );
-										t.e = t.mp_playerEntityID[t.c];
-										t.entityelement[t.e].eleprof.animspeed=200;
-										t.tLuaDontSendLua = 1;
-										t.q=-1;
-										entity_lua_playanimation ( );
-										t.tLuaDontSendLua = 0;
-										t.tIsThrowingNade = 1;
+										t.tplaycsioranimindex = 0;//t.csi_stoodnormalANIM[t.tweapstyle];
+										mp_switchDirectAnim ( t.tplaycsioranimindex );
 									}
 									else
 									{
-										t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
-										t.tweapstyle=t.gun[t.tgunid].weapontype;
-										if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
-										t.tplaycsioranimindex = 0;//g.csi_unarmedANIM0;
-										mp_switchDirectAnim ( t.tplaycsioranimindex );
+										if ( t.thasNade  ==  1 && t.mp_playerShooting[t.c]  ==  1 ) 
+										{
+											t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
+											t.e=2390;
+											t.v=2444;
+											entity_lua_setanimationframes ( );
+											t.e = t.mp_playerEntityID[t.c];
+											t.entityelement[t.e].eleprof.animspeed=200;
+											t.tLuaDontSendLua = 1;
+											t.q=-1;
+											entity_lua_playanimation ( );
+											t.tLuaDontSendLua = 0;
+											t.tIsThrowingNade = 1;
+										}
+										else
+										{
+											t.tgunid=t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon;
+											t.tweapstyle=t.gun[t.tgunid].weapontype;
+											if (  t.tweapstyle > 5  )  t.tweapstyle  =  1;
+											t.tplaycsioranimindex = 0;//g.csi_unarmedANIM0;
+											mp_switchDirectAnim ( t.tplaycsioranimindex );
+										}
 									}
+									if ( t.tIsThrowingNade  ==  0 ) 
+									{
+										entity_lua_setanimationframes ( );
+										t.e = t.mp_playerEntityID[t.c];
+										t.entityelement[t.e].eleprof.animspeed=100;
+										entity_lua_loopanimation ( );
+									}
+									t.mp_playingAnimation[t.c] = MP_ANIMATION_IDLE;
 								}
-								if ( t.tIsThrowingNade  ==  0 ) 
-								{
-									entity_lua_setanimationframes ( );
-									t.e = t.mp_playerEntityID[t.c];
-									t.entityelement[t.e].eleprof.animspeed=100;
-									entity_lua_loopanimation ( );
-								}
-								t.mp_playingAnimation[t.c] = MP_ANIMATION_IDLE;
 							}
 						}
+					}
+				}
+				else
+				{
+					// reset the idle turn if animating
+					t.mp_lastIdleReset[t.c] = 1;
+				}
+			}
+
+			/* no dying in photon v1
+			// Handle player death
+			if ( iPlayerAlive == 0 && g.mp.gameAlreadySpawnedBefore  !=  0 ) 
+			{
+				t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+				t.mp_lastIdleReset[t.c] = 1;
+				t.mp_forcePosition[t.c] = 1;
+				if ( t.mp_jetpackparticles[t.c]  !=  -1 ) 
+				{
+					t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.c];
+					ravey_particles_delete_emitter ( );
+					t.mp_jetpackparticles[t.c]=-1;
+				}
+				if ( t.mp_isDying[t.c] == 0 && t.mp_playerHasSpawned[t.c]  ==  1 ) 
+				{
+					t.mp_isDying[t.c] = 1;
+					t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+					t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
+					RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
+					t.e = t.mp_playerEntityID[t.c];
+					if ( ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
+					{
+						t.tweight=t.entityelement[t.e].eleprof.phyweight;
+						t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
+						ODECreateDynamicBox (  g.steamplayermodelsoffset+t.c+121,-1,0,t.tweight,t.tfriction,-1 );
+					}
+
+					//  NON-CHARACTER, but can still have ragdoll flagged (like Zombies)
+					t.ttentid=t.entityelement[t.e].bankindex;
+					t.ttte = t.e;
+					t.mp_playingRagdoll[t.c] = 1;
+					if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
+					{
+						if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
+						t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = 0;
+					}
+
+					t.entityprofile[t.ttentid].ragdoll=1;
+					if ( t.entityprofile[t.ttentid].ragdoll == 1 ) 
+					{
+						// can only ragdoll clones not instances
+						t.tte=t.ttte;
+						entity_converttoclone ( );
+
+						// create ragdoll and stop any further manipulation of the object
+						t.tphye=t.ttte;
+						t.tphyobj=t.entityelement[t.ttte].obj;
+						t.oldc = t.c;
+						ragdoll_setcollisionmask ( t.entityelement[t.ttte].eleprof.colondeath );
+						ragdoll_create ( );
+						t.c = t.oldc;
+
+						// grab the details from the server if someone else shot them
+						t.ttx_f = SteamGetPlayerKilledX(t.c);
+						t.tty_f = SteamGetPlayerKilledY(t.c);
+						t.ttz_f = SteamGetPlayerKilledZ(t.c);
+						t.ttforce_f = SteamGetPlayerKilledForce(t.c);
+						t.ttlimb = SteamGetPlayerKilledLimb(t.c);
+
+						// and apply bullet directional force (tforce#=from gun settings)
+						t.entityelement[t.ttte].ragdollified=1;
+						t.entityelement[t.ttte].ragdollifiedforcex_f=(t.ttx_f)*0.8;
+						t.entityelement[t.ttte].ragdollifiedforcey_f=(t.tty_f)*1.2;
+						t.entityelement[t.ttte].ragdollifiedforcez_f=(t.ttz_f)*0.8;
+						t.entityelement[t.ttte].ragdollifiedforcevalue_f=t.ttforce_f*8000.0;
+						t.entityelement[t.ttte].ragdollifiedforcelimb=t.ttlimb;
 					}
 				}
 			}
 			else
 			{
-				// reset the idle turn if animating
-				t.mp_lastIdleReset[t.c] = 1;
-			}
-		}
-
-		/* no dying in photon v1
-		// Handle player death
-		if ( iPlayerAlive == 0 && g.mp.gameAlreadySpawnedBefore  !=  0 ) 
-		{
-			t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-			t.mp_lastIdleReset[t.c] = 1;
-			t.mp_forcePosition[t.c] = 1;
-			if ( t.mp_jetpackparticles[t.c]  !=  -1 ) 
-			{
-				t.tRaveyParticlesEmitterID=t.mp_jetpackparticles[t.c];
-				ravey_particles_delete_emitter ( );
-				t.mp_jetpackparticles[t.c]=-1;
-			}
-			if ( t.mp_isDying[t.c] == 0 && t.mp_playerHasSpawned[t.c]  ==  1 ) 
-			{
-				t.mp_isDying[t.c] = 1;
-				t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
-				t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[t.c]].bankindex].spine;
-				RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
-				t.e = t.mp_playerEntityID[t.c];
-				if ( ObjectExist(g.steamplayermodelsoffset+t.c+121)  ==  1 ) 
+				if ( t.mp_forcePosition[t.c] == 0 ) 
 				{
-					t.tweight=t.entityelement[t.e].eleprof.phyweight;
-					t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
-					ODECreateDynamicBox (  g.steamplayermodelsoffset+t.c+121,-1,0,t.tweight,t.tfriction,-1 );
-				}
-
-				//  NON-CHARACTER, but can still have ragdoll flagged (like Zombies)
-				t.ttentid=t.entityelement[t.e].bankindex;
-				t.ttte = t.e;
-				t.mp_playingRagdoll[t.c] = 1;
-				if ( t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
-				{
-					if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj );
-					t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj = 0;
-				}
-
-				t.entityprofile[t.ttentid].ragdoll=1;
-				if ( t.entityprofile[t.ttentid].ragdoll == 1 ) 
-				{
-					// can only ragdoll clones not instances
-					t.tte=t.ttte;
-					entity_converttoclone ( );
-
-					// create ragdoll and stop any further manipulation of the object
-					t.tphye=t.ttte;
-					t.tphyobj=t.entityelement[t.ttte].obj;
-					t.oldc = t.c;
-					ragdoll_setcollisionmask ( t.entityelement[t.ttte].eleprof.colondeath );
-					ragdoll_create ( );
-					t.c = t.oldc;
-
-					// grab the details from the server if someone else shot them
-					t.ttx_f = SteamGetPlayerKilledX(t.c);
-					t.tty_f = SteamGetPlayerKilledY(t.c);
-					t.ttz_f = SteamGetPlayerKilledZ(t.c);
-					t.ttforce_f = SteamGetPlayerKilledForce(t.c);
-					t.ttlimb = SteamGetPlayerKilledLimb(t.c);
-
-					// and apply bullet directional force (tforce#=from gun settings)
-					t.entityelement[t.ttte].ragdollified=1;
-					t.entityelement[t.ttte].ragdollifiedforcex_f=(t.ttx_f)*0.8;
-					t.entityelement[t.ttte].ragdollifiedforcey_f=(t.tty_f)*1.2;
-					t.entityelement[t.ttte].ragdollifiedforcez_f=(t.ttz_f)*0.8;
-					t.entityelement[t.ttte].ragdollifiedforcevalue_f=t.ttforce_f*8000.0;
-					t.entityelement[t.ttte].ragdollifiedforcelimb=t.ttlimb;
-				}
-			}
-		}
-		else
-		{
-			if ( t.mp_forcePosition[t.c] == 0 ) 
-			{
-				if ( t.mp_isDying[t.c] == 1 ) 
-				{
-					if ( ObjectExist(g.steamplayermodelsoffset+t.c+121) == 1 ) 
+					if ( t.mp_isDying[t.c] == 1 ) 
 					{
-						ODEDestroyObject (  g.steamplayermodelsoffset+t.c+121 );
-						RotateObject (  g.steamplayermodelsoffset+t.c+121,0,0,0 );
-						PositionObject (  g.steamplayermodelsoffset+t.c+121,0,-99999,0 );
-						HideObject (  g.steamplayermodelsoffset+t.c+121 );
-						t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+						if ( ObjectExist(g.steamplayermodelsoffset+t.c+121) == 1 ) 
+						{
+							ODEDestroyObject (  g.steamplayermodelsoffset+t.c+121 );
+							RotateObject (  g.steamplayermodelsoffset+t.c+121,0,0,0 );
+							PositionObject (  g.steamplayermodelsoffset+t.c+121,0,-99999,0 );
+							HideObject (  g.steamplayermodelsoffset+t.c+121 );
+							t.mp_playingAnimation[t.c] = MP_ANIMATION_NONE;
+						}
+						t.mp_isDying[t.c] = 0;
 					}
-					t.mp_isDying[t.c] = 0;
 				}
 			}
+			*/
+			t.mp_oldplayerx[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].x;
+			t.mp_oldplayery[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].y;
+			t.mp_oldplayerz[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].z;
 		}
-		*/
-		t.mp_oldplayerx[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].x;
-		t.mp_oldplayery[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].y;
-		t.mp_oldplayerz[t.c] = t.entityelement[t.mp_playerEntityID[t.c]].z;
 	}
 }
 
 void mp_switchDirectAnim ( int iAnimIndex )
 {
-	t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
-	t.e=t.entityanim[t.ttentid][iAnimIndex].start;
-	t.v=t.entityanim[t.ttentid][iAnimIndex].finish;
+	if ( t.mp_playerEntityID[t.c] > 0 )
+	{
+		t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
+		t.e=t.entityanim[t.ttentid][iAnimIndex].start;
+		t.v=t.entityanim[t.ttentid][iAnimIndex].finish;
+	}
 }
 
 void mp_switchAnim ( void )
 {
-	t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
-	t.q=t.entityprofile[t.ttentid].startofaianim;
-	t.e=t.entityanim[t.ttentid][t.q+t.tplaycsioranimindex].start;
-	t.v=t.entityanim[t.ttentid][t.q+t.tplaycsioranimindex].finish;
+	if ( t.mp_playerEntityID[t.c] > 0 )
+	{
+		t.ttentid=t.entityelement[t.mp_playerEntityID[t.c]].bankindex;
+		t.q=t.entityprofile[t.ttentid].startofaianim;
+		t.e=t.entityanim[t.ttentid][t.q+t.tplaycsioranimindex].start;
+		t.v=t.entityanim[t.ttentid][t.q+t.tplaycsioranimindex].finish;
+	}
 }
 
 void mp_update_waist_rotation ( void )
@@ -2982,47 +3016,49 @@ void mp_showdeath ( void )
 	//  19032015 - 021 - prevent water affect being triggered when in 3rd person
 	visuals_underwater_off ( );
 
-		t.tobjtosee = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
+	t.tobjtosee = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
 
-		t.playercontrol.jetpackhidden=0;
-		t.playercontrol.jetpackmode=0;
+	t.playercontrol.jetpackhidden=0;
+	t.playercontrol.jetpackmode=0;
 
-		//  new subroutine so steam can reset zoom in
-		physics_no_gun_zoom ( );
-		if (  g.mp.endplay  ==  1 && g.mp.respawnLeft > 3 ) 
+	//  new subroutine so steam can reset zoom in
+	physics_no_gun_zoom ( );
+	if (  g.mp.endplay  ==  1 && g.mp.respawnLeft > 3 ) 
+	{
+			g.mp.respawnLeft = 100;
+			return;
+	}
+	//  if dead switch to 3rd person view to see the action
+		t.e = t.mp_playerEntityID[g.mp.me];
+		t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
+		if (  t.tobj > 0 ) 
 		{
-				g.mp.respawnLeft = 100;
-				return;
-		}
-		//  if dead switch to 3rd person view to see the action
-			t.e = t.mp_playerEntityID[g.mp.me];
-			t.tobj = t.entityelement[t.mp_playerEntityID[g.mp.me]].obj;
-			if (  t.tobj > 0 ) 
+			if ( ObjectExist (t.tobj) ) 
 			{
-				if ( ObjectExist (t.tobj) ) 
-				{
 //     `if health(mp.me) <= 0
 
-					ShowObject (  t.tobj );
-					t.tpe = t.mp_playerEntityID[g.mp.me];
-					if (  g.mp.ragdollon  ==  0 ) 
+				ShowObject (  t.tobj );
+				t.tpe = t.mp_playerEntityID[g.mp.me];
+				if (  g.mp.ragdollon  ==  0 ) 
+				{
+					g.mp.ragdollon = 1;
+
+				if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
+				{
+
+					//  turn off jetpack sound, turn off particles and reset thrust
+					if (  SoundExist(t.playercontrol.soundstartindex+18) == 1  )  StopSound (  t.playercontrol.soundstartindex+18 );
+					t.playercontrol.jetpackthrust_f=0.0;
+					//  stop particle emitter
+					if (  t.playercontrol.jetpackparticleemitterindex>0 ) 
 					{
-						g.mp.ragdollon = 1;
+						t.tRaveyParticlesEmitterID=t.playercontrol.jetpackparticleemitterindex;
+						ravey_particles_delete_emitter ( );
+						t.playercontrol.jetpackparticleemitterindex=0;
+					}
 
-					if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
+					if ( t.mp_playerEntityID[g.mp.me] > 0 )
 					{
-
-						//  turn off jetpack sound, turn off particles and reset thrust
-						if (  SoundExist(t.playercontrol.soundstartindex+18) == 1  )  StopSound (  t.playercontrol.soundstartindex+18 );
-						t.playercontrol.jetpackthrust_f=0.0;
-						//  stop particle emitter
-						if (  t.playercontrol.jetpackparticleemitterindex>0 ) 
-						{
-							t.tRaveyParticlesEmitterID=t.playercontrol.jetpackparticleemitterindex;
-							ravey_particles_delete_emitter ( );
-							t.playercontrol.jetpackparticleemitterindex=0;
-						}
-
 						t.spinelimbofcharacter=t.entityprofile[t.entityelement[t.mp_playerEntityID[g.mp.me]].bankindex].spine;
 						RotateLimb (  t.tobj,t.spinelimbofcharacter,LimbAngleX( t.tobj,t.spinelimbofcharacter),0,LimbAngleZ( t.tobj,t.spinelimbofcharacter) );
 						if (  ObjectExist(g.steamplayermodelsoffset+g.mp.me+121)  ==  1 ) 
@@ -3031,143 +3067,196 @@ void mp_showdeath ( void )
 							t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
 							ODECreateDynamicBox (  g.steamplayermodelsoffset+g.mp.me+121,-1,0,t.tweight,t.tfriction,-1 );
 						}
-						t.tme = g.mp.me;
+					}
+					t.tme = g.mp.me;
 
-						//  NON-CHARACTER, but can still have ragdoll flagged (like Zombies)
-						t.ttentid=t.entityelement[t.e].bankindex;
-						t.ttte = t.e;
-						t.mp_playingRagdoll[t.tme] = 1;
+					//  NON-CHARACTER, but can still have ragdoll flagged (like Zombies)
+					t.ttentid=t.entityelement[t.e].bankindex;
+					t.ttte = t.e;
+					t.mp_playingRagdoll[t.tme] = 1;
+					if ( t.mp_playerEntityID[t.tme] > 0 )
+					{
 						if (  t.entityelement[t.mp_playerEntityID[t.tme]].attachmentobj > 0 ) 
 						{
 							if (  ObjectExist(t.entityelement[t.mp_playerEntityID[t.tme]].attachmentobj)  )  DeleteObject (  t.entityelement[t.mp_playerEntityID[t.tme]].attachmentobj );
 							t.entityelement[t.mp_playerEntityID[t.tme]].attachmentobj = 0;
 						}
-						t.entityprofile[t.ttentid].ragdoll=1;
-						if (  t.entityprofile[t.ttentid].ragdoll == 1 ) 
+					}
+					t.entityprofile[t.ttentid].ragdoll=1;
+					if (  t.entityprofile[t.ttentid].ragdoll == 1 ) 
+					{
+
+						//  can only ragdoll clones not instances
+						t.tte=t.ttte;
+						entity_converttoclone ( );
+
+						//  create ragdoll and stop any further manipulation of the object
+						t.tphye=t.ttte;
+						t.tphyobj=t.entityelement[t.ttte].obj;
+						t.oldc = t.c;
+						ragdoll_setcollisionmask ( t.entityelement[t.ttte].eleprof.colondeath );
+						ragdoll_create ( );
+						t.c = t.oldc;
+
+						//  use the real raycast if we shot them
+						if (  SteamGetPlayerDamageSource()  ==  g.mp.me ) 
 						{
-
-							//  can only ragdoll clones not instances
-							t.tte=t.ttte;
-							entity_converttoclone ( );
-
-							//  create ragdoll and stop any further manipulation of the object
-							t.tphye=t.ttte;
-							t.tphyobj=t.entityelement[t.ttte].obj;
-							t.oldc = t.c;
-							ragdoll_setcollisionmask ( t.entityelement[t.ttte].eleprof.colondeath );
-							ragdoll_create ( );
-							t.c = t.oldc;
-
-							//  use the real raycast if we shot them
-							if (  SteamGetPlayerDamageSource()  ==  g.mp.me ) 
-							{
-								t.ttx_f = t.brayx2_f-t.brayx1_f;
-								t.tty_f = t.brayy2_f-t.brayy1_f;
-								t.ttz_f = t.brayz2_f-t.brayz1_f;
-								t.ttforce_f = t.tforce_f;
-								t.ttlimb = t.bulletraylimbhit;
-							}
-							else
-							{
-								//  grab the details from the server if someone else shot them
-								t.ttx_f = SteamGetPlayerDamageX();
-								t.tty_f = SteamGetPlayerDamageY();
-								t.ttz_f = SteamGetPlayerDamageZ();
-								t.ttforce_f = SteamGetPlayerDamageForce();
-								t.ttlimb = SteamGetPlayerDamageLimb();
-							}
+							t.ttx_f = t.brayx2_f-t.brayx1_f;
+							t.tty_f = t.brayy2_f-t.brayy1_f;
+							t.ttz_f = t.brayz2_f-t.brayz1_f;
+							t.ttforce_f = t.tforce_f;
+							t.ttlimb = t.bulletraylimbhit;
+						}
+						else
+						{
+							//  grab the details from the server if someone else shot them
+							t.ttx_f = SteamGetPlayerDamageX();
+							t.tty_f = SteamGetPlayerDamageY();
+							t.ttz_f = SteamGetPlayerDamageZ();
+							t.ttforce_f = SteamGetPlayerDamageForce();
+							t.ttlimb = SteamGetPlayerDamageLimb();
+						}
 	
-							//  and apply bullet directional force (tforce#=from gun settings)
-							t.entityelement[t.ttte].ragdollified=1;
+						//  and apply bullet directional force (tforce#=from gun settings)
+						t.entityelement[t.ttte].ragdollified=1;
 //        `entityelement(ttte).ragdollifiedforcex#=(x#)*0.8
 
 //        `entityelement(ttte).ragdollifiedforcey#=(y#)*1.2
 
 //        `entityelement(ttte).ragdollifiedforcez#=(z#)*0.8
 
-							t.entityelement[t.ttte].ragdollifiedforcex_f=(t.ttx_f)*0.8;
-							t.entityelement[t.ttte].ragdollifiedforcey_f=(t.tty_f)*1.2;
-							t.entityelement[t.ttte].ragdollifiedforcez_f=(t.ttz_f)*0.8;
-							t.entityelement[t.ttte].ragdollifiedforcevalue_f=t.ttforce_f*8000.0;
+						t.entityelement[t.ttte].ragdollifiedforcex_f=(t.ttx_f)*0.8;
+						t.entityelement[t.ttte].ragdollifiedforcey_f=(t.tty_f)*1.2;
+						t.entityelement[t.ttte].ragdollifiedforcez_f=(t.ttz_f)*0.8;
+						t.entityelement[t.ttte].ragdollifiedforcevalue_f=t.ttforce_f*8000.0;
 //        `entityelement(ttte).ragdollifiedforcelimb=tlimb
 
-							t.entityelement[t.ttte].ragdollifiedforcelimb=t.ttlimb;
+						t.entityelement[t.ttte].ragdollifiedforcelimb=t.ttlimb;
 //        `bulletraylimbhit=-1
 
 
-						}
 					}
-					}
+				}
+				}
 //entity_updatepos ( );
 //entity_lua_rotateupdate ( );
-					if (  1 ) 
+				if (  1 ) 
+				{
+					t.tsteamlimb=t.entityprofile[t.entityelement[t.tpe].bankindex].spine2;
+					if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
 					{
-						t.tsteamlimb=t.entityprofile[t.entityelement[t.tpe].bankindex].spine2;
-						if (  g.mp.gameAlreadySpawnedBefore  ==  0 ) 
+						if (  g.mp.initialSpawnmoveDownCharacterFlag  ==  1 ) 
 						{
-							if (  g.mp.initialSpawnmoveDownCharacterFlag  ==  1 ) 
+							PositionObject (  t.entityelement[t.tpe].obj, ObjectPositionX(t.entityelement[t.tpe].obj), ObjectPositionY(t.entityelement[t.tpe].obj)-50, ObjectPositionZ(t.entityelement[t.tpe].obj) );
+							if (  ObjectPositionY(t.entityelement[t.tpe].obj) < BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.entityelement[t.tpe].obj),ObjectPositionZ(t.entityelement[t.tpe].obj)) ) 
 							{
-								PositionObject (  t.entityelement[t.tpe].obj, ObjectPositionX(t.entityelement[t.tpe].obj), ObjectPositionY(t.entityelement[t.tpe].obj)-50, ObjectPositionZ(t.entityelement[t.tpe].obj) );
-								if (  ObjectPositionY(t.entityelement[t.tpe].obj) < BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.entityelement[t.tpe].obj),ObjectPositionZ(t.entityelement[t.tpe].obj)) ) 
-								{
-									PositionObject (  t.entityelement[t.tpe].obj, ObjectPositionX(t.entityelement[t.tpe].obj), BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.entityelement[t.tpe].obj),ObjectPositionZ(t.entityelement[t.tpe].obj)) , ObjectPositionZ(t.entityelement[t.tpe].obj) );
-								}
-								g.mp.initialSpawnmoveDownCharacterFlag = 0;
+								PositionObject (  t.entityelement[t.tpe].obj, ObjectPositionX(t.entityelement[t.tpe].obj), BT_GetGroundHeight(t.terrain.TerrainID,ObjectPositionX(t.entityelement[t.tpe].obj),ObjectPositionZ(t.entityelement[t.tpe].obj)) , ObjectPositionZ(t.entityelement[t.tpe].obj) );
 							}
+							g.mp.initialSpawnmoveDownCharacterFlag = 0;
 						}
-						t.x_f = LimbPositionX(t.tobjtosee,t.tsteamlimb);
-						t.y_f = LimbPositionY(t.tobjtosee,t.tsteamlimb);
-						t.z_f = LimbPositionZ(t.tobjtosee,t.tsteamlimb);
-						PositionCamera (  t.x_f,t.y_f+100,t.z_f );
-						RotateCamera (  0,g.mp.camrotate,0 );
-						g.mp.camrotate = g.mp.camrotate + (0.5*g.timeelapsed_f);
+					}
+					t.x_f = LimbPositionX(t.tobjtosee,t.tsteamlimb);
+					t.y_f = LimbPositionY(t.tobjtosee,t.tsteamlimb);
+					t.z_f = LimbPositionZ(t.tobjtosee,t.tsteamlimb);
+					PositionCamera (  t.x_f,t.y_f+100,t.z_f );
+					RotateCamera (  0,g.mp.camrotate,0 );
+					g.mp.camrotate = g.mp.camrotate + (0.5*g.timeelapsed_f);
 
 
-						t.x_f = LimbPositionX(t.tobjtosee,t.tsteamlimb);
-						t.y_f = LimbPositionY(t.tobjtosee,t.tsteamlimb)+10;
-						t.z_f = LimbPositionZ(t.tobjtosee,t.tsteamlimb);
+					t.x_f = LimbPositionX(t.tobjtosee,t.tsteamlimb);
+					t.y_f = LimbPositionY(t.tobjtosee,t.tsteamlimb)+10;
+					t.z_f = LimbPositionZ(t.tobjtosee,t.tsteamlimb);
 
-						MoveCamera (  -g.mp.spectatorfollowdistance );
+					MoveCamera (  -g.mp.spectatorfollowdistance );
 
-						t.tXOldPos_f = CameraPositionX();
-						t.tYOldPos_f = CameraPositionY();
-						t.tZOldPos_f = CameraPositionZ();
+					t.tXOldPos_f = CameraPositionX();
+					t.tYOldPos_f = CameraPositionY();
+					t.tZOldPos_f = CameraPositionZ();
 
-						MoveCamera (  g.mp.spectatorfollowdistance );
-						t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
+					MoveCamera (  g.mp.spectatorfollowdistance );
+					t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
 //       `tEndEntity = entityviewstartobj+entityelementlist
 
-						t.tHitObj=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.x_f,t.y_f,t.z_f,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tobjtosee);
-						t.tdistancewecanmovecam_f = g.mp.spectatorfollowdistance;
-						if (  t.tHitObj > 0 ) 
-						{
-							t.tHitX_f = ChecklistFValueA(6);
-							t.tHitY_f = ChecklistFValueB(6);
-							t.tHitZ_f = ChecklistFValueC(6);
-							t.dx_f = t.x_f - t.tHitX_f;
-							t.dy_f = t.y_f - t.tHitY_f;
-							t.dz_f = t.z_f - t.tHitZ_f;
-							t.tdistancewecanmovecam_f = Sqrt((t.dx_f*t.dx_f)+(t.dy_f*t.dy_f)+(t.dz_f*t.dz_f)) - 30;
-						}
-						MoveCamera (  -t.tdistancewecanmovecam_f );
+					t.tHitObj=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.x_f,t.y_f,t.z_f,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tobjtosee);
+					t.tdistancewecanmovecam_f = g.mp.spectatorfollowdistance;
+					if (  t.tHitObj > 0 ) 
+					{
+						t.tHitX_f = ChecklistFValueA(6);
+						t.tHitY_f = ChecklistFValueB(6);
+						t.tHitZ_f = ChecklistFValueC(6);
+						t.dx_f = t.x_f - t.tHitX_f;
+						t.dy_f = t.y_f - t.tHitY_f;
+						t.dz_f = t.z_f - t.tHitZ_f;
+						t.tdistancewecanmovecam_f = Sqrt((t.dx_f*t.dx_f)+(t.dy_f*t.dy_f)+(t.dz_f*t.dz_f)) - 30;
+					}
+					MoveCamera (  -t.tdistancewecanmovecam_f );
 
 //       `move camera -mp.spectatorfollowdistance
 
-						PointCamera (  t.x_f,t.y_f,t.z_f );
+					PointCamera (  t.x_f,t.y_f,t.z_f );
 
 //       `tEndEntity = entityviewstartobj+entityelementlist
 
+
+					t.tXOldPos_f = CameraPositionX();
+					t.tYOldPos_f = CameraPositionY();
+					t.tZOldPos_f = CameraPositionZ();
+
+					t.tXNewPos_f = t.x_f;
+					t.tYNewPos_f = t.y_f;
+					t.tZNewPos_f = t.z_f;
+
+					//tobjtosee = entityelement(tpe).obj;
+					/*      
+					t.tHitObj=IntersectAll(g.entityviewstartobj,t.tEndEntity,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tXNewPos_f,t.tYNewPos_f,t.tZNewPos_f,t.entityelement[t.tpe].obj);
+					if (  t.tHitObj>0 ) 
+					{
+						if (  g.mp.spectatorfollowdistance > 10.0 ) 
+						{
+							g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance - 10.0;
+							g.mp.spectatorfollowdistancedelay = Timer();
+						}
+					}
+					else
+					{
+						if (  g.mp.spectatorfollowdistance < 200.0 && Timer() - g.mp.spectatorfollowdistancedelay > 1000 ) 
+						{
+							g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance + 10.0;
+						}
+					}
+					*/    
+				}
+				else
+				{
+					t.twhokilledme = SteamGetPlayerDamageSource();
+					if (  t.twhokilledme  !=  g.mp.me ) 
+					{
+						t.tsteamlimb=t.entityprofile[t.entityelement[t.tpe].bankindex].spine2;
+						t.x_f = LimbPositionX(t.entityelement[t.tpe].obj,t.tsteamlimb);
+						t.y_f = LimbPositionY(t.entityelement[t.tpe].obj,t.tsteamlimb);
+						t.z_f = LimbPositionZ(t.entityelement[t.tpe].obj,t.tsteamlimb);
+						PositionCamera (  t.x_f,t.y_f+100,t.z_f );
+						PointCamera (  SteamGetPlayerPositionX(t.twhokilledme),SteamGetPlayerPositionY(t.twhokilledme)+50,SteamGetPlayerPositionZ(t.twhokilledme) );
+						/*      
+						tcamheight = (200 - g.mp.spectatorfollowdistance) / 2;
+						PositionCamera (  SteamGetPlayerPositionX(t.twhokilledme), SteamGetPlayerPositionY(t.twhokilledme)+tcamheight+50, SteamGetPlayerPositionZ(t.twhokilledme) );
+						SteamSetPlayerPositionX (  SteamGetPlayerPositionX(t.twhokilledme) );
+						SteamSetPlayerPositionY (  SteamGetPlayerPositionY(t.twhokilledme) );
+						SteamSetPlayerPositionZ (  SteamGetPlayerPositionZ(t.twhokilledme) );
+						RotateCamera (  0,SteamGetPlayerAngle(t.twhokilledme),0 );
+						MoveCamera (  -g.mp.spectatorfollowdistance );
+						PointCamera (  SteamGetPlayerPositionX(t.twhokilledme),SteamGetPlayerPositionY(t.twhokilledme)+50,SteamGetPlayerPositionZ(t.twhokilledme) );
+
+						t.tEndEntity = g.entityviewstartobj+g.entityelementlist;
 
 						t.tXOldPos_f = CameraPositionX();
 						t.tYOldPos_f = CameraPositionY();
 						t.tZOldPos_f = CameraPositionZ();
 
-						t.tXNewPos_f = t.x_f;
-						t.tYNewPos_f = t.y_f;
-						t.tZNewPos_f = t.z_f;
+						t.tXNewPos_f = SteamGetPlayerPositionX(t.twhokilledme);
+						t.tYNewPos_f = SteamGetPlayerPositionY(t.twhokilledme);
+						t.tZNewPos_f = SteamGetPlayerPositionZ(t.twhokilledme);
 
-						//tobjtosee = entityelement(tpe).obj;
-						/*      
 						t.tHitObj=IntersectAll(g.entityviewstartobj,t.tEndEntity,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tXNewPos_f,t.tYNewPos_f,t.tZNewPos_f,t.entityelement[t.tpe].obj);
 						if (  t.tHitObj>0 ) 
 						{
@@ -3184,113 +3273,66 @@ void mp_showdeath ( void )
 								g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance + 10.0;
 							}
 						}
-						*/    
+					*/    
+					}
+//       `if mp.respawnLeft  ==  5 && toldrespawnleft  ==  6 then mp.spectatorfollowdistance  ==  200
+						
+					t.toldrespawnleft = g.mp.respawnLeft;
+				}
+			}
+			if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
+			{
+				if (  CameraPositionY()  <=  BT_GetGroundHeight(t.terrain.TerrainID,CameraPositionX(),CameraPositionZ()) ) 
+				{
+					PositionCamera (  CameraPositionX(), BT_GetGroundHeight(t.terrain.TerrainID,CameraPositionX(),CameraPositionZ()) + 50, CameraPositionZ() );
+				}
+				if (  CameraPositionY() < t.terrain.waterliney_f ) 
+				{
+					t.tshowdeathlockcam = 0;
+				}
+				if (  t.tshowdeathlockcam > -1 ) 
+				{
+					if (  t.tshowdeathlockcam  ==  0 ) 
+					{
+						PositionCamera (  CameraPositionX(), CameraPositionY() + t.tspawninyoffset_f , CameraPositionZ() );
+						if (  CameraPositionY() < t.terrain.waterliney_f ) 
+						{
+							PositionCamera (  CameraPositionX(), t.terrain.waterliney_f+100 , CameraPositionZ() );
+							t.tshowdeathlockcam = 1;
+							t.tshowdeathlockcamx_f = CameraPositionX();
+							t.tshowdeathlockcamy_f = CameraPositionY();
+							t.tshowdeathlockcamz_f = CameraPositionZ();
+							t.tshowdeathlockcamrotx_f = CameraAngleX();
+							t.tshowdeathlockcamroty_f = CameraAngleY();
+							t.tshowdeathlockcamrotz_f = CameraAngleZ();
+						}
 					}
 					else
 					{
-						t.twhokilledme = SteamGetPlayerDamageSource();
-						if (  t.twhokilledme  !=  g.mp.me ) 
-						{
-							t.tsteamlimb=t.entityprofile[t.entityelement[t.tpe].bankindex].spine2;
-							t.x_f = LimbPositionX(t.entityelement[t.tpe].obj,t.tsteamlimb);
-							t.y_f = LimbPositionY(t.entityelement[t.tpe].obj,t.tsteamlimb);
-							t.z_f = LimbPositionZ(t.entityelement[t.tpe].obj,t.tsteamlimb);
-							PositionCamera (  t.x_f,t.y_f+100,t.z_f );
-							PointCamera (  SteamGetPlayerPositionX(t.twhokilledme),SteamGetPlayerPositionY(t.twhokilledme)+50,SteamGetPlayerPositionZ(t.twhokilledme) );
-							/*      
-							tcamheight = (200 - g.mp.spectatorfollowdistance) / 2;
-							PositionCamera (  SteamGetPlayerPositionX(t.twhokilledme), SteamGetPlayerPositionY(t.twhokilledme)+tcamheight+50, SteamGetPlayerPositionZ(t.twhokilledme) );
-							SteamSetPlayerPositionX (  SteamGetPlayerPositionX(t.twhokilledme) );
-							SteamSetPlayerPositionY (  SteamGetPlayerPositionY(t.twhokilledme) );
-							SteamSetPlayerPositionZ (  SteamGetPlayerPositionZ(t.twhokilledme) );
-							RotateCamera (  0,SteamGetPlayerAngle(t.twhokilledme),0 );
-							MoveCamera (  -g.mp.spectatorfollowdistance );
-							PointCamera (  SteamGetPlayerPositionX(t.twhokilledme),SteamGetPlayerPositionY(t.twhokilledme)+50,SteamGetPlayerPositionZ(t.twhokilledme) );
-
-							t.tEndEntity = g.entityviewstartobj+g.entityelementlist;
-
-							t.tXOldPos_f = CameraPositionX();
-							t.tYOldPos_f = CameraPositionY();
-							t.tZOldPos_f = CameraPositionZ();
-
-							t.tXNewPos_f = SteamGetPlayerPositionX(t.twhokilledme);
-							t.tYNewPos_f = SteamGetPlayerPositionY(t.twhokilledme);
-							t.tZNewPos_f = SteamGetPlayerPositionZ(t.twhokilledme);
-
-							t.tHitObj=IntersectAll(g.entityviewstartobj,t.tEndEntity,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tXNewPos_f,t.tYNewPos_f,t.tZNewPos_f,t.entityelement[t.tpe].obj);
-							if (  t.tHitObj>0 ) 
-							{
-								if (  g.mp.spectatorfollowdistance > 10.0 ) 
-								{
-									g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance - 10.0;
-									g.mp.spectatorfollowdistancedelay = Timer();
-								}
-							}
-							else
-							{
-								if (  g.mp.spectatorfollowdistance < 200.0 && Timer() - g.mp.spectatorfollowdistancedelay > 1000 ) 
-								{
-									g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance + 10.0;
-								}
-							}
-						*/    
-						}
-//       `if mp.respawnLeft  ==  5 && toldrespawnleft  ==  6 then mp.spectatorfollowdistance  ==  200
-						
-						t.toldrespawnleft = g.mp.respawnLeft;
+						PositionCamera (  t.tshowdeathlockcamx_f,t.tshowdeathlockcamy_f,t.tshowdeathlockcamz_f );
+						RotateCamera (  t.tshowdeathlockcamrotx_f,t.tshowdeathlockcamroty_f, t.tshowdeathlockcamrotz_f );
 					}
 				}
-				if (  g.mp.gameAlreadySpawnedBefore  ==  1 ) 
+			}
+			else
+			{
+				if (  CameraPositionY()  <=  BT_GetGroundHeight(t.terrain.TerrainID,CameraPositionX(),CameraPositionZ()) ) 
 				{
-					if (  CameraPositionY()  <=  BT_GetGroundHeight(t.terrain.TerrainID,CameraPositionX(),CameraPositionZ()) ) 
-					{
-						PositionCamera (  CameraPositionX(), BT_GetGroundHeight(t.terrain.TerrainID,CameraPositionX(),CameraPositionZ()) + 50, CameraPositionZ() );
-					}
-					if (  CameraPositionY() < t.terrain.waterliney_f ) 
-					{
-						t.tshowdeathlockcam = 0;
-					}
-					if (  t.tshowdeathlockcam > -1 ) 
-					{
-						if (  t.tshowdeathlockcam  ==  0 ) 
-						{
-							PositionCamera (  CameraPositionX(), CameraPositionY() + t.tspawninyoffset_f , CameraPositionZ() );
-							if (  CameraPositionY() < t.terrain.waterliney_f ) 
-							{
-								PositionCamera (  CameraPositionX(), t.terrain.waterliney_f+100 , CameraPositionZ() );
-								t.tshowdeathlockcam = 1;
-								t.tshowdeathlockcamx_f = CameraPositionX();
-								t.tshowdeathlockcamy_f = CameraPositionY();
-								t.tshowdeathlockcamz_f = CameraPositionZ();
-								t.tshowdeathlockcamrotx_f = CameraAngleX();
-								t.tshowdeathlockcamroty_f = CameraAngleY();
-								t.tshowdeathlockcamrotz_f = CameraAngleZ();
-							}
-						}
-						else
-						{
-							PositionCamera (  t.tshowdeathlockcamx_f,t.tshowdeathlockcamy_f,t.tshowdeathlockcamz_f );
-							RotateCamera (  t.tshowdeathlockcamrotx_f,t.tshowdeathlockcamroty_f, t.tshowdeathlockcamrotz_f );
-						}
-					}
+					MoveCamera (  1.0 );
+					t.tdeathamounttotakeoffdistance = t.tdeathamounttotakeoffdistance + 20;
 				}
-				else
+				if (  t.tdeathamounttotakeoffdistance > 0 && g.mp.spectatorfollowdistance > 40 ) 
 				{
-					if (  CameraPositionY()  <=  BT_GetGroundHeight(t.terrain.TerrainID,CameraPositionX(),CameraPositionZ()) ) 
-					{
-						MoveCamera (  1.0 );
-						t.tdeathamounttotakeoffdistance = t.tdeathamounttotakeoffdistance + 20;
-					}
-					if (  t.tdeathamounttotakeoffdistance > 0 && g.mp.spectatorfollowdistance > 40 ) 
-					{
-						g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance - 1.0;
-						t.tdeathamounttotakeoffdistance = t.tdeathamounttotakeoffdistance - 1;
-					}
+					g.mp.spectatorfollowdistance = g.mp.spectatorfollowdistance - 1.0;
+					t.tdeathamounttotakeoffdistance = t.tdeathamounttotakeoffdistance - 1;
 				}
-
 			}
 
-			//  update any character creator people
+		}
+
+		//  update any character creator people
+		if ( t.mp_playerEntityID[g.mp.me] > 0 )
+		{
 			t.entityelement[t.mp_playerEntityID[g.mp.me]].x = ObjectPositionX(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj);
 			t.entityelement[t.mp_playerEntityID[g.mp.me]].y = ObjectPositionY(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj);
 			t.entityelement[t.mp_playerEntityID[g.mp.me]].z = ObjectPositionZ(t.entityelement[t.mp_playerEntityID[g.mp.me]].obj);
@@ -3300,6 +3342,7 @@ void mp_showdeath ( void )
 				characterkit_checkForCharacters ( );
 				characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( );
 			}
+		}
 }
 
 void mp_respawn ( void )
@@ -4456,12 +4499,10 @@ void mp_load_guns ( void )
 
 void mp_check_for_attachments ( void )
 {
-
 	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
-		if (  t.c  !=  g.mp.me ) 
+		if ( t.c != g.mp.me && t.mp_playerEntityID[t.c] > 0 ) 
 		{
-		
 			//  Jetpack
 			if (  SteamGetPlayerAppearance(t.c)  !=  t.mp_oldAppearance[t.c] ) 
 			{
@@ -4654,58 +4695,56 @@ void mp_check_for_attachments ( void )
 
 void mp_addJetpackParticles ( void )
 {
-
-	t.tpartObj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
-
-	ravey_particles_get_free_emitter ( );
-	if (  t.tResult>0 ) 
+	if ( t.mp_playerEntityID[t.c] > 0 )
 	{
-		t.mp_jetpackparticles[t.c]=t.tResult;
-		g.tEmitter.id = t.tResult;
-		g.tEmitter.emitterLife = 0;
-		g.tEmitter.parentObject = t.tpartObj;
-		g.tEmitter.parentLimb = 0;
-		g.tEmitter.isAnObjectEmitter = 0;
-		g.tEmitter.imageNumber = RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
-		g.tEmitter.isAnimated = 1;
-		g.tEmitter.animationSpeed = 1/64.0;
-		g.tEmitter.isLooping = 1;
-		g.tEmitter.frameCount = 64;
-		g.tEmitter.startFrame = 0;
-		g.tEmitter.endFrame = 63;
-		g.tEmitter.startsOffRandomAngle = 1;
-		g.tEmitter.offsetMinX = -20;
-		g.tEmitter.offsetMinY = 50;
-		g.tEmitter.offsetMinZ = -20;
-		g.tEmitter.offsetMaxX = 20;
-		g.tEmitter.offsetMaxY = 50;
-		g.tEmitter.offsetMaxZ = 20;
-		g.tEmitter.scaleStartMin = 5;
-		g.tEmitter.scaleStartMax = 10;
-		g.tEmitter.scaleEndMin = 90;
-		g.tEmitter.scaleEndMax = 100;
-		g.tEmitter.movementSpeedMinX = -0.1f;
-		g.tEmitter.movementSpeedMinY = -0.9f;
-		g.tEmitter.movementSpeedMinZ = -0.1f;
-		g.tEmitter.movementSpeedMaxX = 0.1f;
-		g.tEmitter.movementSpeedMaxY = -0.1f;
-		g.tEmitter.movementSpeedMaxZ = 0.1f;
-		g.tEmitter.rotateSpeedMinZ = -0.1f;
-		g.tEmitter.rotateSpeedMaxZ = 0.1f;
-		g.tEmitter.startGravity = 0;
-		g.tEmitter.endGravity = 0;
-		g.tEmitter.lifeMin = 1000;
-		g.tEmitter.lifeMax = 2000;
-		g.tEmitter.alphaStartMin = 40;
-		g.tEmitter.alphaStartMax = 75;
-		g.tEmitter.alphaEndMin = 0;
-		g.tEmitter.alphaEndMax = 0;
-		g.tEmitter.frequency = 25;
-		ravey_particles_add_emitter ( );
+		t.tpartObj = t.entityelement[t.mp_playerEntityID[t.c]].obj;
+		ravey_particles_get_free_emitter ( );
+		if (  t.tResult>0 ) 
+		{
+			t.mp_jetpackparticles[t.c]=t.tResult;
+			g.tEmitter.id = t.tResult;
+			g.tEmitter.emitterLife = 0;
+			g.tEmitter.parentObject = t.tpartObj;
+			g.tEmitter.parentLimb = 0;
+			g.tEmitter.isAnObjectEmitter = 0;
+			g.tEmitter.imageNumber = RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset;
+			g.tEmitter.isAnimated = 1;
+			g.tEmitter.animationSpeed = 1/64.0;
+			g.tEmitter.isLooping = 1;
+			g.tEmitter.frameCount = 64;
+			g.tEmitter.startFrame = 0;
+			g.tEmitter.endFrame = 63;
+			g.tEmitter.startsOffRandomAngle = 1;
+			g.tEmitter.offsetMinX = -20;
+			g.tEmitter.offsetMinY = 50;
+			g.tEmitter.offsetMinZ = -20;
+			g.tEmitter.offsetMaxX = 20;
+			g.tEmitter.offsetMaxY = 50;
+			g.tEmitter.offsetMaxZ = 20;
+			g.tEmitter.scaleStartMin = 5;
+			g.tEmitter.scaleStartMax = 10;
+			g.tEmitter.scaleEndMin = 90;
+			g.tEmitter.scaleEndMax = 100;
+			g.tEmitter.movementSpeedMinX = -0.1f;
+			g.tEmitter.movementSpeedMinY = -0.9f;
+			g.tEmitter.movementSpeedMinZ = -0.1f;
+			g.tEmitter.movementSpeedMaxX = 0.1f;
+			g.tEmitter.movementSpeedMaxY = -0.1f;
+			g.tEmitter.movementSpeedMaxZ = 0.1f;
+			g.tEmitter.rotateSpeedMinZ = -0.1f;
+			g.tEmitter.rotateSpeedMaxZ = 0.1f;
+			g.tEmitter.startGravity = 0;
+			g.tEmitter.endGravity = 0;
+			g.tEmitter.lifeMin = 1000;
+			g.tEmitter.lifeMax = 2000;
+			g.tEmitter.alphaStartMin = 40;
+			g.tEmitter.alphaStartMax = 75;
+			g.tEmitter.alphaEndMin = 0;
+			g.tEmitter.alphaEndMax = 0;
+			g.tEmitter.frequency = 25;
+			ravey_particles_add_emitter ( );
+		}
 	}
-
-return;
-
 }
 
 void mp_NearOtherPlayers ( void )
@@ -4862,11 +4901,11 @@ void mp_gameLoop ( void )
 		 PhotonLoop();
 		 return;
 	 }
-	 // handle new player arriving while game is running
-	 if ( g.mp.isGameHost == 1 )
-	 {
-		 // if game already started
-		 if ( PhotonIsGameRunning() == 1 )
+	// if game already started
+	if ( PhotonIsGameRunning() == 1 )
+	{
+		 // handle new player arriving while game is running
+		 if ( g.mp.isGameHost == 1 )
 		 {
 			 // host needs to send the map to the new arrival
 			 if ( g.mp.syncedWithServerMode == 99 )
@@ -4878,6 +4917,22 @@ void mp_gameLoop ( void )
 					// triggers server to send map file
 					g.mp.syncedWithServerMode = 0;
 					g.mp.onlySendMapToSpecificPlayer = iNewPlayerArrived;
+					t.tLastProgress = 0;
+					t.tUserCount = PhotonGetLobbyUserCount();
+					g.mp.usersInServersLobbyAtServerCreation = t.tUserCount;
+
+					// also send all entity activated values (+100) so scripts can set states and
+					// update level to the current state of the game logic (requires special multiplayer capable scripts)
+					for ( t.e = 1; t.e <= g.entityelementlist; t.e++ )
+					{
+						if ( t.entityelement[t.e].staticflag == 0 && t.entityelement[t.e].obj > 0 )
+						{
+							mp_sendluaToPlayer ( iNewPlayerArrived, MP_LUA_SetActivated, t.e, t.entityelement[t.e].activated+100 );
+						}
+					}
+
+					// resent avatar of server to new player (and others)
+					g.mp.haveSentMyAvatar = 0;
 				 }
 			 }
 			 else
@@ -4886,12 +4941,20 @@ void mp_gameLoop ( void )
 				 mp_pre_game_file_sync_server ( g.mp.onlySendMapToSpecificPlayer );
 			 }
 		 }
+		 else
+		 {
+			// non-host players need to send their avatars to new player
+			int iNewPlayerArrived = PhotonPlayerArrived();
+			if ( iNewPlayerArrived != -1 )
+			{
+				// resent avatar of server to new player (and others)
+				g.mp.haveSentMyAvatar = 0;
+			}
+		 }
 	 }
-	 else
-	 {
-		 // other players dont need to do anything when a new player arrives
-		 int iNewPlayerArrived = PhotonPlayerArrived();
-	 }
+	 // handle sending of avatar info
+	 mp_sendAvatarInfo ( );
+
 	 // if player becomes host, ensure it is flagged
 	 if ( PhotonIsPlayerTheServer() == 1 )
 	 {
@@ -4932,8 +4995,8 @@ void mp_gameLoop ( void )
 		return;
 	}
 
-	/*
 	mp_lua ( );
+	/*
 	mp_setLuaPlayerNames ( );
 	mp_check_respawn_objects ( );
 	
@@ -5806,19 +5869,19 @@ return;
 
 void mp_networkkill ( void )
 {
-
 	//  get damage amount to set it back to 0
 	t.tdamage = SteamGetPlayerDamageAmount();
-
 	t.tsteamlastdamageincounter = t.tsteamlastdamageincounter + 1;
 	t.tsource = t.entityelement[t.texplodesourceEntity].mp_killedby;
-	t.te = t.mp_playerEntityID[t.tsource];
-	
-	g.mp.killedByPlayerFlag = 1;
-	g.mp.playerThatKilledMe = t.tsource;
-	t.tsteamforce = 500;
-	SteamKilledBy (  g.mp.playerThatKilledMe , CameraPositionX(), CameraPositionY(), CameraPositionZ(), t.tsteamforce, 0 );
-	g.mp.dyingTime = Timer();
+	if ( t.mp_playerEntityID[t.tsource] > 0 )
+	{
+		t.te = t.mp_playerEntityID[t.tsource];
+		g.mp.killedByPlayerFlag = 1;
+		g.mp.playerThatKilledMe = t.tsource;
+		t.tsteamforce = 500;
+		SteamKilledBy (  g.mp.playerThatKilledMe , CameraPositionX(), CameraPositionY(), CameraPositionZ(), t.tsteamforce, 0 );
+		g.mp.dyingTime = Timer();
+	}
 }
 
 void mp_lobbyListBox ( void )
@@ -7680,29 +7743,28 @@ void mp_entity_lua_lookatplayer ( void )
 	entity_lua_findcharanimstate ( );
 	if (  t.tcharanimindex != -1 ) 
 	{
-
 		//  Simply look in direction of player
 		t.ee = t.mp_playerEntityID[t.v];
-		t.tdx_f= ObjectPositionX (t.entityelement[t.ee].obj) - ObjectPositionX(t.entityelement[t.e].obj);
-		t.tdz_f= ObjectPositionZ (t.entityelement[t.ee].obj) - ObjectPositionZ(t.entityelement[t.e].obj);
-		AISetEntityAngleY (  t.charanimstate.obj,atan2deg(t.tdx_f,t.tdz_f) );
-		
-		//  If angle beyond 'look angle range', perform full rotation
-		t.tangley_f=AIGetEntityAngleY(t.charanimstate.obj) ;
-		t.headangley_f=t.tangley_f-ObjectAngleY(t.charanimstate.obj) ;
-		if (  t.headangley_f<-180  )  t.headangley_f = t.headangley_f+360;
-		if (  t.headangley_f>180  )  t.headangley_f = t.headangley_f-360;
-		if (  t.headangley_f<-75 || t.headangley_f>75 ) 
+		if ( t.mp_playerEntityID[t.v] > 0 )
 		{
-			t.charanimstate.currentangle_f=t.tangley_f;
-			t.charanimstate.updatemoveangle=1;
-			AISetEntityAngleY (  t.charanimstate.obj,t.charanimstate.currentangle_f );
-			t.charanimstates[t.tcharanimindex] = t.charanimstate;
+			t.tdx_f= ObjectPositionX (t.entityelement[t.ee].obj) - ObjectPositionX(t.entityelement[t.e].obj);
+			t.tdz_f= ObjectPositionZ (t.entityelement[t.ee].obj) - ObjectPositionZ(t.entityelement[t.e].obj);
+			AISetEntityAngleY (  t.charanimstate.obj,atan2deg(t.tdx_f,t.tdz_f) );
+		
+			//  If angle beyond 'look angle range', perform full rotation
+			t.tangley_f=AIGetEntityAngleY(t.charanimstate.obj) ;
+			t.headangley_f=t.tangley_f-ObjectAngleY(t.charanimstate.obj) ;
+			if (  t.headangley_f<-180  )  t.headangley_f = t.headangley_f+360;
+			if (  t.headangley_f>180  )  t.headangley_f = t.headangley_f-360;
+			if (  t.headangley_f<-75 || t.headangley_f>75 ) 
+			{
+				t.charanimstate.currentangle_f=t.tangley_f;
+				t.charanimstate.updatemoveangle=1;
+				AISetEntityAngleY (  t.charanimstate.obj,t.charanimstate.currentangle_f );
+				t.charanimstates[t.tcharanimindex] = t.charanimstate;
+			}
 		}
-
 	}
-return;
-
 }
 
 void mp_entity_lua_fireweaponEffectOnly ( void )
@@ -8084,14 +8146,12 @@ int mp_check_if_lua_entity_exists ( int tentitytocheck )
 {
 	int tcheckobj = 0;
 	int result = 0;
-	result = 0;
-
-	if (  tentitytocheck  <=  g.entityelementlist ) 
+	if ( tentitytocheck <= g.entityelementlist ) 
 	{
 		tcheckobj = t.entityelement[tentitytocheck].obj;
-		if (  tcheckobj > 0 ) 
+		if ( tcheckobj > 0 ) 
 		{
-			if (  ObjectExist(tcheckobj)  ==  1 ) 
+			if ( ObjectExist(tcheckobj) == 1 ) 
 			{
 				result = 1;
 			}
@@ -8102,5 +8162,18 @@ int mp_check_if_lua_entity_exists ( int tentitytocheck )
 
 void mp_sendlua ( int code, int e, int v )
 {
-	SteamSendLua ( code, e, v );
+	#ifdef PHOTONMP
+	 PhotonSendLua ( code, e, v );
+	#else
+	 SteamSendLua ( code, e, v );
+	#endif
+}
+
+void mp_sendluaToPlayer ( int index, int code, int e, int v )
+{
+	#ifdef PHOTONMP
+	 PhotonSendLuaToPlayer ( index, code, e, v );
+	#else
+	 SteamSendLua ( code, e, v );
+	#endif
 }

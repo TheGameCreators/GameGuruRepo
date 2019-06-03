@@ -455,16 +455,16 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//m_wndToolBar.SetToolBarBtnTooltip ( 3,  GetLanguageData ( "Tooltips", "9" ) );
 	//m_wndToolBar.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "10" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "19" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "18" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "20" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 3, GetLanguageData ( "Tooltips", "33" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "26" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 5,  GetLanguageData ( "Tooltips", "27" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 6, GetLanguageData ( "Tooltips", "28" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 7, GetLanguageData ( "Tooltips", "29" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 8, GetLanguageData ( "Tooltips", "30" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 9, GetLanguageData ( "Tooltips", "31" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 10, GetLanguageData ( "Tooltips", "35" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "26" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "27" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 3, GetLanguageData ( "Tooltips", "28" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 4, GetLanguageData ( "Tooltips", "29" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 5, GetLanguageData ( "Tooltips", "30" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 6, GetLanguageData ( "Tooltips", "31" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 7, GetLanguageData ( "Tooltips", "35" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 8,  GetLanguageData ( "Tooltips", "18" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 9,  GetLanguageData ( "Tooltips", "20" ) );
+	m_wndToolBar.SetToolBarBtnTooltip ( 10, GetLanguageData ( "Tooltips", "33" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 11, GetLanguageData ( "Tooltips", "32" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 12, GetLanguageData ( "Tooltips", "34" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 13, GetLanguageData ( "Tooltips", "36" ) );
@@ -755,6 +755,7 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 			// array of buttons
 			CBCGToolbarMenuButton* pButtons [ 20 ];
 
+			/* no localization, using real menu names from binary
 			// get menu list from language file
 			TCHAR szMenu  [ 11 ] [ MAX_PATH ];
 			GetPrivateProfileString ( _T ( "Menu" ), _T ( "A" ), _T ( "" ), szMenu [ 0 ], MAX_PATH, theApp.m_szLanguage );	// file
@@ -960,6 +961,7 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 					pMenuPopup->RemoveItem(1);
 				}
 			}
+			*/
 		}
 	}
 	
@@ -1589,8 +1591,6 @@ void CMainFrame::OnEntityRotateZ()
 void CMainFrame::OnWaypointCreate() 
 {
 	theApp.SetFileMapData ( 60, 1 );
-
-	// TODO: Add your command handler code here
 	theApp.SetFileMapData ( 200, 8 );
 	theApp.SetFileMapData ( 204, 1 );
 }
@@ -1606,6 +1606,68 @@ void CEditorApp::OnAppEditorKeyboardShortcuts ( )
 	theApp.SetFileMapData ( 200, 21 );
 	theApp.SetFileMapData ( 204, 1 );
 }
+
+void CEditorApp::OnAppGameKeyboardControlsShortcuts ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 2 );
+}
+
+void CEditorApp::OnAppGameVRControlsShortcuts ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+
+void CEditorApp::OnAppDesktopPlay ( )
+{
+	((CMainFrame*)theApp.GetMainWnd())->TestOrMultiplayerGame(0);
+}
+
+void CEditorApp::OnAppSoloVRPlay ( )
+{
+	((CMainFrame*)theApp.GetMainWnd())->TestOrMultiplayerGame(2);
+}
+
+void CEditorApp::OnAppSocialVRPlay ( )
+{
+	((CMainFrame*)theApp.GetMainWnd())->TestOrMultiplayerGame(1);
+}
+
+/* technical reasons why this is not practical for now
+void CEditorApp::OnAppObjectsAddNewEntity ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+void CEditorApp::OnAppObjectsAddNewSite ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+void CEditorApp::OnAppObjectsPlayerStarter ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+void CEditorApp::OnAppObjectsMultiplayerStart ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+void CEditorApp::OnAppObjectsCreateNewWayPoint ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 8 );
+	theApp.SetFileMapData ( 204, 1 );
+}
+*/
 
 void CEditorApp::OnInteractiveTutorial ( )
 {

@@ -501,6 +501,7 @@ void common_init_globals ( void )
 	//  +X = see postprocessimages for assignment
 	g.effectbankoffset = 1000;
 	g.explosionandfireeffectbankoffset = 1100;
+	g.controllerpbreffect = 1296;
 	g.lightmappbreffect = 1297;
 	g.thirdpersonentityeffect = 1298;
 	g.thirdpersoncharactereffect = 1299;
@@ -729,6 +730,7 @@ void common_init_globals ( void )
 	Dim (  t.mp_subbedItems,20  );
 	Dim (  t.mp_playerAvatars_s,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_playerAvatarOwners_s,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playerAvatarLoaded,MP_MAX_NUMBER_OF_PLAYERS  );
 
 	Dim (  t.mpmultiplayerstart,MP_MAX_NUMBER_OF_PLAYERS );
 
@@ -3479,6 +3481,15 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 		LPSTR pLightmapPBREffect = "effectbank\\reloaded\\apbr_lightmapped.fx";
 		LoadEffect ( pLightmapPBREffect, g.lightmappbreffect, 0 );
 		filleffectparamarray(g.lightmappbreffect);
+	}
+
+	
+	// load common lightmapper PBR shader
+	if ( GetEffectExist(g.controllerpbreffect) == 0 ) 
+	{
+		LPSTR pPBREffect = "effectbank\\reloaded\\apbr_basic.fx";
+		LoadEffect ( pPBREffect, g.controllerpbreffect, 0 );
+		filleffectparamarray(g.controllerpbreffect);
 	}
 
 	// load common third person character shader

@@ -112,3 +112,4 @@ void mp_livelog ( char* t_s );
 void mp_deleteFile ( char* tempFileToDelete_s );
 int mp_check_if_lua_entity_exists ( int tentitytocheck );
 void mp_sendlua ( int code, int e, int v );
+void mp_sendluaToPlayer ( int index, int code, int e, int v );

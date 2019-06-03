@@ -1454,7 +1454,11 @@ void sliders_draw ( void )
 			pastebitmapfontcenter( cstr(cstr("GPU:")+t.hardwareinfoglobals.card_s+"  Resolution:"+Str(GetDisplayWidth())+"x"+Str(GetDisplayHeight())).Get(),GetDisplayWidth()/2,GetDisplayHeight()-65,1,255);
 			t.t1_s="terrain";
 			t.t2_s="water";
-			t.t3_s="gun";
+			#ifdef VRQUEST
+			 t.t3_s="hud";
+			#else
+			 t.t3_s="gun";
+			#endif
 			t.t4_s="lmos";
 			t.t5_s="sky";
 			t.t6_s="physics";

@@ -145,15 +145,30 @@ HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial
 	///MessageBox ( NULL, "Hard Debug Trace", "13", MB_OK );
 	DebugVRlog("CreateNextFrame");
 	///MessageBox ( NULL, "Hard Debug Trace", "14", MB_OK );
-    HolographicFrame holographicFrame = m_holographicSpace.CreateNextFrame();
+    HolographicFrame holographicFrame = nullptr;
+	try
+	{
+		holographicFrame = m_holographicSpace.CreateNextFrame();
+	}
+	catch(...)
+	{
+		DebugVRlog("failed m_holographicSpace.CreateNextFrame()");
+	}
 
     // Wait for the frame to be ready before pose-dependent updates and rendering.
-    // NOTE: This API call will throw an exception if a wait occurs at the wrong time, or out
-    //       of sequence.
+    // NOTE: This API call will throw an exception if a wait occurs at the wrong time, or out of sequence.
 	///MessageBox ( NULL, "Hard Debug Trace", "15", MB_OK );
 	DebugVRlog("WaitForNextFrameReady");
 	///MessageBox ( NULL, "Hard Debug Trace", "16", MB_OK );
-    m_holographicSpace.WaitForNextFrameReady();
+	try
+	{
+		// it will ALSO throw an exception if you are not running Windows version 1809 (as that is when this function came online!)
+	    m_holographicSpace.WaitForNextFrameReady();
+	}
+	catch(...)
+	{
+		DebugVRlog("failed m_holographicSpace.WaitForNextFrameReady()");
+	}
 
     // Get a prediction of where holographic cameras will be when this frame is presented.
 	///MessageBox ( NULL, "Hard Debug Trace", "17", MB_OK );
@@ -167,7 +182,15 @@ HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial
 	///MessageBox ( NULL, "Hard Debug Trace", "19", MB_OK );
 	DebugVRlog("CurrentPrediction");
 	///MessageBox ( NULL, "Hard Debug Trace", "20", MB_OK );
-	HolographicFramePrediction prediction = holographicFrame.CurrentPrediction();
+	HolographicFramePrediction prediction = nullptr;
+	try
+	{
+	    prediction = holographicFrame.CurrentPrediction();
+	}
+	catch(...)
+	{
+		DebugVRlog("failed holographicFrame.CurrentPrediction()");
+	}
 	if ( prediction == nullptr )
 	{
 		///MessageBox ( NULL, "Hard Debug Trace", "21", MB_OK );
@@ -183,7 +206,14 @@ HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial
 	{
 		///MessageBox ( NULL, "Hard Debug Trace", "23", MB_OK );
 		DebugVRlog("EnsureCameraResources");
-		m_deviceResources->EnsureCameraResources(holographicFrame, prediction);
+		try
+		{
+			m_deviceResources->EnsureCameraResources(holographicFrame, prediction);
+		}
+		catch(...)
+		{
+			DebugVRlog("failed EnsureCameraResources(holographicFrame, prediction)");
+		}
 		if (m_stationaryReferenceFrame != nullptr)
 		{
 			///MessageBox ( NULL, "Hard Debug Trace", "24", MB_OK );
@@ -205,7 +235,14 @@ HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial
 			///MessageBox ( NULL, "Hard Debug Trace", "25", MB_OK );
 			SpatialPointerPose pose = nullptr;
 			DebugVRlog("TryGetAtTimestamp");
-			pose = SpatialPointerPose::TryGetAtTimestamp(m_stationaryReferenceFrame.CoordinateSystem(), prediction.Timestamp());
+			try
+			{
+				pose = SpatialPointerPose::TryGetAtTimestamp(m_stationaryReferenceFrame.CoordinateSystem(), prediction.Timestamp());
+			}
+			catch(...)
+			{
+				DebugVRlog("failed SpatialPointerPose::TryGetAtTimestamp");
+			}
 
 			// extract head position and direction
 			if ( pose != nullptr )
@@ -230,20 +267,20 @@ HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial
     });
 
 	///MessageBox ( NULL, "Hard Debug Trace", "27", MB_OK );
-	DebugVRlog("m_canCommitDirect3D11DepthBuffer");
-    if (!m_canCommitDirect3D11DepthBuffer)
-    {
+	//DebugVRlog("m_canCommitDirect3D11DepthBuffer");
+    //if (!m_canCommitDirect3D11DepthBuffer)
+    //{
 		///MessageBox ( NULL, "Hard Debug Trace", "28", MB_OK );
         // On versions of the platform that do not support the CommitDirect3D11DepthBuffer API, we can control
         // image stabilization by setting a focus point with optional plane normal and velocity.
-		DebugVRlog("cameraPose");
-        for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
-        {
+		//DebugVRlog("cameraPose");
+        //for (HolographicCameraPose const& cameraPose : prediction.CameraPoses())
+        //{
 			///MessageBox ( NULL, "Hard Debug Trace", "29", MB_OK );
             // The HolographicCameraRenderingParameters class provides access to set
             // the image stabilization parameters.
-			DebugVRlog("GetRenderingParameters");
-            HolographicCameraRenderingParameters renderingParameters = holographicFrame.GetRenderingParameters(cameraPose);
+			//DebugVRlog("GetRenderingParameters");
+            //HolographicCameraRenderingParameters renderingParameters = holographicFrame.GetRenderingParameters(cameraPose);
 
             // SetFocusPoint informs the system about a specific point in your scene to
             // prioritize for image stabilization. The focus point is set independently
@@ -255,8 +292,8 @@ HolographicFrame BasicHologramMain::Update ( winrt::Windows::Perception::Spatial
             //if (m_stationaryReferenceFrame != nullptr)
             //{
             //}
-        }
-    }
+        //}
+    //}
 
     // The holographic frame will be used to get up-to-date view and projection matrices and to present the swap chain.
 	///MessageBox ( NULL, "Hard Debug Trace", "", MB_OK );

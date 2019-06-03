@@ -1,0 +1,41 @@
+;Entity Spec
+
+;Header
+desc          = %Key
+
+;AI
+aimain	      = objects\key.lua
+
+;Sound
+soundset      = audiobank\misc\item.wav
+
+;AIUsed
+usekey        = 
+ifused        = 
+ifusednear    = 
+
+;Spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+;Itemproperties
+defaultstatic = 0
+materialindex = 2
+collisionmode = 0
+debrisshape   = 0
+explodable    = 0
+isimmobile    = 1
+
+;Orientation
+model         = Key.x
+offy          = 5
+scale         = 100
+fixnewy       = 0
+
+;Visualinfo
+textured      = Key_D.dds
+
+;Decals
+decalmax      = 1
+decal0        = glow

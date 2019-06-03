@@ -462,8 +462,8 @@ void interactive_entitywork ( void )
 		t.t_s = ""; t.t_s=t.t_s+Str(t.interactive.sequenceindex)+" of "+Str(t.interactive.sequencemax)+" : ";
 		switch (  t.interactive.sequenceindex ) 
 		{
-		case 1 : t.t_s = t.t_s+"Click the test t.game button located in the above toolbar" ; break ;
-		case 2 : t.t_s = t.t_s+"Export your t.game by selecting SAVE STANDALONE in FILE menu" ; break ;
+		case 1 : t.t_s = t.t_s+"Click the test game button located in the above toolbar" ; break ;
+		case 2 : t.t_s = t.t_s+"Export your game by selecting SAVE STANDALONE in FILE menu" ; break ;
 		}		//~   pastebitmapfontcenter(t$,tcenterx+460,tcentery+216,7,interactive.alphafade)
 		pastebitmapfontcenter(t.t_s.Get(),t.tcenterx+460,t.tcentery+216,7,t.interactive.alphafade);
 

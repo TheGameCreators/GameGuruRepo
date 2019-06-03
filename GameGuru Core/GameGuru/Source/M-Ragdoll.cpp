@@ -595,8 +595,6 @@ int getlimbbyname ( int objid, char* limbname_s )
 			limbindex=c-1 ; return limbindex;
 		}
 	}
-//endfunction limbindex
-	return limbindex
-;
+	return limbindex;
 }
 

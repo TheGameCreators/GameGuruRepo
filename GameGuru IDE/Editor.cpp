@@ -89,6 +89,18 @@ BEGIN_MESSAGE_MAP(CEditorApp, CWinApp)
 	//{{AFX_MSG_MAP(CEditorApp)
 	ON_COMMAND(ID_HELP_INTERACTIVETUTORIAL, OnInteractiveTutorial)
 	ON_COMMAND(ID_HELP_EDITORKEYBOARDSHORTCUTS, OnAppEditorKeyboardShortcuts)
+	ON_COMMAND(ID_HELP_GAMEKEYBOARDCONTROLS, OnAppGameKeyboardControlsShortcuts)
+	ON_COMMAND(ID_HELP_GAMEVRCONTROLS, OnAppGameVRControlsShortcuts)
+	ON_COMMAND(ID_TESTGAME_DESKTOPGAMEPLAY, OnAppDesktopPlay)
+	ON_COMMAND(ID_TESTGAME_SOLOVRGAMEPLAY, OnAppSoloVRPlay)
+	ON_COMMAND(ID_TESTGAME_SOCIALVRGAMEPLAY, OnAppSocialVRPlay)
+	/*
+	ON_COMMAND(ID_OBJECTS_ADDNEWENTITY, OnAppObjectsAddNewEntity)
+	ON_COMMAND(ID_OBJECTS_ADDNEWSITE, OnAppObjectsAddNewSite)
+	ON_COMMAND(ID_OBJECTS_PLAYERSTART, OnAppObjectsPlayerStarter)
+	ON_COMMAND(ID_OBJECTS_MULTIPLAYERSTART, OnAppObjectsMultiplayerStart)
+	ON_COMMAND(ID_OBJECTS_CREATENEWWAYPOINT, OnAppObjectsCreateNewWayPoint)
+	*/
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 	ON_COMMAND(ID_HELP_ABOUTTHISSOMETHING, OnAppAboutThisSomething)
 	ON_COMMAND(ID_APP_EXIT, OnAppExit1)
@@ -1224,10 +1236,13 @@ void CEditorApp::UpdateBuildGame ( void )
 		GetPrivateProfileString ( _T ( "Standalone" ), _T ( "Title" ), _T ( "" ), szString [ 0 ], MAX_PATH, theApp.m_szLanguage );
 		GetPrivateProfileString ( _T ( "Standalone" ), _T ( "Body1" ), _T ( "" ), szString [ 1 ], MAX_PATH, theApp.m_szLanguage );
 		GetPrivateProfileString ( _T ( "Standalone" ), _T ( "Body2" ), _T ( "" ), szString [ 2 ], MAX_PATH, theApp.m_szLanguage );
-		wsprintf ( str, "%s '\\Documents\\Game Guru Files\\My Games' %s.", szString [ 1 ], szString [ 2 ] );
+		#ifdef GGBRANDED
+		 wsprintf ( str, "%s '\\Documents\\VR Quest Files\\My Games' %s.", szString [ 1 ], szString [ 2 ] );
+		#else
+		 wsprintf ( str, "%s '\\Documents\\Game Guru Files\\My Games' %s.", szString [ 1 ], szString [ 2 ] );
+		#endif
 		MessageBox ( NULL, str, szString [ 0 ], MB_OK | MB_APPLMODAL | MB_TOPMOST | MB_SETFOREGROUND );
 
-		
 		// reset trigger
 		DWORD dwClear = 0;
 		pIPC->SendBuffer ( &dwClear, 758, sizeof ( dwClear ) );
@@ -2594,11 +2609,14 @@ BOOL CEditorApp::InitInstance ( )
 
 	// V105 - 220107 - Detect DirectX OCTOBER 2006 or later, or else editor does not work
 	// X10 - 031007 - Detect DirectX 10 JUNE 2007 or later, or else software will not work
-	bool bQuitEarly = false;
-	char pWinDir [ _MAX_PATH ];
-	GetWindowsDirectory ( pWinDir, _MAX_PATH );
-	if ( strlen ( pWinDir ) > 0 )
-	{
+	// GGBRANDED uses DirectX 11
+	#ifdef GGBRANDED
+	#else
+	 bool bQuitEarly = false;
+	 char pWinDir [ _MAX_PATH ];
+	 GetWindowsDirectory ( pWinDir, _MAX_PATH );
+	 if ( strlen ( pWinDir ) > 0 )
+	 {
 		strcat ( pWinDir, "\\system32\\d3dx10_34.dll" );
 		OFSTRUCT os;
 		if ( OpenFile ( pWinDir, &os, OF_EXIST )==HFILE_ERROR )
@@ -2606,8 +2624,8 @@ BOOL CEditorApp::InitInstance ( )
 			MessageBoxA ( NULL, "You need to reinstall this product as the required DirectX files are missing", "DirectX Files Not Installed", MB_OK );
 			bQuitEarly = true;
 		}
-	}
-	if ( bQuitEarly==true )
+	 }
+	 if ( bQuitEarly==true )
 		return false;
 
 	// 200807 - Vista Check
@@ -2617,8 +2635,7 @@ BOOL CEditorApp::InitInstance ( )
 		// 181207 - does not look great for a Logo app (just made text bigger)
 		// DisableComposition();
 	}
-
-	// application start up
+	#endif
 
 	// only create if no mutex exists for the GAME GURU INTERFACE
 	m_hOnlyOneEditorMutex = OpenMutex ( MUTEX_ALL_ACCESS, FALSE, "THERECANBEONLYONEGAMEGURU" );

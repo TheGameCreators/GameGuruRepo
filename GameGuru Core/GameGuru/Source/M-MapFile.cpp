@@ -692,6 +692,7 @@ void mapfile_savestandalone ( void )
 	addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\ammohealth");
 	addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\sliders");
 	addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\panels");
+	addfoldertocollection("gamecore\\decals\\splat");
 	addfoldertocollection("gamecore\\decals\\bloodsplat");
 	addfoldertocollection("gamecore\\decals\\impact");
 	addfoldertocollection("gamecore\\decals\\gunsmoke");

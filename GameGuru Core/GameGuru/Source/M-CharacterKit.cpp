@@ -2627,7 +2627,6 @@ return;
 void characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( void )
 {
 	characterkit_updateCharacters ( );
-
 	for ( t.tcce = 1 ; t.tcce<=  g.entityelementlist; t.tcce++ )
 	{
 		t.tccentid=t.entityelement[t.tcce].bankindex;
@@ -2638,13 +2637,12 @@ void characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( void )
 				t.tccsourceobj = t.entityelement[t.tcce].obj;
 				if (  t.tccsourceobj > 0 ) 
 				{
-				if (  ObjectExist(t.tccsourceobj)  ==  1 ) 
-				{
-					//  glue head to body
-						t.tccobj = g.charactercreatorrmodelsoffset+((t.tcce*3)-t.characterkitcontrol.offset);
-					if (  ObjectExist(t.tccobj)  ==  1 ) 
+					if (  ObjectExist(t.tccsourceobj)  ==  1 ) 
 					{
-
+						//  glue head to body
+						t.tccobj = g.charactercreatorrmodelsoffset+((t.tcce*3)-t.characterkitcontrol.offset);
+						if (  ObjectExist(t.tccobj)  ==  1 ) 
+						{
 							PositionObject (  t.tccobj, ObjectPositionX(t.tccsourceobj),ObjectPositionY(t.tccsourceobj),ObjectPositionZ(t.tccsourceobj) );
 							if (  t.tccobj  !=  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj ) 
 							{
@@ -2677,9 +2675,6 @@ void characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( void )
 			}
 		}
 	}
-return;
-
-//  needs entid
 }
 
 void characterkit_loadEntityProfileObjects ( void )
@@ -3600,11 +3595,13 @@ void characterkit_loadMyAvatarInfo ( void )
 	g.mp.myAvatarName_s = "";
 	g.mp.myAvatarHeadTexture_s = "";
 	g.mp.haveSentMyAvatar = 0;
+	t.bTriggerAvatarRescanAndLoad = false;
 
 	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 		t.mp_playerAvatars_s[t.c] = "";
 		t.mp_playerAvatarOwners_s[t.c] = "";
+		t.mp_playerAvatarLoaded[t.c] = false;
 	}
 
 	if ( FileOpen(1) == 1 ) CloseFile ( 1 );

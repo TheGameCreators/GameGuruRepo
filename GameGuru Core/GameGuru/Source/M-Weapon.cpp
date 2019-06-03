@@ -186,7 +186,11 @@ void weapon_processanimation ( void )
 
 void weapon_projectile_init ( void )
 {
-	//  load and setup our tracer particle. All projectiles instance this particle and can display it if they are a tracer round
+	// no projectiles for some builds
+	if ( FileExist ( "gamecore\\projectiletypes\\TracerParticle.x" ) == 0 )
+		return;
+
+	// load and setup our tracer particle. All projectiles instance this particle and can display it if they are a tracer round
 	t.tFileName_s = "gamecore\\projectiletypes\\TracerParticle.x"; weapon_loadobject ( );
 	if (  t.tObjID > 0 ) 
 	{

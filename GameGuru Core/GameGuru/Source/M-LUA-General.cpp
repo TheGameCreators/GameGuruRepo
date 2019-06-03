@@ -64,6 +64,7 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 		float fObjCtrZ = GetObjectCollisionCenterZ(t.entityelement[t.e].obj);
 		float fObjHeight = ObjectSizeY(t.entityelement[t.e].obj);
 		float fObjAngle = ObjectAngleY(t.entityelement[t.e].obj);
+		bool bAngleToFaceCameraExactly = false;
 		if ( iTrueLocalOrForVR > 0 )
 		{
 			// if PromptLocalForVR mode 1 used, always face player
@@ -77,8 +78,11 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 			{
 				fObjHeight = fObjHeight * 1.8f;
 			}
+
+			// if PromptLocalForVR mode 3, object may be on floor so need to angle upwards too
+			if ( iTrueLocalOrForVR == 3 ) bAngleToFaceCameraExactly = true;
 		}
-		lua_positionprompt3d ( t.entityelement[t.e].x+fObjCtrX, t.entityelement[t.e].y+(fObjHeight/2.0f), t.entityelement[t.e].z+fObjCtrZ, fObjAngle );
+		lua_positionprompt3d ( t.entityelement[t.e].x+fObjCtrX, t.entityelement[t.e].y+(fObjHeight/2.0f), t.entityelement[t.e].z+fObjCtrZ, fObjAngle, bAngleToFaceCameraExactly );
 	}
 	else
 	{
@@ -167,6 +171,7 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 		t.luaglobal.scriptprompt3dY = 0.0f;
 		t.luaglobal.scriptprompt3dZ = 0.0f;
 		t.luaglobal.scriptprompt3dAY = 0.0f;
+		t.luaglobal.scriptprompt3dFaceCamera = false;
 
 		// determine if 3D text or 3D image
 		t.luaglobal.scriptprompttype = 1;
@@ -216,12 +221,13 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 	}
 }
 
-void lua_positionprompt3d ( float fX, float fY, float fZ, float fAngleY )
+void lua_positionprompt3d ( float fX, float fY, float fZ, float fAngleY, bool bFaceCameraExactly )
 {
 	t.luaglobal.scriptprompt3dX = fX;
 	t.luaglobal.scriptprompt3dY = fY;
 	t.luaglobal.scriptprompt3dZ = fZ;
 	t.luaglobal.scriptprompt3dAY = fAngleY;
+	t.luaglobal.scriptprompt3dFaceCamera = bFaceCameraExactly;
 	lua_updateprompt3d();
 }
 
@@ -232,6 +238,7 @@ void lua_updateprompt3d ( void )
 	float fY = t.luaglobal.scriptprompt3dY;
 	float fZ = t.luaglobal.scriptprompt3dZ;
 	float fA = t.luaglobal.scriptprompt3dAY;
+	bool bFaceCamera = t.luaglobal.scriptprompt3dFaceCamera;
 	if ( fX == 0.0f && fY == 0.0f && fZ == 0.0f )
 	{
 		// projects forward from camera pos, finds floor and raises up 50 units, should stay put in all render views
@@ -251,7 +258,10 @@ void lua_updateprompt3d ( void )
 		PositionObject ( g.prompt3dobjectoffset, fX, fY, fZ );
 		PointObject ( g.prompt3dobjectoffset, ObjectPositionX(t.aisystem.objectstartindex), ObjectPositionY(t.aisystem.objectstartindex)+35.0f, ObjectPositionZ(t.aisystem.objectstartindex) );
 		MoveObject ( g.prompt3dobjectoffset, 15.0f );
-		RotateObject ( g.prompt3dobjectoffset, 0, fA+180.0f, 0 );
+		if ( bFaceCamera == true )
+			PointObject ( g.prompt3dobjectoffset, CameraPositionX(0), CameraPositionY(0), CameraPositionZ(0) );
+		else
+			RotateObject ( g.prompt3dobjectoffset, 0, fA+180.0f, 0 );
 		ShowObject ( g.prompt3dobjectoffset );
 	}
 }

@@ -74,6 +74,7 @@ int								GGVR_RJoystick = -1;
 int								GGVR_LJoystick = -1;
 
 // Controller Button Presses
+bool							GGVR_bTouchPadIsRightHand = false;
 bool							GGVR_bTouchPadTouched = false;
 bool							GGVR_bTouchPadPressed = false;
 bool							GGVR_bTouchPadNeedToRelease = false;
@@ -105,7 +106,15 @@ public:
 	int ObjTeleportFinish;
 	int ShaderID;
 	int TextureID;
-	int Create();
+	int ControllerShaderID;
+	int ControllerTextureID0;
+	int ControllerTextureID1;
+	int ControllerTextureID2;
+	int ControllerTextureID3;
+	int ControllerTextureID4;
+	int ControllerTextureID5;
+	int ControllerTextureID6;
+	int Create ( LPSTR pRootDir );
 	void Destroy();
 
 	int GetBaseObjID();
@@ -132,8 +141,8 @@ typedef void (*sGGWMR_GetUpdateFnc)(void); sGGWMR_GetUpdateFnc GGWMR_GetUpdate =
 typedef void (*sGGWMR_GetHeadPosAndDirFnc)(float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHeadPosAndDirFnc GGWMR_GetHeadPosAndDir = NULL;
 typedef void (*sGGWMR_GetProjectionMatrixFnc)(int,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetProjectionMatrixFnc GGWMR_GetProjectionMatrix = NULL;
 typedef void (*sGGWMR_GetThumbAndTriggerFnc)(float*,float*,float*); sGGWMR_GetThumbAndTriggerFnc GGWMR_GetThumbAndTrigger = NULL;
-typedef void (*sGGWMR_GetTouchPadDataFnc)(bool*,bool*,float*,float*); sGGWMR_GetTouchPadDataFnc GGWMR_GetTouchPadData = NULL;
-typedef void (*sGGWMR_GetHandPosAndOrientationFnc)(float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHandPosAndOrientationFnc GGWMR_GetHandPosAndOrientation = NULL;
+typedef void (*sGGWMR_GetTouchPadDataFnc)(bool*,bool*,bool*,float*,float*); sGGWMR_GetTouchPadDataFnc GGWMR_GetTouchPadData = NULL;
+typedef void (*sGGWMR_GetHandPosAndOrientationFnc)(int,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHandPosAndOrientationFnc GGWMR_GetHandPosAndOrientation = NULL;
 typedef void (*sGGWMR_GetRenderTargetAndDepthStencilViewFnc)(void**,void**,void**,DWORD*,DWORD*); sGGWMR_GetRenderTargetAndDepthStencilViewFnc GGWMR_GetRenderTargetAndDepthStencilView = NULL;
 typedef void (*sGGWMR_PresentFnc)(void); sGGWMR_PresentFnc GGWMR_Present = NULL;
 
@@ -388,7 +397,7 @@ int GGVR_GetTrackingSpace ( void )
 	return GGVR_TrackingSpace;
 }
 
-int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand, int iObjTeleportStart, int iObjTeleportFinish, int iShaderID, int iTextureID)
+int	GGVR_Init ( LPSTR pRootDir, int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, int ObjHead, int ObjOrigin, int ObjRightHand, int ObjLeftHand, int iObjTeleportStart, int iObjTeleportFinish, int iShaderID, int iTextureID, int iCShaderID, int iCTextureID0, int iCTextureID1, int iCTextureID2, int iCTextureID3, int iCTextureID4, int iCTextureID5, int iCTextureID6)
 {
 	//Set Onject ID's for Player dummy objects
 	GGVR_Player.ObjBase = ObjBase;
@@ -401,6 +410,15 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 
 	GGVR_Player.ShaderID = iShaderID;//g.guishadereffectindex
 	GGVR_Player.TextureID = iTextureID;//g.editorimagesoffset+14
+
+	GGVR_Player.ControllerShaderID = iCShaderID;
+	GGVR_Player.ControllerTextureID0 = iCTextureID0;
+	GGVR_Player.ControllerTextureID1 = iCTextureID1;
+	GGVR_Player.ControllerTextureID2 = iCTextureID2;
+	GGVR_Player.ControllerTextureID3 = iCTextureID3;
+	GGVR_Player.ControllerTextureID4 = iCTextureID4;
+	GGVR_Player.ControllerTextureID5 = iCTextureID5;
+	GGVR_Player.ControllerTextureID6 = iCTextureID6;
 
 	//Create Cameras
 	GGVR_RCamID = RCamID;
@@ -488,6 +506,16 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 		// initial settings - small images, going to delete and supplant with direct WMR views eventually
 		GGVR_EyeW = 32;
 		GGVR_EyeH = 32;
+
+		// force a reset of hand pos coordinates so controller can be hidden if not used in session
+		float fRightHandX = 0.0f;
+		float fRightHandY = 0.0f;
+		float fRightHandZ = 0.0f;
+		float fQuatW = 0.0f;
+		float fQuatX = 0.0f;
+		float fQuatY = 0.0f;
+		float fQuatZ = 0.0f;
+		GGWMR_GetHandPosAndOrientation ( -1, &fRightHandX, &fRightHandY, &fRightHandZ, &fQuatW, &fQuatX, &fQuatY, &fQuatZ );
 	}
 
 	//Create Render Images
@@ -524,7 +552,7 @@ int	GGVR_Init(int RImageID, int LImageID, int RCamID, int LCamID, int ObjBase, i
 	{
 		// done in realtime
 	}
-	return GGVR_Player.Create();
+	return GGVR_Player.Create(pRootDir);
 }
 
 void GGVR_Shutdown()
@@ -789,15 +817,16 @@ void GGVR_UpdatePoses(void)
 				}
 
 				// also need touch pad for teleport action
+				GGVR_bTouchPadIsRightHand = false;
 				GGVR_bTouchPadTouched = false;
 				GGVR_bTouchPadPressed = false;
 				GGVR_fTouchPadX = 0.0f;
 				GGVR_fTouchPadY = 0.0f;
 				timestampactivity ( 0, "TS: Calling GGWMR_GetTouchPadData" );
 				DebugGGVRlog ( "Calling GGWMR_GetTouchPadData" );
-				GGWMR_GetTouchPadData ( &GGVR_bTouchPadTouched, &GGVR_bTouchPadPressed, &GGVR_fTouchPadX, &GGVR_fTouchPadY );
+				GGWMR_GetTouchPadData ( &GGVR_bTouchPadIsRightHand, &GGVR_bTouchPadTouched, &GGVR_bTouchPadPressed, &GGVR_fTouchPadX, &GGVR_fTouchPadY );
 
-				// also need position/orientation of controller
+				// also need position/orientation of RIGHT controller
 				float fRightHandX = 0.0f;
 				float fRightHandY = 0.0f;
 				float fRightHandZ = 0.0f;
@@ -805,9 +834,9 @@ void GGVR_UpdatePoses(void)
 				float fQuatX = 0.0f;
 				float fQuatY = 0.0f;
 				float fQuatZ = 0.0f;
-				timestampactivity ( 0, "TS: Calling GGWMR_GetHandPosAndOrientation" );
-				DebugGGVRlog ( "Calling GGWMR_GetHandPosAndOrientation" );
-				GGWMR_GetHandPosAndOrientation ( &fRightHandX, &fRightHandY, &fRightHandZ, &fQuatW, &fQuatX, &fQuatY, &fQuatZ );
+				timestampactivity ( 0, "TS: Calling GGWMR_GetHandPosAndOrientation right" );
+				DebugGGVRlog ( "Calling GGWMR_GetHandPosAndOrientation right" );
+				GGWMR_GetHandPosAndOrientation ( 0, &fRightHandX, &fRightHandY, &fRightHandZ, &fQuatW, &fQuatX, &fQuatY, &fQuatZ );
 				GGMATRIX matRot;
 				GGQUATERNION QuatRot = GGQUATERNION ( -fQuatX, -fQuatY, -fQuatZ, fQuatW );
 				GGMatrixRotationQuaternion ( &matRot, &QuatRot );
@@ -825,7 +854,32 @@ void GGVR_UpdatePoses(void)
 				pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking.m[2][3] = fRightHandZ;
 				GGVR_Mat34toYPR(&pGamePoseArray[GGVR_RHandIndex].mDeviceToAbsoluteTracking, &pGamePoseArray_YPR[GGVR_RHandIndex], &pGamePoseArray_Pos[GGVR_RHandIndex]);
 
-				// also need grip for pickup and drop actions
+				// also need position/orientation of LEFT controller
+				timestampactivity ( 0, "TS: Calling GGWMR_GetHandPosAndOrientation left" );
+				DebugGGVRlog ( "Calling GGWMR_GetHandPosAndOrientation left" );
+				float fLeftHandX = 0.0f;
+				float fLeftHandY = 0.0f;
+				float fLeftHandZ = 0.0f;
+				fQuatW = 0.0f;
+				fQuatX = 0.0f;
+				fQuatY = 0.0f;
+				fQuatZ = 0.0f;
+				GGWMR_GetHandPosAndOrientation ( 1, &fLeftHandX, &fLeftHandY, &fLeftHandZ, &fQuatW, &fQuatX, &fQuatY, &fQuatZ );
+				QuatRot = GGQUATERNION ( -fQuatX, -fQuatY, -fQuatZ, fQuatW );
+				GGMatrixRotationQuaternion ( &matRot, &QuatRot );
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[0][0] = matRot.m[0][0];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[1][0] = matRot.m[1][0];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[2][0] = matRot.m[2][0];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[0][1] = matRot.m[0][1];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[1][1] = matRot.m[1][1];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[2][1] = matRot.m[2][1];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[0][2] = matRot.m[0][2];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[1][2] = matRot.m[1][2];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[2][2] = matRot.m[2][2];
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[0][3] = fLeftHandX;
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[1][3] = fLeftHandY;
+				pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking.m[2][3] = fLeftHandZ;
+				GGVR_Mat34toYPR(&pGamePoseArray[GGVR_LHandIndex].mDeviceToAbsoluteTracking, &pGamePoseArray_YPR[GGVR_LHandIndex], &pGamePoseArray_Pos[GGVR_LHandIndex]);
 			}
 		}
 	}
@@ -935,27 +989,49 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 		RollObjectRight(GGVR_Player.ObjLeftHand, -pGamePoseArray_YPR[GGVR_LHandIndex].v[2]);
 	}
 
-	// show pointer when teleport touched
-	bool bShowControllerWand = false;
-	if ( GGVR_bTouchPadTouched == true && GGVR_fTouchPadY > 0.5f )
-	{
+	// show controller if data coming through
+	if ( pGamePoseArray_Pos[GGVR_LHandIndex].v[0]+pGamePoseArray_Pos[GGVR_LHandIndex].v[1]+pGamePoseArray_Pos[GGVR_LHandIndex].v[2] != 0 )
+		ShowObject ( GGVR_Player.ObjLeftHand );
+	else
+		HideObject ( GGVR_Player.ObjLeftHand );
+
+	if ( pGamePoseArray_Pos[GGVR_RHandIndex].v[0]+pGamePoseArray_Pos[GGVR_RHandIndex].v[1]+pGamePoseArray_Pos[GGVR_RHandIndex].v[2] != 0 )
 		ShowObject ( GGVR_Player.ObjRightHand );
-		bShowControllerWand = true;
-	}
 	else
 		HideObject ( GGVR_Player.ObjRightHand );
+
+	// show pointer when teleport touched
+	bool bShowControllerWand = false;
+	if ( GGVR_bTouchPadTouched == true ) // touch anywhere && GGVR_fTouchPadY > 0.5f )
+	{
+		//ShowObject ( GGVR_Player.ObjRightHand );
+		bShowControllerWand = true;
+	}
+	//else
+	//	HideObject ( GGVR_Player.ObjRightHand );
 
 	// create teleport arc control points
 	if ( bShowControllerWand == true )
 	{
-		float x = ObjectPositionX ( GGVR_Player.ObjRightHand );
-		float y = ObjectPositionY ( GGVR_Player.ObjRightHand );
-		float z = ObjectPositionZ ( GGVR_Player.ObjRightHand );
-		MoveObject ( GGVR_Player.ObjRightHand, 10.0f );
-		float nx = ObjectPositionX ( GGVR_Player.ObjRightHand ) - x;
-		float ny = ObjectPositionY ( GGVR_Player.ObjRightHand ) - y;
-		float nz = ObjectPositionZ ( GGVR_Player.ObjRightHand ) - z;
-		MoveObject ( GGVR_Player.ObjRightHand, -10.0f );
+		float x = ObjectPositionX ( GGVR_Player.ObjLeftHand );
+		float y = ObjectPositionY ( GGVR_Player.ObjLeftHand );
+		float z = ObjectPositionZ ( GGVR_Player.ObjLeftHand );
+		MoveObject ( GGVR_Player.ObjLeftHand, 10.0f );
+		float nx = ObjectPositionX ( GGVR_Player.ObjLeftHand ) - x;
+		float ny = ObjectPositionY ( GGVR_Player.ObjLeftHand ) - y;
+		float nz = ObjectPositionZ ( GGVR_Player.ObjLeftHand ) - z;
+		MoveObject ( GGVR_Player.ObjLeftHand, -10.0f );
+		if ( GGVR_bTouchPadIsRightHand == true )
+		{
+			x = ObjectPositionX ( GGVR_Player.ObjRightHand );
+			y = ObjectPositionY ( GGVR_Player.ObjRightHand );
+			z = ObjectPositionZ ( GGVR_Player.ObjRightHand );
+			MoveObject ( GGVR_Player.ObjRightHand, 10.0f );
+			nx = ObjectPositionX ( GGVR_Player.ObjRightHand ) - x;
+			ny = ObjectPositionY ( GGVR_Player.ObjRightHand ) - y;
+			nz = ObjectPositionZ ( GGVR_Player.ObjRightHand ) - z;
+			MoveObject ( GGVR_Player.ObjRightHand, -10.0f );
+		}
 		std::vector <GGVECTOR3> vecControlPoints;
 		vecControlPoints.clear();
 		bool bAboveGround = true;
@@ -986,14 +1062,24 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 		// work out spread from perfect arc data to available dots below
 		int iControlPointCount = vecControlPoints.size();
 		float fCountPointIndex = 0;
-		float fControlPointStep = (float)iControlPointCount/(float)(GGVR_Player.ObjTeleportFinish-GGVR_Player.ObjTeleportStart);
+		int iMaxObjects = (GGVR_Player.ObjTeleportFinish-GGVR_Player.ObjTeleportStart)-1;
+		float fControlPointStep = (float)iControlPointCount/(float)(iMaxObjects);
 
 		// project arc to show teleport destination
 		int iLastControlPoint = -1;
-		x = ObjectPositionX ( GGVR_Player.ObjRightHand );
-		y = ObjectPositionY ( GGVR_Player.ObjRightHand );
-		z = ObjectPositionZ ( GGVR_Player.ObjRightHand );
-		for ( int o = GGVR_Player.ObjTeleportStart; o <= GGVR_Player.ObjTeleportFinish; o++ )
+		if ( GGVR_bTouchPadIsRightHand == true )
+		{
+			x = ObjectPositionX ( GGVR_Player.ObjRightHand );
+			y = ObjectPositionY ( GGVR_Player.ObjRightHand );
+			z = ObjectPositionZ ( GGVR_Player.ObjRightHand );
+		}
+		else
+		{
+			x = ObjectPositionX ( GGVR_Player.ObjLeftHand );
+			y = ObjectPositionY ( GGVR_Player.ObjLeftHand );
+			z = ObjectPositionZ ( GGVR_Player.ObjLeftHand );
+		}
+		for ( int o = GGVR_Player.ObjTeleportStart; o < GGVR_Player.ObjTeleportFinish; o++ )
 		{
 			int iThisUniqueControlPoint = (int)fCountPointIndex;
 			if ( iThisUniqueControlPoint >= iControlPointCount ) iThisUniqueControlPoint = iControlPointCount - 1;
@@ -1029,6 +1115,20 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 			iLastControlPoint = (int)fCountPointIndex;
 			fCountPointIndex += fControlPointStep;
 		}
+
+		// last object is a circle (squashed sphere)
+		if ( !ObjectExist ( GGVR_Player.ObjTeleportFinish ) )
+		{
+			MakeObjectSphere ( GGVR_Player.ObjTeleportFinish, 50.0f, 6, 30 );
+			ScaleObject ( GGVR_Player.ObjTeleportFinish, 100, 10, 100 );
+			SetObjectEffect ( GGVR_Player.ObjTeleportFinish, GGVR_Player.ShaderID );
+			SetSphereRadius ( GGVR_Player.ObjTeleportFinish, 0 );
+			SetObjectMask ( GGVR_Player.ObjTeleportFinish, (1<<6) + (1<<7) + 1 );
+			TextureObject ( GGVR_Player.ObjTeleportFinish, 0, GGVR_Player.TextureID );
+		}
+		PositionObject ( GGVR_Player.ObjTeleportFinish, GGVR_fTelePortDestinationX, GGVR_fTelePortDestinationY+5.0f, GGVR_fTelePortDestinationZ );
+		RotateObject ( GGVR_Player.ObjTeleportFinish, 0, 0, 0 );
+		ShowObject ( GGVR_Player.ObjTeleportFinish );
 	}
 	else
 	{
@@ -1878,7 +1978,7 @@ float GGVR_LeftController_AxisTriggerY(int axis)
 	return 0.0f;
 }
 
-int GGVR_PlayerData::Create( )
+int GGVR_PlayerData::Create( LPSTR pRootDir )
 {
 	// Clear teleport work objects
 	for ( int o = GGVR_Player.ObjTeleportStart; o <= GGVR_Player.ObjTeleportFinish; o++ )
@@ -1905,22 +2005,45 @@ int GGVR_PlayerData::Create( )
 	SetObjectCollisionOff(GGVR_Player.ObjOrigin);
 
 	//ObjRightHand
-	MakeObjectBox(GGVR_Player.ObjRightHand, 0.3f, 0.3f, 8.0f);//0.1f*GGVR_WorldScale);
+	//MakeObjectBox(GGVR_Player.ObjRightHand, 0.3f, 0.3f, 8.0f);//0.1f*GGVR_WorldScale);
+	char pControllerModel[1024];
+	strcpy ( pControllerModel, pRootDir );
+	strcat ( pControllerModel, "\\gamecore\\vrcontroller\\vrcontrollerright.x" );
+	LoadObject ( pControllerModel, GGVR_Player.ObjRightHand );
 	SetObjectCollisionOff(GGVR_Player.ObjRightHand);
 
-	// make controller object renderable
-	SetObjectEffect ( GGVR_Player.ObjRightHand, GGVR_Player.ShaderID );//g.guishadereffectindex);
-	DisableObjectZDepth ( GGVR_Player.ObjRightHand );
-	DisableObjectZRead ( GGVR_Player.ObjRightHand );
-	SetSphereRadius ( GGVR_Player.ObjRightHand, 0 );
-	SetObjectMask ( GGVR_Player.ObjRightHand, (1<<6) + (1<<7) + 1 );
-	TextureObject ( GGVR_Player.ObjRightHand, 0, GGVR_Player.TextureID );//g.editorimagesoffset+14 );
-
 	//ObjLeftHand
-	MakeObjectCone(GGVR_Player.ObjLeftHand, 0.1f*GGVR_WorldScale);
-	RotateObject(GGVR_Player.ObjLeftHand, 90.0, 0.0, 0.0);
-	FixObjectPivot(GGVR_Player.ObjLeftHand);
+	//MakeObjectCone(GGVR_Player.ObjLeftHand, 0.1f*GGVR_WorldScale);
+	strcpy ( pControllerModel, pRootDir );
+	strcat ( pControllerModel, "\\gamecore\\vrcontroller\\vrcontrollerleft.x" );
+	LoadObject ( pControllerModel, GGVR_Player.ObjLeftHand );
+	//ScaleObject ( GGVR_Player.ObjLeftHand, -100.0f, 100.0f, 100.0f );
+	//SetObjectCull ( GGVR_Player.ObjLeftHand, 1 );
+	//RotateObject(GGVR_Player.ObjLeftHand, 90.0, 0.0, 0.0);
+	//FixObjectPivot(GGVR_Player.ObjLeftHand);
 	SetObjectCollisionOff(GGVR_Player.ObjLeftHand);
+
+	// make controller objects renderable
+	for ( int iM = 0; iM < 2; iM++ )
+	{
+		int iMObj = 0;
+		if ( iM == 0 ) iMObj = GGVR_Player.ObjRightHand;
+		if ( iM == 1 ) iMObj = GGVR_Player.ObjLeftHand;
+		//DisableObjectZDepth ( iMObj );
+		//DisableObjectZRead ( iMObj );
+		SetSphereRadius ( iMObj, 0 );
+		SetObjectMask ( iMObj, (1<<6) + (1<<7) + 1 );
+		TextureObject ( iMObj, 7, GGVR_Player.ControllerTextureID1 );
+		TextureObject ( iMObj, 0, GGVR_Player.ControllerTextureID0 );
+		TextureObject ( iMObj, 1, GGVR_Player.ControllerTextureID1 );
+		TextureObject ( iMObj, 2, GGVR_Player.ControllerTextureID2 );
+		TextureObject ( iMObj, 3, GGVR_Player.ControllerTextureID3 );
+		TextureObject ( iMObj, 4, GGVR_Player.ControllerTextureID4 );
+		TextureObject ( iMObj, 5, GGVR_Player.ControllerTextureID5 );
+		TextureObject ( iMObj, 6, GGVR_Player.ControllerTextureID6 );
+		SetObjectEffect ( iMObj, GGVR_Player.ControllerShaderID );
+		DisableObjectZDepth(iMObj);
+	}
 
 	//PlayerVars
 	PitchLock = 0;
@@ -2019,7 +2142,7 @@ int GGVR_PreSubmit ( int iDebugMode )
 			UpdateWindow(g_pGlob->hOriginalhWnd);
 
 			// small delay to allow WMR portal to show properly
-			Sleep ( 1000 );
+			Sleep ( 2000 );
 
 			// if Windows Mixed Reality Portal pushed its way to the front, reassert desktop window to the front
 			SetForegroundWindow(g_pGlob->hWnd);

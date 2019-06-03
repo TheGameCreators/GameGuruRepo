@@ -236,6 +236,7 @@ struct Sglobals
 	int steamplayermodelsoffset;
 	int thirdpersonentityeffect;
 	int lightmappbreffect;
+	int controllerpbreffect;
 	int camerapickupkeyrelease;
 	int conkitobjectbankoffset;
 	int ebeobjectbankoffset;
@@ -2211,6 +2212,8 @@ struct Stemps
 	std::vector <int> csi_stoodincoverthrowright;
 	std::vector <saveloadgamepositionentitytype> saveloadgamepositionentity;
 	std::vector <cstr> mp_playerAvatars_s;
+	bool bTriggerAvatarRescanAndLoad;
+	std::vector <bool> mp_playerAvatarLoaded;	
 	std::vector <int> mp_playerIsRagdoll;
 	std::vector <mpmultiplayerstarttype> mpmultiplayerstart;
 	float ambientocclusiondistance_f;
@@ -3142,7 +3145,6 @@ struct Stemps
 	std::vector <cstr> tutorialmaps_s;
 	std::vector <cstr> vegstylebank_s;
 	std::vector <int> weaponclipammo;
-	int activatedCount;
 	cstr avatarString_s;
 	int Bip01_Headgear;
 	int cameraviewmode;
@@ -4268,6 +4270,7 @@ struct Stemps
 	float tpointx_f;
 	float tpointz_f;
 	int tProgress;
+	int tLastProgress;
 	int tProjType;
 	cstr tprompt_s;
 	float tPSizeX_f;
@@ -7869,7 +7872,6 @@ struct Stemps
 		 cameraviewmode = 0;
 		 Bip01_Headgear = 0;
 		 avatarString_s = "";
-		 activatedCount = 0;
 		 USING_BODY_MASS = 0;
 		 tVolumechange_f = 0.0f;
 		 tvisualprompt_s = "";

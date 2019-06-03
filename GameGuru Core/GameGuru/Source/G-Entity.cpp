@@ -1074,7 +1074,23 @@ void entity_updatepos ( void )
 				}
 				else
 				{
-					ODESetLinearVelocity ( t.tobj,t.tvx_f,t.tvgravity_f*5.0,t.tvz_f );
+					if ( t.entityelement[t.te].nogravity == 1 )
+					{
+						// special case of non character entity with gravity off (pickupable objects)
+						float fNoGravY = t.entityelement[t.te].y - ObjectPositionY(t.tobj);
+						if ( fabs(fNoGravY) > 0.0f )
+						{
+							if ( fNoGravY > fDistCap ) fNoGravY = fDistCap;
+							if ( fNoGravY < -fDistCap ) fNoGravY = -fDistCap;
+							fNoGravY *= 30.0f; // keep it in eye view when look up and down 15.0f;
+						}
+						ODESetLinearVelocity ( t.tobj, t.tvx_f, fNoGravY, t.tvz_f );
+					}
+					else
+					{
+						// default
+						ODESetLinearVelocity ( t.tobj,t.tvx_f,t.tvgravity_f*5.0,t.tvz_f );
+					}
 				}
 			}
 		}
@@ -2411,7 +2427,7 @@ void entity_converttoinstance ( void )
 				t.tstorevis=GetVisible(t.tobj);
 				DeleteObject (  t.tobj );
 				t.ttsourceobj=g.entitybankoffset+t.entityelement[t.tte].bankindex;
-				if ( t.entityprofile[t.entityelement[t.tte].bankindex].cpuanims==0 )
+				if ( t.entityprofile[t.entityelement[t.tte].bankindex].cpuanims==0 && t.entityprofile[t.entityelement[t.tte].bankindex].ischaracter == 0 )
 					InstanceObject (  t.tobj,t.ttsourceobj );
 				else
 					CloneObject ( t.tobj, t.ttsourceobj, 1 );

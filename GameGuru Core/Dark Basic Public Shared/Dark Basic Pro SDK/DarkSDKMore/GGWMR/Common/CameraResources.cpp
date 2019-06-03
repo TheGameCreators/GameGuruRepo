@@ -36,17 +36,40 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
     HolographicCameraRenderingParameters const& cameraParameters
 )
 {
-    ID3D11Device* device = pDeviceResources->GetD3DDevice();
+    ID3D11Device* device = NULL;
+	try
+	{
+		device = pDeviceResources->GetD3DDevice();
+	}
+	catch(...)
+	{
+		DebugVRlog("failed pDeviceResources->GetD3DDevice()");
+	}
 
     // Get the WinRT object representing the holographic camera's back buffer.
-    IDirect3DSurface surface = cameraParameters.Direct3D11BackBuffer();
+    IDirect3DSurface surface = nullptr;
+	try
+	{
+		surface = cameraParameters.Direct3D11BackBuffer();
+	}
+	catch(...)
+	{
+		DebugVRlog("failed cameraParameters.Direct3D11BackBuffer()");
+	}
 
     // Get the holographic camera's back buffer.
     // Holographic apps do not create a swap chain themselves; instead, buffers are
     // owned by the system. The Direct3D back buffer resources are provided to the
     // app using WinRT interop APIs.
     ComPtr<ID3D11Texture2D> cameraBackBuffer;
-    winrt::check_hresult(surface.as<::Windows::Graphics::DirectX::Direct3D11::IDirect3DDxgiInterfaceAccess>()->GetInterface(IID_PPV_ARGS(&cameraBackBuffer)));
+	try
+	{
+	    winrt::check_hresult(surface.as<::Windows::Graphics::DirectX::Direct3D11::IDirect3DDxgiInterfaceAccess>()->GetInterface(IID_PPV_ARGS(&cameraBackBuffer)));
+	}
+	catch(...)
+	{
+		DebugVRlog("failed IDirect3DDxgiInterfaceAccess");
+	}
 
     // Determine if the back buffer has changed. If so, ensure that the render target view
     // is for the current back buffer.
@@ -59,7 +82,14 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
 
         // Get the DXGI format for the back buffer.
         D3D11_TEXTURE2D_DESC backBufferDesc;
-        m_d3dBackBuffer->GetDesc(&backBufferDesc);
+		try
+		{
+	        m_d3dBackBuffer->GetDesc(&backBufferDesc);
+		}
+		catch(...)
+		{
+			DebugVRlog("failed m_d3dBackBuffer->GetDesc(&backBufferDesc)");
+		}
         m_dxgiFormat = backBufferDesc.Format;
 
 		// instead, split backbuffer into left and right render target views
@@ -68,21 +98,35 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
 		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 		rtvDesc.Texture2DArray.MipSlice = 0;
 		rtvDesc.Texture2DArray.ArraySize = 1;
-		rtvDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, 0, 1);
-        winrt::check_hresult(device->CreateRenderTargetView(m_d3dBackBuffer.Get(),&rtvDesc,&m_d3dRenderTargetLeftView));
-		rtvDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, 1, 1);
-        winrt::check_hresult(device->CreateRenderTargetView(m_d3dBackBuffer.Get(),&rtvDesc,&m_d3dRenderTargetRightView));
+		try
+		{
+			rtvDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, 0, 1);
+			winrt::check_hresult(device->CreateRenderTargetView(m_d3dBackBuffer.Get(),&rtvDesc,&m_d3dRenderTargetLeftView));
+			rtvDesc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, 1, 1);
+			winrt::check_hresult(device->CreateRenderTargetView(m_d3dBackBuffer.Get(),&rtvDesc,&m_d3dRenderTargetRightView));
+		}
+		catch(...)
+		{
+			DebugVRlog("failed CreateRenderTargetView");
+		}
 
         // Check for render target size changes.
-        winrt::Windows::Foundation::Size currentSize = m_holographicCamera.RenderTargetSize();
-        if (m_d3dRenderTargetSize != currentSize)
-        {
-            // Set render target size.
-            m_d3dRenderTargetSize = currentSize;
+		try
+		{
+			winrt::Windows::Foundation::Size currentSize = m_holographicCamera.RenderTargetSize();
+			if (m_d3dRenderTargetSize != currentSize)
+			{
+				// Set render target size.
+				m_d3dRenderTargetSize = currentSize;
 
-            // A new depth stencil view is also needed.
-            m_d3dDepthStencilView.Reset();
-        }
+				// A new depth stencil view is also needed.
+				m_d3dDepthStencilView.Reset();
+			}
+		}
+		catch(...)
+		{
+			DebugVRlog("failed m_holographicCamera.RenderTargetSize()");
+		}
     }
 
     // Refresh depth stencil resources, if needed.
@@ -108,16 +152,23 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
             ));
 
 		DebugVRlog("CreateDepthStencilView");
-        CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(
-            m_isStereo ? D3D11_DSV_DIMENSION_TEXTURE2DARRAY : D3D11_DSV_DIMENSION_TEXTURE2D,
-            DXGI_FORMAT_D16_UNORM
-        );
-        winrt::check_hresult(
-            device->CreateDepthStencilView(
-                m_d3dDepthStencil.Get(),
-                &depthStencilViewDesc,
-                &m_d3dDepthStencilView
-            ));
+		try
+		{
+			CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(
+				m_isStereo ? D3D11_DSV_DIMENSION_TEXTURE2DARRAY : D3D11_DSV_DIMENSION_TEXTURE2D,
+				DXGI_FORMAT_D16_UNORM
+			);
+			winrt::check_hresult(
+				device->CreateDepthStencilView(
+					m_d3dDepthStencil.Get(),
+					&depthStencilViewDesc,
+					&m_d3dDepthStencilView
+				));
+		}
+		catch(...)
+		{
+			DebugVRlog("failed CreateDepthStencilView");
+		}
     }
 
     // Create the constant buffer, if needed.
@@ -126,12 +177,19 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
         // Create a constant buffer to store view and projection matrices for the camera.
 		DebugVRlog("CreateBuffer");
         CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
-        winrt::check_hresult(
-            device->CreateBuffer(
-                &constantBufferDesc,
-                nullptr,
-                &m_viewProjectionConstantBuffer
-            ));
+		try
+		{
+			winrt::check_hresult(
+				device->CreateBuffer(
+					&constantBufferDesc,
+					nullptr,
+					&m_viewProjectionConstantBuffer
+				));
+		}
+		catch(...)
+		{
+			DebugVRlog("failed CreateBuffer");
+		}
     }
 }
 

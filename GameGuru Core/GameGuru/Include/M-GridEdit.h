@@ -6,7 +6,7 @@
 
 void mapeditorexecutable ( void );
 void editor_detect_invalid_screen ( void );
-void editor_showhelppage ( void );
+void editor_showhelppage ( int iHelpType );
 void editor_showparentalcontrolpage ( void );
 void editor_showquickstart ( int iForceMainOpen );
 void editor_previewmapormultiplayer ( int iUseVRTest );

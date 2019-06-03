@@ -549,6 +549,10 @@ function SetActivated(e,v)
  g_Entity[e]['activated'] = v
  SendMessageI("setactivated",e,v);
 end
+function SetActivatedWithMP(e,v)
+ g_Entity[e]['activated'] = v
+ SendMessageI("setactivatedformp",e,v);
+end
 function ResetLimbHit(e)
  g_Entity[e]['limbhit'] = 0
  SendMessageI("resetlimbhit",e,0);

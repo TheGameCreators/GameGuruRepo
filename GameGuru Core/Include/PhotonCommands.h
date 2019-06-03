@@ -79,6 +79,7 @@ void PhotonSetPlayerAppearance( int a );
 int PhotonGetPlayerAppearance( int index );
 
 void PhotonSendLua ( int code, int e, int v );
+void PhotonSendLuaToPlayer ( int index, int code, int e, int v );
 void PhotonSendLuaString ( int code, int e, LPSTR s );
 int PhotonGetLuaList();
 void PhotonGetNextLua();
