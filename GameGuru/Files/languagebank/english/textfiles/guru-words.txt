@@ -360,8 +360,8 @@
 360=Win Zone
 361=Trigger Zone
 362=Sound Zone
-363=
-364=
+363=Heal Zone
+364=Hurt Zone
 365=Saving Level...
 366=New Level...
 367=Loading Level...
