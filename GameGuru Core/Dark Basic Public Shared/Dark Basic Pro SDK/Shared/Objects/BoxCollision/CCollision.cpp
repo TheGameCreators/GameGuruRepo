@@ -1498,6 +1498,22 @@ float CheckIntersectObject ( sObject* pObject, float fX, float fY, float fZ, flo
 		GetRayCollision ( pObject, fX, fY, fZ, fNewX, fNewY, fNewZ, &fDistance );
 	else
 		GetRayCollisionBoxFirst ( pObject, fX, fY, fZ, fNewX, fNewY, fNewZ, &fDistance );
+	
+	//PE: 11-06-19 issue: https://github.com/TheGameCreators/GameGuruRepo/issues/502
+	//PE: Some animations have bone collision problems so test mesh if this is the case.
+	//PE: This is a editor only function so will not have any speed impact in game.
+	if (fDistance == 0.0f && !pObject->bIgnoreDefAnim && RayCollisionDoBoxCheckFirst == false ) {
+		sObject* pActualObject = pObject;
+		if (pActualObject->pInstanceOfObject)
+			pActualObject = pActualObject->pInstanceOfObject;
+		if (pActualObject->pAnimationSet) {
+			//PE: iUseNewTransformedVertsMode fails for some animated object
+			//PE: So in this case also test using mesh and ignore bones.
+			pObject->bIgnoreDefAnim = true;
+			GetRayCollision(pObject, fX, fY, fZ, fNewX, fNewY, fNewZ, &fDistance);
+			pObject->bIgnoreDefAnim = false;
+		}
+	}
 
 	// return result
 	return fDistance;
