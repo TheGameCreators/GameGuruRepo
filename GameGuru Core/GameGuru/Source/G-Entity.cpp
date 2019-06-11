@@ -56,8 +56,7 @@ void entity_init ( void )
 							{
 								t.ttreemode=t.entityprofile[t.entid].collisionmode-50;
 								//  dont need to setup ai for multiplayer since it doesnt use any ai - unless coop mode!
-								//aidisabletreeobstacles
-								if ( g.aidisabletreeobstacles == 0 && ( t.game.runasmultiplayer == 0 || ( g.steamworks.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 )) )
+								if ( g.aidisabletreeobstacles == 0 && (t.game.runasmultiplayer == 0 || ( g.mp.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) ) 
 								{
 									darkai_setup_tree ( );
 								}
@@ -65,12 +64,9 @@ void entity_init ( void )
 							else
 							{
 								//  dont need to setup ai for multiplayer since it doesnt use any ai
-								if (  t.game.runasmultiplayer == 0 || ( g.steamworks.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) 
+								if (  t.game.runasmultiplayer == 0 || ( g.mp.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) 
 								{
-									//aidisableobstacles
-									if( g.aidisableobstacles == 0 && t.entityprofile[t.entid].collisionmode != 11 && t.entityprofile[t.entid].collisionmode != 12 ) {
-										darkai_setup_entity();
-									}
+									 if ( g.aidisableobstacles == 0 && t.entityprofile[t.entid].collisionmode != 11 && t.entityprofile[t.entid].collisionmode != 12 ) darkai_setup_entity ( );
 								}
 							}
 						}
