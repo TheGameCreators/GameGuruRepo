@@ -202,7 +202,7 @@
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClCompile>
     <ClCompile Include="..\GameGuru\Source\M-MP.cpp">
-      <Filter>GameGuruEngine</Filter>
+      <Filter>GameGuruEngine\MapEditor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -387,7 +387,7 @@
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClInclude>
     <ClInclude Include="..\GameGuru\Include\M-MP.h">
-      <Filter>GameGuruEngine</Filter>
+      <Filter>GameGuruEngine\MapEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

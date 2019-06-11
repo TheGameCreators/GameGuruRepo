@@ -2386,6 +2386,11 @@ bool PathFinderAdvanced::QuickPolygonsCheck ( float fSX, float fSY, float fEX, f
 	{
 		return pOptimizedCol->Intersects( fSX, fSY, fEX, fEY, iHeight );
 	}
+	else
+	{
+		// allows AI objects in other containers to move freely (floor zones up and down stairs)
+		return false;
+	}
 	/* broken!!
 	int iGridSX = fSX/400.0f;
 	int iGridSZ = fSY/400.0f;
