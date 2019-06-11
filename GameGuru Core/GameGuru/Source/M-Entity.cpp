@@ -2314,9 +2314,12 @@ void entity_loadvideoid ( void )
 		t.tvideoid=32;
 		for ( t.tt = 1 ; t.tt<=  32; t.tt++ )
 		{
-			if (  AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
+			if ( AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
 		}
-		LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid );
+		if ( LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid, 1 ) == false )
+		{
+			t.tvideoid = -999;
+		}
 	}
 }
 
@@ -2332,19 +2335,33 @@ void entity_loadactivesoundsandvideo ( void )
 				if (  t.entityelement[t.e].soundset == 0 ) 
 				{
 					t.tvideofile_s=t.entityelement[t.e].eleprof.soundset_s ; entity_loadvideoid ( );
-					if (  t.tvideoid>0 ) 
-						t.entityelement[t.e].soundset=t.tvideoid*-1;
+					if ( t.tvideoid == -999 )
+					{
+						t.entityelement[t.e].soundset = 0;
+					}
 					else
-						t.entityelement[t.e].soundset=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset_s.Get(),1);
+					{
+						if ( t.tvideoid > 0 ) 
+							t.entityelement[t.e].soundset=t.tvideoid*-1;
+						else
+							t.entityelement[t.e].soundset=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset_s.Get(),1);
+					}
 					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 				if (  t.entityelement[t.e].soundset1 == 0 ) 
 				{
 					t.tvideofile_s=t.entityelement[t.e].eleprof.soundset1_s ; entity_loadvideoid ( );
-					if (  t.tvideoid>0 ) 
-						t.entityelement[t.e].soundset1=t.tvideoid*-1;
+					if ( t.tvideoid == -999 )
+					{
+						t.entityelement[t.e].soundset1 = 0;
+					}
 					else
-						t.entityelement[t.e].soundset1=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset1_s.Get(),1);
+					{
+						if (  t.tvideoid>0 ) 
+							t.entityelement[t.e].soundset1=t.tvideoid*-1;
+						else
+							t.entityelement[t.e].soundset1=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset1_s.Get(),1);
+					}
 					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 				if (  t.entityelement[t.e].soundset2 == 0 ) 

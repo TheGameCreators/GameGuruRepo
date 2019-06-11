@@ -78,7 +78,16 @@ void mp_fullinit ( void )
 
 	// Initialise multiplayer system
 	#ifdef PHOTONMP
-		PhotonInit(g.fpscrootdir_s.Get(),pSitename,g.mp.myAvatarName_s.Get(),bViewAllMode);
+		cstr optionalPhotonAppID_s = "";
+		if ( FileExist( cstr(g.fpscrootdir_s + "\\photonappid.ini").Get() ) == 1 ) 
+		{
+			OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\photonappid.ini").Get() );
+			cstr optionalPhotonAppID_s = ReadString ( 1 );
+			CloseFile ( 1 );
+		}
+		LPSTR pUseAppID = NULL;
+		if ( optionalPhotonAppID_s.Len() > 0 ) pUseAppID = optionalPhotonAppID_s.Get();
+		PhotonInit(g.fpscrootdir_s.Get(),pSitename,g.mp.myAvatarName_s.Get(),bViewAllMode,pUseAppID);
 	#else
 		// Steam initialised at very start (for other Steam features)
 	#endif
@@ -1590,6 +1599,7 @@ void mp_pre_game_file_sync ( void )
 void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 {
 	// vars
+	static DWORD g_dwSendLastTime;
 	cstr pFullPathAndFile = "";
 
 	// if we have lost connection, head back to main menu
@@ -1627,7 +1637,7 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 		case 0:
 			
 			// for solo testing to prevent sending files
-			if ( g.mp.usersInServersLobbyAtServerCreation == 1 ) 
+			if ( g.mp.usersInServersLobbyAtServerCreation <= 1 ) 
 			{
 				g.mp.syncedWithServerMode = 3;
 				return;
@@ -1654,15 +1664,21 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 			//	SteamSendFileBegin (  1,"__multiplayerworkshopitemid__.dat" );
 			//}
 			g.mp.syncedWithServerMode = 1;
-			mp_textDots(-1,30,3,"Setting up data for clients")  ;    
+			mp_textDots(-1,30,3,"Setting up data for clients");
+			g_dwSendLastTime = timeGetTime();
 			break;
 
 		case 1:
 			mp_textDots(-1,50,3,"sharing files with incoming player");
-			if ( PhotonSendFileDone() == 1 ) 
+			// take precaution not to send too much too quickly (Photon Server will ise error 1040 and timeout!!)
+			if ( timeGetTime() > g_dwSendLastTime )
 			{
-				g.mp.syncedWithServerMode = 2;
-				g.mp.oldtime = Timer();
+				g_dwSendLastTime = timeGetTime() + 125; // 8K * (1000/250) = 64K per second max sent rate (1MB file=15 seconds)
+				if ( PhotonSendFileDone() == 1 ) 
+				{
+					g.mp.syncedWithServerMode = 2;
+					g.mp.oldtime = Timer();
+				}
 			}
 			break;
 
@@ -3347,6 +3363,7 @@ void mp_showdeath ( void )
 
 void mp_respawn ( void )
 {
+	/* no respawn for now
 	t.characterkitcontrol.showmyhead = 1;
 	if ( g.autoloadgun != 0 ) { g.autoloadgun=0 ; gun_change ( ); }
 	if (  t.player[t.plrid].health < 100  )  t.player[t.plrid].health  =  100;
@@ -3863,6 +3880,7 @@ void mp_respawn ( void )
 		g.mp.invincibleTimer = Timer();
 		g.mp.lastSpawnedTime = g.mp.invincibleTimer;
 	}
+	*/
 }
 
 void mp_getPlaceToSpawn ( void )
@@ -4276,7 +4294,12 @@ void mp_updatePlayerInput ( void )
 		// forward
 		int iSetAPlayerKeyStateKeyValue = -1;
 		int iSetAPlayerKeyStateKeyState = 0;
-		if ( KeyState(g.keymap[17]) == 1 || KeyState(g.keymap[200]) == 1 ) 
+		bool bForwardAnim = false;
+		if ( KeyState(g.keymap[17]) == 1 || KeyState(g.keymap[200]) == 1 ) bForwardAnim = true;
+		if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+			if ( GGVR_RightController_JoyY() > 0.5 ) 
+				bForwardAnim = true;
+		if ( bForwardAnim == true )
 		{
 			//SteamSetKeyState ( 17,1 );
 			iSetAPlayerKeyStateKeyValue = 17;
@@ -4294,7 +4317,12 @@ void mp_updatePlayerInput ( void )
 			SteamSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
 		#endif
 		// backward
-		if ( KeyState(g.keymap[31]) == 1 || KeyState(g.keymap[208]) == 1 ) 
+		bool bBackwardAnim = false;
+		if ( KeyState(g.keymap[31]) == 1 || KeyState(g.keymap[208]) == 1 ) bBackwardAnim = true;
+		if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+			if ( GGVR_RightController_JoyY() < -0.5)  
+				bBackwardAnim = true;
+		if ( bBackwardAnim == true )
 		{
 			//SteamSetKeyState ( 31,1 );
 			iSetAPlayerKeyStateKeyValue = 31;
@@ -4312,7 +4340,9 @@ void mp_updatePlayerInput ( void )
 			SteamSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
 		#endif
 		// left
-		if ( KeyState(g.keymap[30]) == 1 || KeyState(g.keymap[203]) == 1 ) 
+		bool bLeftwardAnim = false;
+		if ( KeyState(g.keymap[30]) == 1 || KeyState(g.keymap[203]) == 1 ) bLeftwardAnim = true;
+		if ( bLeftwardAnim == true )
 		{
 			//SteamSetKeyState ( 30,1 );
 			iSetAPlayerKeyStateKeyValue = 30;
@@ -4330,7 +4360,9 @@ void mp_updatePlayerInput ( void )
 			SteamSetKeyState ( iSetAPlayerKeyStateKeyValue, iSetAPlayerKeyStateKeyState );
 		#endif
 		// right
-		if ( KeyState(g.keymap[32]) == 1 || KeyState(g.keymap[205]) == 1 ) 
+		bool bRightwardAnim = false;
+		if ( KeyState(g.keymap[32]) == 1 || KeyState(g.keymap[205]) == 1 ) bRightwardAnim = true;
+		if ( bRightwardAnim == true )
 		{
 			//SteamSetKeyState ( 32,1 );
 			iSetAPlayerKeyStateKeyValue = 32;
@@ -4370,8 +4402,13 @@ void mp_updatePlayerInput ( void )
 	#endif
 
 	// shift keys for running
+	bool bShiftRunningAnim = false;
+	if ( KeyState(g.keymap[42]) == 1 || KeyState(g.keymap[54]) == 1 ) bShiftRunningAnim = true;
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+		if ( GGVR_RightController_Grip() == 1 ) 
+			bShiftRunningAnim = true;
 	int iSetAPlayerkey42Value = - 1;
-	if ( KeyState(g.keymap[42]) == 1 || KeyState(g.keymap[54]) == 1 ) 
+	if ( bShiftRunningAnim == true )
 	{
 		//SteamSetKeyState ( 42,1 );
 		iSetAPlayerkey42Value = 1;
@@ -4879,6 +4916,46 @@ void mp_lostConnection ( void )
 	mp_quitGame ( );
 }
 
+void mp_hostalwaysreadytosendplayeramapfile ( void )
+{
+	// host needs to send the map to the new arrival
+	if ( g.mp.syncedWithServerMode == 99 )
+	{
+		// if new arrival
+		int iNewPlayerArrived = PhotonPlayerArrived();
+		if ( iNewPlayerArrived != -1 )
+		{
+			// triggers server to send map file
+			g.mp.syncedWithServerMode = 0;
+			g.mp.onlySendMapToSpecificPlayer = iNewPlayerArrived;
+			t.tLastProgress = 0;
+			t.tUserCount = PhotonGetLobbyUserCount();
+			g.mp.usersInServersLobbyAtServerCreation = t.tUserCount;
+
+			// also send all entity activated values (+100) so scripts can set states and
+			// update level to the current state of the game logic (requires special multiplayer capable scripts)
+			for ( t.e = 1; t.e <= g.entityelementlist; t.e++ )
+			{
+				if ( t.entityelement[t.e].staticflag == 0 && t.entityelement[t.e].obj > 0 )
+				{
+					mp_sendluaToPlayer ( iNewPlayerArrived, MP_LUA_SetActivated, t.e, t.entityelement[t.e].activated+100 );
+				}
+			}
+
+			// resent avatar of server to new player (and others)
+			g.mp.haveSentMyAvatar = 0;
+		}
+	}
+	else
+	{
+		// handles server job to send map file to newly arrived player
+		if ( g.mp.onlySendMapToSpecificPlayer != -1 )
+		{
+			mp_pre_game_file_sync_server ( g.mp.onlySendMapToSpecificPlayer );
+		}
+	}
+}
+
 void mp_gameLoop ( void )
 {
 	// check we have finished loading, if not exit out
@@ -4907,39 +4984,8 @@ void mp_gameLoop ( void )
 		 // handle new player arriving while game is running
 		 if ( g.mp.isGameHost == 1 )
 		 {
-			 // host needs to send the map to the new arrival
-			 if ( g.mp.syncedWithServerMode == 99 )
-			 {
-				 // if new arrival
-				 int iNewPlayerArrived = PhotonPlayerArrived();
-				 if ( iNewPlayerArrived != -1 )
-				 {
-					// triggers server to send map file
-					g.mp.syncedWithServerMode = 0;
-					g.mp.onlySendMapToSpecificPlayer = iNewPlayerArrived;
-					t.tLastProgress = 0;
-					t.tUserCount = PhotonGetLobbyUserCount();
-					g.mp.usersInServersLobbyAtServerCreation = t.tUserCount;
-
-					// also send all entity activated values (+100) so scripts can set states and
-					// update level to the current state of the game logic (requires special multiplayer capable scripts)
-					for ( t.e = 1; t.e <= g.entityelementlist; t.e++ )
-					{
-						if ( t.entityelement[t.e].staticflag == 0 && t.entityelement[t.e].obj > 0 )
-						{
-							mp_sendluaToPlayer ( iNewPlayerArrived, MP_LUA_SetActivated, t.e, t.entityelement[t.e].activated+100 );
-						}
-					}
-
-					// resent avatar of server to new player (and others)
-					g.mp.haveSentMyAvatar = 0;
-				 }
-			 }
-			 else
-			 {
-				 // handles server job to send map file to newly arrived player
-				 mp_pre_game_file_sync_server ( g.mp.onlySendMapToSpecificPlayer );
-			 }
+			 // this will handle host sending mapfile to joiner
+			 mp_hostalwaysreadytosendplayeramapfile();
 		 }
 		 else
 		 {
@@ -5658,6 +5704,13 @@ void mp_destroyentity ( void )
 void mp_refresh ( void )
 {
 	#ifdef PHOTONMP
+	 // handle transfer of host mapfile to joiners (needs to be in main update as host could be loading/waiting to press space)
+	 if ( PhotonIsGameRunning() == 1 && g.mp.isGameHost == 1 && g.mp.okayToLoadLevel == 1 )
+	 {
+		 // only kicks in once server loading or waiting on 'press space' area, rest of time gameloop handles this call!
+		 mp_hostalwaysreadytosendplayeramapfile();
+	 }
+	 // handle background network updates (so don't time out)
 	 PhotonLoop (  );
 	#else
 	 SteamLoop (  );
@@ -5746,6 +5799,7 @@ return;
 
 void mp_serverRespawnAll ( void )
 {
+	/* no srespawn right now
 	SteamSendLua (  MP_LUA_ServerRespawnAll,0,0 );
 	mp_restoreEntities ( );
 	mp_setLuaResetStats ( );
@@ -5810,9 +5864,7 @@ void mp_serverRespawnAll ( void )
 	t.mp_health[g.mp.me] = 0;
 	g.mp.endplay = 0;
 	g.autoloadgun=0 ; gun_change ( );
-return;
-
-//  Put entities back to the original "first played" state
+	*/
 }
 
 void mp_restoreEntities ( void )
@@ -7539,15 +7591,11 @@ void mp_backToEditor ( void )
 	t.game.titleloop=0;
 	t.game.quitflag=1;
 	g.mp.goBackToEditor = 1;
-return;
-
-//  remove all entities and lightmaps that are left from our gaming session
 }
 
 void mp_cleanupGame ( void )
 {
-
-	//  default start position is edit-camera XZ
+	// default start position is edit-camera XZ
 	t.terrain.playerx_f=t.cx_f;
 	t.terrain.playerz_f=t.cy_f;
 	if (  t.terrain.TerrainID>0 ) 
@@ -7562,11 +7610,11 @@ void mp_cleanupGame ( void )
 	t.terrain.playeray_f=0.0;
 	t.terrain.playeraz_f=0.0;
 
-	//  remove light map objects for return to IDE editor
+	// remove light map objects for return to IDE editor
 	lm_restoreall ( );
 
-	//  remove all entities
-	if (  g.entityelementlist>0 ) 
+	// remove all entities
+	if ( g.entityelementlist>0 ) 
 	{
 		for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 		{
@@ -7583,11 +7631,6 @@ void mp_cleanupGame ( void )
 		}
 		g.entityelementlist=0;
 	}
-
-return;
-
-//  Send Steam User ID to editor via file mapping
-
 }
 
 void mp_sendSteamIDToEditor ( void )

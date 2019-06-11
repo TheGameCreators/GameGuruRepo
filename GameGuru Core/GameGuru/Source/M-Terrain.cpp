@@ -2424,20 +2424,22 @@ void terrain_save ( void )
 		if ( MemblockExist(1) == 0 ) 
 		{
 			MakeMemblock ( 1,1024*1024*4 );
-			OpenToWrite ( 1, t.tfile_s.Get() );
-			t.mi=0;
-			for ( t.z = 0 ; t.z<=  1023; t.z++ )
+			if ( OpenToWriteEx ( 1, t.tfile_s.Get() ) == true )
 			{
-				for ( t.x = 0 ; t.x<=  1023; t.x++ )
+				t.mi=0;
+				for ( t.z = 0 ; t.z<=  1023; t.z++ )
 				{
-					t.h_f=BT_GetGroundHeight(t.terrain.TerrainID,t.x*50.0,t.z*50.0,1);
-					if (  t.h_f<0.0  )  t.h_f = 0.0;
-					WriteMemblockFloat (  1,t.mi,t.h_f );
-					t.mi += 4;
+					for ( t.x = 0 ; t.x<=  1023; t.x++ )
+					{
+						t.h_f=BT_GetGroundHeight(t.terrain.TerrainID,t.x*50.0,t.z*50.0,1);
+						if (  t.h_f<0.0  )  t.h_f = 0.0;
+						WriteMemblockFloat (  1,t.mi,t.h_f );
+						t.mi += 4;
+					}
 				}
+				WriteMemblock ( 1,1 );
+				CloseFile ( 1 );
 			}
-			WriteMemblock ( 1,1 );
-			CloseFile ( 1 );
 			DeleteMemblock ( 1 );
 		}
 		else
@@ -5141,15 +5143,17 @@ void terrain_fastveg_loadgrass ( void )
 
 void terrain_fastveg_savegrass ( void )
 {
-	//  regenerate the memblock from the vegmask bitmap for consistency
+	// regenerate the memblock from the vegmask bitmap for consistency
 	t.terrain.grassregionupdate=0;
 	terrain_fastveg_updategrassfrombitmap ( );
 
-	//  save grass memblock to disk
-	if (  FileExist(t.tfileveggrass_s.Get()) == 1  )  DeleteAFile (  t.tfileveggrass_s.Get() );
-	OpenToWrite (  3,t.tfileveggrass_s.Get() );
-	WriteMemblock (  3,t.terrain.grassmemblock );
-	CloseFile (  3 );
+	// save grass memblock to disk
+	if ( FileExist(t.tfileveggrass_s.Get()) == 1 ) DeleteAFile ( t.tfileveggrass_s.Get() );
+	if ( OpenToWriteEx ( 3, t.tfileveggrass_s.Get() ) == true )
+	{
+		WriteMemblock (  3,t.terrain.grassmemblock );
+		CloseFile (  3 );
+	}
 }
 
 void terrain_fastveg_buildblankgrass ( void )
@@ -5185,15 +5189,14 @@ void terrain_fastveg_buildblankgrass_fornew ( void )
 		WriteMemblockDWord (  t.terrain.grassmemblock,8,32 );
 	}
 
-	//  save grass memblock to disk
-	//  151214 - wrong format but VEH module deals with nonraw-image memblocks as ZERO
-	if (  FileExist(t.tfileveggrass_s.Get()) == 1  )  DeleteAFile (  t.tfileveggrass_s.Get() );
-	OpenToWrite (  3,t.tfileveggrass_s.Get() );
-		WriteMemblock (  3,t.terrain.grassmemblock );
-	CloseFile (  3 );
-
-return;
-
+	// save grass memblock to disk
+	// 151214 - wrong format but VEH module deals with nonraw-image memblocks as ZERO
+	if ( FileExist(t.tfileveggrass_s.Get()) == 1 ) DeleteAFile ( t.tfileveggrass_s.Get() );
+	if ( OpenToWriteEx ( 3, t.tfileveggrass_s.Get() ) == true )
+	{
+		WriteMemblock ( 3, t.terrain.grassmemblock );
+		CloseFile ( 3 );
+	}
 }
 
 void terrain_fastveg_free ( void )

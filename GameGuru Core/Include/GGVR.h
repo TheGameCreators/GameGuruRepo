@@ -15,7 +15,7 @@ GGMATRIX GGVR_GetLeftEyeProjectionMatrix();
 void GGVR_SetWorldScale( float scale );
 float GGVR_GetWorldScale(  );
 void GGVR_Shutdown();
-void GGVR_UpdatePlayer(bool bPlayerDucking, int iTerrainID);
+void GGVR_UpdatePlayer(bool bPlayerDucking, int iTerrainID, int iLMObjStart, int iLMObjFinish, int iEntObjStart, int iEndObjEnd);
 bool GGVR_HandlePlayerTeleport ( float* pNewPosX, float* pNewPosY, float* pNewPosZ, float* pNewAngleY );
 void GGVR_SetPlayerPosition( float X, float Y, float Z );
 void GGVR_SetPlayerRotation( float X, float Y, float Z );
@@ -63,6 +63,13 @@ float GGVR_GetLeftHandZ( );
 float GGVR_GetLeftHandAngleX( );
 float GGVR_GetLeftHandAngleY( );
 float GGVR_GetLeftHandAngleZ( );
+float GGVR_GetBestHandX( );
+float GGVR_GetBestHandY( );
+float GGVR_GetBestHandZ( );
+float GGVR_GetBestHandAngleX( );
+float GGVR_GetBestHandAngleY( );
+float GGVR_GetBestHandAngleZ( );
+int GGVR_GetLaserGuidedEntityObj( int entityviewstartobj, int entityviewendobj );
 
 // Generic Controller
 int GGVR_RightControllerFound( void );

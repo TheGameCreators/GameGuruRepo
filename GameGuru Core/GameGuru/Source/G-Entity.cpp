@@ -1084,7 +1084,7 @@ void entity_updatepos ( void )
 							if ( fNoGravY < -fDistCap ) fNoGravY = -fDistCap;
 							fNoGravY *= 30.0f; // keep it in eye view when look up and down 15.0f;
 						}
-						ODESetLinearVelocity ( t.tobj, t.tvx_f, fNoGravY, t.tvz_f );
+						ODESetLinearVelocity ( t.tobj, t.tvx_f*2, fNoGravY*2, t.tvz_f*2 );
 					}
 					else
 					{

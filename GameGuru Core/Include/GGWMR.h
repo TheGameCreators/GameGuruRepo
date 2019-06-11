@@ -20,7 +20,7 @@ extern "C"
 																float* pM01, float* pM11, float* pM21, float* pM31,
 																float* pM02, float* pM12, float* pM22, float* pM32,
 																float* pM03, float* pM13, float* pM23, float* pM33);
-	DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
+	DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pSideButtonValue, float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
 	DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouchedisRightHand, bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY );
 	DLLEXPORT void GGWMR_GetHandPosAndOrientation ( int iLeftHandMode, float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ );
 	DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
@@ -38,7 +38,7 @@ namespace BasicHologram
         int CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
 		void UpdateFrame();
 		void GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );
-		void GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
+		void GetThumbAndTrigger ( float* pSideButtonValue, float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
 		void GetTouchPadData ( bool* pbTouchedisRightHand, bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY );
 		void GetHandPosAndOrientation ( int iLeftHandMode, float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ );
 		void GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM10, float* pM20, float* pM30, 
@@ -88,6 +88,7 @@ namespace BasicHologram
         winrt::Windows::UI::Input::Spatial::SpatialInteractionManager       m_interactionManager = nullptr;
 
 		// store controller input
+		float																m_fSideButtonValue[2];
 		float																m_fTriggerValue[2];
 		float																m_fThumbX[2];
 		float																m_fThumbY[2];

@@ -135,7 +135,7 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
         // Create a depth stencil view for use with 3D rendering if needed.
 		DebugVRlog("depthStencilDesc");
         CD3D11_TEXTURE2D_DESC depthStencilDesc(
-            DXGI_FORMAT_R16_TYPELESS,
+            DXGI_FORMAT_R32_TYPELESS,//DXGI_FORMAT_R16_TYPELESS,
             static_cast<UINT>(m_d3dRenderTargetSize.Width),
             static_cast<UINT>(m_d3dRenderTargetSize.Height),
             1, // we are handling render target views separately now - m_isStereo ? 2 : 1, // Create two textures when rendering in stereo.
@@ -156,7 +156,8 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
 		{
 			CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(
 				m_isStereo ? D3D11_DSV_DIMENSION_TEXTURE2DARRAY : D3D11_DSV_DIMENSION_TEXTURE2D,
-				DXGI_FORMAT_D16_UNORM
+				//DXGI_FORMAT_D16_UNORM
+				DXGI_FORMAT_D32_FLOAT
 			);
 			winrt::check_hresult(
 				device->CreateDepthStencilView(

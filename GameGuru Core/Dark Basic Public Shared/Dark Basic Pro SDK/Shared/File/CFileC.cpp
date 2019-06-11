@@ -1330,6 +1330,41 @@ DARKSDK void OpenToWrite( int f, LPSTR pFilename )
 	}
 }
 
+DARKSDK bool OpenToWriteEx( int f, LPSTR pFilename )
+{
+	if(f>=1 && f<=MAX_FILES)
+	{
+		if(File[f]==NULL)
+		{
+			if(!DB_FileExist(pFilename))
+			{
+				if(!DB_OpenToWrite(f, pFilename))
+				{
+					RunTimeSoftWarning(RUNTIMEERROR_CANNOTOPENFILEFORWRITING);
+					return false;
+				}
+			}
+			else
+			{
+				RunTimeWarning(RUNTIMEERROR_FILEEXISTS);
+				return false;
+			}
+		}
+		else
+		{
+			RunTimeWarning(RUNTIMEERROR_FILEALREADYOPEN);
+			return false;
+		}
+	}
+	else
+	{
+		// mike - 011005 - use run time error for this
+		RunTimeError(RUNTIMEERROR_FILENUMBERINVALID);
+		return false;
+	}
+	return true;
+}
+
 DARKSDK void CloseFile( int f )
 {
 	if(f>=1 && f<=MAX_FILES)

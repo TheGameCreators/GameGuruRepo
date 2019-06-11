@@ -1373,6 +1373,19 @@ void physics_player_gatherkeycontrols ( void )
 	}
 	if ( KeyState(g.keymap[t.plrkeySHIFT]) == 1 && g.runkeys == 1 && t.jumpaction == 0  )  t.plrkeySHIFT = 1; else t.plrkeySHIFT = 0;
 	if ( KeyState(g.keymap[t.plrkeySHIFT2]) == 1 && g.runkeys == 1 && t.jumpaction == 0  )  t.plrkeySHIFT2 = 1; else t.plrkeySHIFT2 = 0;
+
+	// when in vr mode
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	{
+		// lee - 040619 - detect trigger and use as t.plrkeyE
+		if ( GGVR_RightController_Trigger() > 0.5 )
+			t.plrkeyE = 1;
+
+		// lee - 040619 - detect grip button and use as run
+		if ( GGVR_RightController_Grip() == 1 )
+			t.plrkeySHIFT = 1;
+	}
+
 	if ( t.conkit.editmodeactive != 0 ) 
 	{
 		// FPS 3D Editing Mode - keys elsewhere
@@ -1459,7 +1472,7 @@ void physics_player_gatherkeycontrols ( void )
 			}
 			try
 			{
-				GGVR_UpdatePlayer(false,t.terrain.TerrainID);
+				GGVR_UpdatePlayer(false,t.terrain.TerrainID,g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,g.entityviewstartobj,g.entityviewendobj);
 			}
 			catch(...)
 			{
@@ -1474,8 +1487,8 @@ void physics_player_gatherkeycontrols ( void )
 		}
 		if (g.walkonkeys == 1)
 		{
-			if ( GGVR_RightController_JoyY() > 0.25 )  t.plrkeyW = 1;
-			if ( GGVR_RightController_JoyY() < -0.25)  t.plrkeyS = 1;
+			if ( GGVR_RightController_JoyY() >  0.5 ) t.plrkeyW = 1;
+			if ( GGVR_RightController_JoyY() < -0.5)  t.plrkeyS = 1;
 		}
 		g.vrglobals.GGVR_XposOffset = GGVR_GetHMDOffsetX();
 		g.vrglobals.GGVR_ZposOffset = GGVR_GetHMDOffsetZ();
@@ -1685,10 +1698,10 @@ void physics_player_control_F9 ( void )
 		}
 		t.tRotationDivider_f=8.0/t.tturnspeedmodifier_f;
 		t.camangx_f=CameraAngleX(t.terrain.gameplaycamera)+(t.cammousemovey_f/t.tRotationDivider_f);
-		if ( g.vrglobals.GGVREnabled == 0 )
-		{
-			t.camangy_f=t.playercontrol.finalcameraangley_f+(t.cammousemovex_f/t.tRotationDivider_f);
-		}
+		//if ( g.vrglobals.GGVREnabled == 0 ) // no VR with F9 mode currently!
+		//{
+		t.camangy_f=t.playercontrol.finalcameraangley_f+(t.cammousemovex_f/t.tRotationDivider_f);
+		//}
 	}
 
 	// Cap look up/down angle so cannot wrap around

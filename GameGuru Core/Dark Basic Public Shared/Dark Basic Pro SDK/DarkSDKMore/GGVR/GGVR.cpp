@@ -15,6 +15,7 @@
 #include "D3dx9math.h"
 #include "BlitzTerrain.h"
 #include "CGfxC.h"
+#include "CSystemC.h"
 
 #include <iostream>
 #include <exception>
@@ -72,6 +73,8 @@ int								GGVR_RTrigger = -1;
 int								GGVR_LTrigger = -1;
 int								GGVR_RJoystick = -1;
 int								GGVR_LJoystick = -1;
+int								GGVR_LSideButton = -1;
+int								GGVR_RSideButton = -1;
 
 // Controller Button Presses
 bool							GGVR_bTouchPadIsRightHand = false;
@@ -125,6 +128,7 @@ public:
 
 	bool PitchLock;
 	bool TurnLock;
+	int LaserGuideActive;
 };
 GGVR_PlayerData					GGVR_Player;
 
@@ -140,7 +144,7 @@ typedef int (*sGGWMR_CreateHolographicSpace2Fnc)(void*,void*); sGGWMR_CreateHolo
 typedef void (*sGGWMR_GetUpdateFnc)(void); sGGWMR_GetUpdateFnc GGWMR_GetUpdate = NULL;
 typedef void (*sGGWMR_GetHeadPosAndDirFnc)(float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHeadPosAndDirFnc GGWMR_GetHeadPosAndDir = NULL;
 typedef void (*sGGWMR_GetProjectionMatrixFnc)(int,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetProjectionMatrixFnc GGWMR_GetProjectionMatrix = NULL;
-typedef void (*sGGWMR_GetThumbAndTriggerFnc)(float*,float*,float*); sGGWMR_GetThumbAndTriggerFnc GGWMR_GetThumbAndTrigger = NULL;
+typedef void (*sGGWMR_GetThumbAndTriggerFnc)(float*,float*,float*,float*); sGGWMR_GetThumbAndTriggerFnc GGWMR_GetThumbAndTrigger = NULL;
 typedef void (*sGGWMR_GetTouchPadDataFnc)(bool*,bool*,bool*,float*,float*); sGGWMR_GetTouchPadDataFnc GGWMR_GetTouchPadData = NULL;
 typedef void (*sGGWMR_GetHandPosAndOrientationFnc)(int,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHandPosAndOrientationFnc GGWMR_GetHandPosAndOrientation = NULL;
 typedef void (*sGGWMR_GetRenderTargetAndDepthStencilViewFnc)(void**,void**,void**,DWORD*,DWORD*); sGGWMR_GetRenderTargetAndDepthStencilViewFnc GGWMR_GetRenderTargetAndDepthStencilView = NULL;
@@ -792,18 +796,21 @@ void GGVR_UpdatePoses(void)
 			if ( pGamePoseArray[GGVR_RHandIndex].bPoseIsValid )
 			{
 				// Get Controller data
+				float fSideButtonValue = 0.0f;
 				float fTriggerValue = 0.0f;
 				float fThumbStickX = 0.0f;
 				float fThumbStickY = 0.0f;
 				timestampactivity ( 0, "TS: Calling GGWMR_GetThumbAndTrigger" );
 				DebugGGVRlog ( "Calling GGWMR_GetThumbAndTrigger" );
-				GGWMR_GetThumbAndTrigger ( &fTriggerValue, &fThumbStickX, &fThumbStickY );
+				GGWMR_GetThumbAndTrigger ( &fSideButtonValue, &fTriggerValue, &fThumbStickX, &fThumbStickY );
 
 				// Update controller input : GGVR_AxisType[controllerID][typeofinput]
 				GGVR_LTrigger = 0;
 				GGVR_RTrigger = 0; 
 				GGVR_LJoystick = 1;
 				GGVR_RJoystick = 1;
+				GGVR_LSideButton = 2;
+				GGVR_RSideButton = 2;
 				for ( int c = 0; c <= 1; c++ )
 				{
 					GGVR_AxisType[c][0] = 0;
@@ -811,6 +818,7 @@ void GGVR_UpdatePoses(void)
 					GGVR_AxisType[c][2] = -1;
 					GGVR_AxisType[c][3] = -1;
 					GGVR_AxisType[c][4] = -1;
+					GGVR_ControllerState[c].rAxis[GGVR_LSideButton].x = fSideButtonValue;
 					GGVR_ControllerState[c].rAxis[GGVR_LTrigger].x = fTriggerValue;
 					GGVR_ControllerState[c].rAxis[GGVR_LJoystick].x = fThumbStickX;
 					GGVR_ControllerState[c].rAxis[GGVR_LJoystick].y = fThumbStickY;
@@ -885,7 +893,7 @@ void GGVR_UpdatePoses(void)
 	}
 }
 
-void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
+void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, int iLMObjFinish, int iEntObjStart, int iEndObjEnd )
 {
 	// Update the HMD and controller feedbacks
 	timestampactivity ( 0, "TS: Calling GGVR_UpdatePoses" );
@@ -1002,39 +1010,58 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 
 	// show pointer when teleport touched
 	bool bShowControllerWand = false;
+	bool bShowHandLaserBeam = false;
 	if ( GGVR_bTouchPadTouched == true ) // touch anywhere && GGVR_fTouchPadY > 0.5f )
-	{
-		//ShowObject ( GGVR_Player.ObjRightHand );
 		bShowControllerWand = true;
-	}
-	//else
-	//	HideObject ( GGVR_Player.ObjRightHand );
+	else
+		bShowHandLaserBeam = true;
 
-	// create teleport arc control points
-	if ( bShowControllerWand == true )
+	// find out active controller and store info
+	static int g_iLastControllerActive = 0;
+	if ( GetVisible ( GGVR_Player.ObjRightHand ) == 1 )
 	{
-		float x = ObjectPositionX ( GGVR_Player.ObjLeftHand );
-		float y = ObjectPositionY ( GGVR_Player.ObjLeftHand );
-		float z = ObjectPositionZ ( GGVR_Player.ObjLeftHand );
-		MoveObject ( GGVR_Player.ObjLeftHand, 10.0f );
-		float nx = ObjectPositionX ( GGVR_Player.ObjLeftHand ) - x;
-		float ny = ObjectPositionY ( GGVR_Player.ObjLeftHand ) - y;
-		float nz = ObjectPositionZ ( GGVR_Player.ObjLeftHand ) - z;
-		MoveObject ( GGVR_Player.ObjLeftHand, -10.0f );
-		if ( GGVR_bTouchPadIsRightHand == true )
+		g_iLastControllerActive = 1;
+	}
+	else
+	{
+		if ( GetVisible ( GGVR_Player.ObjLeftHand ) == 1 )
 		{
-			x = ObjectPositionX ( GGVR_Player.ObjRightHand );
-			y = ObjectPositionY ( GGVR_Player.ObjRightHand );
-			z = ObjectPositionZ ( GGVR_Player.ObjRightHand );
-			MoveObject ( GGVR_Player.ObjRightHand, 10.0f );
-			nx = ObjectPositionX ( GGVR_Player.ObjRightHand ) - x;
-			ny = ObjectPositionY ( GGVR_Player.ObjRightHand ) - y;
-			nz = ObjectPositionZ ( GGVR_Player.ObjRightHand ) - z;
-			MoveObject ( GGVR_Player.ObjRightHand, -10.0f );
+			g_iLastControllerActive = 2;
 		}
+	}
+
+	// determine hand position and angle
+	float x = ObjectPositionX ( GGVR_Player.ObjLeftHand );
+	float y = ObjectPositionY ( GGVR_Player.ObjLeftHand );
+	float z = ObjectPositionZ ( GGVR_Player.ObjLeftHand );
+	MoveObject ( GGVR_Player.ObjLeftHand, 10.0f );
+	float nx = ObjectPositionX ( GGVR_Player.ObjLeftHand ) - x;
+	float ny = ObjectPositionY ( GGVR_Player.ObjLeftHand ) - y;
+	float nz = ObjectPositionZ ( GGVR_Player.ObjLeftHand ) - z;
+	MoveObject ( GGVR_Player.ObjLeftHand, -10.0f );
+	if ( g_iLastControllerActive == 1 )
+	{
+		x = ObjectPositionX ( GGVR_Player.ObjRightHand );
+		y = ObjectPositionY ( GGVR_Player.ObjRightHand );
+		z = ObjectPositionZ ( GGVR_Player.ObjRightHand );
+		MoveObject ( GGVR_Player.ObjRightHand, 10.0f );
+		nx = ObjectPositionX ( GGVR_Player.ObjRightHand ) - x;
+		ny = ObjectPositionY ( GGVR_Player.ObjRightHand ) - y;
+		nz = ObjectPositionZ ( GGVR_Player.ObjRightHand ) - z;
+		MoveObject ( GGVR_Player.ObjRightHand, -10.0f );
+	}
+
+	// create teleport arc control points or laser
+	GGVR_Player.LaserGuideActive = 0;
+	static int g_iControllerVisualMode = 0;
+	if ( bShowControllerWand == true && g_iLastControllerActive > 0 )
+	{
 		std::vector <GGVECTOR3> vecControlPoints;
 		vecControlPoints.clear();
 		bool bAboveGround = true;
+		float fLastX = x;
+		float fLastY = y;
+		float fLastZ = z;
 		while ( bAboveGround == true )
 		{
 			// shift normal to fall with gravity
@@ -1057,6 +1084,18 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 				GGVR_fTelePortDestinationZ = z;
 				bAboveGround = false;
 			}
+
+			// when cut through an entity in the scene
+			IntersectAll(iLMObjStart,iLMObjFinish,0,0,0,0,0,0,-123);
+			int tHitObj = IntersectAll(iEntObjStart,iEndObjEnd,x,y,z,fLastX,fLastY,fLastZ,0);
+			if ( tHitObj > 0 )
+			{
+				GGVR_fTelePortDestinationX = ChecklistFValueA(6);
+				GGVR_fTelePortDestinationY = ChecklistFValueB(6);
+				GGVR_fTelePortDestinationZ = ChecklistFValueC(6);
+				bAboveGround = false;
+			}
+			fLastX = x; fLastY = y; fLastZ = z;
 		}
 
 		// work out spread from perfect arc data to available dots below
@@ -1079,6 +1118,7 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 			y = ObjectPositionY ( GGVR_Player.ObjLeftHand );
 			z = ObjectPositionZ ( GGVR_Player.ObjLeftHand );
 		}
+		if ( g_iControllerVisualMode != 1 && ObjectExist(GGVR_Player.ObjTeleportStart) == 1 ) DeleteObject ( GGVR_Player.ObjTeleportStart );
 		for ( int o = GGVR_Player.ObjTeleportStart; o < GGVR_Player.ObjTeleportFinish; o++ )
 		{
 			int iThisUniqueControlPoint = (int)fCountPointIndex;
@@ -1091,6 +1131,7 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 				SetSphereRadius ( o, 0 );
 				SetObjectMask ( o, (1<<6) + (1<<7) + 1 );
 				TextureObject ( o, 0, GGVR_Player.TextureID );
+				g_iControllerVisualMode = 1;
 			}
 			HideObject ( o );
 			if ( ObjectExist ( o ) && iLastControlPoint != iThisUniqueControlPoint )
@@ -1132,10 +1173,39 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID )
 	}
 	else
 	{
-		// hide teleport arc
-		for ( int o = GGVR_Player.ObjTeleportStart; o <= GGVR_Player.ObjTeleportFinish; o++ )
-			if ( ObjectExist(o) )
-				HideObject ( o );
+		if ( bShowHandLaserBeam == true && g_iLastControllerActive > 0 )
+		{
+			if ( g_iControllerVisualMode != 2 && ObjectExist(GGVR_Player.ObjTeleportStart) == 1 ) DeleteObject ( GGVR_Player.ObjTeleportStart );
+			int o = GGVR_Player.ObjTeleportStart;
+			if ( !ObjectExist ( o ) )
+			{
+				MakeObjectBox ( o, 0.1f, 0.1f, 200.0f );	
+				SetObjectEffect ( o, GGVR_Player.ShaderID );
+				SetSphereRadius ( o, 0 );
+				SetObjectMask ( o, (1<<6) + (1<<7) + 1 );
+				TextureObject ( o, 0, GGVR_Player.TextureID );
+				g_iControllerVisualMode = 2;
+			}
+			if ( ObjectExist ( o ) )
+			{
+				// position and rotate object
+				ShowObject ( o );
+				PositionObject ( o, x, y, z );
+				PointObject ( o, x+nx, y+ny, z+nz );
+				MoveObject ( o, 100.0f );
+				GGVR_Player.LaserGuideActive = o;
+			}
+			for ( int o = GGVR_Player.ObjTeleportStart+1; o <= GGVR_Player.ObjTeleportFinish; o++ )
+				if ( ObjectExist(o) )
+					HideObject ( o );
+		}
+		else
+		{
+			// hide teleport arc and laser objects
+			for ( int o = GGVR_Player.ObjTeleportStart; o <= GGVR_Player.ObjTeleportFinish; o++ )
+				if ( ObjectExist(o) )
+					HideObject ( o );
+		}
 	}
 }
 
@@ -1369,248 +1439,456 @@ float GGVR_GetPlayerAngleZ( )
 
 float GGVR_GetOriginX()
 {
-	if (ObjectExist(GGVR_Player.ObjOrigin) == 1)
+	if ( GGVR_Player.ObjOrigin > 0 )
 	{
-		return ObjectPositionX(GGVR_Player.ObjOrigin);
+		if (ObjectExist(GGVR_Player.ObjOrigin) == 1)
+		{
+			return ObjectPositionX(GGVR_Player.ObjOrigin);
+		}
+		else
+		{
+			return 0;
+		}
 	}
-	else
-	{
-		return 0;
-	}
+	else { return 0; }
 }
 
 float GGVR_GetOriginY()
 {
-	if (ObjectExist(GGVR_Player.ObjOrigin) == 1)
+	if ( GGVR_Player.ObjOrigin > 0 )
 	{
-		return ObjectPositionY(GGVR_Player.ObjOrigin);
+		if (ObjectExist(GGVR_Player.ObjOrigin) == 1)
+		{
+			return ObjectPositionY(GGVR_Player.ObjOrigin);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetOriginZ()
 {
-	if (ObjectExist(GGVR_Player.ObjOrigin) == 1)
+	if ( GGVR_Player.ObjOrigin > 0 )
 	{
-		return ObjectPositionZ(GGVR_Player.ObjOrigin);
+		if (ObjectExist(GGVR_Player.ObjOrigin) == 1)
+		{
+			return ObjectPositionZ(GGVR_Player.ObjOrigin);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDX( )
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return ObjectPositionX(GGVR_Player.ObjHead);
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return ObjectPositionX(GGVR_Player.ObjHead);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDY( )
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return ObjectPositionY(GGVR_Player.ObjHead);
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return ObjectPositionY(GGVR_Player.ObjHead);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDZ( )
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return ObjectPositionZ(GGVR_Player.ObjHead);
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return ObjectPositionZ(GGVR_Player.ObjHead);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDYaw()
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return pGamePoseArray_YPR[GGVR_HMD].v[1];
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return pGamePoseArray_YPR[GGVR_HMD].v[1];
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDPitch()
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return pGamePoseArray_YPR[GGVR_HMD].v[0];
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return pGamePoseArray_YPR[GGVR_HMD].v[0];
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDRoll()
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return pGamePoseArray_YPR[GGVR_HMD].v[2];
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return pGamePoseArray_YPR[GGVR_HMD].v[2];
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDOffsetX()
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return pGamePoseArray_Pos[GGVR_HMD].v[0] * GGVR_WorldScale;
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return pGamePoseArray_Pos[GGVR_HMD].v[0] * GGVR_WorldScale;
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDOffsetY()
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return pGamePoseArray_Pos[GGVR_HMD].v[1] * GGVR_WorldScale;
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return pGamePoseArray_Pos[GGVR_HMD].v[1] * GGVR_WorldScale;
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDOffsetZ()
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return pGamePoseArray_Pos[GGVR_HMD].v[2] * GGVR_WorldScale;
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return pGamePoseArray_Pos[GGVR_HMD].v[2] * GGVR_WorldScale;
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDAngleX( )
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return ObjectAngleX(GGVR_Player.ObjHead);
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return ObjectAngleX(GGVR_Player.ObjHead);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDAngleY( )
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return ObjectAngleY(GGVR_Player.ObjHead);
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return ObjectAngleY(GGVR_Player.ObjHead);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetHMDAngleZ( )
 {
-	if (ObjectExist(GGVR_Player.ObjHead) == 1)
+	if ( GGVR_Player.ObjHead > 0 )
 	{
-		return ObjectAngleZ(GGVR_Player.ObjHead);
+		if (ObjectExist(GGVR_Player.ObjHead) == 1)
+		{
+			return ObjectAngleZ(GGVR_Player.ObjHead);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetRightHandX( )
 {
-	if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+	if ( GGVR_Player.ObjRightHand > 0 )
 	{
-		return ObjectPositionX(GGVR_Player.ObjRightHand);
+		if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+		{
+			return ObjectPositionX(GGVR_Player.ObjRightHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetRightHandY( )
 {
-	if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+	if ( GGVR_Player.ObjRightHand > 0 )
 	{
-		return ObjectPositionY(GGVR_Player.ObjRightHand);
+		if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+		{
+			return ObjectPositionY(GGVR_Player.ObjRightHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetRightHandZ( )
 {
-	if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+	if ( GGVR_Player.ObjRightHand > 0 )
 	{
-		return ObjectPositionZ(GGVR_Player.ObjRightHand);
+		if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+		{
+			return ObjectPositionZ(GGVR_Player.ObjRightHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetRightHandAngleX( )
 {
-	if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+	if ( GGVR_Player.ObjRightHand > 0 )
 	{
-		return ObjectAngleX(GGVR_Player.ObjRightHand);
+		if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+		{
+			return ObjectAngleX(GGVR_Player.ObjRightHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetRightHandAngleY( )
 {
-	if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+	if ( GGVR_Player.ObjRightHand > 0 )
 	{
-		return ObjectAngleY(GGVR_Player.ObjRightHand);
+		if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+		{
+			return ObjectAngleY(GGVR_Player.ObjRightHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetRightHandAngleZ( )
 {
-	if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+	if ( GGVR_Player.ObjRightHand > 0 )
 	{
-		return ObjectAngleZ(GGVR_Player.ObjRightHand);
+		if (ObjectExist(GGVR_Player.ObjRightHand) == 1)
+		{
+			return ObjectAngleZ(GGVR_Player.ObjRightHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetLeftHandX( )
 {
-	if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+	if ( GGVR_Player.ObjLeftHand > 0 )
 	{
-		return ObjectPositionX(GGVR_Player.ObjLeftHand);
+		if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+		{
+			return ObjectPositionX(GGVR_Player.ObjLeftHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetLeftHandY( )
 {
-	if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+	if ( GGVR_Player.ObjLeftHand > 0 )
 	{
-		return ObjectPositionY(GGVR_Player.ObjLeftHand);
+		if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+		{
+			return ObjectPositionY(GGVR_Player.ObjLeftHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetLeftHandZ( )
 {
-	if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+	if ( GGVR_Player.ObjLeftHand > 0 )
 	{
-		return ObjectPositionZ(GGVR_Player.ObjLeftHand);
+		if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+		{
+			return ObjectPositionZ(GGVR_Player.ObjLeftHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetLeftHandAngleX( )
 {
-	if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+	if ( GGVR_Player.ObjLeftHand > 0 )
 	{
-		return ObjectAngleX(GGVR_Player.ObjLeftHand);
+		if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+		{
+			return ObjectAngleX(GGVR_Player.ObjLeftHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetLeftHandAngleY( )
 {
-	if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+	if ( GGVR_Player.ObjLeftHand > 0 )
 	{
-		return ObjectAngleY(GGVR_Player.ObjLeftHand);
+		if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+		{
+			return ObjectAngleY(GGVR_Player.ObjLeftHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
 }
 
 float GGVR_GetLeftHandAngleZ( )
 {
-	if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+	if ( GGVR_Player.ObjLeftHand > 0 )
 	{
-		return ObjectAngleZ(GGVR_Player.ObjLeftHand);
+		if (ObjectExist(GGVR_Player.ObjLeftHand) == 1)
+		{
+			return ObjectAngleZ(GGVR_Player.ObjLeftHand);
+		}
+		else { return 0; }
 	}
 	else { return 0; }
+}
+
+float GGVR_GetBestHandX()
+{
+	if ( GGVR_Player.ObjTeleportStart > 0 )
+	{
+		if (ObjectExist(GGVR_Player.ObjTeleportStart) == 1)
+		{
+			float fValue = ObjectPositionX ( GGVR_Player.ObjTeleportStart );
+			return fValue;
+		}
+		else { return 0; }
+	}
+	else { return 0; }
+}
+
+float GGVR_GetBestHandY()
+{
+	//float fValue = GGVR_GetLeftHandY();
+	//if ( fabs(GGVR_GetRightHandX()) > 0 ) fValue = GGVR_GetRightHandY();
+	if ( GGVR_Player.ObjTeleportStart > 0 )
+	{
+		if (ObjectExist(GGVR_Player.ObjTeleportStart) == 1)
+		{
+			float fValue = ObjectPositionY ( GGVR_Player.ObjTeleportStart );
+			return fValue;
+		}
+		else { return 0; }
+	}
+	else { return 0; }
+}
+
+float GGVR_GetBestHandZ()
+{
+	//float fValue = GGVR_GetLeftHandZ();
+	//if ( fabs(GGVR_GetRightHandX()) > 0 ) fValue = GGVR_GetRightHandZ();
+	if ( GGVR_Player.ObjTeleportStart > 0 )
+	{
+		if (ObjectExist(GGVR_Player.ObjTeleportStart) == 1)
+		{
+			float fValue = ObjectPositionZ ( GGVR_Player.ObjTeleportStart );
+			return fValue;
+		}
+		else { return 0; }
+	}
+	else { return 0; }
+}
+
+float GGVR_GetBestHandAngleX()
+{
+	float fValue = GGVR_GetLeftHandAngleX();
+	if ( fabs(GGVR_GetRightHandX()) > 0 ) fValue = GGVR_GetRightHandAngleX();
+	return fValue;
+}
+
+float GGVR_GetBestHandAngleY()
+{
+	float fValue = GGVR_GetLeftHandAngleY();
+	if ( fabs(GGVR_GetRightHandX()) > 0 ) fValue = GGVR_GetRightHandAngleY();
+	return fValue;
+}
+
+float GGVR_GetBestHandAngleZ()
+{
+	float fValue = GGVR_GetLeftHandAngleZ();
+	if ( fabs(GGVR_GetRightHandX()) > 0 ) fValue = GGVR_GetRightHandAngleZ();
+	return fValue;
+}
+
+int GGVR_GetLaserGuidedEntityObj ( int entityviewstartobj, int entityviewendobj )
+{
+	int iEntObjectNumber = 0;
+	if ( GGVR_Player.LaserGuideActive > 0 )
+	{
+		int o = GGVR_Player.LaserGuideActive;
+		if ( ObjectExist ( o ) == 1 )
+		{
+			// work out ray cast from laser object
+			MoveObject ( o, -100.0f );
+			float fX = ObjectPositionX ( o );
+			float fY = ObjectPositionY ( o );
+			float fZ = ObjectPositionZ ( o );
+			MoveObject ( o, 200.0f );
+			float fNewX = ObjectPositionX ( o );
+			float fNewY = ObjectPositionY ( o );
+			float fNewZ = ObjectPositionZ ( o );
+			MoveObject ( o, -100.0f );
+
+			// use this laser object to trace line and detect any entity object in its path
+			int iIgnoreObjNo = GGVR_Player.LaserGuideActive;
+			int ttt = IntersectAll(0,0,0,0,0,0,0,0,-123);
+			int tthitvalue = IntersectAll(entityviewstartobj,entityviewendobj,fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo);
+			if ( tthitvalue > 0 )
+			{
+				// this entity was found when tracing the laser line
+				iEntObjectNumber = tthitvalue;
+			}
+		}
+	}
+	return iEntObjectNumber;
 }
 
 // Generic Controller
@@ -1683,30 +1961,38 @@ float GGVR_LeftController_Trigger( void )
 
 int GGVR_RightController_Grip(void)
 {
-	if ( GGVR_EnabledMode == 1 )
-	{
-		#ifdef USINGOPENVR
-		if (GGVR_ControllerState[0].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
-		{
-			return 1;
-		}
-		#endif
-	}
-	return 0;
+	if ( GGVR_ControllerState[0].rAxis[GGVR_RSideButton].x > 0.9f )
+		return 1;
+	else
+		return 0;
+	//if ( GGVR_EnabledMode == 1 )
+	//{
+	//	#ifdef USINGOPENVR
+	//	if (GGVR_ControllerState[0].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+	//	{
+	//		return 1;
+	//	}
+	//	#endif
+	//}
+	//return 0;
 }
 
 int GGVR_LeftController_Grip(void)
 {
-	if ( GGVR_EnabledMode == 1 )
-	{
-		#ifdef USINGOPENVR
-		if (GGVR_ControllerState[1].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
-		{
-			return 1;
-		}
-		#endif
-	}
-	return 0;
+	if ( GGVR_ControllerState[1].rAxis[GGVR_RSideButton].x > 0.9f )
+		return 1;
+	else
+		return 0;
+	//if ( GGVR_EnabledMode == 1 )
+	//{
+	//	#ifdef USINGOPENVR
+	//	if (GGVR_ControllerState[1].ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+	//	{
+	//		return 1;
+	//	}
+	//	#endif
+	//}
+	//return 0;
 }
 
 int GGVR_RightController_Button1(void)
@@ -2061,6 +2347,11 @@ void GGVR_PlayerData::Destroy( )
 	if ( ObjectExist(GGVR_Player.ObjOrigin)==1 ) DeleteObject ( GGVR_Player.ObjOrigin );
 	if ( ObjectExist(GGVR_Player.ObjRightHand)==1 ) DeleteObject ( GGVR_Player.ObjRightHand );
 	if ( ObjectExist(GGVR_Player.ObjLeftHand)==1 ) DeleteObject ( GGVR_Player.ObjLeftHand );
+
+	// Delete any teleport/laser objects
+	for ( int o = GGVR_Player.ObjTeleportStart; o <= GGVR_Player.ObjTeleportFinish; o++ )
+		if ( ObjectExist(o) ) 
+			DeleteObject ( o );
 }
 
 int GGVR_PlayerData::GetOriginObjID()

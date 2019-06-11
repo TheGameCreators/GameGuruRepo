@@ -5393,7 +5393,7 @@ void loadscreenpromptassets ( int iUseVRTest )
 					// 050917 - check if this file exists for consideration
 					if ( t.game.gameisexe == 1 ) 
 					{
-						if ( iUseVRTest == 1 )
+						if ( iUseVRTest > 0 )
 							sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
 						else
 							sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
@@ -5431,7 +5431,7 @@ void loadscreenpromptassets ( int iUseVRTest )
 				{
 					// could not find any matching resolution files, just pick any file in the watermark folder
 					LPSTR pOldDir = GetDir();
-					if ( iUseVRTest == 1 )
+					if ( iUseVRTest > 0 )
 						sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded", g.language_s.Get() );
 					else
 						sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark", g.language_s.Get() );
@@ -5458,7 +5458,7 @@ void loadscreenpromptassets ( int iUseVRTest )
 				{
 					// show splash initially
 					tfile_s = respart_s;
-					if ( iUseVRTest == 1 )
+					if ( iUseVRTest > 0 )
 						sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\branded\\%s", g.language_s.Get(), tfile_s.Get() );
 					else
 						sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
@@ -5479,10 +5479,17 @@ void loadscreenpromptassets ( int iUseVRTest )
 				{	
 					if ( g.vrqcontrolmode != 0 )
 					{
-						if ( g.gvrmode == 3 && iUseVRTest == 1 )
-							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-vr.png", g.language_s.Get() );
+						if ( iUseVRTest == 2 )
+						{
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\socialvr.png", g.language_s.Get() );
+						}
 						else
-							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-noweapons.png", g.language_s.Get() );
+						{
+							if ( g.gvrmode == 3 && iUseVRTest == 1 )
+								sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-vr.png", g.language_s.Get() );
+							else
+								sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-noweapons.png", g.language_s.Get() );
+						}
 					}
 					else
 					{

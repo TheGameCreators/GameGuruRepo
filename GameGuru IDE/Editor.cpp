@@ -837,7 +837,8 @@ void CEditorApp::CheckForDBProApplications ( void )
 		//m_bGameOrBuildInProgress = false;	// state of game
 		
 		// check to see if any of these processes are running
-		bMapEditor = IsProcessRunning ( "Game Guru12345" );//"FPSC Map Editor12345" );
+		//bMapEditor = IsProcessRunning ( "Game Guru12345" );//"FPSC Map Editor12345" );
+		bMapEditor = IsProcessRunning ( "MyGame12345" );//"FPSC Map Editor12345" );
 		if ( bMapEditor==false ) bMapEditor = IsProcessRunning ( "Guru-MapEditor" );
 		//m_bGameOrBuildInProgress = IsProcessRunning ( "FPSC Game12345" );
 		//if ( m_bGameOrBuildInProgress==false ) m_bGameOrBuildInProgress = IsProcessRunning ( "FPSC-Game" );
@@ -1013,9 +1014,8 @@ void CEditorApp::UpdateTermination ( void )
 		while ( 1 )
 		{
 			bool bMapEditor = false;
-
-			bMapEditor = IsProcessRunning ( "Game Guru12345" );//"FPSC Map Editor12345" );
-
+			//bMapEditor = IsProcessRunning ( "Game Guru12345" );//"FPSC Map Editor12345" );
+			bMapEditor = IsProcessRunning ( "MyGame12345" );//"FPSC Map Editor12345" );
 			if ( !bMapEditor )
 				break;
 		}
@@ -2828,7 +2828,8 @@ BOOL CEditorApp::InitInstance ( )
 
 	// before we start things up, detect any old FPSC-MapEditor.exe processes/windows
 	// and remove them so we don't get that freeze issue for users who crashed out/etc
-	char* szProcess = "Game Guru12345";//FPSC Map Editor12345";
+	//char* szProcess = "Game Guru12345";//FPSC Map Editor12345";
+	char* szProcess = "MyGame12345";//FPSC Map Editor12345";
 	HWND hWndFind = FindWindow ( szProcess, NULL );
 	if ( hWndFind )
 	{
@@ -3114,7 +3115,8 @@ BOOL CEditorApp::PreTranslateMessage ( MSG* pMsg )
 	// forward messages allowing ENTRY$() to function in DBP App
 	// C++ CONVERSION - now only sends for use in INPUT as Entry() info is passed via filemap
 	// This used to be commented out, but now back in to ensure Inkey works
-	if ( g_hwndRealDBPApp==NULL ) g_hwndRealDBPApp = FindWindow ( "Game Guru12345", NULL );
+	//if ( g_hwndRealDBPApp==NULL ) g_hwndRealDBPApp = FindWindow ( "Game Guru12345", NULL );
+	if ( g_hwndRealDBPApp==NULL ) g_hwndRealDBPApp = FindWindow ( "MyGame12345", NULL );
 	if ( g_hwndRealDBPApp )
 	{
 		// Fix for inkey sticking

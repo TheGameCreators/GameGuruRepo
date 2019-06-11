@@ -1934,7 +1934,7 @@ int GetHeadTracker(lua_State *L)
 	lua = L;
 	int id = 0;
 	#ifdef VRQUEST
-	 if ( GGVR_IsHmdPresent() > 0 ) id = 1;
+	 if ( GGVR_IsHmdPresent() > 0 && g.vrglobals.GGVRUsingVRSystem == 1 ) id = 1;
 	#else
 	 if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
 	#endif
@@ -4417,8 +4417,15 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 
 		case 190 : if ( GGVR_IsHmdPresent() > 0 ) { lua_pushnumber ( L, 1 ); } else { lua_pushnumber ( L, 0 ); } break;
 		case 191 : lua_pushnumber ( L, GGVR_IsHmdPresent() ); break;				
-		case 192 : lua_pushnumber ( L, GGVR_RightController_JoyX() ); break;				
-		case 193 : lua_pushnumber ( L, GGVR_RightController_JoyY() ); break;				
+		case 192 : lua_pushnumber ( L, GGVR_RightController_JoyX() ); break;
+		case 193 : lua_pushnumber ( L, GGVR_RightController_JoyY() ); break;
+		case 194 : lua_pushnumber ( L, GGVR_GetBestHandX() ); break;
+		case 195 : lua_pushnumber ( L, GGVR_GetBestHandY() ); break;
+		case 196 : lua_pushnumber ( L, GGVR_GetBestHandZ() ); break;
+		case 197 : lua_pushnumber ( L, GGVR_GetBestHandAngleX() ); break;
+		case 198 : lua_pushnumber ( L, GGVR_GetBestHandAngleY() ); break;
+		case 199 : lua_pushnumber ( L, GGVR_GetBestHandAngleZ() ); break;
+		case 200 : lua_pushnumber ( L, GGVR_GetLaserGuidedEntityObj(g.entityviewstartobj,g.entityviewendobj) ); break;
 
 		case 201 : lua_pushnumber ( L, t.gun[gunId].settings.ismelee         ); break;
 		case 202 : lua_pushnumber ( L, t.gun[gunId].settings.alternate       ); break;
@@ -4854,6 +4861,13 @@ int GetGamePlayerStateMotionController ( lua_State *L ) { return GetGamePlayerCo
 int GetGamePlayerStateMotionControllerType ( lua_State *L ) { return GetGamePlayerControlData ( L, 191 ); }
 int MotionControllerThumbstickX ( lua_State *L ) { return GetGamePlayerControlData ( L, 192 ); }
 int MotionControllerThumbstickY ( lua_State *L ) { return GetGamePlayerControlData ( L, 193 ); }
+int MotionControllerBestX ( lua_State *L ) { return GetGamePlayerControlData ( L, 194 ); }
+int MotionControllerBestY ( lua_State *L ) { return GetGamePlayerControlData ( L, 195 ); }
+int MotionControllerBestZ ( lua_State *L ) { return GetGamePlayerControlData ( L, 196 ); }
+int MotionControllerBestAngleX ( lua_State *L ) { return GetGamePlayerControlData ( L, 197 ); }
+int MotionControllerBestAngleY ( lua_State *L ) { return GetGamePlayerControlData ( L, 198 ); }
+int MotionControllerBestAngleZ ( lua_State *L ) { return GetGamePlayerControlData ( L, 199 ); }
+int MotionControllerLaserGuidedEntityObj ( lua_State *L ) { return GetGamePlayerControlData ( L, 200 ); }
 
 int SetGamePlayerStateIsMelee ( lua_State *L ) { return SetGamePlayerControlData ( L, 201 ); }
 int GetGamePlayerStateIsMelee ( lua_State *L ) { return GetGamePlayerControlData ( L, 201 ); }
@@ -6252,6 +6266,13 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateMotionControllerType" , GetGamePlayerStateMotionControllerType );
 	lua_register(lua, "MotionControllerThumbstickX" , MotionControllerThumbstickX );
 	lua_register(lua, "MotionControllerThumbstickY" , MotionControllerThumbstickY );
+	lua_register(lua, "MotionControllerBestX" , MotionControllerBestX );
+	lua_register(lua, "MotionControllerBestY" , MotionControllerBestY );
+	lua_register(lua, "MotionControllerBestZ" , MotionControllerBestZ );
+	lua_register(lua, "MotionControllerBestAngleX" , MotionControllerBestAngleX );
+	lua_register(lua, "MotionControllerBestAngleY" , MotionControllerBestAngleY );
+	lua_register(lua, "MotionControllerBestAngleZ" , MotionControllerBestAngleZ );
+	lua_register(lua, "MotionControllerLaserGuidedEntityObj" , MotionControllerLaserGuidedEntityObj );
 	
 	lua_register(lua, "SetGamePlayerStateIsMelee" , SetGamePlayerStateIsMelee );
 	lua_register(lua, "GetGamePlayerStateIsMelee" , GetGamePlayerStateIsMelee );

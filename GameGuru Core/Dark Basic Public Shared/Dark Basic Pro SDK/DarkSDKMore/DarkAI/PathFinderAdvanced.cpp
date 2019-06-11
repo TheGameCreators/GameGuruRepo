@@ -2386,6 +2386,11 @@ bool PathFinderAdvanced::QuickPolygonsCheck ( float fSX, float fSY, float fEX, f
 	{
 		return pOptimizedCol->Intersects( fSX, fSY, fEX, fEY, iHeight );
 	}
+	else
+	{
+		// no obstacles created for non-zero containers, so assume no collisions (allowing free movement of AI inside non-zero containers)
+		return false;
+	}
 	/* broken!!
 	int iGridSX = fSX/400.0f;
 	int iGridSZ = fSY/400.0f;

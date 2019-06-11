@@ -155,51 +155,6 @@ void game_masterroot ( int iUseVRTest )
 		if ( t.game.runasmultiplayer == 1 ) 
 		{
 			// Multiplayer init
-			/*
-			// first get any avatar the player is identified as
-			if ( FileOpen(1) == 1 ) CloseFile ( 1 );
-			if ( FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() ) == 1 ) 
-			{
-				OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() );
-				g.mp.myAvatar_s = ReadString ( 1 );
-				g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
-				g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
-				CloseFile ( 1 );
-			}
-			// second, get obfuscated site name from sitekey
-			char pSiteName[1024];
-			strcpy ( pSiteName, "site name" );
-			cstr SiteName_s;
-			char pSitename[1024];
-			strcpy ( pSitename, "12345-12345-12345-12345" );
-			if ( FileExist( cstr(g.fpscrootdir_s + "\\vrqcontrolmode.ini").Get() ) == 1 ) 
-			{
-				OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\vrqcontrolmode.ini").Get() );
-				SiteName_s = ReadString ( 1 );
-				strcpy ( pSitename, SiteName_s.Get() );
-				for ( int n = 0; n < strlen(pSitename); n++ )
-				{
-					if ( pSitename[n] == '-' ) 
-						pSitename[n] = 'Z';
-					else
-						pSitename[n] = pSitename[n] + 1;
-				}
-				CloseFile ( 1 );
-			}			
-			// third, check if teacher view all mode enabled
-			bool bViewAllMode = false;
-			if ( FileExist( cstr(g.fpscrootdir_s + "\\teacherviewallmode.dat").Get() ) == 1 ) 
-			{
-				bViewAllMode = true;
-				CloseFile ( 1 );
-			}
-			// Initialise multiplayer system
-			#ifdef PHOTONMP
-			 PhotonInit(g.fpscrootdir_s.Get(),pSitename,g.mp.myAvatarName_s.Get(),bViewAllMode);
-			#else
-			 // Steam initialised at very start (for other Steam features)
-			#endif
-			*/
 			mp_fullinit();
 			g.mp.mode = MP_MODE_MAIN_MENU;
 			timestampactivity(0,"_titles_steampage");
@@ -506,6 +461,7 @@ void game_masterroot ( int iUseVRTest )
 				*/
 
 				// perhaps it is a solo game with a start maker only
+				bool bHaveRegularStartMarker = false;
 				if ( g.mp.coop == 0 && t.tnumberofstartmarkers == 0 ) 
 				{
 					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
@@ -516,6 +472,7 @@ void game_masterroot ( int iUseVRTest )
 							if ( t.entityprofile[t.entid].ismarker == 1 ) 
 							{
 								// a spawn GetPoint ( for the multiplayer )
+								bHaveRegularStartMarker = true;
 								t.mpmultiplayerstart[1].active=1;
 								t.mpmultiplayerstart[1].x=t.entityelement[t.e].x;
 								// added 10 onto the y otherwise the players fall through the ground
@@ -592,7 +549,7 @@ void game_masterroot ( int iUseVRTest )
 				*/
 
 				// if no multiplayer markers, put some at the default height
-				if ( t.tnumberofstartmarkers == 0 ) 
+				if ( t.tnumberofstartmarkers == 0 && bHaveRegularStartMarker == false ) 
 				{
 					for ( t.tloop = 1; t.tloop <= MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
 					{
@@ -2976,7 +2933,11 @@ void game_finish_level_from_lua ( void )
 	}
 	else
 	{
-		t.s_s="Level Complete Triggered"  ; lua_prompt ( );
+		#ifdef VRQUEST
+			t.s_s="Game Completed"  ; lua_prompt ( );
+		#else
+			t.s_s="Level Complete Triggered"  ; lua_prompt ( );
+		#endif
 	}
 }
 

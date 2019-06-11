@@ -58,7 +58,7 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\..\..\..\GameGuru\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">$(ProjectDir)..\..\..\..\..\GameGuru\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">F:\Dropbox\GameGuru Builds\Standalone\VRQuest2\VRQuestTEST</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">.\Release\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\..\..\..\GameGuru\</OutDir>

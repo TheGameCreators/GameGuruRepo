@@ -4,7 +4,7 @@
 #define FPSCR
 
 // photon core commands
-int PhotonInit(LPSTR pRootPath,LPSTR pSiteName,LPSTR pAvatarName,bool bViewAllMode);
+int PhotonInit(LPSTR pRootPath,LPSTR pSiteName,LPSTR pAvatarName,bool bViewAllMode,LPSTR pOptionalPhotonAppID);
 void PhotonFree();
 void PhotonLoop(void);
 int PhotonCloseConnection();

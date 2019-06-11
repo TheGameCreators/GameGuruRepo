@@ -15,8 +15,8 @@ using namespace ExitGames::Common;
 using namespace ExitGames::Photon;
 
 // Global Consts
-static const ExitGames::Common::JString appID = L"f6c9acc6-a6a2-4704-9618-cd4a5ebe4db6";
-static const ExitGames::Common::JString appVersion = L"0.1";
+static const ExitGames::Common::JString appID = L"ec03ea1d-6245-4e12-bbd2-9d4f1c10116c";
+static const ExitGames::Common::JString appVersion = L"1.0";
 
 // Globals - main connections
 bool gUseTcp = false;
@@ -149,12 +149,15 @@ tAnimation currentAnimationObject;
 
 // photon core commands
 
-int PhotonInit(LPSTR pRootPath,LPSTR pSiteName,LPSTR pAvatarName,bool bViewAllMode)
+int PhotonInit(LPSTR pRootPath,LPSTR pSiteName,LPSTR pAvatarName,bool bViewAllMode,LPSTR pOptionalPhotonAppID)
 {
 	// create photon classes
 	g_pPhotonView = new PhotonView();
 	g_pLBL = new LoadBalancingListener(g_pPhotonView, pRootPath);
-	g_pLBC = new Client(*g_pLBL, appID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
+
+	JString pPhotonAppID = appID;
+	if ( pOptionalPhotonAppID ) pPhotonAppID = JString(pOptionalPhotonAppID);
+	g_pLBC = new Client(*g_pLBL, pPhotonAppID, appVersion, gUseTcp?ExitGames::Photon::ConnectionProtocol::TCP:ExitGames::Photon::ConnectionProtocol::UDP);
 	
 	// for debugging and testing, allow 20 MINUTES timeout grace for debugging
 	g_pLBC->setDisconnectTimeout(120000*10);
@@ -190,10 +193,7 @@ int PhotonInit(LPSTR pRootPath,LPSTR pSiteName,LPSTR pAvatarName,bool bViewAllMo
 
 	// inits - after much tracing through this old code, it has too many Steam specific hooks
 	// we can create simpler state management in a way that allows easy 'host migration'
-	//PhotonInitClient();
-	//PhotonCleanupClient();
 	PhotonResetGameStats();
-	//PhotonInitClient();
 
 	// inits
 	g_pPhotonView->iTriggerLeaveMode = 0;
@@ -255,8 +255,6 @@ void PhotonLoop(void)
 		if ( g_pPhotonView->isInGameRoom() == true )
 		{
 			// run logic in game room
-			// eventually use the data exchange to organise users playing the game, transfering levels and avatars
-			// and of course, running all the game logic when in-game!!
 			int iMPState = g_pLBL->service();
 		}
 
@@ -857,7 +855,7 @@ void PhotonPlayAnimation ( int index, int start, int end, int speed )
 	if ( g_pPhotonView )
 	{
 		MsgClientPlayAnimation_t msg;
-		msg.playerIndex =g_pLBL->muPlayerIndex;
+		msg.playerIndex = g_pLBL->muPlayerIndex;
 		msg.index = index;
 		msg.start = start;
 		msg.end = end;

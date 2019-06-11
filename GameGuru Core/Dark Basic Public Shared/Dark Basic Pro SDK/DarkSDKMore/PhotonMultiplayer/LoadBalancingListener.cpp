@@ -62,6 +62,51 @@ void LoadBalancingListener::disconnectReturn(void)
 	mPhotonView->setConnectionState(false);
 }
 
+// From F:\GameGuruRepo\GameGuru Core\SDK\PhotonSDK\Photon-cpp\inc\Enums\StatusCode.h
+//\\ EXCEPTION_ON_CONNECT              = 1023; ///<the PhotonPeer encountered an exception while opening the incoming connection to the server. The server could be down / not running.
+//\\ CONNECT                           = 1024; ///<the PhotonPeer is connected.
+//\\ DISCONNECT                        = 1025; ///<the PhotonPeer just disconnected.
+//\\ EXCEPTION                         = 1026; ///<the PhotonPeer encountered an exception and will disconnect, too.
+//\\ QUEUE_OUTGOING_RELIABLE_WARNING   = 1027; ///<PhotonPeer outgoing queue is filling up. send more often.
+//\\ QUEUE_OUTGOING_UNRELIABLE_WARNING = 1029; ///<PhotonPeer outgoing queue is filling up. send more often.
+//\\ SEND_ERROR                        = 1030; ///<Sending command failed. Either not connected, or the requested channel is bigger than the number of initialized channels.
+//\\ QUEUE_OUTGOING_ACKS_WARNING       = 1031; ///<PhotonPeer outgoing queue is filling up. Send more often.
+//\\ QUEUE_INCOMING_RELIABLE_WARNING   = 1033; ///<PhotonPeer incoming reliable queue is filling up. Dispatch more often.
+//\\ QUEUE_INCOMING_UNRELIABLE_WARNING = 1035; ///<PhotonPeer incoming unreliable queue is filling up. Dispatch more often.
+//\\ QUEUE_SENT_WARNING                = 1037; ///<PhotonPeer sent queue is filling up. Check, why the server does not acknowledge your sent reliable commands.
+//\\ INTERNAL_RECEIVE_EXCEPTION        = 1039; ///<Exception, if a server cannot be connected. Most likely, the server is not responding. Ask the user to try again later.
+//\\ TIMEOUT_DISCONNECT                = 1040; ///<Disconnection due to a timeout (client did no longer receive ACKs from server).
+//\\ DISCONNECT_BY_SERVER              = 1041; ///<Disconnect by server due to timeout (received a disconnect command, cause server misses ACKs of client).
+//\\ DISCONNECT_BY_SERVER_USER_LIMIT   = 1042; ///<Disconnect by server due to concurrent user limit reached (received a disconnect command).
+//\\ DISCONNECT_BY_SERVER_LOGIC        = 1043; ///<Disconnect by server due to server's logic (received a disconnect command).
+//\\ ENCRYPTION_ESTABLISHED            = 1048; ///<The encryption-setup for secure communication finished successfully.
+//\\ ENCRYPTION_FAILED_TO_ESTABLISH    = 1049; ///<The encryption-setup failed for some reason. Check debug logs.
+
+void LoadBalancingListener::connectionErrorReturn(int errorCode)
+{
+	char pStr[1024];
+	sprintf(pStr,"connectionErrorReturn %d",errorCode);
+	//MessageBox ( NULL, pStr, pStr, MB_OK );
+}
+void LoadBalancingListener::clientErrorReturn(int errorCode)
+{
+	char pStr[1024];
+	sprintf(pStr,"clientErrorReturn %d",errorCode);
+	//MessageBox ( NULL, pStr, pStr, MB_OK );
+}
+void LoadBalancingListener::warningReturn(int warningCode)
+{
+	char pStr[1024];
+	sprintf(pStr,"warningReturn %d",warningCode);
+	//MessageBox ( NULL, pStr, pStr, MB_OK );
+}
+void LoadBalancingListener::serverErrorReturn(int errorCode)
+{
+	char pStr[1024];
+	sprintf(pStr,"serverErrorReturn %d",errorCode);
+	//MessageBox ( NULL, pStr, pStr, MB_OK );
+}
+
 void LoadBalancingListener::createRoom ( LPSTR name )
 {
 	Hashtable props;
@@ -1193,76 +1238,88 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 			break;
 		case k_EMsgClientSetSendFileCount:
 			{
-				if ( cubMsgSize == sizeof( MsgClientSetSendFileCount_t ) )
+				// server sends the files, joiners receive them
+				if ( mbIsServer == false )
 				{
-					MsgClientSetSendFileCount_t* pmsg = (MsgClientSetSendFileCount_t*)pchRecvBuf;
-					ServerFilesToReceive = pmsg->count;
-					ServerFilesReceived = 0;
-					IamSyncedWithServerFiles = 0;
-					//IamLoadedAndReady = 0;
-					//isEveryoneLoadedAndReady = 0;
-					//IamReadyToPlay = 0;
-					//isEveryoneReadyToPlay = 0;
+					if ( cubMsgSize == sizeof( MsgClientSetSendFileCount_t ) )
+					{
+						MsgClientSetSendFileCount_t* pmsg = (MsgClientSetSendFileCount_t*)pchRecvBuf;
+						ServerFilesToReceive = pmsg->count;
+						ServerFilesReceived = 0;
+						IamSyncedWithServerFiles = 0;
+						//IamLoadedAndReady = 0;
+						//isEveryoneLoadedAndReady = 0;
+						//IamReadyToPlay = 0;
+						//isEveryoneReadyToPlay = 0;
+					}
 				}
 			}
 			break;			
 		case k_EMsgClientSendFileBegin:
 			{
-				if ( cubMsgSize == sizeof( MsgClientSendFileBegin_t ) )
+				// server sends the files, joiners receive them
+				if ( mbIsServer == false )
 				{
-					MsgClientSendFileBegin_t* pmsg = (MsgClientSendFileBegin_t*)pchRecvBuf;
-					if ( mhServerFile ) fclose ( mhServerFile );
+					if ( cubMsgSize == sizeof( MsgClientSendFileBegin_t ) )
+					{
+						MsgClientSendFileBegin_t* pmsg = (MsgClientSendFileBegin_t*)pchRecvBuf;
+						if ( mhServerFile ) fclose ( mhServerFile );
 
-					// get full asbolute path to file for writing
-					char pAbsFilename[2048];
-					strcpy ( pAbsFilename, mpRootPath );
-					strcat ( pAbsFilename, "\\Files\\" );
-					strcat ( pAbsFilename, pmsg->fileName );
+						// get full asbolute path to file for writing
+						char pAbsFilename[2048];
+						strcpy ( pAbsFilename, mpRootPath );
+						strcat ( pAbsFilename, "\\Files\\" );
+						strcat ( pAbsFilename, pmsg->fileName );
 
-					mhServerFile = fopen ( pAbsFilename, "wb" );
-					serverHowManyFileChunks = (int)ceil( (float)pmsg->fileSize / float(FILE_CHUNK_SIZE) );
-					serverFileFileSize = pmsg->fileSize;
-					//IsWorkshopLoadingOn = 1;
-					miFileProgress = 0;
+						mhServerFile = fopen ( pAbsFilename, "wb" );
+						serverHowManyFileChunks = (int)ceil( (float)pmsg->fileSize / float(FILE_CHUNK_SIZE) );
+						serverFileFileSize = pmsg->fileSize;
+						//IsWorkshopLoadingOn = 1;
+						miFileProgress = 0;
+					}
 				}
 			}
 			break;
 		case k_EMsgClientSendChunk:
 			{
-				if ( cubMsgSize == sizeof( MsgClientSendChunk_t ) )
+				// server sends the files, joiners receive them
+				if ( mbIsServer == false )
 				{
-					MsgClientSendChunk_t* pmsg = (MsgClientSendChunk_t*)pchRecvBuf;
-					if ( mhServerFile ) 
+					if ( cubMsgSize == sizeof( MsgClientSendChunk_t ) )
 					{
-						int chunkSize = FILE_CHUNK_SIZE;
-						if ( pmsg->index == serverHowManyFileChunks )
+						MsgClientSendChunk_t* pmsg = (MsgClientSendChunk_t*)pchRecvBuf;
+						if ( mhServerFile ) 
 						{
-							if ( serverHowManyFileChunks == 1 )
-								chunkSize = serverFileFileSize;
-							else
-								chunkSize = serverFileFileSize - ((serverHowManyFileChunks-1) * FILE_CHUNK_SIZE	);				
-						}
-
-						miFileProgress = (int)ceil(((float)(pmsg->index * FILE_CHUNK_SIZE) / (float)serverFileFileSize )  * 100.0f);
-
-						fwrite( &pmsg->chunk[0] , 1 , chunkSize , mhServerFile );
-
-						if ( pmsg->index == serverHowManyFileChunks )
-						{
-							fclose ( mhServerFile );
-							mhServerFile = NULL;
-							ServerFilesReceived++;
-							if ( ServerFilesReceived == 0 ) ServerFilesReceived = 1;
-							if ( ServerFilesReceived >= ServerFilesToReceive ) 
+							int chunkSize = FILE_CHUNK_SIZE;
+							if ( pmsg->index == serverHowManyFileChunks )
 							{
-								IamSyncedWithServerFiles = 1;
-								MsgClientPlayerIamSyncedWithServerFiles_t msg;
-								msg.index = muPlayerIndex;
-								//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerIamSyncedWithServerFiles_t), k_EP2PSendReliable );
-								sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerIamSyncedWithServerFiles_t), true );
+								if ( serverHowManyFileChunks == 1 )
+									chunkSize = serverFileFileSize;
+								else
+									chunkSize = serverFileFileSize - ((serverHowManyFileChunks-1) * FILE_CHUNK_SIZE	);				
 							}
-							else
-								IamSyncedWithServerFiles = 0;
+
+							miFileProgress = (int)ceil(((float)(pmsg->index * FILE_CHUNK_SIZE) / (float)serverFileFileSize )  * 100.0f);
+
+							fwrite( &pmsg->chunk[0] , 1 , chunkSize , mhServerFile );
+
+							if ( pmsg->index == serverHowManyFileChunks )
+							{
+								fclose ( mhServerFile );
+								mhServerFile = NULL;
+								ServerFilesReceived++;
+								if ( ServerFilesReceived == 0 ) ServerFilesReceived = 1;
+								if ( ServerFilesReceived >= ServerFilesToReceive ) 
+								{
+									IamSyncedWithServerFiles = 1;
+									MsgClientPlayerIamSyncedWithServerFiles_t msg;
+									msg.index = muPlayerIndex;
+									//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerIamSyncedWithServerFiles_t), k_EP2PSendReliable );
+									sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerIamSyncedWithServerFiles_t), true );
+								}
+								else
+									IamSyncedWithServerFiles = 0;
+							}
 						}
 					}
 				}
@@ -1529,22 +1586,6 @@ void LoadBalancingListener::updateGroups(void)
 	}
 }
 */
-
-void LoadBalancingListener::connectionErrorReturn(int errorCode)
-{
-}
-
-void LoadBalancingListener::clientErrorReturn(int errorCode)
-{
-}
-
-void LoadBalancingListener::warningReturn(int warningCode)
-{
-}
-
-void LoadBalancingListener::serverErrorReturn(int errorCode)
-{
-}
 
 void LoadBalancingListener::joinRoomEventAction(int playerNr, const JVector<int>& playernrs, const Player& player)
 {

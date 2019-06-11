@@ -1660,9 +1660,9 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	}
 	
 	//  set-up test game screen prompt assets
-	loadscreenpromptassets(iUseVRTest);
 	if ( t.game.runasmultiplayer == 1 ) 
 	{
+		loadscreenpromptassets(2);
 		#ifdef PHOTONMP
 		 printscreenprompt("ENTERING SOCIAL VR");
 		#else
@@ -1671,6 +1671,7 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	}
 	else
 	{
+		loadscreenpromptassets(iUseVRTest);
 		printscreenprompt("LAUNCHING TEST LEVEL");
 	}
 
@@ -1718,6 +1719,7 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	t.storecz_f=CameraPositionZ();
 
 	// default start position is edit-camera XZ
+	/* remove this so as not to influence start marker positioning
 	t.terrain.playerx_f=CameraPositionX(0);
 	t.terrain.playerz_f=CameraPositionZ(0);
 	if ( t.terrain.TerrainID>0 ) 
@@ -1731,6 +1733,7 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	t.terrain.playerax_f=0.0;
 	t.terrain.playeray_f=0.0;
 	t.terrain.playeraz_f=0.0;
+	*/
 
 	// store all editor entity positions and rotations
 	t.storedentityelementlist=g.entityelementlist;
@@ -8983,7 +8986,7 @@ void interface_openpropertywindow ( void )
 		{
 			//  Wizard (simplified) property editing
 			t.group=0 ; startgroup("Character Info") ; t.controlindex=0;
-			setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[413].Get(),"Choose a unique name for this character") ; ++t.controlindex;
+			setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[478].Get(),"Choose a unique name for this character") ; ++t.controlindex;
 			setpropertylist2(t.group,t.controlindex,t.grideleprof.aimain_s.Get(),"Behaviour","Select a behaviour for this character",11) ; ++t.controlindex;
 			setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Voiceover","Select t.a WAV or OGG file this character will use during their behaviour","audiobank\\") ; ++t.controlindex;
 			setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),"If Used","Sometimes used to specify the name of an entity to be activated") ; ++t.controlindex;
@@ -8992,7 +8995,23 @@ void interface_openpropertywindow ( void )
 		{
 			//  Name
 			t.group=0 ; startgroup(t.strarr_s[412].Get()) ; t.controlindex=0;
-			setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[413].Get(),t.strarr_s[204].Get()) ; ++t.controlindex;
+			if ( t.entityprofile[t.gridentity].ischaracter > 0 )
+			{
+				setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[478].Get(),t.strarr_s[204].Get());
+			}
+			else
+			{
+				if ( t.entityprofile[t.gridentity].ismarker > 0 )
+				{
+					if ( t.entityprofile[t.gridentity].islightmarker > 0 )
+						setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[483].Get(),t.strarr_s[204].Get());
+					else
+						setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[479].Get(),t.strarr_s[204].Get());
+				}
+				else
+					setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[413].Get(),t.strarr_s[204].Get());
+			}
+			++t.controlindex;
 			if (  t.entityprofile[t.gridentity].ismarker == 0 || t.entityprofile[t.gridentity].islightmarker == 1 ) 
 			{
 				if (  g.gentitytogglingoff == 0 ) 
@@ -9030,7 +9049,10 @@ void interface_openpropertywindow ( void )
 			// 281116 - added Specular Control per entity
 			if ( t.tflagvis == 1 ) 
 			{
-				setpropertystring2(t.group,Str(t.grideleprof.specularperc),"Specular","Set specular percentage to modulate entity specular effect")  ; ++t.controlindex; 
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertystring2(t.group,Str(t.grideleprof.specularperc),"Specular","Set specular percentage to modulate entity specular effect")  ; ++t.controlindex; 
+				}
 			}
 
 			//  Basic AI
@@ -9054,7 +9076,7 @@ void interface_openpropertywindow ( void )
 				}
 
 				t.propfield[t.group]=t.controlindex;
-				++t.group ; startgroup("AI System") ; t.controlindex=0;
+				++t.group ; startgroup(t.strarr_s[415].Get()) ; t.controlindex=0;
 				setpropertyfile2(t.group,t.grideleprof.aimain_s.Get(),t.strarr_s[417].Get(),t.strarr_s[207].Get(),pAIRoot) ; ++t.controlindex;
 			}
 
@@ -9084,7 +9106,10 @@ void interface_openpropertywindow ( void )
 					setpropertystring2(t.group,Str(t.grideleprof.bounceqty),t.strarr_s[427].Get(),t.strarr_s[217].Get()) ; ++t.controlindex;
 					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodeonhit),t.strarr_s[428].Get(),t.strarr_s[218].Get(),0) ; ++t.controlindex;
 				}
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.usespotlighting),"Spot Lighting","Set whether emits dynamic spot lighting",0) ; ++t.controlindex;
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.usespotlighting),"Spot Lighting","Set whether emits dynamic spot lighting",0) ; ++t.controlindex;
+				}
 			}
 
 			//  Is Character
@@ -9113,11 +9138,16 @@ void interface_openpropertywindow ( void )
 				if (  t.tflagchar == 1 ) 
 				{
 					setpropertystring2(t.group,Str(t.grideleprof.coneangle),t.strarr_s[434].Get(),t.strarr_s[224].Get()) ; ++t.controlindex;
-					setpropertystring2(t.group,Str(t.grideleprof.conerange),"View Range","The range within which the AI may see the player. Zero triggers the characters default range.") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.conerange),t.strarr_s[476].Get(),"The range within which the AI may see the player. Zero triggers the characters default range.") ; ++t.controlindex;
 					setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[226].Get()) ; ++t.controlindex;
 					if ( g.quickparentalcontrolmode != 2 )
+					{
 						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isviolent),"Blood Effects","Sets whether blood and screams should be used",0) ; ++t.controlindex;
-					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.colondeath),"End Collision","Set to NO switches off collision when die",0) ; ++t.controlindex;
+					}
+					if ( t.tflagsimpler == 0 )
+					{
+						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.colondeath),"End Collision","Set to NO switches off collision when die",0) ; ++t.controlindex;
+					}
 				}
 				else
 				{
@@ -9126,7 +9156,14 @@ void interface_openpropertywindow ( void )
 						t.propfield[t.group]=t.controlindex;
 						++t.group ; startgroup(t.strarr_s[435].Get()) ; t.controlindex=0;
 						setpropertystring2(t.group,t.grideleprof.usekey_s.Get(),t.strarr_s[436].Get(),t.strarr_s[225].Get()) ; ++t.controlindex;
-						setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[226].Get()) ; ++t.controlindex;
+						if ( t.tflagsimpler != 0 & t.entityprofile[t.gridentity].ismarker == 3 && t.entityprofile[t.gridentity].trigger.stylecolor == 1 )
+						{
+							// only one level - no winzone chain option
+						}
+						else
+						{
+							setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[226].Get()) ; ++t.controlindex;
+						}
 					}
 				}
 			}
@@ -9136,7 +9173,14 @@ void interface_openpropertywindow ( void )
 				{
 					setpropertystring2(t.group,t.grideleprof.usekey_s.Get(),t.strarr_s[436].Get(),t.strarr_s[225].Get()) ; ++t.controlindex;
 				}
-				setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[438].Get(),t.strarr_s[227].Get()) ; ++t.controlindex;
+				if ( t.tflagsimpler != 0 & t.entityprofile[t.gridentity].ismarker == 3 && t.entityprofile[t.gridentity].trigger.stylecolor == 1 )
+				{
+					// only one level - no winzone chain option
+				}
+				else
+				{
+					setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[227].Get()) ; ++t.controlindex;
+				}
 			}
 
 			//  Spawn Settings
@@ -9217,7 +9261,7 @@ void interface_openpropertywindow ( void )
 					{
 						t.tanimspeed_f=t.grideleprof.animspeed;
 					}
-					setpropertystring2(t.group,Str(t.tanimspeed_f),"Anim Speed","Sets the default speed of any animation associated with this entity"); ++t.controlindex;
+					setpropertystring2(t.group,Str(t.tanimspeed_f),t.strarr_s[477].Get(),"Sets the default speed of any animation associated with this entity"); ++t.controlindex;
 				}
 				if (  t.tflaghurtfall == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.hurtfall),t.strarr_s[456].Get(),t.strarr_s[246].Get())  ; ++t.controlindex; }
 				if (  t.tflagplayersettings == 1 ) 
@@ -9290,9 +9334,10 @@ void interface_openpropertywindow ( void )
 				++t.group ; startgroup(t.strarr_s[461].Get()) ; t.controlindex=0; //PE: 461=Light
 				setpropertystring2(t.group,Str(t.grideleprof.light.range),t.strarr_s[462].Get(),t.strarr_s[250].Get()) ; ++t.controlindex; //PE: 462=Light Range
 				setpropertycolor2(t.group,t.grideleprof.light.color,t.strarr_s[463].Get(),t.strarr_s[251].Get()) ; ++t.controlindex; //PE: 463=Light Color
-				//PE: Add Spot light setting.
-				setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0); ++t.controlindex;
-
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0); ++t.controlindex;
+				}
 			}
 
 			//  Decal data
@@ -9350,23 +9395,23 @@ void interface_openpropertywindow ( void )
 				{
 					if ( g.vrqcontrolmode != 0 )
 					{
-						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Audio",t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
+						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
 					}
 					else
 					{
 						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[467].Get(),t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
 					}
 					if ( t.tflagsoundset == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[255].Get(),"audiobank\\voices\\")  ; ++t.controlindex; }
-					if ( tflagtext == 1 ) { setpropertystring2(t.group,t.grideleprof.soundset_s.Get(),"Text String","Enter text to appear in-game") ; ++t.controlindex; }
+					if ( tflagtext == 1 ) { setpropertystring2(t.group,t.grideleprof.soundset_s.Get(),"Text to Appear","Enter text to appear in-game") ; ++t.controlindex; }
 					if ( tflagimage == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Image File","Select image to appear in-game","scriptbank\\images\\imagesinzone\\") ; ++t.controlindex; }
 					if ( t.tflagnosecond == 0 ) 
 					{
 						if ( t.tflagsound == 1 || t.tflagsoundset == 1 )
 						{ 
 							setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),t.strarr_s[468].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
-							setpropertyfile2(t.group,t.grideleprof.soundset2_s.Get(),"Sound2",t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
-							setpropertyfile2(t.group,t.grideleprof.soundset3_s.Get(),"Sound3",t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
-							setpropertyfile2(t.group,t.grideleprof.soundset4_s.Get(),"Sound4",t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
+							setpropertyfile2(t.group,t.grideleprof.soundset2_s.Get(),t.strarr_s[480].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
+							setpropertyfile2(t.group,t.grideleprof.soundset3_s.Get(),t.strarr_s[481].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
+							setpropertyfile2(t.group,t.grideleprof.soundset4_s.Get(),t.strarr_s[482].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
 						}
 					}
 				}
@@ -9389,8 +9434,8 @@ void interface_openpropertywindow ( void )
 			{
 				t.propfield[t.group]=t.controlindex;
 				++t.group ; startgroup(t.strarr_s[597].Get()) ; t.controlindex=0;
-				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Audio",t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
-				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Video",t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
+				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
+				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Video Slot",t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
 			}
 
 			//  Third person settings
@@ -9442,6 +9487,8 @@ void interface_copydatatoentity ( void )
 			{
 				t.chopthis_s=g.rootdir_s;
 				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[413].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
+				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[478].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
+				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[479].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
 				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[416].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
 				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[561].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
 				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[417].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
@@ -9476,6 +9523,8 @@ void interface_copydatatoentity ( void )
 			//  All YES and NO strings are auto converted if value expected
 			t.tokay=1;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[413].Get()) ) == 0 )  t.tokay = 0;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[478].Get()) ) == 0 )  t.tokay = 0;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[479].Get()) ) == 0 )  t.tokay = 0;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[436].Get()) ) == 0 )  t.tokay = 0;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[437].Get()) ) == 0 )  t.tokay = 0;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[464].Get()) ) == 0 )  t.tokay = 0;
@@ -9501,6 +9550,8 @@ void interface_copydatatoentity ( void )
 
 			//  get field data
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[413].Get()) ) == 0 )  t.grideleprof.name_s = t.tdataclipped_s;
+			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[478].Get()) ) == 0 )  t.grideleprof.name_s = t.tdataclipped_s;
+			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[479].Get()) ) == 0 )  t.grideleprof.name_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[414].Get()) ) == 0 )  t.gridentitystaticmode = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[561].Get()) ) == 0 )  t.grideleprof.aiinit_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[417].Get()) ) == 0 )  t.grideleprof.aimain_s = t.tdataclipped_s;
@@ -9508,7 +9559,7 @@ void interface_copydatatoentity ( void )
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[418].Get()) ) == 0 )  t.grideleprof.aidestroy_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[433].Get()) ) == 0 )  t.grideleprof.aishoot_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[434].Get()) ) == 0 )  t.grideleprof.coneangle = ValF(t.tdata_s.Get());
-			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("View Range") ) == 0 )  t.grideleprof.conerange = ValF(t.tdata_s.Get());
+			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[476].Get()) ) == 0 )  t.grideleprof.conerange = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[419].Get()) ) == 0 )  t.grideleprof.hasweapon_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[436].Get()) ) == 0 )  t.grideleprof.usekey_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[437].Get()) ) == 0 )  t.grideleprof.ifused_s = t.tdataclipped_s;
@@ -9576,7 +9627,7 @@ void interface_copydatatoentity ( void )
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[427].Get()) ) == 0 )  t.grideleprof.bounceqty = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[428].Get()) ) == 0 )  t.grideleprof.explodeonhit = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[455].Get()) ) == 0 )  t.grideleprof.speed = ValF(t.tdata_s.Get());
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Anim Speed") ) == 0 ) 
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[477].Get()) ) == 0 ) 
 			{
 				if (  t.playercontrol.thirdperson.enabled == 1 ) 
 				{
@@ -9636,18 +9687,18 @@ void interface_copydatatoentity ( void )
 
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[467].Get()) ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[468].Get()) ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Sound2") ) == 0 )  t.grideleprof.soundset2_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Sound3") ) == 0 )  t.grideleprof.soundset3_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Sound4") ) == 0 )  t.grideleprof.soundset4_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[480].Get()) ) == 0 )  t.grideleprof.soundset2_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[481].Get()) ) == 0 )  t.grideleprof.soundset3_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[482].Get()) ) == 0 )  t.grideleprof.soundset4_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[469].Get()) ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[598].Get()) ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[600].Get()) ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , "voiceover"  ) == 0 ) t.grideleprof.soundset1_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[462].Get()) ) == 0 )  t.grideleprof.light.range = ValF(t.tdata_s.Get());
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Text String") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Text to Appear") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Image File") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Audio") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Video") ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[469].Get()) ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Video Slot") ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
 
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[580].Get()) ) == 0 )  t.grideleprof.physics = ValF(t.tdata_s.Get());
 			if (  t.grideleprof.physics != 1  )  t.grideleprof.physics = 2;

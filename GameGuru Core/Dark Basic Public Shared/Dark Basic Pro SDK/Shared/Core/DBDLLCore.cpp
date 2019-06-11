@@ -1348,11 +1348,13 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	GetModuleFileName(NULL, workstring, 1024);
 	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0 )
 	{
-		strcpy(pAppName, "Game Guru");
+		//strcpy(pAppName, "Game Guru");
+		strcpy(pAppName, "MyGame");
 	}
 	else 
 	{
-		strcpy(pAppName, "Game Guru");
+		//strcpy(pAppName, "Game Guru");
+		strcpy(pAppName, "MyGame");
 		TCHAR * out;
 		out = PathFindFileName(workstring);
 		if (out != NULL) 

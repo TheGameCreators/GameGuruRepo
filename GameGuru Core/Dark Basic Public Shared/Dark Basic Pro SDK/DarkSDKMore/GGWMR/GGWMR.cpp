@@ -183,9 +183,9 @@ DLLEXPORT void GGWMR_GetProjectionMatrix ( int iEyeIndex,	float* pM00, float* pM
 	app.GetProjectionMatrix ( iEyeIndex, pM00, pM10, pM20, pM30, pM01, pM11, pM21, pM31, pM02, pM12, pM22, pM32, pM03, pM13, pM23, pM33 );
 }
 
-DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY )
+DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pSideButtonValue, float* pTriggerValue, float* pThumbStickX, float* pThumbStickY )
 {
-	app.GetThumbAndTrigger ( pTriggerValue, pThumbStickX, pThumbStickY );
+	app.GetThumbAndTrigger ( pSideButtonValue, pTriggerValue, pThumbStickX, pThumbStickY );
 }
 
 DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouchedisRightHand,  bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
@@ -340,10 +340,15 @@ void App::GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pU
 	}
 }
 
-void App::GetThumbAndTrigger ( float* pTriggerValue, float* pThumbStickX, float* pThumbStickY )
+void App::GetThumbAndTrigger ( float* pSideButtonValue, float* pTriggerValue, float* pThumbStickX, float* pThumbStickY )
 {
     if (g_holographicFrame != nullptr)
     {
+		if ( fabs(m_fSideButtonValue[1]) > fabs(m_fSideButtonValue[0]) )
+			*pSideButtonValue = m_fSideButtonValue[1];
+		else
+			*pSideButtonValue = m_fSideButtonValue[0];
+
 		if ( fabs(m_fTriggerValue[1]) > fabs(m_fTriggerValue[0]) )
 			*pTriggerValue = m_fTriggerValue[1];
 		else
@@ -527,7 +532,9 @@ void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSo
 		if ( source.Handedness() == SpatialInteractionSourceHandedness::Right )
 			iLeftRightIndex = 1;
 
-		// get trigger value and thumbstick
+		// get side button (grasp), trigger value and thumbstick
+		m_fSideButtonValue[iLeftRightIndex] = 0.0f;
+		if ( state.IsGrasped() == true ) m_fSideButtonValue[iLeftRightIndex] = 1.0f;
 		m_fTriggerValue[iLeftRightIndex] = (float)state.SelectPressedValue();
         if (controller.HasThumbstick())
         {

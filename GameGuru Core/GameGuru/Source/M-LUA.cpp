@@ -226,9 +226,20 @@ void lua_loop_begin ( void )
 		LuaSetFloat (  "g_PlayerPosY",ObjectPositionY(t.aisystem.objectstartindex) );
 		LuaSetFloat (  "g_PlayerPosZ",ObjectPositionZ(t.aisystem.objectstartindex) );
 	}
-	LuaSetFloat (  "g_PlayerAngX",wrapangleoffset(CameraAngleX(0)) );
-	LuaSetFloat (  "g_PlayerAngY",wrapangleoffset(CameraAngleY(0)) );
-	LuaSetFloat (  "g_PlayerAngZ",wrapangleoffset(CameraAngleZ(0)) );
+
+	// detect VR mode, and override player angle with headset angle
+	//if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	//{
+	//	LuaSetFloat ( "g_PlayerAngX", wrapangleoffset(GGVR_GetHMDAngleX()) );
+	//	LuaSetFloat ( "g_PlayerAngY", wrapangleoffset(GGVR_GetHMDAngleY()) );
+	//	LuaSetFloat ( "g_PlayerAngZ", wrapangleoffset(GGVR_GetHMDAngleZ()) );
+	//}
+	//else
+	//{
+		LuaSetFloat ( "g_PlayerAngX", wrapangleoffset(CameraAngleX(0)) );
+		LuaSetFloat ( "g_PlayerAngY", wrapangleoffset(CameraAngleY(0)) );
+		LuaSetFloat ( "g_PlayerAngZ", wrapangleoffset(CameraAngleZ(0)) );
+	//}
 	LuaSetInt (  "g_PlayerObjNo", t.aisystem.objectstartindex );
 	LuaSetInt (  "g_PlayerHealth", t.player[t.plrid].health );
 	LuaSetInt (  "g_PlayerLives", t.player[t.plrid].lives );
@@ -288,7 +299,18 @@ void lua_loop_begin ( void )
 	LuaSetInt ( "g_KeyPressC", KeyState(g.keymap[46]) );
 	//LuaSetInt ( "g_KeyPressJ", !!done in player control code!! );
 	LuaSetInt ( "g_KeyPressSPACE", KeyState(g.keymap[57]) );
-	LuaSetInt ( "g_KeyPressSHIFT", KeyState(g.keymap[42]) | KeyState(g.keymap[54]) );
+
+	// shift key for running/etc
+	int tKeyPressShift = 0;
+	if ( KeyState(g.keymap[42]) ) tKeyPressShift = 1;
+	if ( KeyState(g.keymap[54]) ) tKeyPressShift = 1;
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	{
+		if ( GGVR_RightController_Grip() == 1 )
+			tKeyPressShift = 1;
+	}
+	LuaSetInt ( "g_KeyPressSHIFT", tKeyPressShift );
+
 	if ( g.luaactivatemouse == 1 )
 	{
 		g.LUAMouseX += MouseMoveX();

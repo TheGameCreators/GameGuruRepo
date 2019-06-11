@@ -520,11 +520,21 @@ void welcome_serialcode_page ( int iHighlightingButton )
 		if ( iKeyScanCode == 29 && c == 118 )
 		{
 			g_welcomeserialcode.iKeyPressed = 1;
-			LPSTR pBuffer = new char[strlen((LPSTR)GetClipboard(NULL))+1];
-			strcpy ( pBuffer, (LPSTR)GetClipboard(NULL) );
-			pBuffer[iCodeDigitsRequiredCount] = 0;
-			strcpy ( g_welcomeserialcode.pCode, pBuffer );
-			SAFE_DELETE(pBuffer);
+			strcpy ( g_welcomeserialcode.pCode, "invalid data" );
+			LPSTR pClipboardData = (LPSTR)GetClipboard(NULL); 
+			if ( pClipboardData )
+			{
+				DWORD dwClipboardSize = strlen(pClipboardData);
+				if ( dwClipboardSize <= iCodeDigitsRequiredCount )
+				{
+					LPSTR pBuffer = new char[24];//dwClipboardSize+1];
+					memset ( pBuffer, 0, sizeof(pBuffer) );
+					strcpy ( pBuffer, (LPSTR)GetClipboard(NULL) );
+					pBuffer[iCodeDigitsRequiredCount] = 0;
+					strcpy ( g_welcomeserialcode.pCode, pBuffer );
+					SAFE_DELETE(pBuffer);
+				}
+			}
 		}
 	}
 

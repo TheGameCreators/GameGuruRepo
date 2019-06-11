@@ -258,7 +258,8 @@ BOOL CEditorDoc::OnNewDocument ( )
 
 				//if ( theApp.IsProcessRunning ( "Guru-MapEditor" ) )
 				//	bWaitingForExeToStart = false;
-				bool bMapEditor = theApp.IsProcessRunning("Game Guru12345");
+				//bool bMapEditor = theApp.IsProcessRunning("Game Guru12345");
+				bool bMapEditor = theApp.IsProcessRunning("MyGame12345");
 				if (bMapEditor == false) bMapEditor = theApp.IsProcessRunning("Guru-MapEditor");
 				if (bMapEditor == true) bWaitingForExeToStart = false;
 			}
@@ -352,7 +353,8 @@ BOOL CEditorDoc::OnNewDocument ( )
 
 					//if ( theApp.IsProcessRunning ( "Guru-MapEditor" ) )
 					//	bWaitingForExeToStart = false;
-					bool bMapEditor = theApp.IsProcessRunning("Game Guru12345");
+					//bool bMapEditor = theApp.IsProcessRunning("Game Guru12345");
+					bool bMapEditor = theApp.IsProcessRunning("MyGame12345");
 					if ( bMapEditor == false) bMapEditor = theApp.IsProcessRunning("Guru-MapEditor");
 					if ( bMapEditor == true ) bWaitingForExeToStart = false;
 				}

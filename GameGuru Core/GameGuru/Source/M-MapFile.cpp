@@ -657,6 +657,7 @@ void mapfile_savestandalone ( void )
 	addtocollection("audiobank\\misc\\Bullet_FlyBy_02.wav");
 	addtocollection("audiobank\\misc\\Bullet_FlyBy_03.wav");
 	addtocollection("audiobank\\misc\\Bullet_FlyBy_04.wav");
+	addtocollection("editors\\gfx\\14.png");
 	addtocollection("scriptbank\\gameloop.lua");
 	addtocollection("scriptbank\\gameplayercontrol.lua");
 	addtocollection("scriptbank\\global.lua");
@@ -705,6 +706,7 @@ void mapfile_savestandalone ( void )
 	addfoldertocollection("gamecore\\decals\\splash_ripple");
 	addfoldertocollection("gamecore\\decals\\splash_small");
 	addfoldertocollection("gamecore\\projectiletypes");
+	addfoldertocollection("gamecore\\vrcontroller");
 	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\fireball");
 	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\magicbolt");
 	addfoldertocollection("gamecore\\projectiletypes\\modern\\handgrenade");

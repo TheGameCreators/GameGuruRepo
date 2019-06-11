@@ -615,7 +615,7 @@ DARKSDK void UpdateAllAnimation(void)
 // Actual function calls used by GameGuru below
 //
 
-DARKSDK void LoadAnimation( LPSTR pFilename, int animindex )
+DARKSDK bool LoadAnimation( LPSTR pFilename, int animindex, int iSilentMode )
 {
 	if(animindex>=1 && animindex<ANIMATIONMAX)
 	{
@@ -636,10 +636,17 @@ DARKSDK void LoadAnimation( LPSTR pFilename, int animindex )
 			animation[animindex].speed=100;
 		}
 		else
-			RunTimeError(RUNTIMEERROR_ANIMLOADFAILED);
+		{
+			if ( iSilentMode == 0 ) RunTimeError(RUNTIMEERROR_ANIMLOADFAILED);
+			return false;
+		}
 	}
 	else
-		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+	{
+		if ( iSilentMode == 0 )  RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+		return false;
+	}
+	return true;
 }
 
 DARKSDK void DeleteAnimation( int animindex )
