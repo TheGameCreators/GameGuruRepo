@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug Game|Win32">
       <Configuration>Debug Game</Configuration>
@@ -18,7 +18,7 @@
     <ProjectGuid>{759C0609-B350-4FC4-8925-E9443484C2A9}</ProjectGuid>
     <RootNamespace>DarkEXE</RootNamespace>
     <ProjectName>Guru-Lightmapper</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -31,13 +31,13 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -303,7 +303,6 @@
     <ClCompile Include="..\GameGuru\Source\M-LUA.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-MapFile.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Material.cpp" />
-    <ClCompile Include="..\GameGuru\Source\M-MP.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-OBS.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Panel.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Particles.cpp" />
@@ -312,6 +311,7 @@
     <ClCompile Include="..\GameGuru\Source\M-Ragdoll.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-RealSense.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Sliders.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Steam.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Terrain.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Titles.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Visuals.cpp" />
@@ -366,7 +366,6 @@
     <ClInclude Include="..\GameGuru\Include\M-LUA.h" />
     <ClInclude Include="..\GameGuru\Include\M-MapFile.h" />
     <ClInclude Include="..\GameGuru\Include\M-Material.h" />
-    <ClInclude Include="..\GameGuru\Include\M-MP.h" />
     <ClInclude Include="..\GameGuru\Include\M-OBS.h" />
     <ClInclude Include="..\GameGuru\Include\M-Panel.h" />
     <ClInclude Include="..\GameGuru\Include\M-Particles.h" />
@@ -375,6 +374,7 @@
     <ClInclude Include="..\GameGuru\Include\M-Ragdoll.h" />
     <ClInclude Include="..\GameGuru\Include\M-RealSense.h" />
     <ClInclude Include="..\GameGuru\Include\M-Sliders.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Steam.h" />
     <ClInclude Include="..\GameGuru\Include\M-Terrain.h" />
     <ClInclude Include="..\GameGuru\Include\M-Titles.h" />
     <ClInclude Include="..\GameGuru\Include\M-Visuals.h" />
