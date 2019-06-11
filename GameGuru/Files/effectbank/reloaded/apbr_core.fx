@@ -1703,11 +1703,20 @@ float4 depthPS(in VSOutput input) : SV_TARGET
 #ifdef ALPHADISABLED
     rawdiffusemap.a = 1;
 #else
-	if( rawdiffusemap.a < ALPHACLIP ) 
-	{
-		clip(-1);
-		return rawdiffusemap;
-	}
+
+#ifdef SHADOWALPHACLIP
+   if( rawdiffusemap.a < SHADOWALPHACLIP ) 
+   {
+      clip(-1);
+      return rawdiffusemap;
+   }
+#else
+   if( rawdiffusemap.a < ALPHACLIP ) 
+   {
+      clip(-1);
+      return rawdiffusemap;
+   }
+#endif
 #endif
    return rawdiffusemap;
 }
