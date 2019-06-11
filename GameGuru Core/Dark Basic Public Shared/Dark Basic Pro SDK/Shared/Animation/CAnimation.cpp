@@ -40,6 +40,9 @@ struct
 	bool						bStreamingNow;
 	bool						loop;
 	int							iOutputToImage;
+	int							precacheframes;
+	bool						loaded;
+	int							videodelayedload;
 	//LPGGTEXTURE				pOutputToTexture;
 } Anim[ANIMATIONMAX];
 
@@ -114,13 +117,14 @@ DARKSDK void AnimationDestructor ( void )
 	theoraplayer::destroy();
 }
 
-BOOL CoreLoadAnimation( int AnimIndex, char* Filename )
+BOOL CoreLoadAnimation( int AnimIndex, char* Filename, int precacheframes)
 {
 	// Vars
     HRESULT hr = S_OK;
 
 	// load in an OGV video file (streaming)
-	Anim[AnimIndex].pMediaClip = theoraplayer::manager->createVideoClip(Filename, theoraOutputMode, 16);
+	// PE: precache of 16 at 1080p = 95 MB , if you have setup 19 zones with video , these are preloaded and add 1.76 GB ... not good ...
+	Anim[AnimIndex].pMediaClip = theoraplayer::manager->createVideoClip(Filename, theoraOutputMode, precacheframes );
 	if ( Anim[AnimIndex].pMediaClip )
 	{
 		// can cause video to loop
@@ -154,7 +158,7 @@ BOOL CoreLoadAnimation( int AnimIndex, char* Filename )
 		shaderResourceViewDesc.Format = chooseTextureFormat;
 		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-		shaderResourceViewDesc.Texture2D.MipLevels = -1;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1; //ORG:-1; PE: we dont use any miplevels for video.
 		m_pD3D->CreateShaderResourceView(Anim[AnimIndex].pTexture, &shaderResourceViewDesc, &Anim[AnimIndex].pTextureRef);
 
 		// Get Size of Animation
@@ -169,10 +173,10 @@ BOOL CoreLoadAnimation( int AnimIndex, char* Filename )
 	return FALSE;
 }
 
-BOOL DB_LoadAnimationCore(int AnimIndex, char* Filename)
+BOOL DB_LoadAnimationCore(int AnimIndex, char* Filename, int precacheframes)
 {
 	// Attempt to load video
-	if (CoreLoadAnimation(AnimIndex, Filename))
+	if (CoreLoadAnimation(AnimIndex, Filename, precacheframes))
 	{
 		// File loaded, store name for re-play
 		strcpy(Anim[AnimIndex].AnimFile, Filename);
@@ -188,14 +192,40 @@ BOOL DB_LoadAnimationCore(int AnimIndex, char* Filename)
 		Anim[AnimIndex].WantRect.right = 0;
 		Anim[AnimIndex].WantRect.bottom = 0;
 		Anim[AnimIndex].bStreamingNow = false;
+		Anim[AnimIndex].precacheframes = precacheframes;
+		Anim[AnimIndex].loaded = true;
 
 		// Complete
 		return TRUE;
 	}
 }
 
-BOOL DB_LoadAnimation(int AnimIndex, char* Filename)
+BOOL DB_LoadAnimation(int AnimIndex, char* Filename, int precacheframes , int videodelayedload)
 {
+	if (videodelayedload == 1) {
+		// File loaded, store name for re-play
+		if ( Anim[AnimIndex].loaded == true) DB_FreeAnimation(AnimIndex);
+
+		strcpy(Anim[AnimIndex].AnimFile, Filename);
+
+		// Use default anim size
+		Anim[AnimIndex].iOutputToImage = 0;
+		Anim[AnimIndex].x1 = 0;
+		Anim[AnimIndex].y1 = 0;
+		Anim[AnimIndex].x2 = 0;
+		Anim[AnimIndex].y2 = 0;
+		Anim[AnimIndex].WantRect.left = 0;
+		Anim[AnimIndex].WantRect.top = 0;
+		Anim[AnimIndex].WantRect.right = 0;
+		Anim[AnimIndex].WantRect.bottom = 0;
+		Anim[AnimIndex].bStreamingNow = false;
+		Anim[AnimIndex].precacheframes = precacheframes;
+		Anim[AnimIndex].loaded = false;
+		Anim[AnimIndex].videodelayedload = videodelayedload;
+
+		// Complete
+		return TRUE;
+	}
 	// Uses actual or virtual file..
 	char VirtualFilename[_MAX_PATH];
 	strcpy(VirtualFilename, Filename);
@@ -203,8 +233,22 @@ BOOL DB_LoadAnimation(int AnimIndex, char* Filename)
 
 	// Decrypt and use media, re-encrypt
 	g_pGlob->Decrypt( (DWORD)VirtualFilename );
-	BOOL bRes = DB_LoadAnimationCore(AnimIndex, VirtualFilename);
+	BOOL bRes = DB_LoadAnimationCore(AnimIndex, VirtualFilename, precacheframes);
 	g_pGlob->Encrypt( (DWORD)VirtualFilename );
+	return bRes;
+}
+
+BOOL DB_LoadAnimation_Delayed(int AnimIndex)
+{
+	// Uses actual or virtual file..
+	char VirtualFilename[_MAX_PATH];
+	strcpy(VirtualFilename, Anim[AnimIndex].AnimFile );
+	g_pGlob->UpdateFilenameFromVirtualTable((DWORD)VirtualFilename);
+
+	// Decrypt and use media, re-encrypt
+	g_pGlob->Decrypt((DWORD)VirtualFilename);
+	BOOL bRes = DB_LoadAnimationCore(AnimIndex, VirtualFilename, Anim[AnimIndex].precacheframes);
+	g_pGlob->Encrypt((DWORD)VirtualFilename);
 	return bRes;
 }
 
@@ -222,6 +266,11 @@ DARKSDK BOOL DB_FreeAnimation(int AnimIndex)
 		SAFE_RELEASE ( Anim[AnimIndex].pTextureRef );
 		SAFE_RELEASE ( Anim[AnimIndex].pTexture );
 		//SAFE_RELEASE ( Anim[AnimIndex].pOutputToTexture );
+
+		if (Anim[AnimIndex].videodelayedload == 1)
+		{
+			Anim[AnimIndex].loaded = false;
+		}
 	}
 
 	// Complete
@@ -230,6 +279,17 @@ DARKSDK BOOL DB_FreeAnimation(int AnimIndex)
 
 DARKSDK BOOL DB_PlayAnimationToScreen(int AnimIndex, int set, int x, int y, int x2, int y2, bool bPlayFromScratch)
 {
+	//PE: only load when we need video.
+	if ( Anim[AnimIndex].videodelayedload == 1)
+	{
+		if (Anim[AnimIndex].loaded == false) {
+			if (!DB_LoadAnimation_Delayed(AnimIndex)) {
+				return FALSE;
+			}
+			Anim[AnimIndex].loaded = false;
+		}
+	}
+
 	// Set new animation placements if so
 	if(set==1)
 	{
@@ -297,6 +357,12 @@ BOOL DB_StopAnimation(int AnimIndex)
 	// stop animation
 	Anim[AnimIndex].bStreamingNow=false;
 	Anim[AnimIndex].pMediaClip->stop();
+
+	if (Anim[AnimIndex].videodelayedload == 1) {
+		//Free video.
+		animation[AnimIndex].playing = false;
+		DB_FreeAnimation(AnimIndex);
+	}
 
 	// Complete
 	return TRUE;
@@ -608,7 +674,9 @@ DARKSDK void UpdateAllAnimation(void)
 // Actual function calls used by GameGuru below
 //
 
-DARKSDK void LoadAnimation( LPSTR pFilename, int animindex )
+extern void timestampactivity(int i, char* desc_s);
+
+DARKSDK void LoadAnimation( LPSTR pFilename, int animindex , int precacheframes , int videodelayedload)
 {
 	if(animindex>=1 && animindex<ANIMATIONMAX)
 	{
@@ -619,7 +687,7 @@ DARKSDK void LoadAnimation( LPSTR pFilename, int animindex )
 			animation[animindex].active=false;
 		}
 
-		if(DB_LoadAnimation(animindex, pFilename))
+		if(DB_LoadAnimation(animindex, pFilename, precacheframes, videodelayedload))
 		{
 			animation[animindex].active=true;
 			animation[animindex].playing=false;
@@ -630,6 +698,11 @@ DARKSDK void LoadAnimation( LPSTR pFilename, int animindex )
 		}
 		else
 			RunTimeError(RUNTIMEERROR_ANIMLOADFAILED);
+
+		char mdebug[1024];
+		sprintf(mdebug, "LoadAnimation: %s", pFilename);
+		timestampactivity(0, mdebug);
+
 	}
 	else
 		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
@@ -637,12 +710,15 @@ DARKSDK void LoadAnimation( LPSTR pFilename, int animindex )
 
 DARKSDK void DeleteAnimation( int animindex )
 {
+	if( Anim[animindex].videodelayedload == 1 && Anim[animindex].loaded == false) return;
+
 	if(animindex>=1 && animindex<ANIMATIONMAX)
 	{
 		if(animation[animindex].active==true)
 		{
 			DB_FreeAnimation(animindex);
 			animation[animindex].active=false;
+			if (Anim[animindex].videodelayedload == 1 ) Anim[animindex].loaded = false;
 		}
 		else
 			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
@@ -680,6 +756,7 @@ DARKSDK void StopAnimation( int animindex )
 	{
 		if(animation[animindex].active==true)
 		{
+			if (Anim[animindex].videodelayedload == 1 && Anim[animindex].loaded == false ) return;
 			if(DB_StopAnimation(animindex))
 			{
 				animation[animindex].playing=false;

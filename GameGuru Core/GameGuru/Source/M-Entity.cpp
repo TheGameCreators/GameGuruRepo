@@ -2319,7 +2319,7 @@ void entity_loadvideoid ( void )
 		{
 			if (  AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
 		}
-		LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid );
+		LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid , g.videoprecacheframes , g.videodelayedload );
 	}
 }
 
