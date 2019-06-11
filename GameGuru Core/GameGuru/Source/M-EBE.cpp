@@ -382,9 +382,9 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 	//if ( iTexD > 0 && ImageExist ( iTexD ) == 1 ) DeleteImage ( iTexD );
 	//if ( iTexN > 0 && ImageExist ( iTexN ) == 1 ) DeleteImage ( iTexN );
 	//if ( iTexS > 0 && ImageExist ( iTexS ) == 1 ) DeleteImage ( iTexS );
-	LoadImage ( "ebebank\\default\\textures_D.dds", iTexD );
-	LoadImage ( "ebebank\\default\\textures_N.dds", iTexN );
-	LoadImage ( "ebebank\\default\\textures_S.dds", iTexS );
+	LoadImage ( "ebebank\\default\\textures_D.dds", iTexD, 0, g.gdividetexturesize);
+	LoadImage ( "ebebank\\default\\textures_N.dds", iTexN, 0, g.gdividetexturesize);
+	LoadImage ( "ebebank\\default\\textures_S.dds", iTexS, 0, g.gdividetexturesize);
 	TextureObject ( iBuildObj, 0, iTexD );
 	TextureObject ( iBuildObj, 1, loadinternaltexture("effectbank\\reloaded\\media\\blank_O.dds") );
 	TextureObject ( iBuildObj, 2, iTexN );
@@ -2610,7 +2610,7 @@ int ebe_loadcustomtexture ( int iEntityProfileIndex, int iWhichTextureOver )
 		if ( iTexSet == 0 ) 
 		{
 			// texture used by texture plate
-			LoadImage ( pPlateFilename.Get(), ebebuild.iTexPlateImage );
+			LoadImage ( pPlateFilename.Get(), ebebuild.iTexPlateImage,0,g.gdividetexturesize);
 			TextureObject ( ebebuild.iBuildObj, 0, ebebuild.iTexPlateImage );
 			TextureObject ( ebebuild.iBuildObj, 1, ebebuild.iTexPlateImage );
 		}
