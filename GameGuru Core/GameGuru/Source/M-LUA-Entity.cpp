@@ -300,7 +300,7 @@ void entity_lua_spawn_core ( void )
 				darkai_setupcharacter ( );
 
 				// reapply shader in case object was refreshed
-				SetObjectEffect( g.entitybankoffset+t.entityelement[t.e].bankindex , t.characterBasicShaderID );
+				SetObjectEffect( g.entitybankoffset+t.entityelement[t.e].bankindex , t.entityprofile[t.entid].usingeffect);
 
 				// finally initialise AI (see below)
 				lua_initscript();

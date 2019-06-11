@@ -810,7 +810,8 @@ float3 ComputeLight(Material mat, DirectionalLight L, float3 normal, float3 toEy
     #ifdef LIGHTMAPPED
      float3 thisSunColor = mSunColor * SurfaceSunFactor;
     #else
-     float3 thisSunColor = mSunColor;
+    // float3 thisSunColor = mSunColor;
+     float3 thisSunColor = mSunColor * SurfaceSunFactor;
 	#endif
 	#ifdef PBRVEGETATION
 	 return clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) * ((albedo)*0.85);
@@ -1377,7 +1378,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    int iCurrentCascadeIndex = 0;
    float fShadow = 0.0f;
 
-   if ( fullshadowsoreditor == 1 ) fShadow = GetShadow ( input.viewDepth, input.position, originalNormal, normalize(LightSource.xyz), iCurrentCascadeIndex );
+   if ( fullshadowsoreditor == 1 ) fShadow = GetShadow ( input.viewDepth, input.position, originalNormal, normalize(LightSource.xyz), iCurrentCascadeIndex ) * SurfaceSunFactor;
 
 #ifdef CALLEDFROMOLDTERRAIN
 #ifdef PBRTERRAIN
@@ -1563,8 +1564,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	//PE: Allow dyn light to remove shadow.
 	visibility = clamp( visibility+( length(dynlight) ) , 0.15 ,1.0 ); //PE: Set lowest dark shadow, to stop uneven shadow colors.
 	
-	light = light + dynlight;
-	
+	//light = light + dynlight;
+	light = (light * SurfaceSunFactor) + dynlight;
 
 	//light += (rawdiffusemap.xyz) * flashlight);
 
@@ -1584,6 +1585,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	 ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
 	#endif
 	float3 albedoContrib = originalrawdiffusemap.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
+	//lightIntensity *= SurfaceSunFactor;
 	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
@@ -1607,11 +1609,12 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	//TODO: add more to glass: - (1.0 -(gMaterial.Diffuse.a * texColor.a))
     float env_ref_fresnel = pow( max( 1.0-dot( normalize(trueCameraPosition - attributes.position) , inputnormalW), 0.0f) , 2.0 ) * 0.85 + 0.65; //
 	env_ref_fresnel = clamp(env_ref_fresnel+gMaterial.Properties.g,0.0,1.0);
-	reflectiveContrib.rgb = reflectiveContrib.rgb * env_ref_fresnel;
+	reflectiveContrib.rgb = reflectiveContrib.rgb * env_ref_fresnel * SurfaceSunFactor;
 	
 	float3 cooleffect = lerp( (albedoContrib + lightContrib + reflectiveContrib.rgb) * ((dot(-gDirLight.Direction, normalize(inputnormalW) )*0.40)+0.60) , albedoContrib + lightContrib + reflectiveContrib.rgb , RealisticVsCool );
 
 	float extractedReflections = clamp(clamp( ( (length(envMap.rgb)  )* AmountExtractLight )-0.70,0.0,1.0)*3.45,0.0,1.0);
+	extractedReflections *= SurfaceSunFactor;
 	litColor.rgb = lerp( cooleffect , (envMap.rgb + ( lightContrib.rgb)) * env_ref_fresnel , extractedReflections * (envFresnel*0.40+0.6) );
 
 	//Debug:
