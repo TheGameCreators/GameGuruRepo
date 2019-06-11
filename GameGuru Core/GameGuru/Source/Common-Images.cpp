@@ -102,7 +102,7 @@ void loadinternalimageexcompressquality ( char* tfile_s, int imgid, int compress
 		if ( ttry == 1  ) { tryfile_s = Left(tfile_s,Len(tfile_s)-4); tryfile_s += ".dds"; }
 		if ( ttry == 2  ) { tryfile_s = tfile_s; }
 		if ( ttry == 3  ) { tryfile_s = Left(tfile_s,Len(tfile_s)-4); tryfile_s += ".png"; }
-		if ( ttry == 4  ) { tryfile_s = Left(tfile_s,Len(tfile_s)-3); tryfile_s += g.imgext_s.Get(); }
+		if ( ttry == 4  ) { tryfile_s = Left(tfile_s,Len(tfile_s)-3); tryfile_s += g.imgext_s.Get(); } //PE: tga
 		if ( GetImageFileExist(tryfile_s.Get()) == 1 ) 
 		{
 			if ( g.gincludeonlyvideo == 1 && cstr(Left(Lower(tryfile_s.Get()),Len(g.gincludeonlyname_s.Get()))) != cstr(Lower(g.gincludeonlyname_s.Get())) ) 
@@ -403,7 +403,8 @@ int loadinternaltextureex ( char* tfile_s, int compressmode, int quality )
 	{
 		for ( tt = 1 ; tt <=  g.texturebankmax; tt++ )
 		{
-			if ( strcmp ( tfile_s , t.texturebank_s[tt].Get() ) == 0 ) { texid = g.texturebankoffset+tt  ; break; }
+			//PE: Sometimes we get double load , due to upper/lower case so stricmp.
+			if ( stricmp ( tfile_s , t.texturebank_s[tt].Get() ) == 0 ) { texid = g.texturebankoffset+tt  ; break; }
 		}
 	}
 	else

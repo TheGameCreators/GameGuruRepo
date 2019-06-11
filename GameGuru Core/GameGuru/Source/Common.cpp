@@ -1643,6 +1643,12 @@ void FPSC_SetDefaults ( void )
 	g.showstaticlightinrealtime = 0;
 
 	g.standalonefreememorybetweenlevels = 0;
+	g.videoprecacheframes = 2;
+	g.videodelayedload = 1;
+	g.aidisabletreeobstacles = 0;
+	g.aidisableobstacles = 0;
+	g.skipunusedtextures = 0;
+
 	g.lowestnearcamera = 2; //PE: default , use setup.ini lowestnearcamera to adjust.
 	g.memgeneratedump = 0;
 	g.underwatermode = 0;
@@ -1922,6 +1928,13 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "underwatermode"; if (t.field_s == t.tryfield_s)  g.underwatermode = t.value1;
 					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
 					t.tryfield_s = "standalonefreememorybetweenlevels"; if (t.field_s == t.tryfield_s)  g.standalonefreememorybetweenlevels = t.value1;
+					t.tryfield_s = "videoprecacheframes"; if (t.field_s == t.tryfield_s)  g.videoprecacheframes = t.value1;
+					t.tryfield_s = "videodelayedload"; if (t.field_s == t.tryfield_s)  g.videodelayedload = t.value1;
+					
+					t.tryfield_s = "aidisabletreeobstacles"; if (t.field_s == t.tryfield_s)  g.aidisabletreeobstacles = t.value1;
+					t.tryfield_s = "aidisableobstacles"; if (t.field_s == t.tryfield_s)  g.aidisableobstacles = t.value1;
+					t.tryfield_s = "skipunusedtextures"; if (t.field_s == t.tryfield_s)  g.skipunusedtextures = t.value1;
+					
 					t.tryfield_s = "lowestnearcamera"; if (t.field_s == t.tryfield_s)  g.lowestnearcamera = t.value1;
 					t.tryfield_s = "editorsavebak"; if (t.field_s == t.tryfield_s)  g.editorsavebak = t.value1;
 

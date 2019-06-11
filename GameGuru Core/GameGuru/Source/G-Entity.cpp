@@ -21,6 +21,7 @@ void entity_init ( void )
 	//  activate all entities and perform any pre-test game setup
 	timestampactivity(0,"Configure entity attachments and AI obstacles");
 	g.entityattachmentindex=0;
+	//PE: This takes 30 sec. and take 400 MB. mem in FatherIsland, perhaps another faster way could be made.
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
@@ -55,7 +56,7 @@ void entity_init ( void )
 							{
 								t.ttreemode=t.entityprofile[t.entid].collisionmode-50;
 								//  dont need to setup ai for multiplayer since it doesnt use any ai - unless coop mode!
-								if (  t.game.runasmultiplayer == 0 || ( g.mp.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) 
+								if ( g.aidisabletreeobstacles == 0 && (t.game.runasmultiplayer == 0 || ( g.mp.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) ) 
 								{
 									darkai_setup_tree ( );
 								}
@@ -65,7 +66,7 @@ void entity_init ( void )
 								//  dont need to setup ai for multiplayer since it doesnt use any ai
 								if (  t.game.runasmultiplayer == 0 || ( g.mp.coop  ==  1 && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) ) 
 								{
-									 if ( t.entityprofile[t.entid].collisionmode != 11 && t.entityprofile[t.entid].collisionmode != 12 ) darkai_setup_entity ( );
+									 if ( g.aidisableobstacles == 0 && t.entityprofile[t.entid].collisionmode != 11 && t.entityprofile[t.entid].collisionmode != 12 ) darkai_setup_entity ( );
 								}
 							}
 						}

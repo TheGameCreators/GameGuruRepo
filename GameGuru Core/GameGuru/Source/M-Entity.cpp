@@ -2316,7 +2316,7 @@ void entity_loadvideoid ( void )
 		{
 			if (  AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
 		}
-		LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid );
+		LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid , g.videoprecacheframes , g.videodelayedload );
 	}
 }
 
@@ -2964,8 +2964,8 @@ void entity_loadtexturesandeffect ( void )
 
 					// height texture
 					cstr pHeighttex_s = t.texdirnoext_s+"_height.dds";
-					t.texuseid = loadinternaltextureex(pHeighttex_s.Get(),1,t.tfullorhalfdivide);
-					if ( t.texuseid == 0 ) 
+					if( g.skipunusedtextures == 0 ) t.texuseid = loadinternaltextureex(pHeighttex_s.Get(),1,t.tfullorhalfdivide);
+					if ( t.texuseid == 0 || g.skipunusedtextures == 1 )
 					{
 						t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds",1,t.tfullorhalfdivide);
 					}
@@ -2998,8 +2998,8 @@ void entity_loadtexturesandeffect ( void )
 							{
 								// Detail texture
 								cstr pDetailtex_s = t.texdirnoext_s + "_detail.dds";
-								t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
-								if (t.entityprofile[t.entid].texlid == 0)
+								if( g.skipunusedtextures == 0 ) t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
+								if (t.entityprofile[t.entid].texlid == 0 || g.skipunusedtextures == 1)
 								{
 									t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
 								}

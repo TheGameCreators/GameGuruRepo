@@ -527,6 +527,12 @@ struct Sglobals
 	int terrainlightfadedistance;
 	int showstaticlightinrealtime;
 
+	int videoprecacheframes;
+	int aidisabletreeobstacles;
+	int aidisableobstacles;
+	int skipunusedtextures;
+	int videodelayedload;
+
 	int grawtextsizelast;
 	int grenadeexplosion;
 	DWORD guniquesignature;

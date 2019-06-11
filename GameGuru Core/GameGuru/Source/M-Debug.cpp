@@ -76,6 +76,14 @@ void backuptimestampactivity(void)
 	}
 }
 
+#define USEAPPENDLOG
+#ifdef USEAPPENDLOG
+	//PE: Way faster , in a large standalone debug can take upto 2 minutes longer to load the old way.
+	#include "stdio.h"
+	int debugfilenetries = 0;
+
+#endif
+
 void timestampactivity ( int i, char* desc_s )
 {
 	cstr videomemsofardesc_s =  "";
@@ -87,6 +95,49 @@ void timestampactivity ( int i, char* desc_s )
 	cstr file_s =  "";
 	int smem = 0;
 	int mem = 0;
+
+#ifdef USEAPPENDLOG
+	if (g.gproducelogfiles == 1)
+	{
+		file_s = g.fpscrootdir_s + "\\" + g.trueappname_s + ".log";
+
+		if (debugfilenetries == 0) {
+			if (FileExist(file_s.Get()) == 1)  DeleteAFile(file_s.Get());
+		}
+
+		smem = SMEMAvailable(1);
+		memdesc_s = Str((smem - g.timestampactivitymemthen) / 1024);
+		memdesc_s = memdesc_s + "MB";
+		g.timestampactivitymemthen = smem;
+		if (g.gproducetruevidmemreading == 1)
+		{
+			Sync();
+		}
+		mem = DMEMAvailable();
+		videomemdesc_s = Str((mem - g.timestampactivityvideomemthen)); videomemdesc_s = videomemdesc_s + "MB";
+		g.timestampactivityvideomemthen = mem;
+		videomemsofardesc_s = " ("; videomemsofardesc_s = videomemsofardesc_s + Str(smem / 1024) + "," + Str(DMEMAvailable()) + ")";
+		tpart1_s = Str(Timer()); tpart1_s = tpart1_s + " : " + desc_s + " ";
+		tpart2_s = "S:"; tpart2_s = tpart2_s + memdesc_s;
+		tpart3_s = "V:"; tpart3_s = tpart3_s + videomemsofardesc_s;
+		if (Len(tpart1_s.Get())<64)  tpart1_s = tpart1_s + Spaces(64 - Len(tpart1_s.Get()));
+		if (Len(tpart2_s.Get())<8)  tpart2_s = tpart2_s + Spaces(8 - Len(tpart2_s.Get()));
+		if (Len(tpart3_s.Get())<16)  tpart3_s = tpart3_s + Spaces(16 - Len(tpart3_s.Get()));
+		t.timestampactivity_s[0] = tpart1_s;
+		t.timestampactivity_s[0] += tpart2_s;
+		t.timestampactivity_s[0] += tpart3_s;
+
+		FILE * pFile;
+		pFile = fopen(file_s.Get(), "a+");
+		if (pFile != NULL)
+		{
+			fputs( t.timestampactivity_s[0].Get(), pFile);
+			fputs("\n", pFile);
+			fclose(pFile);
+		}
+		debugfilenetries++;
+	}
+#else
 	if ( g.gproducelogfiles == 1 ) 
 	{
 		if ( i == 0 ) 
@@ -147,5 +198,44 @@ void timestampactivity ( int i, char* desc_s )
 			CloseFile (  13 );
 		}
 	}
+#endif
 }
+
+void timestampactivityConsole(int i, char* desc_s)
+{
+	cstr videomemsofardesc_s = "";
+	cstr videomemdesc_s = "";
+	cstr memdesc_s = "";
+	cstr tpart1_s = "";
+	cstr tpart2_s = "";
+	cstr tpart3_s = "";
+	cstr file_s = "";
+	int smem = 0;
+	int mem = 0;
+
+	smem = SMEMAvailable(1);
+	memdesc_s = Str((smem - g.timestampactivitymemthen) / 1024);
+	memdesc_s = memdesc_s + "MB";
+	g.timestampactivitymemthen = smem;
+	if (g.gproducetruevidmemreading == 1)
+	{
+		Sync();
+	}
+	mem = DMEMAvailable();
+	videomemdesc_s = Str((mem - g.timestampactivityvideomemthen)); videomemdesc_s = videomemdesc_s + "MB";
+	g.timestampactivityvideomemthen = mem;
+	videomemsofardesc_s = " ("; videomemsofardesc_s = videomemsofardesc_s + Str(smem / 1024) + "," + Str(DMEMAvailable()) + ")";
+	tpart1_s = Str(Timer()); tpart1_s = tpart1_s + " : " + desc_s + " ";
+	tpart2_s = "S:"; tpart2_s = tpart2_s + memdesc_s;
+	tpart3_s = "V:"; tpart3_s = tpart3_s + videomemsofardesc_s;
+	if (Len(tpart1_s.Get())<64)  tpart1_s = tpart1_s + Spaces(64 - Len(tpart1_s.Get()));
+	if (Len(tpart2_s.Get())<8)  tpart2_s = tpart2_s + Spaces(8 - Len(tpart2_s.Get()));
+	if (Len(tpart3_s.Get())<16)  tpart3_s = tpart3_s + Spaces(16 - Len(tpart3_s.Get()));
+	t.timestampactivity_s[0] = tpart1_s;
+	t.timestampactivity_s[0] += tpart2_s;
+	t.timestampactivity_s[0] += tpart3_s;
+	OutputDebugString(t.timestampactivity_s[0].Get());
+	OutputDebugString("\n");
+}
+
 

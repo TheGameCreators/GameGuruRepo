@@ -2354,6 +2354,15 @@ int SetSpriteSize ( lua_State *L )
 	}
 	else
 	{
+		//PE: 11-06-19 issue: https://github.com/TheGameCreators/GameGuruRepo/issues/504
+		//PE: I cant test this on my system , but assume we could always use the backbuffer size g_pGlob->iScreenWidth instead of the screenwidth g_dwScreenWidth
+		//PE: Can someone with a similar screen setup do this, test the return of these 2 MessageBox.
+		//PE: They should always be the same , but issue indicate they are not.
+		//PE: Just add rader.lua and enable the below 4 lines to test :)
+//		char tmp[80]; sprintf(tmp, "g_pGlob->iScreenWidth: %d", g_pGlob->iScreenWidth); // 1920
+//		MessageBox(NULL, tmp, "g_pGlob->iScreenWidth", MB_TOPMOST | MB_OK);
+//		sprintf(tmp, "g_dwScreenWidth: %d", g_dwScreenWidth); // 1920
+//		MessageBox(NULL, tmp, "g_dwScreenWidth", MB_TOPMOST | MB_OK);
 		float perc = ( sizeX / ImageWidth(GetSpriteImage(iID)) ) * 100.0f;
 		sizeY = (( perc * ImageHeight(GetSpriteImage(iID)) ) / 100.0f) * ( g_dwScreenWidth / g_dwScreenHeight );
 	}

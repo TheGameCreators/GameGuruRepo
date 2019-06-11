@@ -20,7 +20,7 @@
 #define C_BT_FULLVERSION
 #define C_BT_VERSION 200
 #define C_BT_MAXTERRAINS 255
-#define C_BT_MAXLODLEVELS 255
+#define C_BT_MAXLODLEVELS 16 //PE: org 255 , just waste mem and cpu.
 #define C_BT_MAXTERRAINSIZE 4096
 #define BT_VERSION "2.02 R2 FULL"
 
