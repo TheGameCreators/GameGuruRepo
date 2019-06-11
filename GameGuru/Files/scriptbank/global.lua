@@ -1259,7 +1259,7 @@ GetIntersectCollisionZ: z=GetIntersectCollisionZ() -- returns the Z position of 
 PositionCamera: PositionCamera(cam,x,y,z) -- positions the specified camera at the xyz position
 PointCamera: PointCamera(cam,x,y,z) -- angles the specified camera towards the xyz position
 MoveCamera: MoveCamera(cam,step) -- moves the specified camera at its current angle by the step amount
-GetObjectExist: x=GetObjectExist(obj) -- returns if the specified objext exists
+GetObjectExist: x=GetObjectExist(obj) -- returns if the specified object exists
 SetObjectFrame: SetObjectFrame(obj,x) -- sets the animation frame of the specified object 
 GetObjectFrame: x=GetObjectFrame(obj) -- returns the animation frame of the specified object 
 SetObjectSpeed: SetObjectSpeed(obj,x) -- sets the animation speed of the specified object 

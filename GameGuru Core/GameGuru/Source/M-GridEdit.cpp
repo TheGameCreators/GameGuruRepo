@@ -3656,7 +3656,7 @@ void editor_clearlibrary ( void )
 	t.tadd=2;
 
 	//  Determine if extra ZONES included
-	t.tstoryzoneincluded=25;
+	t.tstoryzoneincluded=27;
 	//if ( g.vrqcontrolmode != 0 )
 	//{
 	//	// if VRQ, also add extra zones
@@ -3700,6 +3700,9 @@ void editor_clearlibrary ( void )
 		if (  t.tt == 23 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
 		if (  t.tt == 24 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
 		if (  t.tt == 25 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
+		if (t.tt == 26) { t.t1_s = t.strarr_s[363]; t.t2_s = "files\\entitybank\\_markers\\Heal zone.bmp"; } // BOTR addition for FPSC 2 GG FPM program
+		if (t.tt == 27) { t.t1_s = t.strarr_s[364]; t.t2_s = "files\\entitybank\\_markers\\Hurt zone.bmp"; } // BOTR addition for FPSC 2 GG FPM program
+
 		SetFileMapDWORD (  1, 508, t.tadd );
 		SetFileMapString (  1, 1000, cstr(g.mysystem.root_s+t.t2_s).Get() );
 		SetFileMapString (  1, 1256, t.t1_s.Get() );
@@ -3727,6 +3730,9 @@ void editor_clearlibrary ( void )
 	t.markerentitybank_s[12]="_markers\\win zone.fpe";
 	t.markerentitybank_s[13]="_markers\\trigger zone.fpe";
 	t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
+	t.markerentitybank_s[27] = "_markers\\Heal zone.fpe"; // BOTR addition for FPSC 2 GG FPM program
+	t.markerentitybank_s[28] = "_markers\\Hurt zone.fpe"; // BOTR addition for FPSC 2 GG FPM program
+
 	if ( g.vrqcontrolmode != 0 )
 	{
 		t.markerentitybank_s[14] = "_markers\\audio zone.fpe";
