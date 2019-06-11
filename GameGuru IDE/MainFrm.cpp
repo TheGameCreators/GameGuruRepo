@@ -1754,7 +1754,13 @@ void CMainFrame::OnTestGame()
 
 void CMainFrame::OnMultiplayerGame() 
 {
-	TestOrMultiplayerGame(1);
+	//PE: 12-05-19 issue: https://github.com/TheGameCreators/GameGuruRepo/issues/505
+	UINT flags = MB_TASKMODAL;
+	flags |= MB_ICONQUESTION;
+	flags |= MB_OKCANCEL;
+	if (MessageBoxA("Launch multiplayer mode ?\n\nNOTE: Make sure you have saved any changes to the map your currently editing.", "Are you sure ?", flags) == IDOK ) {
+		TestOrMultiplayerGame(1);
+	}
 }
 
 void CMainFrame::OnUpdateTestGame ( CCmdUI* pCmdUI )
