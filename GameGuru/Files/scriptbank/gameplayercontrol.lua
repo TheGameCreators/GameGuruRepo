@@ -1378,13 +1378,19 @@ function gameplayercontrol.control()
 		if ( bIgnoreCameraCollision==false ) then
 			if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx,tffdcy,tffdcz) == 1 ) then tthitvalue = -1 end
 			if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx-10,tffdcy,tffdcz-10) == 1 ) then tthitvalue = -1 end
+			if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz+10) == 1 ) then tthitvalue = -1 end
 			if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx-10,tffdcy,tffdcz+10) == 1 ) then tthitvalue = -1 end
 			if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz-10) == 1 ) then tthitvalue = -1 end
-			if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz+10) == 1 ) then tthitvalue = -1 end
 			if ( tthitvalue == 0 ) then 
 				tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx,tffdcy,tffdcz,ttpersonobj)
+				if tthitvalue==0 then tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx-10,tffdcy,tffdcz-10,ttpersonobj) end
+				if tthitvalue==0 then tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz+10,ttpersonobj) end
+				if tthitvalue==0 then tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx-10,tffdcy,tffdcz+10,ttpersonobj) end
+				if tthitvalue==0 then tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz-10,ttpersonobj) end
 			end
 		end
+		change_cam_pos = 1
+		Text(1,10,2,ttpx-tffdcx .."/"..ttpz-tffdcz)
 		if ( tthitvalue ~= 0 ) then 
 			if ( tthitvalue == -1 ) then 
 				-- terrain hit
@@ -1400,6 +1406,20 @@ function gameplayercontrol.control()
 
 			-- work out new camera position
 			SetGamePlayerControlCamCollisionSmooth(0)
+			-- we need to place the camera away from the Colision point otherwise we can look in the object
+			Text(1,2,2,tffdcx-tthitvaluex .."="..tthitvaluex.."-"..tffdcx)
+			Text(1,4,2,tffdcz-tthitvaluex .."="..tthitvaluez.."-"..tffdcz)
+			if tthitvalue == -1 then
+				ttcoldistX = (tffdcx-tthitvaluex)*-0.01+8
+				ttcoldistZ = (tffdcz-tthitvaluex)*-0.01+8
+				Text(1,6,2,ttcoldistX)
+				Text(1,8,2,ttcoldistZ)
+				if ttpz-tffdcz < 0 then ttcoldistZ=ttcoldistZ*-1 end
+			else
+				ttcoldistX = (tffdcx-tthitvaluex)*-0.01-8
+				ttcoldistZ = (tffdcz-tthitvaluex)*-0.01-8
+				if ttpz-tffdcz > 0 then ttcoldistZ=ttcoldistZ*-1 end
+			end
 			ttddx=ttpx-tthitvaluex
 			ttddy=ttpy-tthitvaluey
 			ttddz=ttpz-tthitvaluez
@@ -1408,14 +1428,22 @@ function gameplayercontrol.control()
 				ttddx=ttddx/ttdiff
 				ttddy=ttddy/ttdiff
 				ttddz=ttddz/ttdiff
-				tffdcx=tthitvaluex+(ttddx*5.0)
+				tffdcx=tthitvaluex+(ttddx*5.0)+ttcoldistX
 				tffdcy=tthitvaluey+(ttddy*1.0)
-				tffdcz=tthitvaluez+(ttddz*5.0)
-				SetGamePlayerControlLastGoodcx(tffdcx)
-				SetGamePlayerControlLastGoodcy(tffdcy)
-				SetGamePlayerControlLastGoodcz(tffdcz)
-				SetGamePlayerControlCamCurrentDistance(ttdiff)
-				SetGamePlayerControlCamDoFullRayCheck(1)
+				tffdcz=tthitvaluez+(ttddz*5.0)+ttcoldistZ
+				player_cam_dist = GetPlayerCamDistance( tffdcx,tffdcy,tffdcz )
+				if player_cam_dist > 50 then
+					SetGamePlayerControlLastGoodcx(tffdcx)
+					SetGamePlayerControlLastGoodcy(tffdcy)
+					SetGamePlayerControlLastGoodcz(tffdcz)
+					SetGamePlayerControlCamCurrentDistance(ttdiff)
+					SetGamePlayerControlCamDoFullRayCheck(1)
+				else
+					change_cam_angle = 0
+					tffdcx=GetGamePlayerControlLastGoodcx()
+					tffdcy=GetGamePlayerControlLastGoodcy()
+					tffdcz=GetGamePlayerControlLastGoodcz()
+				end
 			else
 				tffdcx=GetGamePlayerControlLastGoodcx()
 				tffdcy=GetGamePlayerControlLastGoodcy()
@@ -1428,43 +1456,44 @@ function gameplayercontrol.control()
 				tffdcy=GetGamePlayerControlLastGoodcy()
 				tffdcz=GetGamePlayerControlLastGoodcz()
 			end
-		end
-
-		-- ideal range camera position
-		tdcx=tffdcx  
-		tdcy=tffdcy  
-		tdcz=tffdcz
-
-		-- smooth to destination from current real camera position
-		if ( GetGamePlayerControlCamCollisionSmooth() == 0 ) then 
-			SetGamePlayerControlCamCollisionSmooth(1)
-			ttcx=tdcx
-			ttcy=tdcy
-			ttcz=tdcz
-		else
-			if ( GetGamePlayerControlCamCollisionSmooth() == 1 ) then SetGamePlayerControlCamCollisionSmooth(2) end
-			ttcx=CurveValue(tdcx,GetCameraPositionX(0),2.0)
-			ttcy=CurveValue(tdcy,GetCameraPositionY(0),2.0)
-			ttcz=CurveValue(tdcz,GetCameraPositionZ(0),2.0)
-		end
-		if ( GetCameraOverride() ~= 1 and GetCameraOverride() ~= 3 ) then
-			PositionCamera ( 0,ttcx,ttcy,ttcz )
-		end
-
-		--  if over shoulder active, use it
-		if ( GetGamePlayerControlThirdpersonCameraShoulder() ~= 0 ) then 
-			if ( GetCameraOverride() ~= 2 and GetCameraOverride() ~= 3 ) then
-				SetCameraAngle ( 0,0,GetGamePlayerControlFinalCameraAngley()+90,0 )
-				MoveCamera ( 0,GetGamePlayerControlThirdpersonCameraShoulder() )
+			--  if over shoulder active, use it
+			if ( GetGamePlayerControlThirdpersonCameraShoulder() ~= 0 ) then 
+				if ( GetCameraOverride() ~= 2 and GetCameraOverride() ~= 3 ) then
+					SetCameraAngle ( 0,0,GetGamePlayerControlFinalCameraAngley()+90,0 )
+					MoveCamera ( 0,GetGamePlayerControlThirdpersonCameraShoulder() )
+				end
 			end
 		end
 
-		-- adjust horizon angle
-		ttcapverticalangle=ttcapverticalangle-GetGamePlayerControlThirdpersonCameraFocus()
+		if change_cam_pos == 1 then
+			-- ideal range camera position
+			tdcx=tffdcx  
+			tdcy=tffdcy  
+			tdcz=tffdcz
 
-		-- final camera rotation
-		if ( GetCameraOverride() ~= 2 and GetCameraOverride() ~= 3 ) then
-			SetCameraAngle ( 0,ttcapverticalangle,GetGamePlayerControlFinalCameraAngley(),GetGamePlayerControlFinalCameraAnglez() )
+			-- smooth to destination from current real camera position
+			if ( GetGamePlayerControlCamCollisionSmooth() == 0 ) then 
+				SetGamePlayerControlCamCollisionSmooth(1)
+				ttcx=tdcx
+				ttcy=tdcy
+				ttcz=tdcz
+			else
+				if ( GetGamePlayerControlCamCollisionSmooth() == 1 ) then SetGamePlayerControlCamCollisionSmooth(2) end
+				ttcx=CurveValue(tdcx,GetCameraPositionX(0),2.0)
+				ttcy=CurveValue(tdcy,GetCameraPositionY(0),2.0)
+				ttcz=CurveValue(tdcz,GetCameraPositionZ(0),2.0)
+			end
+			if ( GetCameraOverride() ~= 1 and GetCameraOverride() ~= 3 ) then
+				PositionCamera ( 0,ttcx,ttcy,ttcz )
+			end
+
+			-- adjust horizon angle
+			ttcapverticalangle=ttcapverticalangle-GetGamePlayerControlThirdpersonCameraFocus()
+
+			-- final camera rotation
+			if ( GetCameraOverride() ~= 2 and GetCameraOverride() ~= 3 ) then
+				SetCameraAngle ( 0,ttcapverticalangle,GetGamePlayerControlFinalCameraAngley(),GetGamePlayerControlFinalCameraAnglez() )
+			end
 		end
 	else
 		-- update camera position
@@ -1789,6 +1818,16 @@ function gameplayercontrol.debug()
   if PBRDebugView == 9 then Prompt ( "Shadows" ) end
  end
  
+end
+
+function GetPlayerCamDistance( x,y,z )
+    local PDX, PDY, PDZ = x - g_PlayerPosX, 
+                          y - g_PlayerPosY,
+						  z - g_PlayerPosZ;
+  
+    if math.abs( PDY ) > 100 then PDY = PDY * 4 end
+  
+    return math.sqrt( PDX*PDX + PDY*PDY + PDZ*PDZ )
 end
 
 return gameplayercontrol
