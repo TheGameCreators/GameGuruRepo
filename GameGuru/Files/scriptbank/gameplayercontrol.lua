@@ -1390,7 +1390,7 @@ function gameplayercontrol.control()
 			end
 		end
 		change_cam_pos = 1
-		Text(1,10,2,ttpx-tffdcx .."/"..ttpz-tffdcz)
+		--Text(1,10,2,ttpx-tffdcx .."/"..ttpz-tffdcz)
 		if ( tthitvalue ~= 0 ) then 
 			if ( tthitvalue == -1 ) then 
 				-- terrain hit
@@ -1407,13 +1407,13 @@ function gameplayercontrol.control()
 			-- work out new camera position
 			SetGamePlayerControlCamCollisionSmooth(0)
 			-- we need to place the camera away from the Colision point otherwise we can look in the object
-			Text(1,2,2,tffdcx-tthitvaluex .."="..tthitvaluex.."-"..tffdcx)
-			Text(1,4,2,tffdcz-tthitvaluex .."="..tthitvaluez.."-"..tffdcz)
+			--Text(1,2,2,tffdcx-tthitvaluex .."="..tthitvaluex.."-"..tffdcx)
+			--Text(1,4,2,tffdcz-tthitvaluex .."="..tthitvaluez.."-"..tffdcz)
 			if tthitvalue == -1 then
 				ttcoldistX = (tffdcx-tthitvaluex)*-0.01+8
 				ttcoldistZ = (tffdcz-tthitvaluex)*-0.01+8
-				Text(1,6,2,ttcoldistX)
-				Text(1,8,2,ttcoldistZ)
+				--Text(1,6,2,ttcoldistX)
+				--Text(1,8,2,ttcoldistZ)
 				if ttpz-tffdcz < 0 then ttcoldistZ=ttcoldistZ*-1 end
 			else
 				ttcoldistX = (tffdcx-tthitvaluex)*-0.01-8
