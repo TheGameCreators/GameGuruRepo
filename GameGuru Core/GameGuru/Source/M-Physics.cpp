@@ -2436,6 +2436,9 @@ void physics_resetplayer_core ( void )
 		t.e=t.playercontrol.thirdperson.charactere;
 		entity_lua_spawn_core ( );
 		physics_player_thirdpersonreset ( );
+		//PE: Something is disable Z depth buffer when 3rd die ?, just reenable.
+		//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/330
+		EnableObjectZWrite(t.entityelement[t.e].obj);
 	}
 }
 

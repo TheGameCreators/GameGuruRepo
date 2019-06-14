@@ -308,6 +308,14 @@ void entity_lua_spawn_core ( void )
 				// give resurrected characters some immunity to start with
 				t.entityelement[t.e].briefimmunity = 100;
 
+				//PE: Physics was lost after several spawn, and you cant shoot char.
+				//PE: Explode state dont reset.
+				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/429
+				//PE: Make sure physics is setup again, and if char exploded is reset.
+				entity_lua_collisionon();
+				t.entityelement[t.e].collected = 0;
+				t.entityelement[t.e].explodefusetime = 0;
+
 				// found character, no need to continue
 				break;
 			}

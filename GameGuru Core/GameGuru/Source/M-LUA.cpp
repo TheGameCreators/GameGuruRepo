@@ -656,7 +656,8 @@ void lua_loop_allentities ( void )
 								{
 									if ( t.entityprofile[tentid].ischaracter == 1 )
 									{
-										PositionObject(t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z);
+										//PE: HierToo this one is ruin the wizard, give it a try, so another solution is needed :)
+										//PositionObject(t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z);
 										//t.entityelement[t.e].x = ObjectPositionX ( t.entityelement[t.e].obj );
 										t.entityelement[t.e].y = ObjectPositionY ( t.entityelement[t.e].obj );
 										//t.entityelement[t.e].z = ObjectPositionZ ( t.entityelement[t.e].obj );

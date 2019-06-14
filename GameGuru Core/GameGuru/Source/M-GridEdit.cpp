@@ -1758,6 +1758,29 @@ void editor_previewmapormultiplayer ( void )
 		}
 	}
 
+	//PE: start any animations that are not in editor mode.
+	for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+	{
+		t.entid = t.entityelement[t.tte].bankindex;
+		t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
+		t.tobj = t.entityelement[t.tte].obj;
+		if (t.tobj > 0)
+		{
+			if (ObjectExist(t.tobj) == 1)
+			{
+				if (t.entityprofile[t.entid].playanimineditor == 0) {
+					if (t.entityprofile[t.entid].animmax > 0 ) {
+						t.q = 0;
+						SetObjectFrame(t.tttsourceobj, 0);
+						LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+						SetObjectFrame(t.tobj, 0);
+						LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+					}
+				}
+			}
+		}
+	}
+
 	//  hide all waypoints and zones
 	waypoint_hideall ( );
 
@@ -1960,6 +1983,44 @@ void editor_previewmapormultiplayer ( void )
 			}
 		}
 		if (  t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].beenmoved = 1;
+	}
+
+	//PE: disable any animations that should not be in editor.
+	for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+	{
+		t.entid = t.entityelement[t.tte].bankindex;
+		t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
+		t.tobj = t.entityelement[t.tte].obj;
+		if (t.tobj > 0)
+		{
+			if (ObjectExist(t.tobj) == 1)
+			{
+				if (t.entityprofile[t.entid].playanimineditor == 0) {
+					if (t.entityprofile[t.entid].animmax > 0) {
+						t.q = 0;
+						SetObjectFrame(t.tttsourceobj, 0);
+						StopObject(t.tttsourceobj);
+						SetObjectFrame(t.tobj, 0);
+						StopObject(t.tobj);
+					}
+				}
+			}
+		}
+
+		//PE: pframe is lost on clone objects, recreate.
+		if (t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0)
+		{
+			if (t.entityelement[t.tte].isclone == 1 && t.entityelement[t.tte].underground == 0)
+			{
+				if (t.entityelement[t.tte].editorlock == 0)
+				{
+					//t.tobj = t.tentityobj; t.tte = t.tentitytoselect;
+					entity_converttoinstance();
+				}
+			}
+		}
+
+
 	}
 
 	//  signal that we have finished Test Level, restore mapeditor windows

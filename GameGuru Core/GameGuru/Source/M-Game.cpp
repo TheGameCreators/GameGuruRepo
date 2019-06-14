@@ -673,6 +673,30 @@ void game_masterroot ( void )
 				{
 					t.visuals.generalpromptstatetimer=0;
 				}
+
+				//PE: start any animations that use playanimineditor=0. ( standalone ).
+				for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+				{
+					t.entid = t.entityelement[t.tte].bankindex;
+					t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
+					t.tobj = t.entityelement[t.tte].obj;
+					if (t.tobj > 0)
+					{
+						if (ObjectExist(t.tobj) == 1)
+						{
+							if (t.entityprofile[t.entid].playanimineditor == 0) {
+								if (t.entityprofile[t.entid].animmax > 0) {
+									t.q = 0;
+									SetObjectFrame(t.tttsourceobj, 0);
+									LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+									SetObjectFrame(t.tobj, 0);
+									LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+								}
+							}
+						}
+					}
+				}
+
 			}
 
 			//  setup spin values, this rotates the player 360 degrees at the start to kill initial
@@ -2261,12 +2285,6 @@ void game_main_loop ( void )
 		//  update all projectiles
 		weapon_projectile_loop ( );
 
-		//  update all particles and emitters
-		ravey_particles_update ( );
-
-		//  Decal control
-		decalelement_control ( );
-
 		//  Prompt
 		if (  t.sky.currenthour_f<1.0 || t.sky.currenthour_f >= 13.0 ) 
 		{
@@ -2391,6 +2409,15 @@ void game_main_loop ( void )
 		}
 		t.game.perf.gun += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 	}
+
+	//PE: Moved here for "AmenMoses", issue: https://github.com/TheGameCreators/GameGuruRepo/issues/511
+
+	//  update all particles and emitters
+	ravey_particles_update();
+
+	//  Decal control
+	decalelement_control();
+
 
 	//  Steam call moved here as camera changes need to be BEFORE the shadow update
 	if (  t.game.runasmultiplayer == 1 ) 
