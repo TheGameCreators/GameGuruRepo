@@ -158,6 +158,9 @@ void visuals_editordefaults ( void )
 	t.visuals.AmbienceRed_f=255;
 	t.visuals.AmbienceGeen_f=255;
 	t.visuals.AmbienceBlue_f=255;
+	//PE: We should always have light in editor, addition to issue: https://github.com/TheGameCreators/GameGuruRepo/issues/352#event-2404317522
+	//PE: fix for commit: https://github.com/TheGameCreators/GameGuruRepo/commit/4aff257545b19a969e4676c7b057a42d8e93fdf1
+	t.visuals.SurfaceSunFactor_f = 1.0;
 	t.visuals.SurfaceIntensity_f=0.8f;
 	t.visuals.SurfaceRed_f=255;
 	t.visuals.SurfaceGreen_f=255;
