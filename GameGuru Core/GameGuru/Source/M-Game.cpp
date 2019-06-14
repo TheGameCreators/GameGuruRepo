@@ -673,6 +673,30 @@ void game_masterroot ( void )
 				{
 					t.visuals.generalpromptstatetimer=0;
 				}
+
+				//PE: start any animations that use playanimineditor=0. ( standalone ).
+				for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+				{
+					t.entid = t.entityelement[t.tte].bankindex;
+					t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
+					t.tobj = t.entityelement[t.tte].obj;
+					if (t.tobj > 0)
+					{
+						if (ObjectExist(t.tobj) == 1)
+						{
+							if (t.entityprofile[t.entid].playanimineditor == 0) {
+								if (t.entityprofile[t.entid].animmax > 0) {
+									t.q = 0;
+									SetObjectFrame(t.tttsourceobj, 0);
+									LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+									SetObjectFrame(t.tobj, 0);
+									LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+								}
+							}
+						}
+					}
+				}
+
 			}
 
 			//  setup spin values, this rotates the player 360 degrees at the start to kill initial
