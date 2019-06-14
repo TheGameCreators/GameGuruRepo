@@ -2473,7 +2473,18 @@ void entity_createobj ( void )
 		}
 
 		//  allow first animation
-		if (  t.entityprofile[t.tentid].animmax>0 && t.entityprofile[t.tentid].playanimineditor>0 ) 
+		if (t.entityprofile[t.tentid].playanimineditor == 0 && t.entityprofile[t.tentid].animmax>0 ) { //PE:
+
+			t.q = 0;
+			LoopObject(t.sourceobj, t.entityanim[t.tentid][t.q].start, t.entityanim[t.tentid][t.q].finish);
+			if (GetNumberOfFrames(t.obj) > 0)
+			{
+				LoopObject(t.obj, t.entityanim[t.tentid][t.q].start, t.entityanim[t.tentid][t.q].finish);
+				StopObject(t.obj);
+			}
+			StopObject(t.sourceobj);
+		}
+		else if (  t.entityprofile[t.tentid].animmax>0 && t.entityprofile[t.tentid].playanimineditor>0 ) 
 		{
 			// animation chosen
 			t.q=t.entityprofile[t.tentid].playanimineditor-1;
@@ -2684,7 +2695,12 @@ void entity_resettodefaultanimation ( void )
 			}
 			else
 			{
-				if (  t.entityprofile[t.tentid].animmax>0 && t.entityprofile[t.tentid].playanimineditor>0 ) 
+				if (t.entityprofile[t.tentid].playanimineditor == 0 && t.entityprofile[t.tentid].animmax>0 ) {
+					t.q = t.entityprofile[t.tentid].playanimineditor;
+					LoopObject(t.tobj, t.entityanim[t.tentid][t.q].start, t.entityanim[t.tentid][t.q].finish);
+					StopObject(t.tobj);
+				}
+				else if (  t.entityprofile[t.tentid].animmax>0 && t.entityprofile[t.tentid].playanimineditor>0 ) 
 				{
 					t.q=t.entityprofile[t.tentid].playanimineditor-1;
 					LoopObject (  t.tobj,t.entityanim[t.tentid][t.q].start,t.entityanim[t.tentid][t.q].finish );
