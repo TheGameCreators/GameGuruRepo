@@ -2127,7 +2127,7 @@ void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, flo
 	float fProportionalCapsuleRadius = (((fXSize+fZSize)/2.0f/2.0f)*gSc)*0.8f; // so zombie can get through narrower door!
 
 	// will offset real object by HALF of total height of capsule (sphere halves+cylinder)
-	fRaised = fRaised + ((fProportionalCapsuleRadius*2)+fProportionalCapsuleHeight)/2.0f;
+	fRaised = fRaised + ((fProportionalCapsuleRadius*2)+fProportionalCapsuleHeight * fScaleModifier)/2.0f; // HierToo :)
 
 	// create a bullet shape
 	//float fCapsuleWidth = 15.0f/gSc;
