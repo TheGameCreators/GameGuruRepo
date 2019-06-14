@@ -2285,12 +2285,6 @@ void game_main_loop ( void )
 		//  update all projectiles
 		weapon_projectile_loop ( );
 
-		//  update all particles and emitters
-		ravey_particles_update ( );
-
-		//  Decal control
-		decalelement_control ( );
-
 		//  Prompt
 		if (  t.sky.currenthour_f<1.0 || t.sky.currenthour_f >= 13.0 ) 
 		{
@@ -2415,6 +2409,15 @@ void game_main_loop ( void )
 		}
 		t.game.perf.gun += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 	}
+
+	//PE: Moved here for "AmenMoses", issue: https://github.com/TheGameCreators/GameGuruRepo/issues/511
+
+	//  update all particles and emitters
+	ravey_particles_update();
+
+	//  Decal control
+	decalelement_control();
+
 
 	//  Steam call moved here as camera changes need to be BEFORE the shadow update
 	if (  t.game.runasmultiplayer == 1 ) 
