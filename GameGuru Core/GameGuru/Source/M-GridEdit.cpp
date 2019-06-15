@@ -161,6 +161,14 @@ void mapeditorexecutable ( void )
 	game_timeelapsed_init ( );
 	t.tsl_f=Timer();
 
+	// IDE announcement system
+	if ( g.gshowannouncements == 1 )
+	{
+		welcome_init(1);
+		welcome_init(0);
+		welcome_show(WELCOME_ANNOUNCEMENTS);
+	}
+
 	//  only show front dialogs if not resuming from previous session
 	int iCountDownToShowQuickStartDialog = 0;
 	if ( g.grestoreeditorsettings == 0 ) 

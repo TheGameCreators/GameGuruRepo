@@ -659,6 +659,7 @@ struct Sglobals
 	cstr gplayerstyle_s;
 	cstr grawtextfont_s;
 	int gshowonstartup;
+	int gshowannouncements;
 	int gfirsttimerun;
 	int quickstartmenumode;
 	int quickparentalcontrolmode;

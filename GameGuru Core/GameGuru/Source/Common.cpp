@@ -2399,6 +2399,7 @@ void FPSC_Setup ( void )
 	//  Quick Start state
 	g.gfirsttimerun = 0;
 	g.gshowonstartup = 0;
+	g.gshowannouncements = 1;
 	if ( g.trueappname_s == "Guru-MapEditor" ) 
 	{
 		t.tfile_s="showonstartup.ini";
@@ -2429,6 +2430,23 @@ void FPSC_Setup ( void )
 			{
 				WriteString ( 1, "0" );
 			}
+			CloseFile (  1 );
+		}
+
+		// news announcement flag
+		t.tfile_s="showannouncements.ini";
+		if ( FileOpen(1) == 1 ) CloseFile (  1 );
+		if ( FileExist(t.tfile_s.Get()) == 1 ) 
+		{
+			OpenToRead ( 1, t.tfile_s.Get() );
+			cstr tshowannouncements_s = ReadString (1);
+			CloseFile ( 1 );
+			g.gshowannouncements = ValF(tshowannouncements_s.Get());
+		}
+		else
+		{
+			OpenToWrite ( 1, t.tfile_s.Get() );
+			WriteString ( 1, "1" );
 			CloseFile (  1 );
 		}
 	}

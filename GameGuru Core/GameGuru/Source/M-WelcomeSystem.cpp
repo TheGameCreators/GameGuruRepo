@@ -6,6 +6,8 @@
 #include "M-WelcomeSystem.h"
 #include "gameguru.h"
 #include "CInputC.h"
+#include <time.h>
+#include <wininet.h>
 
 // Globals
 int g_welcomesystemclosedown = 0;
@@ -31,6 +33,9 @@ welcomebuttontype g_welcomebutton[20];
 int g_welcomebuttoncount = 0;
 bool gbWelcomeSystemActive = false;
 int g_welcomeCycle = 0;
+char g_welcomeText[1024];
+char g_welcomeImageUrl[1024];
+char g_welcomeLinkUrl[1024];
 
 void welcome_loadasset ( cstr welcomePath, LPSTR pImageFilename, int iImageID )
 {
@@ -117,6 +122,9 @@ void welcome_init ( int iLoadingPart )
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend-prompt.png", g.editorimagesoffset+62 );
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend-click.png", g.editorimagesoffset+63 );
 		}
+		
+		// announcement system
+		welcome_loadasset ( welcomePath, "welcome-assets\\gameguru-news-banner.png", g.editorimagesoffset+64 );
 	}
 
 	// calculate page dimensions and useful vars
@@ -801,9 +809,512 @@ void welcome_freeintroapp_page ( int iHighlightingButton )
 	}
 }
 
+void CleanStringOfEscapeSlashes ( char* pText )
+{
+	char *str = pText;
+	char *str2 = pText;
+	while ( *str )
+	{
+		if ( *str == '"' )
+		{
+			str++;
+		}
+		else
+		{
+			if ( *str == '\\' )
+			{
+				str++;
+				switch( *str )
+				{
+					case 'n': *str2 = '\n'; break;
+					case 'r': *str2 = '\r'; break;
+					case '"': *str2 = '"'; break;
+					case 'b': *str2 = '\b'; break;
+					case 'f': *str2 = '\f'; break;
+					case 't': *str2 = '\t'; break;
+					case '/': *str2 = '/'; break;
+					case '\\': *str2 = '\\'; break;
+					default: *str2 = *str;
+				}
+			}
+			else
+			{
+				*str2 = *str;
+			}
+			str++;
+			str2++;
+		}
+	}
+	*str2 = 0;
+}
+
+UINT OpenURLForDataOrFile ( LPSTR pDataReturned, DWORD* pReturnDataSize, LPSTR pUniqueCode, LPSTR pVerb, LPSTR urlWhere, LPSTR pLocalFileForImageOrNews )
+{
+	UINT iError = 0;
+	unsigned int dwDataLength = 0;
+	HINTERNET m_hInet = InternetOpen( "InternetConnection", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0 );
+	if ( m_hInet == NULL )
+	{
+		iError = GetLastError( );
+	}
+	else
+	{
+		unsigned short wHTTPType = INTERNET_DEFAULT_HTTPS_PORT;
+		HINTERNET m_hInetConnect = InternetConnect( m_hInet, "www.thegamecreators.com", wHTTPType, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0 );
+		if ( m_hInetConnect == NULL )
+		{
+			iError = GetLastError( );
+		}
+		else
+		{
+			int m_iTimeout = 2000;
+			InternetSetOption( m_hInetConnect, INTERNET_OPTION_CONNECT_TIMEOUT, (void*)&m_iTimeout, sizeof(m_iTimeout) );  
+			HINTERNET hHttpRequest = HttpOpenRequest( m_hInetConnect, pVerb, urlWhere, "HTTP/1.1", NULL, NULL, INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_SECURE, 0 );
+			if ( hHttpRequest == NULL )
+			{
+				iError = GetLastError( );
+			}
+			else
+			{
+				HttpAddRequestHeaders( hHttpRequest, "Content-Type: application/x-www-form-urlencoded", -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+				int bSendResult = 0;
+				FILE* fpImageLocalFile = NULL;
+				if ( pLocalFileForImageOrNews == NULL )
+				{
+					// News
+					char m_szPostData[1024];
+					strcpy ( m_szPostData, "k=vIo3sc2z" );
+					strcat ( m_szPostData, "&app=gameguru" ); //or gamegurufree
+					strcat ( m_szPostData, "&uid=" );
+					strcat ( m_szPostData, pUniqueCode );
+					bSendResult = HttpSendRequest( hHttpRequest, NULL, -1, (void*)(m_szPostData), strlen(m_szPostData) );
+				}
+				else
+				{
+					// Image URL, open local file for writing
+					bSendResult = HttpSendRequest( hHttpRequest, NULL, -1, NULL, NULL );
+					fpImageLocalFile = fopen( pLocalFileForImageOrNews , "wb" );
+				}
+				if ( bSendResult == 0 )
+				{
+					iError = GetLastError( );
+				}
+				else
+				{
+					int m_iStatusCode = 0;
+					char m_szContentType[150];
+					unsigned int dwBufferSize = sizeof(int);
+					unsigned int dwHeaderIndex = 0;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, (void*)&m_iStatusCode, (LPDWORD)&dwBufferSize, (LPDWORD)&dwHeaderIndex );
+					dwHeaderIndex = 0;
+					unsigned int dwContentLength = 0;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, (LPDWORD)&dwBufferSize, (LPDWORD)&dwHeaderIndex );
+					dwHeaderIndex = 0;
+					unsigned int ContentTypeLength = 150;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_TYPE, (void*)m_szContentType, (LPDWORD)&ContentTypeLength, (LPDWORD)&dwHeaderIndex );
+					char pBuffer[ 20000 ];
+					for(;;)
+					{
+						unsigned int written = 0;
+						if( !InternetReadFile( hHttpRequest, (void*) pBuffer, 2000, (LPDWORD)&written ) )
+						{
+							// error
+						}
+						if ( written == 0 ) break;
+						if ( fpImageLocalFile )
+						{
+							// write direct to local image file
+							fwrite(pBuffer, 1, written, fpImageLocalFile );
+						}
+						else
+						{
+							// comple news for return string
+							if ( dwDataLength + written > 10240 ) written = 10240 - dwDataLength;
+							memcpy( pDataReturned + dwDataLength, pBuffer, written );
+							dwDataLength = dwDataLength + written;
+							if ( dwDataLength >= 10240 ) break;
+						}
+					}
+					InternetCloseHandle( hHttpRequest );
+				}
+				if ( fpImageLocalFile )
+				{
+					fclose(fpImageLocalFile);
+					fpImageLocalFile = NULL;
+				}
+			}
+			InternetCloseHandle( m_hInetConnect );
+		}
+		InternetCloseHandle( m_hInet );
+	}
+	if ( iError > 0 )
+	{
+		char *szError = 0;
+		if ( iError > 12000 && iError < 12174 ) 
+			FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE, GetModuleHandle("wininet.dll"), iError, 0, (char*)&szError, 0, 0 );
+		else 
+			FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, iError, 0, (char*)&szError, 0, 0 );
+		if ( szError )
+		{
+			LocalFree( szError );
+		}
+	}
+
+	// complete
+	*pReturnDataSize = dwDataLength;
+	return iError;
+}
+
+bool welcome_announcements_init ( void )
+{
+	// grab news from server
+	bool bNewsIsAvailable = false;
+	strcpy ( g_welcomeText, "" );
+	strcpy ( g_welcomeImageUrl, "" );
+	strcpy ( g_welcomeLinkUrl, "" );
+
+	// generate unique code for AGK install if none available
+	char pUniqueCodeFile[ 1024 ];
+	strcpy( pUniqueCodeFile, g.fpscrootdir_s.Get() );
+	strcat( pUniqueCodeFile, "\\installcode.dat" );
+	char pUniqueCode[33];
+	memset ( pUniqueCode, 33, 0 );
+	FILE *file = fopen(pUniqueCodeFile, "r");
+	if ( file == NULL )
+	{
+		// generate
+		time_t mtime;
+		mtime = time(0);
+		srand(mtime);
+		int n = 0;
+		for (; n < 32; n++ ) 
+		{
+			pUniqueCode[n] = 65+(rand()%22);
+		}
+		pUniqueCode[32] = 0;
+		FILE* fp = fopen( pUniqueCodeFile , "w" );
+		fwrite(pUniqueCode , 1 , 32 , fp );
+		fclose(fp);
+	}
+	else
+	{
+		// read
+		fread(pUniqueCode, 1, 32, file);
+		fclose(file);
+	}
+	pUniqueCode[32] = 0;
+
+	// are we a special IDE?
+	int iSpecialIDEForViewingTestAnnouncements = 0;
+	char pSpecialIDETestFile[2048];
+	strcpy ( pSpecialIDETestFile, g.fpscrootdir_s.Get() );
+	strcat ( pSpecialIDETestFile, "\\SHOWTEST.dat" );
+	FILE* showtestfile = fopen(pSpecialIDETestFile, "r");
+	if ( showtestfile != NULL )
+	{
+		MessageBox ( NULL, "Running in IDE Announcement Test Mode", "Latest News", MB_OK );
+		iSpecialIDEForViewingTestAnnouncements = 1;
+		fclose(showtestfile);
+	}				
+
+	// request news from server
+	char pImageLocalFile[2048];
+	DWORD dwDataReturnedSize = 0;
+	char pDataReturned[10240];
+	UINT iError = OpenURLForDataOrFile ( pDataReturned, &dwDataReturnedSize, pUniqueCode, "POST", "/api/app/announcement", NULL );
+	if ( iError <= 0 && *pDataReturned != 0 && strchr(pDataReturned, '{') != 0 )
+	{
+		// break up response string
+		char updated_at[1024];
+		memset ( updated_at, 0, sizeof(updated_at) );
+		char pNewsText[10240];
+		strcpy ( pNewsText, "" );
+		char pURLText[10240];
+		strcpy ( pURLText, "" );
+		char pImageURL[10240];
+		strcpy ( pImageURL, "" );
+		char pWorkStr[10240];
+		strcpy ( pWorkStr, pDataReturned );
+		if ( pWorkStr[0]=='{' ) strcpy ( pWorkStr, pWorkStr+1 );
+		int n = 10200;
+		for (; n>0; n-- ) if ( pWorkStr[n] == '}' ) { pWorkStr[n] = 0; break; }
+		char* pChop = strstr ( pWorkStr, "," );
+		char pStatusStr[10240];
+		strcpy ( pStatusStr, pWorkStr );
+		if ( pChop ) pStatusStr[pChop-pWorkStr] = 0;
+		char* pStatusValue = strstr ( pStatusStr, ":" ) + 1;
+		if ( pChop[0]==',' ) pChop += 1;
+		if ( strstr ( pStatusValue, "success" ) != NULL )
+		{
+			// success
+			// news
+			pChop = strstr ( pChop, ":" ) + 2;
+			strcpy ( pNewsText, pChop );
+			char pEndOfChunk[4];
+			pEndOfChunk[0]='"';
+			pEndOfChunk[1]=',';
+			pEndOfChunk[2]='"';
+			pEndOfChunk[3]=0;
+			char* pNewsTextEnd = strstr ( pNewsText, pEndOfChunk );
+			pNewsText[pNewsTextEnd-pNewsText] = 0;
+			pChop += strlen(pNewsText);
+
+			// go through news and replace \n with real carriage returns
+			int n = 0;
+			char* pReplacePos = pNewsText;
+			for(;;)
+			{
+				pReplacePos = strstr ( pReplacePos, "\\r\\n" );
+				if ( pReplacePos != NULL )
+				{
+					pReplacePos[0]=' ';
+					pReplacePos[1]=' ';
+					pReplacePos[2]=' ';
+					pReplacePos[3]='\n';
+					pReplacePos+=4;
+				}
+				else
+					break;
+			}
+
+			// url
+			strcpy ( pURLText, pChop );
+			pEndOfChunk[0]='"';
+			pEndOfChunk[1]=',';
+			pEndOfChunk[2]='"';
+			strcpy ( pURLText, strstr ( pURLText, pEndOfChunk ) + 9 );
+			char* pURLEnd = strstr ( pURLText, pEndOfChunk );
+			pURLText[pURLEnd-pURLText] = 0;
+			pChop += strlen(pURLText) + 9;
+			CleanStringOfEscapeSlashes ( pURLText );
+
+			// image_url
+			pChop = strstr ( pChop, "image_url" );
+			pChop += 11; // skips past image_url":
+			LPSTR pEndOfImageURL = strstr ( pChop, ",\"test" );
+			DWORD dwLength = pEndOfImageURL-pChop;
+			memcpy ( pImageURL, pChop, dwLength );
+			pImageURL[dwLength] = 0;
+			CleanStringOfEscapeSlashes ( pImageURL );
+
+			// test flag
+			int iTestAnnouncement = 0;
+			pChop = strstr ( pChop, ",\"test\":" );
+			pChop += 8; // get past ,"test":
+			if ( *pChop == '0' )
+			{
+				iTestAnnouncement = 0;
+			}
+			else
+			{
+				iTestAnnouncement = 1;
+			}
+
+			// updated_at
+			char pUpdatedAt[10240];
+			pEndOfChunk[0]='"';
+			pEndOfChunk[1]=':';
+			pEndOfChunk[2]='{';
+			pChop = strstr ( pChop, pEndOfChunk ) + 2 + 9;
+			strcpy ( pUpdatedAt, pChop );
+			memcpy ( updated_at, pUpdatedAt, 19 );
+			updated_at[19] = 0;
+
+			// show what_notifications dialog if news available
+			char install_stamp_at[1024];
+			memset ( install_stamp_at, 0, sizeof(install_stamp_at) );
+
+			// Image Handling
+			strcpy ( pImageLocalFile, g.fpscrootdir_s.Get() );
+			strcat ( pImageLocalFile, "\\languagebank\\english\\artwork\\welcome-assets\\gameguru-news-banner.png" );
+
+			// so we download an image
+			char pNoDomainPart[1024];
+			strcpy ( pNoDomainPart, "" );
+			if ( strcmp ( pImageURL, "null" ) != NULL )
+			{
+				// get filename only
+				strcpy ( pNoDomainPart, pImageURL );
+				strrev ( pNoDomainPart );
+				pNoDomainPart[strlen("https://www.thegamecreators.com//")] = 0;
+				strrev ( pNoDomainPart );
+
+				// get file ext
+				char pFileExt[1024];
+				strcpy ( pFileExt, pNoDomainPart + strlen(pNoDomainPart) - 4 );
+
+				// Download the image file
+				DWORD dwImageReturnedSize = 0;
+				char pImageReturned[10240];
+				sprintf ( pImageLocalFile, "%s\\localimagefile%s", g.fpscrootdir_s.Get(), pFileExt );				
+				UINT iImageError = OpenURLForDataOrFile ( pImageReturned, &dwImageReturnedSize, "", "GET", pNoDomainPart, pImageLocalFile );
+				if ( iImageError == 0 )
+				{
+					// load local image file soon (below)
+				}
+				else
+				{
+					// if image not downloaded for some reason, revert to default
+					strcpy ( pImageLocalFile, g.fpscrootdir_s.Get() );
+					strcat ( pImageLocalFile, "\\languagebank\\english\\artwork\\welcome-assets\\gameguru-news-banner.png" );
+				}
+			}
+
+			// real announcement or test announcement
+			if ( iSpecialIDEForViewingTestAnnouncements == 1 )
+			{
+				// show the test announcement
+				bNewsIsAvailable = true;
+				strcpy ( g_welcomeText, pNewsText );
+				strcpy ( g_welcomeLinkUrl, pURLText );
+				strcpy ( g_welcomeImageUrl, pImageLocalFile );
+			}
+			if ( iTestAnnouncement == 0 && iSpecialIDEForViewingTestAnnouncements == 0 )
+			{
+				char pInstallStampFile[ 1024 ];
+				strcpy( pInstallStampFile, g.fpscrootdir_s.Get() );
+				strcat( pInstallStampFile, "\\installstamp.dat" );
+				file = fopen(pInstallStampFile, "r");
+				if ( file != NULL )
+				{
+					fread(install_stamp_at, 1, 19, file);
+					install_stamp_at[ 19 ] = 0;
+					fclose(file);
+				}
+				if ( strcmp ( updated_at, install_stamp_at ) != NULL )
+				{
+					// different updated_at entry, show new news
+					bNewsIsAvailable = true;
+					strcpy ( g_welcomeText, pNewsText );
+					strcpy ( g_welcomeLinkUrl, pURLText );
+					strcpy ( g_welcomeImageUrl, pImageLocalFile );
+
+					// update install stamp so we know news has been read
+					FILE* fp = fopen( pInstallStampFile , "w" );
+					fwrite(updated_at , 1 , 19 , fp );
+					fclose(fp);
+				}
+			}
+		}
+		else
+		{
+			// error
+			char* pMessageValue = strstr ( pChop, ":" ) + 1;
+		}
+	}
+
+	// if no news, skip the welcome dialog
+	if ( bNewsIsAvailable == true )
+	{
+		// overwrite default with announcement image
+		if ( FileExist ( g_welcomeImageUrl ) == 1 ) LoadImage ( g_welcomeImageUrl, g.editorimagesoffset+64 );
+		g_welcomeCycle = 0; if ( strlen(g_welcomeLinkUrl) > 0 ) g_welcomeCycle = 1;		
+	}
+
+	// false will skip the dialog altogether
+	return bNewsIsAvailable;
+}
+
+void welcome_announcements_page ( int iHighlightingButton )
+{
+	// draw page
+	int iID = 0;
+	welcome_text ( "Latest News", 5, 50, 10, 192, true, false );
+	welcome_drawrotatedimage ( g.editorimagesoffset+64, 50, 20, 0, 0, 0, false );
+
+	int iCharCount = 0;
+	int iLineIndex = 1;
+	char pTextToShow[1024];
+	strcpy ( pTextToShow, g_welcomeText );
+	char pLine1[1024]; strcpy ( pLine1, "" );
+	char pLine2[1024]; strcpy ( pLine2, "" );
+	char pLine3[1024]; strcpy ( pLine3, "" );
+	char pWorkLine[1024]; strcpy ( pWorkLine, "" );
+	for ( int n = 0; n < strlen(pTextToShow); n++ )
+	{
+		iCharCount++;
+		if ( iCharCount > 65 && (pTextToShow[n] == ' ' || pTextToShow[n] == ',' || pTextToShow[n] == '.' || pTextToShow[n] == '"') )
+		{
+			if ( iLineIndex == 1 ) { strcpy ( pLine1, pTextToShow ); pLine1[n+1] = 0; }
+			if ( iLineIndex == 2 ) { strcpy ( pLine2, pTextToShow ); pLine2[n+1] = 0; }
+			strcpy ( pWorkLine, pTextToShow );
+			strcpy ( pTextToShow, pWorkLine+n+1 ); n = 0;
+			iCharCount = 0;
+			iLineIndex++;
+			if ( iLineIndex == 3 ) break;
+		}
+	}
+	strcpy ( pLine3, pTextToShow );
+	welcome_text ( pLine1, 1, 50, 58, 192, true, false );
+	welcome_text ( pLine2, 1, 50, 63, 192, true, false );
+	welcome_text ( pLine3, 1, 50, 68, 192, true, false );
+	if ( g_welcomeCycle == 0 ) 
+	{ 
+		iID = 1; welcome_textinbox ( iID, "EXIT", 1, 50, 80, g_welcomebutton[iID].alpha );
+	}
+	else
+	{
+		iID = 1; welcome_textinbox ( iID, "EXIT", 1, 100-35, 80, g_welcomebutton[iID].alpha );
+		iID = 2; welcome_textinbox ( iID, "GOTO LINK", 1, 35, 80, g_welcomebutton[iID].alpha ); 
+	}
+	iID = 3; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
+	if ( g.gshowannouncements == 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
+	welcome_text ( "Tick to skip news dialog in future", 1, 13.5f, 91.0f, 255, false, true );
+
+	// control page
+	if ( t.inputsys.mclick == 1 && t.inputsys.mclickreleasestate == 0 ) 
+	{
+		if ( iHighlightingButton == 1 ) 
+		{
+			t.tclosequick = 1;
+		}
+		if ( iHighlightingButton == 2 ) 
+		{
+			// jump to announcement link if there is one
+			ExecuteFile ( g_welcomeLinkUrl,"","",0 );
+			t.tclosequick = 1;
+		}
+		if ( iHighlightingButton == 3 ) 
+		{
+			// toggle flag
+			t.inputsys.mclick = 0;
+			t.inputsys.mclickreleasestate = 1;
+			g.gshowannouncements = 1 - g.gshowannouncements;
+
+			// save setting
+			t.tfile_s = g.fpscrootdir_s+"\\showannouncements.ini";
+			DeleteAFile ( t.tfile_s.Get() );
+			if ( FileOpen(1) == 1 ) CloseFile ( 1 );
+			OpenToWrite ( 1, t.tfile_s.Get() );
+			WriteString ( 1, cstr(g.gshowannouncements).Get() );
+			CloseFile ( 1 );
+		}
+	}
+}
+
+void welcome_savestandalone_init ( void )
+{
+	// dialog : change standalone path, see progress, complete button, escape button
+}
+
+void welcome_savestandalone_page ( int iHighlightingButton )
+{
+	// draw page
+	welcome_text ( "Save Standalone Menu", 5, 50, 15, 192, true, false );
+
+	// control page
+	if ( t.inputsys.mclick == 1 ) 
+	{
+		if ( iHighlightingButton == 1 ) 
+		{
+			t.tclosequick = 1;
+		}
+	}
+}
+
 // WORKER FUNCTIONS
 
-void welcome_setuppage ( int iPageIndex )
+bool welcome_setuppage ( int iPageIndex )
 {
 	// clear data vars
 	memset ( g_welcomebutton, 0, sizeof(g_welcomebutton) );
@@ -817,6 +1328,11 @@ void welcome_setuppage ( int iPageIndex )
 	if ( iPageIndex == WELCOME_PLAY ) welcome_play_init();
 	if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_init();
 	if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_init();
+	if ( iPageIndex == WELCOME_ANNOUNCEMENTS ) return welcome_announcements_init();
+	if ( iPageIndex == WELCOME_SAVESTANDALONE ) welcome_savestandalone_init();
+
+	// normally success
+	return true;
 }
 
 void welcome_runloop ( int iPageIndex )
@@ -905,6 +1421,8 @@ void welcome_runloop ( int iPageIndex )
 			if ( iPageIndex == WELCOME_PLAY ) g_welcomesystemclosedown = welcome_play_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_page ( iHighlightingButton );
+			if ( iPageIndex == WELCOME_ANNOUNCEMENTS ) welcome_announcements_page ( iHighlightingButton );
+			if ( iPageIndex == WELCOME_SAVESTANDALONE ) welcome_savestandalone_page ( iHighlightingButton );
 
 			// update screen
 			Sync();
@@ -918,8 +1436,10 @@ void welcome_runloop ( int iPageIndex )
 
 void welcome_show ( int iPageIndex )
 {
-	welcome_setuppage ( iPageIndex );
-	welcome_runloop ( iPageIndex );
+	if ( welcome_setuppage ( iPageIndex ) == true )
+	{
+		welcome_runloop ( iPageIndex );
+	}
 }
 
 /*
