@@ -2698,8 +2698,8 @@ void FPSC_Setup ( void )
 		g.grealgameviewstate=0;
 	}
 
-	//  The MyGames folder precedes Files
-	g.exedir_s = GetDir();
+	// The MyGames folder precedes Files
+	g.exedir_s = g.myownrootdir_s;//GetDir();
 	g.exedir_s += "\\MyGames\\";
 	sprintf ( t.szwork , "The executable folder will be: %s" , g.exedir_s.Get() );
 	timestampactivity(0,t.szwork);

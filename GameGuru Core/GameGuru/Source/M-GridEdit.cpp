@@ -359,18 +359,26 @@ void mapeditorexecutable ( void )
 						{
 							SetEventAndWait (  3 );
 							//CloseFileMap (  3 );
-							if (  t.idechecks == 1 ) 
+							if ( t.idechecks == 1 ) 
 							{
-								//  Save Standalone
+								// Save Standalone
 								gridedit_intercept_savefirst ( );
 								OpenFileMap (  3, "FPSEXCHANGE" );
-								if (  t.editorcanceltask == 0 ) 
+								if ( t.editorcanceltask == 0 ) 
 								{
 									popup_text(t.strarr_s[82].Get());
 									gridedit_load_map ( ); // 190417 - ensures levelbank contents SAME as level 1 FPM!
-									mapfile_savestandalone ( );
-									SetFileMapDWORD (  3, t.virtualfileindex, 3 );
+
+									// new dialog to handle save standalone
 									popup_text_close();
+									//mapfile_savestandalone ( );
+									//suggest new init code to load just what the save standalone dialog needs
+									welcome_init(1);
+									welcome_init(2);
+									welcome_init(0);
+									welcome_show(WELCOME_SAVESTANDALONE);
+									welcome_free();
+									SetFileMapDWORD (  3, t.virtualfileindex, 3 );
 								}
 								else
 								{

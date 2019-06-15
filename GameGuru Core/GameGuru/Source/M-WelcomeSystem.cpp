@@ -1294,13 +1294,44 @@ void welcome_announcements_page ( int iHighlightingButton )
 
 void welcome_savestandalone_init ( void )
 {
-	// dialog : change standalone path, see progress, complete button, escape button
+	g_welcomeCycle = 0;
 }
 
 void welcome_savestandalone_page ( int iHighlightingButton )
 {
 	// draw page
-	welcome_text ( "Save Standalone Menu", 5, 50, 15, 192, true, false );
+	int iID = 0;
+	welcome_text ( "Save Standalone", 5, 50, 15, 192, true, false );
+	if ( g_welcomeCycle == 0 )
+	{
+		welcome_text ( "Choose where you would like your standalone to be saved", 1, 50, 30, 192, true, false );
+		welcome_drawbox ( 0, 10, 37, 74, 43 );
+		welcome_text ( g.exedir_s.Get(), 1, 42, 40, 192, true, false );
+		iID = 3; welcome_textinbox ( iID, "CHANGE", 1, 85, 40, g_welcomebutton[iID].alpha );
+		// save standalone button
+		iID = 2; welcome_textinbox ( iID, "SAVE STANDALONE", 1, 50, 65, g_welcomebutton[iID].alpha );
+		iID = 1; welcome_textinbox ( iID, "EXIT", 1, 50, 85, g_welcomebutton[iID].alpha );
+	}
+	else
+	{
+		welcome_text ( "Standalone Folder", 1, 50, 30, 192, true, false );
+		welcome_drawbox ( 0, 10, 37, 90, 43 );
+		welcome_text ( g.exedir_s.Get(), 1, 50, 40, 192, true, false );
+		// show standalone progress
+		welcome_text ( "Exporting your game as a standalone executable and encrypting media files", 1, 50, 60, 192, true, false );
+		welcome_drawbox ( 0, 10, 65, 90, 70 );
+		welcome_text ( "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||", 1, 50, 67, 192, true, false );
+		iID = 1; welcome_textinbox ( iID, "CANCEL", 1, 50, 85, g_welcomebutton[iID].alpha );
+	}
+
+	// control standalone saving
+	if ( g_welcomeCycle == 2 )
+	{
+		g_welcomeCycle = 3;
+		mapfile_savestandalone();
+		t.tclosequick = 1;
+	}
+	if ( g_welcomeCycle == 1 ) g_welcomeCycle = 2;
 
 	// control page
 	if ( t.inputsys.mclick == 1 ) 
@@ -1308,6 +1339,25 @@ void welcome_savestandalone_page ( int iHighlightingButton )
 		if ( iHighlightingButton == 1 ) 
 		{
 			t.tclosequick = 1;
+		}
+		if ( iHighlightingButton == 2 ) 
+		{
+			// save standalone start
+			g_welcomeCycle = 1;
+		}
+		if ( iHighlightingButton == 3 ) 
+		{
+			// change location of save standalone game
+			OpenFileMap ( 1,"FPSEXCHANGE" );
+			SetFileMapString ( 1, 1000, g.exedir_s.Get() );
+			SetFileMapDWORD ( 1, 424, 2 );
+			SetEventAndWait ( 1 );
+			while ( GetFileMapDWORD(1, 424) == 2 ) 
+			{
+				SetEventAndWait ( 1 );
+			}
+			t.returnstring_s = GetFileMapString(1, 1000);
+			g.exedir_s = t.returnstring_s;
 		}
 	}
 }
@@ -1382,7 +1432,6 @@ void welcome_runloop ( int iPageIndex )
 			if ( GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
 			if ( GetFileMapDWORD( 1, 408 ) == 1 ) { t.interactive.active = 0  ; break; }
 			if ( GetFileMapDWORD( 1, 434 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 758 ) != 0 ) { t.interactive.active = 0  ; break; }
 			if ( GetFileMapDWORD( 1, 762 ) != 0 ) { t.interactive.active = 0  ; break; }
 			t.terrain.gameplaycamera=0;
 			terrain_shadowupdate ( );

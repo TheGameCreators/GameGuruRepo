@@ -619,28 +619,31 @@ void mapfile_savestandalone ( void )
 	//  Create MYDOCS folder if not exist
 	if ( PathExist(g.myownrootdir_s.Get()) == 0 ) file_createmydocsfolder ( );
 
-	//  Get absolute My Games folder
-	g.exedir_s="?";
-	SetDir (  g.myownrootdir_s.Get() );
-	t.mygamesfolder_s="My Games";
-	if (  PathExist(t.mygamesfolder_s.Get()) == 0  )  MakeDirectory (  t.mygamesfolder_s.Get() );
-	if (  PathExist(t.mygamesfolder_s.Get()) == 1 ) 
+	// Create absolute My Games folder (if not exist)
+	if ( PathExist ( g.exedir_s.Get() ) == 0 )
 	{
-		SetDir (  t.mygamesfolder_s.Get() );
-		g.exedir_s=GetDir();
+		g.exedir_s="?";
+		SetDir ( g.myownrootdir_s.Get() );
+		t.mygamesfolder_s = "My Games";
+		if ( PathExist(t.mygamesfolder_s.Get()) == 0 ) MakeDirectory ( t.mygamesfolder_s.Get() );
+		if ( PathExist(t.mygamesfolder_s.Get()) == 1 ) 
+		{
+			SetDir ( t.mygamesfolder_s.Get() );
+			g.exedir_s = GetDir();
+		}
 	}
-	SetDir (  t.told_s.Get() );
+	SetDir ( t.told_s.Get() );
 
-	//  Path to EXE (for dealing with relative EXE paths later)
-	if (  g.exedir_s.Get()[1] == ':' )
+	// Path to EXE (for dealing with relative EXE paths later)
+	if ( g.exedir_s.Get()[1] == ':' )
 	{
-		t.exepath_s=g.exedir_s;
+		t.exepath_s = g.exedir_s;
 	}
 	else
 	{
-		t.exepath_s=g.exedir_s;
+		t.exepath_s = g.exedir_s;
 	}
-	if (  cstr(Right(t.exepath_s.Get(),1)) != "\\"  )  t.exepath_s = t.exepath_s+"\\";
+	if ( cstr(Right(t.exepath_s.Get(),1)) != "\\"  ) t.exepath_s = t.exepath_s+"\\";
 
 	//  Collect ALL files in string array list
 	Undim ( t.filecollection_s );

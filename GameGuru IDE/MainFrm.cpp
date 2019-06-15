@@ -2308,8 +2308,8 @@ Would you like to learn more about this offer?";
 	{
 	*/
 
-	// flag Save Standalone (BUILDGAME) has been selected
-	theApp.SetFileMapData ( 758, 1 );
+	// flag Save Standalone (BUILDGAME) has been selected (now save standalone)
+	theApp.SetFileMapData ( 758, 1 ); 
 }
 
 void CMainFrame::OnDownloadStoreItems()

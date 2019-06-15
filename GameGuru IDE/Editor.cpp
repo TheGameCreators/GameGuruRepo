@@ -1199,6 +1199,7 @@ void CEditorApp::UpdateBuildGame ( void )
 	cIPC* pIPC = theApp.m_Message.GetIPC ( );
 	if ( !pIPC ) return;
 
+	/* no longer exists
 	DWORD dwCheck = 0;
 	pIPC->ReceiveBuffer ( &dwCheck, 758, sizeof ( dwCheck ) );
 	if ( dwCheck==2 )
@@ -1232,6 +1233,7 @@ void CEditorApp::UpdateBuildGame ( void )
 		DWORD dwClear = 0;
 		pIPC->SendBuffer ( &dwClear, 758, sizeof ( dwClear ) );
 	}
+	*/
 }
 
 void CEditorApp::UpdatePreferences ( void )
@@ -2275,7 +2277,7 @@ void CEditorApp::UpdateFileOpenAndSave ( void )
 
 	}
 
-	if ( dwOpen == 1 || dwSave == 1 )
+	if ( dwOpen != 0 || dwSave == 1 )
 	{
 		//theApp.m_Debug.Write ( "UpdateFileOpenAndSave" );
 
@@ -2288,33 +2290,34 @@ void CEditorApp::UpdateFileOpenAndSave ( void )
 		
 		m_Message.Stop ( );
 
-		TCHAR				szFile [ 260 ];
-		CString				newName;
-		cNewCustomFileDialog	dialog ( bType, szDirectory, szTitle, szFilter );
-
-	
-
+		TCHAR szFile [ 260 ];
 		pIPC->AllowSyncEventNow();
-		if ( dialog.DoModal ( ) == IDOK )
-		{
-			//theApp.m_Debug.Write ( "UpdateFileOpenAndSave - okay button clicked" );
 
-			newName = dialog.GetPathName ( );
+		if ( dwOpen == 2 )
+		{
+			CString	newFolder;
+			SetCurrentDirectory  ( szDirectory );
+			CFolderPickerDialog folderSelect(szDirectory, 0, NULL, 0);
+			if ( folderSelect.DoModal ( ) == IDOK )
+			{
+				newFolder = folderSelect.GetPathName ( );
+			}
+			strcpy ( szFile, newFolder );
 		}
 		else
 		{
-			//theApp.m_Debug.Write ( "UpdateFileOpenAndSave - cancel button clicked" );
+			CString	newName;
+			cNewCustomFileDialog dialog ( bType, szDirectory, szTitle, szFilter );
+			if ( dialog.DoModal ( ) == IDOK )
+			{
+				newName = dialog.GetPathName ( );
+			}
+			strcpy ( szFile, newName );
 		}
 		
-		// 170105
-		//wcscpy ( szFile, newName );
-		strcpy ( szFile, newName );
-
-		//theApp.m_Debug.Write ( "UpdateFileOpenAndSave - set file map string" );
-		
 		EnterCriticalSection( &m_csDirectoryChanges );
-
 		SetCurrentDirectory  ( theApp.m_szDirectory );
+
 		SetFileMapDataString ( 1000, szFile );
 
 		//theApp.m_Debug.Write ( "UpdateFileOpenAndSave - reset file map message" );
