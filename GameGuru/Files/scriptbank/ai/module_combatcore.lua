@@ -826,7 +826,7 @@ end
 
 function module_combatcore.headshot(e)
  if string.find(string.lower(g_Entity[e]['limbhit']), "head") ~= nil then
-  SetEntityHealth(e,0)
+  SetEntityHealth(e,-1)
   ResetLimbHit(e)
  end
 end

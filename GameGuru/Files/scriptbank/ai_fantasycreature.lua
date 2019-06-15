@@ -141,7 +141,7 @@ function ai_fantasycreature_main(e)
   ModulateSpeed(e,1.0)
  end 
  if string.find(string.lower(g_Entity[e]['limbhit']), "head") ~= nil then
-  SetEntityHealth(e,0)
+  SetEntityHealth(e,-1)
   ResetLimbHit(e)
  end
  Prompt ( "state = " .. ai_soldier_state[e] )

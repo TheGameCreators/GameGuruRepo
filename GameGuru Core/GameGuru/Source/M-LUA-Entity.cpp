@@ -1430,11 +1430,21 @@ void entity_lua_setentityhealth_core ( int iSilent )
 		{
 			t.ttte = t.e;
 			t.tdamage = t.entityelement[t.e].health;
-			t.tdamageforce = 700.0f; // 210918 - so headshots have better ragdoll reaction
+			//PE: https://github.com/TheGameCreators/GameGuruRepo/commit/1863aaa879b05925670badf777a43825b1069702
+			//PE: 150619 - this also produce this: https://github.com/TheGameCreators/GameGuruRepo/issues/466
+			//PE: Changes so SetEntityHealth(e,-1) is needed to produce headshot effect.
+			if (t.v == -1) {
+				t.tdamageforce = 700.0f; // 210918 - so headshots have better ragdoll reaction
+				t.brayy1_f=t.entityelement[t.e].y-500.0;
+				t.v = 0;
+			}
+			else {
+				t.tdamageforce = 0.0f; //PE: 150619
+				t.brayy1_f = t.entityelement[t.e].y - 20.0; //PE:
+			}
 			t.tdamagesource = 0;
 			t.brayx1_f=t.entityelement[t.e].x;
 			t.brayx2_f=t.entityelement[t.e].x;
-			t.brayy1_f=t.entityelement[t.e].y-500.0;
 			t.brayy2_f=t.entityelement[t.e].y;
 			t.brayz1_f=t.entityelement[t.e].z;
 			t.brayz2_f=t.entityelement[t.e].z;

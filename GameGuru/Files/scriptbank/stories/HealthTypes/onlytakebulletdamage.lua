@@ -26,7 +26,7 @@ function onlytakebulletdamage_main(e)
 	end
    end
    if myEntityHealth[e]==0 then
-    SetEntityHealth(e,-1)
+    SetEntityHealth(e,0)
 	myEntityLastRealHealth[e] = 0
    else
     SetEntityHealth(e,10000)
