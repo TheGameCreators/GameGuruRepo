@@ -1776,13 +1776,27 @@ void editor_previewmapormultiplayer ( void )
 		{
 			if (ObjectExist(t.tobj) == 1)
 			{
+				//PE: Possible fix for issues:
+				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/206
+				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/273
+				//PE: need testing.
+				if (t.entityprofile[t.entid].ischaracter == 1) {
+					//Char should always have z depth , but somehow its removed somewhere.
+					EnableObjectZDepth(t.tobj);
+				}
+				
+				//FULLBOUNDS
+
 				if (t.entityprofile[t.entid].playanimineditor == 0) {
 					if (t.entityprofile[t.entid].animmax > 0 ) {
-						t.q = 0;
-						SetObjectFrame(t.tttsourceobj, 0);
-						LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
-						SetObjectFrame(t.tobj, 0);
-						LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+						//Only if no lua is set to control animations.
+						if (t.entityprofile[t.entid].aimain_s == "" || t.entityprofile[t.entid].aimain_s == "default.lua") {
+							t.q = 0;
+							SetObjectFrame(t.tttsourceobj, 0);
+							LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+							SetObjectFrame(t.tobj, 0);
+							LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+						}
 					}
 				}
 			}
@@ -2005,11 +2019,14 @@ void editor_previewmapormultiplayer ( void )
 			{
 				if (t.entityprofile[t.entid].playanimineditor == 0) {
 					if (t.entityprofile[t.entid].animmax > 0) {
-						t.q = 0;
-						SetObjectFrame(t.tttsourceobj, 0);
-						StopObject(t.tttsourceobj);
-						SetObjectFrame(t.tobj, 0);
-						StopObject(t.tobj);
+						//Only if no lua is set to control animations.
+						if (t.entityprofile[t.entid].aimain_s == "" || t.entityprofile[t.entid].aimain_s == "default.lua") {
+							t.q = 0;
+							SetObjectFrame(t.tttsourceobj, 0);
+							StopObject(t.tttsourceobj);
+							SetObjectFrame(t.tobj, 0);
+							StopObject(t.tobj);
+						}
 					}
 				}
 			}
