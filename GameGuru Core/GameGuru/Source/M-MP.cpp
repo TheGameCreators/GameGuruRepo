@@ -817,6 +817,7 @@ void mp_loop ( void )
 			t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 			g.mp.playGame = 1;
 			g.mp.okayToLoadLevel = 1;
+			PhotonResetFile ( );
 			t.tskipLevelSync = Timer();
 		}
 		else
@@ -906,6 +907,7 @@ void mp_loop ( void )
 			t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 			g.mp.playGame = 1;
 			g.mp.okayToLoadLevel = 1;
+			PhotonResetFile ( );
 			t.tskipLevelSync = Timer();
 		}
 		else
@@ -1673,7 +1675,7 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 			// take precaution not to send too much too quickly (Photon Server will ise error 1040 and timeout!!)
 			if ( timeGetTime() > g_dwSendLastTime )
 			{
-				g_dwSendLastTime = timeGetTime() + 125; // 8K * (1000/250) = 64K per second max sent rate (1MB file=15 seconds)
+				g_dwSendLastTime = timeGetTime() + 200;//60;//125; // 8K * (1000/250) = 64K per second max sent rate (1MB file=15 seconds)
 				if ( PhotonSendFileDone() == 1 ) 
 				{
 					g.mp.syncedWithServerMode = 2;
@@ -1812,8 +1814,8 @@ void mp_pre_game_file_sync_client ( void )
 				// out progress downloading files from server
 				t.tProgress = PhotonGetFileProgress();
 
-				// after 30 seconds, and no percentage change, produce timeout
-				if ( Timer() - g.mp.oldtime > 1000*30 ) 
+				// after 20 seconds, and no percentage change, produce timeout
+				if ( Timer() - g.mp.oldtime > 1000*20 ) 
 				{
 					g.mp.oldtime = Timer();
 					if ( t.tProgress == t.tLastProgress )
@@ -1825,9 +1827,21 @@ void mp_pre_game_file_sync_client ( void )
 					t.tLastProgress = t.tProgress;
 				}
 
+				// if user presses ESCAPE, force a disconnect and leave
+				bool bEscapeEarly = false;
+				if ( ScanCode() == 57 ) bEscapeEarly = true; //EscapeKey() == 1 ) bEscapeEarly = true;
+				if ( bEscapeEarly == true )
+				{
+					// forcing a quit
+					t.tsteamconnectionlostmessage_s = "User terminated transfer and returning to main menu";
+					g.mp.mode = MP_MODE_MAIN_MENU;
+					mp_lostConnection ( );
+				}
+
 				// report progress of file download
 				#ifdef PHOTONMP
 				 t.tstring_s = cstr("Receiving file : ") + Str(t.tProgress) + "%";
+				 mp_text(-1,95,3,"(press SPACE KEY to return to main menu)");
 				#else
 				 t.tstring_s = cstr("Receiving '")+g.mp.levelnametojoin+"': " + Str(t.tProgress) + "%";
 				#endif
@@ -5345,6 +5359,7 @@ void mp_checkItemSubbed ( void )
 
 void mp_resetGameStats ( void )
 {
+	PhotonResetFile ( );
 	mp_nukeTestmap ( );
 	cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
 	if ( FileExist( mlevel_s.Get())  )  DeleteAFile ( mlevel_s.Get() );
@@ -6228,7 +6243,7 @@ void mp_lobbyListBox ( void )
 			if ( g.mp.listboxmode == 1 ) 
 			{
 				t.mp_lobbies_s[t.tlobbycount] = t.tfpmfilelist_s[t.c];
-				t.tsteamstring_s = t.mp_lobbies_s[t.tlobbycount];
+				t.tsteamstring_s = t.mp_lobbies_s[t.tlobbycount] + " (" + t.tfpmfilesizelist_s[t.c] + "MB)";
 				t.tr = 255;
 				t.tg = 255;
 				t.tb = 255;
@@ -6312,7 +6327,8 @@ void mp_searchForFpms ( void )
 	//SetDir (  cstr(g.fpscrootdir_s + "\\Files\\mapbank").Get() );
 	SetDir ( g.mysystem.mapbankAbs_s.Get() );
 	ChecklistForFiles (  );
-	Dim (  t.tfpmfilelist_s,ChecklistQuantity( ) );
+	Dim ( t.tfpmfilelist_s, ChecklistQuantity( ) );
+	Dim ( t.tfpmfilesizelist_s, ChecklistQuantity( ) );
 	t.tempsteamhowmanyfpmsarethere = 0;
 	for ( t.c = 1 ; t.c<=  ChecklistQuantity(); t.c++ )
 	{
@@ -6324,6 +6340,15 @@ void mp_searchForFpms ( void )
 				if (  cstr(Lower(Right(t.tfile_s.Get(),4)))  ==  ".fpm" ) 
 				{
 					t.tfpmfilelist_s[t.tempsteamhowmanyfpmsarethere] = t.tfile_s;
+					DWORD filesize = 0;
+					HANDLE hfile = CreateFile(t.tfile_s.Get(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+					if ( hfile != INVALID_HANDLE_VALUE )
+					{
+						filesize = GetFileSize(hfile, NULL);	
+						CloseHandle(hfile);
+					}
+					int iMBSize = (int)(filesize/1024/1024); if ( iMBSize < 1 ) iMBSize = 1;
+					t.tfpmfilesizelist_s[t.tempsteamhowmanyfpmsarethere] = cstr(Str(iMBSize));
 					++t.tempsteamhowmanyfpmsarethere;
 				}
 			}

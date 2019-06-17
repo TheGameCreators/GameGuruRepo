@@ -626,10 +626,19 @@ void PhotonSetRoot(LPSTR string )
 {
 }
 
+void PhotonResetFile ( void )
+{
+	if ( g_pLBL )
+	{
+		g_pLBL->CloseFileNow();
+	}
+}
+
 void PhotonSetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer )
 {
 	if ( g_pPhotonView )
 	{
+		g_pLBL->CloseFileNow(); // always ensure file is ready for new writing!
 		g_pLBL->SetSendFileCount(count,iOnlySendMapToSpecificPlayer);	
 	}
 }

@@ -173,6 +173,7 @@ protected:
 	afx_msg void OnUpdateTestMap(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateTestGame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateTestVRGame(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateMultiplayerGame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewZoomIn(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewZoomOut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewIncreaseShroud(CCmdUI* pCmdUI);

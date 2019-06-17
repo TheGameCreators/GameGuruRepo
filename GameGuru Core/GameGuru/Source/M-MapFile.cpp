@@ -82,16 +82,22 @@ void mapfile_saveproject_fpm ( void )
 	//  terrain files
 	AddFileToBlock (  1, "m.dat" );
 	AddFileToBlock (  1, "vegmask.dds" ); //PE: this failed with a runtime error 500 , the file size was 0 ?
-	AddFileToBlock (  1, "watermask.dds" );
 	AddFileToBlock (  1, "vegmaskgrass.dat" );
 	if ( FileExist ( "superpalette.ter" ) == 1 ) 
 		AddFileToBlock ( 1, "superpalette.ter" );
+
+	// VRQUEST Needs 'light' FPMs for transfer
+	#ifdef VRQUEST
+	// Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
+	#else
+	AddFileToBlock (  1, "watermask.dds" );
 	if ( FileExist ( "Texture_D.dds" ) == 1 ) 
 		AddFileToBlock ( 1, "Texture_D.dds" );
 	if ( FileExist ( "Texture_N.dds" ) == 1 ) 
 		AddFileToBlock ( 1, "Texture_N.dds" );
 	if ( FileExist ( "globalenvmap.dds" ) == 1 ) 
 		AddFileToBlock ( 1, "globalenvmap.dds" );
+	#endif
 
 	//  lightmap files
 	if (  PathExist("lightmaps") == 1 ) 
@@ -162,18 +168,26 @@ void mapfile_saveproject_fpm ( void )
 				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
 				tThisFile = tNameOnly + cstr(".bmp");
 				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				tThisFile = tNameOnly + cstr("_D.dds");
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				tThisFile = tNameOnly + cstr("_N.dds");
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				tThisFile = tNameOnly + cstr("_S.dds");
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
+				#ifdef VRQUEST
+				 // Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
+				#else
+				 tThisFile = tNameOnly + cstr("_D.dds");
+				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
+				 tThisFile = tNameOnly + cstr("_N.dds");
+				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
+				 tThisFile = tNameOnly + cstr("_S.dds");
+				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
+				#endif
 			}
-			strEnt = cstr(Lower(Right(t.tfile_s.Get(),6)));
-			if ( strcmp ( strEnt.Get(), "_d.dds" ) == NULL || strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
-			{
+			#ifdef VRQUEST
+			 // Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
+			#else
+			 strEnt = cstr(Lower(Right(t.tfile_s.Get(),6)));
+			 if ( strcmp ( strEnt.Get(), "_d.dds" ) == NULL || strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
+			 {
 				AddFileToBlock ( 1, t.tfile_s.Get() );
-			}
+			 }
+			#endif
 		}
 	}
 

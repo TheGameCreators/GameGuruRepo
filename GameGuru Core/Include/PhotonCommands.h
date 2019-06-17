@@ -40,6 +40,7 @@ int PhotonIsPlayerTheServer();
 int PhotonIsGameRunning();
 int PhotonGetMyPlayerIndex();
 void PhotonSetRoot(LPSTR string );
+void PhotonResetFile ( void );
 void PhotonSetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer );
 void PhotonSendFileBegin ( int index , LPSTR pString, LPSTR pRootPath );
 int PhotonSendFileDone();

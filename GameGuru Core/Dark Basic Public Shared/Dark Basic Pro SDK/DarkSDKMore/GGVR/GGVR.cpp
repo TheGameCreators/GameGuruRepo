@@ -370,6 +370,23 @@ int GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbs
 	// to prevent first appearance of WMR portal wiping out directsound device, do this early
 	int iErrorCode = GGVR_PreSubmit(2+g_iDebuggingActive);
 	if ( iErrorCode == 0 ) iErrorCode = GGVR_PreSubmit(2+g_iDebuggingActive);
+
+	/* need something like this to detect headset and switch OFF VR!
+	if ( iErrorCode == 0 )
+	{
+		// this will determine if headset available for rendering or not
+		ID3D11RenderTargetView* pRenderTargetLeftView = NULL;
+		ID3D11RenderTargetView* pRenderTargetRightView = NULL;
+		ID3D11DepthStencilView* pDepthStencilView = NULL;
+		DWORD dwWidth, dwHeight;
+		GGWMR_GetRenderTargetAndDepthStencilView ( (void**)&pRenderTargetLeftView, (void**)&pRenderTargetRightView, (void**)&pDepthStencilView, &dwWidth, &dwHeight );
+		if ( pRenderTargetLeftView == NULL )
+		{
+			// seems there is nothing to render to, no headset!
+			iErrorCode = 75;
+		}
+	}
+	*/
 	if ( iErrorCode > 0 ) return iErrorCode;
 
 	// no error code

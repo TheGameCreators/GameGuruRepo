@@ -3289,6 +3289,8 @@ void FPSC_Setup ( void )
 			char pErrorStr[1024];
 			sprintf ( pErrorStr, "Error Choosing VR System : Code %d", iErrorCode );
 			timestampactivity(0,pErrorStr);
+			timestampactivity(0,"switching VR off, headset not detected");
+			g.vrglobals.GGVREnabled = 0;
 		}
 
 		// Need editor 14.PNG for teleport graphic

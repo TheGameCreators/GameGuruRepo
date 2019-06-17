@@ -106,6 +106,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_UPDATE_COMMAND_UI(ID_TEST_MAP, OnUpdateTestMap)
 	ON_UPDATE_COMMAND_UI(ID_TEST_GAME, OnUpdateTestGame)
 	ON_UPDATE_COMMAND_UI(ID_TESTVR_GAME, OnUpdateTestVRGame)
+	ON_UPDATE_COMMAND_UI(ID_MULTIPLAYER_GAME, OnUpdateMultiplayerGame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ZOOMIN, OnUpdateViewZoomIn)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ZOOMOUT, OnUpdateViewZoomOut)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_INCREASE_SHROUD, OnUpdateViewIncreaseShroud)
@@ -1881,6 +1882,11 @@ void CMainFrame::OnUpdateTestGame ( CCmdUI* pCmdUI )
 }
 
 void CMainFrame::OnUpdateTestVRGame ( CCmdUI* pCmdUI )
+{
+	pCmdUI->Enable ( theApp.m_bDisable );
+}
+
+void CMainFrame::OnUpdateMultiplayerGame ( CCmdUI* pCmdUI )
 {
 	pCmdUI->Enable ( theApp.m_bDisable );
 }

@@ -278,7 +278,11 @@ void terrain_paintselector_init ( void )
 
 	// Help Dialog Shortcut Keys
 	terrainbuild.iTexHelpSpr = g.terrainpainterinterfacesprite + 2;
-	terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\terrainbuild-texturehelp.png");
+	#ifdef VRQUEST
+ 	 terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\branded\\terrainbuild-texturehelp.png");
+	#else
+ 	 terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\terrainbuild-texturehelp.png");
+	#endif
 	Sprite ( terrainbuild.iTexHelpSpr, terrainbuild.iTexturePanelX - 10, terrainbuild.iTexturePanelY - 10 - ImageHeight(terrainbuild.iTexHelpImg), terrainbuild.iTexHelpImg );
 
 	// terrain paint selector inited
@@ -462,11 +466,15 @@ void terrain_paintselector_control ( void )
 				terrainbuild_settexturehighlight();
 
 				// and if it was right mouse, customise this texture too
+				#ifdef VRQUEST
+				// Cannot allow custom terrain textures - bloats FPM making transfer over multiplayer very slow
+				#else
 				if ( t.inputsys.mclick == 2 )
 				{
 					// replace texture within texture atlas
 					terrainbuild.bCustomiseTexture = true;
 				}
+				#endif
 
 				// ensure we do not write into texture painter if selecting texture
 				t.inputsys.mclick = 0;

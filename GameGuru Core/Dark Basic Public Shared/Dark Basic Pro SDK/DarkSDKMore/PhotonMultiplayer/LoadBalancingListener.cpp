@@ -59,6 +59,7 @@ void LoadBalancingListener::connectReturn(int errorCode, const JString& errorStr
 
 void LoadBalancingListener::disconnectReturn(void)
 {
+	CloseFileNow();
 	mPhotonView->setConnectionState(false);
 }
 
@@ -521,6 +522,22 @@ int LoadBalancingListener::SendFileDone()
 	// only server sends files
 	if ( mbIsServer == true )
 	{
+		// end send early if target player leaves
+		if ( serverOnlySendMapToSpecificPlayer != - 1 )
+		{
+			if ( m_rgpPlayer[serverOnlySendMapToSpecificPlayer] == NULL )
+			{
+				// player server was sending file to has gone
+				if ( mhServerFile )
+				{
+					// close file if still open for old writing
+					fclose ( mhServerFile );
+					mhServerFile = NULL;
+				}
+				return 1;
+			}
+		}
+
 		// if file open and ready to read data
 		if ( mhServerFile )
 		{
@@ -555,7 +572,7 @@ int LoadBalancingListener::SendFileDone()
 	return 0;
 }
 
-void LoadBalancingListener:: CloseFileNow ( void )
+void LoadBalancingListener::CloseFileNow ( void )
 {
 	if ( mhServerFile )
 	{

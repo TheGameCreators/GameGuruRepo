@@ -42,9 +42,12 @@ void mapeditorexecutable ( void )
 	int iErrorCode = GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
 	if ( iErrorCode > 0 )
 	{
+		// if VR headset is not present, switch VR off to speed up non-VR rendering (especially for debug)
 		char pErrorStr[1024];
 		sprintf ( pErrorStr, "Error Choosing VR System : Code %d", iErrorCode );
 		timestampactivity(0,pErrorStr);
+		timestampactivity(0,"switching VR off, headset not detected");
+		g.vrglobals.GGVREnabled = 0;
 	}
 
 	//  Set device to get multisampling AA active in editor

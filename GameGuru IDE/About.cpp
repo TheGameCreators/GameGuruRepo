@@ -55,6 +55,12 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 	// FPGC - 210510 - size web buttons to center them in about box
 	m_btnURL.SizeToContent(TRUE, TRUE);
 	m_btnURL1.SizeToContent(TRUE, TRUE);
+
+	// Branding
+	#ifdef GGBRANDED
+	m_btnURL.ShowWindow(SW_HIDE);
+	#else
+	#endif
 }
 
 int CAboutDlg::OnCreate ( LPCREATESTRUCT lpCreateStruct )

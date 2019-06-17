@@ -3142,6 +3142,7 @@ struct Stemps
 	std::vector <float> storeheights_f;
 	std::vector <cstr> tallfpefiles_s;
 	std::vector <cstr> tfpmfilelist_s;
+	std::vector <cstr> tfpmfilesizelist_s;
 	std::vector <cstr> tutorialmaps_s;
 	std::vector <cstr> vegstylebank_s;
 	std::vector <int> weaponclipammo;
