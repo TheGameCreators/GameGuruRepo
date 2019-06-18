@@ -1257,9 +1257,9 @@ void welcome_announcements_page ( int iHighlightingButton )
 		iID = 1; welcome_textinbox ( iID, "EXIT", 1, 100-35, 80, g_welcomebutton[iID].alpha );
 		iID = 2; welcome_textinbox ( iID, "GOTO LINK", 1, 35, 80, g_welcomebutton[iID].alpha ); 
 	}
-	iID = 3; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
-	if ( g.gshowannouncements == 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
-	welcome_text ( "Tick to skip news dialog in future", 1, 13.5f, 91.0f, 255, false, true );
+	//iID = 3; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
+	//if ( g.gshowannouncements == 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
+	//welcome_text ( "Tick to skip news dialog in future", 1, 13.5f, 91.0f, 255, false, true );
 
 	// control page
 	if ( t.inputsys.mclick == 1 && t.inputsys.mclickreleasestate == 0 ) 
@@ -1274,6 +1274,7 @@ void welcome_announcements_page ( int iHighlightingButton )
 			ExecuteFile ( g_welcomeLinkUrl,"","",0 );
 			t.tclosequick = 1;
 		}
+		/*
 		if ( iHighlightingButton == 3 ) 
 		{
 			// toggle flag
@@ -1289,6 +1290,7 @@ void welcome_announcements_page ( int iHighlightingButton )
 			WriteString ( 1, cstr(g.gshowannouncements).Get() );
 			CloseFile ( 1 );
 		}
+		*/
 	}
 }
 
