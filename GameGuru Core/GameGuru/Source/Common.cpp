@@ -514,10 +514,12 @@ void common_init_globals ( void )
 	//  +X = see postprocessimages for assignment
 	g.effectbankoffset = 1000;
 	g.explosionandfireeffectbankoffset = 1100;
+	g.lightmappbreffectillum = 1296;
 	g.lightmappbreffect = 1297;
 	g.thirdpersonentityeffect = 1298;
 	g.thirdpersoncharactereffect = 1299;
 	g.charactercreatoreffectbankoffset = 1300;
+
 
 	//  Sound Resources
 	g.soundbankoffset = 1;
@@ -3355,6 +3357,12 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 		LPSTR pLightmapPBREffect = "effectbank\\reloaded\\apbr_lightmapped.fx";
 		LoadEffect ( pLightmapPBREffect, g.lightmappbreffect, 0 );
 		filleffectparamarray(g.lightmappbreffect);
+	}
+	if (GetEffectExist(g.lightmappbreffectillum) == 0)
+	{
+		LPSTR pLightmapPBREffect = "effectbank\\reloaded\\apbr_lightmapped_illum.fx";
+		LoadEffect(pLightmapPBREffect, g.lightmappbreffectillum, 0);
+		filleffectparamarray(g.lightmappbreffectillum);
 	}
 
 	// load common third person character shader

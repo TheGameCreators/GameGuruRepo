@@ -1897,6 +1897,37 @@ void lm_loadscene ( void )
 					}
 					SetDir ( t.tolddir_s.Get() );
 
+					//Check if we need illum.
+					bool useillum = false;
+					sObject* pObject = g_ObjectList[t.tlmobj];
+					sMesh* pMesh;
+					for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++) {
+						pMesh = pObject->ppMeshList[iMesh];
+						if (pMesh) {
+							DWORD dwTextureCount = pMesh->dwTextureCount;
+							for (DWORD t = 0; t < dwTextureCount; t++) {
+								sTexture* pTexture = &(pMesh->pTextures[t]);
+								if (pTexture) {
+
+									if( pestrcasestr(&pTexture->pName[0], "_illumination.") || pestrcasestr(&pTexture->pName[0], "_emissive.") || pestrcasestr(&pTexture->pName[0], "_i.dds") ) {
+										timestampactivity(0, "LM use illum");
+										useillum = true;
+
+										//debug
+										char dtmp[2048];
+										sprintf(dtmp, "LM ILLUM m: %d , t: %d , name: %s", (int)iMesh, (int)t, pTexture->pName);
+										timestampactivity(0, dtmp);
+
+										break;
+									}
+								}
+							}
+						}
+						if (useillum)
+							break;
+					}
+
+
 					// if white out, replace diffuse with white texture
 					if ( g.gdividetexturesize == 0 ) 
 					{
@@ -1908,6 +1939,8 @@ void lm_loadscene ( void )
 						// determine if in PBR mode, and apply lightmap PBR shader
 						if ( g.gpbroverride == 1 )
 						{
+
+							//apbr_lightmapped_illum.fx
 							// load PBR lightmap shader if not exists
 							if ( GetEffectExist ( g.lightmappbreffect ) == 0 )
 							{
@@ -1915,9 +1948,21 @@ void lm_loadscene ( void )
 								//LPSTR pLightmapPBREffect = "effectbank\\reloaded\\static_basic.fx";
 								LoadEffect ( pLightmapPBREffect, g.lightmappbreffect, 0 );
 							}
+							if (GetEffectExist(g.lightmappbreffectillum) == 0)
+							{
+								LPSTR pLightmapPBREffect = "effectbank\\reloaded\\apbr_lightmapped_illum.fx";
+								LoadEffect(pLightmapPBREffect, g.lightmappbreffectillum, 0);
+							}
 
 							// apply lightmap PBR shader to lightmapped object
-							SetObjectEffect ( t.tlmobj, g.lightmappbreffect );
+							if (useillum) {
+								SetObjectEffect(t.tlmobj, g.lightmappbreffectillum);
+								timestampactivity(0, "1: Effect lightmappbreffectillum");
+							}
+							else
+								SetObjectEffect ( t.tlmobj, g.lightmappbreffect );
+
+
 						}
 					}
 

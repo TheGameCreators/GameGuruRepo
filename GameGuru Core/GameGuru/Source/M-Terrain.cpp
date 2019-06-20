@@ -2684,8 +2684,9 @@ void terrain_shadowupdate ( void )
 			if ( 1 ) 
 			{
 				//  prepare scene shaders to render into the cascade shadow textures
-				for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 				{
+					if ( t.t == -5  )  t.effectid = g.lightmappbreffectillum;
 					if ( t.t == -4  )  t.effectid = g.lightmappbreffect;
 					if ( t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 					if ( t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;
@@ -2885,8 +2886,9 @@ void terrain_shadowupdate ( void )
 					//  gun - secondary shader simply conveys required shadow constants to shader
 					RenderEffectShadowMapping (  t.gun[t.gunid].effectidused );
 				}
-				for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 				{
+					if (  t.t == -5  )  t.effectid = g.lightmappbreffectillum;
 					if (  t.t == -4  )  t.effectid = g.lightmappbreffect;
 					if (  t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 					if (  t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;
