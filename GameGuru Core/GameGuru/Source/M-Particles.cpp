@@ -315,7 +315,12 @@ void generateParticle( travey_particle_emitter* this_emitter )
 
 	t.tobj = t.tfound + g.raveyparticlesobjectoffset;
 
-	SetObjectEffect( t.obj, g.decaleffectoffset );
+	//SetObjectEffect( t.obj, g.decaleffectoffset ); //WHAT A BUG!
+	//PE: Particle change whatever is currently in t.obj, can be anything.
+	//PE: https://forum.game-guru.com/thread/220798?page=2#msg2616640
+
+	//PE: FYI: SetObjectEffect is pretty slow so should not really be in here.
+	//SetObjectEffect(t.tobj, g.decaleffectoffset);
 
 	PositionObject( t.tobj, this_particle->x, this_particle->y, this_particle->z );
 	TextureObject( t.tobj, 0, this_emitter->imageNumber );
