@@ -3385,7 +3385,9 @@ void gun_create_hud ( void )
 			SetObjectLight (  t.obj,0 );
 			SetObjectFOV (  t.obj,37 );
 			HideObject (  t.obj );
-			SetObjectEffect ( t.tobj, g.decaleffectoffset );
+			//SetObjectEffect ( t.tobj, g.decaleffectoffset );
+			//PE: another one t.tobj , change effect on wrong model.
+			SetObjectEffect(t.obj, g.decaleffectoffset);
 		}
 	}
 }
