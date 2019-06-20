@@ -1714,6 +1714,8 @@ void entity_loaddata ( void )
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].ignorecsirefs = t.value1;
 					t.tryfield_s="playanimineditor";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].playanimineditor = t.value1;
+					t.tryfield_s = "startanimingame";
+					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].startanimingame = t.value1;
 					t.tryfield_s="animstyle";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].animstyle = t.value1;
 					t.tryfield_s="animmax";

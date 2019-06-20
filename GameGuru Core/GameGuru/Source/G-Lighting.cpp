@@ -790,8 +790,9 @@ void lighting_loop ( void )
 						}
 					}
 				}
-				for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 				{
+					if (  t.t == -5  )  t.tteffectid = g.lightmappbreffectillum;
 					if (  t.t == -4  )  t.tteffectid = g.lightmappbreffect;
 					if (  t.t == -3  )  t.tteffectid = g.thirdpersonentityeffect;
 					if (  t.t == -2  )  t.tteffectid = g.thirdpersoncharactereffect;
@@ -895,8 +896,9 @@ void lighting_loop ( void )
 				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashColor,g.terrainvectorindex2 );
 				SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashPos,g.terrainvectorindex1 );
 				SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashColor,g.terrainvectorindex2 );
-				for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 				{
+					if (  t.t == -5  )  t.effectid = g.lightmappbreffectillum;
 					if (  t.t == -4  )  t.effectid = g.lightmappbreffect;
 					if (  t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 					if (  t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;
@@ -918,8 +920,9 @@ void lighting_loop ( void )
 				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashColor,g.terrainvectorindex2 );
 				SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashPos,g.terrainvectorindex1 );
 				SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashColor,g.terrainvectorindex2 );
-				for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 				{
+					if (  t.t == -5  )  t.effectid = g.lightmappbreffectillum;
 					if (  t.t == -4  )  t.effectid = g.lightmappbreffect;
 					if (  t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 					if (  t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;

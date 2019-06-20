@@ -235,6 +235,7 @@ struct Sglobals
 	int steamplayermodelsoffset;
 	int thirdpersonentityeffect;
 	int lightmappbreffect;
+	int lightmappbreffectillum;
 	int camerapickupkeyrelease;
 	int conkitobjectbankoffset;
 	int ebeobjectbankoffset;

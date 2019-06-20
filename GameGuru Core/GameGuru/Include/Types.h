@@ -5112,6 +5112,7 @@ struct entityprofiletype
 	unsigned char custombiped;
 	int approxmemused;
 	int playanimineditor;
+	int startanimingame;
 	int ignorecsirefs;
 	int autoflatten;
 	int physicsobjectcount;
@@ -5177,6 +5178,7 @@ struct entityprofiletype
 		 autoflatten = 0;
 		 ignorecsirefs = 0;
 		 playanimineditor = 0;
+		 startanimingame = 0;
 		 approxmemused = 0;
 		 custombiped = 0;
 		 reserve6 = 0;

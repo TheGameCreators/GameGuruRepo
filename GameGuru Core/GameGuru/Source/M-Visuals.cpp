@@ -824,8 +824,9 @@ void visuals_justshaderupdate ( void )
 		t.tFogNear_f=t.visuals.FogNearest_f ; t.tFogFar_f=t.visuals.FogDistance_f;
 		t.tFogR_f=t.visuals.FogR_f ; t.tFogG_f=t.visuals.FogG_f ; t.tFogB_f=t.visuals.FogB_f ; ; t.tFogA_f=t.visuals.FogA_f;
 		terrain_water_setfog ( );
-		for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+		for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 		{
+			if (  t.t == -5  )  t.effectid = g.lightmappbreffectillum;
 			if (  t.t == -4  )  t.effectid = g.lightmappbreffect;
 			if (  t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 			if (  t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;
@@ -1685,8 +1686,9 @@ void visuals_shaderlevels_terrain_update ( void )
 void visuals_shaderlevels_entities_update ( void )
 {
 	//  All entity shaders
-	for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+	for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 	{
+		if (  t.t == -5  )  t.teffectid = g.lightmappbreffectillum;
 		if (  t.t == -4  )  t.teffectid = g.lightmappbreffect;
 		if (  t.t == -3  )  t.teffectid = g.thirdpersonentityeffect;
 		if (  t.t == -2  )  t.teffectid = g.thirdpersoncharactereffect;

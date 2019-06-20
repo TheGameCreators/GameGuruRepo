@@ -610,7 +610,8 @@ void mapfile_savestandalone ( void )
 			break;
 		}
 	}
-	if (  Len(t.exename_s.Get())<2  )  t.exename_s = "mylevel";
+	//PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/444
+	if (  Len(t.exename_s.Get())<1  )  t.exename_s = "mylevel";
 
 	//  the level to start off standalone export
 	t.tmasterlevelfile_s=cstr("mapbank\\")+levelpathfolder+t.exename_s+".fpm";
@@ -1054,6 +1055,11 @@ void mapfile_savestandalone ( void )
 						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_ao."+t.tfileext_s; addtocollection(pToAdd.Get());
 						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_height."+t.tfileext_s; addtocollection(pToAdd.Get());
 						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_detail."+t.tfileext_s; addtocollection(pToAdd.Get());
+						//PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/315
+						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_illumination."+t.tfileext_s; addtocollection(pToAdd.Get());
+						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_emissive."+t.tfileext_s; addtocollection(pToAdd.Get());
+						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_cube." + t.tfileext_s; addtocollection(pToAdd.Get());
+
 					}
 				}
 				if (  t.tlocaltofpe == 1 ) 

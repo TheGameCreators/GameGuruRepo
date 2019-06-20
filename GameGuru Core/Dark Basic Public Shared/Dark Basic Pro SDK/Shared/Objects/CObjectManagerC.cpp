@@ -5361,6 +5361,7 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				// calculate distance from object to camera (fills fCamDistance)
 				if ( pObject->bTransparencyWaterLine==true )
 				{
+					/*
 					// leeadd - 021205 - transparent object water line, using HEIGHY (Y) as ordering (great for water planes)
 					if ( pObject->position.vecPosition.y < fWaterPlaneDivisionY )
 						fWaterPlaneDivisionY = pObject->position.vecPosition.y;
@@ -5372,6 +5373,9 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 					else
 						pObject->position.fCamDistance = 0.0f;
 					pObject->position.fCamDistance += m_pCamera->fZFar;
+					*/
+					//PE: After many test this seams to work the best. some transparent object get hidden below water when using above.
+					pObject->position.fCamDistance = -1000000.0f;//PE always last
 					bWaterPlaneDivision = true;
 				}
 				else

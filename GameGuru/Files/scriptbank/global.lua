@@ -749,6 +749,9 @@ end
 function FireWeapon(e)
  SendMessageI("fireweapon",e);
 end
+function FireWeaponInstant(e)
+ SendMessageI("fireweaponinstant",e);
+end
 function HurtPlayer(e,v)
  SendMessageI("hurtplayer",e,v);
 end

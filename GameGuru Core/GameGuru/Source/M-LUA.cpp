@@ -989,6 +989,7 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "playvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(0) ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "playvideonoskip" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(1) ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "stopvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_stopvideo() ; }
+		else if ( strcmp ( t.luaaction_s.Get(), "fireweaponinstant") == 0) { t.e = LuaMessageInt(); entity_lua_fireweapon(true); }
 		else if ( strcmp ( t.luaaction_s.Get() , "fireweapon" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_fireweapon() ; }
 
 		//C++ - had to split here, too many else if for the compiler!

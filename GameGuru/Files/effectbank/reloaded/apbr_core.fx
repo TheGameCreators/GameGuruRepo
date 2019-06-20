@@ -814,11 +814,13 @@ float3 ComputeLight(Material mat, DirectionalLight L, float3 normal, float3 toEy
      float3 thisSunColor = mSunColor;
 	#endif
 	#ifdef PBRVEGETATION
-	 return clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) * ((albedo)*0.85);
+	 float3 vegFinalSun = clamp(dot(-L.Direction, normal) * thisSunColor, 0.10, 1.0);
+	 vegFinalSun = lerp(0.65, vegFinalSun, SurfaceSunFactor); //PE: SurfaceSunFactor even out directional light on vegetation.
+	 return  vegFinalSun * ((albedo)*0.85);
 	#endif
 	float3 albedoAdd = lerp( max(albedo.rgb, dot(-L.Direction,normal)*0.15) , albedo.rgb , RealisticVsCool ); // Give light side a bit more spec.
 	float3 specular = CookTorranceSpecFactor(normal, toEye, mat.Properties.g, mat.Properties.b, L.Direction, albedoAdd);
-	specular = specular * GlobalSpecular;
+	specular = (specular * GlobalSpecular) * SurfaceSunFactor; //PE: SurfaceSunFactor also remove specular from sun only.
     #ifdef LIGHTMAPPED
      float3 thisNonSunColor = mSunColor * (1-SurfaceSunFactor);
      float3 thisFinalSunColor = clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) + thisNonSunColor;
@@ -1252,7 +1254,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      Atlas16DiffuseLookupCenter(float4(0,0,0.0625*14,0),attributes.uv/16.0,variation_d); // 14   
      #ifdef REMOVEGRASSNORMALS
       Atlas16DiffuseLookupCenterDist(float4(0,0,0.0625*4,0),attributes.uv,grass_d,input.viewDepth);
-      grass_n = float4(0.5,0.5,1.0,1.0); // 126,128 , neutral normal.
+      grass_n = float3(0.5,0.5,1.0); // 126,128 , neutral normal.
      #else
       Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*4,0),attributes.uv,grass_d,grass_n,input.viewDepth);
      #endif
@@ -1359,6 +1361,9 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #else
        float3 addillum = IlluminationMap.Sample(SampleWrap,attributes.uv).rgb;
 //       rawdiffusemap.xyz += addillum;
+#endif
+#ifdef LIGHTMAPPED
+	   addillum *= 1.5; //PE: illum on lightmapped object need additional boost.
 #endif
 
      #else
