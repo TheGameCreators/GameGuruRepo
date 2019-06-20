@@ -98,7 +98,7 @@ void entity_lua_rotatetoplayerwithoffset ( void );
 void entity_lua_rotatetoplayer ( void );
 void entity_lua_rotatetocamera ( void );
 void entity_lua_set_gravity ( void );
-void entity_lua_fireweapon ( void );
+void entity_lua_fireweapon ( bool instant = false );
 void entity_lua_hurtplayer ( void );
 void entity_lua_drownplayer ( void );
 void entity_lua_switchscript ( void );

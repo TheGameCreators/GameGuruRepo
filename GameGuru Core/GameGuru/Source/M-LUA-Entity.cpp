@@ -1795,26 +1795,38 @@ void entity_lua_set_gravity ( void )
 	//BPhys_SetNoGravity entityelement(e).obj,v;
 }
 
-void entity_lua_fireweapon ( void )
+void entity_lua_fireweapon ( bool instant)
 {
 	//  uses rateoffire
 	t.tnotokay=t.entityelement[t.e].eleprof.rateoffire;
-	if (  t.tnotokay>100 ) 
-	{
-		t.tnotokay=Rnd((t.tnotokay-100)/5);
-		if (  t.tnotokay <= 1  )  t.tnotokay = 0;
+	
+	if (instant) {
+		//PE: Instant fire weapon for lua control.
+		t.tnotokay = 0;
 	}
-	else
-	{
-		t.tnotokay=0;
+	else {
+		if (t.tnotokay > 100)
+		{
+			t.tnotokay = Rnd((t.tnotokay - 100) / 5);
+			if (t.tnotokay <= 1)  t.tnotokay = 0;
+		}
+		else
+		{
+			t.tnotokay = 0;
+		}
 	}
-	if (  t.entityelement[t.e].limbhurt != 0  )  t.tnotokay = 1;
-	if ( (DWORD)(Timer())<t.playercontrol.ressurectionceasefire  )  t.tnotokay = 1;
+	if ((DWORD)(Timer()) < t.playercontrol.ressurectionceasefire)  t.tnotokay = 1;
+	if (t.entityelement[t.e].limbhurt != 0)  t.tnotokay = 1;
+
 	if (  t.tnotokay == 0 ) 
 	{
 		entity_lua_findcharanimstate ( );
 		if (  t.tcharanimindex != -1 ) 
 		{
+			if (instant) {
+				//PE: for instant fire so it can be controlled from lua.
+				t.charanimstate.firerateaccumilator = 0;
+			}
 			if ( t.charanimstate.limbomanualmode == 1 )
 			{
 				// AI manual mode just shoots if instructed
