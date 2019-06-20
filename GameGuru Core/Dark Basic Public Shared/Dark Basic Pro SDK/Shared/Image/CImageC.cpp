@@ -1143,15 +1143,43 @@ DARKSDK LPGGTEXTURE GetTextureCore ( char* szFilename, GGIMAGE_INFO* info, int i
 					DirectX::ScratchImage resizedTexture;
 					hRes = Resize( pWrkImage->GetImages(), pWrkImage->GetImageCount(), pWrkImage->GetMetadata(), (*info).Width, (*info).Height, DirectX::TEX_FILTER_SEPARATE_ALPHA, resizedTexture );
 					pWrkImage->Release();
+					pWrkImage = &resizedTexture;
+
+					/*
+					//PE: @Lee it get Mipmap Success but only 1 mipmap work the rest is black ?
+					//TRY GENERATING MIPMAPS.
+					DirectX::ScratchImage* finalImage = pWrkImage;
+					DirectX::ScratchImage mipChain;
+					HRESULT hr = DirectX::GenerateMipMaps(pWrkImage->GetImages(), pWrkImage->GetImageCount(), pWrkImage->GetMetadata(), DirectX::TEX_FILTER_DEFAULT, 0, mipChain);
+					if (!FAILED(hr)) {
+						pWrkImage->Release();
+						pWrkImage = &mipChain;
+						char dtmp[2048];
+						sprintf(dtmp, "Mipmap Success: %s", szFilename);
+						timestampactivity(0, dtmp);
+					}
+					else {
+						char dtmp[2048];
+						sprintf(dtmp, "Mipmap Failed: %s", szFilename);
+						timestampactivity(0, dtmp);
+					}
+					*/
+
+
+
 					DirectX::ScratchImage resizedCompressedTexture;
 					if ( bWasCompressed == true )
 					{
-						hRes = DirectX::Compress( resizedTexture.GetImages(), resizedTexture.GetImageCount(), resizedTexture.GetMetadata(), 
+						hRes = DirectX::Compress(pWrkImage->GetImages(), pWrkImage->GetImageCount(), pWrkImage->GetMetadata(),
 						storeFormat, DirectX::TEX_COMPRESS_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT, resizedCompressedTexture );
+						//PE: MEM bug resizedTexture was never released.
+						pWrkImage->Release();
 						pWrkImage = &resizedCompressedTexture;
 					}
-					else
-						pWrkImage = &resizedTexture;
+//					else
+//						pWrkImage = &resizedTexture;
+
+
 					hRes = DirectX::CreateTexture ( m_pD3D, pWrkImage->GetImages(), pWrkImage->GetImageCount(), pWrkImage->GetMetadata(), &lpTexture );
 					pWrkImage->Release();
 				}
