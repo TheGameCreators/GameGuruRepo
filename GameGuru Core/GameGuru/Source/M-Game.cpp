@@ -674,9 +674,26 @@ void game_masterroot ( void )
 					t.visuals.generalpromptstatetimer=0;
 				}
 
-				//PE: start any animations that use playanimineditor=0. ( standalone ).
+
+				//PE: start any animations that use startanimingame > 0. ( standalone ).
 				for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
 				{
+					//PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/341
+					// hide EBE markers
+					int iIndex = t.entityelement[t.tte].bankindex;
+					if (t.entityprofile[iIndex].isebe != 0)
+					{
+						t.tobj = t.entityelement[t.tte].obj;
+						if (t.tobj>0)
+						{
+							if (ObjectExist(t.tobj) == 1)
+							{
+								HideLimb(t.tobj, 0);
+							}
+						}
+					}
+
+
 					t.entid = t.entityelement[t.tte].bankindex;
 					t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
 					t.tobj = t.entityelement[t.tte].obj;
@@ -692,16 +709,13 @@ void game_masterroot ( void )
 								//Char should always have z depth , but somehow its removed somewhere.
 								EnableObjectZDepth(t.tobj);
 							}
-							if (t.entityprofile[t.entid].playanimineditor == 0) {
+							if (t.entityprofile[t.entid].startanimingame > 0) {
 								if (t.entityprofile[t.entid].animmax > 0) {
-									//Only if no lua is set to control animations.
-									if (t.entityprofile[t.entid].aimain_s == "" || t.entityprofile[t.entid].aimain_s == "default.lua") {
-										t.q = 0;
-										SetObjectFrame(t.tttsourceobj, 0);
-										LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
-										SetObjectFrame(t.tobj, 0);
-										LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
-									}
+									t.q = t.entityprofile[t.entid].startanimingame - 1;
+									SetObjectFrame(t.tttsourceobj, 0);
+									LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+									SetObjectFrame(t.tobj, 0);
+									LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
 								}
 							}
 						}

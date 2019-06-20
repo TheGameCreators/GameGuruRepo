@@ -1787,16 +1787,13 @@ void editor_previewmapormultiplayer ( void )
 				
 				//FULLBOUNDS
 
-				if (t.entityprofile[t.entid].playanimineditor == 0) {
+				if (t.entityprofile[t.entid].startanimingame > 0) {
 					if (t.entityprofile[t.entid].animmax > 0 ) {
-						//Only if no lua is set to control animations.
-						if (t.entityprofile[t.entid].aimain_s == "" || t.entityprofile[t.entid].aimain_s == "default.lua") {
-							t.q = 0;
-							SetObjectFrame(t.tttsourceobj, 0);
-							LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
-							SetObjectFrame(t.tobj, 0);
-							LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
-						}
+						t.q = t.entityprofile[t.entid].startanimingame - 1;
+						SetObjectFrame(t.tttsourceobj, 0);
+						LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+						SetObjectFrame(t.tobj, 0);
+						LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
 					}
 				}
 			}
@@ -2017,16 +2014,13 @@ void editor_previewmapormultiplayer ( void )
 		{
 			if (ObjectExist(t.tobj) == 1)
 			{
-				if (t.entityprofile[t.entid].playanimineditor == 0) {
+				if (t.entityprofile[t.entid].startanimingame > 0) {
 					if (t.entityprofile[t.entid].animmax > 0) {
-						//Only if no lua is set to control animations.
-						if (t.entityprofile[t.entid].aimain_s == "" || t.entityprofile[t.entid].aimain_s == "default.lua") {
-							t.q = 0;
-							SetObjectFrame(t.tttsourceobj, 0);
-							StopObject(t.tttsourceobj);
-							SetObjectFrame(t.tobj, 0);
-							StopObject(t.tobj);
-						}
+						t.q = 0;
+						SetObjectFrame(t.tttsourceobj, 0);
+						StopObject(t.tttsourceobj);
+						SetObjectFrame(t.tobj, 0);
+						StopObject(t.tobj);
 					}
 				}
 			}
