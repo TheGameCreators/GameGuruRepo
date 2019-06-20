@@ -433,8 +433,9 @@ void postprocess_preterrain ( void )
 			if (  GetEffectExist(t.terrain.vegetationshaderindex) == 1  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"blacktextured" );
 		}
 		if (  GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex,"blacktextured" );
-		for ( t.t = -4 ; t.t<=  g.effectbankmax; t.t++ )
+		for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
 		{
+			if ( t.t == -5  )  t.teffectid = g.lightmappbreffectillum;
 			if ( t.t == -4  )  t.teffectid = g.lightmappbreffect;
 			if ( t.t == -3  )  t.teffectid = g.thirdpersonentityeffect;
 			if ( t.t == -2  )  t.teffectid = g.thirdpersoncharactereffect;
