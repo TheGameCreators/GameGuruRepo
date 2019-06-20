@@ -165,7 +165,7 @@ void game_masterroot ( void )
 			else
 			{
 				//  Single player
-				if (  Len(t.game.jumplevel_s.Get())>1 ) 
+				if (  Len(t.game.jumplevel_s.Get())> 0 ) //PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/444
 				{
 					// can override jumplevel with 'advanced warning level filename' when LOAD level from MAIN MENU
 					if ( strcmp ( t.game.pAdvanceWarningOfLevelFilename, "" ) != NULL )
@@ -707,6 +707,9 @@ void game_masterroot ( void )
 							//PE: need testing.
 							if (t.entityprofile[t.entid].ischaracter == 1) {
 								//Char should always have z depth , but somehow its removed somewhere.
+
+								//PE: check t.entityprofile[t.tentid].zdepth == 0
+
 								EnableObjectZDepth(t.tobj);
 							}
 							if (t.entityprofile[t.entid].startanimingame > 0) {
@@ -971,7 +974,8 @@ void game_masterroot ( void )
 				if (  t.game.quitflag == 0 ) 
 				{
 					timestampactivity(0,"game has not quit");
-					if (  Len(t.game.jumplevel_s.Get())>1 ) 
+					//PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/444
+					if (  Len(t.game.jumplevel_s.Get())> 0 ) 
 					{
 						//  goes around and loads this level name
 						timestampactivity(0,"game is loading non-linear level map:");
