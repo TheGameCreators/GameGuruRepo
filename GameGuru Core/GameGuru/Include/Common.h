@@ -4,6 +4,7 @@
 
 #include "cstr.h"
 
+const char *pestrcasestr(const char *arg1, const char *arg2);
 void common_init_globals ( void );
 void common_init ( void );
 int common_isserialcodevalid ( LPSTR pCode );

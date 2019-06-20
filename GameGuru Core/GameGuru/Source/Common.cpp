@@ -397,6 +397,28 @@ void common_init ( void )
 	ExitProcess ( 0 );
 }
 
+const char *pestrcasestr(const char *arg1, const char *arg2)
+{
+	if (!arg1)
+		return NULL;
+	if (!arg2)
+		return NULL;
+	if (strlen(arg2) > strlen(arg1))
+		return NULL;
+
+	const char *a, *b;
+	for (;*arg1;*arg1++) {
+
+		a = arg1;
+		b = arg2;
+
+		while ((*a++ | 32) == (*b++ | 32))
+			if (!*b)
+				return (arg1);
+	}
+	return(NULL);
+}
+
 // New function to initialise all globals that were previously set up in types outside of any function/subroutine
 void common_init_globals ( void )
 {
