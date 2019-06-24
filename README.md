@@ -1,6 +1,6 @@
 # The GameGuru Repository
 
-NOTE: This repository is STILL UNDER CONSTRUCTION and we have a few freelancers giving it a spin, so feel free to browse and maybe even check it out. If you find anything amiss, please report immediately and directly to lee@thegamecreators.com and we'll get it fixed a.s.a.p so anyone can start using the repository.
+NOTE: Feel free to browse and maybe even check it out. If you find anything amiss, please report immediately and directly to lee@thegamecreators.com and we'll get it fixed a.s.a.p so anyone can start using the repository. Just for clarity, this is not open source and remains the copyright of TGC, see Wiki for more information on license matters.
 
 GameGuru is a 3D game maker everyone can use to make their own simple First Person and Third Person games and is available to buy from Steam or direct from The Game Creators. For the first few years of its life, development was managed by a small team of coders, and as the list of features grew, so did the community who found it a great alternative to more serious and professional game making solutions.
 
