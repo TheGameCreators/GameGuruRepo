@@ -1314,12 +1314,14 @@ function gameplayercontrol.control()
 		if ( ttcapverticalangle>90 ) then ttcapverticalangle = 90 end
 		if ( ttcapverticalangle<-12 ) then ttcapverticalangle = -12 end
 
-		--  retract system
-		if ( GetGamePlayerControlCamCurrentDistance()<GetGamePlayerControlThirdpersonCameraDistance() ) then 
-			ttretractcamspeed=GetGamePlayerControlThirdpersonCameraSpeed()*GetTimeElapsed()
-			SetGamePlayerControlCamCurrentDistance(GetGamePlayerControlCamCurrentDistance()+ttretractcamspeed)
-			if ( GetGamePlayerControlCamCurrentDistance()>GetGamePlayerControlThirdpersonCameraDistance() ) then 
-				SetGamePlayerControlCamCurrentDistance(GetGamePlayerControlThirdpersonCameraDistance())
+		--  retract system when collision moves out way
+		if ( GetGamePlayerControlCamCollisionSmooth() == 2 ) then 
+			if ( GetGamePlayerControlCamCurrentDistance()<GetGamePlayerControlThirdpersonCameraDistance() ) then 
+				ttretractcamspeed=GetGamePlayerControlThirdpersonCameraSpeed()*GetTimeElapsed()
+				SetGamePlayerControlCamCurrentDistance(GetGamePlayerControlCamCurrentDistance()+ttretractcamspeed)
+				if ( GetGamePlayerControlCamCurrentDistance()>GetGamePlayerControlThirdpersonCameraDistance() ) then 
+					SetGamePlayerControlCamCurrentDistance(GetGamePlayerControlThirdpersonCameraDistance())
+				end
 			end
 		end
 		ttusecamdistance=GetGamePlayerControlCamCurrentDistance()
@@ -1372,102 +1374,127 @@ function gameplayercontrol.control()
 		end
 
 		-- check if this places camera in collision
-		tthitdist=0
 		tthitvalue=0
-		tthitdiffdist1=0
 		if ( bIgnoreCameraCollision==false ) then
-			if ( RayTerrain(ttpx,ttpy-20,ttpz,tffdcx,tffdcy-20,tffdcz) == 1 ) then 
-				tthitvaluex=GetRayCollisionX()
-				tthitvaluey=GetRayCollisionY()+20
-				tthitvaluez=GetRayCollisionZ()
-				tthitdiffx=tthitvaluex-ttpx
-				tthitdiffy=tthitvaluey-ttpy
-				tthitdiffz=tthitvaluez-ttpz
-				tthitdiffdist1=math.sqrt(math.abs(tthitdiffx*tthitdiffx)+math.abs(tthitdiffy*tthitdiffy)+math.abs(tthitdiffz*tthitdiffz))
+			if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx,tffdcy,tffdcz) == 1 ) then tthitvalue = -1 end
+			--if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx-10,tffdcy,tffdcz-10) == 1 ) then tthitvalue = -1 end
+			--if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz+10) == 1 ) then tthitvalue = -1 end
+			--if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx-10,tffdcy,tffdcz+10) == 1 ) then tthitvalue = -1 end
+			--if ( RayTerrain(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz-10) == 1 ) then tthitvalue = -1 end
+			if ( tthitvalue == 0 ) then 
+				tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx,tffdcy,tffdcz,ttpersonobj)
+				--if tthitvalue==0 then tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx-10,tffdcy,tffdcz-10,ttpersonobj) end
+				--if tthitvalue==0 then tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz+10,ttpersonobj) end
+				--if tthitvalue==0 then tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx-10,tffdcy,tffdcz+10,ttpersonobj) end
+				--if tthitvalue==0 then tthitvalue=IntersectAll(ttpx,ttpy,ttpz,tffdcx+10,tffdcy,tffdcz-10,ttpersonobj) end
 			end
-			tthitvalue=IntersectStatic(ttpx,ttpy,ttpz,tffdcx,tffdcy,tffdcz,ttpersonobj)
-			if ( tthitvalue > 0 ) then 
+		end
+		change_cam_pos = 1
+		--Text(1,10,2,ttpx-tffdcx .."/"..ttpz-tffdcz)
+		if ( tthitvalue ~= 0 ) then 
+			if ( tthitvalue == -1 ) then 
+				-- terrain hit
+				tthitvaluex=GetRayCollisionX()
+				tthitvaluey=GetRayCollisionY()
+				tthitvaluez=GetRayCollisionZ()
+			else
+				-- entity hit
 				tthitvaluex=GetIntersectCollisionX()
 				tthitvaluey=GetIntersectCollisionY()
 				tthitvaluez=GetIntersectCollisionZ()
-				tthitdiffx=tthitvaluex-ttpx
-				tthitdiffy=tthitvaluey-ttpy
-				tthitdiffz=tthitvaluez-ttpz
-				tthitdiffdist2=math.sqrt(math.abs(tthitdiffx*tthitdiffx)+math.abs(tthitdiffy*tthitdiffy)+math.abs(tthitdiffz*tthitdiffz))
-				tthitdist=tthitdiffdist2
-				if ( tthitdiffdist1 > 0 ) then
-					if ( tthitdiffdist1 < tthitdiffdist2 ) then
-						tthitvaluex=GetRayCollisionX()
-						tthitvaluey=GetRayCollisionY()+20
-						tthitvaluez=GetRayCollisionZ()
-						tthitdist=tthitdiffdist1
-						tthitvalue = -1
-					end
+			end
+
+			-- work out new camera position
+			SetGamePlayerControlCamCollisionSmooth(0)
+			-- we need to place the camera away from the Colision point otherwise we can look in the object
+			--Text(1,2,2,tffdcx-tthitvaluex .."="..tthitvaluex.."-"..tffdcx)
+			--Text(1,4,2,tffdcz-tthitvaluex .."="..tthitvaluez.."-"..tffdcz)
+			if tthitvalue == -1 then
+				ttcoldistX = (tffdcx-tthitvaluex)*-0.01+8
+				ttcoldistZ = (tffdcz-tthitvaluex)*-0.01+8
+				--Text(1,6,2,ttcoldistX)
+				--Text(1,8,2,ttcoldistZ)
+				--if ttpz-tffdcz < 0 then ttcoldistZ=ttcoldistZ*-1 end -this added a jerk to camera motion
+			else
+				ttcoldistX = (tffdcx-tthitvaluex)*-0.01-8
+				ttcoldistZ = (tffdcz-tthitvaluex)*-0.01-8
+				--if ttpz-tffdcz > 0 then ttcoldistZ=ttcoldistZ*-1 end -this added a jerk to camera motion
+			end
+			ttddx=ttpx-tthitvaluex
+			ttddy=ttpy-tthitvaluey
+			ttddz=ttpz-tthitvaluez
+			ttdiff=math.sqrt(math.abs(ttddx*ttddx)+math.abs(ttddy*ttddy)+math.abs(ttddz*ttddz))
+			if ( ttdiff>12.0 ) then 
+				ttddx=ttddx/ttdiff
+				ttddy=ttddy/ttdiff
+				ttddz=ttddz/ttdiff
+				tffdcx=tthitvaluex+(ttddx*5.0)+ttcoldistX
+				tffdcy=tthitvaluey+(ttddy*1.0)
+				tffdcz=tthitvaluez+(ttddz*5.0)+ttcoldistZ
+				player_cam_dist = GetPlayerCamDistance( tffdcx,tffdcy,tffdcz )
+				if player_cam_dist > 50 then
+					SetGamePlayerControlLastGoodcx(tffdcx)
+					SetGamePlayerControlLastGoodcy(tffdcy)
+					SetGamePlayerControlLastGoodcz(tffdcz)
+					SetGamePlayerControlCamCurrentDistance(ttdiff)
+					SetGamePlayerControlCamDoFullRayCheck(1)
+				else
+					change_cam_angle = 0
+					tffdcx=GetGamePlayerControlLastGoodcx()
+					tffdcy=GetGamePlayerControlLastGoodcy()
+					tffdcz=GetGamePlayerControlLastGoodcz()
 				end
 			else
-				if ( tthitdiffdist1 ~= 0 ) then
-					tthitvaluex=GetRayCollisionX()
-					tthitvaluey=GetRayCollisionY()+20
-					tthitvaluez=GetRayCollisionZ()
-					tthitdist=tthitdiffdist1
-					tthitvalue = -1
+				tffdcx=GetGamePlayerControlLastGoodcx()
+				tffdcy=GetGamePlayerControlLastGoodcy()
+				tffdcz=GetGamePlayerControlLastGoodcz()
+			end
+		else
+			-- this one ensures the full-ray check does not flick the camera to 'full-retract distance'
+			if ( GetGamePlayerControlCamDoFullRayCheck() == 2 ) then 
+				tffdcx=GetGamePlayerControlLastGoodcx()
+				tffdcy=GetGamePlayerControlLastGoodcy()
+				tffdcz=GetGamePlayerControlLastGoodcz()
+			end
+			--  if over shoulder active, use it
+			if ( GetGamePlayerControlThirdpersonCameraShoulder() ~= 0 ) then 
+				if ( GetCameraOverride() ~= 2 and GetCameraOverride() ~= 3 ) then
+					SetCameraAngle ( 0,0,GetGamePlayerControlFinalCameraAngley()+90,0 )
+					MoveCamera ( 0,GetGamePlayerControlThirdpersonCameraShoulder() )
 				end
-			end			
-		end
-		if ( tthitvalue ~= 0 ) then 
-			-- work out new camera position
-			tffdcx=tthitvaluex
-			tffdcy=tthitvaluey
-			tffdcz=tthitvaluez
-			ttcoldistX = ((tttargetx-tthitvaluex)/tthitdist)*2
-			ttcoldistZ = ((tttargetz-tthitvaluez)/tthitdist)*2
-			tffdcx=tffdcx+ttcoldistX
-			tffdcz=tffdcz+ttcoldistZ
-		end
-			
-		-- push camera away from any surface in all cases
-		if ( bIgnoreCameraCollision==false ) then
-			if ( IntersectStatic(tffdcx,tffdcy,tffdcz,tffdcx-8,tffdcy,tffdcz,ttpersonobj) > 0 ) then 
-			 tffdcx=GetIntersectCollisionX()+8
-			 tffdcy=GetIntersectCollisionY()
-			 tffdcz=GetIntersectCollisionZ()
-			end
-			if ( IntersectStatic(tffdcx,tffdcy,tffdcz,tffdcx+8,tffdcy,tffdcz,ttpersonobj) > 0 ) then 
-			 tffdcx=GetIntersectCollisionX()-8
-			 tffdcy=GetIntersectCollisionY()
-			 tffdcz=GetIntersectCollisionZ()
-			end
-			if ( IntersectStatic(tffdcx,tffdcy,tffdcz,tffdcx,tffdcy,tffdcz-8,ttpersonobj) > 0 ) then 
-			 tffdcx=GetIntersectCollisionX()
-			 tffdcy=GetIntersectCollisionY()
-			 tffdcz=GetIntersectCollisionZ()+8
-			end
-			if ( IntersectStatic(tffdcx,tffdcy,tffdcz,tffdcx,tffdcy,tffdcz+8,ttpersonobj) > 0 ) then 
-			 tffdcx=GetIntersectCollisionX()
-			 tffdcy=GetIntersectCollisionY()
-			 tffdcz=GetIntersectCollisionZ()-8
 			end
 		end
 
-		-- ideal range camera position
-		tdcx=tffdcx  
-		tdcy=tffdcy  
-		tdcz=tffdcz
-		ttcx=tdcx
-		ttcy=tdcy
-		ttcz=tdcz
-		if ( GetCameraOverride() ~= 1 and GetCameraOverride() ~= 3 ) then
-			PositionCamera ( 0, ttcx, ttcy, ttcz )
-		end
+		if change_cam_pos == 1 then
+			-- ideal range camera position
+			tdcx=tffdcx  
+			tdcy=tffdcy  
+			tdcz=tffdcz
 
-		-- adjust horizon angle
-		ttcapverticalangle=ttcapverticalangle-GetGamePlayerControlThirdpersonCameraFocus()
+			-- smooth to destination from current real camera position
+			if ( GetGamePlayerControlCamCollisionSmooth() == 0 ) then 
+				SetGamePlayerControlCamCollisionSmooth(1)
+				ttcx=tdcx
+				ttcy=tdcy
+				ttcz=tdcz
+			else
+				if ( GetGamePlayerControlCamCollisionSmooth() == 1 ) then SetGamePlayerControlCamCollisionSmooth(2) end
+				ttcx=CurveValue(tdcx,GetCameraPositionX(0),2.0)
+				ttcy=CurveValue(tdcy,GetCameraPositionY(0),2.0)
+				ttcz=CurveValue(tdcz,GetCameraPositionZ(0),2.0)
+			end
+			if ( GetCameraOverride() ~= 1 and GetCameraOverride() ~= 3 ) then
+				PositionCamera ( 0,ttcx,ttcy,ttcz )
+			end
 
-		-- final camera rotation
-		if ( GetCameraOverride() ~= 2 and GetCameraOverride() ~= 3 ) then
-			SetCameraAngle ( 0,ttcapverticalangle,GetGamePlayerControlFinalCameraAngley(),GetGamePlayerControlFinalCameraAnglez() )
+			-- adjust horizon angle
+			ttcapverticalangle=ttcapverticalangle-GetGamePlayerControlThirdpersonCameraFocus()
+
+			-- final camera rotation
+			if ( GetCameraOverride() ~= 2 and GetCameraOverride() ~= 3 ) then
+				SetCameraAngle ( 0,ttcapverticalangle,GetGamePlayerControlFinalCameraAngley(),GetGamePlayerControlFinalCameraAnglez() )
+			end
 		end
-		
 	else
 		-- update camera position
 		if ( GetCameraOverride() ~= 1 and GetCameraOverride() ~= 3 ) then

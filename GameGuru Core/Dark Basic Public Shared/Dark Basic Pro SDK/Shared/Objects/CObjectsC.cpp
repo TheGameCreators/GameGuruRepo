@@ -6899,7 +6899,7 @@ DARKSDK_DLL int IntersectAll_OLD ( int iPrimaryStart, int iPrimaryEnd, float fX,
 //Dave Performance
 //Previous intersect all is above, incase of issues
 //This version combines the orignal method with the shortlist of boxes checked to provide the best of both versions
-DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo )
+DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly )
 {
 	// special iIgnoreObjNo mode
 	if (iIgnoreObjNo == -123 || iIgnoreObjNo == -124 || iIgnoreObjNo == -125)
@@ -7001,6 +7001,12 @@ DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, flo
 				if (pObject->dwObjectNumber == iIgnoreObjNo || pObject->collision.dwCollisionPropertyValue == 1 || !pObject->bVisible)
 					continue;
 			}
+
+			// check if object has animation and flag rejects animating entities (moving characters, trees cannot be used for third person camera collision)
+			sObject* pRealObject = pObject;
+			if ( pObject->pInstanceOfObject ) pRealObject = pObject->pInstanceOfObject;
+			if ( iStaticOnly == 1 && pRealObject->fAnimTotalFrames > 0.0f )
+				continue;
 
 			// check if object in same 'region' as ray
 			float fDX=0, fDY=0, fDZ=0;
@@ -7193,6 +7199,11 @@ DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, flo
 
 	// return hit value depending on what was hit
 	return iHitValue;
+}
+
+DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo )
+{
+	return IntersectAllEx ( iPrimaryStart, iPrimaryEnd, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, 0 );
 }
 
 DARKSDK void SetObjectCollisionProperty ( int iObjectID, int iPropertyValue )

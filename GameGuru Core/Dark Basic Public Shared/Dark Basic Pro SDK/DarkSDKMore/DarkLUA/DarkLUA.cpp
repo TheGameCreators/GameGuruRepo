@@ -2783,7 +2783,7 @@ int GetRayCollisionZ ( lua_State *L )
 	lua_pushnumber ( L, ODEGetRayCollisionZ() );
 	return 1;
 }
-int IntersectAll ( lua_State *L )
+int IntersectCore ( lua_State *L, int iStaticOnly )
 {
 	int n = lua_gettop(L);
 	if ( n < 7 ) return 0;
@@ -2795,9 +2795,17 @@ int IntersectAll ( lua_State *L )
 	float fNewZ = lua_tonumber(L, 6);
 	int iIgnoreObjNo = lua_tonumber(L, 7);
 	int ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
-	int tthitvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo);
+	int tthitvalue=IntersectAllEx(g.entityviewstartobj,g.entityviewendobj,fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, iStaticOnly);
 	lua_pushnumber ( L, tthitvalue );
 	return 1;
+}
+int IntersectAll ( lua_State *L )
+{
+	return IntersectCore ( L, 0 );
+}
+int IntersectStatic ( lua_State *L )
+{
+	return IntersectCore ( L, 1 );
 }
 int GetIntersectCollisionX ( lua_State *L )
 {
@@ -5689,6 +5697,7 @@ void addFunctions()
 	lua_register(lua, "GetRayCollisionY" , GetRayCollisionY );
 	lua_register(lua, "GetRayCollisionZ" , GetRayCollisionZ );
 	lua_register(lua, "IntersectAll" , IntersectAll );
+	lua_register(lua, "IntersectStatic" , IntersectStatic );
 	lua_register(lua, "GetIntersectCollisionX" , GetIntersectCollisionX );
 	lua_register(lua, "GetIntersectCollisionY" , GetIntersectCollisionY );
 	lua_register(lua, "GetIntersectCollisionZ" , GetIntersectCollisionZ );
