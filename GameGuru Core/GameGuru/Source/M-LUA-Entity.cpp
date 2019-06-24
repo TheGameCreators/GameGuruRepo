@@ -316,6 +316,11 @@ void entity_lua_spawn_core ( void )
 				t.entityelement[t.e].collected = 0;
 				t.entityelement[t.e].explodefusetime = 0;
 
+				//PE: 21-06-2019 for Andy to test , just enable z when spawn.
+				if (t.entityelement[t.e].obj > 0) {
+					EnableObjectZWrite(t.entityelement[t.e].obj);
+					EnableObjectZDepth(t.entityelement[t.e].obj);
+				}
 				// found character, no need to continue
 				break;
 			}
@@ -361,6 +366,13 @@ void entity_lua_spawn ( void )
 
 			// 080517 - now triggers INIT AGAIN when spawning
 			lua_initscript();
+
+			//PE: (2) 21-06-2019 for Andy to test,just enable z when spawn.
+			if (t.entityelement[t.e].obj > 0) {
+				EnableObjectZWrite(t.entityelement[t.e].obj);
+				EnableObjectZDepth(t.entityelement[t.e].obj);
+			}
+
 		}
 		else
 		{

@@ -2413,6 +2413,14 @@ void entity_converttoinstance ( void )
 				//  restore any radius settings the original object might have had
 				SetSphereRadius (  t.tobj,-1 );
 				t.entityelement[t.tte].isclone=0;
+				//PE: 230619
+				//PE: YES the big z bug found , after many years of searching for it. Here it is!
+				//PE: This bug have been here since the dx9 update.
+				//PE: Im so happy. :)
+				//PE:
+				//PE: bug tentid not set ?, entity_prepareobj is using tobj and tentid
+				//PE: 
+				t.tentid = t.entityelement[t.tte].bankindex;
 				entity_prepareobj ( );
 				entity_positionandscale ( );
 				if (  t.tstorevis == 0  )  HideObject (  t.tobj );
@@ -2612,6 +2620,7 @@ void entity_prepareobj ( void )
 		}
 
 		// 140616 - new mode which can turn entity into HUD-weapon style render order
+		// 230619 - PE: t.tentid was not set on all calls to entity_prepareobj
 		if ( t.entityprofile[t.tentid].zdepth == 0 ) 
 		{
 			DisableObjectZDepthEx ( t.tobj, 1 );

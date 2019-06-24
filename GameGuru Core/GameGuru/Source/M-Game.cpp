@@ -2314,6 +2314,46 @@ void game_main_loop ( void )
 		//  update all projectiles
 		weapon_projectile_loop ( );
 
+/*
+		//PE: debug check char and z depth values.
+		for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+		{
+
+			t.entid = t.entityelement[t.tte].bankindex;
+			t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
+			t.tobj = t.entityelement[t.tte].obj;
+			if (t.tobj > 0)
+			{
+				if (ObjectExist(t.tobj) == 1)
+				{
+					if (t.entityprofile[t.entid].ischaracter == 1) {
+
+						if (t.entityprofile[t.entid].zdepth == 0)
+						{
+							timestampactivity(0, "zdepth == 0");
+						}
+						EnableObjectZDepth(t.tobj);
+						sObject* pObject = g_ObjectList[t.tobj];
+						if (pObject) {
+							for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++) {
+								if (pObject->ppMeshList[iMesh] && pObject->ppMeshList[iMesh]->bZWrite == false) {
+									timestampactivity(0, "t.tobj bZWrite now false");
+									pObject->ppMeshList[iMesh]->bZWrite = true;
+								}
+							}
+
+							if (pObject->bNewZLayerObject == true) {
+								//pObject->bNewZLayerObject = false;
+								timestampactivity(0, "t.tobj now true");
+							}
+						}
+					}
+				}
+			}
+		}
+*/
+	
+
 		//  Prompt
 		if (  t.sky.currenthour_f<1.0 || t.sky.currenthour_f >= 13.0 ) 
 		{

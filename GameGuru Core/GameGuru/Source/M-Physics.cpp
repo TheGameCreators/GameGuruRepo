@@ -2439,6 +2439,7 @@ void physics_resetplayer_core ( void )
 		//PE: Something is disable Z depth buffer when 3rd die ?, just reenable.
 		//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/330
 		EnableObjectZWrite(t.entityelement[t.e].obj);
+		EnableObjectZDepth(t.entityelement[t.e].obj);
 	}
 }
 
