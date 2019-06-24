@@ -1910,13 +1910,13 @@ void lm_loadscene ( void )
 								if (pTexture) {
 
 									if( pestrcasestr(&pTexture->pName[0], "_illumination.") || pestrcasestr(&pTexture->pName[0], "_emissive.") || pestrcasestr(&pTexture->pName[0], "_i.dds") ) {
-										timestampactivity(0, "LM use illum");
+										//timestampactivity(0, "LM use illum");
 										useillum = true;
 
 										//debug
-										char dtmp[2048];
-										sprintf(dtmp, "LM ILLUM m: %d , t: %d , name: %s", (int)iMesh, (int)t, pTexture->pName);
-										timestampactivity(0, dtmp);
+										//char dtmp[2048];
+										//sprintf(dtmp, "LM ILLUM m: %d , t: %d , name: %s", (int)iMesh, (int)t, pTexture->pName);
+										//timestampactivity(0, dtmp);
 
 										break;
 									}
@@ -1937,7 +1937,9 @@ void lm_loadscene ( void )
 					else
 					{
 						// determine if in PBR mode, and apply lightmap PBR shader
-						if ( g.gpbroverride == 1 )
+						//PE: LoadColorNormalSpecGlossw will get us setup for using these shaders even on pbroverride=0 (DNSI).
+						//if ( g.gpbroverride == 1 )
+
 						{
 
 							//apbr_lightmapped_illum.fx
@@ -1957,7 +1959,7 @@ void lm_loadscene ( void )
 							// apply lightmap PBR shader to lightmapped object
 							if (useillum) {
 								SetObjectEffect(t.tlmobj, g.lightmappbreffectillum);
-								timestampactivity(0, "1: Effect lightmappbreffectillum");
+								//timestampactivity(0, "1: Effect lightmappbreffectillum");
 							}
 							else
 								SetObjectEffect ( t.tlmobj, g.lightmappbreffect );
