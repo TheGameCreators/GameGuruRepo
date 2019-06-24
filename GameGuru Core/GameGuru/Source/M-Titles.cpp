@@ -20,6 +20,13 @@ void titles_init ( void )
 	// safe write folder
 	if ( PathExist(g.myownrootdir_s.Get()) == 0 ) file_createmydocsfolder ( );
 
+	// load backdrop used in titles
+	if ( g.vrqcontrolmode != 0 )
+	{
+		cstr pPath = cstr("languagebank\\")+g.language_s+cstr("\\artwork\\branded\\socialvr.png");
+		LoadImage ( pPath.Get(), g.editorimagesoffset+64 );
+	}
+
 	/* redundant now LUA in control of titles system
 	//  determine the resolution we should use
 	t.tclosest=9999999;
@@ -1332,8 +1339,20 @@ void titles_base ( void )
 			//CloseFileMap (  1 );
 		}
 
-		//  Display
-		if (  t.titlesclearmode == 1  )  CLS (  0 );
+		// Display
+		if ( t.titlesclearmode == 1 )  
+		{
+			CLS ( 0 );
+			if ( g.vrqcontrolmode != 0 )
+			{
+				if ( ImageExist ( g.editorimagesoffset+64 ) )
+				{
+					Sprite ( 123, -100000, -100000, g.editorimagesoffset+64 );
+					SizeSprite ( 123, GetDisplayWidth(), GetDisplayHeight() );
+					PasteSprite ( 123, 0, 0 );
+				}
+			}
+		}
 		pastebitmapfontcenter(t.titlesname_s.Get(),GetDisplayWidth()/2,t.titlesnamey,1,255);
 
 		//  Draw bars
@@ -1629,17 +1648,30 @@ void titles_base ( void )
 					while ( iGotCode == 0 )
 					{
 						// clear screen
-						CLS ( 0 );
+						Sprite ( 123, -100000, -100000, g.editorimagesoffset+64 );
+						SizeSprite ( 123, GetDisplayWidth(), GetDisplayHeight() );
+						PasteSprite ( 123, 0, 0 );
 
 						// title and instructions for entry system
 						pastebitmapfontcenter("TEACHER CODE ENTRY",GetDisplayWidth()/2,50,1,255);
 						pastebitmapfontcenter("Type out the 'Teacher Code' provided by your Admin",GetDisplayWidth()/2,GetDisplayHeight()-150,1,255);
 						pastebitmapfontcenter("to view all VR Quest games across the server",GetDisplayWidth()/2,GetDisplayHeight()-100,1,255);
 
+						// extra instructions
+						pastebitmapfontcenter("Enter Code:",GetDisplayWidth()/2,(GetDisplayHeight()/2)-50,1,255);
+						pastebitmapfontcenter("( press RETURN to submit code, press ESCAPE to quit entry )",GetDisplayWidth()/2,(GetDisplayHeight()/2)+50,1,255);
+
+						// box for entry
+						InkEx ( 255, 255, 255 );
+						BoxEx ( (GetDisplayWidth()/2)-100, (GetDisplayHeight()/2)-7, (GetDisplayWidth()/2)+100, (GetDisplayHeight()/2)+33 );
+						InkEx ( 8, 8, 8 );
+						BoxEx ( (GetDisplayWidth()/2)-98, (GetDisplayHeight()/2)-6, (GetDisplayWidth()/2)+98, (GetDisplayHeight()/2)+32 );
+						InkEx ( 255, 255, 255 );
+
 						// entry string
 						LPSTR pEntryString = Entry(0);
 						cstr pFullDisplay = cstr(pEntryString) + pCursor;
-						pastebitmapfontcenter(pFullDisplay.Get(),GetDisplayWidth()/2,GetDisplayHeight()/2,1,255);
+						pastebitmapfontcenter(pFullDisplay.Get(),GetDisplayWidth()/2,(GetDisplayHeight()/2)-3,1,255);
 						if ( ReturnKey() == 1 )
 						{
 							iGotCode = 1;

@@ -1852,6 +1852,12 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	// Work out the amount of memory used for the TEST GAME session
 	t.tmemorybeforetestgame=SMEMAvailable(1);
 
+	// in VR, if controller powered down, need to jog it back to life
+	if ( g.vrglobals.GGVREnabled == 2 )
+	{
+		GGVR_ReconnectWithHolographicSpaceControllers();
+	}
+
 	//
 	// launch game root with IDE 'test at cursor position' settings
 	//

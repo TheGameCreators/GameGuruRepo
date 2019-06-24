@@ -140,6 +140,7 @@ int								GGVR_TrackingSpace = 0;
 // WMR (Microsoft)
 HMODULE hGGWMRDLL = NULL;
 typedef int (*sGGWMR_CreateHolographicSpace1Fnc)(HWND,int); sGGWMR_CreateHolographicSpace1Fnc GGWMR_CreateHolographicSpace1 = NULL;
+typedef void (*sGGWMR_ReconnectWithHolographicSpaceControllersFnc)(void); sGGWMR_ReconnectWithHolographicSpaceControllersFnc GGWMR_ReconnectWithHolographicSpaceControllers = NULL;
 typedef int (*sGGWMR_CreateHolographicSpace2Fnc)(void*,void*); sGGWMR_CreateHolographicSpace2Fnc GGWMR_CreateHolographicSpace2 = NULL;
 typedef void (*sGGWMR_GetUpdateFnc)(void); sGGWMR_GetUpdateFnc GGWMR_GetUpdate = NULL;
 typedef void (*sGGWMR_GetHeadPosAndDirFnc)(float*,float*,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHeadPosAndDirFnc GGWMR_GetHeadPosAndDir = NULL;
@@ -351,6 +352,7 @@ int GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbs
 			{
 				// get proc calls
 				GGWMR_CreateHolographicSpace1 = (sGGWMR_CreateHolographicSpace1Fnc) GetProcAddress ( hGGWMRDLL, "GGWMR_CreateHolographicSpace1" );
+				GGWMR_ReconnectWithHolographicSpaceControllers = (sGGWMR_ReconnectWithHolographicSpaceControllersFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_ReconnectWithHolographicSpaceControllers" );
 				GGWMR_CreateHolographicSpace2 = (sGGWMR_CreateHolographicSpace2Fnc) GetProcAddress ( hGGWMRDLL, "GGWMR_CreateHolographicSpace2" );
 				GGWMR_GetUpdate = (sGGWMR_GetUpdateFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetUpdate" );
 				GGWMR_GetHeadPosAndDir = (sGGWMR_GetHeadPosAndDirFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_GetHeadPosAndDir" );
@@ -2421,6 +2423,12 @@ int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath, int iDebugMode )
 	return 987;
 }
 
+void GGVR_ReconnectWithHolographicSpaceControllers ( void )
+{
+	if ( GGWMR_ReconnectWithHolographicSpaceControllers )
+		GGWMR_ReconnectWithHolographicSpaceControllers();
+}
+
 int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext )
 {
 	return GGWMR_CreateHolographicSpace2 ( pDevice, pContext );
@@ -2478,18 +2486,31 @@ int GGVR_PreSubmit ( int iDebugMode )
 			ID3D11DepthStencilView* pDepthStencilView = NULL;
 			DWORD dwWidth, dwHeight;
 			GGWMR_GetRenderTargetAndDepthStencilView ( (void**)&pRenderTargetLeftView, (void**)&pRenderTargetRightView, (void**)&pDepthStencilView, &dwWidth, &dwHeight );
-			SetCameraToView ( 6, pRenderTargetLeftView, pDepthStencilView, dwWidth, dwHeight );
-			SetCameraToView ( 7, pRenderTargetRightView, pDepthStencilView, dwWidth, dwHeight );
+			if ( pRenderTargetLeftView == NULL )
+			{
+				// tried to run VR but no headset to render to
+				GGVR_EnabledState = 3;
+			}
+			else
+			{
+				SetCameraToView ( 6, pRenderTargetLeftView, pDepthStencilView, dwWidth, dwHeight );
+				SetCameraToView ( 7, pRenderTargetRightView, pDepthStencilView, dwWidth, dwHeight );
 
-			// get projection matrix for left and right eyes
-			float fM00, fM10, fM20, fM30;
-			float fM01, fM11, fM21, fM31;
-			float fM02, fM12, fM22, fM32;
-			float fM03, fM13, fM23, fM33;
-			GGWMR_GetProjectionMatrix ( 0, &fM00, &fM10, &fM20, &fM30, &fM01, &fM11, &fM21, &fM31, &fM02, &fM12, &fM22, &fM32, &fM03, &fM13, &fM23, &fM33 );
-			GGVR_LeftEyeProjection = GGMATRIX ( fM00, fM10, fM20, fM30, fM01, fM11, fM21, fM31, fM02, fM12, fM22, fM32, fM03, fM13, fM23, fM33 );
-			GGWMR_GetProjectionMatrix ( 1, &fM00, &fM10, &fM20, &fM30, &fM01, &fM11, &fM21, &fM31, &fM02, &fM12, &fM22, &fM32, &fM03, &fM13, &fM23, &fM33 );
-			GGVR_RightEyeProjection = GGMATRIX ( fM00, fM10, fM20, fM30, fM01, fM11, fM21, fM31, fM02, fM12, fM22, fM32, fM03, fM13, fM23, fM33 );
+				// get projection matrix for left and right eyes
+				float fM00, fM10, fM20, fM30;
+				float fM01, fM11, fM21, fM31;
+				float fM02, fM12, fM22, fM32;
+				float fM03, fM13, fM23, fM33;
+				GGWMR_GetProjectionMatrix ( 0, &fM00, &fM10, &fM20, &fM30, &fM01, &fM11, &fM21, &fM31, &fM02, &fM12, &fM22, &fM32, &fM03, &fM13, &fM23, &fM33 );
+				GGVR_LeftEyeProjection = GGMATRIX ( fM00, fM10, fM20, fM30, fM01, fM11, fM21, fM31, fM02, fM12, fM22, fM32, fM03, fM13, fM23, fM33 );
+				GGWMR_GetProjectionMatrix ( 1, &fM00, &fM10, &fM20, &fM30, &fM01, &fM11, &fM21, &fM31, &fM02, &fM12, &fM22, &fM32, &fM03, &fM13, &fM23, &fM33 );
+				GGVR_RightEyeProjection = GGMATRIX ( fM00, fM10, fM20, fM30, fM01, fM11, fM21, fM31, fM02, fM12, fM22, fM32, fM03, fM13, fM23, fM33 );
+			}
+		}
+		if ( GGVR_EnabledState == 3 )
+		{
+			// headset missing - prompt user of game to restart software (to init with live headset)
+			return -123;
 		}
 	}
 	return 0;

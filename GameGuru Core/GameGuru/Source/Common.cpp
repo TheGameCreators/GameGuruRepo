@@ -5481,17 +5481,17 @@ void loadscreenpromptassets ( int iUseVRTest )
 				{	
 					if ( g.vrqcontrolmode != 0 )
 					{
-						if ( iUseVRTest == 2 )
-						{
-							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\socialvr.png", g.language_s.Get() );
-						}
+						//if ( iUseVRTest == 2 )
+						//{
+						//	sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\socialvr.png", g.language_s.Get() );
+						//}
+						//else
+						//{
+						if ( (g.gvrmode == 3 && iUseVRTest == 1) || iUseVRTest == 2 )
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-vr.png", g.language_s.Get() );
 						else
-						{
-							if ( g.gvrmode == 3 && iUseVRTest == 1 )
-								sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-vr.png", g.language_s.Get() );
-							else
-								sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-noweapons.png", g.language_s.Get() );
-						}
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-noweapons.png", g.language_s.Get() );
+						//}
 					}
 					else
 					{

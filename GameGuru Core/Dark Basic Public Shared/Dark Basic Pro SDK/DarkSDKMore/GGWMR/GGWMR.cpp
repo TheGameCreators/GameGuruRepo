@@ -135,6 +135,11 @@ DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd, int iDebugLoggingActive
 	return 0;
 }
 
+DLLEXPORT void GGWMR_ReconnectWithHolographicSpaceControllers ( void )
+{
+	app.ReconnectWithHolographicSpaceControllers();
+}
+
 DLLEXPORT int GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContext )
 {
 	if ( app.GetInitialised() == false )
@@ -274,13 +279,23 @@ int App::CreateHolographicSpaceA(HWND hWnd)
 	if ( m_interactionManager == nullptr )
 		return 5;
 
-	//m_sourcePressedEventToken = m_interactionManager.SourcePressed(bind(&App::OnSourcePressed, this, _1, _2));
 	DebugVRlog("SourceUpdated");
 	m_sourceUpdatedEventToken = m_interactionManager.SourceUpdated(bind(&App::OnSourceUpdated, this, _1, _2));
-	//m_sourceReleasedEventToken = m_interactionManager.SourceReleased(bind(&App::OnSourceReleased, this, _1, _2));
+
+	DebugVRlog("SourceLost");
+	m_sourceUpdatedEventToken = m_interactionManager.SourceLost(bind(&App::OnSourceLost, this, _1, _2));
 
 	// success
 	return 0;
+}
+
+void App::ReconnectWithHolographicSpaceControllers(void)
+{
+    if (g_holographicFrame != nullptr)
+    {
+		DebugVRlog("SourceUpdated");
+		m_sourceUpdatedEventToken = m_interactionManager.SourceUpdated(bind(&App::OnSourceUpdated, this, _1, _2));
+	}
 }
 
 int App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext)
@@ -515,6 +530,16 @@ void App::Uninitialize()
 	// completely free Holographic Space    
 	m_main.reset();
 	m_deviceResources.reset();
+}
+
+void App::OnSourceLost(SpatialInteractionManager const&, SpatialInteractionSourceEventArgs const& args)
+{
+	SpatialInteractionSourceState state = args.State();
+	SpatialInteractionSource source = state.Source();
+	SpatialInteractionController controller = source.Controller();
+	if (controller != nullptr)
+    {
+	}
 }
 
 void App::OnSourceUpdated(SpatialInteractionManager const&, SpatialInteractionSourceEventArgs const& args)

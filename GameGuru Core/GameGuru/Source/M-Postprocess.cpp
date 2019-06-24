@@ -674,6 +674,15 @@ void postprocess_preterrain ( void )
 					sprintf ( pErrorStr, "Error running VR : Code %d", iErrorCode );
 					timestampactivity(0,pErrorStr);
 				}
+				else
+				{
+					// determine if headset missing
+					if ( iErrorCode == -123 )
+					{
+						t.visuals.generalpromptstatetimer = Timer()+1000;
+						t.visuals.generalprompt_s = "No VR headset, exit software and activate headset and controllers for VR";
+					}
+				}
 
 				// render left and right eyes
 				for (t.leftright = 0; t.leftright <= 1; t.leftright++)

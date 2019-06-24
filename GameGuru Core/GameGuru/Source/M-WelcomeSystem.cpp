@@ -137,6 +137,8 @@ void welcome_init ( int iLoadingPart )
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend-prompt.png", g.editorimagesoffset+62 );
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend-click.png", g.editorimagesoffset+63 );
 		}
+
+		// for social vr backdrop splash (used g.editorimagesoffset+64)
 	}
 
 	// calculate page dimensions and useful vars

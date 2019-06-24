@@ -59,6 +59,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 	// Branding
 	#ifdef GGBRANDED
 	m_btnURL.ShowWindow(SW_HIDE);
+	m_Line5.ShowWindow(SW_HIDE);
 	#else
 	#endif
 }
@@ -79,7 +80,9 @@ int CAboutDlg::OnCreate ( LPCREATESTRUCT lpCreateStruct )
 	#endif
 	m_hDCSRC = CreateCompatibleDC ( NULL ); 
 	m_hBMP = LoadImage ( NULL, "aboutsplash.bmp", IMAGE_BITMAP, 320, 160, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_CREATEDIBSECTION );
-	m_hBMPLogo = LoadImage ( NULL, "TGCBadge.bmp", IMAGE_BITMAP, 160, 80, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_CREATEDIBSECTION );
+	m_hBMPLogo1 = LoadImage ( NULL, "TGCBadge.bmp", IMAGE_BITMAP, 160, 80, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_CREATEDIBSECTION );
+	m_hBMPLogo2 = LoadImage ( NULL, "TGCBadge2.bmp", IMAGE_BITMAP, 160, 80, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_CREATEDIBSECTION );
+	m_hBMPLogo3 = LoadImage ( NULL, "TGCBadge3.bmp", IMAGE_BITMAP, 160, 80, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_CREATEDIBSECTION );
 	SetCurrentDirectory ( theApp.m_szDirectory );
 
 	// all done
@@ -115,10 +118,22 @@ void CAboutDlg::OnPaint()
 	RECT rect1 = {124, 60, 0, 0};
 	MapDialogRect ( &rect1 );
 	BitBlt ( dc, rect1.left-160, rect1.top-80, 320, 160, m_hDCSRC, 0, 0, SRCCOPY );
-	SelectObject ( m_hDCSRC, m_hBMPLogo );
+
+	SelectObject ( m_hDCSRC, m_hBMPLogo1 );
 	RECT rect2 = {124, 280, 0, 0};
 	MapDialogRect ( &rect2 );
-	BitBlt ( dc, rect2.left-80, rect2.top-40, 160, 80, m_hDCSRC, 0, 0, SRCCOPY );
+	BitBlt ( dc, rect2.left-80, rect2.top-160, 160, 80, m_hDCSRC, 0, 0, SRCCOPY );
+
+	SelectObject ( m_hDCSRC, m_hBMPLogo2 );
+	rect2 = {124, 280, 0, 0};
+	MapDialogRect ( &rect2 );
+	BitBlt ( dc, rect2.left-167, rect2.top-65, 160, 80, m_hDCSRC, 0, 0, SRCCOPY );
+
+	SelectObject ( m_hDCSRC, m_hBMPLogo3 );
+	rect2 = {124, 280, 0, 0};
+	MapDialogRect ( &rect2 );
+	BitBlt ( dc, rect2.left+7, rect2.top-65, 160, 80, m_hDCSRC, 0, 0, SRCCOPY );
+
 	SelectObject ( m_hDCSRC, m_hOld );
 }
 

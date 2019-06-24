@@ -101,6 +101,7 @@ float GGVR_LeftController_AxisTriggerY(int axis);
 
 // WMR Specific
 int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath );
+void GGVR_ReconnectWithHolographicSpaceControllers ( void );
 int GGVR_CreateHolographicSpace2 ( void* pDevice, void* pContext );
 int GGVR_PreSubmit( int iDebugMode );
 void GGVR_SetCameraRange( float Near, float Far );

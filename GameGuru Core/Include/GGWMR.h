@@ -13,6 +13,7 @@
 extern "C" 
 {
 	DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd, int iDebugMode );
+	DLLEXPORT void GGWMR_ReconnectWithHolographicSpaceControllers ( void );
 	DLLEXPORT int GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContext );
 	DLLEXPORT void GGWMR_GetUpdate ( void );
 	DLLEXPORT void GGWMR_GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );
@@ -35,6 +36,7 @@ namespace BasicHologram
     public:
         void Initialize();
         int CreateHolographicSpaceA(HWND hWnd);
+		void ReconnectWithHolographicSpaceControllers(void);
         int CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pContext);
 		void UpdateFrame();
 		void GetHeadPosAndDir ( float* pPosX, float* pPosY, float* pPosZ, float* pUpX, float* pUpY, float* pUpZ, float* pDirX, float* pDirY, float* pDirZ );
@@ -75,6 +77,10 @@ namespace BasicHologram
         //void OnSourcePressed(
         //    winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
        //     winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
+
+		void OnSourceLost(
+			winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
+			winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceEventArgs const& args);
 
 		void OnSourceUpdated(
 			winrt::Windows::UI::Input::Spatial::SpatialInteractionManager const& sender,
