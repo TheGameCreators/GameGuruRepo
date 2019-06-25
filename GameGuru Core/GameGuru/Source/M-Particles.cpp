@@ -318,25 +318,10 @@ void generateParticle( travey_particle_emitter* this_emitter, int tfound )
 
 	int obj = tfound + g.raveyparticlesobjectoffset;
 
-	if ( this_emitter->effectId != 0 )
+	if ( this_particle->effectId != this_emitter->effectId )
 	{
-		if ( this_particle->effectId != this_emitter->effectId )
-		{
-			SetObjectEffect( obj, this_emitter->effectId );
-			this_particle->effectId = this_emitter->effectId;
-		}
-	}
-	else 
-	{
-		if ( this_particle->effectId == 0 )
-		{
-			this_particle->effectId = g.decaleffectoffset;
-		}
-		else if ( this_particle->effectId != g.decaleffectoffset )
-		{
-			SetObjectEffect( obj, g.decaleffectoffset );
-			this_particle->effectId = g.decaleffectoffset;
-		}
+		SetObjectEffect( obj, this_emitter->effectId );
+		this_particle->effectId = this_emitter->effectId;
 	}
 
 	PositionObject( obj, this_particle->x, this_particle->y, this_particle->z );
@@ -421,14 +406,27 @@ void ravey_particles_generate_particle( int iID, float fPosX, float fPosY, float
 
 		if ( this_emitter->numParticles >= this_emitter->maxParticles ) return;
 
-		// now find a spare particle to use
+		// now find a spare particle to use with required shader effect
 		int tfound = -1;
 		for ( int i = 0; i < RAVEY_PARTICLES_MAX; i++ )
 		{
-			if ( t.ravey_particles[ i ].inUse == 0 )
+			if ( t.ravey_particles[ i ].inUse == 0 && t.ravey_particles[i].effectId == this_emitter->effectId )
 			{
 				tfound = i;
 				break;
+			}
+		}
+
+		// if we didn't find one pick first available one
+		if (tfound == -1)
+		{
+			for (int i = 0; i < RAVEY_PARTICLES_MAX; i++)
+			{
+				if ( t.ravey_particles[i].inUse == 0 )
+				{
+					tfound = i;
+					break;
+				}
 			}
 		}
 
@@ -682,7 +680,7 @@ void ravey_particles_add_emitter( void )
 
 	this_emitter->isAnObjectEmitter = g.tEmitter.isAnObjectEmitter;
 	this_emitter->imageNumber = g.tEmitter.imageNumber;
-	this_emitter->effectId = 0;
+	this_emitter->effectId = g.decaleffectoffset;
 
 	this_emitter->isAnimated = g.tEmitter.isAnimated;
 	this_emitter->animationSpeed = g.tEmitter.animationSpeed * 0.06f;
