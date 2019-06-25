@@ -4877,6 +4877,19 @@ int ParticlesLoadImage(lua_State *L)
 	return 1;
 }
 
+int ParticlesLoadEffect(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	char pFileName[256];
+	strcpy(pFileName, lua_tostring(L, 1));
+
+	lua_pushnumber(L, ravey_particles_load_effect(pFileName, lua_tonumber(L, 2)));
+	return 1;
+}
+
 int ParticlesSetFrames(lua_State *L)
 {
 	lua = L;
@@ -6235,19 +6248,20 @@ void addFunctions()
 	lua_register(lua, "ParticlesAddEmitter" ,     ParticlesAddEmitter );
 	lua_register(lua, "ParticlesAddEmitterEx" ,   ParticlesAddEmitterEx );
 	lua_register(lua, "ParticlesDeleteEmitter" ,  ParticlesDeleteEmitter );
-	lua_register(lua, "ParticlesSpawnParticle",   ParticlesSpawnParticle);
-	lua_register(lua, "ParticlesLoadImage",       ParticlesLoadImage);
-	lua_register(lua, "ParticlesSetFrames",       ParticlesSetFrames);
-	lua_register(lua, "ParticlesSetSpeed",        ParticlesSetSpeed);
-	lua_register(lua, "ParticlesSetGravity",      ParticlesSetGravity);
-	lua_register(lua, "ParticlesSetOffset",       ParticlesSetOffset);
-	lua_register(lua, "ParticlesSetAngle",        ParticlesSetAngle);
-	lua_register(lua, "ParticlesSetRotation",     ParticlesSetRotation);
-	lua_register(lua, "ParticlesSetScale",        ParticlesSetScale);
-	lua_register(lua, "ParticlesSetAlpha",        ParticlesSetAlpha);
-	lua_register(lua, "ParticlesSetLife",         ParticlesSetLife);
-	lua_register(lua, "ParticlesSetWindVector",   ParticlesSetWindVector);
-	lua_register(lua, "ParticlesSetNoWind",       ParticlesSetNoWind);
+	lua_register(lua, "ParticlesSpawnParticle",   ParticlesSpawnParticle );
+	lua_register(lua, "ParticlesLoadImage",       ParticlesLoadImage );
+	lua_register(lua, "ParticlesLoadEffect",      ParticlesLoadEffect );
+	lua_register(lua, "ParticlesSetFrames",       ParticlesSetFrames );
+	lua_register(lua, "ParticlesSetSpeed",        ParticlesSetSpeed );
+	lua_register(lua, "ParticlesSetGravity",      ParticlesSetGravity );
+	lua_register(lua, "ParticlesSetOffset",       ParticlesSetOffset );
+	lua_register(lua, "ParticlesSetAngle",        ParticlesSetAngle );
+	lua_register(lua, "ParticlesSetRotation",     ParticlesSetRotation );
+	lua_register(lua, "ParticlesSetScale",        ParticlesSetScale );
+	lua_register(lua, "ParticlesSetAlpha",        ParticlesSetAlpha );
+	lua_register(lua, "ParticlesSetLife",         ParticlesSetLife );
+	lua_register(lua, "ParticlesSetWindVector",   ParticlesSetWindVector );
+	lua_register(lua, "ParticlesSetNoWind",       ParticlesSetNoWind );
 
 	lua_register(lua, "GetBulletHit",             GetBulletHit);
 
