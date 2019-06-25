@@ -2627,10 +2627,34 @@ void FPSC_Setup ( void )
 		g.grestoreeditorsettings=1;
 	}
 
-	// can reload standalone to clear fragmentation
+	// can reload standalone to clear fragmentation 
 	g.iStandaloneIsReloading = 0;
-	if (  strcmp ( Lower(Left(gRefCommandLineString,17)) , "-reloadstandalone" ) == 0 ) 
-		g.iStandaloneIsReloading = 1;
+	g.sStandaloneIsReloadingLevel = "";
+	g.sStandaloneIsReloadingLevelGameStatChange = "";
+	if ( strcmp ( Lower(Left(gRefCommandLineString,17)) , "-reloadstandalone" ) == 0 ) 
+	{
+		if ( strcmp ( Lower(Left(gRefCommandLineString,22)) , "-reloadstandalonelevel" ) == 0 ) 
+		{
+			// load into a specific level
+			g.sStandaloneIsReloadingLevel = gRefCommandLineString + 22;
+			// and extract any advancelevelfilename (from LOAD GAME functionality)
+			char pSliceUp[2048];
+			strcpy ( pSliceUp, g.sStandaloneIsReloadingLevel.Get() );
+			LPSTR pAdvance = strstr ( pSliceUp, ":" );
+			if ( pAdvance > 0 )
+			{
+				g.sStandaloneIsReloadingLevelGameStatChange = pAdvance+1;
+				*pAdvance = 0;
+				g.sStandaloneIsReloadingLevel = pSliceUp;
+			}
+			g.iStandaloneIsReloading = 2;
+		}
+		else
+		{
+			// load to the main menu
+			g.iStandaloneIsReloading = 1;
+		}
+	}
 
 	// Check and load SETUP.INI defaults
 	FPSC_LoadSETUPINI(false);
@@ -3246,20 +3270,49 @@ void FPSC_Setup ( void )
 		//  full speed
 		SyncRate (  0 );
 	
-		//  Launch game in EXE mode
+		// Launch game in EXE mode
 		game_masterroot ( );
 
-		// 131115 - standalone game sessions fragment memory over time, so launch new instance
-		// of the game executable (with silencing command line) and then quit this 'fragmented'
-		// session after a few seconds to allow for a decent transition
-		if ( t.game.masterloop != 0 && t.game.allowfragmentation == 0 )
+		// Only if not quitting standalone
+		if ( t.game.masterloop != 0 )
 		{
-			// replaced master loop with EXE relaunch
-			SetDir("..");
-			LPSTR pEXEName = Appname();
-			ExecuteFile ( pEXEName, "-reloadstandalone", "", 0 );
-			Sleep(8000);
-			return;
+			// 250619 - very large levels can fragment 32 bit memory after a few levels
+			// so this mode will restart the executable, and launch the new level
+			// crude solution until 64 bit allows greater memory referencing
+			if ( t.game.allowfragmentation == 2 )
+			{
+				// next level load or back to main menu (both require relaunch)
+				if ( strlen(t.game.jumplevel_s.Get()) > 0 )
+				{
+					// next level
+					SoundDestructor();
+					SetDir("..");
+					LPSTR pEXEName = Appname();
+					cstr pCommandLineString = cstr("-reloadstandalonelevel") + t.game.jumplevel_s + ":" + Str(t.luaglobal.gamestatechange);
+					ExecuteFile ( pEXEName, pCommandLineString.Get(), "", 0 );
+					Sleep(8000);
+					return;
+				}
+				else
+				{
+					// new main menu (except if t.game.masterloop == 0 in which case we are quitting)
+					t.game.allowfragmentation = 0;
+				}
+			}
+
+			// 131115 - standalone game sessions fragment memory over time, so launch new instance
+			// of the game executable (with silencing command line) and then quit this 'fragmented'
+			// session after a few seconds to allow for a decent transition
+			if ( t.game.allowfragmentation == 0 )
+			{
+				// replaced master loop with EXE relaunch
+				SoundDestructor();
+				SetDir("..");
+				LPSTR pEXEName = Appname();
+				ExecuteFile ( pEXEName, "-reloadstandalone", "", 0 );
+				Sleep(8000);
+				return;
+			}
 		}
 	}
 

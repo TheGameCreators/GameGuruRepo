@@ -252,6 +252,8 @@ struct Sglobals
 	float greasonableCameraFOV_f;
 	float greasonableWeaponFOV_f;
 	int iStandaloneIsReloading;
+	cstr sStandaloneIsReloadingLevel;
+	cstr sStandaloneIsReloadingLevelGameStatChange;
 	int grestoreeditorsettings;
 	int gshowalluniquetextures;
 	int interactiveimageoffset;

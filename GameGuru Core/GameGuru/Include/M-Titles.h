@@ -40,5 +40,6 @@ void handletitlesmusic ( void );
 void fadetitlesmusic ( int tFadeVol );
 
 void titleslua_init ( void );
+void titleslua_main_inandout ( LPSTR pPageName );
 void titleslua_main ( LPSTR pPageName );
 void titleslua_free ( void );

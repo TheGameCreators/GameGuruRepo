@@ -1958,6 +1958,40 @@ void titleslua_init ( void )
 	}
 }
 
+void titleslua_main_inandout ( LPSTR pPageName )
+{
+	// need to quickly flash through page to handle
+	// resources - affects speed of DirectX 3D Sound (?!?)
+	game_timeelapsed_init ( );
+	char pCurrentPage[256];
+	strcpy ( pCurrentPage, pPageName );
+	strcpy ( t.game.pSwitchToLastPage, pCurrentPage );	
+	char pLUAInit[256];
+	strcpy ( pLUAInit, cstr(cstr(pCurrentPage)+"_init").Get() );
+	strcpy ( g_strErrorClue, pLUAInit );
+	LuaSetFunction ( pLUAInit, 0, 0 ); 
+	LuaCall (  );
+	char pLUAMain[256];
+	strcpy ( pLUAMain, cstr(cstr(pCurrentPage)+"_main").Get() );
+	strcpy ( g_strErrorClue, pLUAMain );
+	game_timeelapsed();
+	lua_loop_begin();
+	LuaSetFunction ( pLUAMain, 0, 0 ); LuaCall (  );
+	lua_loop_finish();
+	sliders_draw ( );
+	//Sync();
+	Sleep(1);
+	char pLUAFree[256];
+	strcpy ( pLUAFree, cstr(cstr(pCurrentPage)+"_free").Get() );
+	LuaSetFunction ( pLUAFree, 0, 0 ); 
+	LuaCall (  );
+	if ( strcmp ( t.game.pSwitchToPage, "-1")==NULL )
+		strcpy ( pCurrentPage, t.game.pSwitchToLastPage );
+	else
+		strcpy ( pCurrentPage, t.game.pSwitchToPage );
+	t.conkit.cooldown = 100;
+}
+
 void titleslua_main ( LPSTR pPageName )
 {
 	// Machine independent speed

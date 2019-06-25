@@ -36,7 +36,6 @@ void game_masterroot ( void )
 	t.game.masterloop=1;
 	while ( t.game.masterloop == 1 ) 
 	{
-
 		// first hide rendering of 3D while we set up
 		SyncMaskOverride ( 0 );
 
@@ -91,21 +90,36 @@ void game_masterroot ( void )
 			t.gamesounds.music=100;
 		}
 
-		//  Do title page
+		// Do title page
 		timestampactivity(0,"_titles_titlepage");
-		if (  t.game.gameisexe == 1 && t.game.ignoretitle == 0 ) 
+		if ( t.game.gameisexe == 1 && t.game.ignoretitle == 0 )
 		{
-			//titles_titlepage ( );
 			terrain_sky_hide();
 			titles_loadingpageinit();
 			titleslua_init ( );
-			titleslua_main ( "title" );
+
+			// 250619 - for straight-through level loading, still need to handle title resources
+			// (which include sound loading/playing - fixes 3D sound delay issue?!?)
+			if ( g.iStandaloneIsReloading == 2 )
+				titleslua_main_inandout ( "title" );
+			else
+				titleslua_main ( "title" );
+
 			titleslua_free ( );
 			terrain_sky_show();
 		}
 
-		//  Standaline Multiplayer HOST/JOIN screen
-		if (  t.game.runasmultiplayer == 1 ) 
+		// 250619 - can relaunch game executable at a specific level (reduce memory fragmentation)
+		if ( g.iStandaloneIsReloading == 2 )
+		{
+			t.game.jumplevel_s = g.sStandaloneIsReloadingLevel;
+			t.luaglobal.gamestatechange = atoi(g.sStandaloneIsReloadingLevelGameStatChange.Get());
+			g.sStandaloneIsReloadingLevel = "";
+			g.sStandaloneIsReloadingLevelGameStatChange = "";
+		}
+
+		// Standaline Multiplayer HOST/JOIN screen
+		if ( t.game.runasmultiplayer == 1 ) 
 		{
 			//  Show screen, use Steam to get friends CREATE LOBBY, wait, ready to begin
 			//  re-use title page system! (see Lee)
@@ -133,16 +147,15 @@ void game_masterroot ( void )
 		gun_restart ( );
 		gun_resetactivateguns ( );
 
-		//  Level loop will run while level progression is in progress
-		while (  t.game.levelloop == 1 ) 
+		// Level loop will run while level progression is in progress
+		while ( t.game.levelloop == 1 ) 
 		{
-
 			// also hide rendering of 3D while we set up a new level
 			SyncMaskOverride ( 0 );
 
-			//  Loading page
+			// Loading page
 			timestampactivity(0,"_titles_loadingpageupdate");
-			if (  t.game.gameisexe == 1 ) 
+			if ( t.game.gameisexe == 1 ) 
 			{
 				//titles_loadingpage ( );
 				timestampactivity(0,"LUA script : loading");
@@ -153,10 +166,10 @@ void game_masterroot ( void )
 				t.game.levelloadprogress=0  ; titles_loadingpageupdate ( );
 			}
 
-			//  Extract level files from FPM
-			if (  t.game.runasmultiplayer == 1 ) 
+			// Extract level files from FPM
+			if ( t.game.runasmultiplayer == 1 ) 
 			{
-				//  Multiplayer FPM loading
+				// Multiplayer FPM loading
 				g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"__multiplayerlevel__.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerlevel__.fpm";
 				t.trerfeshvisualsassets=1;
 				mapfile_loadproject_fpm ( );
@@ -164,8 +177,8 @@ void game_masterroot ( void )
 			}
 			else
 			{
-				//  Single player
-				if (  Len(t.game.jumplevel_s.Get())> 0 ) //PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/444
+				// Single player
+				if ( Len(t.game.jumplevel_s.Get())> 0 ) //PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/444
 				{
 					// can override jumplevel with 'advanced warning level filename' when LOAD level from MAIN MENU
 					if ( strcmp ( t.game.pAdvanceWarningOfLevelFilename, "" ) != NULL )
@@ -1035,13 +1048,19 @@ void game_masterroot ( void )
 				DumpImageList(); // PE: Dump image usage after level.
 			}
 
-		//  Level loop end
+			// 250619 - very large levels can fragment 32 bit memory after a few levels
+			// so this mode will restart the executable, and launch the new level
+			// crude solution until 64 bit allows greater memory referencing
+			if ( t.game.allowfragmentation == 2 )
+				t.game.levelloop = 0;
+
+		// Level loop end
 		}
 
-		//  Free any game resources
+		// Free any game resources
 		game_freegame ( );
 
-		if (  t.game.runasmultiplayer == 1 ) 
+		if ( t.game.runasmultiplayer == 1 ) 
 		{
 			mp_free_game ( );
 			mp_cleanupGame ( );
@@ -1052,19 +1071,18 @@ void game_masterroot ( void )
 			}
 		}
 
-		//  get rid of debris and particles that may be lingering
+		// get rid of debris and particles that may be lingering
 		explosion_cleanup ( );
 
-		//  if ignored title, exit now
+		// if ignored title, exit now
 		if (  t.game.ignoretitle == 1 && t.game.runasmultiplayer == 0  )  t.game.masterloop = 0;
 
-		//  Master loop end
-		if ( t.game.allowfragmentation == 0 ) break;
+		// Master loop end
+		if ( t.game.allowfragmentation == 0 || t.game.allowfragmentation == 2 ) break;
 	}
 
-
-	//  End splash if EXE is advertising
-	if (  t.game.set.endsplash == 1 ) 
+	// End splash if EXE is advertising
+	if ( t.game.set.endsplash == 1 ) 
 	{
 		t.game.set.endsplash=0;
 	}

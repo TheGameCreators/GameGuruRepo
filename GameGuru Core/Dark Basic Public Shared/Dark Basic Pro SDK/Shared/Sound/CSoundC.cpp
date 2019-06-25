@@ -101,6 +101,11 @@ DARKSDK void SoundConstructor ( void )
 
 DARKSDK void SoundDestructor ( void )
 {
+	// reduce to non priority
+	if ( g_pSoundManager )
+		if ( g_pSoundManager->m_pDS )
+			g_pSoundManager->m_pDS->SetCooperativeLevel ( g_pGlob->hWnd, DSSCL_NORMAL );
+
 	// clean up the sound library
 	m_SDKSoundManager.ShutDown();
 
