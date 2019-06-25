@@ -93,17 +93,19 @@ function radar_main(e)
 	
 	for c = 1 , g_objectiveCount do
 	 e=radarObjectives[c]
-     if g_Entity[e]['health'] > 0 and radarMakeInvisible == 0 then
-		angle = pointAtPlayer(radarObjectives[c]) + math.rad(g_PlayerAngY)
-		dist = GetPlayerDistance(radarObjectives[c])
-		if dist > 2576 then
-			dist = 2576
-		end
-		x = radarx + (( math.sin(angle) * ( dist / 200.0 ) * (GetDeviceHeight()/GetDeviceWidth()) ))
-		y = radary + ( math.cos(angle) * ( dist / 200.0 ) )
-		SetSpritePosition ( radarObjectiveSprites[c] , x , y )
-	 else
-	    SetSpritePosition ( radarObjectiveSprites[c] , 200 , 200 )
+	 if g_Entity[e] ~= nil then
+		 if g_Entity[e]['health'] > 0 and radarMakeInvisible == 0 then
+			angle = pointAtPlayer(radarObjectives[c]) + math.rad(g_PlayerAngY)
+			dist = GetPlayerDistance(radarObjectives[c])
+			if dist > 2576 then
+				dist = 2576
+			end
+			x = radarx + (( math.sin(angle) * ( dist / 200.0 ) * (GetDeviceHeight()/GetDeviceWidth()) ))
+			y = radary + ( math.cos(angle) * ( dist / 200.0 ) )
+			SetSpritePosition ( radarObjectiveSprites[c] , x , y )
+		 else
+			SetSpritePosition ( radarObjectiveSprites[c] , 200 , 200 )
+		 end
 	 end
 	end	
 
@@ -118,22 +120,20 @@ function radar_showallsprites()
 end
 
 function pointAtPlayer (i)
-
+ if g_Entity[i] ~= nil then
 	x = g_PlayerPosX - g_Entity[i]['x'];
 	z = g_PlayerPosZ - g_Entity[i]['z'];
 	angle = math.atan2( z , x );
 	angle = angle + (-90.0*0.0174533);
 	return angle;
-
+ end
 end
 
 function addObjective (i)
-
 	g_objectiveCount = g_objectiveCount + 1
 	radarObjectives[g_objectiveCount] = i
 	radarObjectiveSprites[g_objectiveCount] = CreateSprite( radarImageYellow )
 	SetSpriteSize ( radarObjectiveSprites[g_objectiveCount] , 0.5 , -1 )
 	SetSpriteOffset ( radarObjectiveSprites[g_objectiveCount] , 0.25 , -1 )
 	SetSpritePosition ( radarObjectiveSprites[g_objectiveCount] , 200 , 200 )
-
 end
