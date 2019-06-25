@@ -1260,6 +1260,9 @@ IntersectStatic: x=IntersectStatic(x1,y1,z1,x2,y2,z2,IgnoreObj) -- returns 1 if 
 GetIntersectCollisionX: x=GetIntersectCollisionX() -- returns the X position of the entity hit position
 GetIntersectCollisionY: y=GetIntersectCollisionY() -- returns the Y position of the entity hit position
 GetIntersectCollisionZ: z=GetIntersectCollisionZ() -- returns the Z position of the entity hit position
+GetIntersectCollisionNX: x=GetIntersectCollisionNX() -- returns the X normal of the entity hit surface
+GetIntersectCollisionNY: y=GetIntersectCollisionNY() -- returns the Y normal of the entity hit surface
+GetIntersectCollisionNZ: z=GetIntersectCollisionNZ() -- returns the Z normal of the entity hit surface
 PositionCamera: PositionCamera(cam,x,y,z) -- positions the specified camera at the xyz position
 PointCamera: PointCamera(cam,x,y,z) -- angles the specified camera towards the xyz position
 MoveCamera: MoveCamera(cam,step) -- moves the specified camera at its current angle by the step amount

@@ -2822,6 +2822,21 @@ int GetIntersectCollisionZ ( lua_State *L )
 	lua_pushnumber ( L, ChecklistFValueC(6) );
 	return 1;
 }
+int GetIntersectCollisionNX ( lua_State *L )
+{
+	lua_pushnumber ( L, ChecklistFValueA(7) );
+	return 1;
+}
+int GetIntersectCollisionNY ( lua_State *L )
+{
+	lua_pushnumber ( L, ChecklistFValueB(7) );
+	return 1;
+}
+int GetIntersectCollisionNZ ( lua_State *L )
+{
+	lua_pushnumber ( L, ChecklistFValueC(7) );
+	return 1;
+}
 int PositionCamera ( lua_State *L )
 {
 	lua = L;
@@ -5701,6 +5716,9 @@ void addFunctions()
 	lua_register(lua, "GetIntersectCollisionX" , GetIntersectCollisionX );
 	lua_register(lua, "GetIntersectCollisionY" , GetIntersectCollisionY );
 	lua_register(lua, "GetIntersectCollisionZ" , GetIntersectCollisionZ );
+	lua_register(lua, "GetIntersectCollisionNX" , GetIntersectCollisionNX );
+	lua_register(lua, "GetIntersectCollisionNY" , GetIntersectCollisionNY );
+	lua_register(lua, "GetIntersectCollisionNZ" , GetIntersectCollisionNZ );
 	lua_register(lua, "PositionCamera" , PositionCamera );
 	lua_register(lua, "PointCamera" , PointCamera );
 	lua_register(lua, "MoveCamera" , MoveCamera );

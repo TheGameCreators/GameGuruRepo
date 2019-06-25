@@ -1314,24 +1314,10 @@ function gameplayercontrol.control()
 		if ( ttcapverticalangle>90 ) then ttcapverticalangle = 90 end
 		if ( ttcapverticalangle<-12 ) then ttcapverticalangle = -12 end
 
-		--  retract system
-		if ( GetGamePlayerControlCamCurrentDistance()<GetGamePlayerControlThirdpersonCameraDistance() ) then 
-			ttretractcamspeed=GetGamePlayerControlThirdpersonCameraSpeed()*GetTimeElapsed()
-			SetGamePlayerControlCamCurrentDistance(GetGamePlayerControlCamCurrentDistance()+ttretractcamspeed)
-			if ( GetGamePlayerControlCamCurrentDistance()>GetGamePlayerControlThirdpersonCameraDistance() ) then 
-				SetGamePlayerControlCamCurrentDistance(GetGamePlayerControlThirdpersonCameraDistance())
-			end
-		end
-		ttusecamdistance=GetGamePlayerControlCamCurrentDistance()
-		if ( GetGamePlayerControlCamDoFullRayCheck() == 2 ) then 
-			SetGamePlayerControlCamDoFullRayCheck(0)
-		end
-		if ( GetGamePlayerControlCamDoFullRayCheck() == 1 ) then 
-			ttusecamdistance=GetGamePlayerControlThirdpersonCameraDistance()
-			SetGamePlayerControlCamDoFullRayCheck(2)
-		end
+		-- no retract system (now uses new interpolation for smoother transitions below)
+		ttusecamdistance=GetGamePlayerControlThirdpersonCameraDistance()--GetGamePlayerControlCamCurrentDistance()
 
-		--  work out camera distance and height based on vertical angle (GTA) then
+		-- work out camera distance and height based on vertical angle (GTA) then
 		if ( GetGamePlayerControlThirdpersonCameraLocked() == 1 ) then 
 			ttusecamdist=GetGamePlayerControlThirdpersonCameraDistance()
 			ttusecamheight=GetGamePlayerControlThirdpersonCameraHeight()
@@ -1355,6 +1341,9 @@ function gameplayercontrol.control()
 		ttadjz=(math.cos(math.rad(tdaa))*ttusecamdist)
 		tffdcz=tttargetz+ttadjz
 		tffidealdist=math.sqrt(math.abs(tffdcx*tffdcx)+math.abs(tffdcy*tffdcy)+math.abs(tffdcz*tffdcz))
+		tffidealx=tffdcx
+		tffidealy=tffdcy
+		tffidealz=tffdcz		
 
 		-- if fixed view, get X angle before collision adjustment
 		if ( GetCameraOverride() ~= 1 and GetCameraOverride() ~= 3 ) then
@@ -1371,11 +1360,13 @@ function gameplayercontrol.control()
 			bIgnoreCameraCollision = true
 		end
 
-		-- check if this places camera in collision
+		-- check if camera in collision
 		tthitdist=0
 		tthitvalue=0
 		tthitdiffdist1=0
 		if ( bIgnoreCameraCollision==false ) then
+			tthitdiffy=0
+			tthitvaluey=0
 			if ( RayTerrain(ttpx,ttpy-20,ttpz,tffdcx,tffdcy-20,tffdcz) == 1 ) then 
 				tthitvaluex=GetRayCollisionX()
 				tthitvaluey=GetRayCollisionY()+20
@@ -1413,9 +1404,13 @@ function gameplayercontrol.control()
 					tthitvalue = -1
 				end
 			end			
+			if tthitdist > 0 and tthitdist < 30 and math.abs(tthitdiffy) < 20 then
+				-- minimum distance pushes camera UP to prevent head penetration
+				tthitvaluey = tthitvaluey + (30-tthitdist)
+			end
 		end
 		if ( tthitvalue ~= 0 ) then 
-			-- work out new camera position
+			-- work out new camera position a touch forward to miss wall intersection
 			tffdcx=tthitvaluex
 			tffdcy=tthitvaluey
 			tffdcz=tthitvaluez
@@ -1428,28 +1423,80 @@ function gameplayercontrol.control()
 		-- push camera away from any surface in all cases
 		if ( bIgnoreCameraCollision==false ) then
 			if ( IntersectStatic(tffdcx,tffdcy,tffdcz,tffdcx-8,tffdcy,tffdcz,ttpersonobj) > 0 ) then 
-			 tffdcx=GetIntersectCollisionX()+8
-			 tffdcy=GetIntersectCollisionY()
-			 tffdcz=GetIntersectCollisionZ()
+			 tffdcx=GetIntersectCollisionX()+(GetIntersectCollisionNX()*8.0)
+			 tffdcy=GetIntersectCollisionY()+(GetIntersectCollisionNY()*8.0)
+			 tffdcz=GetIntersectCollisionZ()+(GetIntersectCollisionNZ()*8.0)
+			 tthitdist=1
 			end
 			if ( IntersectStatic(tffdcx,tffdcy,tffdcz,tffdcx+8,tffdcy,tffdcz,ttpersonobj) > 0 ) then 
-			 tffdcx=GetIntersectCollisionX()-8
-			 tffdcy=GetIntersectCollisionY()
-			 tffdcz=GetIntersectCollisionZ()
+			 tffdcx=GetIntersectCollisionX()+(GetIntersectCollisionNX()*8.0)
+			 tffdcy=GetIntersectCollisionY()+(GetIntersectCollisionNY()*8.0)
+			 tffdcz=GetIntersectCollisionZ()+(GetIntersectCollisionNZ()*8.0)
+			 tthitdist=1
 			end
 			if ( IntersectStatic(tffdcx,tffdcy,tffdcz,tffdcx,tffdcy,tffdcz-8,ttpersonobj) > 0 ) then 
-			 tffdcx=GetIntersectCollisionX()
-			 tffdcy=GetIntersectCollisionY()
-			 tffdcz=GetIntersectCollisionZ()+8
+			 tffdcx=GetIntersectCollisionX()+(GetIntersectCollisionNX()*8.0)
+			 tffdcy=GetIntersectCollisionY()+(GetIntersectCollisionNY()*8.0)
+			 tffdcz=GetIntersectCollisionZ()+(GetIntersectCollisionNZ()*8.0)
+			 tthitdist=1
 			end
 			if ( IntersectStatic(tffdcx,tffdcy,tffdcz,tffdcx,tffdcy,tffdcz+8,ttpersonobj) > 0 ) then 
-			 tffdcx=GetIntersectCollisionX()
-			 tffdcy=GetIntersectCollisionY()
-			 tffdcz=GetIntersectCollisionZ()-8
+			 tffdcx=GetIntersectCollisionX()+(GetIntersectCollisionNX()*8.0)
+			 tffdcy=GetIntersectCollisionY()+(GetIntersectCollisionNY()*8.0)
+			 tffdcz=GetIntersectCollisionZ()+(GetIntersectCollisionNZ()*8.0)
+			 tthitdist=1
 			end
 		end
 
-		-- ideal range camera position
+		-- work out if new position closer or further
+		if ( tthitdist ~= 0 ) then
+			-- instantly switch to closer position
+			ttdiffx1=GetPlrObjectPositionX()-tffidealx
+			ttdiffy1=GetPlrObjectPositionY()-tffidealy
+			ttdiffz1=GetPlrObjectPositionZ()-tffidealz
+			ttdiffd1=math.sqrt(math.abs(ttdiffx1*ttdiffx1)+math.abs(ttdiffy1*ttdiffy1)+math.abs(ttdiffz1*ttdiffz1))
+			ttdiffx2=GetPlrObjectPositionX()-tffdcx
+			ttdiffy2=GetPlrObjectPositionY()-tffdcy
+			ttdiffz2=GetPlrObjectPositionZ()-tffdcz
+			ttdiffd2=math.sqrt(math.abs(ttdiffx2*ttdiffx2)+math.abs(ttdiffy2*ttdiffy2)+math.abs(ttdiffz2*ttdiffz2))
+			if ( ttdiffd2 < ttdiffd1 ) then
+				-- smooth value controls interpolation of camera position
+				SetGamePlayerControlCamCollisionSmooth(200)
+				SetGamePlayerControlLastGoodcx(tffdcx-tttargetx)
+				SetGamePlayerControlLastGoodcy(tffdcy-tttargety)
+				SetGamePlayerControlLastGoodcz(tffdcz-tttargetz)
+			end
+		else
+			ttadjx=(math.sin(math.rad(tdaa))*ttusecamdist)
+			ttadjy=ttusecamheight
+			ttadjz=(math.cos(math.rad(tdaa))*ttusecamdist)
+			ttsmooth=GetGamePlayerControlCamCollisionSmooth()
+			if ( ttsmooth > 0 ) then
+				ttadjx2=GetGamePlayerControlLastGoodcx()
+				ttadjy2=GetGamePlayerControlLastGoodcy()
+				ttadjz2=GetGamePlayerControlLastGoodcz()
+				ttdiffd2=math.sqrt(math.abs(ttadjx2*ttadjx2)+math.abs(ttadjz2*ttadjz2))
+				ttadjx2=(math.sin(math.rad(tdaa))*ttdiffd2)
+				ttadjz2=(math.cos(math.rad(tdaa))*ttdiffd2)
+				if ( ttsmooth > 100 ) then
+					ttadjx=ttadjx2
+					ttadjy=ttadjy2
+					ttadjz=ttadjz2
+				else
+					ttadjx=((ttadjx/100.0)*(100-ttsmooth))+((ttadjx2/100.0)*ttsmooth)
+					ttadjy=((ttadjy/100.0)*(100-ttsmooth))+((ttadjy2/100.0)*ttsmooth)
+					ttadjz=((ttadjz/100.0)*(100-ttsmooth))+((ttadjz2/100.0)*ttsmooth)
+				end
+				SetGamePlayerControlCamCollisionSmooth(ttsmooth-10)
+			end
+			tffdcx=tttargetx+ttadjx
+			tffdcy=tttargety+ttadjy
+			tffdcz=tttargetz+ttadjz
+		end
+		
+		-- future idea is detect 'canopy' collision and lower camera height to 'duck under' (would look nice)
+		
+		-- set camera position
 		tdcx=tffdcx  
 		tdcy=tffdcy  
 		tdcz=tffdcz

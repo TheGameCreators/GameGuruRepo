@@ -134,6 +134,7 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 	DWORD dwVertex1IndexOfHitPoly = 0;
 	DWORD dwVertex2IndexOfHitPoly = 0;
 	GGVECTOR3 vec0Hit, vec1Hit, vec2Hit;
+	GGVECTOR3 vecSurfaceNormal;
 	GGVECTOR3 vecHitPoint;
 	DWORD dwArbValueDetected = 0;
 
@@ -231,10 +232,10 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 							GGVECTOR3* pVec2 = (GGVECTOR3*)(pV+((v2*dwSizeInFloats)));
 
 							// leeadd - 310305 - check if ray facing poly, or the poly is culled (on a flag)
+							GGVECTOR3 vNormal;
 							if ( bRejectCulledPolysPointAway==true )
 							{
 								// direction of polygon
-								GGVECTOR3 vNormal;
 								GGVec3Cross ( &vNormal, &( *pVec2 - *pVec1 ), &( *pVec1 - *pVec0 ) );
 								GGVec3Normalize ( &vNormal, &vNormal );
 								float fDotProduct = GGVec3Dot ( &vNormal, &DirVector );
@@ -251,8 +252,6 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 								fThisDistance *= fDistanceModifier;
 
 								// record smallest distance of intersect
-								//if ( fDistToIntersect==0.0f
-								//|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
 								if ( fThisDistance > 0.0f )
 								{
 									if ( fDistToIntersect == 0.0f || fThisDistance < fDistToIntersect )
@@ -267,6 +266,13 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 										vec1Hit = *pVec1;
 										vec2Hit = *pVec2;
 										dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+
+										// work out normal for surface direction
+										GGVec3Cross ( &vNormal, &( *pVec2 - *pVec1 ), &( *pVec0 - *pVec1 ) );
+										GGVec3Normalize ( &vNormal, &vNormal );
+										vecSurfaceNormal.x = vNormal.x;
+										vecSurfaceNormal.y = vNormal.y;
+										vecSurfaceNormal.z = vNormal.z;
 									}
 								}
 							}
@@ -289,10 +295,10 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 							GGVECTOR3* pVec2 = (GGVECTOR3*)(pV+((v2*dwSizeInFloats)));
 
 							// leeadd - 310305 - check if ray facing poly, or the poly is culled (on a flag)
+							GGVECTOR3 vNormal;
 							if ( bRejectCulledPolysPointAway==true )
 							{
 								// direction of polygon
-								GGVECTOR3 vNormal;
 								GGVec3Cross ( &vNormal, &( *pVec2 - *pVec1 ), &( *pVec1 - *pVec0 ) );
 								GGVec3Normalize ( &vNormal, &vNormal );
 								float fDotProduct = GGVec3Dot ( &vNormal, &DirVector );
@@ -308,8 +314,6 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 								fThisDistance *= fDistanceModifier;
 
 								// record smallest distance of intersect
-								//if ( fDistToIntersect==0.0f
-								//|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
 								if ( fThisDistance > 0.0f )
 								{
 									if ( fDistToIntersect == 0.0f || fThisDistance < fDistToIntersect )
@@ -325,12 +329,22 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 										vec1Hit = *pVec1;
 										vec2Hit = *pVec2;
 										dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+
+										// work out normal for surface direction
+										GGVec3Cross ( &vNormal, &( *pVec2 - *pVec1 ), &( *pVec0 - *pVec1 ) );
+										GGVec3Normalize ( &vNormal, &vNormal );
+										vecSurfaceNormal.x = vNormal.x;
+										vecSurfaceNormal.y = vNormal.y;
+										vecSurfaceNormal.z = vNormal.z;
 									}
 								}
 							}
 						}
 					}
 				}
+
+				// transform any vecNormal by world matrix so its a world normal
+				GGVec3TransformNormal( &vecSurfaceNormal, &vecSurfaceNormal, &matWorld );
 			}
 		}
 	}
@@ -481,8 +495,6 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 								fThisDistance *= fDistanceModifier;
 
 								// record smallest distance of intersect
-								//if ( fDistToIntersect==0.0f
-								//|| ( fThisDistance>0.0f && fThisDistance < fDistToIntersect ) )
 								if ( fThisDistance > 0.0f )
 								{
 									if ( fDistToIntersect == 0.0f || fThisDistance < fDistToIntersect )
@@ -498,6 +510,12 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 										vec1Hit = *pVec1;
 										vec2Hit = *pVec2;
 										dwArbValueDetected = pMesh->Collision.dwArbitaryValue;
+
+										// work out normal for surface direction
+										GGVECTOR3 vNormal;
+										GGVec3Cross ( &vNormal, &( *pVec2 - *pVec1 ), &( *pVec0 - *pVec1 ) );
+										GGVec3Normalize ( &vNormal, &vNormal );
+										vecSurfaceNormal = vNormal;
 									}
 								}
 							}
@@ -505,6 +523,8 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 					}
 				}
 
+				// transform any vecNormal by world matrix so its a world normal
+				GGVec3TransformNormal( &vecSurfaceNormal, &vecSurfaceNormal, &matWorldToUse );
 			}
 		}
 	}
@@ -560,7 +580,7 @@ bool GetRayCollision ( sObject* pObject, float fX, float fY, float fZ, float fNe
 		MegaCollisionFeedback.vec1Hit = vec1Hit;
 		MegaCollisionFeedback.vec2Hit = vec2Hit;
 		MegaCollisionFeedback.vecHitPoint = vecHitPoint;
-		MegaCollisionFeedback.vecNormal = GGVECTOR3(0,0,0);
+		MegaCollisionFeedback.vecNormal = vecSurfaceNormal;//GGVECTOR3(0,0,0);
 		MegaCollisionFeedback.vecReflectedNormal = GGVECTOR3(0,0,0);
 		MegaCollisionFeedback.dwArbitaryValue = dwArbValueDetected;
 		CreateCollisionChecklist();
