@@ -1322,15 +1322,48 @@ void welcome_savestandalone_page ( int iHighlightingButton )
 		// show standalone progress
 		welcome_text ( "Exporting your game as a standalone executable and encrypting media files", 1, 50, 60, 192, true, false );
 		welcome_drawbox ( 0, 10, 65, 90, 70 );
-		welcome_text ( "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||", 1, 50, 67, 192, true, false );
-		iID = 1; welcome_textinbox ( iID, "CANCEL", 1, 50, 85, g_welcomebutton[iID].alpha );
+		int iPercentageComplete = (int)mapfile_savestandalone_getprogress();
+		char pProgressString[1024];
+		char percentsymbol[2];
+		percentsymbol[0] = 37;
+		percentsymbol[1] = 0;
+		sprintf ( pProgressString, "Progress Complete : %d%s", iPercentageComplete, percentsymbol );
+		welcome_text ( pProgressString, 1, 50, 67.5f, 192, true, false );
+		if ( iPercentageComplete > 0 && iPercentageComplete < 100 )
+		{
+			// only offer CANCEL button if in progress
+			iID = 1; welcome_textinbox ( iID, "CANCEL", 1, 50, 85, g_welcomebutton[iID].alpha );
+		}
 	}
 
 	// control standalone saving
 	if ( g_welcomeCycle == 2 )
 	{
+		// start save standalone creation
+		mapfile_savestandalone_start();
 		g_welcomeCycle = 3;
-		mapfile_savestandalone();
+	}
+	if ( g_welcomeCycle == 3 )
+	{
+		// run standalone creation calls
+		if ( mapfile_savestandalone_continue() == 1 )
+		{
+			// complete standalone creation
+			g_welcomeCycle = 4;
+		}
+	}
+	if ( g_welcomeCycle == 4 )
+	{
+		// complete standalone creation
+		mapfile_savestandalone_finish();
+		g_welcomeCycle = 0;
+		t.tclosequick = 1;
+	}
+	if ( g_welcomeCycle == 5 )
+	{
+		// cancel standalone creation
+		mapfile_savestandalone_restoreandclose();
+		g_welcomeCycle = 0;
 		t.tclosequick = 1;
 	}
 	if ( g_welcomeCycle == 1 ) g_welcomeCycle = 2;
@@ -1340,7 +1373,16 @@ void welcome_savestandalone_page ( int iHighlightingButton )
 	{
 		if ( iHighlightingButton == 1 ) 
 		{
-			t.tclosequick = 1;
+			if ( g_welcomeCycle == 0 )
+			{
+				// exit
+				t.tclosequick = 1;
+			}
+			else
+			{
+				// force cancel stage
+				if ( g_welcomeCycle == 3 ) g_welcomeCycle = 5;
+			}
 		}
 		if ( iHighlightingButton == 2 ) 
 		{
@@ -1359,7 +1401,8 @@ void welcome_savestandalone_page ( int iHighlightingButton )
 				SetEventAndWait ( 1 );
 			}
 			t.returnstring_s = GetFileMapString(1, 1000);
-			g.exedir_s = t.returnstring_s;
+			if ( strlen(t.returnstring_s.Get()) > 0 )
+				g.exedir_s = t.returnstring_s;
 		}
 	}
 }
