@@ -5361,21 +5361,26 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				// calculate distance from object to camera (fills fCamDistance)
 				if ( pObject->bTransparencyWaterLine==true )
 				{
-					/*
-					// leeadd - 021205 - transparent object water line, using HEIGHY (Y) as ordering (great for water planes)
-					if ( pObject->position.vecPosition.y < fWaterPlaneDivisionY )
-						fWaterPlaneDivisionY = pObject->position.vecPosition.y;
+					if ( 1 )
+					{
+						// leeadd - 021205 - transparent object water line, using HEIGHY (Y) as ordering (great for water planes)
+						if ( pObject->position.vecPosition.y < fWaterPlaneDivisionY )
+							fWaterPlaneDivisionY = pObject->position.vecPosition.y;
 
-					// set as furthest surface distance object (and first to be drawn after underwater objs)
-					// u74b8 - use the current camera
-                    if (g_eGlobalSortOrder != E_SORT_BY_DEPTH)
-						pObject->position.fCamDistance = CalculateObjectDistanceFromCamera ( pObject );
+						// set as furthest surface distance object (and first to be drawn after underwater objs)
+						// u74b8 - use the current camera
+						if (g_eGlobalSortOrder != E_SORT_BY_DEPTH)
+							pObject->position.fCamDistance = CalculateObjectDistanceFromCamera ( pObject );
+						else
+							pObject->position.fCamDistance = 0.0f;
+						pObject->position.fCamDistance += m_pCamera->fZFar;
+					}
 					else
-						pObject->position.fCamDistance = 0.0f;
-					pObject->position.fCamDistance += m_pCamera->fZFar;
-					*/
-					//PE: After many test this seams to work the best. some transparent object get hidden below water when using above.
-					pObject->position.fCamDistance = -1000000.0f;//PE always last
+					{
+						// PE: After many test this seams to work the best. some transparent object get hidden below water when using above.
+						// LB: 270619 - Not sure which bug this fixed, but it caused water to render above splashes and explosions, and prevented over/under decals from rendering properly
+						//pObject->position.fCamDistance = -1000000.0f; //PE always last
+					}
 					bWaterPlaneDivision = true;
 				}
 				else

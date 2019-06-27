@@ -8,6 +8,7 @@ function module_combatmelee.init(e,combattype)
  startingstate = ai_state_startidle
  if combattype == ai_combattype_regular then startingstate = ai_state_findpatrolpath end
  if combattype == ai_combattype_patrol then startingstate = ai_state_findpatrolpath end
+ if combattype == ai_combattype_bashmelee then startingstate = ai_state_findpatrolpath end
  module_combatcore.init(e,startingstate,-1)
 end
 
@@ -22,7 +23,7 @@ function module_combatmelee.main(e,combattype,movetype)
  module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,ai_state_startmove,combattype)
  
  -- handle patrol
- if combattype == ai_combattype_regular or combattype == ai_combattype_patrol then
+ if combattype == ai_combattype_regular or combattype == ai_combattype_patrol or combattype == ai_combattype_bashmelee then
   module_combatcore.patrol(e,AIObjNo,PlayerDist,movetype,CanFire,ai_state_startmove,ai_state_startpatrol,combattype)
  end
  
@@ -34,7 +35,7 @@ function module_combatmelee.main(e,combattype,movetype)
  module_combatcore.soundawareness(e,AIObjNo)
 
  -- handle patrol logic
- if combattype == ai_combattype_regular or combattype == ai_combattype_patrol then
+ if combattype == ai_combattype_regular or combattype == ai_combattype_patrol or combattype == ai_combattype_bashmelee then
   if ai_bot_state[e] == ai_state_idle or ai_bot_state[e] == ai_state_move then
    if g_Entity[e]['plrvisible'] == 1 and PlayerDist < AIGetEntityViewRange(AIObjNo) then
     -- record last time seen target

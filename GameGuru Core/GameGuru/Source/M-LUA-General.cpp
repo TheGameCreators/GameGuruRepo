@@ -583,8 +583,6 @@ void lua_showwater ( void )
 	t.hardwareinfoglobals.nowater=0;
 	if (  ObjectExist(t.terrain.objectstartindex+5) == 1  )  ShowObject (  t.terrain.objectstartindex+5 );
 	ODESetDynamicCharacterController (  t.aisystem.objectstartindex,480,0,0,0,0,0,0 );
-return;
-
 }
 
 void lua_hidehuds ( void )

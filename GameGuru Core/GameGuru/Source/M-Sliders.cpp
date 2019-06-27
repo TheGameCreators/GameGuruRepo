@@ -1411,32 +1411,42 @@ void sliders_draw ( void )
 			lua_hideprompt3d();
 	}
 
-	//  disable all HUDs if meet condition
+	// disable all HUDs if meet condition
+	bool bAllowFPShileHUDSHidden = false;
 	t.tokay=1;
-	if (  g.globals.riftmode>0  )  t.tokay = 0;
-	if (  t.conkit.editmodeactive == 1  )  t.tokay = 0;
-	//if (  ( g.tabmodehidehuds == 1 || g.ghideallhuds == 1 ) && g.lowfpswarning != 1 && g.tabmodeshowfps == 0 && g.tabmode == 0 )  t.tokay = 0;
-	if (  ( g.tabmodehidehuds == 1 || g.ghideallhuds == 1 ) && g.lowfpswarning != 1 && g.tabmodeshowfps != 1 && g.tabmode == 0 )  t.tokay = 0;
-	if (  t.importer.importerActive  ==  1  )  t.tokay = 1;
-	if (  t.game.runasmultiplayer  ==  1  )  g.ghardwareinfomode = 0;
+	if ( g.globals.riftmode > 0 )  t.tokay = 0;
+	if ( t.conkit.editmodeactive == 1 )  t.tokay = 0;
+	if ( t.game.gameisexe == 1 )
+	{
+		if ( ( g.tabmodehidehuds == 1 || g.ghideallhuds == 1 ) && g.lowfpswarning != 1 && g.tabmode == 0 )  
+		{
+			bAllowFPShileHUDSHidden = true;
+			t.tokay = 0;
+		}
+	}
+	else
+	{
+		if ( ( g.tabmodehidehuds == 1 || g.ghideallhuds == 1 ) && g.lowfpswarning != 1 && g.tabmodeshowfps != 1 && g.tabmode == 0 )  t.tokay = 0;
+	}
+	if ( t.importer.importerActive == 1 ) t.tokay = 1;
+	if ( t.game.runasmultiplayer == 1 ) g.ghardwareinfomode = 0;
 
 	// also disable if in standalone and trying to use HUD views
 	if ( t.game.gameisexe == 1 && g.gprofileinstandalone == 0 ) 
 	{
-		//t.tokay = 0;
 		g.ghardwareinfomode = 0;
 		g.tabmode = 0;
 	}
 
-	//  If HUDs allowed
-	if (  t.tokay == 1 ) 
+	// Special tab mode to show JUST FPS score
+	if ( (t.tokay == 1 || bAllowFPShileHUDSHidden == true ) && g.tabmode == 0 && g.tabmodeshowfps != 0 ) 
 	{
-		//  Special tab mode to show JUST FPS score
-		if (  g.tabmode == 0 && g.tabmodeshowfps != 0 ) 
-		{
-			pastebitmapfont( cstr(cstr(Str(GetDisplayFPS()))+"fps").Get(),8,8,1,255);
-		}
+		pastebitmapfont( cstr(cstr(Str(GetDisplayFPS()))+"fps").Get(),8,8,1,255);
+	}
 
+	// If HUDs allowed
+	if ( t.tokay == 1 ) 
+	{
 		//  Special hardware info mode and controls
 		if (  g.tabmodeshowfps == 1 && g.ghardwareinfomode != 0 ) 
 		{

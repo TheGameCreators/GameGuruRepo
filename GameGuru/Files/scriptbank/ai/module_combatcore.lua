@@ -228,6 +228,12 @@ function module_combatcore.idle(e,AIObjNo,PlayerDist,CanFire,detectstate,combatt
   module_combatcore.detectplayer(e,AIObjNo,PlayerDist,CanFire,detectstate)
   module_combatcore.donotmove(e) 
  end 
+ if g_Entity[e]['plrvisible'] == 0 and PlayerDist < 200 then
+  ai_bot_state[e] = ai_state_idle
+  SetAnimation(0)
+  CanFire = 0
+  module_combatcore.donotmove(e) 
+ end
 end
 
 function module_combatcore.patrol(e,AIObjNo,PlayerDist,MoveType,CanFire,detectstate,stopstate,combattype)
@@ -427,6 +433,12 @@ function module_combatcore.hunt(e,AIObjNo,PlayerDist,MoveType,CanFire,stopstate)
      SetActivated(e,0)
     end
    end
+  end
+  if g_Entity[e]['plrvisible'] == 0 and PlayerDist < 200 then
+   ai_bot_state[e] = ai_state_idle
+   SetAnimation(0)
+   CanFire = 0
+   module_combatcore.donotmove(e) 
   end
  end
 end
