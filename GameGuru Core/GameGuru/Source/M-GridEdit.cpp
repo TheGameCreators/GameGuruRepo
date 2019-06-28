@@ -9197,14 +9197,17 @@ void interface_openpropertywindow ( void )
 						setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
 					}
 					setpropertystring2(t.group,Str(t.grideleprof.speed),t.strarr_s[455].Get(),t.strarr_s[245].Get()) ; ++t.controlindex;
-					if (  t.playercontrol.thirdperson.enabled == 1 ) 
-					{
-						t.tanimspeed_f=t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
-					}
-					else
-					{
+
+					//PE: we cant do this , as t.playercontrol.thirdperson.enabled is a global and will trigger for ALL objects.
+					//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/310
+//					if (  t.playercontrol.thirdperson.enabled == 1 ) 
+//					{
+//						t.tanimspeed_f=t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
+//					}
+//					else
+//					{
 						t.tanimspeed_f=t.grideleprof.animspeed;
-					}
+//					}
 					setpropertystring2(t.group,Str(t.tanimspeed_f),"Anim Speed","Sets the default speed of any animation associated with this entity"); ++t.controlindex;
 				}
 				if (  t.tflaghurtfall == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.hurtfall),t.strarr_s[456].Get(),t.strarr_s[246].Get())  ; ++t.controlindex; }
@@ -9554,14 +9557,16 @@ void interface_copydatatoentity ( void )
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[455].Get()) ) == 0 )  t.grideleprof.speed = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Anim Speed") ) == 0 ) 
 			{
-				if (  t.playercontrol.thirdperson.enabled == 1 ) 
-				{
-					t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed=ValF(t.tdata_s.Get());
-				}
-				else
-				{
+				//PE: we cant do this , as t.playercontrol.thirdperson.enabled is a global and will trigger for ALL objects.
+				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/310
+//				if (  t.playercontrol.thirdperson.enabled == 1 ) 
+//				{
+//					t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed=ValF(t.tdata_s.Get());
+//				}
+//				else
+//				{
 					t.grideleprof.animspeed=ValF(t.tdata_s.Get());
-				}
+//				}
 			}
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[432].Get()) ) == 0 )  t.grideleprof.quantity = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[460].Get()) ) == 0 )  t.grideleprof.quantity = ValF(t.tdata_s.Get());

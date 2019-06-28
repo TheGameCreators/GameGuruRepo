@@ -2335,13 +2335,28 @@ int SetSpriteSize ( lua_State *L )
 	float sizeX = lua_tonumber(L, 2);
 	float sizeY = lua_tonumber(L, 3);
 
+
+	//PE: vertex data use iXOffset)+iWidth-0.5f, (-0.5f) soo add a bit.
+	//PE: mainly visible when using 100 percent
+	//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/423
+	//PE: So 100 percent do not fill the entire screen.
+	//PE: Did not want to change vertex data as it might change how sprites display on other level.
+	//PE: So for now just do this to fill the hole screen. (should be changed in vertex at some point)
+
+	if (sizeX == 100 ) {
+		sizeX += 0.1;
+	}
+	if (sizeY == 100) {
+		sizeY += 0.1;
+	}
+
 	if ( sizeX == -1 && sizeY == -1 ) return 0;
 
 	if ( sizeX != -1 )
 	{
 		sizeX = ( sizeX * g_dwScreenWidth ) / 100.0f;
 	}
-
+	
 	if ( sizeY != -1 )
 	{
 		sizeY = ( sizeY * g_dwScreenHeight ) / 100.0f;
