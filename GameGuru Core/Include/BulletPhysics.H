@@ -123,7 +123,7 @@ DARKSDK void		ODESetBodyFriction						( int iObject, float fFriction );
 DARKSDK void		ODESetBodyDamping                       ( int iObject, float fDamp, float fAngleDamp );
 
 // world functions
-DARKSDK void		ODESetWorldGravity						( float fX, float fY, float fZ );
+DARKSDK void		ODESetWorldGravity						( float fX, float fY, float fZ , float fallspeed = 0 );
 
 // Get commands
 DARKSDK DWORD		ODEGetBodyLinearVelocityX				( int iObjectNumber );
