@@ -187,6 +187,9 @@ void terrain_setupedit ( void )
 		t.effectparam.water.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+1,"HudFogColor");
 	}
 	SetObjectEffect ( t.terrain.objectstartindex+2, t.terrain.effectstartindex+1 );
+
+	SetObjectTransparency(t.terrain.objectstartindex+2, 5); //PE: same mode as test game.
+
 	SetEffectTechnique ( t.terrain.effectstartindex+1, "Editor" );
 
 	// Terrain Edit Settings
