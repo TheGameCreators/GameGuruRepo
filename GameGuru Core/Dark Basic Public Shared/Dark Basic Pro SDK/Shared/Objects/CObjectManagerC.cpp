@@ -5417,6 +5417,9 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 							// u74b8 - use the current camera
 							pObject->position.fCamDistance += m_pCamera->fZFar;
 						}
+						else if( pObject->bRenderBeforeWater ) {
+							pObject->position.fCamDistance += m_pCamera->fZFar;
+						}
 					}
 				}
 
