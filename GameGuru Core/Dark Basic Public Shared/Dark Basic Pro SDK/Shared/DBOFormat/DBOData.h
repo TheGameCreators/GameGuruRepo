@@ -843,6 +843,7 @@ struct sObjectProperties
 	bool							bGhostedObject;								// flagged if a ghosted object
 	bool							bTransparentObject;							// flagged if a transparent object
 	bool							bTransparencyWaterLine;						// new: transparency water line (for above/below water)
+	bool							bRenderBeforeWater;							// For objects that are both above and below waterline.
 	bool							bNewZLayerObject;							// flagged if requires zbuffer clear
 	bool							bLockedObject;								// flagged if requires a locked camera
 	bool							bStencilObject;								// flagged if object uses the stencil layer

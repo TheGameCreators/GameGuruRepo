@@ -1138,6 +1138,7 @@ DARKSDK_DLL void SetObjectTransparency ( int iID, int iTransparency )
 	// 5 - water line object (seperates depth sort automatically)
 	// 6 - combination of 3 and 4 (second phase render with alpha blend AND alpha test, used for fading LOD leaves)
 	// 7 - very early draw phase no alpha
+	// 8 - below water line , render before water.
 
 	// check the object exists
 	if ( !ConfirmObjectInstance ( iID ) )
@@ -1154,7 +1155,7 @@ DARKSDK_DLL void SetObjectTransparency ( int iID, int iTransparency )
 	{
 		SetTransparency ( pObject->ppMeshList [ iMesh ], bTransparency==TRUE );
 		SetAlphaTest ( pObject->ppMeshList [ iMesh ], 0x0 ); 
-		if ( iTransparency==4 || iTransparency==6 )
+		if ( iTransparency==4 || iTransparency==6 || iTransparency == 8 )
 		{
 			SetAlphaTest ( pObject->ppMeshList [ iMesh ], 0x000000CF );
 		}
