@@ -4727,7 +4727,15 @@ void terrain_water_loop ( void )
 			PositionObject (  t.terrain.objectstartindex+4,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
 			if (  ObjectExist(t.terrain.objectstartindex+8) == 1  )  PositionObject (  t.terrain.objectstartindex+8,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
 			PositionCamera (  2,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
-			RotateCamera (  2,-CameraAngleX(),CameraAngleY(),CameraAngleZ() );
+
+			if (g.luacameraoverride == 2 || g.luacameraoverride == 3) {
+				//PE: Why ohh why is Z negative when using g.luacameraoverride=3 || 2 ???????
+				//PE: ? ? ? a matrix problem somewhere ? ? ?
+				RotateCamera(2, -CameraAngleX(0), CameraAngleY(0), -CameraAngleZ(0));
+			}
+			else {
+				RotateCamera(2, -CameraAngleX(0), CameraAngleY(0), CameraAngleZ(0));
+			}
 			//  only render terrain/objects if mode allows
 			if (  t.visuals.reflectionmode>25 ) 
 			{
