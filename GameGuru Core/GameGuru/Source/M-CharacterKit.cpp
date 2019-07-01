@@ -1893,7 +1893,11 @@ void characterkit_thumbgadget ( void )
 		if (  t.characterkit.selected  ==  99  )  t.thowmanyrowsmax  =  6;
 		if (  t.characterkit.howManyRows > t.thowmanyrowsmax ) 
 		{
-			t.tsub_f=15.0;
+			//PE: You cant see bottom when using 15 , 16.9 seams to work better.
+			//PE: (this is after installing additional assets )
+			//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/410#issuecomment-506831070
+
+			t.tsub_f = 16.9; //PE: org 15.0;
 			t.tboxleft_f = t.tscrx+64.0+(140.0*4.0);
 			t.tboxright_f = t.tscrx+64.0+(140.0*4.0)+23.0;
 			t.tboxtop_f = t.tscry+ImageHeight(t.timg+1)+3.0 + t.characterkit.scrollPosition;

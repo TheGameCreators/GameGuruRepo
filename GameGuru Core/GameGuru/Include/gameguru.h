@@ -515,6 +515,7 @@ struct Sglobals
 	cstr gproducelogfilesdir_s;
 	int gpbroverride;
 	int underwatermode;
+	int usegrassbelowwater;
 	int editorsavebak;
 	int memskipwatermask;
 	int standalonefreememorybetweenlevels;

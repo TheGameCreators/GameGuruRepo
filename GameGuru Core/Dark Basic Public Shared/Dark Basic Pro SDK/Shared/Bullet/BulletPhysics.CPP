@@ -3277,13 +3277,16 @@ void ODERemoveBodyCollisionCheck(int iObjectNumber)
 	RemoveObjectCollisionCheck(iObjectNumber);
 }
 
-void ODESetWorldGravity ( float fX, float fY, float fZ )
+void ODESetWorldGravity ( float fX, float fY, float fZ, float fallspeed)
 {
 	// set player gravity (assuming 20 is default)
 	if ( m_character )
 	{
 		float fRelative = fabs(fY/20.0f);
 		m_character->setGravity((fCharacterGravity*fRelative)/gSc);
+		if(fallspeed != 0)
+			m_character->setFallSpeed((fallspeed*fRelative) / gSc);
+		else
 		m_character->setFallSpeed((fCharacterFallSpeed*fRelative)/gSc);
 	}
 }

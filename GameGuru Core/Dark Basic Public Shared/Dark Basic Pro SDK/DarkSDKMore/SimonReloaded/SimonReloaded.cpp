@@ -19,6 +19,7 @@ int iLeftVert,iRightVert,iFrontVert,iBackVert,iTopVert,iBottomVert;
 bool **bGridExist;
 int iGrassMemblockThreshhold;
 float fWorldSize;
+bool bDisplayBelowWater;
 
 void InfiniteVegetationConstructor ( void )
 {
@@ -280,7 +281,11 @@ void SetResourceValues(int iGrassObjIN, int iGridObjectStartIN, int iGrassImgIN,
 			CloneObject ( iVegObj, iGridObjectStart );
 		}
 		SetObjectMask(iVegObj,iCameraMask);
-		SetObjectTransparency(iVegObj,6);
+		if( bDisplayBelowWater )
+			SetObjectTransparency(iVegObj,8);
+		else
+			SetObjectTransparency(iVegObj, 6);
+
 		SetObjectCull ( iVegObj, 0 );
 	}
 }
@@ -386,10 +391,13 @@ void SetResourceValues(int iGrassObjIN, int iGridObjectStartIN, int iGrassImgIN,
 	}
 }
 
- void MakeVegetationGrid(int iVegPerMeshIN,  float fVegWidthIN, float fVegHeightIN, int iVegAreaWidthIN, int iGridSizeIN, int iTerrainID, int iOptionalSkipGrassMemblock)
+ void MakeVegetationGrid(int iVegPerMeshIN,  float fVegWidthIN, float fVegHeightIN, int iVegAreaWidthIN, int iGridSizeIN, int iTerrainID, int iOptionalSkipGrassMemblock, bool bBelowWater)
 {
 	if (!bResourcesSet) return;
 	if (GetMeshExist(iGrassObj) == 0) return; // Safety check
+
+
+	bDisplayBelowWater = bBelowWater;
 
 	// Set our 'old' positions miles away so we force a position update on the first VEG UPDATE call
 	fOldViewPointX = -10000;

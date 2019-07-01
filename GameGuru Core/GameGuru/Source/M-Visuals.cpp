@@ -1844,6 +1844,17 @@ void visuals_underwater_on ( void )
 //		t.visuals.FogB_f = 8;
 //		t.visuals.FogA_f = 255;
 
+		//PE: lower gravity underwater.
+		//PE: for community to approve or remove :)
+		if (t.playercontrol.gravityactive == 1)
+		{
+			//PE: setting the gravity lower make you sink to slow so.
+			ODESetWorldGravity(0, -15.0, 0, 150.0 );
+		}
+		else
+		{
+			ODESetWorldGravity(0, 0, 0);
+		}
 
 		t.tFogR_f = t.visuals.FogR_f; t.tFogG_f = t.visuals.FogG_f; t.tFogB_f = t.visuals.FogB_f ; t.tFogA_f = t.visuals.FogA_f;
 		t.tFogNear_f = t.visuals.FogNearest_f; t.tFogFar_f = t.visuals.FogDistance_f;
@@ -1877,6 +1888,17 @@ void visuals_underwater_off ( void )
 		terrain_setfog ( );
 		terrain_water_setfog ( );
 		t.visuals.underwatermode = 0;
+		//PE: Restore gravity.
+		if (t.playercontrol.gravityactive == 1)
+		{
+			ODESetWorldGravity(0, -20, 0 , 0);
+		}
+		else
+		{
+			ODESetWorldGravity(0, 0, 0);
+		}
+
+
 		//PE: Restore normal fog and disable screen wave effect.
 		visuals_justshaderupdate();
 		if (g.underwatermode == 1) {

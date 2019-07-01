@@ -1676,6 +1676,7 @@ void FPSC_SetDefaults ( void )
 	g.lowestnearcamera = 2; //PE: default , use setup.ini lowestnearcamera to adjust.
 	g.memgeneratedump = 0;
 	g.underwatermode = 0;
+	g.usegrassbelowwater = 1;
 	g.editorsavebak = 0;
 	g.gproducetruevidmemreading = 0;
 	g.gcharactercapsulescale_f = 1.0;
@@ -1950,6 +1951,8 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "producelogfilesdir" ; if (  t.field_s == t.tryfield_s  )  g.gproducelogfilesdir_s = t.value_s;
 					t.tryfield_s = "pbroverride" ; if (  t.field_s == t.tryfield_s  )  g.gpbroverride = t.value1;
 					t.tryfield_s = "underwatermode"; if (t.field_s == t.tryfield_s)  g.underwatermode = t.value1;
+					t.tryfield_s = "usegrassbelowwater"; if (t.field_s == t.tryfield_s)  g.usegrassbelowwater = t.value1;
+
 					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
 					t.tryfield_s = "standalonefreememorybetweenlevels"; if (t.field_s == t.tryfield_s)  g.standalonefreememorybetweenlevels = t.value1;
 					t.tryfield_s = "videoprecacheframes"; if (t.field_s == t.tryfield_s)  g.videoprecacheframes = t.value1;

@@ -3664,7 +3664,7 @@ int SetShaderVariable ( lua_State *L )
 			}
 		}
 	}
-	return 1;
+	return 0;
 }
 
 //Control Water Shader

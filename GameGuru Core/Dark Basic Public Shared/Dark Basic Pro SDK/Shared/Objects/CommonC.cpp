@@ -765,7 +765,7 @@ DARKSDK_DLL void UpdateOverlayFlag ( sObject* pObject )
 DARKSDK_DLL void SetObjectTransparency ( sObject* pObject, int iTransparency )
 {
 	// promote to overlay layer (or not)
-	if ( iTransparency==2 || iTransparency==3 || iTransparency==5 || iTransparency==6 )
+	if ( iTransparency==2 || iTransparency==3 || iTransparency==5 || iTransparency==6 || iTransparency == 8 )
 		pObject->bTransparentObject = true;
 	else
 		pObject->bTransparentObject = false;
@@ -775,6 +775,11 @@ DARKSDK_DLL void SetObjectTransparency ( sObject* pObject, int iTransparency )
 		pObject->bTransparencyWaterLine = true;
 	else
 		pObject->bTransparencyWaterLine = false;
+
+	if (iTransparency == 8)
+		pObject->bRenderBeforeWater = true;
+	else
+		pObject->bRenderBeforeWater = false;
 
 	// leeadd - 061208 - transparency mode 7 sets an object to very early draw phase
 	if ( iTransparency==7 )

@@ -16,7 +16,7 @@ void SetTerrainMask(int iMask);
  int ClampToMemblockRes(float fValue);
  bool GridSquareContainsGrass(int iX, int iZ);
  void RefreshGridExistArray(void);
- void MakeVegetationGrid(int iVegPerMeshIN,  float fVegWidthIN, float fVegHeightIN, int iVegAreaWidthIN, int iGridSizeIN, int iTerrainID, int iOptionalSkipGrassMemblock);
+ void MakeVegetationGrid(int iVegPerMeshIN,  float fVegWidthIN, float fVegHeightIN, int iVegAreaWidthIN, int iGridSizeIN, int iTerrainID, int iOptionalSkipGrassMemblock, bool bBelowWater);
  void UpdateVegZone(bool bSuperFlat, float fX1, float fZ1, float fX2, float fZ2, int iTerrainID, float fSuperFlatHeight);
  void UpdateVegetation(bool bSuperFlat, float fViewPointX, float fViewPointZ, int iTerrainID, float fSuperFlatHeight, int iDynamicShadowImage);
  void UpdateBlitzTerrain(float fViewPointX, float fViewPointZ, int iTerrainID, int iDynamicShadowImage);

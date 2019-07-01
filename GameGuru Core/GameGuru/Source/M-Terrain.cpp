@@ -187,6 +187,9 @@ void terrain_setupedit ( void )
 		t.effectparam.water.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+1,"HudFogColor");
 	}
 	SetObjectEffect ( t.terrain.objectstartindex+2, t.terrain.effectstartindex+1 );
+
+	SetObjectTransparency(t.terrain.objectstartindex+2, 5); //PE: same mode as test game.
+
 	SetEffectTechnique ( t.terrain.effectstartindex+1, "Editor" );
 
 	// Terrain Edit Settings
@@ -4724,7 +4727,15 @@ void terrain_water_loop ( void )
 			PositionObject (  t.terrain.objectstartindex+4,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
 			if (  ObjectExist(t.terrain.objectstartindex+8) == 1  )  PositionObject (  t.terrain.objectstartindex+8,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
 			PositionCamera (  2,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
-			RotateCamera (  2,-CameraAngleX(),CameraAngleY(),CameraAngleZ() );
+
+			if (g.luacameraoverride == 2 || g.luacameraoverride == 3) {
+				//PE: Why ohh why is Z negative when using g.luacameraoverride=3 || 2 ???????
+				//PE: ? ? ? a matrix problem somewhere ? ? ?
+				RotateCamera(2, -CameraAngleX(0), CameraAngleY(0), -CameraAngleZ(0));
+			}
+			else {
+				RotateCamera(2, -CameraAngleX(0), CameraAngleY(0), CameraAngleZ(0));
+			}
 			//  only render terrain/objects if mode allows
 			if (  t.visuals.reflectionmode>25 ) 
 			{
@@ -4925,7 +4936,10 @@ void terrain_fastveg_init ( void )
 	}
 	int iTrimUsingGrassMemblock = 0;
 	if ( t.game.gameisexe == 1 ) iTrimUsingGrassMemblock = t.terrain.grassmemblock;
-	MakeVegetationGrid ( 4.0f*t.visuals.VegQuantity_f,t.visuals.VegWidth_f,t.visuals.VegHeight_f,terrain_veg_areawidth,t.terrain.vegetationgridsize,t.tTerrainID, iTrimUsingGrassMemblock );
+	if( g.usegrassbelowwater > 0)
+		MakeVegetationGrid(4.0f*t.visuals.VegQuantity_f, t.visuals.VegWidth_f, t.visuals.VegHeight_f, terrain_veg_areawidth, t.terrain.vegetationgridsize, t.tTerrainID, iTrimUsingGrassMemblock , true );
+	else
+		MakeVegetationGrid( 4.0f*t.visuals.VegQuantity_f,t.visuals.VegWidth_f,t.visuals.VegHeight_f,terrain_veg_areawidth,t.terrain.vegetationgridsize,t.tTerrainID, iTrimUsingGrassMemblock , false );
 }
 
 void terrain_fastveg_setgrassimage ( void )
