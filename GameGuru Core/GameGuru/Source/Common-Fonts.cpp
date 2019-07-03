@@ -134,6 +134,8 @@ void pastebitmapfont ( char* text_s, int tx, int ty, int index, int alpha )
 	sid=g.bitmapfontimagetart+index;
 	if (  sid  <=  0  )  return;
 	if (  ImageExist(sid)  ==  0  )  return;
+	float fImageTexOffsetU = 0.5f/ImageWidth(sid);
+	float fImageTexOffsetV = 0.5f/ImageHeight(sid);
 	Sprite (  sid,-10000,-10000,g.bitmapfontimagetart+index );
 	for ( n = 1 ; n <= Len(text_s); n++ )
 	{
@@ -142,16 +144,17 @@ void pastebitmapfont ( char* text_s, int tx, int ty, int index, int alpha )
 		v1_f=t.bitmapfont[index][charindex].y1;
 		u2_f=t.bitmapfont[index][charindex].x2;
 		v2_f=t.bitmapfont[index][charindex].y2;
-		SizeSprite (  sid,t.bitmapfont[index][charindex].w,t.bitmapfont[index][charindex].h );
-		SetSpriteTextureCoordinates (  sid,0,u1_f,v1_f );
-		SetSpriteTextureCoordinates (  sid,1,u2_f,v1_f );
-		SetSpriteTextureCoordinates (  sid,2,u1_f,v2_f );
-		SetSpriteTextureCoordinates (  sid,3,u2_f,v2_f );
+		SizeSprite ( sid, t.bitmapfont[index][charindex].w,t.bitmapfont[index][charindex].h );
+		SetSpriteTextureCoordinates ( sid, 0, u1_f+fImageTexOffsetU, v1_f+fImageTexOffsetV );
+		SetSpriteTextureCoordinates ( sid, 1, u2_f+fImageTexOffsetU, v1_f+fImageTexOffsetV );
+		SetSpriteTextureCoordinates ( sid, 2, u1_f+fImageTexOffsetU, v2_f+fImageTexOffsetV );
+		SetSpriteTextureCoordinates ( sid, 3, u2_f+fImageTexOffsetU, v2_f+fImageTexOffsetV );
 		SetSpriteAlpha (  sid,alpha );
 		PasteSprite (  sid,tx,ty );
 		tx += t.bitmapfont[index][charindex].w;
 	}
 }
+
 
 void pastebitmapfontcenter ( char* text_s, int tx, int ty, int index, int alpha )
 {
@@ -210,6 +213,8 @@ void pastebitmapfontcolor ( char* text_s, int tx, int ty, int index, int alpha, 
 	sid = g.bitmapfontimagetart+index;
 	if (  sid  <=  0  )  return;
 	if (  ImageExist(sid)  ==  0  )  return;
+	float fImageTexOffsetU = 0.5f/ImageWidth(sid);
+	float fImageTexOffsetV = 0.5f/ImageHeight(sid);
 	Sprite (  sid,-10000,-10000,g.bitmapfontimagetart+index );
 	for ( n = 1 ; n<=  Len(text_s); n++ )
 	{
@@ -219,10 +224,11 @@ void pastebitmapfontcolor ( char* text_s, int tx, int ty, int index, int alpha, 
 		u2_f=t.bitmapfont[index][charindex].x2;
 		v2_f=t.bitmapfont[index][charindex].y2;
 		SizeSprite (  sid,t.bitmapfont[index][charindex].w,t.bitmapfont[index][charindex].h );
-		SetSpriteTextureCoordinates (  sid,0,u1_f,v1_f );
-		SetSpriteTextureCoordinates (  sid,1,u2_f,v1_f );
-		SetSpriteTextureCoordinates (  sid,2,u1_f,v2_f );
-		SetSpriteTextureCoordinates (  sid,3,u2_f,v2_f );
+		SetSpriteTextureCoordinates ( sid, 0, u1_f+fImageTexOffsetU, v1_f+fImageTexOffsetV );
+		SetSpriteTextureCoordinates ( sid, 1, u2_f+fImageTexOffsetU, v1_f+fImageTexOffsetV );
+		SetSpriteTextureCoordinates ( sid, 2, u1_f+fImageTexOffsetU, v2_f+fImageTexOffsetV );
+		SetSpriteTextureCoordinates ( sid, 3, u2_f+fImageTexOffsetU, v2_f+fImageTexOffsetV );
+
 		SetSpriteDiffuse (  sid,r,gg,b );
 		SetSpriteAlpha (  sid,alpha );
 		PasteSprite (  sid,tx,ty );

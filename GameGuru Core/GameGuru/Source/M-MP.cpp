@@ -1840,7 +1840,7 @@ void mp_pre_game_file_sync_client ( void )
 
 				// report progress of file download
 				#ifdef PHOTONMP
-				 t.tstring_s = cstr("Receiving file : ") + Str(t.tProgress) + "%";
+				 t.tstring_s = cstr("Receiving file: ") + Str(t.tProgress) + "%";
 				 mp_text(-1,95,3,"(press SPACE KEY to return to main menu)");
 				#else
 				 t.tstring_s = cstr("Receiving '")+g.mp.levelnametojoin+"': " + Str(t.tProgress) + "%";

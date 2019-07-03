@@ -545,6 +545,10 @@ DARKSDK void SetVertexDataForSprite( int iX, int iY )
 
 DARKSDK void SetVertexTextureDataForSprite( void )
 {
+	// work out half-pixel offsets for perfect 1:1 image render
+	float fHPOffU = 0.0f; if ( m_ptr->iImage > 0 ) fHPOffU = 0.5f / (float)ImageWidth(m_ptr->iImage);
+	float fHPOffV = 0.0f; if ( m_ptr->iImage > 0 ) fHPOffV = 0.5f / (float)ImageHeight(m_ptr->iImage);
+
 	switch ( m_ptr->eAnimType )
 	{
 		case SEPARATE_IMAGES:
@@ -552,32 +556,32 @@ DARKSDK void SetVertexTextureDataForSprite( void )
 			// mirror the sprite TU
 			if(m_ptr->bMirrored)
 			{
-				m_ptr->lpVertices [ 1 ].tu = 0.0;
-				m_ptr->lpVertices [ 0 ].tu = m_ptr->fClipU;
-				m_ptr->lpVertices [ 3 ].tu = 0.0;
-				m_ptr->lpVertices [ 2 ].tu = m_ptr->fClipU;
+				m_ptr->lpVertices [ 1 ].tu = 0.0			+ fHPOffU;
+				m_ptr->lpVertices [ 0 ].tu = m_ptr->fClipU	+ fHPOffU;
+				m_ptr->lpVertices [ 3 ].tu = 0.0			+ fHPOffU;
+				m_ptr->lpVertices [ 2 ].tu = m_ptr->fClipU	+ fHPOffU;
 			}
 			else
 			{
-				m_ptr->lpVertices [ 0 ].tu = 0.0;
-				m_ptr->lpVertices [ 1 ].tu = m_ptr->fClipU;
-				m_ptr->lpVertices [ 2 ].tu = 0.0;
-				m_ptr->lpVertices [ 3 ].tu = m_ptr->fClipU;
+				m_ptr->lpVertices [ 0 ].tu = 0.0			+ fHPOffU;
+				m_ptr->lpVertices [ 1 ].tu = m_ptr->fClipU	+ fHPOffU;
+				m_ptr->lpVertices [ 2 ].tu = 0.0			+ fHPOffU;
+				m_ptr->lpVertices [ 3 ].tu = m_ptr->fClipU	+ fHPOffU;
 			}
 			// flip the sprite
 			if(m_ptr->bFlipped)
 			{
-				m_ptr->lpVertices [ 3 ].tv = 0.0;
-				m_ptr->lpVertices [ 2 ].tv = 0.0;
-				m_ptr->lpVertices [ 1 ].tv = m_ptr->fClipV;
-				m_ptr->lpVertices [ 0 ].tv = m_ptr->fClipV;
+				m_ptr->lpVertices [ 3 ].tv = 0.0			+ fHPOffV;
+				m_ptr->lpVertices [ 2 ].tv = 0.0			+ fHPOffV;
+				m_ptr->lpVertices [ 1 ].tv = m_ptr->fClipV	+ fHPOffV;
+				m_ptr->lpVertices [ 0 ].tv = m_ptr->fClipV	+ fHPOffV;
 			}
 			else
 			{
-				m_ptr->lpVertices [ 0 ].tv = 0.0;
-				m_ptr->lpVertices [ 1 ].tv = 0.0;
-				m_ptr->lpVertices [ 2 ].tv = m_ptr->fClipV;
-				m_ptr->lpVertices [ 3 ].tv = m_ptr->fClipV;
+				m_ptr->lpVertices [ 0 ].tv = 0.0			+ fHPOffV;
+				m_ptr->lpVertices [ 1 ].tv = 0.0			+ fHPOffV;
+				m_ptr->lpVertices [ 2 ].tv = m_ptr->fClipV	+ fHPOffV;
+				m_ptr->lpVertices [ 3 ].tv = m_ptr->fClipV	+ fHPOffV;
 			}
 			break;
 		}
@@ -593,12 +597,6 @@ DARKSDK void SetVertexTextureDataForSprite( void )
 			float	fTu		= fTuSeg * iXTile;					// tu coordinate
 			float	fTv		= m_ptr->fClipV - ( fTvSeg * iYTile );			// tv coordinate
 
-			// leefix-040803-cause of some stretch distortion when animated sprites are used!!
-			//float	fError  = (float)0.005;							// we will get errors because of floating point calculations
-
-			// mke - 220604 - fix stretching error
-			float	fError  = 0.0f;
-
 			// vertice slots
 			int u0=0, u1=1, u2=2, u3=3;
 			int v0=0, v1=1, v2=2, v3=3;
@@ -608,20 +606,19 @@ DARKSDK void SetVertexTextureDataForSprite( void )
 			}
 			if(m_ptr->bFlipped)
 			{
-				//u0=3; u1=2; u2=1; u3=0; //020308 - flip corrected
 				v0=3; v1=2; v2=1; v3=0;
 			}
 
 			// now adjust our texture coordinates
-			m_ptr->lpVertices [ u0 ].tu = fTu + fError;					// vertex 0, tu
-			m_ptr->lpVertices [ u1 ].tu = ( fTu + fTuSeg ) - fError;		// vertex 1, tu
-			m_ptr->lpVertices [ u2 ].tu = fTu + fError;					// vertex 2, tu
-			m_ptr->lpVertices [ u3 ].tu = ( fTu + fTuSeg ) - fError;		// vertex 3, tu
+			m_ptr->lpVertices [ u0 ].tu = fTu				+ fHPOffU;		// vertex 0, tu
+			m_ptr->lpVertices [ u1 ].tu = ( fTu + fTuSeg )	+ fHPOffU;		// vertex 1, tu
+			m_ptr->lpVertices [ u2 ].tu = fTu				+ fHPOffU;		// vertex 2, tu
+			m_ptr->lpVertices [ u3 ].tu = ( fTu + fTuSeg )	+ fHPOffU;		// vertex 3, tu
 
-			m_ptr->lpVertices [ v0 ].tv = ( fTv - fTvSeg ) + fError;		// vertex 0, tv
-			m_ptr->lpVertices [ v1 ].tv = ( fTv - fTvSeg ) + fError;		// vertex 1, tv
-			m_ptr->lpVertices [ v2 ].tv = fTv - fError;					// vertex 2, tv
-			m_ptr->lpVertices [ v3 ].tv = fTv - fError;					// vertex 3, tv
+			m_ptr->lpVertices [ v0 ].tv = ( fTv - fTvSeg )	+ fHPOffV;		// vertex 0, tv
+			m_ptr->lpVertices [ v1 ].tv = ( fTv - fTvSeg )	+ fHPOffV;		// vertex 1, tv
+			m_ptr->lpVertices [ v2 ].tv = fTv				+ fHPOffV;		// vertex 2, tv
+			m_ptr->lpVertices [ v3 ].tv = fTv				+ fHPOffV;		// vertex 3, tv
 
 			break;
 		}
@@ -760,13 +757,17 @@ DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV, int 
 	else
 		m_ImagePtr.bTransparent	= false;	
 
+	// work out half-pixel offsets for perfect 1:1 image render
+	float fHPOffU = 0.5f / (float)m_ImagePtr.iWidth;
+	float fHPOffV = 0.5f / (float)m_ImagePtr.iHeight;
+
 	// create vertex data based on info supplied for sprite
 	VERTEX2D vertexData [ ] =
 	{
-		{  0.0f,						0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f,	0.0f },
-		{  (float)m_ImagePtr.iWidth,	0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU,		0.0f },
-		{  0.0f,						(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f,	fV },
-		{  (float)m_ImagePtr.iWidth,	(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU,		fV }
+		{  0.0f,						0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f + fHPOffU,		0.0f + fHPOffV },
+		{  (float)m_ImagePtr.iWidth,	0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU + fHPOffU,		0.0f + fHPOffV },
+		{  0.0f,						(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f + fHPOffU,		fV + fHPOffV   },
+		{  (float)m_ImagePtr.iWidth,	(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU + fHPOffU,		fV + fHPOffV   }
 	};
 
 	// copy data across to the vertices
@@ -820,13 +821,17 @@ DARKSDK void PasteTextureToRectEx ( LPGGTEXTUREREF pTextureRef, float fU, float 
 	m_ImagePtr.iYSize		= 0;
 	m_ImagePtr.iPriority	= 0;
 
+	// work out half-pixel offsets for perfect 1:1 image render
+	float fHPOffU = 0.5f / (float)m_ImagePtr.iWidth;
+	float fHPOffV = 0.5f / (float)m_ImagePtr.iHeight;
+
 	// this vertex data is Y reversed as animation showed upside down
 	VERTEX2D vertexData [ ] =
 	{
-		{  0.0f,						0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f,	fRev },
-		{  (float)m_ImagePtr.iWidth,	0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU,		fRev },
-		{  0.0f,						(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f,	fV-fRev },
-		{  (float)m_ImagePtr.iWidth,	(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU,		fV-fRev }
+		{  0.0f,						0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f + fHPOffU,	fRev + fHPOffV },
+		{  (float)m_ImagePtr.iWidth,	0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU + fHPOffU,	fRev + fHPOffV },
+		{  0.0f,						(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f + fHPOffU,	(fV-fRev) + fHPOffV },
+		{  (float)m_ImagePtr.iWidth,	(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU + fHPOffU,	(fV-fRev) + fHPOffV }
 	};
 
 	// copy data across to the vertices
@@ -879,13 +884,17 @@ DARKSDK void PasteTextureToRect ( LPGGTEXTUREREF pTextureRef, float fU, float fO
 	m_ImagePtr.iYSize		= 0;
 	m_ImagePtr.iPriority	= 0;
 
+	// work out half-pixel offsets for perfect 1:1 image render
+	float fHPOffU = 0.5f / (float)m_ImagePtr.iWidth;
+	float fHPOffV = 0.5f / (float)m_ImagePtr.iHeight;
+
 	// this vertex data is Y reversed as animation showed upside down
 	VERTEX2D vertexData [ ] =
 	{
-		{  0.0f,						0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f,	fRev },
-		{  (float)m_ImagePtr.iWidth,	0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU,		fRev },
-		{  0.0f,						(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		0.0f,	fV-fRev },
-		{  (float)m_ImagePtr.iWidth,	(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),		fU,		fV-fRev }
+		{  0.0f,						0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),	0.0f + fHPOffU,	fRev + fHPOffV },
+		{  (float)m_ImagePtr.iWidth,	0.0f,						0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),	fU + fHPOffU,	fRev + fHPOffV },
+		{  0.0f,						(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),	0.0f + fHPOffU,	(fV-fRev) + fHPOffV },
+		{  (float)m_ImagePtr.iWidth,	(float)m_ImagePtr.iHeight,	0.5f,	1.0f,	GGCOLOR_ARGB ( 255, 255, 255, 255 ),	fU + fHPOffU,	(fV-fRev) + fHPOffV }
 	};
 
 	// copy data across to the vertices
