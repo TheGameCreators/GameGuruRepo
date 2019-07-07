@@ -839,6 +839,7 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 					if (  t.inputsys.mclick == 0 && t.ttrackmouse == 0  )  t.ttrackmouse = 1;
 					if (  t.inputsys.mclick != 0 && t.ttrackmouse == 1  )  t.ttrackmouse = 2;
 					if (  t.inputsys.mclick == 0 && t.ttrackmouse == 2  )  break;
+					if ( GGVR_RightController_Trigger() != 0 || GGVR_LeftController_Trigger() != 0 ) break;
 				}
 
 				// handle 3d object if available

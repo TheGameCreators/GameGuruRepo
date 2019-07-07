@@ -1358,21 +1358,9 @@ void visuals_loop ( void )
 				t.entid = t.entityelement[t.e].bankindex;
 				if ( t.entid > 0 ) 
 				{
-					//this may conflict with visuals_updateobjectmasks()
-					//t.tobj = t.entityelement[t.e].obj;
-					//if ( t.tobj > 0 ) 
-					//{
-					//	if ( ObjectExist(t.tobj) == 1 ) 
-					//	{
-					//		if (  t.entityprofile[t.entid].ismarker != 0 || t.entityprofile[t.entid].zdepth == 0 )
-					//			SetObjectMask ( t.tobj, t.tmaskmaincamera );
-					//		else
-					//			SetObjectMask ( t.tobj, t.tmaskmaincamera+(1<<31) );
-					//	}
-					//}
 					if ( t.entityprofile[t.entid].ischaractercreator == 1 ) 
 					{
-						for ( int iParts = 0; iParts < 2; iParts++ )
+						for ( int iParts = 0; iParts <= 2; iParts++ )
 						{
 							t.tccobj = (g.charactercreatorrmodelsoffset+((t.e*3)-t.characterkitcontrol.offset))+iParts;
 							if ( ObjectExist(t.tccobj) == 1 ) 

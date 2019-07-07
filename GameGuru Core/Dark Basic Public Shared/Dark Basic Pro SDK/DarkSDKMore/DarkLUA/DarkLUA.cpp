@@ -2010,7 +2010,7 @@ int PositionPrompt3D(lua_State *L)
 	float fY = lua_tonumber(L, 2);
 	float fZ = lua_tonumber(L, 3);
 	float fAY = lua_tonumber(L, 4);
-	lua_positionprompt3d ( fX, fY, fZ, fAY, false );
+	lua_positionprompt3d ( 0, fX, fY, fZ, fAY, false );
 	return 1;
 }
 

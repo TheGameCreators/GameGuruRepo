@@ -583,7 +583,7 @@ void entity_load ( void )
 
 					// 011215 - if specified, we can smooth the model before we use it (concrete pipe in TBE level)
 					float fSmoothingAngleOrFullGenerate = t.entityprofile[t.entid].smoothangle;
-					if ( fSmoothingAngleOrFullGenerate > 0 )
+					if ( fSmoothingAngleOrFullGenerate > 0 && fSmoothingAngleOrFullGenerate <= 200 )
 					{
 						// 090217 - this only works on orig X files (not subsequent DBO) as they change 
 						// the mesh which is then saved out (below)
@@ -592,7 +592,6 @@ void entity_load ( void )
 							// 090216 - a special mode of over 101 will flip normals for the object (when normals are bad)
 							if ( fSmoothingAngleOrFullGenerate >= 101.0f ) 
 							{ 
-								//SetObjectNormalsEx ( t.entobj, 1 ); // will correct objects with flipped normals
 								SetObjectNormalsEx ( t.entobj, 0 ); // will generate new smooth normals for object
 								fSmoothingAngleOrFullGenerate -= 101.0f;
 							}
@@ -602,6 +601,24 @@ void entity_load ( void )
 							{
 								SetObjectSmoothing ( t.entobj, fSmoothingAngleOrFullGenerate );
 							}
+						}
+						else
+						{
+							// some support for direct DBO model smoothing 
+							if ( fSmoothingAngleOrFullGenerate > 0.0f )
+							{
+								SetObjectSmoothing ( t.entobj, fSmoothingAngleOrFullGenerate );
+							}
+						}
+					}
+					else
+					{
+						// smooth any model, not just X files going to DBO files
+						if ( fSmoothingAngleOrFullGenerate >= 201 )
+						{
+							SetObjectNormalsEx ( t.entobj, 0 );
+							fSmoothingAngleOrFullGenerate -= 201.0f;
+							SetObjectSmoothing ( t.entobj, fSmoothingAngleOrFullGenerate );
 						}
 					}
 				}
@@ -4303,36 +4320,47 @@ void entity_loadbank ( void )
 			}
 		}
 
-		//  260215 - Do a pre-scan to determine if any entities are missing
-		if (  Len(t.editor.replacefilepresent_s.Get())>1 ) 
+		// 260215 - Do a pre-scan to determine if any entities are missing
+		if ( Len(t.editor.replacefilepresent_s.Get())>1 ) 
 		{
-			//  load all replacements in a table
-			Dim2(  t.replacements_s,1000, 1  );
-			t.treplacementmax=0;
-			if (  FileExist(t.editor.replacefilepresent_s.Get()) == 1 ) 
+			// clear replacement output array
+			Dim2( t.replacements_s, 1000, 1 );
+			for ( int n=0; n < 1000; n++ )
 			{
-				LoadArray (  t.editor.replacefilepresent_s.Get(),t.replacements_s );
-				for ( t.l = 0 ; t.l <= ArrayCount2(t.replacements_s); t.l++ )
+				t.replacements_s[n][0]="";
+				t.replacements_s[n][1]="";
+			}
+
+			// load all replacements in a table
+			Dim( t.replacementsinput_s, 1000 );
+			t.treplacementmax=0;
+			if ( FileExist(t.editor.replacefilepresent_s.Get()) == 1 ) 
+			{
+				LoadArray ( t.editor.replacefilepresent_s.Get(), t.replacementsinput_s );
+				for ( t.l = 0 ; t.l <= ArrayCount(t.replacementsinput_s); t.l++ )
 				{
-					t.tline_s=ArrayAt(t.replacements_s , t.l );
-					for ( t.n = 1 ; t.n<=  Len(t.tline_s.Get()); t.n++ )
+					t.tline_s = t.replacementsinput_s[t.l];
+					if ( Len(t.tline_s.Get()) > 0 ) 
 					{
-						if (  cstr(Mid(t.tline_s.Get(),t.n)) == "=" ) 
+						for ( t.n = 1 ; t.n<=  Len(t.tline_s.Get()); t.n++ )
 						{
-							t.told_s=Left(t.tline_s.Get(),t.n-1);
-							t.told2_s="";
-							for ( t.nn = 1 ; t.nn<=  Len(t.told_s.Get()); t.nn++ )
+							if (  cstr(Mid(t.tline_s.Get(),t.n)) == "=" ) 
 							{
-								t.told2_s=t.told2_s+Mid(t.told_s.Get(),t.nn);
-								if ( (cstr(Mid(t.told_s.Get(),t.nn)) == "\\" && cstr(Mid(t.told_s.Get(),t.nn+1)) == "\\") || (cstr(Mid(t.told_s.Get(),t.nn)) == "/" && cstr(Mid(t.told_s.Get(),t.nn+1)) == "/" ) )
+								t.told_s=Left(t.tline_s.Get(),t.n-1);
+								t.told2_s="";
+								for ( t.nn = 1 ; t.nn<=  Len(t.told_s.Get()); t.nn++ )
 								{
-									++t.nn;
+									t.told2_s=t.told2_s+Mid(t.told_s.Get(),t.nn);
+									if ( (cstr(Mid(t.told_s.Get(),t.nn)) == "\\" && cstr(Mid(t.told_s.Get(),t.nn+1)) == "\\") || (cstr(Mid(t.told_s.Get(),t.nn)) == "/" && cstr(Mid(t.told_s.Get(),t.nn+1)) == "/" ) )
+									{
+										++t.nn;
+									}
 								}
+								t.tnew_s=Right(t.tline_s.Get(),Len(t.tline_s.Get())-t.n);
+								++t.treplacementmax;
+								t.replacements_s[t.treplacementmax][0]=Lower(t.told2_s.Get());
+								t.replacements_s[t.treplacementmax][1]=Lower(t.tnew_s.Get());
 							}
-							t.tnew_s=Right(t.tline_s.Get(),Len(t.tline_s.Get())-t.n);
-							++t.treplacementmax;
-							t.replacements_s[t.treplacementmax][0]=Lower(t.told2_s.Get());
-							t.replacements_s[t.treplacementmax][1]=Lower(t.tnew_s.Get());
 						}
 					}
 				}

@@ -5888,6 +5888,12 @@ struct entitytype
 	int editorlock;
 	cstr overprompt_s;
 	DWORD overprompttimer;
+	bool overpromptuse3D;
+	float overprompt3dX;
+	float overprompt3dY;
+	float overprompt3dZ;
+	float overprompt3dAY;
+	bool overprompt3dFaceCamera;
 	int mp_networkkill;
 	int mp_killedby;
 	int mp_coopControlledByPlayer;
@@ -5924,6 +5930,12 @@ struct entitytype
 		 mp_coopControlledByPlayer = 0;
 		 mp_killedby = 0;
 		 mp_networkkill = 0;
+		 overpromptuse3D = false;
+		 overprompt3dX = 0;
+		 overprompt3dY = 0;
+		 overprompt3dZ = 0;
+		 overprompt3dAY = 0;
+		 overprompt3dFaceCamera = false;
 		 overprompttimer = 0;
 		 overprompt_s = "";
 		 editorlock = 0;

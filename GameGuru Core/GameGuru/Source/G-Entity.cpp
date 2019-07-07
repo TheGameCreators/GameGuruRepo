@@ -406,16 +406,26 @@ void entity_loop ( void )
 			{
 				if ( ObjectExist(t.tobj) == 1 ) 
 				{
-					if (  Timer()>(int)t.entityelement[t.e].overprompttimer ) 
+					if ( Timer()>(int)t.entityelement[t.e].overprompttimer ) 
 					{
-						t.entityelement[t.e].overprompttimer=0;
+						if ( t.entityelement[t.e].overpromptuse3D == false ) 
+							t.entityelement[t.e].overprompttimer=0;
+						else
+							lua_hideperentity3d ( t.e );
 					}
 					else
 					{
-						if (  GetInScreen(t.tobj) == 1 ) 
+						if ( t.entityelement[t.e].overpromptuse3D == false )
 						{
-							t.t_s=t.entityelement[t.e].overprompt_s ; t.twidth=getbitmapfontwidth(t.t_s.Get(),1)/2;
-							pastebitmapfont(t.t_s.Get(),GetScreenX(t.tobj)-t.twidth,GetScreenY(t.tobj),1,255);
+							if ( GetInScreen(t.tobj) == 1 ) 
+							{
+								t.t_s=t.entityelement[t.e].overprompt_s ; t.twidth=getbitmapfontwidth(t.t_s.Get(),1)/2;
+								pastebitmapfont(t.t_s.Get(),GetScreenX(t.tobj)-t.twidth,GetScreenY(t.tobj),1,255);
+							}
+						}
+						else
+						{
+							lua_updateperentity3d ( t.e, t.entityelement[t.e].overprompt_s.Get(), t.entityelement[t.e].overprompt3dX, t.entityelement[t.e].overprompt3dY, t.entityelement[t.e].overprompt3dZ, t.entityelement[t.e].overprompt3dAY, t.entityelement[t.e].overprompt3dFaceCamera );
 						}
 					}
 				}

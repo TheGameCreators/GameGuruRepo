@@ -1861,6 +1861,7 @@ void game_freelevel ( void )
 
 	// remove bits created by LUA scripts
 	lua_freeprompt3d();
+	lua_freeallperentity3d();
 
 	//  close down game entities
 	entity_free ( );

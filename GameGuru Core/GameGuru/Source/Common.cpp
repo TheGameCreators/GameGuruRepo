@@ -468,6 +468,7 @@ void common_init_globals ( void )
 	g.charactercreatorEditorImageoffset = 95000;
 	g.LUAImageoffset = 96000;
 	g.LUAImageoffsetMax = 105999;
+	g.perentitypromptimageoffset = 110000; // allow 10,000 slots
 
 	// Sprite ( Resource markers )
 	g.ammopanelsprite = 63400;
@@ -591,6 +592,7 @@ void common_init_globals ( void )
 	g.charactercreatorrmodelsbankoffset = 200000;
 	g.charactercreatorrmodelsoffset = 201000;
 	g.charactercreatorrmodelsoffsetEnd = 203000;
+	g.perentitypromptoffset = 210000; // allow 10,000 slots
 
 	//  Particle Resources
 	g.particlebankoffset = 1;

@@ -3675,6 +3675,62 @@ DARKSDK_DLL void FlipNormals ( sMesh* pMesh, int iFlipMode )
 DARKSDK_DLL void GenerateNewNormalsForMesh	( sMesh* pMesh, int iMode )
 {
 	#ifdef DX11
+	// get the offset map for the FVF
+	sOffsetMap offsetMap;
+	GetFVFOffsetMap ( pMesh, &offsetMap );
+
+	// make sure we have normals in the vertices
+	if ( offsetMap.dwNZ>0 )
+	{
+		// go through index buffer or raw vertice list
+		bool bUsingIndices = true;
+		DWORD iCount = pMesh->dwIndexCount;
+		if ( iCount == 0 ) { iCount = pMesh->dwVertexCount; bUsingIndices = false; }
+
+		// go through all polys, work out normal, then apply to normal vectors
+		for ( DWORD i=0; i<iCount; i+=3 )
+		{
+			// read face
+			DWORD dwFace0, dwFace1, dwFace2;
+			if ( bUsingIndices == true )
+			{
+				dwFace0 = pMesh->pIndices[i+0];
+				dwFace1 = pMesh->pIndices[i+1];
+				dwFace2 = pMesh->pIndices[i+2];
+			}
+			else
+			{
+				dwFace0 = i+0;
+				dwFace1 = i+1;
+				dwFace2 = i+2;
+			}
+
+			// get vertex
+			GGVECTOR3 vecVert0 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace0 ) );
+			GGVECTOR3 vecVert1 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace1 ) );
+			GGVECTOR3 vecVert2 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace2 ) );
+
+			// get normal
+			GGVECTOR3 vecNorm0 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace0 ) );
+			GGVECTOR3 vecNorm1 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace1 ) );
+			GGVECTOR3 vecNorm2 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace2 ) );
+
+			// calculate normal from vertices
+			GGVECTOR3 vNormal;
+			GGVec3Cross ( &vNormal, &( vecVert2 - vecVert1 ), &( vecVert0 - vecVert1 ) );
+			GGVec3Normalize ( &vNormal, &vNormal );
+
+			// apply new normal to geometry for all normals associated with the poly
+			*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace0 ) ) = vNormal;
+			*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace1 ) ) = vNormal;
+			*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace2 ) ) = vNormal;
+		}
+	}
+
+	// flag mesh for a VB update
+	pMesh->bVBRefreshRequired=true;
+	g_vRefreshMeshList.push_back ( pMesh );
+
 	#else
 	if ( pMesh )
 	{

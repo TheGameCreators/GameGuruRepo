@@ -135,6 +135,7 @@ struct Sglobals
 	int charactercreatorrmodelsbankoffset;
 	int charactercreatoreffectbankoffset;
 	int charactercreatorrmodelsoffsetEnd;
+	int perentitypromptoffset;
 	int explosionandfireeffectbankoffset;
 	int internalocclusiondebugimagestart;
 	int staticshadowlightmapeffectoffset;
@@ -1128,6 +1129,7 @@ struct Sglobals
 	int LUAImageoffsetMax;
 	int LUASpriteoffset;
 	int LUASpriteoffsetMax;
+	int perentitypromptimageoffset;
 	int ebeinterfacesprite;
 	int terrainpainterinterfacesprite;
 	int lastTabMode;
@@ -3135,6 +3137,7 @@ struct Stemps
 	std::vector <cstr> missingmedia_s;
 	std::vector <int> objsaveexclude;
 	std::vector <int> phyobjsounding;
+	std::vector <cstr> replacementsinput_s;
 	std::vector <std::vector<cstr>> replacements_s;
 	std::vector <cstr> saveloadslot_s;
 	std::vector <cstr> soundsetlist_s;
