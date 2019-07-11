@@ -188,10 +188,10 @@ void importer_init ( void )
 		t.slidersmenuvalue[g.slidersmenumax][6].valueMin = 0;
 		t.slidersmenuvalue[g.slidersmenumax][6].valueMax = 1000;
 		t.slidersmenuvalue[g.slidersmenumax][7].name_s="Is A Character";
-		t.slidersmenuvalue[g.slidersmenumax][7].value=2;
+		t.slidersmenuvalue[g.slidersmenumax][7].value=1;
 		t.slidersmenuvalue[g.slidersmenumax][7].value_s="No";
 		t.slidersmenuvalue[g.slidersmenumax][7].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][7].gadgettypevalue=106;
+		t.slidersmenuvalue[g.slidersmenumax][7].gadgettypevalue=117;
 		t.slidersmenuvalue[g.slidersmenumax][8].name_s="Cull Mode";
 		t.slidersmenuvalue[g.slidersmenumax][8].value=2;
 		t.slidersmenuvalue[g.slidersmenumax][8].value_s="No";
@@ -4697,12 +4697,12 @@ void importer_apply_fpe ( void )
 	if (  t.importer.objectFPE.ischaracter  ==  "0" ) 
 	{
 		t.slidersmenuvalue[t.importer.properties1Index][7].value_s = "No";
-		t.slidersmenuvalue[t.importer.properties1Index][7].value=2;
+		t.slidersmenuvalue[t.importer.properties1Index][7].value=1;
 	}
 	else
 	{
 		t.slidersmenuvalue[t.importer.properties1Index][7].value_s = "Yes";
-		t.slidersmenuvalue[t.importer.properties1Index][7].value=1;
+		t.slidersmenuvalue[t.importer.properties1Index][7].value=2;
 	}
 
 	//  Shader effect
@@ -4776,12 +4776,13 @@ void importer_save_fpe ( void )
 	//  castshadow
 	t.importer.objectFPE.castshadow = "0";
 	//  ischaracter
-	if (  t.slidersmenuvalue[t.importer.properties1Index][7].value == 2 ) 
+	if ( t.slidersmenuvalue[t.importer.properties1Index][7].value <= 1 ) 
 	{
 		t.importer.objectFPE.ischaracter = "0";
 	}
 	else
 	{
+		// leave character as is, or convert to Uber Animation and rename Skeleton (done after this function call)
 		t.importer.objectFPE.ischaracter = "1";
 	}
 	//  isobjective
@@ -5171,6 +5172,193 @@ void importer_save_entity ( void )
 		}
 	}
 
+	// if selected 'Use Uber Anims', then rename skeleton and apply uber animations automatically
+	if ( t.slidersmenuvalue[t.importer.properties1Index][7].value == 3 ) 
+	{
+		// rename bones to match GG uber character
+		sObject* pObject = GetObjectData(t.importer.objectnumber);
+		if ( pObject )
+		{
+			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
+			{
+				sFrame* pFrame = pObject->ppFrameList[iFrame];
+				if ( pFrame )
+				{
+					LPSTR pOldFrameName = pFrame->szName;
+					if ( pOldFrameName )
+					{
+						if ( strlen(pOldFrameName) > 0 )
+						{
+							// look for common bone names, and transform to GG standard skeleton name
+							const char* pNewName = "";
+							if ( strstr ( pOldFrameName, "mixamorig_Hips" ) > 0 ) pNewName = "Bip01_Pelvis";
+							if ( strstr ( pOldFrameName, "mixamorig_Spine" ) > 0 ) pNewName = "Bip01_Spine";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftUpLeg" ) > 0 ) pNewName = "Bip01_L_Thigh";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftLeg" ) > 0 ) pNewName = "Bip01_L_Calf";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftFoot" ) > 0 ) pNewName = "Bip01_L_Foot";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftToeBase" ) > 0 ) pNewName = "Bip01_L_Toe0";
+							if ( strstr ( pOldFrameName, "mixamorig_RightUpLeg" ) > 0 ) pNewName = "Bip01_R_Thigh";
+							if ( strstr ( pOldFrameName, "mixamorig_RightLeg" ) > 0 ) pNewName = "Bip01_R_Calf";
+							if ( strstr ( pOldFrameName, "mixamorig_RightFoot" ) > 0 ) pNewName = "Bip01_R_Foot";
+							if ( strstr ( pOldFrameName, "mixamorig_RightToeBase" ) > 0 ) pNewName = "Bip01_R_Toe0";
+							if ( strstr ( pOldFrameName, "mixamorig_Spine1" ) > 0 ) pNewName = "Bip01_Spine1";
+							if ( strstr ( pOldFrameName, "mixamorig_Spine2" ) > 0 ) pNewName = "Bip01_Spine2";
+							if ( strstr ( pOldFrameName, "mixamorig_Neck" ) > 0 ) pNewName = "Bip01_Neck";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftShoulder" ) > 0 ) pNewName = "Bip01_L_Clavicle";
+							if ( strstr ( pOldFrameName, "mixamorig_RightShoulder" ) > 0 ) pNewName = "Bip01_R_Clavicle";
+							if ( strstr ( pOldFrameName, "mixamorig_Head" ) > 0 ) pNewName = "Bip01_Head";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftArm" ) > 0 ) pNewName = "Bip01_L_UpperArm";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftForeArm" ) > 0 ) pNewName = "Bip01_L_Forearm";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHand" ) > 0 ) pNewName = "Bip01_L_Hand";
+							if ( strstr ( pOldFrameName, "mixamorig_RightArm" ) > 0 ) pNewName = "Bip01_R_UpperArm";
+							if ( strstr ( pOldFrameName, "mixamorig_RightForeArm" ) > 0 ) pNewName = "Bip01_R_Forearm";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHand" ) > 0 ) pNewName = "Bip01_R_Hand";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb1" ) > 0 ) pNewName = "Bip01_L_Finger0";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb2" ) > 0 ) pNewName = "Bip01_L_Finger01";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb3" ) > 0 ) pNewName = "Bip01_L_Finger02";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex1" ) > 0 ) pNewName = "Bip01_L_Finger1";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger12";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger13";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle1" ) > 0 ) pNewName = "Bip01_L_Finger2";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle2" ) > 0 ) pNewName = "Bip01_L_Finger21";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle3" ) > 0 ) pNewName = "Bip01_L_Finger22";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing1" ) > 0 ) pNewName = "Bip01_L_Finger3";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing2" ) > 0 ) pNewName = "Bip01_L_Finger31";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing3" ) > 0 ) pNewName = "Bip01_L_Finger32";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky1" ) > 0 ) pNewName = "Bip01_L_Finger4";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky2" ) > 0 ) pNewName = "Bip01_L_Finger41";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky3" ) > 0 ) pNewName = "Bip01_L_Finger42";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb1" ) > 0 ) pNewName = "Bip01_R_Finger0";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb2" ) > 0 ) pNewName = "Bip01_R_Finger01";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb3" ) > 0 ) pNewName = "Bip01_R_Finger02";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex1" ) > 0 ) pNewName = "Bip01_R_Finger1";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger12";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger13";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle1" ) > 0 ) pNewName = "Bip01_R_Finger2";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle2" ) > 0 ) pNewName = "Bip01_R_Finger21";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle3" ) > 0 ) pNewName = "Bip01_R_Finger22";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing1" ) > 0 ) pNewName = "Bip01_R_Finger3";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing2" ) > 0 ) pNewName = "Bip01_R_Finger31";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing3" ) > 0 ) pNewName = "Bip01_R_Finger32";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky1" ) > 0 ) pNewName = "Bip01_R_Finger4";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky2" ) > 0 ) pNewName = "Bip01_R_Finger41";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky3" ) > 0 ) pNewName = "Bip01_R_Finger42";
+							if ( strlen(pNewName) == 0 )
+							{
+								if ( strstr ( pOldFrameName, "Hips" ) > 0 ) pNewName = "Bip01_Pelvis";
+								if ( strstr ( pOldFrameName, "Spine" ) > 0 ) pNewName = "Bip01_Spine";
+								if ( strstr ( pOldFrameName, "LeftUpLeg" ) > 0 ) pNewName = "Bip01_L_Thigh";
+								if ( strstr ( pOldFrameName, "LeftLeg" ) > 0 ) pNewName = "Bip01_L_Calf";
+								if ( strstr ( pOldFrameName, "LeftFoot" ) > 0 ) pNewName = "Bip01_L_Foot";
+								if ( strstr ( pOldFrameName, "LeftToeBase" ) > 0 ) pNewName = "Bip01_L_Toe0";
+								if ( strstr ( pOldFrameName, "RightUpLeg" ) > 0 ) pNewName = "Bip01_R_Thigh";
+								if ( strstr ( pOldFrameName, "RightLeg" ) > 0 ) pNewName = "Bip01_R_Calf";
+								if ( strstr ( pOldFrameName, "RightFoot" ) > 0 ) pNewName = "Bip01_R_Foot";
+								if ( strstr ( pOldFrameName, "RightToeBase" ) > 0 ) pNewName = "Bip01_R_Toe0";
+								if ( strstr ( pOldFrameName, "Spine1" ) > 0 ) pNewName = "Bip01_Spine1";
+								if ( strstr ( pOldFrameName, "Spine2" ) > 0 ) pNewName = "Bip01_Spine2";
+								if ( strstr ( pOldFrameName, "Neck" ) > 0 ) pNewName = "Bip01_Neck";
+								if ( strstr ( pOldFrameName, "LeftShoulder" ) > 0 ) pNewName = "Bip01_L_Clavicle";
+								if ( strstr ( pOldFrameName, "RightShoulder" ) > 0 ) pNewName = "Bip01_R_Clavicle";
+								if ( strstr ( pOldFrameName, "Head" ) > 0 ) pNewName = "Bip01_Head";
+								if ( strstr ( pOldFrameName, "LeftArm" ) > 0 ) pNewName = "Bip01_L_UpperArm";
+								if ( strstr ( pOldFrameName, "LeftForeArm" ) > 0 ) pNewName = "Bip01_L_Forearm";
+								if ( strstr ( pOldFrameName, "LeftHand" ) > 0 ) pNewName = "Bip01_L_Hand";
+								if ( strstr ( pOldFrameName, "RightArm" ) > 0 ) pNewName = "Bip01_R_UpperArm";
+								if ( strstr ( pOldFrameName, "RightForeArm" ) > 0 ) pNewName = "Bip01_R_Forearm";
+								if ( strstr ( pOldFrameName, "RightHand" ) > 0 ) pNewName = "Bip01_R_Hand";
+								if ( strstr ( pOldFrameName, "LeftHandThumb1" ) > 0 ) pNewName = "Bip01_L_Finger0";
+								if ( strstr ( pOldFrameName, "LeftHandThumb2" ) > 0 ) pNewName = "Bip01_L_Finger01";
+								if ( strstr ( pOldFrameName, "LeftHandThumb3" ) > 0 ) pNewName = "Bip01_L_Finger02";
+								if ( strstr ( pOldFrameName, "LeftHandIndex1" ) > 0 ) pNewName = "Bip01_L_Finger1";
+								if ( strstr ( pOldFrameName, "LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger12";
+								if ( strstr ( pOldFrameName, "LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger13";
+								if ( strstr ( pOldFrameName, "LeftHandMiddle1" ) > 0 ) pNewName = "Bip01_L_Finger2";
+								if ( strstr ( pOldFrameName, "LeftHandMiddle2" ) > 0 ) pNewName = "Bip01_L_Finger21";
+								if ( strstr ( pOldFrameName, "LeftHandMiddle3" ) > 0 ) pNewName = "Bip01_L_Finger22";
+								if ( strstr ( pOldFrameName, "LeftHandRing1" ) > 0 ) pNewName = "Bip01_L_Finger3";
+								if ( strstr ( pOldFrameName, "LeftHandRing2" ) > 0 ) pNewName = "Bip01_L_Finger31";
+								if ( strstr ( pOldFrameName, "LeftHandRing3" ) > 0 ) pNewName = "Bip01_L_Finger32";
+								if ( strstr ( pOldFrameName, "LeftHandPinky1" ) > 0 ) pNewName = "Bip01_L_Finger4";
+								if ( strstr ( pOldFrameName, "LeftHandPinky2" ) > 0 ) pNewName = "Bip01_L_Finger41";
+								if ( strstr ( pOldFrameName, "LeftHandPinky3" ) > 0 ) pNewName = "Bip01_L_Finger42";
+								if ( strstr ( pOldFrameName, "RightHandThumb1" ) > 0 ) pNewName = "Bip01_R_Finger0";
+								if ( strstr ( pOldFrameName, "RightHandThumb2" ) > 0 ) pNewName = "Bip01_R_Finger01";
+								if ( strstr ( pOldFrameName, "RightHandThumb3" ) > 0 ) pNewName = "Bip01_R_Finger02";
+								if ( strstr ( pOldFrameName, "RightHandIndex1" ) > 0 ) pNewName = "Bip01_R_Finger1";
+								if ( strstr ( pOldFrameName, "RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger12";
+								if ( strstr ( pOldFrameName, "RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger13";
+								if ( strstr ( pOldFrameName, "RightHandMiddle1" ) > 0 ) pNewName = "Bip01_R_Finger2";
+								if ( strstr ( pOldFrameName, "RightHandMiddle2" ) > 0 ) pNewName = "Bip01_R_Finger21";
+								if ( strstr ( pOldFrameName, "RightHandMiddle3" ) > 0 ) pNewName = "Bip01_R_Finger22";
+								if ( strstr ( pOldFrameName, "RightHandRing1" ) > 0 ) pNewName = "Bip01_R_Finger3";
+								if ( strstr ( pOldFrameName, "RightHandRing2" ) > 0 ) pNewName = "Bip01_R_Finger31";
+								if ( strstr ( pOldFrameName, "RightHandRing3" ) > 0 ) pNewName = "Bip01_R_Finger32";
+								if ( strstr ( pOldFrameName, "RightHandPinky1" ) > 0 ) pNewName = "Bip01_R_Finger4";
+								if ( strstr ( pOldFrameName, "RightHandPinky2" ) > 0 ) pNewName = "Bip01_R_Finger41";
+								if ( strstr ( pOldFrameName, "RightHandPinky3" ) > 0 ) pNewName = "Bip01_R_Finger42";
+							}
+
+							// replace all instances of this name (if found)
+							if ( strlen(pNewName) > 0 ) 
+							{
+								// rename animation reference name too
+								if ( pObject->pAnimationSet )
+								{
+									sAnimation* pCurrent = pObject->pAnimationSet->pAnimation;
+									while(pCurrent)
+									{
+										if ( pCurrent->szName )
+										{
+											if ( stricmp ( pCurrent->szName, pFrame->szName ) == NULL )
+											{
+												strcpy ( pCurrent->szName, pNewName );
+												break;
+											}
+										}
+										pCurrent = pCurrent->pNext;
+									}
+								}
+
+								// also rename bone names within each mesh
+								for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+								{
+									sMesh* pMesh = pObject->ppMeshList[iMesh];
+									if ( pMesh )
+									{
+										if ( pMesh->pBones )
+										{
+											for ( int iBone = 0; iBone < pMesh->dwBoneCount; iBone++ )
+											{
+												if ( pMesh->pBones [ iBone ].szName )
+												{
+													if ( stricmp ( pMesh->pBones [ iBone ].szName, pFrame->szName ) == NULL )
+													{
+														strcpy ( pMesh->pBones [ iBone ].szName, pNewName );
+														break;
+													}
+												}								
+											}
+										}
+									}
+								}
+
+								// finally rename frame
+								strcpy ( pFrame->szName, pNewName );
+							}
+							//else
+							//	MessageBox ( NULL, "not found for", pOldFrameName, MB_OK );
+						}
+					}
+				}
+			}
+
+			// append uber animations to character
+			cstr pAbsPathToUberAnimFile = g.fpscrootdir_s + "\\Files\\entitybank\\Characters\\Uber Soldier.dbo";//appendanims.x";
+			AppendAnimationFromFile ( pObject, pAbsPathToUberAnimFile.Get(), 0 );
+		}
+	}
+
 	// Save Object
 	if ( strcmp ( Lower(Right(t.tSaveFile_s.Get(),4)) , ".dbo" ) == 0 ) 
 	{
@@ -5438,7 +5626,7 @@ void importer_save_entity ( void )
 		}
 	}
 
-	//  save FPE file
+	// save FPE file
 	importer_save_fpe ( );
 
 	// Save/Generate Thumbnail BMP
