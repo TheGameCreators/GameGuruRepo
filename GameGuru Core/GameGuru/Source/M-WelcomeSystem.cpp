@@ -751,6 +751,64 @@ void welcome_main_page ( int iHighlightingButton )
 	}
 }
 
+void welcome_mainvr_init ( void )
+{
+	memset ( &g_welcomemain, 0, sizeof(g_welcomemain) );
+	g_welcomemain.iTickToHide = 1;
+}
+
+void welcome_mainvr_page ( int iHighlightingButton )
+{
+	// draw page
+	int iID = 0;
+	welcome_text ( "WELCOME TO VR QUEST", 5, 50, 10, 255, false, false );
+	welcome_text ( "Would you like to learn more about VR Quest\nor go directly to the editor and start creating a 3D game?", 1, 50, 72, 192, true, false );
+	iID = 4; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
+	if ( g.gshowonstartup != 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
+	welcome_text ( "Tick to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
+	welcome_drawrotatedimage ( g.editorimagesoffset+56, 37.5f, 22, 0, 0, 0, false );
+	welcome_drawrotatedimage ( g.editorimagesoffset+58, 62.5f, 22, 0, 0, 0, false );
+	iID = 1; welcome_textinbox ( iID, "LEARN", 1, 37.5f, 60, g_welcomebutton[iID].alpha );
+	iID = 3; welcome_textinbox ( iID, "CREATE", 1, 62.5f, 60, g_welcomebutton[iID].alpha );
+
+	// control page
+	if ( t.inputsys.mclick == 1 && t.inputsys.mclickreleasestate == 0 ) 
+	{
+		if ( iHighlightingButton == 1 ) 
+		{
+			// read the PDF manual
+			cstr pPDFPath = g.fpscrootdir_s + "\\Files\\languagebank\\english\\artwork\\branded\\Getting Started Guide.pdf";
+			ExecuteFile ( pPDFPath.Get(), "" , "", 0 );
+			welcome_waitfornoinput();
+		}
+		if ( iHighlightingButton == 3 ) 
+		{
+			// go to editor in create mode
+			t.tclosequick = 1;
+		}
+		if ( iHighlightingButton == 4 ) 
+		{
+			// toggle startup flag
+			t.inputsys.mclick = 0;
+			t.inputsys.mclickreleasestate = 1;
+			g.gshowonstartup = 1 - g.gshowonstartup;
+
+			// save setting
+			t.tfile_s = g.fpscrootdir_s+"\\showonstartup.ini";
+			DeleteAFile ( t.tfile_s.Get() );
+			if ( FileOpen(1) ==  1 ) CloseFile ( 1 );
+			OpenToWrite ( 1, t.tfile_s.Get() );
+			WriteString ( 1, cstr(g.gshowonstartup).Get() );
+			WriteString ( 1, "10" );
+			for ( int n = 0; n < 10; n++ )
+			{
+				WriteString ( 1, "0" );
+			}
+			CloseFile (  1 );
+		}
+	}
+}
+
 // PLAY PAGE
 
 struct welcomeplaytype
@@ -836,6 +894,12 @@ void welcome_exitapp_page ( int iHighlightingButton )
 		welcome_text ( "You may change 'forceloadtestgameshaders' back to zero", 1, 50, 28+(3*5), 192, true, false );
 		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(6*5), 192, true, false );
 	}
+	if ( g.iTriggerSoftwareToQuit == 4 )
+	{
+		welcome_text ( "No Internet Connection", 1, 50, 2+(2*5), 192, true, false );
+		welcome_text ( "You need a connection to confirm the software license", 1, 50, 28+(3*5), 192, true, false );
+		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 15+(15*5), 192, true, false );
+	}
 
 	// control page
 	if ( t.inputsys.mclick == 1 ) 
@@ -892,6 +956,7 @@ void welcome_setuppage ( int iPageIndex )
 	if ( iPageIndex == WELCOME_WHATYOUGET ) welcome_whatyouget_init();
 	if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_init();
 	if ( iPageIndex == WELCOME_MAIN ) welcome_main_init();
+	if ( iPageIndex == WELCOME_MAINVR ) welcome_mainvr_init();
 	if ( iPageIndex == WELCOME_PLAY ) welcome_play_init();
 	if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_init();
 	if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_init();
@@ -986,6 +1051,7 @@ void welcome_runloop ( int iPageIndex )
 			if ( iPageIndex == WELCOME_WHATYOUGET ) welcome_whatyouget_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_MAIN ) welcome_main_page ( iHighlightingButton );
+			if ( iPageIndex == WELCOME_MAINVR ) welcome_mainvr_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_PLAY ) g_welcomesystemclosedown = welcome_play_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_page ( iHighlightingButton );

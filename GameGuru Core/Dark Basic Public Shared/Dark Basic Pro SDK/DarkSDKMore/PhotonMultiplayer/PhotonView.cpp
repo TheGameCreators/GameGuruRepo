@@ -69,4 +69,3 @@ LPSTR PhotonView::GetPlayerName ( int iPlayerIndex )
 { 
 	return sPlayerList[iPlayerIndex]; 
 }
-

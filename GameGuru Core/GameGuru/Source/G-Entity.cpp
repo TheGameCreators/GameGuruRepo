@@ -600,7 +600,7 @@ void entity_loop ( void )
 							if ( t.ttemploop != g.mp.me ) 
 							{
 								#ifdef PHOTONMP
-								 int iAlive = PhotonGetPlayerAlive(1+t.ttemploop);
+								 int iAlive = PhotonGetPlayerAlive(t.ttemploop);
 								#else
 								 int iAlive = SteamGetPlayerAlive(t.ttemploop);
 								#endif

@@ -1037,15 +1037,21 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 
 	// find out active controller and store info
 	static int g_iLastControllerActive = 0;
-	if ( GetVisible ( GGVR_Player.ObjRightHand ) == 1 )
+	if ( GGVR_bTouchPadTouched )
 	{
-		g_iLastControllerActive = 1;
-	}
-	else
-	{
-		if ( GetVisible ( GGVR_Player.ObjLeftHand ) == 1 )
+		if ( GGVR_bTouchPadIsRightHand == true )
 		{
-			g_iLastControllerActive = 2;
+			if ( GetVisible ( GGVR_Player.ObjRightHand ) == 1 )
+			{
+				g_iLastControllerActive = 1; // right has gadgets
+			}
+		}
+		else
+		{
+			if ( GetVisible ( GGVR_Player.ObjLeftHand ) == 1 )
+			{
+				g_iLastControllerActive = 2; // left has gadgets
+			}
 		}
 	}
 

@@ -923,13 +923,13 @@ void editor_showquickstart ( int iForceMainOpen )
 	if ( g.gfirsttimerun == 1 ) welcome_show(WELCOME_WHATYOUGET);
 
 	// if welcome not deactivated
-	if ( g.vrqcontrolmode == 0 )
+	if ( g.gshowonstartup != 0 || iForceMainOpen == 1 )
 	{
-		if ( g.gshowonstartup != 0 || iForceMainOpen == 1 )
-		{
-			// start welcome page
+		// start welcome page
+		if ( g.vrqcontrolmode == 0 )
 			welcome_show(WELCOME_MAIN);
-		}
+		else
+			welcome_show(WELCOME_MAINVR);
 	}
 
 	// close welcome system

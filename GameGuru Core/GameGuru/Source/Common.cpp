@@ -2369,71 +2369,81 @@ int common_isserialcodevalid ( LPSTR pSerialCode )
 		// disconnect from server
 		HTTPDisconnect();
 
-		// break up response string
-		char pValid[10240];
-		strcpy ( pValid, "" );
-		char pMessage[10240];
-		strcpy ( pMessage, "" );
-		char pWorkStr[10240];
-		strcpy ( pWorkStr, pDataReturned );
-		if ( pWorkStr[0]=='{' ) strcpy ( pWorkStr, pWorkStr+1 );
-		int n = 10200;
-		for (; n>0; n-- ) if ( pWorkStr[n] == '}' ) { pWorkStr[n] = 0; break; }
-		char* pChop = strstr ( pWorkStr, "," );
-		char pStatusStr[10240];
-		strcpy ( pStatusStr, pWorkStr );
-		pStatusStr[pChop-pWorkStr] = 0;
-		char* pStatusValue = strstr ( pStatusStr, ":" ) + 1;
-		if ( pChop[0]=',' ) pChop += 1;
-		if ( strstr ( pStatusValue, "success" ) != NULL )
+		// if no internet connection, cannot check license key
+		if ( strstr ( pDataReturned, "Send Request failed" ) == NULL )
 		{
-			// success - check valid status
-			pChop = strstr ( pChop, ":" ) + 1;
-			strcpy ( pValid, pChop );
-			char pEndOfChunk[4];
-			pEndOfChunk[0]=',';
-			pEndOfChunk[1]=0;
-			char* pValidEnd = strstr ( pValid, pEndOfChunk );
-			pValid[pValidEnd-pValid] = 0;
-			pChop += (pValidEnd-pValid);
-
-			// determine if valid true or false
-			bool bIsKeyValid = true;
-			if ( strstr ( pValid, "false" ) != NULL )
-				bIsKeyValid = false;
-
-			// show prompt of not valid
-			if ( bIsKeyValid == true )
+			// break up response string
+			char pValid[10240];
+			strcpy ( pValid, "" );
+			char pMessage[10240];
+			strcpy ( pMessage, "" );
+			char pWorkStr[10240];
+			strcpy ( pWorkStr, pDataReturned );
+			if ( pWorkStr[0]=='{' ) strcpy ( pWorkStr, pWorkStr+1 );
+			int n = 10200;
+			for (; n>0; n-- ) if ( pWorkStr[n] == '}' ) { pWorkStr[n] = 0; break; }
+			char* pChop = strstr ( pWorkStr, "," );
+			char pStatusStr[10240];
+			strcpy ( pStatusStr, pWorkStr );
+			pStatusStr[pChop-pWorkStr] = 0;
+			char* pStatusValue = strstr ( pStatusStr, ":" ) + 1;
+			if ( pChop[0]=',' ) pChop += 1;
+			if ( strstr ( pStatusValue, "success" ) != NULL )
 			{
-				// passed server check, key is valid
-				iValidCode = 1;
+				// success - check valid status
+				pChop = strstr ( pChop, ":" ) + 1;
+				strcpy ( pValid, pChop );
+				char pEndOfChunk[4];
+				pEndOfChunk[0]=',';
+				pEndOfChunk[1]=0;
+				char* pValidEnd = strstr ( pValid, pEndOfChunk );
+				pValid[pValidEnd-pValid] = 0;
+				pChop += (pValidEnd-pValid);
+
+				// determine if valid true or false
+				bool bIsKeyValid = true;
+				if ( strstr ( pValid, "false" ) != NULL )
+					bIsKeyValid = false;
+
+				// show prompt of not valid
+				if ( bIsKeyValid == true )
+				{
+					// passed server check, key is valid
+					iValidCode = 1;
+				}
+				else
+				{
+					// message info
+					strcpy ( pMessage, strstr ( pChop, ":" ) + 1 );
+					char* pCurly = strstr ( pMessage, "}" );
+					if ( pCurly ) *pCurly = ' ';
+					strcpy ( g_pCloudKeyErrorString, pMessage );
+					//MessageBox ( NULL, pMessage, "Cloud Key Validation Failed", MB_OK );
+				}
 			}
 			else
 			{
-				// message info
-				strcpy ( pMessage, strstr ( pChop, ":" ) + 1 );
-				char* pCurly = strstr ( pMessage, "}" );
-				if ( pCurly ) *pCurly = ' ';
-				strcpy ( g_pCloudKeyErrorString, pMessage );
-				//MessageBox ( NULL, pMessage, "Cloud Key Validation Failed", MB_OK );
+				// error prompt when server check fails
+				char* pMessageValue = strstr ( pChop, ":" );
+				if ( pMessageValue )
+				{
+					char* pCurly = strstr ( pMessageValue, "}" );
+					if ( pCurly ) *pCurly = ' ';
+					strcpy ( g_pCloudKeyErrorString, pMessageValue );
+					//MessageBox ( NULL, pMessageValue, "Cloud Key Validation Check", MB_OK );
+				}
+				else
+				{
+					strcpy ( g_pCloudKeyErrorString, pChop );
+					//MessageBox ( NULL, pChop, "Cloud Key Validation Check", MB_OK );
+				}
 			}
 		}
 		else
 		{
-			// error prompt when server check fails
-			char* pMessageValue = strstr ( pChop, ":" );
-			if ( pMessageValue )
-			{
-				char* pCurly = strstr ( pMessageValue, "}" );
-				if ( pCurly ) *pCurly = ' ';
-				strcpy ( g_pCloudKeyErrorString, pMessageValue );
-				//MessageBox ( NULL, pMessageValue, "Cloud Key Validation Check", MB_OK );
-			}
-			else
-			{
-				strcpy ( g_pCloudKeyErrorString, pChop );
-				//MessageBox ( NULL, pChop, "Cloud Key Validation Check", MB_OK );
-			}
+			// no internet connection available
+			strcpy ( g_pCloudKeyErrorString, "No Internet Connection - Cannot Check Key" );
+			iValidCode = -1;
 		}
 
 	#else
@@ -2621,7 +2631,8 @@ void FPSC_Setup ( void )
 		if ( strlen(g.vrqcontrolmodeserialcode.Get()) > 1 )
 		{
 			// determine FROM and TO dates from serial code
-			if ( common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get()) == 0 )
+			int iValidCode = common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get());
+			if ( iValidCode <= 0 )
 			{
 				// serial code expired
 				#ifdef CLOUDKEYSYSTEM
@@ -2629,8 +2640,16 @@ void FPSC_Setup ( void )
 				#else
 				MessageBox ( NULL, "Your code has expired, obtain an updated code to continue using the software.", "License Not Found", MB_OK );
 				#endif
-				g.vrqTriggerSerialCodeEntrySystem = 1;
-				g.iTriggerSoftwareToQuit = 1;
+				if ( iValidCode == -1 )
+				{
+					// no internet connection so cannot check key, just quit!
+					g.iTriggerSoftwareToQuit = 4;
+				}
+				else
+				{
+					g.vrqTriggerSerialCodeEntrySystem = 1;
+					g.iTriggerSoftwareToQuit = 1;
+				}
 			}
 			else
 			{

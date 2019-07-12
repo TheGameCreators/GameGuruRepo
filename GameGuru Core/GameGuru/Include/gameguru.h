@@ -3624,7 +3624,7 @@ struct Stemps
 	int tpanelheight;
 	int tParticleObj;
 	int tpickedthumb;
-	int tPlayerIndex;
+	//int tPlayerIndex;
 	int transporttoe;
 	cstr tSaveThumb_s;
 	float tshiftscrx_f;
@@ -7467,7 +7467,7 @@ struct Stemps
 		 tshiftscrx_f = 0.0f;
 		 tSaveThumb_s = "";
 		 transporttoe = 0;
-		 tPlayerIndex = 0;
+		 //tPlayerIndex = 0;
 		 tpickedthumb = 0;
 		 tParticleObj = 0;
 		 tpanelheight = 0;

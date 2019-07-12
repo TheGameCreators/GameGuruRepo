@@ -49,6 +49,7 @@ class PhotonView
 
 		std::vector< LPSTR > sRoomList;
 		std::vector< LPSTR > sPlayerList;
+	
 };
 
 /*

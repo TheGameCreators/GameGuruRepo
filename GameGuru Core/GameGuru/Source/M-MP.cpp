@@ -10,6 +10,9 @@
 ///extern bool OnlineMultiplayerModeForSharingFiles;
 #endif
 
+// Prototypes
+void lua_promptlocalcore ( int iTrueLocalOrForVR );
+
 //  Startup Steam
 void mp_init ( void )
 {
@@ -462,7 +465,8 @@ void mp_loop ( void )
 			for ( t.tn = 1 ; t.tn <= t.tUserCount; t.tn++ )
 			{
 				#ifdef PHOTONMP
-				 t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + PhotonGetLobbyUserDisplayName(t.tn-1);
+				 LPSTR pDisplayName = PhotonGetLobbyUserDisplayName(t.tn-1);
+				 t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pDisplayName;
 				 if ( PhotonGetPlayerName() != PhotonGetLobbyUserName(t.tn-1) ) t.mp_joined[t.tn-1] = PhotonGetLobbyUserName(t.tn-1);
 				#else
 				 t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + SteamGetLobbyUserName(t.tn-1);
@@ -519,13 +523,13 @@ void mp_loop ( void )
 
 			// Reset player var
 			#ifdef PHOTONMP
-			 t.tPlayerIndex = PhotonGetMyPlayerIndex();
+			 int tPlayerIndex = PhotonGetMyPlayerIndex();
 			#else
-			 t.tPlayerIndex = SteamGetMyPlayerIndex();
+			 int tPlayerIndex = SteamGetMyPlayerIndex();
 			#endif
-			if ( t.tPlayerIndex >= 0 && t.tPlayerIndex < MP_MAX_NUMBER_OF_PLAYERS ) 
+			if ( tPlayerIndex >= 0 && tPlayerIndex < MP_MAX_NUMBER_OF_PLAYERS ) 
 			{
-				t.mp_health[t.tPlayerIndex] = 0;
+				t.mp_health[tPlayerIndex] = 0;
 				t.ta = MouseMoveX() + MouseMoveY();
 			}
 		}
@@ -554,7 +558,8 @@ void mp_loop ( void )
 			t.tsteamy = t.tsteamy_f;
 			for ( t.tn = 1 ; t.tn <= t.tUserCount; t.tn++ )
 			{
-				LPSTR pLobbyUserName = PhotonGetLobbyUserDisplayName(t.tn-1);
+				LPSTR pDisplayName = PhotonGetLobbyUserDisplayName(t.tn-1);
+				LPSTR pLobbyUserName = pDisplayName;
 				//if ( t.tn == 1 ) 
 				//{
 				//	t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pLobbyUserName + " (Host)";
@@ -738,7 +743,7 @@ void mp_loop ( void )
 				g.mp.needToResetOnStartup = 1;
 				//t.toldsteamfolder_s=GetDir();
 				//SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
-				t.tPlayerIndex = PhotonGetMyPlayerIndex();
+				//t.tPlayerIndex = PhotonGetMyPlayerIndex();
 			}
 			else
 			{
@@ -1237,14 +1242,20 @@ void mp_lua ( void )
 			break;
 			*/
 			case MP_LUA_SendAvatar:
+			{
+				int iSlotIndex = t.e;
 				t.tsteams_s = PhotonGetLuaS();
-				t.mp_playerAvatars_s[t.e] = t.tsteams_s;
-				t.mp_playerAvatarLoaded[t.e] = false;
+				t.mp_playerAvatars_s[iSlotIndex] = t.tsteams_s;
+				t.mp_playerAvatarLoaded[iSlotIndex] = false;
 				t.bTriggerAvatarRescanAndLoad = true;
+			}
 			break;
 			case MP_LUA_SendAvatarName:
+			{
+				int iSlotIndex = t.e;
 				t.tsteams_s = PhotonGetLuaS();
-				t.mp_playerAvatarOwners_s[t.e] = t.tsteams_s;
+				t.mp_playerAvatarOwners_s[iSlotIndex] = t.tsteams_s;
+			}
 			break;
 		}
 	
@@ -1923,18 +1934,19 @@ void mp_sendAvatarInfo ( void )
 	if ( g.mp.haveSentMyAvatar == 0 ) 
 	{
 		#ifdef PHOTONMP
-		 g.mp.me = PhotonGetMyPlayerIndex() - 1;
+		 g.mp.me = PhotonGetMyPlayerIndex();
 		 //if ( g.mp.me <= 0 ) g.mp.me = 0;
 		#else
 		 g.mp.me = SteamGetMyPlayerIndex();
 		#endif
-		if ( 1 ) //g.mp.isGameHost == 1 || g.mp.me != 0 ) 
+		if ( 1 )
 		{
 			g.mp.haveSentMyAvatar = 1;
 			#ifdef PHOTONMP
 			 LPSTR pPlayerName = PhotonGetPlayerName();
-			 PhotonSendLuaString ( MP_LUA_SendAvatarName, g.mp.me, pPlayerName );
-			 PhotonSendLuaString ( MP_LUA_SendAvatar, g.mp.me, g.mp.myAvatar_s.Get() );
+			 int iRealPhotonPlayerNr = PhotonGetMyRealPlayerNr();
+			 PhotonSendLuaPlayerSpecificString ( MP_LUA_SendAvatarName, iRealPhotonPlayerNr, pPlayerName );
+			 PhotonSendLuaPlayerSpecificString ( MP_LUA_SendAvatar, iRealPhotonPlayerNr, g.mp.myAvatar_s.Get() );
 			#else
 			 LPSTR pPlayerName = SteamGetPlayerName();
 			 SteamSendLuaString ( MP_LUA_SendAvatarName, g.mp.me, pPlayerName );
@@ -2120,11 +2132,11 @@ void mp_updatePlayerPositions ( void )
 	{
 		// get server data
 		#ifdef PHOTONMP
-		 int iAlive = PhotonGetPlayerAlive(1+t.c);
-		 float fX = PhotonGetPlayerPositionX(1+t.c);
-		 float fY = PhotonGetPlayerPositionY(1+t.c);
-		 float fZ = PhotonGetPlayerPositionZ(1+t.c);
-		 float fAngle = PhotonGetPlayerAngle(1+t.c);
+		 int iAlive = PhotonGetPlayerAlive(t.c);
+		 float fX = PhotonGetPlayerPositionX(t.c);
+		 float fY = PhotonGetPlayerPositionY(t.c);
+		 float fZ = PhotonGetPlayerPositionZ(t.c);
+		 float fAngle = PhotonGetPlayerAngle(t.c);
 		#else
 		 int iAlive = SteamGetPlayerAlive(t.c);
 		 float fX = SteamGetPlayerPositionX(t.c);
@@ -2142,7 +2154,7 @@ void mp_updatePlayerPositions ( void )
 				t.y_f = fY;
 				t.z_f = fZ;
 				#ifdef PHOTONMP
-				 PhotonSetTweening ( 1+t.c, 1 );
+				 PhotonSetTweening ( t.c, 1 );
 				#else
 				 SteamSetTweening ( t.c, 1 );
 				#endif
@@ -2150,7 +2162,7 @@ void mp_updatePlayerPositions ( void )
 			else
 			{
 				#ifdef PHOTONMP
-				 PhotonSetTweening ( 1+t.c, 0 );
+				 PhotonSetTweening ( t.c, 0 );
 				#else
 				 SteamSetTweening ( t.c, 0 );
 				#endif
@@ -2212,6 +2224,7 @@ if (  Timer() - t.tsteamdisplaymessagetimer < 2000  )  mp_text(-1,10,3,t.s_s.Get
 
 void mp_updatePlayerNamePlates ( void )
 {
+	/*
 	if ( g.mp.nameplatesOff == 1 ) 
 	{
 		for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
@@ -2223,10 +2236,26 @@ void mp_updatePlayerNamePlates ( void )
 		}
 		return;
 	}
+	*/
 
-	//  Display players names and stats
+	// Display players names 
 	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
+		t.e = t.mp_playerEntityID[t.c];
+		LPSTR pDisplayName = PhotonGetLobbyUserDisplayName ( t.c );
+		if ( pDisplayName && t.entityelement[t.e].obj > 0 && ObjectExist(t.entityelement[t.e].obj) == 1 && GetVisible(t.entityelement[t.e].obj) == 1 )
+		{
+			char pFinalDisplayName[1024];
+			strcpy ( pFinalDisplayName, pDisplayName );
+			strupr ( pFinalDisplayName );
+			strcpy ( pFinalDisplayName+1, pDisplayName+1 );
+			t.s_s = pFinalDisplayName;
+		}
+		else
+			t.s_s = "";
+		lua_promptlocalcore ( 2 );
+
+		/*
 		//  if it isnt me, display their details above their head
 		if ( g.mp.sentmyname == 1 ) 
 		{
@@ -2244,7 +2273,7 @@ void mp_updatePlayerNamePlates ( void )
 				if ( t.c != g.mp.me ) 
 				{
 					#ifdef PHOTONMP
-						int iAlive = PhotonGetPlayerAlive(1+t.c);
+						int iAlive = PhotonGetPlayerAlive(t.c);
 						t.tname_s = "Player";//PhotonGetOtherPlayerName(t.c);
 					#else
 						int iAlive = SteamGetPlayerAlive(t.c);
@@ -2340,8 +2369,9 @@ void mp_updatePlayerNamePlates ( void )
 				}
 			}
 		}
+		*/
 	}
-	g.mp.sentmyname = 0;
+	//g.mp.sentmyname = 0;
 }
 
 void mp_updatePlayerAnimations ( void )
@@ -2359,16 +2389,16 @@ void mp_updatePlayerAnimations ( void )
 
 			// get multiplayer datas
 			#ifdef PHOTONMP
- 			 int iPlayerShoot = PhotonGetShoot(1+t.c);
-			 int iPlayerAlive = PhotonGetPlayerAlive(1+t.c);
-			 int iPlayerAppearance = PhotonGetPlayerAppearance(1+t.c);
-			 int iPlayerKey16 = PhotonGetKeyState(1+t.c,16);
-			 int iPlayerKey17 = PhotonGetKeyState(1+t.c,17);
-			 int iPlayerKey30 = PhotonGetKeyState(1+t.c,30);
-			 int iPlayerKey31 = PhotonGetKeyState(1+t.c,31);
-			 int iPlayerKey32 = PhotonGetKeyState(1+t.c,32);
-			 int iPlayerKey42 = PhotonGetKeyState(1+t.c,42);
-			 int iPlayerKey46 = PhotonGetKeyState(1+t.c,46);
+ 			 int iPlayerShoot = PhotonGetShoot(t.c);
+			 int iPlayerAlive = PhotonGetPlayerAlive(t.c);
+			 int iPlayerAppearance = PhotonGetPlayerAppearance(t.c);
+			 int iPlayerKey16 = PhotonGetKeyState(t.c,16);
+			 int iPlayerKey17 = PhotonGetKeyState(t.c,17);
+			 int iPlayerKey30 = PhotonGetKeyState(t.c,30);
+			 int iPlayerKey31 = PhotonGetKeyState(t.c,31);
+			 int iPlayerKey32 = PhotonGetKeyState(t.c,32);
+			 int iPlayerKey42 = PhotonGetKeyState(t.c,42);
+			 int iPlayerKey46 = PhotonGetKeyState(t.c,46);
 			#else
  			 int iPlayerShoot = SteamGetShoot(t.c);
 			 int iPlayerAlive = SteamGetPlayerAlive(t.c);
@@ -4810,7 +4840,7 @@ void mp_NearOtherPlayers ( void )
 				if ( ObjectExist(t.tobj) ) 
 				{
 					#ifdef PHOTONMP
-						int iAlive = PhotonGetPlayerAlive(1+t.c);
+						int iAlive = PhotonGetPlayerAlive(t.c);
 					#else
 						int iAlive = SteamGetPlayerAlive(t.c);
 					#endif
@@ -4930,7 +4960,13 @@ void mp_lostConnection ( void )
 	mp_quitGame ( );
 }
 
-void mp_hostalwaysreadytosendplayeramapfile ( void )
+void mp_resetslotvarsforplayerarrival ( int iSlotIndex )
+{
+	// causes player to hide and show properly when arriving
+	t.mp_forcePosition[iSlotIndex] = 1;
+}
+
+void mp_hostalwaysreadytosendplayeramapfile()
 {
 	// host needs to send the map to the new arrival
 	if ( g.mp.syncedWithServerMode == 99 )
@@ -4939,6 +4975,9 @@ void mp_hostalwaysreadytosendplayeramapfile ( void )
 		int iNewPlayerArrived = PhotonPlayerArrived();
 		if ( iNewPlayerArrived != -1 )
 		{
+			// reset some slot vars
+			mp_resetslotvarsforplayerarrival(PhotonGetRemap(iNewPlayerArrived));
+
 			// triggers server to send map file
 			g.mp.syncedWithServerMode = 0;
 			g.mp.onlySendMapToSpecificPlayer = iNewPlayerArrived;
@@ -4977,7 +5016,7 @@ void mp_gameLoop ( void )
 
 	// Find out which index we are
 	#ifdef PHOTONMP
-	 g.mp.me = PhotonGetMyPlayerIndex() - 1;
+	 g.mp.me = PhotonGetMyPlayerIndex();
 	 //if ( g.mp.me <= 0 ) g.mp.me = 0;
 	#else
 	 g.mp.me = SteamGetMyPlayerIndex();
@@ -5007,6 +5046,9 @@ void mp_gameLoop ( void )
 			int iNewPlayerArrived = PhotonPlayerArrived();
 			if ( iNewPlayerArrived != -1 )
 			{
+				// reset some slot vars
+				mp_resetslotvarsforplayerarrival(PhotonGetRemap(iNewPlayerArrived));
+
 				// resent avatar of server to new player (and others)
 				g.mp.haveSentMyAvatar = 0;
 			}
@@ -5111,7 +5153,7 @@ void mp_gameLoop ( void )
 				if ( ObjectExist(t.entityelement[t.mp_playerEntityID[t.a]].obj) ) 
 				{
 					#ifdef PHOTONMP
-					 int iAlive = PhotonGetPlayerAlive(1+t.a);
+					 int iAlive = PhotonGetPlayerAlive(t.a);
 					#else
 					 int iAlive = SteamGetPlayerAlive(t.a);
 					#endif
@@ -5194,9 +5236,7 @@ void mp_gameLoop ( void )
 	mp_update_player ( );
 	mp_updatePlayerPositions ( );
 	mp_updatePlayerInput ( );
-	/*
 	mp_updatePlayerNamePlates ( );
-	*/
 	mp_updatePlayerAnimations ( );
 	/*
 	mp_delete_entities ( );
@@ -8237,10 +8277,10 @@ void mp_sendlua ( int code, int e, int v )
 	#endif
 }
 
-void mp_sendluaToPlayer ( int index, int code, int e, int v )
+void mp_sendluaToPlayer ( int iRealPhotonPlayerID, int code, int e, int v )
 {
 	#ifdef PHOTONMP
-	 PhotonSendLuaToPlayer ( index, code, e, v );
+	 PhotonSendLuaToPlayer ( iRealPhotonPlayerID, code, e, v );
 	#else
 	 SteamSendLua ( code, e, v );
 	#endif

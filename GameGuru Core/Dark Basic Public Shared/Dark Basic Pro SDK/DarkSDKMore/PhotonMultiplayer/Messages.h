@@ -72,6 +72,7 @@ enum EMessage
 	k_EMsgClientSendAvatarChunkClient = k_EMsgClientBegin+38,
 	k_EMsgClientSendAvatarDone = k_EMsgClientBegin+39,
 	k_EMsgGetGlobalStates = k_EMsgClientBegin+40,
+	k_EMsgClientLuaPlayerSpecificString = k_EMsgClientBegin+41,
 
 	// P2P authentication messages
 	k_EMsgP2PBegin = 600, 
@@ -386,6 +387,21 @@ public:
 	char index;
 	int code;
 	int e;
+	char s[CURRENT_LUA_STRING_SIZE];
+	int logID;
+};
+
+struct MsgClientLuaPlayerSpecificString_t
+{
+	MsgClientLuaPlayerSpecificString_t() : m_dwMessageType( LittleDWord( k_EMsgClientLuaPlayerSpecificString ) ) {}
+	DWORD GetMessageType() { return LittleDWord( m_dwMessageType ); }
+
+private:
+	const DWORD m_dwMessageType;
+public:
+	char index;
+	int code;
+	int iRealPhotonPlayerNr;
 	char s[CURRENT_LUA_STRING_SIZE];
 	int logID;
 };

@@ -68,6 +68,9 @@ void game_scanfornewavatars ( bool bDynamicallyRecreateCharacters )
 			}
 		}
 		t.bTriggerAvatarRescanAndLoad = false;
+
+		// refreshes object masks of avatar heads
+		t.visuals.refreshshaders = 1;
 	}
 }
 

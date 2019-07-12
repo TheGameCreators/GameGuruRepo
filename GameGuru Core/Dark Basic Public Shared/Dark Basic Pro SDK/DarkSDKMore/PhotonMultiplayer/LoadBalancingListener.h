@@ -110,12 +110,21 @@ private:
 	char mpRootPath[2048];
 	FILE* mhServerFile = NULL;
 	int miFileProgress = 0;
-	int miServerClientsFileSynced[MAX_PLAYERS_PER_SERVER];
+
+	int AddPlayerToRemap ( int iPlayerIndex );
+	void RemovePlayerFromRemap ( int iPlayerIndex );
 
 public:
-	int muPlayerIndex = 0;
+	int GetRemap ( int iPlayerIndex );
+
+	int muPhotonPlayerIndex = 0;
 	int miCurrentServerPlayerID = 0;
+
+	int iRemapPlayerArraySize;
+	int* remapPlayerIndex;
+
 	CPlayer* m_rgpPlayer[MAX_PLAYERS_PER_SERVER];
+	int miServerClientsFileSynced[MAX_PLAYERS_PER_SERVER];
 	int m_rgpPlayerLoadedAndReady[MAX_PLAYERS_PER_SERVER];
 
 	int mLocalPlayerx = 0;

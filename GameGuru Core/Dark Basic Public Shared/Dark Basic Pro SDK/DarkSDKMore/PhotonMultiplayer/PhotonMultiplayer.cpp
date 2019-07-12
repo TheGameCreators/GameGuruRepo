@@ -25,6 +25,7 @@ LoadBalancingListener* g_pLBL = NULL;
 Client* g_pLBC = NULL;
 JString g_sPlayerName = "";
 char hostsLobbyName[256];
+char g_pPhotonPlayerDisplayName[MAX_PLAYERS_PER_SERVER][1024];
 
 // Globals - setting up and playing game
 int HowManyPlayersDoWeHave = 0;
@@ -308,6 +309,11 @@ int PhotonPlayerArrived()
 	return g_pLBL->findANewlyArrivedPlayer();
 }
 
+int PhotonGetRemap(int iRealPhotonPlayerNr)
+{
+	return g_pLBL->GetRemap(iRealPhotonPlayerNr);
+}
+
 void PhotonInitClient()
 {
 	//g_pClient = new CClient();
@@ -530,17 +536,22 @@ LPSTR PhotonGetLobbyUserDisplayName ( int index )
 	if ( g_pPhotonView )
 	{
 		LPSTR pFullPlayerNameWithUniqueCode = PhotonGetLobbyUserName ( index );
-		char pDisplayName[1024];
-		strcpy ( pDisplayName, pFullPlayerNameWithUniqueCode );
-		for ( int n = 0; n < strlen(pDisplayName); n++ )
+		strcpy ( g_pPhotonPlayerDisplayName[index], "" );
+		if ( pFullPlayerNameWithUniqueCode )
 		{
-			if ( pDisplayName[n] == ':' ) 
+			strcpy ( g_pPhotonPlayerDisplayName[index], pFullPlayerNameWithUniqueCode );
+			for ( int n = 0; n < strlen(g_pPhotonPlayerDisplayName[index]); n++ )
 			{
-				pDisplayName[n] = 0;
-				break;
+				if ( g_pPhotonPlayerDisplayName[index][n] == ':' ) 
+				{
+					g_pPhotonPlayerDisplayName[index][n] = 0;
+					break;
+				}
 			}
+			return g_pPhotonPlayerDisplayName[index];
 		}
-		return pDisplayName;
+		else
+			return NULL;
 	}
 	return NULL; 
 }
@@ -616,11 +627,19 @@ int PhotonIsGameRunning()
 
 int PhotonGetMyPlayerIndex()
 {
-	//	return Client()->GetMyPlayerIndex();
+	if ( g_pPhotonView )
+		return g_pLBL->GetRemap(g_pLBL->getLocalPlayerID());
+	return -1;
+}
+
+int PhotonGetMyRealPlayerNr()
+{
 	if ( g_pPhotonView )
 		return g_pLBL->getLocalPlayerID();
-	return 0;
+	return -1;
 }
+
+///
 
 void PhotonSetRoot(LPSTR string )
 {
@@ -699,11 +718,11 @@ void PhotonSendIAmLoadedAndReady()
 {
 	MsgClientSendIAmLoadedAndReady_t msg;
 	msg.index = g_pLBL->getLocalPlayerID();
-	//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientSendIAmLoadedAndReady_t), k_EP2PSendReliable );
 	g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientSendIAmLoadedAndReady_t), true );
 	if ( g_pLBL->isServer() == true )
 	{
-		g_pLBL->m_rgpPlayerLoadedAndReady[g_pLBL->miCurrentServerPlayerID] = 1;
+		int iSlotIndex = g_pLBL->GetRemap(g_pLBL->miCurrentServerPlayerID);
+		g_pLBL->m_rgpPlayerLoadedAndReady[iSlotIndex] = 1;
 	}
 }
 
@@ -727,37 +746,53 @@ int PhotonIsEveryoneLoadedAndReady()
 
 void PhotonSetPlayerPositionX( float _x )
 {
-	if ( g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex] )
+	int iSlotIndex = g_pLBL->GetRemap(g_pLBL->muPhotonPlayerIndex);
+	if ( iSlotIndex >= 0 )
 	{
-		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->x = _x;
-		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->newx = _x;
+		if ( g_pLBL->m_rgpPlayer[iSlotIndex] )
+		{
+			g_pLBL->m_rgpPlayer[iSlotIndex]->x = _x;
+			g_pLBL->m_rgpPlayer[iSlotIndex]->newx = _x;
+		}
 	}
 }
 
 void PhotonSetPlayerPositionY( float _y )
 {
-	if ( g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex] )
+	int iSlotIndex = g_pLBL->GetRemap(g_pLBL->muPhotonPlayerIndex);
+	if ( iSlotIndex >= 0 )
 	{
-		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->y = _y;
-		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->newy = _y;
+		if ( g_pLBL->m_rgpPlayer[iSlotIndex] )
+		{
+			g_pLBL->m_rgpPlayer[iSlotIndex]->y = _y;
+			g_pLBL->m_rgpPlayer[iSlotIndex]->newy = _y;
+		}
 	}
 }
 
 void PhotonSetPlayerPositionZ( float _z )
 {
-	if ( g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex] )
+	int iSlotIndex = g_pLBL->GetRemap(g_pLBL->muPhotonPlayerIndex);
+	if ( iSlotIndex >= 0 )
 	{
-		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->z = _z;
-		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->newz = _z;
+		if ( g_pLBL->m_rgpPlayer[iSlotIndex] )
+		{
+			g_pLBL->m_rgpPlayer[iSlotIndex]->z = _z;
+			g_pLBL->m_rgpPlayer[iSlotIndex]->newz = _z;
+		}
 	}
 }
 
 void PhotonSetPlayerAngle( float _angle )
 {
-	if ( g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex] )
+	int iSlotIndex = g_pLBL->GetRemap(g_pLBL->muPhotonPlayerIndex);
+	if ( iSlotIndex >= 0 )
 	{
-		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->angle = _angle;
-		g_pLBL->m_rgpPlayer[g_pLBL->muPlayerIndex]->newangle = _angle;
+		if ( g_pLBL->m_rgpPlayer[iSlotIndex] )
+		{
+			g_pLBL->m_rgpPlayer[iSlotIndex]->angle = _angle;
+			g_pLBL->m_rgpPlayer[iSlotIndex]->newangle = _angle;
+		}
 	}
 }
 
@@ -765,71 +800,77 @@ void PhotonSetPlayerAlive ( int state )
 {
 	if ( g_pPhotonView )
 	{
-		alive[g_pLBL->muPlayerIndex-1] = state;
-		MsgClientPlayerSetPlayerAlive_t msg;
-		msg.index = g_pLBL->muPlayerIndex;
-		msg.state = state;
-		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerSetPlayerAlive_t), k_EP2PSendUnreliable );
-		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerSetPlayerAlive_t), false );
-	}
-}
-
-int PhotonGetPlayerAlive ( int index )
-{
-	if ( g_pPhotonView )
-	{
-		return alive[index-1];
-	}
-	return 0;
-}
-
-float PhotonGetPlayerPositionX ( int index )
-{
-	if ( g_pPhotonView )
-	{
-		if ( g_pLBL->m_rgpPlayer[index] )
+		int iSlotIndex = g_pLBL->GetRemap(g_pLBL->muPhotonPlayerIndex);
+		if ( iSlotIndex >= 0 )
 		{
-			g_pLBL->m_rgpPlayer[index]->x = CosineInterpolate ( g_pLBL->m_rgpPlayer[index]->x , g_pLBL->m_rgpPlayer[index]->newx , INTERPOLATE_SMOOTHING );
-			return g_pLBL->m_rgpPlayer[index]->x;
+			alive[iSlotIndex] = state;
+			MsgClientPlayerSetPlayerAlive_t msg;
+			msg.index = g_pLBL->muPhotonPlayerIndex;
+			msg.state = state;
+			g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerSetPlayerAlive_t), false );
+		}
+	}
+}
+
+int PhotonGetPlayerAlive ( int iSlotIndex )
+{
+	if ( g_pPhotonView )
+	{
+		if ( iSlotIndex >= 0 )
+		{
+			return alive[iSlotIndex];
 		}
 	}
 	return 0;
 }
 
-float PhotonGetPlayerPositionY ( int index )
+float PhotonGetPlayerPositionX ( int iSlotIndex )
 {
 	if ( g_pPhotonView )
 	{
-		if ( g_pLBL->m_rgpPlayer[index] )
+		if ( g_pLBL->m_rgpPlayer[iSlotIndex] )
 		{
-			g_pLBL->m_rgpPlayer[index]->y = CosineInterpolate ( g_pLBL->m_rgpPlayer[index]->y , g_pLBL->m_rgpPlayer[index]->newy , INTERPOLATE_SMOOTHING );
-			return g_pLBL->m_rgpPlayer[index]->y;
+			g_pLBL->m_rgpPlayer[iSlotIndex]->x = CosineInterpolate ( g_pLBL->m_rgpPlayer[iSlotIndex]->x , g_pLBL->m_rgpPlayer[iSlotIndex]->newx , INTERPOLATE_SMOOTHING );
+			return g_pLBL->m_rgpPlayer[iSlotIndex]->x;
 		}
 	}
 	return 0;
 }
 
-float PhotonGetPlayerPositionZ ( int index )
+float PhotonGetPlayerPositionY ( int iSlotIndex )
 {
 	if ( g_pPhotonView )
 	{
-		if ( g_pLBL->m_rgpPlayer[index] )
+		if ( g_pLBL->m_rgpPlayer[iSlotIndex] )
 		{
-			g_pLBL->m_rgpPlayer[index]->z = CosineInterpolate ( g_pLBL->m_rgpPlayer[index]->z , g_pLBL->m_rgpPlayer[index]->newz , INTERPOLATE_SMOOTHING );
-			return g_pLBL->m_rgpPlayer[index]->z;
+			g_pLBL->m_rgpPlayer[iSlotIndex]->y = CosineInterpolate ( g_pLBL->m_rgpPlayer[iSlotIndex]->y , g_pLBL->m_rgpPlayer[iSlotIndex]->newy , INTERPOLATE_SMOOTHING );
+			return g_pLBL->m_rgpPlayer[iSlotIndex]->y;
 		}
 	}
 	return 0;
 }
 
-float PhotonGetPlayerAngle ( int index )
+float PhotonGetPlayerPositionZ ( int iSlotIndex )
 {
 	if ( g_pPhotonView )
 	{
-		if ( g_pLBL->m_rgpPlayer[index] )
+		if ( g_pLBL->m_rgpPlayer[iSlotIndex] )
 		{
-			g_pLBL->m_rgpPlayer[index]->angle = CosineInterpolateAngle( g_pLBL->m_rgpPlayer[index]->angle , g_pLBL->m_rgpPlayer[index]->newangle , INTERPOLATE_SMOOTHING_TURN );
-			return g_pLBL->m_rgpPlayer[index]->angle;
+			g_pLBL->m_rgpPlayer[iSlotIndex]->z = CosineInterpolate ( g_pLBL->m_rgpPlayer[iSlotIndex]->z , g_pLBL->m_rgpPlayer[iSlotIndex]->newz , INTERPOLATE_SMOOTHING );
+			return g_pLBL->m_rgpPlayer[iSlotIndex]->z;
+		}
+	}
+	return 0;
+}
+
+float PhotonGetPlayerAngle ( int iSlotIndex )
+{
+	if ( g_pPhotonView )
+	{
+		if ( g_pLBL->m_rgpPlayer[iSlotIndex] )
+		{
+			g_pLBL->m_rgpPlayer[iSlotIndex]->angle = CosineInterpolateAngle( g_pLBL->m_rgpPlayer[iSlotIndex]->angle , g_pLBL->m_rgpPlayer[iSlotIndex]->newangle , INTERPOLATE_SMOOTHING_TURN );
+			return g_pLBL->m_rgpPlayer[iSlotIndex]->angle;
 		}
 	}
 	return 0;
@@ -839,37 +880,38 @@ void PhotonSetKeyState ( int key , int state )
 {
 	if ( g_pPhotonView )
 	{
-		keystate[g_pLBL->muPlayerIndex-1][key] = state;
-		MsgClientPlayerKeyState_t msg;
-		msg.index = g_pLBL->muPlayerIndex;
-		msg.key = key;
-		msg.state = state;
-		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerKeyState_t), k_EP2PSendUnreliable );
-		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerKeyState_t), false );
+		int iSlotIndex = g_pLBL->GetRemap(g_pLBL->muPhotonPlayerIndex);
+		if ( iSlotIndex >= 0 )
+		{
+			keystate[iSlotIndex][key] = state;
+			MsgClientPlayerKeyState_t msg;
+			msg.index = g_pLBL->muPhotonPlayerIndex;
+			msg.key = key;
+			msg.state = state;
+			g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerKeyState_t), false );
+		}
 	}
 }
 
-int PhotonGetKeyState ( int index, int key )
+int PhotonGetKeyState ( int iSlotIndex, int key )
 {
 	if ( g_pPhotonView )
 	{
-		return keystate[index-1][key];
+		return keystate[iSlotIndex][key];
 	}
 	return 0;
 }
-
 
 void PhotonPlayAnimation ( int index, int start, int end, int speed )
 {
 	if ( g_pPhotonView )
 	{
 		MsgClientPlayAnimation_t msg;
-		msg.playerIndex = g_pLBL->muPlayerIndex;
+		msg.playerIndex = g_pLBL->muPhotonPlayerIndex;
 		msg.index = index;
 		msg.start = start;
 		msg.end = end;
 		msg.speed = speed;
-		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayAnimation_t), k_EP2PSendReliable );
 		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayAnimation_t), false );
 	}
 }
@@ -913,25 +955,22 @@ int PhotonGetAnimationSpeed()
 	return currentAnimationObject.speed;
 }
 
-void PhotonSetTweening(int index , int flag)
+void PhotonSetTweening(int iSlotIndex , int flag)
 {
-	tweening[index-1] = flag;
+	tweening[iSlotIndex] = flag;
 }
 
 void PhotonShoot ( void )
 {
 	if ( g_pPhotonView )
 	{
-		//MsgClientShoot_t msg;
-		//msg.index = m_uPlayerIndex;
-		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientShoot_t), k_EP2PSendUnreliable );
 	}
 }
 
-int PhotonGetShoot ( int index )
+int PhotonGetShoot ( int iSlotIndex )
 {
-	int result = playerShoot[index-1];
-	playerShoot[index-1] = 0;
+	int result = playerShoot[iSlotIndex];
+	playerShoot[iSlotIndex] = 0;
 	return result;
 }
 
@@ -939,27 +978,29 @@ void PhotonSetPlayerAppearance( int a )
 {
 	if ( g_pPhotonView )
 	{
-		playerAppearance[g_pLBL->muPlayerIndex-1] = a;
-		MsgClientPlayerAppearance_t msg;
-		msg.index = g_pLBL->muPlayerIndex;
-		msg.appearance = a;
-		//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientPlayerAppearance_t), k_EP2PSendUnreliable );
-		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerAppearance_t), false );
+		int iSlotIndex = g_pLBL->GetRemap(g_pLBL->muPhotonPlayerIndex);
+		if ( iSlotIndex >= 0 )
+		{
+			playerAppearance[iSlotIndex] = a;
+			MsgClientPlayerAppearance_t msg;
+			msg.index = g_pLBL->muPhotonPlayerIndex;
+			msg.appearance = a;
+			g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerAppearance_t), false );
+		}
 	}
 }
 
-int PhotonGetPlayerAppearance( int index )
+int PhotonGetPlayerAppearance( int iSlotIndex )
 {
 	if ( g_pPhotonView )
-		return playerAppearance[index-1];
+		return playerAppearance[iSlotIndex];
 	else
 		return 0;
 }
 
-
 // LUA
 
-void PhotonSendLuaToPlayer ( int index, int code, int e, int v )
+void PhotonSendLuaToPlayer ( int iRealPhotonPlayerID, int code, int e, int v )
 {
 	if ( g_pPhotonView )
 	{
@@ -968,50 +1009,15 @@ void PhotonSendLuaToPlayer ( int index, int code, int e, int v )
 			if ( code < 5 )
 			{
 				MsgClientLua_t msg;
-				msg.index = g_pLBL->muPlayerIndex;
+				msg.index = g_pLBL->muPhotonPlayerIndex;
 				msg.code = code;
 				msg.e = e;
 				msg.v = v;
-				//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientLua_t), k_EP2PSendReliable );
-				if ( index == -1 )
+				if ( iRealPhotonPlayerID == -1 )
 					g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), true );
 				else
-					g_pLBL->sendMessageToPlayer ( index, (nByte*)&msg, sizeof(MsgClientLua_t), true );
+					g_pLBL->sendMessageToPlayer ( iRealPhotonPlayerID, (nByte*)&msg, sizeof(MsgClientLua_t), true );
 			}
-			/*
-			else
-			{
-				// no ticket if goto position
-				if ( code != 18 && code != 19 )
-				{
-					MsgClientLua_t* pmsg;
-					pmsg = new MsgClientLua_t();
-					pmsg->index = g_pLBL->muPlayerIndex;
-					pmsg->code = code;
-					pmsg->e = e;
-					pmsg->v = v;
-					pmsg->logID = 12345;//packetSendLogClientID;
-					//packetSendLogClient_t log;
-					//log.LogID = packetSendLogClientID++;
-					//log.packetType = k_EMsgClientLua;
-					//log.pPacket = pmsg;
-					//log.timeStamp = GetCounterPassedTotal();
-					//PacketSend_Log_Client.push_back(log);
-					//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, pmsg, sizeof(MsgClientLua_t), k_EP2PSendUnreliable );
-					g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLua_t), true );//false ); guarenteed photon
-				}
-				else
-				{
-					MsgClientLua_t msg;
-					msg.index = g_pLBL->muPlayerIndex;
-					msg.code = code;
-					msg.e = e;
-					msg.v = v;
-					//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, &msg, sizeof(MsgClientLua_t), k_EP2PSendUnreliable );
-					g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgClientLua_t), true );//false ); guarenteed photon
-				}
-			}
-			*/
 		}
 	}
 }
@@ -1030,19 +1036,30 @@ void PhotonSendLuaString ( int code, int e, LPSTR s )
 		{
 			MsgClientLuaString_t* pmsg;
 			pmsg = new MsgClientLuaString_t();
-			pmsg->index = g_pLBL->muPlayerIndex;
+			pmsg->index = g_pLBL->muPhotonPlayerIndex;
 			pmsg->code = code;
 			pmsg->e = e;
 			strcpy ( pmsg->s , s );
-			pmsg->logID = 12345;//packetSendLogClientID;
-			//packetSendLogClient_t log;
-			//log.LogID = packetSendLogClientID++;
-			//log.packetType = k_EMsgClientLuaString;
-			//log.pPacket = pmsg;
-			//log.timeStamp = GetCounterPassedTotal();
-			//PacketSend_Log_Client.push_back(log);
-			//SteamNetworking()->SendP2PPacket( m_steamIDGameServer, pmsg, sizeof(MsgClientLuaString_t), k_EP2PSendUnreliable );
-			g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLuaString_t), true );//false ); using guarenteed packets for Photon instead of 1 second receipt system used by Steam
+			pmsg->logID = 12345;
+			g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLuaString_t), true );
+		}
+	}
+}
+
+void PhotonSendLuaPlayerSpecificString ( int code, int iRealPhotonPlayerNr, LPSTR s )
+{
+	if ( g_pPhotonView )
+	{
+		if ( 1 )
+		{
+			MsgClientLuaPlayerSpecificString_t* pmsg;
+			pmsg = new MsgClientLuaPlayerSpecificString_t();
+			pmsg->index = g_pLBL->muPhotonPlayerIndex;
+			pmsg->code = code;
+			pmsg->iRealPhotonPlayerNr = iRealPhotonPlayerNr;
+			strcpy ( pmsg->s , s );
+			pmsg->logID = 12345;
+			g_pLBL->sendMessage ( (nByte*)pmsg, sizeof(MsgClientLuaPlayerSpecificString_t), true );
 		}
 	}
 }
@@ -1085,9 +1102,8 @@ int PhotonGetLuaV()
 
 LPSTR PhotonGetLuaS(void)
 {
-	return currentLua.s;//GetReturnStringFromTEXTWorkString( currentLua.s );
+	return currentLua.s;
 }
-
 
 //
 // empty functions so can compile code with Steam Multiplayer references

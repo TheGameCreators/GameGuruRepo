@@ -34,6 +34,7 @@ public:
 
 	CPlayer()
 	{
+		id = 0;
 		x = 0;
 		y = 0;
 		z = 0;

@@ -13,6 +13,7 @@
 #define WELCOME_PLAY 5
 #define WELCOME_EXITAPP 6
 #define WELCOME_FREEINTROAPP 7
+#define WELCOME_MAINVR 8
 
 // Functions
 void welcome_init ( int iLoadingPart );

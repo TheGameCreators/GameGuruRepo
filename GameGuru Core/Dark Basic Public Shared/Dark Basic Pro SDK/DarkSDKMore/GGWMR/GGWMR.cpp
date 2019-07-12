@@ -193,7 +193,7 @@ DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pSideButtonValue, float* pTrigg
 	app.GetThumbAndTrigger ( pSideButtonValue, pTriggerValue, pThumbStickX, pThumbStickY );
 }
 
-DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouchedisRightHand,  bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
+DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouchedisRightHand, bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY )
 {
 	app.GetTouchPadData ( pbTouchedisRightHand, pbTouched, pbPressed, pfTouchPadX, pfTouchPadY );
 }
