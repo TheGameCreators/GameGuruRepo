@@ -217,9 +217,6 @@ void interactive_loop ( void )
 
 	//  never carry this mouse click outside interactive panel
 	t.inputsys.mclick=0;
-
-return;
-
 }
 
 void interactive_restartalpha ( void )
@@ -229,9 +226,6 @@ void interactive_restartalpha ( void )
 	t.interactive.alphafadestage=1;
 	t.interactive.alphafade=0;
 	t.interactive.alphalasttime=Timer();
-
-return;
-
 }
 
 void interactive_welcome ( void )

@@ -713,6 +713,14 @@ luaMessage** ppLuaMessages = NULL;
 		case 1 : g.luacameraoverride = tvalue; break;
 		case 11 : if ( tcameraid == 0 ) { PositionCamera ( tcameraid, fX, fY, fZ ); } break;
 		case 12 : if ( tcameraid == 0 ) { RotateCamera ( tcameraid, fX, fY, fZ ); } break;
+		case 13 : if ( tcameraid == 0 ) 
+		{
+			RotateCamera ( tcameraid, 0, 0, 0 );
+			RollCameraRight ( tcameraid, fZ );
+			TurnCameraRight ( tcameraid, fY );
+			PitchCameraUp ( tcameraid, fX );
+		} 
+		break;
 	}
 	return 0;
  }
@@ -767,6 +775,7 @@ luaMessage** ppLuaMessages = NULL;
  int SetCameraOverride(lua_State *L) { return RawSetCameraData ( L, 1 ); }
  int SetCameraPosition(lua_State *L) { return RawSetCameraData ( L, 11 ); }
  int SetCameraAngle(lua_State *L) { return RawSetCameraData ( L, 12 ); }
+ int SetCameraFreeFlight(lua_State *L) { return RawSetCameraData ( L, 13 ); }
  int GetCameraPositionX(lua_State *L) { return RawGetCameraData ( L, 1 ); }
  int GetCameraPositionY(lua_State *L) { return RawGetCameraData ( L, 2 ); }
  int GetCameraPositionZ(lua_State *L) { return RawGetCameraData ( L, 3 ); }
@@ -1961,7 +1970,7 @@ int GetHeadTrackerYaw(lua_State *L)
 	 float fValue = g_fVR920TrackingYaw + g_fDriverCompensationYaw;
 	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
 	#endif
-	lua_pushinteger ( L , fValue );
+	lua_pushnumber ( L , fValue );
 	return 1;
 }
 int GetHeadTrackerPitch(lua_State *L)
@@ -1973,7 +1982,7 @@ int GetHeadTrackerPitch(lua_State *L)
 	 float fValue = g_fVR920TrackingPitch + g_fDriverCompensationPitch;
 	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
 	#endif
-	lua_pushinteger ( L , fValue );
+	lua_pushnumber ( L , fValue );
 	return 1;
 }
 int GetHeadTrackerRoll(lua_State *L)
@@ -1985,7 +1994,7 @@ int GetHeadTrackerRoll(lua_State *L)
 	 float fValue = g_fVR920TrackingRoll + g_fDriverCompensationRoll;
 	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
 	#endif
-	lua_pushinteger ( L , fValue );
+	lua_pushnumber ( L , fValue );
 	return 1;
 }
 
@@ -5665,6 +5674,7 @@ void addFunctions()
 	lua_register(lua, "SetCameraFOV", SetCameraFOV);
 	lua_register(lua, "SetCameraPosition", SetCameraPosition);
 	lua_register(lua, "SetCameraAngle", SetCameraAngle);
+	lua_register(lua, "SetCameraFreeFlight", SetCameraFreeFlight);
 	lua_register(lua, "GetCameraPositionX", GetCameraPositionX);
 	lua_register(lua, "GetCameraPositionY", GetCameraPositionY);
 	lua_register(lua, "GetCameraPositionZ", GetCameraPositionZ);

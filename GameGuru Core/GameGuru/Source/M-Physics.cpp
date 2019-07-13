@@ -1462,7 +1462,13 @@ void physics_player_gatherkeycontrols ( void )
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_SetPlayerPosition");
 			GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_SetPlayerRotation");
-			GGVR_SetPlayerRotation(0, CameraAngleY(t.terrain.gameplaycamera), 0);
+
+			// this sets the origin based on the current camera zero (ARG!)
+			// should only set based on player angle (minus HMD influence) as HMD added later at right time for smooth headset viewing!
+			//GGVR_SetPlayerRotation(0, CameraAngleY(t.terrain.gameplaycamera), 0);
+			//GGVR_SetPlayerRotation(0, t.camangy_f, 0); actually not called in main loop (actually in postproces with call to GGVR_SetPlayerAngleY)
+			GGVR_SetPlayerRotation(0, 0, 0);
+
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_UpdatePlayer(false,terrainID)");
 			if ( g.gproducelogfiles == 2 ) 
 			{

@@ -623,7 +623,10 @@ void postprocess_preterrain ( void )
 	{
 		// position VR player at location of main camera
 		GGVR_SetPlayerPosition(t.tFinalCamX_f, t.tFinalCamY_f, t.tFinalCamZ_f);
-		GGVR_SetPlayerAngleY(t.playercontrol.finalcameraangley_f);
+
+		// this sets the origin based on the current camera zero (ARG!)
+		// should only set based on player angle (minus HMD influence) as HMD added later at right time for smooth headset viewing!
+		GGVR_SetPlayerAngleY(t.camangy_f);
 
 		// update seated/standing flag
 		g.vrglobals.GGVRStandingMode = GGVR_GetTrackingSpace();
