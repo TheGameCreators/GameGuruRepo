@@ -899,8 +899,13 @@ DARKSDK void AttachWindowToChildOfAnother ( LPSTR pAbsoluteAppFilename )
 	strcpy ( g_szChildWindow, "" );
 
 	// read data from settings file
-	GetPrivateProfileString ( "External", "Main Window", "", g_szMainWindow, MAX_PATH, pAppExtFile );
-	GetPrivateProfileString ( "External", "Child Window", "", g_szChildWindow, MAX_PATH, pAppExtFile );
+	//#ifdef VRQUEST
+	 strcpy ( g_szMainWindow, "VR Quest" );
+	 strcpy ( g_szChildWindow, "Editor" );
+	//#else
+	// GetPrivateProfileString ( "External", "Main Window", "", g_szMainWindow, MAX_PATH, pAppExtFile );
+	// GetPrivateProfileString ( "External", "Child Window", "", g_szChildWindow, MAX_PATH, pAppExtFile );
+	//#endif
 
 	// determine if window should be attached to child of another
 	if ( strlen ( g_szMainWindow ) > 1 )
@@ -909,7 +914,8 @@ DARKSDK void AttachWindowToChildOfAnother ( LPSTR pAbsoluteAppFilename )
 	// if not overridden, try again after delay
 	if ( g_bWindowOverride == false )
 	{
-		Sleep(2000);
+		//Sleep(2000); remove this 2s delay to speed up initial IDE loading
+		Sleep(200);
 		if ( strlen ( g_szMainWindow ) > 1 )
 			EnumWindows ( EnumWindowsProc, 0 );
 

@@ -2364,7 +2364,14 @@ void terrain_make ( void )
 			}
 			else
 			{
+				t.tsplashstatusprogress_s="LOADING TERRAIN DIFFUSE";
+				timestampactivity(0,t.tsplashstatusprogress_s.Get());
+				version_splashtext_statusupdate ( );
 				LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\Texture_D.dds").Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
+
+				t.tsplashstatusprogress_s="LOADING TERRAIN NORMALS";
+				timestampactivity(0,t.tsplashstatusprogress_s.Get());
+				version_splashtext_statusupdate ( );
 				LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\Texture_N.dds").Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
 			}
 			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );

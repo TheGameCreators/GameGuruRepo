@@ -88,23 +88,27 @@ void material_init ( void )
 
 void material_startup ( void )
 {
-	for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 1;
-	//t.m=0 ; t.material[t.m].usedinlevel=1;
-	//t.m=1 ; t.material[t.m].usedinlevel=1;
-	//t.m=2 ; t.material[t.m].usedinlevel=1;
-	//t.m=3 ; t.material[t.m].usedinlevel=1;
-	//t.m=17 ; t.material[t.m].usedinlevel=1;
-	//t.m=18 ; t.material[t.m].usedinlevel=1;
-	//material_loadsounds ( );
+	// Speeds up IDE initial loading by 10 seconds
+	#if VRQUEST
+		for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 0;
+		t.m=0 ; t.material[t.m].usedinlevel=1;
+		t.m=1 ; t.material[t.m].usedinlevel=1;
+		t.m=2 ; t.material[t.m].usedinlevel=1;
+		t.m=3 ; t.material[t.m].usedinlevel=1;
+		t.m=17 ; t.material[t.m].usedinlevel=1;
+		t.m=18 ; t.material[t.m].usedinlevel=1;
+	#else
+		for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 1;
+	#endif
 }
 
 void material_loadsounds ( void )
 {
-	//  Load silent sound
-	if (  SoundExist(g.silentsoundoffset) == 0  )  Load3DSound (  "audiobank\\misc\\silence.wav",g.silentsoundoffset );
+	// Load silent sound
+	if ( SoundExist(g.silentsoundoffset) == 0  )  Load3DSound (  "audiobank\\misc\\silence.wav",g.silentsoundoffset );
 
-	//  Load Explosion sound clones
-	if (  SoundExist(g.explodesoundoffset) == 0 ) 
+	// Load Explosion sound clones
+	if ( SoundExist(g.explodesoundoffset) == 0 ) 
 	{
 		Load3DSound (  "audiobank\\misc\\explode.wav",g.explodesoundoffset );
 		for ( t.t = 1 ; t.t <= 4 ; t.t++ ) CloneSound (  g.explodesoundoffset+t.t,g.explodesoundoffset );
@@ -113,11 +117,17 @@ void material_loadsounds ( void )
 	//  Load material sounds into memory
 	timestampactivity(0, cstr(cstr("_material_loadsounds (")+Str(g.gmaterialmax)+")").Get() );
 	t.tbase=g.materialsoundoffset;
-	for ( t.m = 0 ; t.m<=  g.gmaterialmax; t.m++ )
+	for ( t.m = 0 ; t.m <= g.gmaterialmax; t.m++ )
 	{
 		if (  t.material[t.m].name_s != "" && t.material[t.m].usedinlevel == 1 ) 
 		{
-			for ( t.msoundtypes = 0 ; t.msoundtypes<=  6; t.msoundtypes++ )
+			// speed up loading and don't need these extra sounds 
+			#ifdef VRQUEST
+			 int iSoundTypesFullSupport = 3;
+			#else
+			 int iSoundTypesFullSupport = 6;
+			#endif
+			for ( t.msoundtypes = 0; t.msoundtypes <= iSoundTypesFullSupport; t.msoundtypes++ )
 			{
 				if (  t.msoundtypes == 0  )  t.snd_s = t.material[t.m].tred0_s;
 				if (  t.msoundtypes == 1  )  t.snd_s = t.material[t.m].tred1_s;
@@ -170,9 +180,6 @@ void material_loadsounds ( void )
 			g.materialsoundmax=t.tnewmax;
 		}
 	}
-
-return;
-
 }
 
 void material_loadplayersounds ( void )
