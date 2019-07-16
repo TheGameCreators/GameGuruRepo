@@ -3,6 +3,7 @@
 
 #include "directx-macros.h"
 
+void SetWorkshopFolder ( LPSTR pFolder );
 bool CheckForWorkshopFile ( LPSTR VirtualFilename);
 bool Steam_CanIUse_W_();
 bool CanIUse_E_();

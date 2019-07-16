@@ -253,25 +253,27 @@ void welcome_staticbackdrop ( void )
 
 void welcome_updatebackdrop ( char* pText )
 {
-	if ( SpriteExist(123)==1 ) Sprite ( 123, -10000, -10000, g.editorimagesoffset+12 );
-	if ( SpriteExist(124)==1 ) DeleteSprite(124);
-	for ( int s = 0; s < 2; s++ )
+	if ( ImageExist ( g.editorimagesoffset+41 ) == 1 )
 	{
-		Cls();
+		if ( SpriteExist(123)==1 ) Sprite ( 123, -10000, -10000, g.editorimagesoffset+12 );
+		if ( SpriteExist(124)==1 ) DeleteSprite(124);
+		for ( int s = 0; s < 2; s++ )
+		{
+			Cls();
 
-		//PasteImage ( g.editorimagesoffset+12, 0, 0 );
-		// stretch anim backdrop to size of client window
-		Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
-		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
-		PasteSprite ( 123, 0, 0 );
+			// stretch anim backdrop to size of client window
+			Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+			SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+			PasteSprite ( 123, 0, 0 );
 
-		Sprite ( 123, -10000, -10000, g.editorimagesoffset+41 );
-		int iImgWidth = ImageWidth(g.editorimagesoffset+41);
-		int iImgHeight = ImageHeight(g.editorimagesoffset+41);
-		SizeSprite ( 123, iImgWidth, iImgHeight );
-		PasteSprite ( 123, (GetChildWindowWidth(0)-iImgWidth)/2, (GetChildWindowHeight(0)-iImgHeight)/2 );
-		pastebitmapfontcenter ( pText, GetChildWindowWidth(0)/2, ((GetChildWindowHeight(0)-iImgHeight)/2)+(iImgHeight)-48, 4, 255);
-		Sync();
+			Sprite ( 123, -10000, -10000, g.editorimagesoffset+41 );
+			int iImgWidth = ImageWidth(g.editorimagesoffset+41);
+			int iImgHeight = ImageHeight(g.editorimagesoffset+41);
+			SizeSprite ( 123, iImgWidth, iImgHeight );
+			PasteSprite ( 123, (GetChildWindowWidth(0)-iImgWidth)/2, (GetChildWindowHeight(0)-iImgHeight)/2 );
+			pastebitmapfontcenter ( pText, GetChildWindowWidth(0)/2, ((GetChildWindowHeight(0)-iImgHeight)/2)+(iImgHeight)-48, 4, 255);
+			Sync();
+		}
 	}
 }
 
@@ -689,7 +691,7 @@ void welcome_main_page ( int iHighlightingButton )
 	welcome_text ( "Would you like to learn more about GameGuru, load a sample level to play\nor go directly to the editor and start creating a 3D game?", 1, 50, 72, 192, true, false );
 	iID = 4; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
 	if ( g.gshowonstartup != 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
-	welcome_text ( "Tick to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
+	welcome_text ( "Click to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
 	welcome_drawrotatedimage ( g.editorimagesoffset+56, 22.5f, 22, 0, 0, 0, false );
 	welcome_drawrotatedimage ( g.editorimagesoffset+57, 50.0f, 22, 0, 0, 0, false );
 	welcome_drawrotatedimage ( g.editorimagesoffset+58, 77.5f, 22, 0, 0, 0, false );
@@ -765,7 +767,7 @@ void welcome_mainvr_page ( int iHighlightingButton )
 	welcome_text ( "Would you like to learn more about VR Quest\nor go directly to the editor and start creating a 3D game?", 1, 50, 72, 192, true, false );
 	iID = 4; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
 	if ( g.gshowonstartup != 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
-	welcome_text ( "Tick to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
+	welcome_text ( "Click to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
 	welcome_drawrotatedimage ( g.editorimagesoffset+56, 37.5f, 22, 0, 0, 0, false );
 	welcome_drawrotatedimage ( g.editorimagesoffset+58, 62.5f, 22, 0, 0, 0, false );
 	iID = 1; welcome_textinbox ( iID, "LEARN", 1, 37.5f, 60, g_welcomebutton[iID].alpha );

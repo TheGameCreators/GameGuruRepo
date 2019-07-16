@@ -2,13 +2,25 @@
 
 #define PHOTONMP
 
+// Includes
 #include "SteamCheckForWorkshop.h"
 #include <stdio.h>
-
-// New include
 #include "SteamCommands.h"
 
-bool CheckForWorkshopFile ( LPSTR VirtualFilename)
+// Globals
+LPSTR g_pRootFolder = NULL;
+
+void SetWorkshopFolder ( LPSTR pFolder ) 
+{ 
+	// used to reference levelbank\testmap when loading custom content from FPM load area
+	if ( g_pRootFolder == NULL )
+	{
+		g_pRootFolder = new char[2048];
+		strcpy ( g_pRootFolder, pFolder ); 
+	}
+}
+
+bool CheckForWorkshopFile ( LPSTR VirtualFilename )
 {
 	// actually checks for existence of _e_ file in place of original!
 
@@ -58,7 +70,41 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 	// end of encrypted file check
 
 	#ifdef PHOTONMP
-		// Photon has no workshop support
+		// Photon has no workshop support 
+		if ( VirtualFilename && strlen ( VirtualFilename ) > 0 )
+		{
+			// but can load in custom content from levelbank\testmap if transported by FPM
+			// clean file reference
+			LPSTR pOneFiledStr = new char[10+strlen(VirtualFilename)+1];
+			strcpy ( pOneFiledStr, "CUSTOM_" );
+			int nnn = 7;
+			for ( int n = 0; n < strlen(VirtualFilename); n++ )
+			{
+				if ( VirtualFilename[n] == '\\' && VirtualFilename[n+1] == '\\' ) n++; // skip duplicate backslashes
+				if ( VirtualFilename[n] == '\\' )
+					pOneFiledStr[nnn++] = '_';
+				else
+					pOneFiledStr[nnn++] = VirtualFilename[n];
+			}
+			pOneFiledStr[nnn] = 0; 
+
+			// attempt to load onefile reference from levelbank\testmap
+			if ( g_pRootFolder )
+			{
+				char pOneFilePath[2048];
+				strcpy ( pOneFilePath, g_pRootFolder );
+				strcat ( pOneFilePath, "\\Files\\levelbank\\testmap\\" );
+				strcat ( pOneFilePath, pOneFiledStr );
+				tempFile = fopen ( pOneFilePath ,"r" );
+				if ( tempFile )
+				{
+					fclose ( tempFile );
+					strcpy ( VirtualFilename , pOneFilePath );
+					return true;
+				}
+			}
+		}
+
 	#else
 		char szWorkshopFilename[_MAX_PATH];
 		char szWorkshopFilenameFolder[_MAX_PATH];

@@ -21,11 +21,6 @@ extern bool gbWelcomeSystemActive;
 //  GOTO LABEL (jump from common_init)
 void mapeditorexecutable ( void )
 {
-	//  Debug report status (must activate with producelogfiles=1)
-	t.tsplashstatusprogress_s="MAIN EDITOR INIT";
-	timestampactivity(0,t.tsplashstatusprogress_s.Get());
-	version_splashtext_statusupdate ( );
-
 	//  Means we are in the editor (1) or in standalone game (0)
 	timestampactivity(0,"ide input mode");
 	g.globals.ideinputmode = 1;
@@ -7859,7 +7854,24 @@ void gridedit_new_map ( void )
 	lm_emptylightmapfolder ( );
 
 	// Empty EBEs from testmap folder
-	cstr pStoreOld = GetDir(); SetDir ( g.mysystem.levelBankTestMap_s.Get() );
+	cstr pStoreOld = GetDir(); 
+	if ( PathExist ( g.mysystem.levelBankTestMap_s.Get() ) == 0 )
+	{
+		// somehow levelbank\testmap folder gone (can be deleted sometimes)
+		SetDir ( cstr(g.fpscrootdir_s + "\\Files\\").Get() );
+		if ( PathExist ( "levelbank" ) == 0 )
+		{
+			MakeDirectory ( "levelbank" );
+			SetDir ( "levelbank" );
+		}
+		if ( PathExist ( "testmap" ) == 0 )
+		{
+			MakeDirectory ( "testmap" );
+			SetDir ( "testmap" );
+		}
+	}
+	else
+		SetDir ( g.mysystem.levelBankTestMap_s.Get() );
 	mapfile_emptyebesfromtestmapfolder(false);
 	SetDir ( pStoreOld.Get() );
 

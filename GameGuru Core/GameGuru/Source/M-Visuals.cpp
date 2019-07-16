@@ -1706,9 +1706,14 @@ void visuals_shaderlevels_entities_update ( void )
 		if (  t.t>0  )  t.teffectid = g.effectbankoffset+t.t;
 		if (  GetEffectExist(t.teffectid) == 1 ) 
 		{
-			if (  t.visuals.shaderlevels.entities == 1  )  SetEffectTechnique (  t.teffectid,"Highest" );
-			if (  t.visuals.shaderlevels.entities == 2  )  SetEffectTechnique (  t.teffectid,"Medium" );
-			if (  t.visuals.shaderlevels.entities == 3  )  SetEffectTechnique (  t.teffectid,"Lowest" );
+			#ifdef VRQUEST
+			 // Distributor complained about entity shadows, so switch them off (and improve performance as a bonus)
+			 SetEffectTechnique ( t.teffectid, "Lowest" );
+			#else
+			 if (  t.visuals.shaderlevels.entities == 1  )  SetEffectTechnique (  t.teffectid,"Highest" );
+			 if (  t.visuals.shaderlevels.entities == 2  )  SetEffectTechnique (  t.teffectid,"Medium" );
+			 if (  t.visuals.shaderlevels.entities == 3  )  SetEffectTechnique (  t.teffectid,"Lowest" );
+			#endif
 		}
 	}
 

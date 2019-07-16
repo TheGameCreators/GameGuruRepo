@@ -297,7 +297,7 @@ void game_masterroot ( int iUseVRTest )
 
 			// Load any extra material sounds associated with new entities (i.e. material(m).usedinlevel=1?)
 			// NOTE: Level can collect materials (and material depth) and apply here to quicken material loader (2s)
-			material_loadsounds ( );
+			material_loadsounds ( 0 );
 
 			// if multiplayer, detect spawn positions and add extra UBER characters
 			if ( t.game.runasmultiplayer == 1 ) 

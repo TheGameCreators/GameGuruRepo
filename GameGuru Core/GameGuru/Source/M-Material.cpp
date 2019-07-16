@@ -102,7 +102,7 @@ void material_startup ( void )
 	#endif
 }
 
-void material_loadsounds ( void )
+void material_loadsounds ( int iInitial )
 {
 	// Load silent sound
 	if ( SoundExist(g.silentsoundoffset) == 0  )  Load3DSound (  "audiobank\\misc\\silence.wav",g.silentsoundoffset );
@@ -115,69 +115,80 @@ void material_loadsounds ( void )
 	}
 
 	//  Load material sounds into memory
-	timestampactivity(0, cstr(cstr("_material_loadsounds (")+Str(g.gmaterialmax)+")").Get() );
-	t.tbase=g.materialsoundoffset;
-	for ( t.m = 0 ; t.m <= g.gmaterialmax; t.m++ )
+	if ( iInitial == 0 )
 	{
-		if (  t.material[t.m].name_s != "" && t.material[t.m].usedinlevel == 1 ) 
+		timestampactivity(0, cstr(cstr("_material_loadsounds (")+Str(g.gmaterialmax)+")").Get() );
+		t.tbase=g.materialsoundoffset;
+		for ( t.m = 0 ; t.m <= g.gmaterialmax; t.m++ )
 		{
-			// speed up loading and don't need these extra sounds 
-			#ifdef VRQUEST
-			 int iSoundTypesFullSupport = 3;
-			#else
-			 int iSoundTypesFullSupport = 6;
-			#endif
-			for ( t.msoundtypes = 0; t.msoundtypes <= iSoundTypesFullSupport; t.msoundtypes++ )
+			// material sound loading SO slow for some reason!
+			char pPrompt[1024];
+			sprintf( pPrompt, "LOADING MATERIAL SOUND %d", 1+t.m );
+			t.tsplashstatusprogress_s = pPrompt;
+			timestampactivity(0,t.tsplashstatusprogress_s.Get());
+			version_splashtext_statusupdate ( );
+
+			// load material sound
+			if (  t.material[t.m].name_s != "" && t.material[t.m].usedinlevel == 1 ) 
 			{
-				if (  t.msoundtypes == 0  )  t.snd_s = t.material[t.m].tred0_s;
-				if (  t.msoundtypes == 1  )  t.snd_s = t.material[t.m].tred1_s;
-				if (  t.msoundtypes == 2  )  t.snd_s = t.material[t.m].tred2_s;
-				if (  t.msoundtypes == 3  )  t.snd_s = t.material[t.m].tred3_s;
-				if (  t.msoundtypes == 4  )  t.snd_s = t.material[t.m].scrape_s;
-				if (  t.msoundtypes == 5  )  t.snd_s = t.material[t.m].impact_s;
-				if (  t.msoundtypes == 6  )  t.snd_s = t.material[t.m].destroy_s;
-				if (  t.msoundtypes == 0  )  t.msoundassign = t.material[t.m].tred0id;
-				if (  t.msoundtypes == 1  )  t.msoundassign = t.material[t.m].tred1id;
-				if (  t.msoundtypes == 2  )  t.msoundassign = t.material[t.m].tred2id;
-				if (  t.msoundtypes == 3  )  t.msoundassign = t.material[t.m].tred3id;
-				if (  t.msoundtypes == 4  )  t.msoundassign = t.material[t.m].scrapeid;
-				if (  t.msoundtypes == 5  )  t.msoundassign = t.material[t.m].impactid;
-				if (  t.msoundtypes == 6  )  t.msoundassign = t.material[t.m].destroyid;
-				if (  FileExist(t.snd_s.Get()) == 1 && t.msoundassign == 0 ) 
+				// speed up loading and don't need these extra sounds 
+				#ifdef VRQUEST
+				 int iSoundTypesFullSupport = 3;
+				#else
+				 int iSoundTypesFullSupport = 6;
+				#endif
+				for ( t.msoundtypes = 0; t.msoundtypes <= iSoundTypesFullSupport; t.msoundtypes++ )
 				{
-					while (  SoundExist(t.tbase) == 1 && t.tbase<g.materialsoundoffsetend-5 ) 
+					if (  t.msoundtypes == 0  )  t.snd_s = t.material[t.m].tred0_s;
+					if (  t.msoundtypes == 1  )  t.snd_s = t.material[t.m].tred1_s;
+					if (  t.msoundtypes == 2  )  t.snd_s = t.material[t.m].tred2_s;
+					if (  t.msoundtypes == 3  )  t.snd_s = t.material[t.m].tred3_s;
+					if (  t.msoundtypes == 4  )  t.snd_s = t.material[t.m].scrape_s;
+					if (  t.msoundtypes == 5  )  t.snd_s = t.material[t.m].impact_s;
+					if (  t.msoundtypes == 6  )  t.snd_s = t.material[t.m].destroy_s;
+					if (  t.msoundtypes == 0  )  t.msoundassign = t.material[t.m].tred0id;
+					if (  t.msoundtypes == 1  )  t.msoundassign = t.material[t.m].tred1id;
+					if (  t.msoundtypes == 2  )  t.msoundassign = t.material[t.m].tred2id;
+					if (  t.msoundtypes == 3  )  t.msoundassign = t.material[t.m].tred3id;
+					if (  t.msoundtypes == 4  )  t.msoundassign = t.material[t.m].scrapeid;
+					if (  t.msoundtypes == 5  )  t.msoundassign = t.material[t.m].impactid;
+					if (  t.msoundtypes == 6  )  t.msoundassign = t.material[t.m].destroyid;
+					if (  FileExist(t.snd_s.Get()) == 1 && t.msoundassign == 0 ) 
 					{
-						++t.tbase;
-					}
-					if (  t.tbase<g.materialsoundoffsetend-5 ) 
-					{
-						Load3DSound (  t.snd_s.Get(),t.tbase );
-						SetSoundSpeed (  t.tbase,t.material[t.m].freq+g.soundfrequencymodifier );
-						t.msoundassign=t.tbase;
-						for ( t.tclones = 1 ; t.tclones<=  4; t.tclones++ )
+						while (  SoundExist(t.tbase) == 1 && t.tbase<g.materialsoundoffsetend-5 ) 
 						{
-							t.tbaseclone=t.tbase+t.tclones;
-							CloneSound (  t.tbaseclone,t.tbase );
+							++t.tbase;
 						}
-						t.tbase += 5;
+						if (  t.tbase<g.materialsoundoffsetend-5 ) 
+						{
+							Load3DSound (  t.snd_s.Get(),t.tbase );
+							SetSoundSpeed (  t.tbase,t.material[t.m].freq+g.soundfrequencymodifier );
+							t.msoundassign=t.tbase;
+							for ( t.tclones = 1 ; t.tclones<=  4; t.tclones++ )
+							{
+								t.tbaseclone=t.tbase+t.tclones;
+								CloneSound (  t.tbaseclone,t.tbase );
+							}
+							t.tbase += 5;
+						}
 					}
+					if (  t.msoundtypes == 0  )  t.material[t.m].tred0id = t.msoundassign;
+					if (  t.msoundtypes == 1  )  t.material[t.m].tred1id = t.msoundassign;
+					if (  t.msoundtypes == 2  )  t.material[t.m].tred2id = t.msoundassign;
+					if (  t.msoundtypes == 3  )  t.material[t.m].tred3id = t.msoundassign;
+					if (  t.msoundtypes == 4  )  t.material[t.m].scrapeid = t.msoundassign;
+					if (  t.msoundtypes == 5  )  t.material[t.m].impactid = t.msoundassign;
+					if (  t.msoundtypes == 6  )  t.material[t.m].destroyid = t.msoundassign;
 				}
-				if (  t.msoundtypes == 0  )  t.material[t.m].tred0id = t.msoundassign;
-				if (  t.msoundtypes == 1  )  t.material[t.m].tred1id = t.msoundassign;
-				if (  t.msoundtypes == 2  )  t.material[t.m].tred2id = t.msoundassign;
-				if (  t.msoundtypes == 3  )  t.material[t.m].tred3id = t.msoundassign;
-				if (  t.msoundtypes == 4  )  t.material[t.m].scrapeid = t.msoundassign;
-				if (  t.msoundtypes == 5  )  t.material[t.m].impactid = t.msoundassign;
-				if (  t.msoundtypes == 6  )  t.material[t.m].destroyid = t.msoundassign;
 			}
 		}
-	}
-	if (  t.tbase>g.materialsoundoffset ) 
-	{
-		t.tnewmax=(t.tbase-1)-g.materialsoundoffset;
-		if (  t.tnewmax>g.materialsoundmax ) 
+		if (  t.tbase>g.materialsoundoffset ) 
 		{
-			g.materialsoundmax=t.tnewmax;
+			t.tnewmax=(t.tbase-1)-g.materialsoundoffset;
+			if (  t.tnewmax>g.materialsoundmax ) 
+			{
+				g.materialsoundmax=t.tnewmax;
+			}
 		}
 	}
 }

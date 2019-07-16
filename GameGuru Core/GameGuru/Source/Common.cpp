@@ -23,18 +23,15 @@ extern float g_fVR920Sensitivity;
 int g_PopupControlMode = 0;
 char g_pCloudKeyErrorString[10240];
 
-// to enable the use of _e_ in standalone
-void SetCanUse_e_ ( int flag );
-
 // C++ CONVERSION: g contains all variables that were defined as global in dbpro source
-// C++ CONVERSION: t contains all variables that were considered temporary and subject to change between routines
 Sglobals g;
+
+// C++ CONVERSION: t contains all variables that were considered temporary and subject to change between routines
 Stemps t;
 
-// 
-//  Common Between Map Editor and Game Runner
-// 
-
+// Prototypes
+void SetCanUse_e_ ( int flag );
+void SetWorkshopFolder ( LPSTR pFolder );
 
 //Subroutines
 
@@ -415,6 +412,9 @@ void common_init_globals ( void )
 	 g.myfpscfiles_s = "Game Guru Files";
 	#endif
 	g.myownrootdir_s = g.mydocumentsdir_s+g.myfpscfiles_s+"\\";
+
+	// Store globally (for custom content loading inside SteamCheckForWorkshop)
+	SetWorkshopFolder ( g.fpscrootdir_s.Get() );
 
 	//  Image Resources
 	//  1-20 images used somewhere (terrain heightdata?)
@@ -2543,6 +2543,10 @@ void FPSC_Setup ( void )
 	g.gshowonstartup = 0;
 	if ( g.trueappname_s == "Guru-MapEditor" ) 
 	{
+		// create itinerary file if first time, or just read it in
+		CreateItineraryFile();
+
+		// startup file
 		t.tfile_s="showonstartup.ini";
 		if ( FileOpen(1) == 1 ) CloseFile (  1 );
 		if ( FileExist(t.tfile_s.Get()) == 1 ) 
@@ -3130,7 +3134,7 @@ void FPSC_Setup ( void )
 	timestampactivity(0,t.szwork);
 	if (  g.trueappname_s == "Guru-MapEditor" ) 
 		bIsThisMapEditor = true;
-
+	
 	// Common redirections to new My System write/read folder
 	cstr mysystemfolder_s = "My System";
 	if ( bIsThisMapEditor == false ) g.mysystem.bUsingMySystemFolder = false;
@@ -3282,7 +3286,7 @@ void FPSC_Setup ( void )
 
 		//  Enter Map Editor specific code
 		SETUPLoadAllCoreShadersREST(g.gforceloadtestgameshaders,g.gpbroverride);
-		material_loadsounds ( );
+		material_loadsounds ( 1 );
 		mapeditorexecutable();
 	}
 	else
@@ -3923,19 +3927,11 @@ return;
 
 void version_splashtext_statusupdate ( void )
 {
-	//  Update Splash Text (  with update on what is being loaded (startup IDE) )
-	if (  t.game.gameisexe != 1 ) 
+	// Update Splash Text (  with update on what is being loaded (startup IDE) )
+	if ( t.game.gameisexe != 1 ) 
 	{
-		//  and only if not running standalone
-		//  takes tsplashstatusprogress$
-		//if (  g.grestoreeditorsettings != 1 ) 
-		//{
-			welcome_updatebackdrop(t.tsplashstatusprogress_s.Get());
-			//OpenFileMap (  5, "FPSSPLASH" );
-			//SetFileMapDWORD (  5, 4, 1 );
-			//SetFileMapString (  5, 1000, t.tsplashstatusprogress_s.Get() );
-			//SetEventAndWait (  5 );
-		//}
+		// and only if not running standalone
+		welcome_updatebackdrop(t.tsplashstatusprogress_s.Get());
 	}
 }
 
@@ -3951,8 +3947,6 @@ void version_splashtext ( void )
 
 void version_onscreenlogos ( void )
 {
-return;
-
 }
 
 void version_permittestgame ( void )
