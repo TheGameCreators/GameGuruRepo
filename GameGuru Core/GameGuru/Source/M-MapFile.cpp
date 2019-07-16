@@ -2840,5 +2840,6 @@ void ScanLevelForCustomContent ( LPSTR pFPMBeingSaved )
 	}
 
 	// when done, need to be in levelbank folder for rest of FPM saving
+	SetDir ( cstr(g.fpscrootdir_s + "\\Files\\").Get() );
 	SetDir ( g.mysystem.levelBankTestMap_s.Get() );
 }

@@ -656,12 +656,16 @@ DARKSDK void LoadRawSound ( LPSTR szFilename, int iID, bool bFlag, int iSilentFa
 	strcpy(VirtualFilename, szFilename);
 	g_pGlob->UpdateFilenameFromVirtualTable( (DWORD)VirtualFilename);
 
-	CheckForWorkshopFile (VirtualFilename);
+	// replace with encrypted/customcontent if not found in regular location
+	CheckForWorkshopFile ( VirtualFilename );
 
 	// Decrypt and use media, re-encrypt
-	g_pGlob->Decrypt( (DWORD)VirtualFilename );
-	LoadRawSoundCore ( VirtualFilename, iID, bFlag, iSilentFail, iGlobalSound );
-	g_pGlob->Encrypt( (DWORD)VirtualFilename );
+	if ( VirtualFilename && strlen(VirtualFilename) > 1 )
+	{
+		g_pGlob->Decrypt( (DWORD)VirtualFilename );
+		LoadRawSoundCore ( VirtualFilename, iID, bFlag, iSilentFail, iGlobalSound );
+		g_pGlob->Encrypt( (DWORD)VirtualFilename );
+	}
 }
 
 DARKSDK void LoadSound ( LPSTR szFilename, int iID )

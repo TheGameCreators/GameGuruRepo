@@ -195,7 +195,6 @@ void material_loadsounds ( int iInitial )
 
 void material_loadplayersounds ( void )
 {
-
 	//  determine if player start marker specified an alternate
 	t.tplayerstyle_s="player";
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )

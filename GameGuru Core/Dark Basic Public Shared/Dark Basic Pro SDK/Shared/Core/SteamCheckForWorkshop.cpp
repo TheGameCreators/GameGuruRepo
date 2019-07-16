@@ -91,17 +91,20 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename )
 			// attempt to load onefile reference from levelbank\testmap
 			if ( g_pRootFolder )
 			{
-				char pOneFilePath[2048];
+				LPSTR plevelBankTestMapRef = "\\Files\\levelbank\\testmap\\";
+				LPSTR pOneFilePath = new char[strlen(g_pRootFolder)+strlen(plevelBankTestMapRef)+strlen(pOneFiledStr)+10];
 				strcpy ( pOneFilePath, g_pRootFolder );
-				strcat ( pOneFilePath, "\\Files\\levelbank\\testmap\\" );
+				strcat ( pOneFilePath, plevelBankTestMapRef );
 				strcat ( pOneFilePath, pOneFiledStr );
 				tempFile = fopen ( pOneFilePath ,"r" );
 				if ( tempFile )
 				{
 					fclose ( tempFile );
-					strcpy ( VirtualFilename , pOneFilePath );
+					if ( (strlen(pOneFilePath)+5) < _MAX_PATH ) strcpy ( VirtualFilename , pOneFilePath );
+					delete pOneFilePath;
 					return true;
 				}
+				delete pOneFilePath;
 			}
 		}
 

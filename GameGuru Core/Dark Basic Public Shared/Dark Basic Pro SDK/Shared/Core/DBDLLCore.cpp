@@ -849,6 +849,7 @@ DARKSDK bool COREDoesFileExist(LPSTR Filename)
 
 DARKSDK void UpdateFilenameFromVirtualTable( DWORD dwStringAddress )
 {
+	/* no longer use embedded virtual media in EXE
 	// String is input with external filename
 	if(dwStringAddress==0)
 		return;
@@ -872,6 +873,7 @@ DARKSDK void UpdateFilenameFromVirtualTable( DWORD dwStringAddress )
 
 	// Free usages
 	delete[] pFilename;
+	*/
 }
 
 DARKSDK LPSTR ReadFileData(LPSTR FilenameString, DWORD* dwDataSize)

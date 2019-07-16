@@ -3152,6 +3152,31 @@ void FPSC_Setup ( void )
 	{
 		// MAP EDITOR
 
+		// Write latest location of software to registry (for future patch installers)
+		HKEY hKeyNames = 0;
+		LPCSTR pSubKeyName = "Software\\VRQuest";
+		LPSTR pThisVersion = g.version_s.Get();
+		LPSTR pThisPath = g.fpscrootdir_s.Get();
+		DWORD dwDisposition;
+		DWORD Status = RegCreateKeyEx(HKEY_CURRENT_USER, pSubKeyName, 0L, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS | KEY_WRITE, NULL, &hKeyNames, &dwDisposition);
+		if ( Status == ERROR_SUCCESS )
+		{
+			if ( dwDisposition == REG_OPENED_EXISTING_KEY )
+			{
+				RegCloseKey ( hKeyNames );
+				Status = RegOpenKeyEx(HKEY_CURRENT_USER, pSubKeyName, 0L, KEY_WRITE, &hKeyNames);
+			}
+		}
+		if ( hKeyNames != 0 )
+		{
+			if ( Status == ERROR_SUCCESS )
+			{
+				Status = RegSetValueEx(hKeyNames, "Version", 0, REG_SZ, (LPBYTE)pThisVersion, (strlen(pThisVersion)+1)*sizeof(char));
+				Status = RegSetValueEx(hKeyNames, "LatestInstallPath", 0, REG_SZ, (LPBYTE)pThisPath, (strlen(pThisPath)+1)*sizeof(char));
+			}
+			RegCloseKey(hKeyNames);
+		}
+
 		// For My System mode
 		if ( g.mysystem.bUsingMySystemFolder == true )
 		{
