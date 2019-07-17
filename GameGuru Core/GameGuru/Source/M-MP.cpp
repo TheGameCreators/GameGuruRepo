@@ -513,7 +513,7 @@ void mp_loop ( void )
 		//#else
 		// int iIsGameRunning = SteamIsGameRunning();
 		//#endif
-		if ( 1 ) //iIsGameRunning  == 1 ) just go direct to getting file and starting
+		if ( Timer() - g.mp.oldtime > 1000 && PhotonGetLobbyUserCount() > 1 ) //iIsGameRunning  == 1 ) just go direct to getting file and starting
 		{
 			g.mp.mode = MP_IN_GAME_CLIENT;
 			g.mp.needToResetOnStartup = 1;
@@ -533,7 +533,6 @@ void mp_loop ( void )
 			}
 		}
 		#ifdef PHOTONMP
-		 /* this is entirely skipped now, joiners just get file and go
 		 // reduced all code below to a simple display of users in this game room (Photon can migrate host so not important if hosts leaves)
 		 int iHasJoinedLobby = PhotonHasJoinedLobby();
 		 if ( iHasJoinedLobby == 1 )
@@ -570,7 +569,6 @@ void mp_loop ( void )
 				return;
 			}
 		 }
-		 */
 		#else
 		 // not a whole lot of sense below, may untangle it over time
 		 int iHasJoinedLobby = SteamHasJoinedLobby();
@@ -2210,7 +2208,7 @@ void mp_updatePlayerNamePlates ( void )
 	}
 	*/
 
-	// Display players names 
+	// Display players names  
 	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 		t.e = t.mp_playerEntityID[t.c];
@@ -6768,6 +6766,7 @@ void mp_joinALobby ( void )
 		#endif
 
 		g.mp.mode = MP_JOINING_LOBBY;
+		g.mp.oldtime = Timer();
 		t.tsteamwaitedforlobbytimer = Timer();
 		g.mp.AttemptedToJoinLobbyTime = Timer();
 		g.mp.lobbycount = 0;
