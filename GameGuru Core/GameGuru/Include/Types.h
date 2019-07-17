@@ -517,7 +517,7 @@ struct mptype
 	int meleeOn;
 	int isAnimating;
 	int okayToLoadLevel;
-	int iHaveSaidIAmReady;
+	int iHaveSaidIAmAlmostReady;
 	int attachmentcount;
 	int gunCount;
 	int gunid;
@@ -723,7 +723,7 @@ struct mptype
 		 gunid = 0;
 		 gunCount = 0;
 		 attachmentcount = 0;
-		 iHaveSaidIAmReady = 0;
+		 iHaveSaidIAmAlmostReady = 0;
 		 okayToLoadLevel = 0;
 		 isAnimating = 0;
 		 meleeOn = 0;

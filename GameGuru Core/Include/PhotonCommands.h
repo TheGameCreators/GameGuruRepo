@@ -51,6 +51,7 @@ int PhotonGetFileProgress();
 int PhotonIsEveryoneFileSynced();
 void PhotonSetThisPlayerAsCurrentServer();
 void PhotonSendIAmLoadedAndReady();
+int PhotonIsPlayerLoadedAndReady ( int iRealPlayerNr );
 int PhotonIsEveryoneLoadedAndReady();
 
 void PhotonSetPlayerPositionX( float _x );

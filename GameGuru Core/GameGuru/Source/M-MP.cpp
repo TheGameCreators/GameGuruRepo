@@ -508,17 +508,16 @@ void mp_loop ( void )
 	// Handle joining the lobby/room
 	if ( g.mp.mode == MP_JOINING_LOBBY ) 
 	{
-		#ifdef PHOTONMP
-		 int iIsGameRunning = PhotonIsGameRunning();
-		#else
-		 int iIsGameRunning = SteamIsGameRunning();
-		#endif
-		if ( iIsGameRunning  == 1 ) 
+		//#ifdef PHOTONMP
+		// int iIsGameRunning = PhotonIsGameRunning();
+		//#else
+		// int iIsGameRunning = SteamIsGameRunning();
+		//#endif
+		if ( 1 ) //iIsGameRunning  == 1 ) just go direct to getting file and starting
 		{
 			g.mp.mode = MP_IN_GAME_CLIENT;
 			g.mp.needToResetOnStartup = 1;
 			t.toldsteamfolder_s=GetDir();
-			//SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
 			t.tsteamtimeoutongamerunning = Timer();
 
 			// Reset player var
@@ -533,16 +532,8 @@ void mp_loop ( void )
 				t.ta = MouseMoveX() + MouseMoveY();
 			}
 		}
-		///if ( t.tjoinedLobby == 0 ) 
-		///{
-		///	if ( Timer() - g.mp.AttemptedToJoinLobbyTime > MP_JOIN_LOBBY_TIMEOUT ) 
-		///	{
-		///		g.mp.mode = MP_MODE_MAIN_MENU;
-		///		t.tmsg_s = "Could not join";
-		///		mp_setMessage ( );
-		///	}
-		///}
 		#ifdef PHOTONMP
+		 /* this is entirely skipped now, joiners just get file and go
 		 // reduced all code below to a simple display of users in this game room (Photon can migrate host so not important if hosts leaves)
 		 int iHasJoinedLobby = PhotonHasJoinedLobby();
 		 if ( iHasJoinedLobby == 1 )
@@ -560,21 +551,9 @@ void mp_loop ( void )
 			{
 				LPSTR pDisplayName = PhotonGetLobbyUserDisplayName(t.tn-1);
 				LPSTR pLobbyUserName = pDisplayName;
-				//if ( t.tn == 1 ) 
-				//{
-				//	t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pLobbyUserName + " (Host)";
-				//}
-				//else
-				//{
 				t.tstring_s = cstr("Player ") + Str(t.tn) + ": " + pLobbyUserName;
-				//}
 				mp_text(-1,t.tsteamy,1,t.tstring_s.Get());
 				t.tsteamy += 5;
-				//if ( t.tsteamnamewearelookingfor_s == pLobbyUserName ) 
-				//{
-				//	t.tsteamistheownerpresent = 1;
-				//	t.tsteamistheownerpresenttime = Timer();
-				//}
 			}
 		 }
 		 else
@@ -590,7 +569,8 @@ void mp_loop ( void )
 				mp_lostConnection ( );
 				return;
 			}
-		 }		
+		 }
+		 */
 		#else
 		 // not a whole lot of sense below, may untangle it over time
 		 int iHasJoinedLobby = SteamHasJoinedLobby();
@@ -739,11 +719,11 @@ void mp_loop ( void )
 			#endif
 			if ( iIsGameRunning == 1 ) 
 			{
-				g.mp.mode = MP_IN_GAME_SERVER;
-				g.mp.needToResetOnStartup = 1;
-				//t.toldsteamfolder_s=GetDir();
-				//SetDir ( cstr(g.fpscrootdir_s + "\\Files\\editors\\gridedit").Get() );
-				//t.tPlayerIndex = PhotonGetMyPlayerIndex();
+				if ( Timer() - g.mp.oldtime > 150 ) 
+				{
+					g.mp.mode = MP_IN_GAME_SERVER;
+					g.mp.needToResetOnStartup = 1;
+				}
 			}
 			else
 			{
@@ -776,7 +756,7 @@ void mp_loop ( void )
 	if ( g.mp.mode == MP_IN_GAME_SERVER ) 
 	{
 		g.mp.dontDrawTitles = 1;
-		if ( g.mp.iHaveSaidIAmReady == 0 ) 
+		if ( g.mp.iHaveSaidIAmAlmostReady == 0 ) 
 		{
 			#ifdef PHOTONMP
 			 PhotonSetThisPlayerAsCurrentServer ( );
@@ -784,7 +764,7 @@ void mp_loop ( void )
 			#else
 			 SteamSendIAmLoadedAndReady ( );
 			#endif
-			g.mp.iHaveSaidIAmReady = 1;
+			g.mp.iHaveSaidIAmAlmostReady = 1;
 			t.tempsteamingameinitialwaitingdelay = Timer();
 			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 			{
@@ -859,14 +839,16 @@ void mp_loop ( void )
 			g.mp.dontDrawTitles = 1;
 		}
 		g.mp.dontDrawTitles = 1;
-		if ( g.mp.iHaveSaidIAmReady == 0 ) 
+		if ( g.mp.iHaveSaidIAmAlmostReady == 0 ) 
 		{
 			#ifdef PHOTONMP
-			 PhotonSendIAmLoadedAndReady (  );
+			 //this is wrong, it is sending the loaded and ready flag even before the file was received! (moved later in sequence)
+			 //PhotonSendIAmLoadedAndReady (  );
 			#else
 			 SteamSendIAmLoadedAndReady (  );
 			#endif
-			g.mp.iHaveSaidIAmReady = 1;
+			g.mp.iHaveSaidIAmAlmostReady = 1;
+			t.tskipLevelSync = Timer();
 			t.tempsteamingameinitialwaitingdelay = Timer();
 			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
 			{
@@ -890,13 +872,12 @@ void mp_loop ( void )
 						return;
 					}
 				}
-				t.tskipLevelSync = Timer();
 				#ifdef PHOTONMP
 				 int iIsEveryoneLoadedAndReady = PhotonIsEveryoneLoadedAndReady();
 				#else
 				 int iIsEveryoneLoadedAndReady = SteamIsEveryoneLoadedAndReady();
 				#endif
-				if ( iIsEveryoneLoadedAndReady =  1 ) t.tempsteamingameinitialwaitingdelay = -30000;
+				if ( iIsEveryoneLoadedAndReady == 1 ) t.tempsteamingameinitialwaitingdelay = -30000; // was just = not ==
 			}   
 		}
 
@@ -1655,27 +1636,28 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 				g.mp.syncedWithServerMode = 3;
 				return;
 			}
-	
-			//g.mp.serverusingworkshop = 0;
-	
+
+			// if host tries to send file to itself
+			if ( iOnlySendMapToSpecificPlayer == PhotonGetMyRealPlayerNr() )
+			{
+				g.mp.syncedWithServerMode = 3;
+				return;
+			}
+
+			// if try to send map to player who is already loaded and ready (gathered at start screen and loading done)
+			if ( iOnlySendMapToSpecificPlayer != -1 )
+			{
+				if ( PhotonIsPlayerLoadedAndReady ( iOnlySendMapToSpecificPlayer ) == 1 )
+				{
+					g.mp.syncedWithServerMode = 3;
+					return;
+				}
+			}
+
+			// okay, we have a go to send the file to the specific player
 			PhotonSetSendFileCount ( 1, iOnlySendMapToSpecificPlayer );
-			//if ( g.mp.levelContainsCustomContent  ==  0 ) 
-			//{
 			pFullPathAndFile = "editors\\gridedit\\__multiplayerlevel__.fpm";
 			PhotonSendFileBegin ( 1, pFullPathAndFile.Get(), g.fpscrootdir_s.Get() );
-			//PhotonSendFileBegin ( 1, "__multiplayerlevel__.fpm" );
-			//g.mp.serverusingworkshop = 1;
-			//}
-			//else
-			//{
-			//	t.tempsteamfiletosend_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
-			//	if (  FileExist (t.tempsteamfiletosend_s.Get())  ==  1  )  DeleteAFile (  t.tempsteamfiletosend_s.Get() );
-			//	if (  FileOpen(1)  )  CloseFile (  1 );
-			//	OpenToWrite (  1,t.tempsteamfiletosend_s.Get() );
-			//	WriteString (  1,g.mp.workshopid.Get() );
-			//	CloseFile (  1 );
-			//	SteamSendFileBegin (  1,"__multiplayerworkshopitemid__.dat" );
-			//}
 			g.mp.syncedWithServerMode = 1;
 			mp_textDots(-1,30,3,"Setting up data for clients");
 			g_dwSendLastTime = timeGetTime();
@@ -1801,24 +1783,12 @@ void mp_pre_game_file_sync_client ( void )
 
 			if ( PhotonAmIFileSynced() == 1 ) 
 			{
-				//t.tempMPshopidfile_s = g.mysystem.editorsGrideditAbs_s+"__multiplayerworkshopitemid__.dat";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\__multiplayerworkshopitemid__.dat";
-				//if ( FileExist(t.tempMPshopidfile_s.Get()) ) 
-				//{
-				//	if ( FileOpen(10) == 1 ) CloseFile ( 10 );
-				//	OpenToRead (  10,t.tempMPshopidfile_s.Get() );
-				//	g.mp.workshopid = ReadString ( 10 );
-				//	CloseFile (  10 );
-				//	cstr mlevel_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
-				//	if ( FileExist( mlevel_s.Get() ) ) DeleteAFile ( mlevel_s.Get() );
-				//	SteamDownloadWorkshopItem ( g.mp.workshopid.Get() );
-				//	g.mp.syncedWithServerMode = 2;
-				//}
-				//else
-				//{
+				// can NOW send that this joiner is ready (file received!)
+				PhotonSendIAmLoadedAndReady (  );
+
+				// start loading resources sequence
 				g.mp.fileLoaded = 1;
-				//PhotonSendIAmLoadedAndReady ( ); // redundanyt?
 				g.mp.syncedWithServerMode = 1;
-				//}
 			}
 			else
 			{
@@ -2075,7 +2045,8 @@ void mp_update_player ( void )
 		PhotonSetPlayerPositionY ( CameraPositionY()-64+30 );
  	 }
 	 PhotonSetPlayerPositionZ ( CameraPositionZ() );
-	 PhotonSetPlayerAngle ( CameraAngleY() );
+	 //PhotonSetPlayerAngle ( CameraAngleY() ); camera zero can now use freeflight for HMD perspective
+	 PhotonSetPlayerAngle ( t.camangy_f );
 	#else
 	 SteamSetPlayerPositionX ( CameraPositionX() );
 	 if ( g.mp.crouchOn == 0 ) 
@@ -2099,7 +2070,8 @@ void mp_update_player ( void )
 		g.mp.lasty = CameraPositionY()-64+30;
 	}
 	g.mp.lastz = CameraPositionZ();
-	g.mp.lastangley = CameraAngleY();
+	//g.mp.lastangley = CameraAngleY(); cannot use this now
+	g.mp.lastangley = t.camangy_f;
 
 	t.tpe = t.mp_playerEntityID[g.mp.me];
 	if ( t.tpe > 0 )
@@ -5462,7 +5434,7 @@ void mp_resetGameStats ( void )
 	g.mp.meleeOn = 0;
 	g.mp.isAnimating = 0;
 	g.mp.okayToLoadLevel = 0;
-	g.mp.iHaveSaidIAmReady = 0;
+	g.mp.iHaveSaidIAmAlmostReady = 0;
 	g.mp.attachmentcount = 0;
 	g.mp.gunCount = 0;
 	g.mp.gunid = 0;

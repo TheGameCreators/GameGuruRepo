@@ -500,7 +500,7 @@ void titles_loadingpageupdate ( void )
 	}
 
 	//  dave added a skip test for syncing to prevent the editor being drawn when switching to mp game start
-	if (  Timer() - t.tskipLevelSync > 2000  )  Sync (  );
+	if (  Timer() - t.tskipLevelSync > 200  )  Sync (  );
 }
 
 void titles_loadingpagefree ( void )
@@ -2028,7 +2028,7 @@ void titles_base ( void )
 			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			//  Update screen
 			//  dave added a skip test for syncing to prevent the editor being drawn when switching to mp game start
-			if (  Timer() - t.tskipLevelSync > 2000  )  Sync (  );
+			if (  Timer() - t.tskipLevelSync > 200  )  Sync (  );
 		}
 
 	}

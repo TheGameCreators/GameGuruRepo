@@ -41,6 +41,7 @@ public:
 
 	void setPlayerIDAsCurrentServerPlayer(void);
 	bool isServer(void) { return mbIsServer; }
+	bool isPlayerLoadedAndReady ( int iRealPlayerNr );
 	bool isEveryoneLoadedAndReady(void);
 
 	int getLocalPlayerID(void);

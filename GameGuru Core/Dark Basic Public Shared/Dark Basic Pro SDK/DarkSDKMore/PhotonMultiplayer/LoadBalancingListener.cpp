@@ -174,6 +174,16 @@ void LoadBalancingListener::setPlayerIDAsCurrentServerPlayer ( void )
 	mbIsServer = true;
 }
 
+bool LoadBalancingListener::isPlayerLoadedAndReady ( int iRealPlayerNr )
+{
+	bool bReady = false;
+	int iSlotIndex = GetRemap ( iRealPlayerNr );
+	if ( m_rgpPlayer[iSlotIndex] )
+		if ( m_rgpPlayerLoadedAndReady[iSlotIndex] != 0 )
+			bReady = true;
+	return bReady;
+}
+
 bool LoadBalancingListener::isEveryoneLoadedAndReady(void)
 {
 	bool allReady = true;
@@ -293,6 +303,7 @@ void LoadBalancingListener::removePlayer ( int iPhotonRealPlayerNr )
 		RemovePlayerFromRemap ( iRemapSlotIndex );
 
 		// player gone, so remove from list
+		m_rgpPlayerLoadedAndReady[iRemapSlotIndex] = 0;
 		delete m_rgpPlayer[iRemapSlotIndex];
 		m_rgpPlayer[iRemapSlotIndex] = NULL;
 
@@ -336,6 +347,7 @@ int LoadBalancingListener::AddPlayerToRemap ( int iPhotonPlayerIndex )
 	{
 		m_rgpPlayer[iRemapSlotIndex] = new CPlayer();
 		m_rgpPlayer[iRemapSlotIndex]->id = iPhotonPlayerIndex;
+		m_rgpPlayerLoadedAndReady[iRemapSlotIndex] = 0;
 		if ( iPhotonPlayerIndex >= iRemapPlayerArraySize )
 		{
 			int* newremapPlayerIndex = new int[iRemapPlayerArraySize+32];

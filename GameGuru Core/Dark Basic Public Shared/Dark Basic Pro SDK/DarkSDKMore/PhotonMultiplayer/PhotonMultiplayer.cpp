@@ -726,6 +726,14 @@ void PhotonSendIAmLoadedAndReady()
 	}
 }
 
+int PhotonIsPlayerLoadedAndReady ( int iRealPlayerNr )
+{
+	if ( g_pLBL->isServer() == true )
+		if ( g_pLBL->isPlayerLoadedAndReady ( iRealPlayerNr ) == true )
+			return 1;
+	return 0;
+}
+
 int PhotonIsEveryoneLoadedAndReady()
 {
 	// LEE, the 'PhotonSendIAmLoadedAndReady' is only done by non-server players
