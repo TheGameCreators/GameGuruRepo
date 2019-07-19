@@ -139,11 +139,11 @@ void ebe_init ( int BuildObj, int iEntID )
 
 	// Help Dialog Shortcut Keys
 	ebebuild.iEBETexHelpSpr = g.ebeinterfacesprite + 2;
-	#ifdef VRQUEST
-	 ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\branded\\ebe-texturehelp.png");
-	#else
+	//#ifdef VRQUEST
+	// ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\branded\\ebe-texturehelp.png");
+	//#else
 	 ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\ebe-texturehelp.png");
-	#endif
+	//#endif
 	Sprite ( ebebuild.iEBETexHelpSpr, ebebuild.iTexturePanelX - 10, ebebuild.iTexturePanelY - 10 - ImageHeight(ebebuild.iEBETexHelpImg), ebebuild.iEBETexHelpImg );
 
 	// Load TXP default file
@@ -1079,15 +1079,15 @@ void ebe_loop ( void )
 				ebe_settexturehighlight();
 
 				// and if it was right mouse, customise this texture too
-				#ifdef VRQUEST
+				//#ifdef VRQUEST
 				// Cannot allow custom EBE textures - bloats FPM making transfer over multiplayer very slow
-				#else
+				//#else
 				if ( t.inputsys.mclick == 2 )
 				{
 					// replace texture within texture atlas
 					ebebuild.bCustomiseTexture = true;
 				}
-				#endif
+				//#endif
 
 				// ensure we do not write into builder if selecting texture
 				t.inputsys.mclick = 0;
@@ -2842,32 +2842,32 @@ void ebe_finishsite ( void )
 
 			// write new texture path and name for this entity
 			t.entityprofile[entid].texpath_s = "ebebank\\default\\";
-			#ifdef VRQUEST
-			 // all VRQ EBEs to use same texture set to keep FPM sizes small for transfer
-			 t.entityprofile[entid].texd_s = "textures_D.dds";
-			#else
+			//#ifdef VRQUEST
+			// // all VRQ EBEs to use same texture set to keep FPM sizes small for transfer
+			// t.entityprofile[entid].texd_s = "textures_D.dds";
+			//#else
 			 t.entityprofile[entid].texd_s = ebe_constructlongTXPname("_D.dds");
-			#endif
+			//#endif
 			cstr tthistexdir_s = t.entityprofile[entid].texpath_s + t.entityprofile[entid].texd_s;
 			if ( t.entityprofile[entid].transparency == 0 ) 
 				t.entityprofile[entid].texdid = loadinternaltextureex(tthistexdir_s.Get(),1,0);
 			else
 				t.entityprofile[entid].texdid = loadinternaltextureex(tthistexdir_s.Get(),5,0);
 
-			#ifdef VRQUEST
+			//#ifdef VRQUEST
 			 // all VRQ EBEs to use same texture set to keep FPM sizes small for transfer
-			 tthistexdir_s = t.entityprofile[entid].texpath_s + "textures_N.dds";
-			#else
+			// tthistexdir_s = t.entityprofile[entid].texpath_s + "textures_N.dds";
+			//#else
 			 tthistexdir_s = t.entityprofile[entid].texpath_s + ebe_constructlongTXPname("_N.dds");
-			#endif
+			//#endif
 			t.entityprofile[entid].texnid = loadinternaltextureex(tthistexdir_s.Get(),5,0);
 
-			#ifdef VRQUEST
-			 // all VRQ EBEs to use same texture set to keep FPM sizes small for transfer
-			 tthistexdir_s = t.entityprofile[entid].texpath_s + "textures_S.dds";
-			#else
+			//#ifdef VRQUEST
+			// // all VRQ EBEs to use same texture set to keep FPM sizes small for transfer
+			// tthistexdir_s = t.entityprofile[entid].texpath_s + "textures_S.dds";
+			//#else
 			 tthistexdir_s = t.entityprofile[entid].texpath_s + ebe_constructlongTXPname("_S.dds");
-			#endif
+			//#endif
 			t.entityprofile[entid].texsid = loadinternaltextureex(tthistexdir_s.Get(),1,0);
 
 			// recreate entity using optimized polygons

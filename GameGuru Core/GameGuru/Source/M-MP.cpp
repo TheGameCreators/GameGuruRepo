@@ -7237,11 +7237,11 @@ void mp_save_workshop_files_needed ( void )
 		}
 	}
 
-	//  fill in the .dat file
-	SetDir (  cstr(g.fpscrootdir_s+"\\Files\\").Get() );
-	t.filesmax=g.filecollectionmax;
+	// fill in the .dat file
+	SetDir ( cstr(g.fpscrootdir_s+"\\Files\\").Get() );
 	t.thowmanyadded = 0;
-	for ( t.fileindex = 1 ; t.fileindex<=  t.filesmax; t.fileindex++ )
+	t.filesmax = g.filecollectionmax;
+	for ( t.fileindex = 1 ; t.fileindex <= t.filesmax; t.fileindex++ )
 	{
 		t.name_s=t.filecollection_s[t.fileindex];
 		if (  cstr(Left(t.name_s.Get(),12))  ==  "entitybank\\\\"  )  t.name_s  =  cstr("entitybank\\") + Right(t.name_s.Get(), Len(t.name_s.Get())-12);

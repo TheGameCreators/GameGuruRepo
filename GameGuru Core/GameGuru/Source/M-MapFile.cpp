@@ -95,17 +95,23 @@ void mapfile_saveproject_fpm ( void )
 	ScanLevelForCustomContent ( t.ttempprojfilename_s.Get() );
 	g.projectfilename_s = sStoreProjAsItGetsChanged;
 
+	// putting back optional custom terrain texture
+	if ( FileExist ( "Texture_D.dds" ) == 1 ) 
+		AddFileToBlock ( 1, "Texture_D.dds" );
+	if ( FileExist ( "Texture_D.jpg" ) == 1 ) 
+		AddFileToBlock ( 1, "Texture_D.jpg" );
+
 	// VRQUEST Needs 'light' FPMs for transfer
 	#ifdef VRQUEST
 	// Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
 	#else
 	AddFileToBlock (  1, "watermask.dds" );
-	if ( FileExist ( "Texture_D.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_D.dds" );
-	if ( FileExist ( "Texture_N.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_N.dds" );
 	if ( FileExist ( "globalenvmap.dds" ) == 1 ) 
 		AddFileToBlock ( 1, "globalenvmap.dds" );
+	if ( FileExist ( "Texture_N.dds" ) == 1 ) 
+		AddFileToBlock ( 1, "Texture_N.dds" );
+	if ( FileExist ( "Texture_N.jpg" ) == 1 ) 
+		AddFileToBlock ( 1, "Texture_N.jpg" );
 	#endif
 
 	//  lightmap files
@@ -177,22 +183,27 @@ void mapfile_saveproject_fpm ( void )
 				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
 				tThisFile = tNameOnly + cstr(".bmp");
 				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
+				tThisFile = tNameOnly + cstr("_D.dds");
+				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
 				#ifdef VRQUEST
 				 // Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
 				#else
-				 tThisFile = tNameOnly + cstr("_D.dds");
-				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
 				 tThisFile = tNameOnly + cstr("_N.dds");
 				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
 				 tThisFile = tNameOnly + cstr("_S.dds");
 				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
 				#endif
 			}
+			strEnt = cstr(Lower(Right(t.tfile_s.Get(),6)));
+			if ( strcmp ( strEnt.Get(), "_d.dds" ) == NULL )
+			{
+				AddFileToBlock ( 1, t.tfile_s.Get() );
+			}
 			#ifdef VRQUEST
 			 // Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
 			#else
 			 strEnt = cstr(Lower(Right(t.tfile_s.Get(),6)));
-			 if ( strcmp ( strEnt.Get(), "_d.dds" ) == NULL || strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
+			 if ( strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
 			 {
 				AddFileToBlock ( 1, t.tfile_s.Get() );
 			 }
@@ -246,7 +257,8 @@ void mapfile_emptyebesfromtestmapfolder ( bool bIgnoreValidTextureFiles )
 				{
 					if ( strcmp ( strEnt.Get(), "_d.dds" ) == NULL || strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
 					{
-						if ( stricmp ( t.tfile_s.Get(), "Texture_D.dds" ) != NULL && stricmp ( t.tfile_s.Get(), "Texture_N.dds" ) != NULL )
+						if ( stricmp ( t.tfile_s.Get(), "Texture_D.dds" ) != NULL && stricmp ( t.tfile_s.Get(), "Texture_N.dds" ) != NULL 
+						&&   stricmp ( t.tfile_s.Get(), "Texture_D.jpg" ) != NULL && stricmp ( t.tfile_s.Get(), "Texture_N.jpg" ) != NULL )
 						{
 							DeleteAFile ( t.tfile_s.Get() );
 						}
@@ -281,7 +293,9 @@ void mapfile_loadproject_fpm ( void )
 
 		//  Delete terrain texture files (if any)
 		if ( FileExist("Texture_D.dds") == 1 ) DeleteAFile ( "Texture_D.dds" );
+		if ( FileExist("Texture_D.jpg") == 1 ) DeleteAFile ( "Texture_D.jpg" );
 		if ( FileExist("Texture_N.dds") == 1 ) DeleteAFile ( "Texture_N.dds" );
+		if ( FileExist("Texture_N.jpg") == 1 ) DeleteAFile ( "Texture_N.jpg" );
 
 		//  Delete env map for PBR (if any)
 		if ( FileExist("globalenvmap.dds") == 1 ) DeleteAFile ( "globalenvmap.dds" );
@@ -575,6 +589,8 @@ void mapfile_saveplayerconfig ( void )
 
 void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 {
+	LPSTR pOldDir = GetDir();
+
 	// Collect ALL files in string array list
 	Undim ( t.filecollection_s );
 	g.filecollectionmax = 0;
@@ -1151,11 +1167,12 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	else
 	{
 		//addfoldertocollection("levelbank\\testmap"); // 190417 - dont need contents, comes from FPM load!
-		addtocollection("levelbank\\testmap\\header.dat");
+		//addtocollection("levelbank\\testmap\\header.dat"); // 190719 - this does not exist at time of scan, and created as part of FPM anyhoo
 	}
 
 	// 010917 - go through and remove any X files that have DBO counterparts
 	SetDir ( cstr(g.fpscrootdir_s+"\\Files\\").Get() );
+	t.filesmax = g.filecollectionmax;
 	for ( t.fileindex = 1 ; t.fileindex <= t.filesmax; t.fileindex++ )
 	{
 		t.src_s=t.filecollection_s[t.fileindex];
@@ -1189,6 +1206,13 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 			removeanymatchingfromcollection ( pRemoveFile.Get() );
 		}
 	}
+
+	// peek at file collection
+	cstr tSeeCollectionContents_s = g.fpscrootdir_s + "\\Files\\mapbank\\contents.bak";
+	SaveArray ( tSeeCollectionContents_s.Get(), t.filecollection_s );
+
+	// restore dir
+	SetDir(pOldDir);
 
 	// collected all files for this level and stored in t.filecollection_s
 	return;
@@ -1937,7 +1961,11 @@ void mapfile_savestandalone ( void )
 	// prompt
 	popup_text_change("Saving Standalone Game : Copying Files");
 
+	// restore dir before proceeding
+	SetDir(t.told_s.Get());
+
 	//  CopyAFile (  collection to exe folder )
+	t.filesmax = g.filecollectionmax;
 	for ( t.fileindex = 1 ; t.fileindex<=  t.filesmax; t.fileindex++ )
 	{
 		t.src_s=t.filecollection_s[t.fileindex];
@@ -2199,7 +2227,7 @@ void mapfile_savestandalone ( void )
 		EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
 	}
 
-	//  if not tignorelevelbankfiles, copy unencrypted files
+	//  if not tignorelevelbankfiles, copy unencrypted files 
 	if (  t.tignorelevelbankfiles == 0 ) 
 	{
 		//  now copy the files we do not want to encrypt
@@ -2240,6 +2268,13 @@ void mapfile_savestandalone ( void )
 
 		//  Copy the 'unencrypted files' collection to exe folder
 		timestampactivity(0, cstr(cstr("filecollectionmax=")+Str(g.filecollectionmax)).Get() );
+		if ( PathExist ( cstr(t.exepath_s+t.exename_s+"\\Files\\levelbank\\testmap").Get() ) == 0 )
+		{
+			SetDir ( cstr(t.exepath_s+t.exename_s+"\\Files\\").Get() );
+			if ( PathExist ( "levelbank" ) == 0 ) MakeDirectory ( "levelbank" );
+			SetDir ( cstr(t.exepath_s+t.exename_s+"\\Files\\levelbank").Get() );
+			if ( PathExist ( "testmap" ) == 0 ) MakeDirectory ( "testmap" );
+		}
 		SetDir ( cstr(t.exepath_s+t.exename_s+"\\Files\\levelbank\\testmap").Get() );
 		if (  PathExist("lightmaps") == 0  )  MakeDirectory (  "lightmaps" );
 		SetDir (  cstr(g.fpscrootdir_s+"\\Files\\").Get() );
@@ -2467,9 +2502,10 @@ void addallinfoldertocollection ( cstr subThisFolder_s, cstr subFolder_s )
 
 void createallfoldersincollection ( void )
 {
-	t.filesmax=g.filecollectionmax;
+	LPSTR pOldDir = GetDir();
 	t.strwork = ""; t.strwork = t.strwork + "Create full path structure ("+Str(t.filesmax)+") for standalone executable";
 	timestampactivity(0, t.strwork.Get() );
+	t.filesmax = g.filecollectionmax;
 	for ( t.fileindex = 1 ; t.fileindex <= t.filesmax; t.fileindex++ )
 	{
 		t.olddir_s=GetDir();
@@ -2505,6 +2541,7 @@ void createallfoldersincollection ( void )
 		}
 		SetDir ( t.olddir_s.Get() );
 	}
+	SetDir ( pOldDir );
 }
 
 void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s )

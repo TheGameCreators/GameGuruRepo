@@ -3191,17 +3191,28 @@ int GetObjectPosAng( lua_State *L )
 	int n = lua_gettop( L );
 	if (n < 1) return 0;
 	int iID = lua_tonumber( L, 1 );
-	if (!ConfirmObjectInstance(iID))
-		return 0;
-	// object information
-	sObject* pObject = g_ObjectList[iID];
-
-	lua_pushnumber ( L, pObject->position.vecPosition.x );
-	lua_pushnumber ( L, pObject->position.vecPosition.y );
-	lua_pushnumber ( L, pObject->position.vecPosition.z );
-	lua_pushnumber ( L, pObject->position.vecRotate.x );
-	lua_pushnumber ( L, pObject->position.vecRotate.y );
-	lua_pushnumber ( L, pObject->position.vecRotate.z );
+	if ( !ConfirmObjectInstance(iID) )
+	{
+		// seems can be called in LUA when object not exist, so return zeros
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		return 6;
+	}
+	else
+	{
+		// object information
+		sObject* pObject = g_ObjectList[iID];
+		lua_pushnumber ( L, pObject->position.vecPosition.x );
+		lua_pushnumber ( L, pObject->position.vecPosition.y );
+		lua_pushnumber ( L, pObject->position.vecPosition.z );
+		lua_pushnumber ( L, pObject->position.vecRotate.x );
+		lua_pushnumber ( L, pObject->position.vecRotate.y );
+		lua_pushnumber ( L, pObject->position.vecRotate.z );
+	}
 	return 6;
 }
 int GetObjectColBox( lua_State *L )

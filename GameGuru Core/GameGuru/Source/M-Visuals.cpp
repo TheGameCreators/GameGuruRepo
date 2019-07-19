@@ -1540,7 +1540,10 @@ void visuals_loop ( void )
 		if ( t.visuals.refreshterraintexture == 2 ) 
 		{
 			// first check if CUSTOM available (texture_d.dds present)
-			if ( t.visuals.terrainindex > 1 || (t.visuals.terrainindex==1 && FileExist ( cstr(g.mysystem.levelBankTestMapAbs_s+"Texture_D.dds").Get() ) == 1) )
+			bool bCustomTextureExists = false;
+			if ( FileExist ( cstr(g.mysystem.levelBankTestMapAbs_s+"Texture_D.dds").Get() ) == 1 ) bCustomTextureExists = true;
+			if ( FileExist ( cstr(g.mysystem.levelBankTestMapAbs_s+"Texture_D.jpg").Get() ) == 1 ) bCustomTextureExists = true;
+			if ( t.visuals.terrainindex > 1 || (t.visuals.terrainindex==1 && bCustomTextureExists == true) )
 			{
 				// change terrain textures
 				g.terrainstyleindex=t.visuals.terrainindex;

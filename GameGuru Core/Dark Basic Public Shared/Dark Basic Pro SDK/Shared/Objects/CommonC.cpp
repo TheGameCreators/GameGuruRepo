@@ -333,6 +333,10 @@ DARKSDK_DLL bool ConfirmObjectInstanceEx ( int iID, bool bInstanceReturnFlag )
 
 DARKSDK_DLL bool ConfirmObjectInstance ( int iID )
 {
+	// 190719 - when called from LUA, can silently fail!
+	if ( ObjectExist(iID) == 0 )
+		return false;
+
 	// see above
 	return ConfirmObjectInstanceEx ( iID, true );
 }

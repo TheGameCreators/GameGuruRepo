@@ -7879,7 +7879,9 @@ void gridedit_new_map ( void )
 	SetDir ( g.mysystem.levelBankTestMap_s.Get() );
 	if ( FileExist ( "superpalette.ter" ) == 1 ) DeleteFile ( "superpalette.ter" );
 	if ( FileExist ( "Texture_D.dds" ) == 1 ) DeleteFile ( "Texture_D.dds" );
+	if ( FileExist ( "Texture_D.jpg" ) == 1 ) DeleteFile ( "Texture_D.jpg" );
 	if ( FileExist ( "Texture_N.dds" ) == 1 ) DeleteFile ( "Texture_N.dds" );
+	if ( FileExist ( "Texture_N.jpg" ) == 1 ) DeleteFile ( "Texture_N.jpg" );
 	if ( FileExist ( "globalenvmap.dds" ) == 1 ) DeleteFile ( "globalenvmap.dds" );
 	SetDir ( pStoreOld.Get() );
 

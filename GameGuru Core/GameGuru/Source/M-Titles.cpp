@@ -1655,7 +1655,7 @@ void titles_base ( void )
 						// title and instructions for entry system
 						pastebitmapfontcenter("TEACHER CODE ENTRY",GetDisplayWidth()/2,50,1,255);
 						pastebitmapfontcenter("Type out the 'Teacher Code' provided by your Admin",GetDisplayWidth()/2,GetDisplayHeight()-150,1,255);
-						pastebitmapfontcenter("to view all VR Quest games across the server",GetDisplayWidth()/2,GetDisplayHeight()-100,1,255);
+						pastebitmapfontcenter("to view all VR Quest(r) games across the server",GetDisplayWidth()/2,GetDisplayHeight()-100,1,255);
 
 						// extra instructions
 						pastebitmapfontcenter("Enter Code:",GetDisplayWidth()/2,(GetDisplayHeight()/2)-50,1,255);

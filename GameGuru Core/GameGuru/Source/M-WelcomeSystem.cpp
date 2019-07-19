@@ -763,8 +763,8 @@ void welcome_mainvr_page ( int iHighlightingButton )
 {
 	// draw page
 	int iID = 0;
-	welcome_text ( "WELCOME TO VR QUEST", 5, 50, 10, 255, false, false );
-	welcome_text ( "Would you like to learn more about VR Quest\nor go directly to the editor and start creating a 3D game?", 1, 50, 72, 192, true, false );
+	welcome_text ( "WELCOME TO VR QUEST(r)", 5, 50, 10, 255, false, false );
+	welcome_text ( "Would you like to learn more about VR Quest(r)\nor go directly to the editor and start creating a 3D game?", 1, 50, 72, 192, true, false );
 	iID = 4; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
 	if ( g.gshowonstartup != 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
 	welcome_text ( "Click to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );

@@ -404,7 +404,7 @@ int	GGVR_IsHmdPresent()
 	#ifdef USINGOPENVR
 	if ( GGVR_EnabledMode == 1 ) result = vr::VR_IsHmdPresent();
 	#endif
-	if ( GGVR_EnabledMode == 2 ) result = 2;
+	if ( GGVR_EnabledMode == 2 && GGVR_EnabledState != 3 ) result = 2;
 	return result;
 }
 

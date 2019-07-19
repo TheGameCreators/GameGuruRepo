@@ -728,7 +728,7 @@ void game_masterroot ( int iUseVRTest )
 				{
 					#ifdef PHOTONMP
 					 t.visuals.generalpromptstatetimer=Timer()+1000;
-					 t.visuals.generalprompt_s="Welcome to VR Quest Social VR";
+					 t.visuals.generalprompt_s="Welcome to VR Quest(r) Social VR";
 					#else
 					 t.visuals.generalpromptstatetimer=Timer()+1000;
 					 t.visuals.generalprompt_s="Press RETURN to Chat";
@@ -1594,12 +1594,12 @@ void game_preparelevel_finally ( void )
 	BT_ForceTerrainTechnique (  0 );
 
 	//  Initiate post process system (or reactivate it)
-	t.screenprompt_s="INITIALISING POSTPROCESS";
+	t.screenprompt_s="INITIALIZING POSTPROCESS";
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	postprocess_init ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	timestampactivity(0,"postprocessing initialised");
+	timestampactivity(0,"postprocessing initialized");
 
 	//  Ensure correct shaders in play
 	visuals_shaderlevels_update ( );
@@ -1610,7 +1610,7 @@ void game_preparelevel_finally ( void )
 	conkit_init ( );
 
 	//  Init physics
-	t.screenprompt_s="INITIALISING PHYSICS";
+	t.screenprompt_s="INITIALIZING PHYSICS";
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	physics_init ( );
