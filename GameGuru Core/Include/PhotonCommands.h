@@ -47,7 +47,7 @@ void PhotonSetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer );
 void PhotonSendFileBegin ( int index , LPSTR pString, LPSTR pRootPath );
 int PhotonSendFileDone();
 int PhotonAmIFileSynced();
-int PhotonGetFileProgress();
+float PhotonGetFileProgress();
 int PhotonIsEveryoneFileSynced();
 void PhotonSetThisPlayerAsCurrentServer();
 void PhotonSendIAmLoadedAndReady();

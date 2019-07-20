@@ -688,7 +688,7 @@ int PhotonAmIFileSynced()
 	return 0;
 }
 
-int PhotonGetFileProgress()
+float PhotonGetFileProgress()
 {
 	if ( g_pPhotonView )
 	{

@@ -769,7 +769,7 @@ void mp_loop ( void )
 				g.mp.syncedWithServerMode = 0;
 				g.mp.onlySendMapToSpecificPlayer = -1;
 				g.mp.okayToLoadLevel = 0;
-				t.tLastProgress = 0;
+				t.fLastProgress = 0;
 				#ifdef PHOTONMP
 				 PhotonLoop(); // dangerous - risk of recursion!
 				#else
@@ -854,7 +854,7 @@ void mp_loop ( void )
 				g.mp.onlySendMapToSpecificPlayer = -1;
 				g.mp.okayToLoadLevel = 0;
 				g.mp.oldtime = Timer();
-				t.tLastProgress = 0;
+				t.fLastProgress = 0;
 				mp_textDots(-1,50,3,"Waiting for other players");
 				#ifdef PHOTONMP
 				 PhotonLoop(); // dangerous - risk of recursion!
@@ -1666,7 +1666,10 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 			// take precaution not to send too much too quickly (Photon Server will ise error 1040 and timeout!!)
 			if ( timeGetTime() > g_dwSendLastTime )
 			{
-				g_dwSendLastTime = timeGetTime() + 200;//60;//125; // 8K * (1000/250) = 64K per second max sent rate (1MB file=15 seconds)
+				//g_dwSendLastTime = timeGetTime() + 200; // 8K * (1000/200) = 40K per second max sent rate (1MB file=24 seconds)
+				//g_dwSendLastTime = timeGetTime() + 100; // 8K * (1000/100) = 80K per second max sent rate (1MB file=12 seconds)
+				//g_dwSendLastTime = timeGetTime() + 500; // 8K * (1000/500) = 16K per second max sent rate (1MB file=60 seconds)
+				g_dwSendLastTime = timeGetTime() + 250; // 8K * (1000/250) = 32K per second max sent rate (1MB file=30 seconds)
 				if ( PhotonSendFileDone() == 1 ) 
 				{
 					g.mp.syncedWithServerMode = 2;
@@ -1791,19 +1794,19 @@ void mp_pre_game_file_sync_client ( void )
 			else
 			{
 				// out progress downloading files from server
-				t.tProgress = PhotonGetFileProgress();
+				float fProgress = PhotonGetFileProgress();
 
 				// after 20 seconds, and no percentage change, produce timeout
 				if ( Timer() - g.mp.oldtime > 1000*20 ) 
 				{
 					g.mp.oldtime = Timer();
-					if ( t.tProgress == t.tLastProgress )
+					if ( fProgress == t.fLastProgress )
 					{
 						t.tsteamconnectionlostmessage_s = "Timed out waiting for transfer of file";
 						g.mp.mode = MP_MODE_MAIN_MENU;
 						mp_lostConnection ( );
 					}
-					t.tLastProgress = t.tProgress;
+					t.fLastProgress = fProgress;
 				}
 
 				// if user presses ESCAPE, force a disconnect and leave
@@ -1819,7 +1822,9 @@ void mp_pre_game_file_sync_client ( void )
 
 				// report progress of file download
 				#ifdef PHOTONMP
-				 t.tstring_s = cstr("Receiving file: ") + Str(t.tProgress) + "%";
+				 char pProgressFloat[1024];
+				 sprintf ( pProgressFloat, "%.1f", fProgress );
+				 t.tstring_s = cstr("Receiving file: ") + pProgressFloat + "%";
 				 mp_text(-1,95,3,"(press SPACE KEY to return to main menu)");
 				#else
 				 t.tstring_s = cstr("Receiving '")+g.mp.levelnametojoin+"': " + Str(t.tProgress) + "%";
@@ -4951,7 +4956,7 @@ void mp_hostalwaysreadytosendplayeramapfile()
 			// triggers server to send map file
 			g.mp.syncedWithServerMode = 0;
 			g.mp.onlySendMapToSpecificPlayer = iNewPlayerArrived;
-			t.tLastProgress = 0;
+			t.fLastProgress = 0;
 			t.tUserCount = PhotonGetLobbyUserCount();
 			g.mp.usersInServersLobbyAtServerCreation = t.tUserCount;
 

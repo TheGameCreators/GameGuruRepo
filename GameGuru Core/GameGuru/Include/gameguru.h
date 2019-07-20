@@ -4274,7 +4274,7 @@ struct Stemps
 	float tpointx_f;
 	float tpointz_f;
 	int tProgress;
-	int tLastProgress;
+	float fLastProgress;
 	int tProjType;
 	cstr tprompt_s;
 	float tPSizeX_f;

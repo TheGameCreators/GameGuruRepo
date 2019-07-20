@@ -1373,7 +1373,8 @@ void cSpecialEffect::ApplyEffect ( sMesh* pMesh )
 			{
 				// GPU needs matrices to do animation
 				for ( DWORD dwMatrixIndex = 0; dwMatrixIndex < dwBoneMax; dwMatrixIndex++ )
-					GGMatrixMultiply ( &g_EffectConstant.matBoneMatrixPalette [ dwMatrixIndex ], &pMesh->pBones [ dwMatrixIndex ].matTranslation, pMesh->pFrameMatrices [ dwMatrixIndex ] );
+					if ( pMesh->pFrameMatrices [ dwMatrixIndex ] )
+						GGMatrixMultiply ( &g_EffectConstant.matBoneMatrixPalette [ dwMatrixIndex ], &pMesh->pBones [ dwMatrixIndex ].matTranslation, pMesh->pFrameMatrices [ dwMatrixIndex ] );
 			}
 
 			// send matrix array to effect (column-based is default by FX compiler)

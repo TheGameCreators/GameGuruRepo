@@ -1153,15 +1153,20 @@ void game_oneoff_nongraphics ( void )
 
 void game_loadinentitiesdatainlevel ( void )
 {
-	//  Load player settings
+	// Load player settings
 	timestampactivity(0,"Load player config");
 	mapfile_loadplayerconfig ( );
 
-	//  Load entity bank and elements
-	t.screenprompt_s="LOADING ENTITIES DATA";
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
+	// Load entity bank
+	t.screenprompt_s="LOADING ENTITY BANK";
+	if ( t.game.gameisexe == 0 ) printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	entity_loadbank ( );
+
+	// Load entity elements
+	t.screenprompt_s="LOADING ENTITY ELEMENTS";
+	if ( t.game.gameisexe == 0 ) printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
+	timestampactivity(0,t.screenprompt_s.Get());
 	entity_loadelementsdata ( );
 }
 

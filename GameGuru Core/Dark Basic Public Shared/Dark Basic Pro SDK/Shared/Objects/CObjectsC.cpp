@@ -229,6 +229,92 @@ DARKSDK_DLL void SmoothNormals ( sMesh* pMesh, float fPercentage )
 	sOffsetMap offsetMap;
 	GetFVFOffsetMap ( pMesh, &offsetMap );
 
+	// faster method assumes vertices are shared, so go through faces, collect normals for each vertex in the face
+	// then we can average them at the end
+	if ( offsetMap.dwZ>0 && offsetMap.dwNZ>0 )
+	{
+		// index buffer or raw vertice list
+		bool bUsingIndices = true;
+		DWORD iCount = pMesh->dwIndexCount;
+		if ( iCount == 0 ) { iCount = pMesh->dwVertexCount; bUsingIndices = false; }
+
+		// a normal for each vertex in mesh (we will accumilate normals into these slots)
+		int* iNormalCount = new int [pMesh->dwVertexCount];
+		GGVECTOR3* fNormals = new GGVECTOR3 [pMesh->dwVertexCount];
+		for ( DWORD v=0; v<pMesh->dwVertexCount; v++ ) 
+		{
+			iNormalCount[v] = 0;
+			fNormals[v] = GGVECTOR3(0,0,0);
+		}
+
+		// go through all polys, collect normals for each face vert
+		for ( DWORD i=0; i<iCount; i+=3 )
+		{
+			// read face
+			DWORD dwFace0, dwFace1, dwFace2;
+			if ( bUsingIndices == true )
+			{
+				dwFace0 = pMesh->pIndices[i+0];
+				dwFace1 = pMesh->pIndices[i+1];
+				dwFace2 = pMesh->pIndices[i+2];
+			}
+			else
+			{
+				dwFace0 = i+0;
+				dwFace1 = i+1;
+				dwFace2 = i+2;
+			}
+
+			// get vertex
+			GGVECTOR3 vecVert0 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace0 ) );
+			GGVECTOR3 vecVert1 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace1 ) );
+			GGVECTOR3 vecVert2 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace2 ) );
+
+			// get normal
+			//GGVECTOR3* pvecNorm0 = (GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace0 ) );
+			//GGVECTOR3* pvecNorm1 = (GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace1 ) );
+			//GGVECTOR3* pvecNorm2 = (GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace2 ) );
+
+			// calculate normal from vertices
+			GGVECTOR3 vNormal;
+			GGVec3Cross ( &vNormal, &( vecVert2 - vecVert1 ), &( vecVert0 - vecVert1 ) );
+			GGVec3Normalize ( &vNormal, &vNormal );
+
+			// apply new normal to geometry for all normals associated with the poly
+			//*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace0 ) ) = vNormal;
+			//*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace1 ) ) = vNormal;
+			//*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace2 ) ) = vNormal;
+
+			// for now average everything, ignore percentage threshold
+			fNormals[dwFace0] += vNormal;
+			fNormals[dwFace1] += vNormal;
+			fNormals[dwFace2] += vNormal;
+			iNormalCount[dwFace0] += 1;
+			iNormalCount[dwFace1] += 1;
+			iNormalCount[dwFace2] += 1;
+		}
+
+		// we now have accumilated normals associated with vertices, now average them and write result into normal vector
+		for ( int iCurrentVertex = 0; iCurrentVertex < (int)pMesh->dwVertexCount; iCurrentVertex++ )
+		{
+			// get normal vector for vertex
+			GGVECTOR3* pvecOrigNormal = (GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * iCurrentVertex ) );
+
+			// can only average normals that are used by faces
+			if ( iNormalCount[iCurrentVertex] > 0 )
+			{
+				// average normal
+				GGVECTOR3 vecAveragedNormal = fNormals[iCurrentVertex] / iNormalCount[iCurrentVertex];
+				*pvecOrigNormal = vecAveragedNormal;
+			}
+		}
+
+		// free usages
+		SAFE_DELETE ( iNormalCount );
+		SAFE_DELETE ( fNormals );
+	}
+
+	/*
 	// assume no more than 32 shared vertex points
 	DWORD dwSharedVertexMax=32;
 	DWORD dwNumberOfVertices=pMesh->dwVertexCount;
@@ -243,6 +329,8 @@ DARKSDK_DLL void SmoothNormals ( sMesh* pMesh, float fPercentage )
 	// make sure we have data in the vertices
 	if ( offsetMap.dwZ>0 && offsetMap.dwNZ>0 )
 	{
+		// This is super slow (8-15seconds on regular 18K character)
+		// each vertex checks every other vertex 7000*7000 iterations!
 		// go through all of the vertices
 		for ( int iCurrentVertex = 0; iCurrentVertex < (int)dwNumberOfVertices; iCurrentVertex++ )
 		{
@@ -346,6 +434,7 @@ DARKSDK_DLL void SmoothNormals ( sMesh* pMesh, float fPercentage )
 	SAFE_DELETE ( NormalCount );
 	SAFE_DELETE ( fNormals );
 	SAFE_DELETE ( pNormalRef );
+	*/
 
 	// flag mesh for a VB update
 	pMesh->bVBRefreshRequired=true;

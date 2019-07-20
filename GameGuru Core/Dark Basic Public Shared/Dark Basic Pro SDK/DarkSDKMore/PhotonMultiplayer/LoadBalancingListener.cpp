@@ -5,6 +5,10 @@
 #include "Common-cpp/inc/MemoryManagement/Allocate.h"
 #include "LoadBalancingListener.h"
 
+// Externals
+void timestampactivity ( int iStamp, char* pText );
+
+// Namespaces 
 using namespace ExitGames::Common;
 using namespace ExitGames::LoadBalancing;
 
@@ -60,6 +64,7 @@ void LoadBalancingListener::connectReturn(int errorCode, const JString& errorStr
 void LoadBalancingListener::disconnectReturn(void)
 {
 	CloseFileNow();
+	timestampactivity(0,"lost network connection");
 	mPhotonView->setConnectionState(false);
 }
 
@@ -619,9 +624,9 @@ int LoadBalancingListener::IsEveryoneFileSynced()
 	return 0;
 }
 
-int LoadBalancingListener::GetFileProgress ( void )
+float LoadBalancingListener::GetFileProgress ( void )
 {
-	return miFileProgress;
+	return mfFileProgress;
 }
 
 void LoadBalancingListener::customEventAction(int playerNr, nByte eventCode, const Object& eventContentObj)
@@ -870,7 +875,7 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 						mhServerFile = fopen ( pAbsFilename, "wb" );
 						serverHowManyFileChunks = (int)ceil( (float)pmsg->fileSize / float(FILE_CHUNK_SIZE) );
 						serverFileFileSize = pmsg->fileSize;
-						miFileProgress = 0;
+						mfFileProgress = 0.0f;
 					}
 				}
 			}
@@ -894,7 +899,7 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 									chunkSize = serverFileFileSize - ((serverHowManyFileChunks-1) * FILE_CHUNK_SIZE	);				
 							}
 
-							miFileProgress = (int)ceil(((float)(pmsg->index * FILE_CHUNK_SIZE) / (float)serverFileFileSize )  * 100.0f);
+							mfFileProgress = ((float)(pmsg->index * FILE_CHUNK_SIZE) / (float)serverFileFileSize ) * 100.0f;
 
 							fwrite( &pmsg->chunk[0] , 1 , chunkSize , mhServerFile );
 

@@ -3743,8 +3743,8 @@ void entity_loadelementsdata ( void )
 		}
 	}
 
-	//  and erase any elements that DO NOT have a valid profile (file moved/deleted)
-	if (  t.failedtoload == 1 ) 
+	// and erase any elements that DO NOT have a valid profile (file moved/deleted)
+	if ( t.failedtoload == 1 ) 
 	{
 		//  FPGC - 270410 - if entity binary from X10 (or just not supported), ensure NO entities!
 		g.entityelementlist=0;
@@ -3752,7 +3752,7 @@ void entity_loadelementsdata ( void )
 	}
 	else
 	{
-		for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+		for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 		{
 			t.entid=t.entityelement[t.e].bankindex;
 			if (  t.entid>0 ) 
@@ -4414,11 +4414,12 @@ void entity_loadbank ( void )
 
 void entity_loadentitiesnow ( void )
 {
-	//  Load entities specified by bank
+	// Load entities specified by bank
 	if ( g.entidmaster>0 ) 
 	{
 		for ( t.entid = 1 ; t.entid <= g.entidmaster; t.entid++ )
 		{
+			// set entity name and load it in
 			t.entdir_s = "entitybank\\";
 			t.ent_s = t.entitybank_s[t.entid];
 			t.entpath_s = getpath(t.ent_s.Get());
@@ -4449,6 +4450,9 @@ void entity_loadentitiesnow ( void )
 				//  where entities have been lost, delete from list
 				t.entitybank_s[t.entid]="";
 			}
+
+			// keep multiplayer alive
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		}
 	}
 }

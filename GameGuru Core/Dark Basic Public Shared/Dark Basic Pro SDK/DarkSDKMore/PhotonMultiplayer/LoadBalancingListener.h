@@ -60,7 +60,7 @@ public:
 	int SendFileDone();
 	void CloseFileNow ( void );
 	int IsEveryoneFileSynced();
-	int GetFileProgress();
+	float GetFileProgress();
 
 	void leaveRoom(void);
 
@@ -110,7 +110,7 @@ private:
 
 	char mpRootPath[2048];
 	FILE* mhServerFile = NULL;
-	int miFileProgress = 0;
+	float mfFileProgress = 0.0f;
 
 	int AddPlayerToRemap ( int iPlayerIndex );
 	void RemovePlayerFromRemap ( int iPlayerIndex );
