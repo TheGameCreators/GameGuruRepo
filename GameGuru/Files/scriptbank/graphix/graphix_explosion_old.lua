@@ -1,16 +1,16 @@
 -- LUA Script - GraPhiX Explosion Script - Thank you to AmenMoses for the scripts he creates without them this would not have been possible.
 
-local nonDebrisName = "exp1" -- reserve exp1 just for non-debris entities such as GG standard barrels. all they should name as exp1
--- and being treated as your original script stated. The debris ones should be treated a bit different since they are animated; we don't want them disappearing suddenly,as example. In fact we don't want them being hidden or destroyed, we want they generating debris, and these debris following the physisc and gravity laws while fallen to the ground.
-
 local U  = require "scriptbank\\utillib"
 local P  = require "scriptbank\\physlib"
+
 local min = math.min
+
 local emitterList    = {}
 local explosion_name = {}
 
 -- blastRadius set this to the distance you want explosions to be felt default is 300 units
 local blastRadius    = 300
+
 local maxDamage      = 150
 local maxPlayerPush  = 10
 local maxEntityPush  = 200
@@ -23,6 +23,7 @@ local triggerHealth  = 1000
 -- i.e boom1, boom2 is assinged in your image_List.
 local namedEmitter = 
 {  
+   
 	boom1 = 
 		  { animSpd = 1/2, SR = 0, freq = 64, lifeMin = 2000, lifeMax = 2000,
                      -- minX  minY  minZ  maxX  maxY  maxZ		  
@@ -162,6 +163,7 @@ local image_List =
 }
 
 -- Unless you know what you are doing please do not alter any of the below script.
+
 -- caller must load image. some clever stuff Amenmoses made
 local function PE_CreateNamedEmitter( name, image, frames, entity )
 			
@@ -174,7 +176,7 @@ local function PE_CreateNamedEmitter( name, image, frames, entity )
 	if emitter == -1 then return end
 	
 	local pos, spd, scl = et.offset, et.speed, et.scale
-	-- this bit makes a cup of tea
+-- this bit makes a cup of tea
 	if entity == nil then
 		ParticlesAddEmitterEx( emitter, et.animSpd, et.SR, 
 		                     pos[1], pos[2], pos[3], pos[4], pos[5], pos[6],
@@ -184,7 +186,7 @@ local function PE_CreateNamedEmitter( name, image, frames, entity )
 							 et.alpha[1], et.alpha[2], et.alpha[3], et.alpha[4],
 							 et.freq, -1, 0, image, frames )
 	else
-	-- this bit makes coffee
+-- this bit makes coffee
 		ParticlesAddEmitterEx( emitter, et.animSpd, et.SR, 
 		                     pos[1], pos[2], pos[3], pos[4], pos[5], pos[6],
 							 scl[1], scl[2], scl[3], scl[4],
@@ -196,13 +198,14 @@ local function PE_CreateNamedEmitter( name, image, frames, entity )
 	
 	return emitter
 end
-
- 								
+								
 function graphix_explosion_init_name(e, name)
 	Include( "utillib.lua" )
-	Include( "physlib.lua" )	
+	Include( "physlib.lua" )
+		
 	explosion_name[e] = string.match(name,"_(%w+)")
 	SetEntityHealth( e, g_Entity[e].health + triggerHealth )
+
 end
 
 local rnd = math.random
@@ -214,7 +217,7 @@ local function processExplosion( e, ex, ey, ez, imploder )
 	
 	-- calculate distance from centre of explosion
 	local dx, dy, dz = Ent.x - ex, Ent.y - ey, Ent.z - ez
-	local dist = math.sqrt( dx^2 + dz^2 )
+	local dist = math.sqrt( dx*dx + dz*dz )
 
 	-- calculate modifier based on distance
 	local distMod = 1 - ( dist / blastRadius )
@@ -228,17 +231,16 @@ local function processExplosion( e, ex, ey, ez, imploder )
 		vx, vy, vz = -vx, 0, -vz
 	end
 	
-	if ai_bot_state[ e ] == nil and explosion_name[e] == nonDebrisName then
-		-- shove it out the way
+	if ai_bot_state[ e ] == nil then
+	 -- shove it out the way
 		PushObject( Ent.obj, vx * force, vy * force , vz * force, rnd(), rnd(), rnd() )
-		--PlayAnimation(e,0)
 	end
 	
 	-- inflict damage on entity
 	if explosion_name[e] ~= nil then
 	    -- trigger chain reaction with like minded entities
 		SetEntityHealth( e, triggerHealth )
-		PlayAnimation(e,0)	
+		
 	elseif
 	   ai_bot_state[ e ] ~= nil then
 		-- remove health from NPCs based on how close to explosion
@@ -250,24 +252,24 @@ local function processExplosion( e, ex, ey, ez, imploder )
 				SetEntityHealth( e, newHealth )
 			end
 		else
-			if KillEntity ~= nil and explosion_name[e] == nonDebrisName then
+			if KillEntity ~= nil then
 				KillEntity( e, 200, vx * force, vy * force , vz * force )
 			else
-				SetEntityHealth( e, 100 )
+				SetEntityHealth( e, 0 )
 			end
 		end
 	end
 	
 end
 
-function graphix_explosion_main(e)
 
+function graphix_explosion_main(e)
 	-- if no sprite sheet do nothing
 	if explosion_name[e] == nil then return end
-	
+
 	local Ent = g_Entity[e]
+
 	if Ent.health > triggerHealth then return end
-	
 	-- put all those lovely images to use
 	local emitter = emitterList[e]
 
@@ -281,7 +283,6 @@ function graphix_explosion_main(e)
 						 }
 		return
 	end
-	
 	-- only use an emiiter if need to
 	if not emitter.used then 						
 		emitter.blowup = PE_CreateNamedEmitter( emitter.emitNam, emitter.boomImg, emitter.imgFrames, e)								
@@ -299,14 +300,7 @@ function graphix_explosion_main(e)
 		-- play the sound assigned to sound0 in entity properties
 		PlaySound( e, 0 )
 		-- hide entity while we work out whats around it within range of blast
-
-	---------------------------------------------------------- modify by me	
-		if explosion_name[e] == nonDebrisName then -- if GG standar barrels then
-			Hide( e ) 
-		else
-			PlayAnimation(e,0)			
-		end
-	----------------------------------------------------------------------	
+		Hide( e )	
 			
 		for _, v in pairs( U.ClosestEntities( blastRadius, 100, Ent.x, Ent.z) ) do
 			if v ~= e then
@@ -315,7 +309,6 @@ function graphix_explosion_main(e)
 		end 
 		
 	elseif 
-	
 		-- run emitter effect
 	   g_Time > emitter.timer then
 		ParticlesSetLife( emitter.blowup, 10, 2000, 2000, 0 , 0 )
@@ -325,7 +318,7 @@ function graphix_explosion_main(e)
 			--AmenMoses funky math stuff i wont pretend to know what it is
 			local dx, dz = g_PlayerPosX - Ent.x, g_PlayerPosZ - Ent.z
 			local angle = math.deg( math.atan2( dx, dz ) )
-			local dist = math.sqrt( dx^2 + dz^2 )
+			local dist = math.sqrt( dx*dx + dz*dz )
 			
 			local distMod = 1 - ( dist / blastRadius )
 
@@ -335,7 +328,6 @@ function graphix_explosion_main(e)
 				angle = WrapAngle( -angle )
 				damage = damage / 2
 			end
-			
 			-- push the player away	
 			ForcePlayer( angle, maxPlayerPush * distMod )
 			-- damage to player based on how close to explosion		
@@ -344,26 +336,9 @@ function graphix_explosion_main(e)
 				
 	else
 		-- delete the emitter then destroy the entity
-		if GetTimer( e ) > 1500 and GetAnimationFrame(e) == GetEntityAnimationFinish ( e, 0 ) then -- forcing engine to wait to the last anim frame before exit.
-			--StopAnimation(e,0)
+		if GetTimer( e ) > 1500 then
 			ParticlesDeleteEmitter( emitter.blowup )
-			-- Destroy( e )
-
---------------------------------------------------------------- mod by me			
-		if explosion_name[e] == nonDebrisName then -- if standard ones
-			Destroy( e ) 
-		else
-			PlayAnimation(e,0)
-			CollisionOn(e)			
-		end	
----------------------------------------------------------------------------
-		
+			Destroy( e )	
 		end
-		
-		if GetTimer( e ) > 4500 and GetAnimationFrame(e) == GetEntityAnimationFinish ( e, 0 ) then Destroy( e ) end
-		
 	end
-end
-
-function graphix_explosion_exit(e)
 end

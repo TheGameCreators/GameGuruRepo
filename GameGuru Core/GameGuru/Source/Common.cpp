@@ -1785,7 +1785,7 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 				if (  cstr(Lower(Left(t.line_s.Get(),4))) == ";end"  )  break;
 				if (  cstr(Left(t.line_s.Get(),1)) != ";" ) 
 				{
-					//  take fieldname and values
+					// take fieldname and values
 					for ( t.c = 0 ; t.c < Len(t.line_s.Get()); t.c++ )
 					{
 						if (  t.line_s.Get()[t.c] == '=' ) { t.mid = t.c+1; break; }
@@ -1800,10 +1800,18 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.value2_s=removeedgespaces(Right(t.value_s.Get(),Len(t.value_s.Get())-t.mid));
 					if (  Len(t.value2_s.Get())>0  )  t.value2 = ValF(t.value2_s.Get()); else t.value2 = -1;
 
-					//  new fields for GameGuru (also need to trim out old fields!!)
+					// All SETUP.INI Fields:
+
+					// DOCDOC: superflatterrain = Set to 1 will force a simplified terrain geometry that is completely flat
 					t.tryfield_s = "superflatterrain" ; if (  t.field_s == t.tryfield_s  )  t.terrain.superflat = t.value1;
+
+					// DOCDOC: riftmode = Discontinued
 					t.tryfield_s = "riftmode" ; if (  t.field_s == t.tryfield_s  )  g.globals.riftmode = t.value1;
+
+					// DOCDOC: smoothcamerakeys = Set to 1 to add a smoothing function to the position and angle of the main camera
 					t.tryfield_s = "smoothcamerakeys" ; if (  t.field_s == t.tryfield_s  )  g.globals.smoothcamerakeys = t.value1;
+
+					// DOCDOC: 
 					t.tryfield_s = "memorydetector" ; if (  t.field_s == t.tryfield_s  )  g.globals.memorydetector = t.value1;
 					t.tryfield_s = "occlusionmode" ; if (  t.field_s == t.tryfield_s  )  g.globals.occlusionmode = t.value1;
 					t.tryfield_s = "occlusionsize" ; if (  t.field_s == t.tryfield_s  )  g.globals.occlusionsize = t.value1;
@@ -1835,7 +1843,8 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "realshadowsize6"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[6] = t.value1;
 					t.tryfield_s = "realshadowsize7"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[7] = t.value1;
 
-					t.tryfield_s = "realshadowdistance"; if (t.field_s == t.tryfield_s) {
+					t.tryfield_s = "realshadowdistance"; if (t.field_s == t.tryfield_s) 
+					{
 						g.globals.realshadowdistance = t.value1;
 						g.globals.realshadowdistancehigh = t.value1;
 					}
@@ -1916,7 +1925,8 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "useoggoff" ; if (  t.field_s == t.tryfield_s  )  g.guseoggoff = t.value1;
 					t.tryfield_s = "cullmode" ; if (  t.field_s == t.tryfield_s  )  g.cullmode = t.value1;
 					t.tryfield_s = "capfpson" ; if (  t.field_s == t.tryfield_s  )  g.gcapfpson = t.value1;
-					t.tryfield_s = "disabledynamicres" ; if (  t.field_s == t.tryfield_s  ) 
+					t.tryfield_s = "disabledynamicres"; 
+					if (  t.field_s == t.tryfield_s  ) 
 					{
 						if ( t.value1 == 1 )
 							t.DisableDynamicRes = true;
@@ -2075,9 +2085,9 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "multiradarx";if (  t.field_s == t.tryfield_s  )  g.radarx = t.value1;
 					t.tryfield_s = "multiradary";if (  t.field_s == t.tryfield_s  )  g.radary = t.value1;
 
-					//  Levels
-					if (  t.field_s == "levelmax"  )  g.glevelmax = t.value1;
-					if (  g.glevelmax>0 ) 
+					// Levels
+					if ( t.field_s == "levelmax"  )  g.glevelmax = t.value1;
+					if ( g.glevelmax>0 ) 
 					{
 						for ( t.v = 1 ; t.v<=  g.glevelmax; t.v++ )
 						{
@@ -2096,17 +2106,17 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 						}
 					}
 
-					//  new global key entries
-					if (  t.field_s == "melee key"  )  g.ggunmeleekey = t.value1;
-					if (  t.field_s == "switchtoalt" ) 
+					// new global key entries
+					if ( t.field_s == "melee key"  )  g.ggunmeleekey = t.value1;
+					if ( t.field_s == "switchtoalt" ) 
 					{
 						if ( t.value1 != 0 ) g.ggunaltswapkey1 = t.value1;
 						g.ggunaltswapkey2 = t.value2;
 						if (  t.value2 == 0  )  g.ggunaltswapkey2 = -1;
 					}
-					if (  t.field_s == "zoomholdbreath"  )  g.gzoomholdbreath = t.value1;
+					if ( t.field_s == "zoomholdbreath"  )  g.gzoomholdbreath = t.value1;
 
-					//  all key actions
+					// all key actions
 					for ( t.num = 1 ; t.num<=  11; t.num++ )
 					{
 						sprintf ( t.szwork , "key%s" , Str(t.num) );
