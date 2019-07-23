@@ -847,6 +847,8 @@ void common_init_globals ( void )
 	g.globals.occlusionsize = 5000;
 	t.aisystem.obstacleradius = 18;
 
+	g.globals.generatehelpfromdocdoc = 0;
+
 	t.postprocessings.fadeinvalue_f=0;
 
 	t.game.ignoretitle=0;
@@ -1801,6 +1803,9 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					if (  Len(t.value2_s.Get())>0  )  t.value2 = ValF(t.value2_s.Get()); else t.value2 = -1;
 
 					// All SETUP.INI Fields:
+
+					// DOCDOC: generatehelpfromdocdoc = Enable GameGuru to generate new DOCDOC Help (when source relatively available).
+					t.tryfield_s = "generatehelpfromdocdoc" ; if (  t.field_s == t.tryfield_s  )  g.globals.generatehelpfromdocdoc = t.value1;
 
 					// DOCDOC: superflatterrain = Set to 1 will force a simplified terrain geometry that is completely flat
 					t.tryfield_s = "superflatterrain" ; if (  t.field_s == t.tryfield_s  )  t.terrain.superflat = t.value1;
@@ -2796,6 +2801,53 @@ void common_switchtomysystemfolder ( void )
 	g.currentvideodir_s = g.rootdir_s+"videobank\\";
 }
 
+void GenerateDOCDOCHelpFiles ( void )
+{
+	// init string list for help file
+	std::vector<cstr> pHelpItems;
+
+	// load in a source file to scan
+	LPSTR pSourceFile = "..\\..\\GameGuru Core\\GameGuru\\Source\\Common.cpp";
+	if ( FileExist ( pSourceFile ) == 1 )
+	{
+		// read source file, look for DOCDOC
+		if ( FileOpen(1) == 1 ) CloseFile (  1 );
+		if ( FileExist(pSourceFile) == 1 ) 
+		{
+			OpenToRead ( 1, pSourceFile );
+			while ( FileEnd(1) == 0 )
+			{
+				LPSTR pLine = ReadString (1);
+				LPSTR pToken = "// DOCDOC: ";
+				LPSTR pDocDocLine = strstr ( pLine, pToken );
+				if ( pDocDocLine != NULL )
+				{
+					cstr sRestOfLine = cstr(pDocDocLine+strlen(pToken));
+					if ( strlen( sRestOfLine.Get() ) > 6 )
+					{
+						// advance past token and collect rest as valid help line
+						pHelpItems.push_back ( sRestOfLine );
+					}
+				}
+			}
+			CloseFile ( 1 );
+		}
+
+		// save new help file in DOCS folder
+		LPSTR pHelpFile = "..\\Docs\\SETUP INI Description.txt";
+		if ( FileExist ( pHelpFile ) == 1) DeleteFile ( pHelpFile );
+		OpenToWrite ( 1, pHelpFile );
+		WriteString ( 1, "SETUP.INI Field Descriptions" );
+		WriteString ( 1, "============================" );
+		WriteString ( 1, "" );
+		for ( int n = 0; n < pHelpItems.size(); n++ )
+		{
+			WriteString ( 1, pHelpItems[n].Get() );
+		}
+		CloseFile ( 1 );
+	}
+}
+
 void FPSC_Setup ( void )
 {
 	// prepare all default values 
@@ -3209,6 +3261,12 @@ void FPSC_Setup ( void )
 			// allow _e_ usage override
 			if ( FileExist ( cstr(g.exeroot_s + cstr("\\leeandraveyrock.txt")).Get() ) == 1 )
 				SetCanUse_e_(1);
+
+			// if flag set to generate DOCDOC help, do this here
+			if ( g.globals.generatehelpfromdocdoc == 1 )
+			{
+				GenerateDOCDOCHelpFiles();
+			}
 		}
 		else
 		{

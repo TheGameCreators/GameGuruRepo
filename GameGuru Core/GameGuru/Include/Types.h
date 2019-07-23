@@ -3231,6 +3231,7 @@ struct huddamagetype
 //  Main game data structure (to avoid globals, place new game globals here)
 struct globalstype
 {
+	int generatehelpfromdocdoc;
 	int riftmode;
 	int occlusionmode;
 	int occlusionsize;
@@ -3297,6 +3298,7 @@ struct globalstype
 		 occlusionsize = 0;
 		 occlusionmode = 0;
 		 riftmode = 0;
+		 generatehelpfromdocdoc = 0;
 	}
 	// End of Constructor
 
