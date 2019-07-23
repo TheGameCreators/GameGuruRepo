@@ -1808,23 +1808,39 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					// DOCDOC: riftmode = Discontinued
 					t.tryfield_s = "riftmode" ; if (  t.field_s == t.tryfield_s  )  g.globals.riftmode = t.value1;
 
-					// DOCDOC: smoothcamerakeys = Set to 1 to add a smoothing function to the position and angle of the main camera
+					// DOCDOC: smoothcamerakeys = Add a smoothing function to the position and angle of the main camera
 					t.tryfield_s = "smoothcamerakeys" ; if (  t.field_s == t.tryfield_s  )  g.globals.smoothcamerakeys = t.value1;
 
-					// DOCDOC: 
+					// DOCDOC: memorydetector = Activates extra memory usage and monitoring code
 					t.tryfield_s = "memorydetector" ; if (  t.field_s == t.tryfield_s  )  g.globals.memorydetector = t.value1;
-					t.tryfield_s = "occlusionmode" ; if (  t.field_s == t.tryfield_s  )  g.globals.occlusionmode = t.value1;
-					t.tryfield_s = "occlusionsize" ; if (  t.field_s == t.tryfield_s  )  g.globals.occlusionsize = t.value1;
-					t.tryfield_s = "obstacleradius" ; if (  t.field_s == t.tryfield_s  )  t.aisystem.obstacleradius = t.value1;
-					t.tryfield_s = "showdebugcollisonboxes" ; if (  t.field_s == t.tryfield_s  ) g.globals.showdebugcollisonboxes = t.value1;
-					t.tryfield_s = "hideebe" ; if (  t.field_s == t.tryfield_s  ) g.globals.hideebe = t.value1;
-					t.tryfield_s = "hidedistantshadows" ; if (  t.field_s == t.tryfield_s  ) g.globals.hidedistantshadows = t.value1;
-					t.tryfield_s = "realshadowresolution" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowresolution = t.value1;
-					t.tryfield_s = "realshadowcascadecount" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascadecount = t.value1;
 
+					// DOCDOC: occlusionmode = Enables the use of the occlusion system to skip rendering of hidden entities
+					t.tryfield_s = "occlusionmode" ; if (  t.field_s == t.tryfield_s  )  g.globals.occlusionmode = t.value1;
+
+					// DOCDOC: occlusionsize = Sets the size of the margins around occluders to occlude less of the scene
+					t.tryfield_s = "occlusionsize" ; if (  t.field_s == t.tryfield_s  )  g.globals.occlusionsize = t.value1;
+
+					// DOCDOC: obstacleradius = Sets the size of the radius around AI entities for wall avoidance. Default is 18.
+					t.tryfield_s = "obstacleradius" ; if (  t.field_s == t.tryfield_s  )  t.aisystem.obstacleradius = t.value1;
+
+					// DOCDOC: showdebugcollisonboxes = Renders the collision boxes associated with physics collision created by model importer
+					t.tryfield_s = "showdebugcollisonboxes" ; if (  t.field_s == t.tryfield_s  ) g.globals.showdebugcollisonboxes = t.value1;
+
+					// DOCDOC: hideebe = Hide the Builder menu from the main IDE
+					t.tryfield_s = "hideebe" ; if (  t.field_s == t.tryfield_s  ) g.globals.hideebe = t.value1;
+
+					// DOCDOC: hidedistantshadows = Causes more distant shadows to be hidden to improve performance
+					t.tryfield_s = "hidedistantshadows" ; if (  t.field_s == t.tryfield_s  ) g.globals.hidedistantshadows = t.value1;
+
+					// DOCDOC: realshadowresolution = Size of the texture plate dimension to render the shadow onto. Default is 2048.
+					t.tryfield_s = "realshadowresolution" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowresolution = t.value1;
+
+					// DOCDOC: realshadowcascadecount = Set the number of shadow cascades to use. Default is 4, Min is 2 and Max is 8.
+					t.tryfield_s = "realshadowcascadecount" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascadecount = t.value1;
 					if (g.globals.realshadowcascadecount < 2) g.globals.realshadowcascadecount = 2; //PE: Limit cascades.
 					if (g.globals.realshadowcascadecount > 8) g.globals.realshadowcascadecount = 8; //PE: Limit cascades.
 
+					// DOCDOC: realshadowcascade0 thru realshadowcascade7 = Set the distance as a percentage when cascade kicks in
 					t.tryfield_s = "realshadowcascade0" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[0] = t.value1;
 					t.tryfield_s = "realshadowcascade1" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[1] = t.value1;
 					t.tryfield_s = "realshadowcascade2" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[2] = t.value1;
@@ -1834,6 +1850,7 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "realshadowcascade6" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[6] = t.value1;
 					t.tryfield_s = "realshadowcascade7" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[7] = t.value1;
 
+					// DOCDOC: realshadowsize0 thru realshadowsize7 = Not Used
 					t.tryfield_s = "realshadowsize0"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[0] = t.value1;
 					t.tryfield_s = "realshadowsize1"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[1] = t.value1;
 					t.tryfield_s = "realshadowsize2"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[2] = t.value1;
@@ -1843,88 +1860,224 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "realshadowsize6"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[6] = t.value1;
 					t.tryfield_s = "realshadowsize7"; if (t.field_s == t.tryfield_s) g.globals.realshadowsize[7] = t.value1;
 
+					// DOCDOC: realshadowdistance = Sets the camera depth distance of the shadow render. Default is 5000.
 					t.tryfield_s = "realshadowdistance"; if (t.field_s == t.tryfield_s) 
 					{
 						g.globals.realshadowdistance = t.value1;
 						g.globals.realshadowdistancehigh = t.value1;
 					}
+
+					// DOCDOC: editorusemediumshadows = Sets the editor to render medium level shadows while editing
 					t.tryfield_s = "editorusemediumshadows"; if (t.field_s == t.tryfield_s)  g.globals.editorusemediumshadows = t.value1;
-					
+
+					// DOCDOC: hidememorygauge = Hides the memory gauge that displays in the top left of the editor area
 					t.tryfield_s = "hidememorygauge" ; if (  t.field_s == t.tryfield_s  )  g.ghidememorygauge = t.value1;
+
+					// DOCDOC: hidelowfpswarning = Prevents the 'low FPS warning' prompt when playing the game
 					t.tryfield_s = "hidelowfpswarning" ; if (  t.field_s == t.tryfield_s  )  g.globals.hidelowfpswarning = t.value1;
+
+					// DOCDOC: hardwareinfomode = Enables extra information to be displayed when F11 is pressed in game
 					t.tryfield_s = "hardwareinfomode" ; if (  t.field_s == t.tryfield_s  )  g.ghardwareinfomode = t.value1;
+
+					// DOCDOC: profileinstandalone = Enables the debug options to remain in a standalone game
 					t.tryfield_s = "profileinstandalone" ; if (  t.field_s == t.tryfield_s  )  g.gprofileinstandalone = t.value1;
+
+					// DOCDOC: allowfragmentation = Set to 0 to force game to relaunch at end of game, 1 to never relaunch the game and 2 to relaunch after every level. Default is 1.
 					t.tryfield_s = "allowfragmentation" ; if (  t.field_s == t.tryfield_s  )  t.game.allowfragmentation = t.value1;
+
+					// DOCDOC: reflectionrendersize = Sets the size of the texture plate dimension for rendering the reflections in water. Default is 512.
 					t.tryfield_s = "reflectionrendersize" ; if (  t.field_s == t.tryfield_s  )  g.greflectionrendersize = t.value1;
+
+					// DOCDOC: ignoretitlepage = Forces the title page to be skipped in standalone games
 					t.tryfield_s = "ignoretitlepage" ; if (  t.field_s == t.tryfield_s  )  t.game.ignoretitle = t.value1;
+
+					// DOCDOC: deactivateconkit = Not Used
 					t.tryfield_s = "deactivateconkit" ; if (  t.field_s == t.tryfield_s  )  g.globals.deactivateconkit = t.value1;
+
+					// DOCDOC: disablefreeflight = Disables the ability to use the free flight mode in the editor
 					t.tryfield_s = "disablefreeflight" ; if (  t.field_s == t.tryfield_s  )  g.globals.disablefreeflight = t.value1;
+
+					// DOCDOC: fulldebugview = Adds extensive debug information to the editor screen (only used for deep debugging)
 					t.tryfield_s = "fulldebugview" ; if (  t.field_s == t.tryfield_s  )  g.globals.fulldebugview = t.value1;
+
+					// DOCDOC: enableplrspeedmods = Enable the ability of weapons to affect the total running speed of the player
 					t.tryfield_s = "enableplrspeedmods" ; if (  t.field_s == t.tryfield_s  )  g.globals.enableplrspeedmods = t.value1;
+
+					// DOCDOC: disableweaponjams = Disables the capability of weapons to 'jam' while being repeatedly fired
 					t.tryfield_s = "disableweaponjams" ; if (  t.field_s == t.tryfield_s  )  g.globals.disableweaponjams = t.value1;
 
-					//  Control of display mode
+					// DOCDOC: adapterordinal = Force the choice of DirectX Adapter to use. Set 1-98 to choose an adapter at that index, 99 to prefer the first non-Intel adapter from the list. Default is 0.
 					t.tryfield_s = "adapterordinal" ; if (  t.field_s == t.tryfield_s  )  g.gadapterordinal = t.value1;
+
+					// DOCDOC: hideallhuds = Forces all display HUDs to hide when in the game
 					t.tryfield_s = "hideallhuds" ; if (  t.field_s == t.tryfield_s  )  g.ghideallhuds = t.value1;
+
+					// DOCDOC: skipobstaclecreation = Speed up level preparation time by skipping AI obstacle creation. AI will not have pathfinding. Default is 0.
 					t.tryfield_s = "skipobstaclecreation" ; if (  t.field_s == t.tryfield_s  )  g.gskipobstaclecreation = t.value1;
+
+					// DOCDOC: skipterrainobstaclecreation = Skips the creation of AI obstacles related to the terrain. Default is 0.
 					t.tryfield_s = "skipterrainobstaclecreation" ; if (  t.field_s == t.tryfield_s  )  g.gskipterrainobstaclecreation = t.value1;
+
+					// DOCDOC: vsync = Enables the refresh of the render to match the current adapter refresh rate.
 					t.tryfield_s = "vsync" ; if (  t.field_s == t.tryfield_s  )  g.gvsync = t.value1;
+
+					// DOCDOC: fullscreen = Attempts to request a full-screen mode from the DirectX adapter.
 					t.tryfield_s = "fullscreen" ; if (  t.field_s == t.tryfield_s  )  g.gfullscreen = t.value1;
+
+					// DOCDOC: width = Not Used
 					t.tryfield_s = "width" ; if (  t.field_s == t.tryfield_s ) g.gdisplaywidth = t.value1 ; t.newwidth = t.value1 ; g.gsetupwidth = t.value1;
+
+					// DOCDOC: height - Not Used
 					t.tryfield_s = "height" ; if (  t.field_s == t.tryfield_s ) g.gdisplayheight = t.value1 ; t.newheight = t.value1 ; g.gsetupheight = t.value1;
+
+					// DOCDOC: depth = Not Used
 					t.tryfield_s = "depth" ; if (  t.field_s == t.tryfield_s ) g.gdisplaydepth = t.value1 ; t.newdepth = t.value1 ; g.gsetupdepth = t.value1;
+
+					// DOCDOC: aspectratio = Not Used
 					t.tryfield_s = "aspectratio" ; if (  t.field_s == t.tryfield_s ) g.gaspectratio = t.value1 ; t.newaspectratio = t.value1;
-	
-					//  collect data from fields in setup file
+
+					// DOCDOC: realgameview = Not Used
 					t.tryfield_s = "realgameview" ; if (  t.field_s == t.tryfield_s  )  g.grealgameviewstate = t.value1;
+
+					// DOCDOC: multiplayergame = Not Used
 					t.tryfield_s = "multiplayergame" ; if (  t.field_s == t.tryfield_s  )  g.gmultiplayergame = t.value1;
+
+					// DOCDOC: debugreport = Shows extra debug text related to resource management
 					t.tryfield_s = "debugreport" ; if (  t.field_s == t.tryfield_s  )  g.gdebugreportmodestate = t.value1;
+
+					// DOCDOC: exitpromptreport = Not Used
 					t.tryfield_s = "exitpromptreport" ; if (  t.field_s == t.tryfield_s  )  g.gexitpromptreportmodestate = t.value1;
+
+					// DOCDOC: debugphysics = Not Used
 					t.tryfield_s = "debugphysics" ; if (  t.field_s == t.tryfield_s  )  g.gdebugphysicsstate = t.value1;
+
+					// DOCDOC: debugreportstepthrough = Not Used
 					t.tryfield_s = "debugreportstepthrough" ; if (  t.field_s == t.tryfield_s  )  g.gdebugreportstepthroughstate = t.value1;
+
+					// DOCDOC: showentitygameinfo = Displays extra information over the entity in test game
 					t.tryfield_s = "showentitygameinfo" ; if (  t.field_s == t.tryfield_s  )  g.gshowentitygameinfostate = t.value1;
+
+					// DOCDOC: showdebugtextingame = Not Used
 					t.tryfield_s = "showdebugtextingame" ; if (  t.field_s == t.tryfield_s  )  g.gshowdebugtextingamestate = t.value1;
+
+					// DOCDOC: includeonlyvideo = Enables image loading filter to only load files specified by includeonlyname
 					t.tryfield_s = "includeonlyvideo" ; if (  t.field_s == t.tryfield_s  )  g.gincludeonlyvideo = t.value1;
+
+					// DOCDOC: includeonlyname = Sets the name that the includeonlyvideo mode uses to filter all image loading
 					t.tryfield_s = "includeonlyname" ; if (  t.field_s == t.tryfield_s  )  g.gincludeonlyname_s = t.value_s;
+
+					// DOCDOC: ignorefastbone = Not Used
 					t.tryfield_s = "ignorefastbone" ; if (  t.field_s == t.tryfield_s  )  g.gignorefastbone = t.value1;
+
+					// DOCDOC: loadreport = Not Used
 					t.tryfield_s = "loadreport" ; if (  t.field_s == t.tryfield_s  )  g.gloadreportstate = t.value1;
+
+					// DOCDOC: usingmysystemfolder = [BETA] Moves all temporary files to a user writable location (for Safe Mode Compatibility)
 					t.tryfield_s = "usingmysystemfolder" ; if (  t.field_s == t.tryfield_s  )  g.mysystem.bUsingMySystemFolder = t.value1;
 
+					// DOCDOC: optimizemode = Not Used
 					t.tryfield_s = "optimizemode" ; if (  t.field_s == t.tryfield_s  )  g.goptimizemode = t.value1;
+
+					// DOCDOC: lightmapping = Not Used 
 					t.tryfield_s = "lightmapping" ; if (  t.field_s == t.tryfield_s  )  g.glightmappingstate = t.value1;
+
+					// DOCDOC: lightmapsize = Not Used
 					t.tryfield_s = "lightmapsize" ; if (  t.field_s == t.tryfield_s  )  t.glightmapsize = t.value1;
+
+					// DOCDOC: lightmapquality = Not Used
 					t.tryfield_s = "lightmapquality" ; if (  t.field_s == t.tryfield_s  )  t.glightmapquality = t.value1;
+
+					// DOCDOC: lightmapold = Not Used
 					t.tryfield_s = "lightmapold" ; if (  t.field_s == t.tryfield_s  )  g.glightmappingold = t.value1;
+
+					// DOCDOC: lightmapshadows = Not Used
 					t.tryfield_s = "lightmapshadows" ; if (  t.field_s == t.tryfield_s  )  g.glightshadowsstate = t.value1;
+
+					// DOCDOC: lightmapambientr = Not Used
 					t.tryfield_s = "lightmapambientr" ; if (  t.field_s == t.tryfield_s  )  g.glightambientr = t.value1;
+
+					// DOCDOC: lightmapambientg = Not Used
 					t.tryfield_s = "lightmapambientg" ; if (  t.field_s == t.tryfield_s  )  g.glightambientg = t.value1;
+
+					// DOCDOC: lightmapambientb = Not Used
 					t.tryfield_s = "lightmapambientb" ; if (  t.field_s == t.tryfield_s  )  g.glightambientb = t.value1;
+
+					// DOCDOC: lightmapsunx = Not Used
 					t.tryfield_s = "lightmapsunx" ; if (  t.field_s == t.tryfield_s  )  g.glightsunx = t.value1;
+
+					// DOCDOC: lightmapsuny = Not Used
 					t.tryfield_s = "lightmapsuny" ; if (  t.field_s == t.tryfield_s  )  g.glightsuny = t.value1;
+
+					// DOCDOC: lightmapsunz = Not Used
 					t.tryfield_s = "lightmapsunz" ; if (  t.field_s == t.tryfield_s  )  g.glightsunz = t.value1;
+
+					// DOCDOC: lightmapsunr = Not Used
 					t.tryfield_s = "lightmapsunr" ; if (  t.field_s == t.tryfield_s  )  g.glightsunr = t.value1;
+
+					// DOCDOC: lightmapsung = Not Used
 					t.tryfield_s = "lightmapsung" ; if (  t.field_s == t.tryfield_s  )  g.glightsung = t.value1;
+
+					// DOCDOC: lightmapsunb = Not Used
 					t.tryfield_s = "lightmapsunb" ; if (  t.field_s == t.tryfield_s  )  g.glightsunb = t.value1;
+
+					// DOCDOC: lightmapzerorange = Not Used
 					t.tryfield_s = "lightmapzerorange" ; if (  t.field_s == t.tryfield_s  )  g.glightzerorange = t.value1;
+
+					// DOCDOC: lightmapatten = Not Used
 					t.tryfield_s = "lightmapatten" ; if (  t.field_s == t.tryfield_s  )  g.glightatten = t.value1;
+
+					// DOCDOC: lightmapmaxsize = Not Used
 					t.tryfield_s = "lightmapmaxsize" ; if (  t.field_s == t.tryfield_s  )  g.glightmaxsize = t.value1;
+
+					// DOCDOC: lightmapboost = Not Used
 					t.tryfield_s = "lightmapboost" ; if (  t.field_s == t.tryfield_s  )  g.glightboost = t.value1;
+
+					// DOCDOC: lightmaptexsize = Not Used
 					t.tryfield_s = "lightmaptexsize" ; if (  t.field_s == t.tryfield_s  )  g.glighttexsize = t.value1;
+
+					// DOCDOC: lightmapquality = Not Used
 					t.tryfield_s = "lightmapquality" ; if (  t.field_s == t.tryfield_s  )  g.glightquality = t.value1;
+
+					// DOCDOC: lightmapblurmode = Not Used
 					t.tryfield_s = "lightmapblurmode" ; if (  t.field_s == t.tryfield_s  )  g.glightblurmode = t.value1;
+
+					// DOCDOC: lightmapthreadmax = Not Used
 					t.tryfield_s = "lightmapthreadmax" ; if (  t.field_s == t.tryfield_s  )  g.glightthreadmax = t.value1;
+
+					// DOCDOC: bloodonfloor = Not Used
 					t.tryfield_s = "bloodonfloor" ; if (  t.field_s == t.tryfield_s  )  g.gbloodonfloor = t.value1;
+
+					// DOCDOC: imageblockmode = Not Used
 					t.tryfield_s = "imageblockmode" ; if (  t.field_s == t.tryfield_s  )  g.gimageblockmode = t.value1;
 
+					// DOCDOC: showalluniquetextures = Not Used
 					t.tryfield_s = "showalluniquetextures" ; if (  t.field_s == t.tryfield_s  )  g.gshowalluniquetextures = t.value1;
+
+					// DOCDOC: systemmemorycapoff = Not Used
 					t.tryfield_s = "systemmemorycapoff" ; if (  t.field_s == t.tryfield_s  )  g.gsystemmemorycapoff = t.value1;
+
+					// DOCDOC: entitytogglingoff = Disables ability to use the Y key to toggle entity between static and dynamic
 					t.tryfield_s = "entitytogglingoff" ; if (  t.field_s == t.tryfield_s  )  g.gentitytogglingoff = t.value1;
+
+					// DOCDOC: extracollisionbuilddisabled = Not Used
 					t.tryfield_s = "extracollisionbuilddisabled" ; if (  t.field_s == t.tryfield_s  )  g.gextracollisionbuilddisabled = t.value1;
+
+					// DOCDOC: alwaysconfirmsave = Asks user if they wish to save level before exiting editor
 					t.tryfield_s = "alwaysconfirmsave" ; if (  t.field_s == t.tryfield_s  )  g.galwaysconfirmsave = t.value1;
+
+					// DOCDOC: simplifiedcharacterediting = Remove violent-related properties from character entities
 					t.tryfield_s = "simplifiedcharacterediting" ; if (  t.field_s == t.tryfield_s  )  g.gsimplifiedcharacterediting = t.value1;
+
+					// DOCDOC: useoggoff = Not Used
 					t.tryfield_s = "useoggoff" ; if (  t.field_s == t.tryfield_s  )  g.guseoggoff = t.value1;
+
+					// DOCDOC: cullmode = Not Used
 					t.tryfield_s = "cullmode" ; if (  t.field_s == t.tryfield_s  )  g.cullmode = t.value1;
+
+					// DOCDOC: capfpson = Not Used
 					t.tryfield_s = "capfpson" ; if (  t.field_s == t.tryfield_s  )  g.gcapfpson = t.value1;
+
+					// DOCDOC: disabledynamicres = Not Used
 					t.tryfield_s = "disabledynamicres"; 
 					if (  t.field_s == t.tryfield_s  ) 
 					{
@@ -1933,17 +2086,38 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 						else
 							t.DisableDynamicRes = false;
 					}
+
+					// DOCDOC: deletetxpcachesonexit = Enables temporary file deletion when creating custom textures for Builder and Terrain
 					t.tryfield_s = "deletetxpcachesonexit" ; if (  t.field_s == t.tryfield_s  )  g.gdeletetxpcachesonexit = t.value1;
+
+					// DOCDOC: disablesurfacesnap = Disables the editor ability for some entities to locate surfaces to snap to
 					t.tryfield_s = "disablesurfacesnap" ; if (  t.field_s == t.tryfield_s  )  g.gdisablesurfacesnap = t.value1;
+
+					// DOCDOC: defaultterrainheight = Sets the height at which a flat terrain is created by default. Default is 600.
 					t.tryfield_s = "defaultterrainheight" ; if (  t.field_s == t.tryfield_s  )  g.gdefaultterrainheight = t.value1;
+
+					// DOCDOC: defaultwaterheight = Sets the height of the built-in water plane. Default is 500.
 					t.tryfield_s = "defaultwaterheight" ; if (  t.field_s == t.tryfield_s  )  g.gdefaultwaterheight = t.value1;
+
+					// DOCDOC: defaultebegridoffsetx = Sets the grid X offset applied to Builder entities when placing them. Default is 50.
 					t.tryfield_s = "defaultebegridoffsetx" ; if (  t.field_s == t.tryfield_s  )  g.gdefaultebegridoffsetx = t.value1;
+
+					// DOCDOC: defaultebegridoffsetz = Sets the grid Z offset applied to Builder entities when placing them. Default is 50.
 					t.tryfield_s = "defaultebegridoffsetz" ; if (  t.field_s == t.tryfield_s  )  g.gdefaultebegridoffsetz = t.value1;
 
+					// DOCDOC: xbox = Sets whether the XBOX Style Controller should be detected and used to control the player
 					t.tryfield_s = "xbox" ; if (  t.field_s == t.tryfield_s  )  g.gxbox = t.value1;
+
+					// DOCDOC: xboxinvert = Inverts the Y axis of the mouselook stick of an XBOX Style Controller
 					t.tryfield_s = "xboxinvert" ; if (  t.field_s == t.tryfield_s  )  g.gxboxinvert = t.value1;
+
+					// DOCDOC: xboxcontrollertype = Sets the type of XBOX Style Controller used by the game, 1 is the old XBOX controller, 2 is the new XBOX Controller, 3 is the Dual Action F310 Controller.
 					t.tryfield_s = "xboxcontrollertype" ; if (  t.field_s == t.tryfield_s  )  g.gxboxcontrollertype = t.value1;
+
+					// DOCDOC: xboxmag = Amplifies the sensitivity of the input values coming from the XBOX Style Controller. Default is 100.
 					t.tryfield_s = "xboxmag" ; if (  t.field_s == t.tryfield_s  )  g.gxboxmag = (0.0+t.value1)/100.0;
+
+					// DOCDOC: mousesensitivity = Not Used
 					t.tryfield_s = "mousesensitivity" ; if (  t.field_s == t.tryfield_s ) g.gmousesensitivity = t.value1  ; t.newmousesensitivity = t.value1;
 
 					// VRMode
@@ -1951,33 +2125,72 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					// 1 : VR920/iWear
 					// 5 : detects VR920/iWear (switches OFF if not found)
 					// 6 : special case, side by side rendering
+					// DOCDOC: vrmode = Not Used
 					//t.tryfield_s = "vrmode" ; if (  t.field_s == t.tryfield_s  )  { g.gvrmode = t.value1; g.gvrmodeoriginal = t.value1; }
+					// DOCDOC: vrmodemag = Not Used
 					//t.tryfield_s = "vrmodemag" ; if (  t.field_s == t.tryfield_s  )  g.gvrmodemag = t.value1;
 
+					// DOCDOC: dynamiclighting = Not Used
 					t.tryfield_s = "dynamiclighting" ; if (  t.field_s == t.tryfield_s  )  g.gdynamiclightingstate = t.value1;
+
+					// DOCDOC: dynamicshadows = Not Used
 					t.tryfield_s = "dynamicshadows" ; if (  t.field_s == t.tryfield_s ) g.gdynamicshadowsstate = t.value1  ; t.newdynamicshadows = t.value1;
+
+					// DOCDOC: dividetexturesize = Divides the size of the loaded textures by this value. Default is 0 for no division.
 					t.tryfield_s = "dividetexturesize" ; if (  t.field_s == t.tryfield_s ) g.gdividetexturesize = t.value1  ; t.newdividetexturesize = t.value1;
+
+					// DOCDOC: producelogfiles = Sets whether the editor and game produces .LOG files which time stamp and track events within the engine
 					t.tryfield_s = "producelogfiles" ; if (  t.field_s == t.tryfield_s  )  g.gproducelogfiles = t.value1;
+
+					// DOCDOC: producelogfilesdir = Set a new folder for where the .LOG files will be saved out. Default is the root folder.
 					t.tryfield_s = "producelogfilesdir" ; if (  t.field_s == t.tryfield_s  )  g.gproducelogfilesdir_s = t.value_s;
+
+					// DOCDOC: pbroverride = Activates the PBR rendering system. Set to 0 to disable PBR and revert to the DNS texture system. Default is 1.
 					t.tryfield_s = "pbroverride" ; if (  t.field_s == t.tryfield_s  )  g.gpbroverride = t.value1;
+
+					// DOCDOC: underwatermode = Activates the advanced underwater rendering and activity mode.
 					t.tryfield_s = "underwatermode"; if (t.field_s == t.tryfield_s)  g.underwatermode = t.value1;
+
+					// DOCDOC: usegrassbelowwater = Renders grass below the water line.
 					t.tryfield_s = "usegrassbelowwater"; if (t.field_s == t.tryfield_s)  g.usegrassbelowwater = t.value1;
 
+					// DOCDOC: memskipwatermask = Disables the generation of a water mask which reduces the alpha of water as it reaches the shoreline.
 					t.tryfield_s = "memskipwatermask"; if (t.field_s == t.tryfield_s)  g.memskipwatermask = t.value1;
+
+					// DOCDOC: standalonefreememorybetweenlevels = Enables the deletion of textures from the previous level before loading the next one.
 					t.tryfield_s = "standalonefreememorybetweenlevels"; if (t.field_s == t.tryfield_s)  g.standalonefreememorybetweenlevels = t.value1;
+
+					// DOCDOC: videoprecacheframes = Set the amount of pre-caching each video in a game level uses, lowering memory usage. Default is 1.
 					t.tryfield_s = "videoprecacheframes"; if (t.field_s == t.tryfield_s)  g.videoprecacheframes = t.value1;
+
+					// DOCDOC: videodelayedload = Delays the loading of videos until they are needed in game, saving memory.
 					t.tryfield_s = "videodelayedload"; if (t.field_s == t.tryfield_s)  g.videodelayedload = t.value1;
-					
+
+					// DOCDOC: aidisabletreeobstacles = Disable all AI obstacles for trees, improving level preparation time.
 					t.tryfield_s = "aidisabletreeobstacles"; if (t.field_s == t.tryfield_s)  g.aidisabletreeobstacles = t.value1;
+
+					// DOCDOC: aidisableobstacles = Disables all AI obstacles for all entities, improving level preparation time.
 					t.tryfield_s = "aidisableobstacles"; if (t.field_s == t.tryfield_s)  g.aidisableobstacles = t.value1;
+
+					// DOCDOC: skipunusedtextures = Skips loading of detail and height textures which are not overly used by most assets.
 					t.tryfield_s = "skipunusedtextures"; if (t.field_s == t.tryfield_s)  g.skipunusedtextures = t.value1;
-					
+
+					// DOCDOC: lowestnearcamera = Reduce Z flicker issues by increasing this value. Recommended range for this is 8-14. Default is 1.
 					t.tryfield_s = "lowestnearcamera"; if (t.field_s == t.tryfield_s)  g.lowestnearcamera = t.value1;
+
+					// DOCDOC: editorsavebak = Enables the editor to save a .BAK file for .FPM level files
 					t.tryfield_s = "editorsavebak"; if (t.field_s == t.tryfield_s)  g.editorsavebak = t.value1;
 
+					// DOCDOC: terrainoldlight = Set to 1 to use the old terrain lighting system. Default is 0 for more than 3 lights on terrain.
 					t.tryfield_s = "terrainoldlight"; if (t.field_s == t.tryfield_s)  g.terrainoldlight = t.value1;
+
+					// DOCDOC: terrainusevertexlights = Set terrain to use vertex lighting instead of per pixel lighting for improved performance.
 					t.tryfield_s = "terrainusevertexlights"; if (t.field_s == t.tryfield_s)  g.terrainusevertexlights = t.value1;
+
+					// DOCDOC: showstaticlightinrealtime = Renders any static lights in the real-time scene in addition to existing dynamic lights.
 					t.tryfield_s = "showstaticlightinrealtime"; if (t.field_s == t.tryfield_s)  g.showstaticlightinrealtime = t.value1;
+
+					// DOCDOC: maxtotalmeshlights = Set the maximum number of lights to be used in the scene. Range is 4-38. Default is 38.
 					t.tryfield_s = "maxtotalmeshlights"; 
 					if (t.field_s == t.tryfield_s)  
 					{
@@ -1985,18 +2198,24 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 						if (g.maxtotalmeshlights > 38 ) g.maxtotalmeshlights = 38;
 						if (g.maxtotalmeshlights < 4) g.maxtotalmeshlights = 4; //PE: Lowest to support old system on terrain
 					}
+
+					// DOCDOC: maxpixelmeshlights = Set the maximum number of per pixel lights to be used in the scene. Range is 0-38. Default is 12.
 					t.tryfield_s = "maxpixelmeshlights"; 
 					if (t.field_s == t.tryfield_s)  
 					{
 						g.maxpixelmeshlights = t.value1;
 						if (g.maxpixelmeshlights > 38) g.maxpixelmeshlights = 38; //PE: Leave 2 vertex based lights per mesh.
 					}
+
+					// DOCDOC: maxterrainlights = Set the maximum number of terrain lights to be used in the scene. Range is 0-40. Default is 20.
 					t.tryfield_s = "maxterrainlights"; 
 					if (t.field_s == t.tryfield_s)  
 					{
 						g.maxterrainlights = t.value1;
 						if (g.maxterrainlights > 40) g.maxterrainlights = 40;
 					}
+
+					// DOCDOC: terrainlightfadedistance = Sets the distance at which terrain lights will fade out. Min is 600. Default is 4500.
 					t.tryfield_s = "terrainlightfadedistance"; 
 					if (t.field_s == t.tryfield_s)  
 					{
@@ -2004,96 +2223,219 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 						if (g.terrainlightfadedistance < 600 ) g.terrainlightfadedistance = 600; //PE: Need atleast a 600 fade distance.
 					}
 
+					// DOCDOC: memskipibr = Set to skip the loading of the IBR file, used to pre-process lighting values for PBR rendering.
 					t.tryfield_s = "memskipibr"; if (t.field_s == t.tryfield_s)  g.memskipibr = t.value1;
+
+					// DOCDOC: memgeneratedump = Enable the dumping of a list of images loaded after each level.
 					t.tryfield_s = "memgeneratedump"; if (t.field_s == t.tryfield_s)  g.memgeneratedump = t.value1;
-					
+
+					// DOCDOC: producetruevidmemreading = Adds better video memory usage stats to the .LOG file when produced
 					t.tryfield_s = "producetruevidmemreading" ; if (  t.field_s == t.tryfield_s  )  g.gproducetruevidmemreading = t.value1;
+
+					// DOCDOC: charactercapsulescale = Sets a global scaling percentage to any character physics capsules created. Default is 100.
 					t.tryfield_s = "charactercapsulescale" ; if (  t.field_s == t.tryfield_s  )  g.gcharactercapsulescale_f = (t.value1+0.0)/100.0;
+
+					// DOCDOC: hsrmode = Not Used
 					t.tryfield_s = "hsrmode" ; if (  t.field_s == t.tryfield_s  )  g.ghsrmode = t.value1;
+
+					// DOCDOC: newblossershaders = Not Used
 					t.tryfield_s = "newblossershaders" ; if (  t.field_s == t.tryfield_s  )  g.gnewblossershaders = t.value1;
+
+					// DOCDOC: postprocessing = Enables the use of post processing when rendering the game
 					t.tryfield_s = "postprocessing" ; if (  t.field_s == t.tryfield_s ) g.gpostprocessing = t.value1  ; t.newpostprocessing = t.value1;
+
+					// DOCDOC: showaioutlines = Not Used
 					t.tryfield_s = "showaioutlines" ; if (  t.field_s == t.tryfield_s  )  g.gshowaioutlines = t.value1;
+
+					// DOCDOC: airadius = Sets the global radius for all AI bots in the game, within which they will not collide with each other.
 					t.tryfield_s = "airadius" ; if (  t.field_s == t.tryfield_s  )  g.gairadius = t.value1;
+
+					// DOCDOC: disablepeeking = Not Used
 					t.tryfield_s = "disablepeeking" ; if (  t.field_s == t.tryfield_s  )  g.gdisablepeeking = t.value1;
+
+					// DOCDOC: antialias = Not Used
 					t.tryfield_s = "antialias" ; if (  t.field_s == t.tryfield_s ) g.gantialias = t.value1  ; t.newantialias = t.value1;
+
+					// DOCDOC: invmouse = Inverts the Y axis of the mouse input data.
 					t.tryfield_s = "invmouse" ; if (  t.field_s == t.tryfield_s ) g.gminvert = t.value1  ; t.newmouseinvert = t.value1;
+
+					// DOCDOC: disablerightmousehold = Not Used
 					t.tryfield_s = "disablerightmousehold" ; if (  t.field_s == t.tryfield_s  )  g.gdisablerightmousehold = t.value1;
+
+					// DOCDOC: disableparticles = Not Used
 					t.tryfield_s = "disableparticles" ; if (  t.field_s == t.tryfield_s ) g.gparticlesnotused = t.value1  ; t.newparticlesused = t.value1;
+
+					// DOCDOC: autores = Not Used
 					t.tryfield_s = "autores" ; if (  t.field_s == t.tryfield_s ) g.gautores = t.value1  ; t.newautores = t.value1;
+
+					// DOCDOC: terrainbrushsizemax = Sets the maximum size the terrain brush is allowed to go. Default is 2000.
 					t.tryfield_s = "terrainbrushsizemax"; if ( t.field_s == t.tryfield_s ) g.fTerrainBrushSizeMax = t.value1;
+
+					// DOCDOC: allowcpuanimations = Enables the ability for entities to specify CPU bone animations instead of GPU animations.
 					t.tryfield_s = "allowcpuanimations"; if ( t.field_s == t.tryfield_s ) g.allowcpuanimations = t.value1;
 
+					// DOCDOC: lightmappingquality = Sets the lightmapping quality level. Default is 500.
 					t.tryfield_s = "lightmappingquality"; if ( t.field_s == t.tryfield_s ) g.fLightmappingQuality = t.value1/100.0f;
+
+					// DOCDOC: lightmappingblurlevel = Sets the amount of blurring applied to the final lightmap. Default is 100.
 					t.tryfield_s = "lightmappingblurlevel"; if ( t.field_s == t.tryfield_s ) g.fLightmappingBlurLevel = t.value1/100.0f;
+
+					// DOCDOC: lightmappingsizeterrain = Sets the size of the texture plate used to store the terrain lightmap. Default is 2048.
 					t.tryfield_s = "lightmappingsizeterrain"; if ( t.field_s == t.tryfield_s ) g.iLightmappingSizeTerrain = t.value1;
+
+					// DOCDOC: lightmappingsizeentity = Sets the size of the texture plate used to store the entities lightmaps. Default is 1024.
 					t.tryfield_s = "lightmappingsizeentity"; if ( t.field_s == t.tryfield_s ) g.iLightmappingSizeEntity = t.value1;
+
+					// DOCDOC: lightmappingsmoothangle = Sets the angle within which smoothing will be applied to the edge. Default is 45.
 					t.tryfield_s = "lightmappingsmoothangle"; if ( t.field_s == t.tryfield_s ) g.fLightmappingSmoothAngle = t.value1;
+
+					// DOCDOC: lightmappingexcludeterrain = Set this to skip all terrain lightmapping. Default is 0.
 					t.tryfield_s = "lightmappingexcludeterrain"; if ( t.field_s == t.tryfield_s ) g.iLightmappingExcludeTerrain = t.value1;
+
+					// DOCDOC: lightmappingdeactivatedirectionallight = Disable any directional lighting from the sun within the lightmapping process. Default is 0.
 					t.tryfield_s = "lightmappingdeactivatedirectionallight"; if ( t.field_s == t.tryfield_s ) g.iLightmappingDeactivateDirectionalLight = t.value1;
+
+					// DOCDOC: lightmappingambientred = Sets the ambient Red color to be applied during the lightmapping process. Default is dark grey, 25.
 					t.tryfield_s = "lightmappingambientred"; if ( t.field_s == t.tryfield_s ) g.fLightmappingAmbientR = t.value1/100.0f;
+
+					// DOCDOC: lightmappingambientgreen = Sets the ambient Green color to be applied during the lightmapping process. Default is dark grey, 25.
 					t.tryfield_s = "lightmappingambientgreen"; if ( t.field_s == t.tryfield_s ) g.fLightmappingAmbientG = t.value1/100.0f;
+
+					// DOCDOC: lightmappingambientblue = Sets the ambient Blue color to be applied during the lightmapping process. Default is dark grey, 25.
 					t.tryfield_s = "lightmappingambientblue"; if ( t.field_s == t.tryfield_s ) g.fLightmappingAmbientB = t.value1/100.0f;
+
+					// DOCDOC: lightmappingallterrainlighting = If no directional lightmapping, set this to force lightmap all the terrain area. Default is 0.
 					t.tryfield_s = "lightmappingallterrainlighting"; if ( t.field_s == t.tryfield_s ) g.iLightmappingAllTerrainLighting = t.value1;
+
+					// DOCDOC: suspendscreenprompts = Prevent screen prompts from being rendered to the screen. Default is 0.
 					t.tryfield_s = "suspendscreenprompts" ; if (  t.field_s == t.tryfield_s  )  g.gsuspendscreenprompts = t.value1;
 
-					// forceloadtestgameshaders:
+					// DOCDOC: forceloadtestgameshaders = Set to 1 to generate new .BLOB files for all loaded shaders, 2 to force all shaders to have new .BLOB files. Default is 0.
 					// 0 - off by default
 					// 1 - generate new .BLOB files when a shader is loaded
 					// 2 - scan effectbank folder and generate ALL NEW .BLOB files
 					t.tryfield_s = "forceloadtestgameshaders" ; if (  t.field_s == t.tryfield_s  )  g.gforceloadtestgameshaders = t.value1;				
+
+					// DOCDOC: reloadweapongunspecs = Forces a reload of the gun data file in case of buying and using weapons through the store. Default is 0.
 					t.tryfield_s = "reloadweapongunspecs"; if (t.field_s == t.tryfield_s)  g.reloadWeaponGunspecs = t.value1;
 
+					// DOCDOC: usesky = Not Used
 					t.tryfield_s = "usesky" ; if (  t.field_s == t.tryfield_s  )  g.guseskystate = t.value1;
+
+					// DOCDOC: usefloor = Not Used
 					t.tryfield_s = "usefloor" ; if (  t.field_s == t.tryfield_s  )  g.gusefloorstate = t.value1;
+
+					// DOCDOC: useenvsounds = Not Used
 					t.tryfield_s = "useenvsounds" ; if (  t.field_s == t.tryfield_s  )  g.guseenvsoundsstate = t.value1;
+
+					// DOCDOC: useweapons = Not Used
 					t.tryfield_s = "useweapons" ; if (  t.field_s == t.tryfield_s  )  g.guseweaponsstate = t.value1;
 
+					// DOCDOC: godmode = Enables the use of God Mode, which increases player health to 99999 when the 'I' key is pressed in game.
 					t.tryfield_s = "godmode" ; if (  t.field_s == t.tryfield_s  )  g.ggodmodestate = 0;
+
+					// DOCDOC: uniquesignature = Not Used
 					t.tryfield_s = "uniquesignature" ; if (  t.field_s == t.tryfield_s  )  g.guniquesignature = t.value1;
+
+					// DOCDOC: gameobjectivetype = Not Used
 					t.tryfield_s = "gameobjectivetype" ; if (  t.field_s == t.tryfield_s  )  g.ggameobjectivetype = t.value1;
+
+					// DOCDOC: gameobjectivevalue = Not Used
 					t.tryfield_s = "gameobjectivevalue" ; if (  t.field_s == t.tryfield_s  )  g.ggameobjectivevalue = t.value1;
+
+					// DOCDOC: oneshotkills = Not Used
 					t.tryfield_s = "oneshotkills" ; if (  t.field_s == t.tryfield_s  )  g.goneshotkills = t.value1;
+
+					// DOCDOC: maxplayers = Not Used
 					t.tryfield_s = "maxplayers" ; if (  t.field_s == t.tryfield_s  )  g.numberofplayers = t.value1;
+
+					// DOCDOC: spawnrandom = Not Used
 					t.tryfield_s = "spawnrandom" ; if (  t.field_s == t.tryfield_s  )  g.gspawnrandom = t.value1;
+
+					// DOCDOC: uniquegamecode = Not Used
 					t.tryfield_s = "uniquegamecode" ; if (  t.field_s == t.tryfield_s  )  g.guniquegamecode_s = t.value_s;
 
+					// DOCDOC: useuniquelynamedentities = Set to 1 so editor will assign unique names to added entities. Default is 0.
 					t.tryfield_s = "useuniquelynamedentities" ; if (  t.field_s == t.tryfield_s  )  g.guseuniquelynamedentities = t.value1;
+
+					// DOCDOC: exportassets = Enables the ability for save standalone to include the FPE along with the entities other resources.
 					t.tryfield_s = "exportassets" ; if (  t.field_s == t.tryfield_s  )  g.gexportassets = t.value1;
+
+					// DOCDOC: localserver = Not Used
 					t.tryfield_s = "localserver" ; if (  t.field_s == t.tryfield_s  )  g.glocalserveroverride_s = t.value_s;
 
-					//  all FPI screens
+					// DOCDOC: title = Not Used
 					t.tryfield_s = "title" ; if (  t.field_s == t.tryfield_s  )  t.titlefpi_s = t.value_s;
+
+					// DOCDOC: global = Not Used
 					t.tryfield_s = "global" ; if (  t.field_s == t.tryfield_s  )  t.setupfpi_s = t.value_s;
+
+					// DOCDOC: gamewon = Not Used
 					t.tryfield_s = "gamewon" ; if (  t.field_s == t.tryfield_s  )  t.gamewonfpi_s = t.value_s;
+
+					// DOCDOC: gameover = Not Used
 					t.tryfield_s = "gameover" ; if (  t.field_s == t.tryfield_s  )  t.gameoverfpi_s = t.value_s;
+
+					// DOCDOC: levelfpi1 = Not Used
 					t.tryfield_s = "levelfpi1" ; if (  t.field_s == t.tryfield_s ) t.loadingfpi_s == t.value_s ; t.levelfpiinsetup = t.l;
 
-					////  TDM - Plystire
+					// DOCDOC: hudr = Not Used
 					t.tryfield_s = "hudr" ; if (  t.field_s == t.tryfield_s  )  g.r_f = t.value1;
+
+					// DOCDOC: hudg = Not Used
 					t.tryfield_s = "hudg" ; if (  t.field_s == t.tryfield_s  )  g.g_f = t.value1;
+
+					// DOCDOC: hudb = Not Used
 					t.tryfield_s = "hudb" ; if (  t.field_s == t.tryfield_s  )  g.b_f = t.value1;
+
+					// DOCDOC: autoswaptrue = Not Used
 					t.tryfield_s = "autoswaptrue" ; if (  t.field_s == t.tryfield_s  )  g.autoswap = t.value1;
+
+					// DOCDOC: messagetime = Not Used
 					t.tryfield_s = "messagetime" ; if (  t.field_s == t.tryfield_s  )  g.messagetime = t.value1;
+
+					// DOCDOC: allowscope = Not Used
 					t.tryfield_s = "allowscope" ; if (  t.field_s == t.tryfield_s  )  g.allowscope_s = t.value1;
+
+					// DOCDOC: serverhostname = Not Used
 					t.tryfield_s = "serverhostname" ; if (  t.field_s == t.tryfield_s  )  g.serverhostname = t.value_s;
+
+					// DOCDOC: alwaysrun = Not Used
 					t.tryfield_s = "alwaysrun" ; if (  t.field_s == t.tryfield_s  )  g.alwaysrun = t.value1;
+
+					// DOCDOC: matchtype = Not Used
 					t.tryfield_s = "matchtype" ; if (  t.field_s == t.tryfield_s  )  g.multi_match_type = t.value1;
+
+					// DOCDOC: multiradar = Not Used
 					t.tryfield_s = "multiradar";if (  t.field_s == t.tryfield_s  )  g.darkradar = t.value1;
+
+					// DOCDOC: multicompass = Not Used
 					t.tryfield_s = "multicompass";;if (  t.field_s == t.tryfield_s  )  g.compassOn = t.value1;
+
+					// DOCDOC: multicompassx = Not Used
 					t.tryfield_s = "multicompassx";if (  t.field_s == t.tryfield_s  )  g.compassX = t.value1;
+
+					// DOCDOC: multicompassy = Not Used
 					t.tryfield_s = "multicompassy";if (  t.field_s == t.tryfield_s  )  g.compassY = t.value1;
+
+					// DOCDOC: multiradarx = Not Used
 					t.tryfield_s = "multiradarx";if (  t.field_s == t.tryfield_s  )  g.radarx = t.value1;
+
+					// DOCDOC: multiradary = Not Used
 					t.tryfield_s = "multiradary";if (  t.field_s == t.tryfield_s  )  g.radary = t.value1;
 
-					// Levels
+					// DOCDOC: levelmax = Not Used
 					if ( t.field_s == "levelmax"  )  g.glevelmax = t.value1;
 					if ( g.glevelmax>0 ) 
 					{
 						for ( t.v = 1 ; t.v<=  g.glevelmax; t.v++ )
 						{
+							// DOCDOC: levelfpm = Not Used
 							sprintf ( t.szwork , "levelfpm%s" , Str(t.v) );
 							t.tryfield_s = t.szwork;
 							if (  t.field_s == t.tryfield_s  )  t.levelfpm_s = t.value_s;
+
+							// DOCDOC: levelfpi = Not used
 							sprintf ( t.szwork , "levelfpi%s" , Str(t.v) );
 							t.tryfield_s=t.szwork;
 							if (  t.field_s == t.tryfield_s ) 
@@ -2106,40 +2448,56 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 						}
 					}
 
-					// new global key entries
+					// DOCDOC: melee key = Not Used
 					if ( t.field_s == "melee key"  )  g.ggunmeleekey = t.value1;
+
+					// DOCDOC: switchtoalt = Not Used
 					if ( t.field_s == "switchtoalt" ) 
 					{
 						if ( t.value1 != 0 ) g.ggunaltswapkey1 = t.value1;
 						g.ggunaltswapkey2 = t.value2;
 						if (  t.value2 == 0  )  g.ggunaltswapkey2 = -1;
 					}
+
+					// DOCDOC: zoomholdbreath = The keymap value to be used to hold breath while zooming. Default is 16 (letter Q).
 					if ( t.field_s == "zoomholdbreath"  )  g.gzoomholdbreath = t.value1;
 
-					// all key actions
+					// DOCDOC: key1 thru key11 = Old style mapping of control keys to be used in the game, now depreciated.
 					for ( t.num = 1 ; t.num<=  11; t.num++ )
 					{
 						sprintf ( t.szwork , "key%s" , Str(t.num) );
 						t.tryfield_s=t.szwork;
 						if (  t.field_s == t.tryfield_s  )  t.listkey[t.num] = t.value1;
 					}
+
 					for ( t.num = 1 ; t.num<=  11; t.num++ )
 					{
+						// DOCDOC: keyup = Assigns a new keymap value to represent the indicated control action. Default is 17.
 						if (  t.num == 1  )  t.tryfield_s = "keyup";
+						// DOCDOC: keydown = Assigns a new keymap value to represent the indicated control action. Default is 31.
 						if (  t.num == 2  )  t.tryfield_s = "keydown";
+						// DOCDOC: keyleft = Assigns a new keymap value to represent the indicated control action. Default is 30.
 						if (  t.num == 3  )  t.tryfield_s = "keyleft";
+						// DOCDOC: keyright = Assigns a new keymap value to represent the indicated control action. Default is 32.
 						if (  t.num == 4  )  t.tryfield_s = "keyright";
+						// DOCDOC: keyjump = Assigns a new keymap value to represent the indicated control action. Default is 57.
 						if (  t.num == 5  )  t.tryfield_s = "keyjump";
+						// DOCDOC: keycrouch = Assigns a new keymap value to represent the indicated control action. Default is 46.
 						if (  t.num == 6  )  t.tryfield_s = "keycrouch";
+						// DOCDOC: keyenter = Assigns a new keymap value to represent the indicated control action. Default is 28.
 						if (  t.num == 7  )  t.tryfield_s = "keyenter";
+						// DOCDOC: keyreload = Assigns a new keymap value to represent the indicated control action. Default is 19.
 						if (  t.num == 8  )  t.tryfield_s = "keyreload";
+						// DOCDOC: keypeekleft = Assigns a new keymap value to represent the indicated control action. Default is 16.
 						if (  t.num == 9  )  t.tryfield_s = "keypeekleft";
+						// DOCDOC: keypeekright = Assigns a new keymap value to represent the indicated control action. Default is 18.
 						if (  t.num == 10  )  t.tryfield_s = "keypeekright";
+						// DOCDOC: keyrun = Assigns a new keymap value to represent the indicated control action. Default is 42.
 						if (  t.num == 11  )  t.tryfield_s = "keyrun";
 						if (  t.field_s == t.tryfield_s  )  t.listkey[t.num] = t.value1;
 					}
 
-					//  all gun slots
+					// DOCDOC: slot1 thru slot9 = Pre-assign weapon ID values to the nine available gun slots in the game
 					for ( t.num = 1 ; t.num<=  9; t.num++ )
 					{
 						sprintf ( t.szwork , "slot%i" , t.num );
@@ -2147,6 +2505,7 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 						if (  t.field_s == t.tryfield_s  )  t.gunslots_s[t.num] = t.value_s;
 					}
 
+					// DOCDOC: taunt1 thru taunt30 = Not used
 					for ( t.num = 1 ; t.num<=  30; t.num++ )
 					{
 						sprintf ( t.szwork , "taunt%i" , t.num );
@@ -2154,18 +2513,34 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 						if (  t.field_s == t.tryfield_s  )  t.taunt_s[t.num] = t.value_s;
 					}
 
-					//  localization data
+					// DOCDOC: language = Sets the language folder inside 'languagebank' to use for the game, defaults to 'English'.
 					t.tryfield_s = "language" ; if (  t.field_s == t.tryfield_s  )  g.language_s = t.value_s;
 
-					// get graphic option settings and store in global strings
+					// DOCDOC: graphicslowterrain = Pre-assign the terrain shader level to use when the in-game menu selects LOW for graphics.
 					t.tryfield_s = "graphicslowterrain" ; if (  t.field_s == t.tryfield_s  )  g.graphicslowterrain_s = t.value_s;
+
+					// DOCDOC: graphicslowentity = Pre-assign the entity shader level to use when the in-game menu selects LOW for graphics.
 					t.tryfield_s = "graphicslowentity" ; if (  t.field_s == t.tryfield_s  )  g.graphicslowentity_s = t.value_s;
+
+					// DOCDOC: graphicslowgrass = Pre-assign the grass shader level to use when the in-game menu selects LOW for graphics.
 					t.tryfield_s = "graphicslowgrass" ; if (  t.field_s == t.tryfield_s  )  g.graphicslowgrass_s = t.value_s;
+
+					// DOCDOC: graphicsmediumterrain = Pre-assign the terrain shader level to use when the in-game menu selects MEDIUM for graphics.
 					t.tryfield_s = "graphicsmediumterrain" ; if (  t.field_s == t.tryfield_s  )  g.graphicsmediumterrain_s = t.value_s;
+
+					// DOCDOC: graphicsmediumentity = Pre-assign the entity shader level to use when the in-game menu selects MEDIUM for graphics.
 					t.tryfield_s = "graphicsmediumentity" ; if (  t.field_s == t.tryfield_s  )  g.graphicsmediumentity_s = t.value_s;
+
+					// DOCDOC: graphicsmediumgrass = Pre-assign the grass shader level to use when the in-game menu selects MEDIUM for graphics.
 					t.tryfield_s = "graphicsmediumgrass" ; if (  t.field_s == t.tryfield_s  )  g.graphicsmediumgrass_s = t.value_s;
+
+					// DOCDOC: graphicshighterrain = Pre-assign the terrain shader level to use when the in-game menu selects HIGH for graphics.
 					t.tryfield_s = "graphicshighterrain" ; if (  t.field_s == t.tryfield_s  )  g.graphicshighterrain_s = t.value_s;
+
+					// DOCDOC: graphicshighentity = Pre-assign the entity shader level to use when the in-game menu selects HIGH for graphics.
 					t.tryfield_s = "graphicshighentity" ; if (  t.field_s == t.tryfield_s  )  g.graphicshighentity_s = t.value_s;
+
+					// DOCDOC: graphicshighgrass = Pre-assign the grass shader level to use when the in-game menu selects HIGH for graphics.
 					t.tryfield_s = "graphicshighgrass" ; if (  t.field_s == t.tryfield_s  )  g.graphicshighgrass_s = t.value_s;
 				}
 			}

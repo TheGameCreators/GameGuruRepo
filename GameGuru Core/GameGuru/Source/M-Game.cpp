@@ -2687,7 +2687,6 @@ extern float trackingSize;
 
 void game_dynamicRes()
 {
-
 	// If dynamic res is disabled via setup ini, return out
 	if ( t.DisableDynamicRes ) return;
 
