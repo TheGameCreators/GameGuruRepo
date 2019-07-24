@@ -20,6 +20,7 @@ extern float g_fVR920Sensitivity;
 
 // Globals
 int g_PopupControlMode = 0;
+int g_trialStampDaysLeft = 0;
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
@@ -2300,13 +2301,13 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					// DOCDOC: lightmappingdeactivatedirectionallight = Disable any directional lighting from the sun within the lightmapping process. Default is 0.
 					t.tryfield_s = "lightmappingdeactivatedirectionallight"; if ( t.field_s == t.tryfield_s ) g.iLightmappingDeactivateDirectionalLight = t.value1;
 
-					// DOCDOC: lightmappingambientred = Sets the ambient Red color to be applied during the lightmapping process. Default is dark grey, 25.
+					// DOCDOC: lightmappingambientred = Sets the ambient Red color percentage to be applied during the lightmapping process. Default is dark grey, 25.
 					t.tryfield_s = "lightmappingambientred"; if ( t.field_s == t.tryfield_s ) g.fLightmappingAmbientR = t.value1/100.0f;
 
-					// DOCDOC: lightmappingambientgreen = Sets the ambient Green color to be applied during the lightmapping process. Default is dark grey, 25.
+					// DOCDOC: lightmappingambientgreen = Sets the ambient Green color percentage to be applied during the lightmapping process. Default is dark grey, 25.
 					t.tryfield_s = "lightmappingambientgreen"; if ( t.field_s == t.tryfield_s ) g.fLightmappingAmbientG = t.value1/100.0f;
 
-					// DOCDOC: lightmappingambientblue = Sets the ambient Blue color to be applied during the lightmapping process. Default is dark grey, 25.
+					// DOCDOC: lightmappingambientblue = Sets the ambient Blue color percentage to be applied during the lightmapping process. Default is dark grey, 25.
 					t.tryfield_s = "lightmappingambientblue"; if ( t.field_s == t.tryfield_s ) g.fLightmappingAmbientB = t.value1/100.0f;
 
 					// DOCDOC: lightmappingallterrainlighting = If no directional lightmapping, set this to force lightmap all the terrain area. Default is 0.
@@ -2999,11 +3000,15 @@ void FPSC_Setup ( void )
 		// if non-VRQ, ensure Steam file present, otherwise exit software
 		if ( g.trueappname_s == "Guru-MapEditor" ) 
 		{
-			if ( FileExist("steam_appid.txt") == 0 ) 
-			{
+			#ifdef FREETRIALVERSION
+			 // Does not need Steam files
+			#else
+			 if ( FileExist("steam_appid.txt") == 0 ) 
+			 {
 				MessageBox ( NULL, "Root file missing from installation.", "System File Not Found", MB_OK );
 				g.iTriggerSoftwareToQuit = 1;
-			}
+			 }
+			#endif
 		}
 	}
 
@@ -3569,17 +3574,49 @@ void FPSC_Setup ( void )
 		//  New security requires Steam client to be running (for ownership check)
 		g.iFreeVersionModeActive = 0;
 		#ifdef STEAMOWNERSHIPCHECKFREEWEEKEND
-		g.iFreeVersionModeActive = 1;
-		bool bSteamRunningAndGameGuruOwned = false;
-		if ( g.mp.isRunning == 1 )
-		{
+		 g.iFreeVersionModeActive = 1;
+		 bool bSteamRunningAndGameGuruOwned = false;
+		 if ( g.mp.isRunning == 1 )
+		 {
 			if ( SteamOwned() == true ) 
 				bSteamRunningAndGameGuruOwned = true;
-		}
-		if ( bSteamRunningAndGameGuruOwned == false )
-		{
+		 }
+		 if ( bSteamRunningAndGameGuruOwned == false )
+		 {
 			g.iTriggerSoftwareToQuit = 2;
-		}
+		 }
+		#endif
+		#ifdef FREETRIALVERSION
+		 // free trial version mode
+		 g.iFreeVersionModeActive = 2;
+		 // countdown to trial ending
+		 time_t now = time(0);
+		 tm *ltm = localtime(&now);
+		 int iDay   = ltm->tm_mday;
+		 int iMonth = ltm->tm_mon;
+		 int iYear  = ltm->tm_year-100;
+		 // work out single value to represent days
+		 int iTotalDays = (iYear*365)+(iMonth*31)+iDay;
+		 // handle time stamp file
+		 LPSTR pTrialStampFile = "..\\trialstamp.txt";
+		 if ( FileExist ( pTrialStampFile ) == 0 )
+		 {
+			OpenToWrite ( 1, pTrialStampFile );
+			WriteLong ( 1, iTotalDays );
+			CloseFile ( 1 );
+			g_trialStampDaysLeft = 7;
+		 }
+		 else
+		 {
+			OpenToRead ( 1, pTrialStampFile );
+			int iDateTrialFirstUsed = ReadLong ( 1 );
+			CloseFile ( 1 );
+			g_trialStampDaysLeft = 7-(iTotalDays-iDateTrialFirstUsed);
+		 }
+		 if ( g_trialStampDaysLeft <= 0 )
+		 {
+			g.iTriggerSoftwareToQuit = 2;
+		 }
 		#endif
 
 		// 100718 - generate all new .BLOB files (used when making builds)

@@ -2171,78 +2171,83 @@ void game_main_loop ( void )
 				if (KeyState(g.keymap[62]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 4;
 				if (  g.lmlightmapnowmode>0 )
 				{
-					//  User prompt
-					t.strwork = ""; t.strwork = t.strwork + "Select Lightmapping Mode "+Str(g.lmlightmapnowmode);
-					timestampactivity(0, t.strwork.Get() ) ; t.twas=Timer();
-					t.tdisableLMprogressreading=1;
-					for ( t.n = 0 ; t.n<=  1; t.n++ )
-					{
+					#ifdef FREETRIALVERSION
+					 // No lightmapping in free trial version
+					 t.visuals.generalpromptstatetimer=Timer()+1000;
+					 t.visuals.generalprompt_s="No lightmapper in free trial version";
+					#else
+					 //  User prompt
+					 t.strwork = ""; t.strwork = t.strwork + "Select Lightmapping Mode "+Str(g.lmlightmapnowmode);
+					 timestampactivity(0, t.strwork.Get() ) ; t.twas=Timer();
+					 t.tdisableLMprogressreading=1;
+					 for ( t.n = 0 ; t.n<=  1; t.n++ )
+					 {
 						t.tonscreenprompt_s="Saving Level Session";
 						if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 						lm_onscreenprompt ( ) ; Sync ( );
-					}
-					t.tdisableLMprogressreading=0;
-					//  save level (temp)
-					t.gamevisuals=t.visuals;
-					g.gpretestsavemode=1;
-					gridedit_save_test_map ( );
-					g.gpretestsavemode=0;
-					t.visuals=t.gamevisuals;
-					//  first WIPE OUT old lightmap files
-					lm_emptylightmapfolder ( );
-					//  second WIPE OUT old LM objects to ensure FRESH bake
-					for ( t.tlmobj = g.lightmappedobjectoffset; t.tlmobj<= g.lightmappedobjectoffsetlast; t.tlmobj++ )
-					{
+					 }
+					 t.tdisableLMprogressreading=0;
+					 //  save level (temp)
+					 t.gamevisuals=t.visuals;
+					 g.gpretestsavemode=1;
+					 gridedit_save_test_map ( );
+					 g.gpretestsavemode=0;
+					 t.visuals=t.gamevisuals;
+					 //  first WIPE OUT old lightmap files
+					 lm_emptylightmapfolder ( );
+					 //  second WIPE OUT old LM objects to ensure FRESH bake
+					 for ( t.tlmobj = g.lightmappedobjectoffset; t.tlmobj<= g.lightmappedobjectoffsetlast; t.tlmobj++ )
+					 {
 						if (  ObjectExist(t.tlmobj) == 1 ) 
 						{
 							DeleteObject (  t.tlmobj );
 						}
-					}
-					g.lightmappedobjectoffsetfinish=92000;
-					g.lightmappedterrainoffset=-1;
-					g.lightmappedterrainoffsetfinish=-1;
-					//  launch external lightmapper
-					//SetDir (  ".." );
-					SetDir ( g.lightmapperexefolder_s.Get() );
-					timestampactivity(0,"launch external lightmapper") ; t.twas=Timer();
-					t.tdisableLMprogressreading=1;
-					for ( t.n = 0 ; t.n<=  1; t.n++ )
-					{
+					 }
+					 g.lightmappedobjectoffsetfinish=92000;
+					 g.lightmappedterrainoffset=-1;
+					 g.lightmappedterrainoffsetfinish=-1;
+					 //  launch external lightmapper
+					 //SetDir (  ".." );
+					 SetDir ( g.lightmapperexefolder_s.Get() );
+					 timestampactivity(0,"launch external lightmapper") ; t.twas=Timer();
+					 t.tdisableLMprogressreading=1;
+					 for ( t.n = 0 ; t.n<=  1; t.n++ )
+					 {
 						t.tonscreenprompt_s="Lightmapping in Progress";
 						if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 						lm_onscreenprompt ( ) ; Sync (  );
-					}
-					t.tdisableLMprogressreading=0;
-					t.strwork = ""; t.strwork = t.strwork + "-"+Str(g.lmlightmapnowmode);
-					ExecuteFile (  "Guru-Lightmapper.exe", t.strwork.Get() ,"",1 );
-					t.strwork = ""; t.strwork = t.strwork + "returned from t.lightmapper - baked in "+Str((Timer()-t.twas)/1000)+" seconds";
-					timestampactivity(0, t.strwork.Get() );
-					SetDir ( g.rootdir_s.Get() );//"Files" );
-					//  Wait for all input to cease
-					t.tdisableLMprogressreading=1;
-					while (  ScanCode() != 0 || MouseClick() != 0 ) 
-					{
+					 }
+					 t.tdisableLMprogressreading=0;
+					 t.strwork = ""; t.strwork = t.strwork + "-"+Str(g.lmlightmapnowmode);
+					 ExecuteFile (  "Guru-Lightmapper.exe", t.strwork.Get() ,"",1 );
+					 t.strwork = ""; t.strwork = t.strwork + "returned from t.lightmapper - baked in "+Str((Timer()-t.twas)/1000)+" seconds";
+					 timestampactivity(0, t.strwork.Get() );
+					 SetDir ( g.rootdir_s.Get() );//"Files" );
+					 //  Wait for all input to cease
+					 t.tdisableLMprogressreading=1;
+					 while (  ScanCode() != 0 || MouseClick() != 0 ) 
+					 {
 						for ( t.n = 0 ; t.n<=  1; t.n++ )
 						{
 							t.tonscreenprompt_s="Returning from lightmapper";
 							if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 							lm_onscreenprompt ( ) ; Sync ( ) ;
 						}
-					}
-					//  User prompt
-					for ( t.n = 0 ; t.n<=  1; t.n++ )
-					{
+					 }
+					 //  User prompt
+					 for ( t.n = 0 ; t.n<=  1; t.n++ )
+					 {
 						t.tonscreenprompt_s="Loading Lightmaps";
 						if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 						lm_onscreenprompt ( ) ; Sync ( ) ;
-					}
-					t.tdisableLMprogressreading=0;
-					//  load new lightmap scene
-					t.lightmapper.onlyloadstaticentitiesduringlightmapper=1;
-					lm_loadscene ( );
-					t.lightmapper.onlyloadstaticentitiesduringlightmapper=0;
-					if (  t.tlmloadsuccess == 1 ) 
-					{
+					 }
+					 t.tdisableLMprogressreading=0;
+					 //  load new lightmap scene
+					 t.lightmapper.onlyloadstaticentitiesduringlightmapper=1;
+					 lm_loadscene ( );
+					 t.lightmapper.onlyloadstaticentitiesduringlightmapper=0;
+					 if (  t.tlmloadsuccess == 1 ) 
+					 {
 						//  Switch to pre-bake mode
 						t.visuals.shaderlevels.lighting=1;
 						t.gamevisuals.shaderlevels.lighting=1;
@@ -2253,13 +2258,14 @@ void game_main_loop ( void )
 						sliders_getnamefromvalue ( );
 						t.slidersmenuvalue[t.slidersmenuindex][4].value_s=t.slidervaluename_s;
 						visuals_shaderlevels_update ( );
-					}
-					//  restore water mask which may be affected
-					terrain_whitewashwatermask ( );
-					//  refresh shaders in any event
-					t.visuals.refreshshaders=1;
+					 }
+					 //  restore water mask which may be affected
+					 terrain_whitewashwatermask ( );
+					 //  refresh shaders in any event
+					 t.visuals.refreshshaders=1;
+					#endif
 				}
-			}
+			 }
 
 			//  Tab Mode (only when not mid-fpswarning)
 			if (  t.plrkeySHIFT == 0 && t.plrkeySHIFT2 == 0  )  t.tkeystate15 = KeyState(g.keymap[15]); else t.tkeystate15 = 0;
@@ -2316,6 +2322,14 @@ void game_main_loop ( void )
 		else
 		{
 			//  Standalone Mode
+			#ifdef FREETRIALVERSION
+			 if ( t.game.gameisexe != 0 )
+			 {
+				// No lightmapping in free trial version
+				t.visuals.generalpromptstatetimer=Timer()+123;
+				t.visuals.generalprompt_s="Game Created With Free Trial Version Of GameGuru";
+			 }
+			#endif
 		}
 
 		//  Measure Sync (  to loop start )

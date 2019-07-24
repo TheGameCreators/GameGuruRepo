@@ -16,6 +16,7 @@ extern bool g_bSkipTerrainRender;
 // extern to global that toggles when load map removed from entities
 extern bool g_bBlackListRemovedSomeEntities;
 extern bool gbWelcomeSystemActive;
+extern int g_trialStampDaysLeft;
 
 //  GOTO LABEL (jump from common_init)
 void mapeditorexecutable ( void )
@@ -175,7 +176,7 @@ void mapeditorexecutable ( void )
 	{
 		// Welcome quick start page
 		g.quickstartmenumode = 0;
-		if ( g.iFreeVersionModeActive == 1 )
+		if ( g.iFreeVersionModeActive != 0 )
 		{
 			editor_showquickstart ( 0 );
 		}
@@ -896,14 +897,15 @@ void editor_showquickstart ( int iForceMainOpen )
 	// can stay here forever if quit triggered
 	if ( g.iTriggerSoftwareToQuit != 0 ) 
 	{
-		welcome_show(WELCOME_EXITAPP);
+		if ( g.iFreeVersionModeActive == 2 ) 
+			welcome_show(WELCOME_FREETRIALEXITAPP);
+		else
+			welcome_show(WELCOME_EXITAPP);
 	}
 	else
 	{
-		if ( g.iFreeVersionModeActive == 1 )
-		{
-			welcome_show(WELCOME_FREEINTROAPP);
-		}
+		if ( g.iFreeVersionModeActive == 1 ) welcome_show(WELCOME_FREEINTROAPP);
+		if ( g.iFreeVersionModeActive == 2 ) welcome_show(WELCOME_FREETRIALINTROAPP);
 	}
 
 	// if first time run
@@ -2286,12 +2288,13 @@ void input_getfilemapcontrols ( void )
 		if (  GetFileMapDWORD( 1, 908 ) == 1 ) 
 		{
 			// show outtro message if free version mode
-			if ( g.iFreeVersionModeActive == 1 )
+			if ( g.iFreeVersionModeActive == 1 || ( g.iFreeVersionModeActive == 2 && g_trialStampDaysLeft > 0 ) )
 			{
 				t.inputsys.ignoreeditorintermination = 1;
 				welcome_init(1);
 				welcome_init(0);
-				welcome_show(WELCOME_FREEINTROAPP);
+				if ( g.iFreeVersionModeActive == 1 ) welcome_show(WELCOME_FREEINTROAPP);
+				if ( g.iFreeVersionModeActive == 2 ) welcome_show(WELCOME_FREETRIALINTROAPP);
 				t.inputsys.ignoreeditorintermination = 0;
 			}
 
@@ -2381,7 +2384,7 @@ void input_getfilemapcontrols ( void )
 			}
 			if (  t.toolbarset == 9 ) 
 			{
-				//  rem LAUNCH TEST GAME
+				//  rem LAUNCH TEST GAME 
 				switch (  t.toolbarindex ) 
 				{
 					case 1 :

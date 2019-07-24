@@ -9,6 +9,9 @@
 #include <time.h>
 #include <wininet.h>
 
+// Externals
+extern int g_trialStampDaysLeft;
+
 // Globals
 int g_welcomesystemclosedown = 0;
 struct welcomepagetype
@@ -114,13 +117,20 @@ void welcome_init ( int iLoadingPart )
 		welcome_loadasset ( welcomePath, "welcome-assets\\product-example.png", g.editorimagesoffset+59 );
 
 		// image if free weekend used
+		// reserved  g.editorimagesoffset+61  test game loaded arrow
 		if ( g.iFreeVersionModeActive == 1 )
 		{
 			// only used for free weekend build version
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend.png", g.editorimagesoffset+60 );
-			// reserved  g.editorimagesoffset+61  test game loaded arrow
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend-prompt.png", g.editorimagesoffset+62 );
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-weekend-click.png", g.editorimagesoffset+63 );
+		}
+		if ( g.iFreeVersionModeActive == 2 )
+		{
+			// only used for free trial version
+			welcome_loadasset ( welcomePath, "welcome-assets\\free-trial.png", g.editorimagesoffset+60 );
+			welcome_loadasset ( welcomePath, "welcome-assets\\free-trial-prompt.png", g.editorimagesoffset+62 );
+			welcome_loadasset ( welcomePath, "welcome-assets\\free-trial-click.png", g.editorimagesoffset+63 );
 		}
 		
 		// announcement system
@@ -809,6 +819,84 @@ void welcome_freeintroapp_page ( int iHighlightingButton )
 	}
 }
 
+void welcome_freetrialexitapp_init ( void )
+{
+}
+
+void welcome_freetrialexitapp_page ( int iHighlightingButton )
+{
+	// draw page
+	welcome_drawbox ( 0, 10, 23, 90, 81 );
+	if ( g.iTriggerSoftwareToQuit == 2 )
+	{
+		welcome_text ( "Free Trial Has Expired", 1, 50, 2+(2*5), 192, true, false );
+		if ( g_welcomeCycle >=0 )
+		{
+			g_welcomeCycle++; if ( g_welcomeCycle > 50 ) g_welcomeCycle = 0;
+		}
+		if ( g_welcomeCycle > 25 )
+			welcome_drawimage ( g.editorimagesoffset+60, 50, 30, false );
+		else
+			welcome_drawimage ( g.editorimagesoffset+63, 50, 30, false );
+		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 15+(15*5), 192, true, false );
+		welcome_textinbox ( 1, "GET YOUR VERY OWN VERSION HERE", 3, 50, 66, -1 );
+	}
+	if ( g.iTriggerSoftwareToQuit == 3 )
+	{
+		welcome_text ( "All DirectX 11 Shaders Updated", 1, 50, 28+(2*5), 192, true, false );
+		welcome_text ( "You may change 'forceloadtestgameshaders' back to zero", 1, 50, 28+(3*5), 192, true, false );
+		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(6*5), 192, true, false );
+	}
+
+	// control page
+	if ( t.inputsys.mclick == 1 ) 
+	{
+		if ( iHighlightingButton == 1 && g_welcomeCycle >= 0 ) 
+		{
+			// go to GameGuru Page
+			ExecuteFile ( "http://bit.ly/2M6GfX8","","",0 );
+			g_welcomeCycle = -1;
+		}
+	}
+}
+
+void welcome_freetrialintroapp_init ( void )
+{
+	g_welcomeCycle = 0;
+}
+
+void welcome_freetrialintroapp_page ( int iHighlightingButton )
+{
+	// draw page
+	welcome_drawimage ( g.editorimagesoffset+62, 50, 30, false );
+	welcome_textinbox ( 1, "CONTINUE CONTINUE", 3, 50, 69-10, -1 );
+	welcome_textinbox ( 2, "GET YOUR OWN VERZ", 3, 50, 69, -1 );
+
+	// days left
+	char pShowDaysLeft[1024];
+	if ( g_trialStampDaysLeft == 1 )
+		sprintf ( pShowDaysLeft, "Last Day of Free Trial", g_trialStampDaysLeft );
+	else
+		sprintf ( pShowDaysLeft, "%d Days Left of Free Trial", g_trialStampDaysLeft );
+	welcome_text ( pShowDaysLeft, 5, 50, 15, 192, true, false );
+
+	// control page
+	if ( t.inputsys.mclick == 1 ) 
+	{
+		if ( iHighlightingButton == 1 ) 
+		{
+			t.tclosequick = 1;
+		}
+		if ( iHighlightingButton == 2 && g_welcomeCycle == 0 ) 
+		{
+			// go to GameGuru Page
+			ExecuteFile ( "http://bit.ly/2M6GfX8","","",0 );
+			g_welcomeCycle = -1;
+			t.tclosequick = 1;
+		}
+	}
+}
+
 void CleanStringOfEscapeSlashes ( char* pText )
 {
 	char *str = pText;
@@ -884,7 +972,11 @@ UINT OpenURLForDataOrFile ( LPSTR pDataReturned, DWORD* pReturnDataSize, LPSTR p
 					// News
 					char m_szPostData[1024];
 					strcpy ( m_szPostData, "k=vIo3sc2z" );
-					strcat ( m_szPostData, "&app=gameguru" ); //or gamegurufree
+					#ifdef FREETRIALVERSION
+					 strcat ( m_szPostData, "&app=gamegurufree" );
+					#else
+					 strcat ( m_szPostData, "&app=gameguru" );
+					#endif
 					strcat ( m_szPostData, "&uid=" );
 					strcat ( m_szPostData, pUniqueCode );
 					bSendResult = HttpSendRequest( hHttpRequest, NULL, -1, (void*)(m_szPostData), strlen(m_szPostData) );
@@ -1134,10 +1226,10 @@ bool welcome_announcements_init ( void )
 			if ( strcmp ( pImageURL, "null" ) != NULL )
 			{
 				// get filename only
-				strcpy ( pNoDomainPart, pImageURL );
-				strrev ( pNoDomainPart );
-				pNoDomainPart[strlen("https://www.thegamecreators.com//")] = 0;
-				strrev ( pNoDomainPart );
+				strcpy ( pNoDomainPart, pImageURL + strlen("https://www.thegamecreators.com") );
+				//strrev ( pNoDomainPart );
+				//pNoDomainPart[strlen("https://www.thegamecreators.com//")] = 0;
+				//strrev ( pNoDomainPart );
 
 				// get file ext
 				char pFileExt[1024];
@@ -1208,6 +1300,13 @@ bool welcome_announcements_init ( void )
 	{
 		// overwrite default with announcement image
 		if ( FileExist ( g_welcomeImageUrl ) == 1 ) LoadImage ( g_welcomeImageUrl, g.editorimagesoffset+64 );
+		if ( ImageExist ( g.editorimagesoffset+64 ) == 0 ) 
+		{
+			// sometimes the image is download corrupt!
+			strcpy ( g_welcomeImageUrl, g.fpscrootdir_s.Get() );
+			strcat ( g_welcomeImageUrl, "\\languagebank\\english\\artwork\\welcome-assets\\gameguru-news-banner.png" );
+			LoadImage ( g_welcomeImageUrl, g.editorimagesoffset+64 );
+		}
 		g_welcomeCycle = 0; if ( strlen(g_welcomeLinkUrl) > 0 ) g_welcomeCycle = 1;		
 	}
 
@@ -1425,6 +1524,8 @@ bool welcome_setuppage ( int iPageIndex )
 	if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_init();
 	if ( iPageIndex == WELCOME_ANNOUNCEMENTS ) return welcome_announcements_init();
 	if ( iPageIndex == WELCOME_SAVESTANDALONE ) welcome_savestandalone_init();
+	if ( iPageIndex == WELCOME_FREETRIALINTROAPP ) welcome_freetrialintroapp_init();
+	if ( iPageIndex == WELCOME_FREETRIALEXITAPP ) welcome_freetrialexitapp_init();
 
 	// normally success
 	return true;
@@ -1444,7 +1545,7 @@ void welcome_runloop ( int iPageIndex )
 	while ( bStayInsideLoop == true ) 
 	{
 		// exit conditions
-		if ( iPageIndex == WELCOME_EXITAPP )
+		if ( iPageIndex == WELCOME_EXITAPP ||  iPageIndex == WELCOME_FREETRIALEXITAPP )
 		{
 			// can never leave this loop!
 		}
@@ -1517,6 +1618,8 @@ void welcome_runloop ( int iPageIndex )
 			if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_ANNOUNCEMENTS ) welcome_announcements_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_SAVESTANDALONE ) welcome_savestandalone_page ( iHighlightingButton );
+			if ( iPageIndex == WELCOME_FREETRIALINTROAPP ) welcome_freetrialintroapp_page ( iHighlightingButton );
+			if ( iPageIndex == WELCOME_FREETRIALEXITAPP ) welcome_freetrialexitapp_page ( iHighlightingButton );
 
 			// update screen
 			Sync();
