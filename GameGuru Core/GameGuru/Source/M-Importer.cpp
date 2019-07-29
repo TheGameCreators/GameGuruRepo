@@ -5179,6 +5179,59 @@ void importer_save_entity ( void )
 		sObject* pObject = GetObjectData(t.importer.objectnumber);
 		if ( pObject )
 		{
+			// load in correct GG pose and store
+			GGMATRIX* pStoreNewPoseFrames = NULL;
+			int objectnumberforframedatacopy = findFreeObject();
+			cstr pAbsPathToUberAnimFile = g.fpscrootdir_s + "\\Files\\entitybank\\Characters\\fulltransformtoYpose.dbo"; //bendarm.dbo";//transformanim.x";//x";
+			LoadObject ( pAbsPathToUberAnimFile.Get(), objectnumberforframedatacopy );
+			if ( ObjectExist ( objectnumberforframedatacopy ) == 1 )
+			{
+				sObject* pObjectWithYPoseData = GetObjectData ( objectnumberforframedatacopy );
+				if ( pObjectWithYPoseData )
+				{
+					// create all identity matrices which will eventually transform the mesh
+					pStoreNewPoseFrames = new GGMATRIX[pObject->iFrameCount];
+					for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
+						GGMatrixIdentity ( &pStoreNewPoseFrames[iFrame] );
+
+					// go through and find differences between poses
+					for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
+					{
+						sFrame* pFrame = pObject->ppFrameList[iFrame];
+						if ( pFrame )
+						{
+							LPSTR pFrameName = pFrame->szName;
+							if ( pFrameName )
+							{
+								if ( strlen(pFrameName) > 0 )
+								{
+									for ( int iFindFrame = 0; iFindFrame < pObjectWithYPoseData->iFrameCount; iFindFrame++ )
+									{
+										sFrame* pFindFrame = pObjectWithYPoseData->ppFrameList[iFindFrame];
+										if ( pFindFrame )
+										{
+											LPSTR pFindFrameName = pFindFrame->szName;
+											if ( pFindFrameName )
+											{
+												if ( strlen(pFindFrameName) > 0 )
+												{
+													if ( stricmp ( pFrameName, pFindFrameName ) == NULL )
+													{
+														pStoreNewPoseFrames[iFrame] = pFindFrame->matOriginal;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				DeleteObject ( objectnumberforframedatacopy );
+			}
+
+			// go through all frames of imported model
 			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
 			{
 				sFrame* pFrame = pObject->ppFrameList[iFrame];
@@ -5207,6 +5260,7 @@ void importer_save_entity ( void )
 							if ( strstr ( pOldFrameName, "mixamorig_LeftShoulder" ) > 0 ) pNewName = "Bip01_L_Clavicle";
 							if ( strstr ( pOldFrameName, "mixamorig_RightShoulder" ) > 0 ) pNewName = "Bip01_R_Clavicle";
 							if ( strstr ( pOldFrameName, "mixamorig_Head" ) > 0 ) pNewName = "Bip01_Head";
+							if ( strstr ( pOldFrameName, "mixamorig_HeadTop_End" ) > 0 ) pNewName = "Bip01_HeadTop";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftArm" ) > 0 ) pNewName = "Bip01_L_UpperArm";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftForeArm" ) > 0 ) pNewName = "Bip01_L_Forearm";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHand" ) > 0 ) pNewName = "Bip01_L_Hand";
@@ -5216,35 +5270,46 @@ void importer_save_entity ( void )
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb1" ) > 0 ) pNewName = "Bip01_L_Finger0";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb2" ) > 0 ) pNewName = "Bip01_L_Finger01";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb3" ) > 0 ) pNewName = "Bip01_L_Finger02";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb4" ) > 0 ) pNewName = "Bip01_L_Finger03";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex1" ) > 0 ) pNewName = "Bip01_L_Finger1";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger12";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger13";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger11";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger12";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex4" ) > 0 ) pNewName = "Bip01_L_Finger13";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle1" ) > 0 ) pNewName = "Bip01_L_Finger2";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle2" ) > 0 ) pNewName = "Bip01_L_Finger21";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle3" ) > 0 ) pNewName = "Bip01_L_Finger22";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle4" ) > 0 ) pNewName = "Bip01_L_Finger23";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing1" ) > 0 ) pNewName = "Bip01_L_Finger3";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing2" ) > 0 ) pNewName = "Bip01_L_Finger31";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing3" ) > 0 ) pNewName = "Bip01_L_Finger32";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing4" ) > 0 ) pNewName = "Bip01_L_Finger33";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky1" ) > 0 ) pNewName = "Bip01_L_Finger4";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky2" ) > 0 ) pNewName = "Bip01_L_Finger41";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky3" ) > 0 ) pNewName = "Bip01_L_Finger42";
+							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky4" ) > 0 ) pNewName = "Bip01_L_Finger43";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb1" ) > 0 ) pNewName = "Bip01_R_Finger0";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb2" ) > 0 ) pNewName = "Bip01_R_Finger01";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb3" ) > 0 ) pNewName = "Bip01_R_Finger02";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb4" ) > 0 ) pNewName = "Bip01_R_Finger03";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex1" ) > 0 ) pNewName = "Bip01_R_Finger1";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger12";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger13";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger11";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger12";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex4" ) > 0 ) pNewName = "Bip01_R_Finger13";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle1" ) > 0 ) pNewName = "Bip01_R_Finger2";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle2" ) > 0 ) pNewName = "Bip01_R_Finger21";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle3" ) > 0 ) pNewName = "Bip01_R_Finger22";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle4" ) > 0 ) pNewName = "Bip01_R_Finger23";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing1" ) > 0 ) pNewName = "Bip01_R_Finger3";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing2" ) > 0 ) pNewName = "Bip01_R_Finger31";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing3" ) > 0 ) pNewName = "Bip01_R_Finger32";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing4" ) > 0 ) pNewName = "Bip01_R_Finger33";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky1" ) > 0 ) pNewName = "Bip01_R_Finger4";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky2" ) > 0 ) pNewName = "Bip01_R_Finger41";
 							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky3" ) > 0 ) pNewName = "Bip01_R_Finger42";
+							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky4" ) > 0 ) pNewName = "Bip01_R_Finger43";
 							if ( strlen(pNewName) == 0 )
 							{
+								/* should not associate by happenstance, it meses up anim skin deformation if two frames are referenced under name name!
 								if ( strstr ( pOldFrameName, "Hips" ) > 0 ) pNewName = "Bip01_Pelvis";
 								if ( strstr ( pOldFrameName, "Spine" ) > 0 ) pNewName = "Bip01_Spine";
 								if ( strstr ( pOldFrameName, "LeftUpLeg" ) > 0 ) pNewName = "Bip01_L_Thigh";
@@ -5270,33 +5335,44 @@ void importer_save_entity ( void )
 								if ( strstr ( pOldFrameName, "LeftHandThumb1" ) > 0 ) pNewName = "Bip01_L_Finger0";
 								if ( strstr ( pOldFrameName, "LeftHandThumb2" ) > 0 ) pNewName = "Bip01_L_Finger01";
 								if ( strstr ( pOldFrameName, "LeftHandThumb3" ) > 0 ) pNewName = "Bip01_L_Finger02";
+								if ( strstr ( pOldFrameName, "LeftHandThumb4" ) > 0 ) pNewName = "Bip01_L_Finger03";
 								if ( strstr ( pOldFrameName, "LeftHandIndex1" ) > 0 ) pNewName = "Bip01_L_Finger1";
-								if ( strstr ( pOldFrameName, "LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger12";
-								if ( strstr ( pOldFrameName, "LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger13";
+								if ( strstr ( pOldFrameName, "LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger11";
+								if ( strstr ( pOldFrameName, "LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger12";
+								if ( strstr ( pOldFrameName, "LeftHandIndex4" ) > 0 ) pNewName = "Bip01_L_Finger13";
 								if ( strstr ( pOldFrameName, "LeftHandMiddle1" ) > 0 ) pNewName = "Bip01_L_Finger2";
 								if ( strstr ( pOldFrameName, "LeftHandMiddle2" ) > 0 ) pNewName = "Bip01_L_Finger21";
 								if ( strstr ( pOldFrameName, "LeftHandMiddle3" ) > 0 ) pNewName = "Bip01_L_Finger22";
+								if ( strstr ( pOldFrameName, "LeftHandMiddle4" ) > 0 ) pNewName = "Bip01_L_Finger23";
 								if ( strstr ( pOldFrameName, "LeftHandRing1" ) > 0 ) pNewName = "Bip01_L_Finger3";
 								if ( strstr ( pOldFrameName, "LeftHandRing2" ) > 0 ) pNewName = "Bip01_L_Finger31";
 								if ( strstr ( pOldFrameName, "LeftHandRing3" ) > 0 ) pNewName = "Bip01_L_Finger32";
+								if ( strstr ( pOldFrameName, "LeftHandRing4" ) > 0 ) pNewName = "Bip01_L_Finger33";
 								if ( strstr ( pOldFrameName, "LeftHandPinky1" ) > 0 ) pNewName = "Bip01_L_Finger4";
 								if ( strstr ( pOldFrameName, "LeftHandPinky2" ) > 0 ) pNewName = "Bip01_L_Finger41";
 								if ( strstr ( pOldFrameName, "LeftHandPinky3" ) > 0 ) pNewName = "Bip01_L_Finger42";
+								if ( strstr ( pOldFrameName, "LeftHandPinky4" ) > 0 ) pNewName = "Bip01_L_Finger43";
 								if ( strstr ( pOldFrameName, "RightHandThumb1" ) > 0 ) pNewName = "Bip01_R_Finger0";
 								if ( strstr ( pOldFrameName, "RightHandThumb2" ) > 0 ) pNewName = "Bip01_R_Finger01";
 								if ( strstr ( pOldFrameName, "RightHandThumb3" ) > 0 ) pNewName = "Bip01_R_Finger02";
+								if ( strstr ( pOldFrameName, "RightHandThumb4" ) > 0 ) pNewName = "Bip01_R_Finger03";
 								if ( strstr ( pOldFrameName, "RightHandIndex1" ) > 0 ) pNewName = "Bip01_R_Finger1";
-								if ( strstr ( pOldFrameName, "RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger12";
-								if ( strstr ( pOldFrameName, "RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger13";
+								if ( strstr ( pOldFrameName, "RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger11";
+								if ( strstr ( pOldFrameName, "RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger12";
+								if ( strstr ( pOldFrameName, "RightHandIndex4" ) > 0 ) pNewName = "Bip01_R_Finger13";
 								if ( strstr ( pOldFrameName, "RightHandMiddle1" ) > 0 ) pNewName = "Bip01_R_Finger2";
 								if ( strstr ( pOldFrameName, "RightHandMiddle2" ) > 0 ) pNewName = "Bip01_R_Finger21";
 								if ( strstr ( pOldFrameName, "RightHandMiddle3" ) > 0 ) pNewName = "Bip01_R_Finger22";
+								if ( strstr ( pOldFrameName, "RightHandMiddle4" ) > 0 ) pNewName = "Bip01_R_Finger23";
 								if ( strstr ( pOldFrameName, "RightHandRing1" ) > 0 ) pNewName = "Bip01_R_Finger3";
 								if ( strstr ( pOldFrameName, "RightHandRing2" ) > 0 ) pNewName = "Bip01_R_Finger31";
 								if ( strstr ( pOldFrameName, "RightHandRing3" ) > 0 ) pNewName = "Bip01_R_Finger32";
+								if ( strstr ( pOldFrameName, "RightHandRing4" ) > 0 ) pNewName = "Bip01_R_Finger33";
 								if ( strstr ( pOldFrameName, "RightHandPinky1" ) > 0 ) pNewName = "Bip01_R_Finger4";
 								if ( strstr ( pOldFrameName, "RightHandPinky2" ) > 0 ) pNewName = "Bip01_R_Finger41";
 								if ( strstr ( pOldFrameName, "RightHandPinky3" ) > 0 ) pNewName = "Bip01_R_Finger42";
+								if ( strstr ( pOldFrameName, "RightHandPinky4" ) > 0 ) pNewName = "Bip01_R_Finger43";
+								*/
 							}
 
 							// replace all instances of this name (if found)
@@ -5353,9 +5429,231 @@ void importer_save_entity ( void )
 				}
 			}
 
+			// now insert Bip01 into the frame hierarchy between Sceene Root and Pelvis
+			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
+			{
+				sFrame* pFindPelvisFrame = pObject->ppFrameList[iFrame];
+				if ( pFindPelvisFrame )
+				{
+					LPSTR pFrameName = pFindPelvisFrame->szName;
+					if ( pFrameName )
+					{
+						if ( strlen(pFrameName) > 0 )
+						{
+							if ( stricmp ( pFrameName, "Bip01_Pelvis" ) == NULL )
+							{
+								// create new Bip01 frame
+								sFrame* pPelvisParent_SceneRoot = pFindPelvisFrame->pParent;
+								sFrame* pBip01Frame = new sFrame();
+
+								// insert it between scene root and pelvis
+								strcpy ( pBip01Frame->szName, "Bip01" );
+								pPelvisParent_SceneRoot->pChild = pBip01Frame;
+								pBip01Frame->pParent = pPelvisParent_SceneRoot;
+								pFindPelvisFrame->pParent = pBip01Frame;
+								pBip01Frame->pChild = pFindPelvisFrame;
+
+								// also create a new Animation object for this new Bip01 frame (so appended anim data can go somewhere (below))
+								if ( pObject->pAnimationSet )
+								{
+									sAnimation* pLastAnim = pObject->pAnimationSet->pAnimation;
+									if ( pLastAnim )
+									{
+										while ( pLastAnim->pNext ) pLastAnim = pLastAnim->pNext;
+									}
+									if ( pLastAnim )
+									{
+										sAnimation* pNewAnim = new sAnimation();
+										pNewAnim->bLinear = 1;
+										pNewAnim->pFrame = pBip01Frame;
+										strcpy ( pNewAnim->szName, "Bip01" );
+										pLastAnim->pNext = pNewAnim;
+									}
+								}
+
+								// we are done
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			// now replace frame transform matrices in imported model (copied from appendanims.x)
+			// which zeros the rotation and puts model in Y shape pose (not T) ready for stock 
+			// animation data (but retains skinning information for the unique mesh geometry of the model)
+			objectnumberforframedatacopy = findFreeObject();
+			pAbsPathToUberAnimFile = g.fpscrootdir_s + "\\Files\\entitybank\\Characters\\appendanims.x";
+			LoadObject ( pAbsPathToUberAnimFile.Get(), objectnumberforframedatacopy );
+			if ( ObjectExist ( objectnumberforframedatacopy ) == 1 )
+			{
+				sObject* pObjectWithGoodFrameData = GetObjectData ( objectnumberforframedatacopy );
+				if ( pObjectWithGoodFrameData )
+				{
+					// go through all frames of imported object, match up name and copy frame transform matrix over from 'framegood' model
+					for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
+					{
+						sFrame* pFrame = pObject->ppFrameList[iFrame];
+						if ( pFrame )
+						{
+							LPSTR pFrameName = pFrame->szName;
+							if ( pFrameName )
+							{
+								if ( strlen(pFrameName) > 0 )
+								{
+									// check to find this name in framegood model
+									for ( int iFrameGood = 0; iFrameGood < pObjectWithGoodFrameData->iFrameCount; iFrameGood++ )
+									{
+										sFrame* pFrameGood = pObjectWithGoodFrameData->ppFrameList[iFrameGood];
+										if ( pFrameGood )
+										{
+											LPSTR pFrameGoodName = pFrameGood->szName;
+											if ( pFrameGoodName )
+											{
+												if ( strlen(pFrameGoodName) > 0 )
+												{
+													// check if we have a match
+													if ( stricmp ( pFrameName, pFrameGoodName ) == NULL )
+													{
+														// now copy the frame data to the import model
+														pFrame->matOriginal = pFrameGood->matOriginal;
+														pFrame->matTransformed = pFrameGood->matTransformed;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				DeleteObject ( objectnumberforframedatacopy );
+			}
+
+			// overwrite bone[].translate matrix with difference between new pose (Y) and old pose (T) (for AnimateBoneMeshBONE)
+			if ( pStoreNewPoseFrames )
+			{
+				for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+				{
+					sMesh* pMesh = pObject->ppMeshList[iMesh];
+					for ( DWORD dwBoneMatrixIndex = 0; dwBoneMatrixIndex < pMesh->dwBoneCount; dwBoneMatrixIndex++ )
+					{
+						// find frame related to this bone
+						LPSTR pBoneName = pMesh->pBones [ dwBoneMatrixIndex ].szName;
+						if ( pBoneName )
+						{
+							if ( strlen ( pBoneName ) > 0 )
+							{
+								for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
+								{
+									sFrame* pFrame = pObject->ppFrameList[iFrame];
+									LPSTR pFrameName = pFrame->szName;
+									if ( pFrameName )
+									{
+										if ( strlen ( pFrameName ) > 0 )
+										{
+											if ( stricmp ( pBoneName, pFrameName ) == NULL )
+											{
+												pFrame->matTransformed = pStoreNewPoseFrames[iFrame];
+												break;			
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				delete pStoreNewPoseFrames;
+			}
+
+			// now we need to change the model geometry from a T bone to a Y pose
+			GGMATRIX matrix;
+			if ( 1 )
+			{
+				GGMatrixIdentity ( &matrix );
+				UpdateFrame ( pObject->pFrame, &matrix );
+				for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+				{
+					// wipe out original vertex data
+					sMesh* pMesh = pObject->ppMeshList[iMesh];
+					if ( pMesh->pOriginalVertexData ) SAFE_DELETE ( pMesh->pOriginalVertexData );
+
+					// animate mesh on CPU
+					AnimateBoneMeshBONE ( pObject, NULL, pMesh );
+
+					// now record new vertex mesh shape
+					if ( pMesh->pOriginalVertexData ) SAFE_DELETE ( pMesh->pOriginalVertexData );
+					DWORD dwTotalVertSize = pMesh->dwVertexCount * pMesh->dwFVFSize;
+					pMesh->pOriginalVertexData = (BYTE*)new char [ dwTotalVertSize ];
+					memcpy ( pMesh->pOriginalVertexData, pMesh->pVertexData, dwTotalVertSize );
+				}
+			}
+
+			// and restore transformed matrix from originals
+			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
+			{
+				sFrame* pFrame = pObject->ppFrameList[iFrame];
+				if ( pFrame )
+				{
+					pFrame->matTransformed = pFrame->matOriginal;
+				}
+			}
+
+			// delete all keys so append can be fresh (and specifically remove matrix keys which WILL mess up overall animation)
+			if ( pObject->pAnimationSet )
+			{
+				sAnimationSet* pAnimSet = pObject->pAnimationSet;
+				while ( pAnimSet != NULL )
+				{
+					sAnimation* pAnim = pAnimSet->pAnimation;
+					while ( pAnim != NULL )
+					{
+						// scans all animation data and creates the interpolation vectors between all keyframes (vital)
+						if ( pAnim )
+						{
+							SAFE_DELETE(pAnim->pPositionKeys);
+							pAnim->dwNumPositionKeys=0;
+							SAFE_DELETE(pAnim->pRotateKeys);
+							pAnim->dwNumRotateKeys=0;
+							SAFE_DELETE(pAnim->pScaleKeys);
+							pAnim->dwNumScaleKeys=0;
+							SAFE_DELETE(pAnim->pMatrixKeys);
+							pAnim->dwNumMatrixKeys=0;
+						}
+						pAnim = pAnim->pNext;
+					}
+					pAnimSet = pAnimSet->pNext;
+				}
+			}
+
 			// append uber animations to character
-			cstr pAbsPathToUberAnimFile = g.fpscrootdir_s + "\\Files\\entitybank\\Characters\\Uber Soldier.dbo";//appendanims.x";
 			AppendAnimationFromFile ( pObject, pAbsPathToUberAnimFile.Get(), 0 );
+
+			// now update model to first frame animation pose (to calculate combined matrix from pose)
+			GGMatrixIdentity ( &matrix );
+			UpdateAllFrameData ( pObject, 0.0f );
+			UpdateFrame ( pObject->pFrame, &matrix );
+
+			// and then calculate the inverse of those matCombined transforms to apply to the bone matTransforms
+			// so bone matrix cancels out first frame pose leaving matCombined animations to shape shader verts
+			for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+			{
+				sMesh* pMesh = pObject->ppMeshList[iMesh];
+				if ( pMesh )
+				{
+					sBone* pBones = pMesh->pBones;
+					if ( pBones )
+					{
+						for ( int iBone = 0; iBone < pMesh->dwBoneCount; iBone++ )
+						{
+							float fDet = 0.0f;
+							GGMatrixInverse ( &pBones[iBone].matTranslation, &fDet, pMesh->pFrameMatrices [ iBone ] );
+						}
+					}
+				}
+			}
 		}
 	}
 

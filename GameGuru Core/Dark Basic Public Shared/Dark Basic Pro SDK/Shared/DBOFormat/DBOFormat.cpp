@@ -1376,6 +1376,10 @@ void cSpecialEffect::ApplyEffect ( sMesh* pMesh )
 				// GPU needs matrices to do animation
 				for ( DWORD dwMatrixIndex = 0; dwMatrixIndex < dwBoneMax; dwMatrixIndex++ )
 				{
+					//to test geometry with no animation skinning
+					//GGMATRIX matIdent;
+					//GGMatrixIdentity ( &matIdent );
+					//g_EffectConstant.matBoneMatrixPalette [ dwMatrixIndex ] = matIdent;
 					GGMatrixMultiply ( &g_EffectConstant.matBoneMatrixPalette [ dwMatrixIndex ], &pMesh->pBones [ dwMatrixIndex ].matTranslation, pMesh->pFrameMatrices [ dwMatrixIndex ] );
 				}
 			}

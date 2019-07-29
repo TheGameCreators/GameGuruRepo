@@ -1113,6 +1113,7 @@ bool welcome_announcements_init ( void )
 	char pImageLocalFile[2048];
 	DWORD dwDataReturnedSize = 0;
 	char pDataReturned[10240];
+	memset ( pDataReturned, 0, sizeof(pDataReturned) );
 	UINT iError = OpenURLForDataOrFile ( pDataReturned, &dwDataReturnedSize, pUniqueCode, "POST", "/api/app/announcement", NULL );
 	if ( iError <= 0 && *pDataReturned != 0 && strchr(pDataReturned, '{') != 0 )
 	{
