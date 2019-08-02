@@ -1169,7 +1169,7 @@ void entity_loaddata ( void )
 					t.value2_s=cstr(removeedgespaces(Right(t.value_s.Get(),Len(t.value_s.Get())-t.mid)));
 					if (  Len(t.value2_s.Get())>0  )  t.value2 = ValF(t.value2_s.Get()); else t.value2 = -1;
 
-					//  entity header
+					// DOCDOC: desc = The internal name of the entity
 					if (  t.field_s == "desc"  )  t.entityprofileheader[t.entid].desc_s = t.value_s;
 
 					//  entity AI
@@ -1480,6 +1480,7 @@ void entity_loaddata ( void )
 					t.tryfield_s="zdepth";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].zdepth = t.value1;
 
+					// DOCDOC: cullmode = Set to 1 to switch off model culling clip to render both sides of the polygon, default is 0.
 					t.tryfield_s="cullmode";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].cullmode = t.value1;
 					t.tryfield_s="reducetexture";

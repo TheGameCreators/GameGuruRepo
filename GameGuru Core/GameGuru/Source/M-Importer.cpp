@@ -5025,6 +5025,82 @@ void importer_quit ( void )
 	t.importer.importerActive = 0;
 }
 
+void ConvertWorldToRelative ( sFrame* pFrame, GGMATRIX* pStoreNewPoseFrames, GGMATRIX* pTraverseMatrix )
+{
+	if ( pFrame )
+	{
+		// take the world bone from pStoreNewPoseFrames for this frame ID and create relative matrix from it
+		int iFrameIndex = pFrame->iID;
+		GGMATRIX matWorldBone = pStoreNewPoseFrames[iFrameIndex];
+
+		// go through hierarchy, create matCombined as you go, transforming worldbones into relative bones
+		float fDet = 0;
+		GGMATRIX matInverseOfTraverse = *pTraverseMatrix;
+		GGMatrixInverse ( &matInverseOfTraverse, &fDet, pTraverseMatrix );
+		GGMATRIX matWorldBoneInBaseSpace;
+		GGMatrixMultiply ( &matWorldBoneInBaseSpace, &matWorldBone, &matInverseOfTraverse );
+		GGMATRIX matRelativeBone = matWorldBoneInBaseSpace;
+
+		/* discovered we need to progress matCombined as real world to work differences with stored bones
+		// world1 starting accumilated reference point
+		GGMATRIX matW1 = *pTraverseMatrix;//matWorldBone; // parent world matrix
+		// relative bone
+		GGMATRIX matR; // the relative rotation and translation (as a bone would work)
+		// world2 result
+		GGMATRIX matW2 = matWorldBone;//*pTraverseMatrix; // child world matrix (further down hierarchy)
+		// now work out the original relative bone which got W1 to W2
+		// work out difference between rotations of W1 and W2
+		GGMATRIX matRot2 = matW2;
+		matRot2._41 = 0;
+		matRot2._42 = 0;
+		matRot2._43 = 0;
+		GGMATRIX matRot1 = matW1;
+		matRot1._41 = 0;
+		matRot1._42 = 0;
+		matRot1._43 = 0;
+		float fDet = 0;
+		GGMATRIX matRotInverse;
+		GGMatrixInverse ( &matRotInverse, &fDet, &matRot1 );
+		GGMATRIX matRot;
+		GGMatrixMultiply ( &matRot, &matRotInverse, &matRot2 );
+		// transform W1/W2 into traversing matricx base to get correct translation (relative to base, not world up base)
+		GGMATRIX matW1Trans;
+		GGMATRIX matW2Trans;
+		GGMatrixMultiply ( &matW1Trans, &matW1, &matRot1 );
+		GGMatrixMultiply ( &matW2Trans, &matW2, &matRot1 );
+		// work out world offset difference 
+		GGMATRIX matPos;
+		GGMatrixIdentity ( &matPos );
+		matPos._41 = matW2Trans._41 - matW1Trans._41;
+		matPos._42 = matW2Trans._42 - matW1Trans._42;
+		matPos._43 = matW2Trans._43 - matW1Trans._43;
+		// again, rotation difference was calculated from world positions, transform to traverse base so its relative!
+		GGMATRIX matRotAlignedToTraversingBase = matRot;
+		GGMatrixMultiply ( &matRotAlignedToTraversingBase, &matRot, &matRot1 );
+		// combine for final R matrix
+		GGMATRIX matRelativeBone;
+		matRelativeBone = matRotAlignedToTraversingBase;
+		matRelativeBone._41 = matPos._41;
+		matRelativeBone._42 = matPos._42;
+		matRelativeBone._43 = matPos._43;
+		// test that the new relative matrix works on W1 to get W2 again!
+		GGMatrixMultiply ( &matW2, &matRelativeBone, &matW1 );
+		*/
+
+		// finally 'restore' the relative bone!
+		pFrame->matTransformed = matRelativeBone;
+
+		// use relative bone to calculate world bones as we go
+		GGMatrixMultiply ( &pFrame->matCombined, &pFrame->matTransformed, pTraverseMatrix );
+
+		// convert child frames
+		ConvertWorldToRelative ( pFrame->pChild, pStoreNewPoseFrames, &pFrame->matCombined );
+
+		// convert sibling frames
+		ConvertWorldToRelative ( pFrame->pSibling, pStoreNewPoseFrames, pTraverseMatrix );	
+	}
+}
+
 void importer_save_entity ( void )
 {
 	//  Check if user folder exists, if not create it
@@ -5175,25 +5251,19 @@ void importer_save_entity ( void )
 	// if selected 'Use Uber Anims', then rename skeleton and apply uber animations automatically
 	if ( t.slidersmenuvalue[t.importer.properties1Index][7].value == 3 ) 
 	{
-		// rename bones to match GG uber character
 		sObject* pObject = GetObjectData(t.importer.objectnumber);
 		if ( pObject )
 		{
-			// load in correct GG pose and store
+			// load in correct Y pose and overwrite imported modes transform matrices
 			GGMATRIX* pStoreNewPoseFrames = NULL;
 			int objectnumberforframedatacopy = findFreeObject();
-			cstr pAbsPathToUberAnimFile = g.fpscrootdir_s + "\\Files\\entitybank\\Characters\\fulltransformtoYpose.dbo"; //bendarm.dbo";//transformanim.x";//x";
+			cstr pAbsPathToUberAnimFile = g.fpscrootdir_s + "\\Files\\entitybank\\Characters\\2CHAINFINGER-YPOSE.dbo";//Uber Soldier.X";//appendanims.x";
 			LoadObject ( pAbsPathToUberAnimFile.Get(), objectnumberforframedatacopy );
 			if ( ObjectExist ( objectnumberforframedatacopy ) == 1 )
 			{
 				sObject* pObjectWithYPoseData = GetObjectData ( objectnumberforframedatacopy );
 				if ( pObjectWithYPoseData )
 				{
-					// create all identity matrices which will eventually transform the mesh
-					pStoreNewPoseFrames = new GGMATRIX[pObject->iFrameCount];
-					for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
-						GGMatrixIdentity ( &pStoreNewPoseFrames[iFrame] );
-
 					// go through and find differences between poses
 					for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
 					{
@@ -5205,6 +5275,7 @@ void importer_save_entity ( void )
 							{
 								if ( strlen(pFrameName) > 0 )
 								{
+									// for this imported model frame, find the equivilant frame in the appendanim model (with the Y pose hidden in the skinning transform)
 									for ( int iFindFrame = 0; iFindFrame < pObjectWithYPoseData->iFrameCount; iFindFrame++ )
 									{
 										sFrame* pFindFrame = pObjectWithYPoseData->ppFrameList[iFindFrame];
@@ -5217,7 +5288,12 @@ void importer_save_entity ( void )
 												{
 													if ( stricmp ( pFrameName, pFindFrameName ) == NULL )
 													{
-														pStoreNewPoseFrames[iFrame] = pFindFrame->matOriginal;
+														// just grab the local relative transform from the Y pose model
+														pFrame->matOriginal = pFindFrame->matOriginal;
+														pFrame->matTransformed = pFindFrame->matOriginal;
+
+														// done with this findframe
+														break;
 													}
 												}
 											}
@@ -5244,29 +5320,29 @@ void importer_save_entity ( void )
 						{
 							// look for common bone names, and transform to GG standard skeleton name
 							const char* pNewName = "";
-							if ( strstr ( pOldFrameName, "mixamorig_Hips" ) > 0 ) pNewName = "Bip01_Pelvis";
-							if ( strstr ( pOldFrameName, "mixamorig_Spine" ) > 0 ) pNewName = "Bip01_Spine";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftUpLeg" ) > 0 ) pNewName = "Bip01_L_Thigh";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftLeg" ) > 0 ) pNewName = "Bip01_L_Calf";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftFoot" ) > 0 ) pNewName = "Bip01_L_Foot";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftToeBase" ) > 0 ) pNewName = "Bip01_L_Toe0";
-							if ( strstr ( pOldFrameName, "mixamorig_RightUpLeg" ) > 0 ) pNewName = "Bip01_R_Thigh";
-							if ( strstr ( pOldFrameName, "mixamorig_RightLeg" ) > 0 ) pNewName = "Bip01_R_Calf";
-							if ( strstr ( pOldFrameName, "mixamorig_RightFoot" ) > 0 ) pNewName = "Bip01_R_Foot";
-							if ( strstr ( pOldFrameName, "mixamorig_RightToeBase" ) > 0 ) pNewName = "Bip01_R_Toe0";
-							if ( strstr ( pOldFrameName, "mixamorig_Spine1" ) > 0 ) pNewName = "Bip01_Spine1";
-							if ( strstr ( pOldFrameName, "mixamorig_Spine2" ) > 0 ) pNewName = "Bip01_Spine2";
-							if ( strstr ( pOldFrameName, "mixamorig_Neck" ) > 0 ) pNewName = "Bip01_Neck";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftShoulder" ) > 0 ) pNewName = "Bip01_L_Clavicle";
-							if ( strstr ( pOldFrameName, "mixamorig_RightShoulder" ) > 0 ) pNewName = "Bip01_R_Clavicle";
-							if ( strstr ( pOldFrameName, "mixamorig_Head" ) > 0 ) pNewName = "Bip01_Head";
-							if ( strstr ( pOldFrameName, "mixamorig_HeadTop_End" ) > 0 ) pNewName = "Bip01_HeadTop";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftArm" ) > 0 ) pNewName = "Bip01_L_UpperArm";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftForeArm" ) > 0 ) pNewName = "Bip01_L_Forearm";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHand" ) > 0 ) pNewName = "Bip01_L_Hand";
-							if ( strstr ( pOldFrameName, "mixamorig_RightArm" ) > 0 ) pNewName = "Bip01_R_UpperArm";
-							if ( strstr ( pOldFrameName, "mixamorig_RightForeArm" ) > 0 ) pNewName = "Bip01_R_Forearm";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHand" ) > 0 ) pNewName = "Bip01_R_Hand";
+							if ( stricmp ( pOldFrameName, "mixamorig_Hips" ) == NULL ) pNewName = "Bip01_Pelvis";
+							if ( stricmp ( pOldFrameName, "mixamorig_Spine" ) == NULL ) pNewName = "Bip01_Spine";
+							if ( stricmp ( pOldFrameName, "mixamorig_LeftUpLeg" ) == NULL ) pNewName = "Bip01_L_Thigh";
+							if ( stricmp ( pOldFrameName, "mixamorig_LeftLeg" ) == NULL ) pNewName = "Bip01_L_Calf";
+							if ( stricmp ( pOldFrameName, "mixamorig_LeftFoot" ) == NULL) pNewName = "Bip01_L_Foot";
+							if ( stricmp ( pOldFrameName, "mixamorig_LeftToeBase" ) == NULL ) pNewName = "Bip01_L_Toe0";
+							if ( stricmp ( pOldFrameName, "mixamorig_RightUpLeg" ) == NULL ) pNewName = "Bip01_R_Thigh";
+							if ( stricmp ( pOldFrameName, "mixamorig_RightLeg" ) == NULL ) pNewName = "Bip01_R_Calf";
+							if ( stricmp ( pOldFrameName, "mixamorig_RightFoot" ) == NULL ) pNewName = "Bip01_R_Foot";
+							if ( stricmp ( pOldFrameName, "mixamorig_RightToeBase" ) == NULL ) pNewName = "Bip01_R_Toe0";
+							if ( stricmp ( pOldFrameName, "mixamorig_Spine1" ) == NULL ) pNewName = "Bip01_Spine1";
+							if ( stricmp ( pOldFrameName, "mixamorig_Spine2" )== NULL ) pNewName = "Bip01_Spine2";
+							if ( stricmp ( pOldFrameName, "mixamorig_Neck" ) == NULL ) pNewName = "Bip01_Neck";
+							if ( stricmp ( pOldFrameName, "mixamorig_LeftShoulder" ) == NULL ) pNewName = "Bip01_L_Clavicle";
+							if ( stricmp ( pOldFrameName, "mixamorig_RightShoulder" ) == NULL ) pNewName = "Bip01_R_Clavicle";
+							if ( stricmp ( pOldFrameName, "mixamorig_Head" ) == NULL ) pNewName = "Bip01_Head";
+							if ( stricmp ( pOldFrameName, "mixamorig_HeadTop_End" ) == NULL ) pNewName = "Bip01_HeadTop";
+							if ( stricmp ( pOldFrameName, "mixamorig_LeftArm" ) == NULL ) pNewName = "Bip01_L_UpperArm";
+							if ( stricmp ( pOldFrameName, "mixamorig_LeftForeArm" ) == NULL ) pNewName = "Bip01_L_Forearm";
+							if ( stricmp ( pOldFrameName, "mixamorig_RightArm" ) == NULL ) pNewName = "Bip01_R_UpperArm";
+							if ( stricmp ( pOldFrameName, "mixamorig_RightForeArm" ) == NULL ) pNewName = "Bip01_R_Forearm";
+							if ( stricmp ( pOldFrameName, "mixamorig_LeftHand" ) == NULL ) pNewName = "Bip01_L_Hand";
+							if ( stricmp ( pOldFrameName, "mixamorig_RightHand" ) == NULL ) pNewName = "Bip01_R_Hand";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb1" ) > 0 ) pNewName = "Bip01_L_Finger0";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb2" ) > 0 ) pNewName = "Bip01_L_Finger01";
 							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb3" ) > 0 ) pNewName = "Bip01_L_Finger02";
@@ -5479,6 +5555,29 @@ void importer_save_entity ( void )
 				}
 			}
 
+			// now we need to change the model geometry from a T bone to a Y pose (using the relative local transforms we generated above)
+			GGMATRIX matrix;
+			if ( 1 )
+			{
+				GGMatrixIdentity ( &matrix );
+				UpdateFrame ( pObject->pFrame, &matrix );
+				for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+				{
+					// wipe out original vertex data
+					sMesh* pMesh = pObject->ppMeshList[iMesh];
+					if ( pMesh->pOriginalVertexData ) SAFE_DELETE ( pMesh->pOriginalVertexData );
+
+					// animate mesh on CPU
+					AnimateBoneMeshBONE ( pObject, NULL, pMesh );
+
+					// now record new vertex mesh shape
+					if ( pMesh->pOriginalVertexData ) SAFE_DELETE ( pMesh->pOriginalVertexData );
+					DWORD dwTotalVertSize = pMesh->dwVertexCount * pMesh->dwFVFSize;
+					pMesh->pOriginalVertexData = (BYTE*)new char [ dwTotalVertSize ];
+					memcpy ( pMesh->pOriginalVertexData, pMesh->pVertexData, dwTotalVertSize );
+				}
+			}
+
 			// now replace frame transform matrices in imported model (copied from appendanims.x)
 			// which zeros the rotation and puts model in Y shape pose (not T) ready for stock 
 			// animation data (but retains skinning information for the unique mesh geometry of the model)
@@ -5532,6 +5631,7 @@ void importer_save_entity ( void )
 			}
 
 			// overwrite bone[].translate matrix with difference between new pose (Y) and old pose (T) (for AnimateBoneMeshBONE)
+			/*
 			if ( pStoreNewPoseFrames )
 			{
 				for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
@@ -5567,7 +5667,9 @@ void importer_save_entity ( void )
 				}
 				delete pStoreNewPoseFrames;
 			}
+			*/
 
+			/* moved up to just after new transforms created
 			// now we need to change the model geometry from a T bone to a Y pose
 			GGMATRIX matrix;
 			if ( 1 )
@@ -5590,6 +5692,7 @@ void importer_save_entity ( void )
 					memcpy ( pMesh->pOriginalVertexData, pMesh->pVertexData, dwTotalVertSize );
 				}
 			}
+			*/
 
 			// and restore transformed matrix from originals
 			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
