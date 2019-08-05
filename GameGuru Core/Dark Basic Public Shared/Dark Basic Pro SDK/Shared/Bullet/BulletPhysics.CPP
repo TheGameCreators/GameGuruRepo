@@ -31,6 +31,12 @@
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
 //End Dave
 
+//PE
+#include "BulletCollision\CollisionShapes\btConvexHullShape.h"
+#include "BulletCollision\CollisionShapes\btShapeHull.h"
+#include "LinearMath/btConvexHull.h"
+//End PE
+
 // access to other LIBs
 #include "CObjectsC.h"
 
@@ -1695,6 +1701,9 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 
 	float* gVertices = new float[totalVerts*4];
 	memset ( gVertices, 0, sizeof(float)*totalVerts*4 );
+
+	btAlignedObjectArray<btVector3> ch_vertexBuffer; //PE: for convex hull.
+
 	LPVOID gIndices = NULL;
 	if ( bDWORDSizeIndices==true )
 	{
@@ -1745,6 +1754,9 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 						*(gVertices+((vcount+v)*4)+1) = vec.y;
 						*(gVertices+((vcount+v)*4)+2) = vec.z;
 						*(gVertices+((vcount+v)*4)+3) = 1.0f;
+
+						ch_vertexBuffer.push_back( btVector3(vec.x, vec.y, vec.z) ); //PE: 
+
 						pVertData+=dwSkip;
 					}
 					WORD* pIndexData = (WORD*)pMesh->pIndices;
@@ -1783,54 +1795,119 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	btMesh.m_vertexStride = vertStride;
 	btMesh.m_numTriangles = totalTriangles;
 	btMesh.m_triangleIndexBase=(const unsigned char*)gIndices;
-	btTriangleIndexVertexArray* m_indexVertexArrays = new btTriangleIndexVertexArray();
-	if ( bDWORDSizeIndices==true )
-	{
-		btMesh.m_indexType = PHY_INTEGER;
-		btMesh.m_triangleIndexStride = 3*sizeof(DWORD);
-		m_indexVertexArrays->addIndexedMesh(btMesh,PHY_INTEGER);
-	}
-	else
-	{
-		btMesh.m_indexType = PHY_SHORT;
-		btMesh.m_triangleIndexStride = 3*sizeof(WORD);
-		m_indexVertexArrays->addIndexedMesh(btMesh,PHY_SHORT);
-	}
 
-	// these are deleted ONLY when world is destroyed
-	g_indexvertexarrays.push_back(m_indexVertexArrays);
+	btTriangleIndexVertexArray* m_indexVertexArrays;
+
 
 	// create a rigidbody
 	bool useQuantizedAabbCompression = true;
 	btVector3 aabbMin(pObject->collision.vecMin.x/gSc,pObject->collision.vecMin.y/gSc,pObject->collision.vecMin.z/gSc),aabbMax(pObject->collision.vecMax.x/gSc,pObject->collision.vecMax.y/gSc,pObject->collision.vecMax.z/gSc);
 	bool buildBvh = false; // will make raycasting/etc slower!
-	btBvhTriangleMeshShape* trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays,useQuantizedAabbCompression,aabbMin,aabbMax,buildBvh);
-	trimeshShape->buildOptimizedBvh(); // done manually here for slightly faster build time?!?
+	btBvhTriangleMeshShape* trimeshShape;
 
 	// convex hull optimization if flagged
-	//btCollisionShape pMyShape = trimeshShape;
-	//if ( iHullReduction > 0 )
-	//{
-	//	btAlignedObjectArray<btVector3> &vetexBuffer = NULL;
-	//	btConvexHullShape* collShape = new btConvexHullShape(&(vetexBuffer[0].getX()),vetexBuffer.size());
-	//	collShape->setMargin(CONVEX_MARGIN);
-    //    btShapeHull* hull = new btShapeHull(collShape);
-    //    btScalar margin = collShape->getMargin();
-    //    hull->buildHull(margin);
-    //    btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(&(hull->getVertexPointer()[0].getX()),hull->numVertices());
-    //    SAFE_DELETE(collShape);
-    //    pMyShape = (btCollisionShape)simplifiedConvexShape;
-	//}
+	
+	//PE: Convex hull - We keep gVertices,gIndices as mem1/2 , gVertices is used for height data directly on terrain.
+	//PE: so we later can test terrain and convex hull. remove (iTerrainMesh != 1)
+	if( iHullReduction > 0 && iTerrainMesh != 1) //PE: test iObjectNumber > 70000 ||
+	{
+		//PE: Add support for convex hull (collisionmode = 9) for faster physics.
 
-	//bool buildBvh = false; // will make raycasting/etc slower!
-	//btBvhTriangleMeshShape* trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays,useQuantizedAabbCompression,aabbMin,aabbMax,false);
-	//trimeshShape->buildOptimizedBvh(); // done manually here for slightly faster build time?!?
-	g_collisionShapes.push_back(trimeshShape);
+		btConvexHullShape* ch_collShape = new btConvexHullShape(&(ch_vertexBuffer[0].getX()), ch_vertexBuffer.size() );
+		ch_collShape->setMargin(0.00);
+        btShapeHull* hull = new btShapeHull(ch_collShape);
+        btScalar margin = ch_collShape->getMargin();
+        hull->buildHull(margin);
+        btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(&(hull->getVertexPointer()[0].getX()),hull->numVertices());
+        SAFE_DELETE(ch_collShape);
 
+		g_collisionShapes.push_back(simplifiedConvexShape);
+
+		if (isDynamic == 0) fVolume = 0;
+		btScalar mass(fVolume / gMs);
+		btVector3 localInertia(0, 0, 0);
+		if (isDynamic == 1) simplifiedConvexShape->calculateLocalInertia(mass, localInertia);
+
+		// physics object pos and rotation
+		btTransform startTransform;
+		startTransform.setIdentity();
+		startTransform.setOrigin(btVector3(fXPos, fYPos, fZPos));
+		GGQUATERNION QuatAroundX(1, 0, 0, fXRot);
+		GGQUATERNION QuatAroundY(0, 1, 0, fYRot);
+		GGQUATERNION QuatAroundZ(0, 0, 1, fZRot);
+		GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), fXRot);
+		GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), fYRot);
+		GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), fZRot);
+		GGQUATERNION finalOrientation = QuatAroundX * QuatAroundY * QuatAroundZ;
+		startTransform.setRotation(btQuaternion(finalOrientation.x, finalOrientation.y, finalOrientation.z, finalOrientation.w));
+		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
+		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, simplifiedConvexShape, localInertia);
+		btRigidBody* body = new btRigidBody(rbInfo);
+
+		// pass material index as usrptr
+		int iArbValue = 0;
+		if (pRealObject->ppMeshList != NULL) iArbValue = pRealObject->ppMeshList[0]->Collision.dwArbitaryValue;
+		body->setUserPointer((void*)iArbValue);
+
+		// add physics object to system
+		short sCollidesWith = COL_OBJECT | COL_CAPSULECHAR | COL_TERRAIN;
+		if (iTerrainMesh == 1)
+			g_dynamicsWorld->addRigidBody(body, COL_TERRAIN, sCollidesWith);
+		else
+			g_dynamicsWorld->addRigidBody(body, COL_OBJECT, sCollidesWith);
+
+		// boyancy mode
+		bool bBouyant = false;
+		if (isDynamic == 1)
+			bBouyant = true;
+		else
+			pObject = NULL;
+
+		//PE: DestroyThisObject relase gVertices,gIndices so:
+		//PE: Keep it there if we want to try terrain using convex hull.
+		ODEAddObject(iObjectNumber, pObject, body, isDynamic, myMotionState, false, bBouyant, gVertices, gIndices, 1, 1, fFriction, mass);
+		
+		ch_vertexBuffer.clear();
+		return;
+
+	}
+	else {
+
+		ch_vertexBuffer.clear();
+
+		m_indexVertexArrays = new btTriangleIndexVertexArray();
+
+		if (bDWORDSizeIndices == true)
+		{
+			btMesh.m_indexType = PHY_INTEGER;
+			btMesh.m_triangleIndexStride = 3 * sizeof(DWORD);
+			m_indexVertexArrays->addIndexedMesh(btMesh, PHY_INTEGER);
+		}
+		else
+		{
+			btMesh.m_indexType = PHY_SHORT;
+			btMesh.m_triangleIndexStride = 3 * sizeof(WORD);
+			m_indexVertexArrays->addIndexedMesh(btMesh, PHY_SHORT);
+		}
+
+
+		// these are deleted ONLY when world is destroyed
+		g_indexvertexarrays.push_back(m_indexVertexArrays);
+
+
+		trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays, useQuantizedAabbCompression, aabbMin, aabbMax, buildBvh);
+		trimeshShape->buildOptimizedBvh(); // done manually here for slightly faster build time?!?
+
+		//bool buildBvh = false; // will make raycasting/etc slower!
+		//btBvhTriangleMeshShape* trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays,useQuantizedAabbCompression,aabbMin,aabbMax,false);
+		//trimeshShape->buildOptimizedBvh(); // done manually here for slightly faster build time?!?
+		g_collisionShapes.push_back(trimeshShape);
+	}
 	// mass/volume calculation
 	if ( isDynamic==0 ) fVolume = 0;
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);
+
 	if ( isDynamic==1 ) trimeshShape->calculateLocalInertia(mass,localInertia);
 
 	// physics object pos and rotation
