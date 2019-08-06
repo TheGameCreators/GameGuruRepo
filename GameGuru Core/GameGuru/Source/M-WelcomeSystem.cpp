@@ -11,6 +11,8 @@
 
 // Externals
 extern int g_trialStampDaysLeft;
+extern char g_trialDiscountExpires[1024];
+extern char g_trialDiscountCode[1024];
 
 // Globals
 int g_welcomesystemclosedown = 0;
@@ -880,6 +882,11 @@ void welcome_freetrialintroapp_page ( int iHighlightingButton )
 		sprintf ( pShowDaysLeft, "%d Days Left of Free Trial", g_trialStampDaysLeft );
 	welcome_text ( pShowDaysLeft, 5, 50, 15, 192, true, false );
 
+	// expiry of discount code info
+	char pDiscountNotice[1024];
+	sprintf ( pDiscountNotice, "* Discount Code Expires: %s", g_trialDiscountExpires );
+	welcome_text ( pDiscountNotice, 1, 50, 78, 192, true, false );
+
 	// control page
 	if ( t.inputsys.mclick == 1 ) 
 	{
@@ -889,8 +896,10 @@ void welcome_freetrialintroapp_page ( int iHighlightingButton )
 		}
 		if ( iHighlightingButton == 2 && g_welcomeCycle == 0 ) 
 		{
-			// go to GameGuru Page
-			ExecuteFile ( "http://bit.ly/2M6GfX8","","",0 );
+			// go to GameGuru Order Page with 50% discount
+			char pGoToLinkString[1024];
+			sprintf ( pGoToLinkString, "https://gameguru.thegamecreators.com/basket/add/17473/10723?discount_code=%s", g_trialDiscountCode );
+			ExecuteFile ( pGoToLinkString,"","",0 );
 			g_welcomeCycle = -1;
 			t.tclosequick = 1;
 		}

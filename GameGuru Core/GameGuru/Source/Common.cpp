@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include "M-WelcomeSystem.h"
 #include "time.h"
+#include <wininet.h>
+#include "Common-Keys.h"
 
 // Used for Free Weekend Promotion Build 
 //#define STEAMOWNERSHIPCHECKFREEWEEKEND
@@ -21,6 +23,8 @@ extern float g_fVR920Sensitivity;
 // Globals
 int g_PopupControlMode = 0;
 int g_trialStampDaysLeft = 0;
+char g_trialDiscountCode[1024];
+char g_trialDiscountExpires[1024];
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
@@ -2849,6 +2853,93 @@ void GenerateDOCDOCHelpFiles ( void )
 	}
 }
 
+UINT GetURLData ( LPSTR pDataReturned, DWORD* pReturnDataSize, LPSTR urlWhere )
+{
+	UINT iError = 0;
+	unsigned int dwDataLength = 0;
+	HINTERNET m_hInet = InternetOpen( "InternetConnection", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0 );
+	if ( m_hInet == NULL )
+	{
+		iError = GetLastError( );
+	}
+	else
+	{
+		unsigned short wHTTPType = INTERNET_DEFAULT_HTTPS_PORT;
+		HINTERNET m_hInetConnect = InternetConnect( m_hInet, "www.thegamecreators.com", wHTTPType, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0 );
+		if ( m_hInetConnect == NULL )
+		{
+			iError = GetLastError( );
+		}
+		else
+		{
+			int m_iTimeout = 2000;
+			InternetSetOption( m_hInetConnect, INTERNET_OPTION_CONNECT_TIMEOUT, (void*)&m_iTimeout, sizeof(m_iTimeout) );  
+			HINTERNET hHttpRequest = HttpOpenRequest( m_hInetConnect, "GET", urlWhere, "HTTP/1.1", NULL, NULL, INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_SECURE, 0 );
+			if ( hHttpRequest == NULL )
+			{
+				iError = GetLastError( );
+			}
+			else
+			{
+				HttpAddRequestHeaders( hHttpRequest, "Content-Type: application/x-www-form-urlencoded", -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+				int bSendResult = 0;
+				bSendResult = HttpSendRequest( hHttpRequest, NULL, -1, NULL, 0 );//(void*)(m_szPostData), strlen(m_szPostData) );
+				if ( bSendResult == 0 )
+				{
+					iError = GetLastError( );
+				}
+				else
+				{
+					int m_iStatusCode = 0;
+					char m_szContentType[150];
+					unsigned int dwBufferSize = sizeof(int);
+					unsigned int dwHeaderIndex = 0;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, (void*)&m_iStatusCode, (LPDWORD)&dwBufferSize, (LPDWORD)&dwHeaderIndex );
+					dwHeaderIndex = 0;
+					unsigned int dwContentLength = 0;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, (LPDWORD)&dwBufferSize, (LPDWORD)&dwHeaderIndex );
+					dwHeaderIndex = 0;
+					unsigned int ContentTypeLength = 150;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_TYPE, (void*)m_szContentType, (LPDWORD)&ContentTypeLength, (LPDWORD)&dwHeaderIndex );
+					char pBuffer[ 20000 ];
+					for(;;)
+					{
+						unsigned int written = 0;
+						if( !InternetReadFile( hHttpRequest, (void*) pBuffer, 2000, (LPDWORD)&written ) )
+						{
+							// error
+						}
+						if ( written == 0 ) break;
+						if ( dwDataLength + written > 10240 ) written = 10240 - dwDataLength;
+						memcpy( pDataReturned + dwDataLength, pBuffer, written );
+						dwDataLength = dwDataLength + written;
+						if ( dwDataLength >= 10240 ) break;
+					}
+					InternetCloseHandle( hHttpRequest );
+				}
+			}
+			InternetCloseHandle( m_hInetConnect );
+		}
+		InternetCloseHandle( m_hInet );
+	}
+	if ( iError > 0 )
+	{
+		char *szError = 0;
+		if ( iError > 12000 && iError < 12174 ) 
+			FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE, GetModuleHandle("wininet.dll"), iError, 0, (char*)&szError, 0, 0 );
+		else 
+			FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, iError, 0, (char*)&szError, 0, 0 );
+		if ( szError )
+		{
+			LocalFree( szError );
+		}
+	}
+
+	// complete
+	*pReturnDataSize = dwDataLength;
+	return iError;
+}
+
 void FPSC_Setup ( void )
 {
 	// prepare all default values 
@@ -3589,6 +3680,9 @@ void FPSC_Setup ( void )
 		#ifdef FREETRIALVERSION
 		 // free trial version mode
 		 g.iFreeVersionModeActive = 2;
+		 // discount code strings
+		 strcpy ( g_trialDiscountCode, "" );
+		 strcpy ( g_trialDiscountExpires, "" );
 		 // countdown to trial ending
 		 time_t now = time(0);
 		 tm *ltm = localtime(&now);
@@ -3601,16 +3695,99 @@ void FPSC_Setup ( void )
 		 LPSTR pTrialStampFile = "..\\trialstamp.txt";
 		 if ( FileExist ( pTrialStampFile ) == 0 )
 		 {
-			OpenToWrite ( 1, pTrialStampFile );
-			WriteLong ( 1, iTotalDays );
-			CloseFile ( 1 );
+			// get 7-day discount code
+			DWORD dwDataReturnedSize = 0;
+			char pDataReturned[10240];
+			memset ( pDataReturned, 0, sizeof(pDataReturned) );
+
+			char pGetDataString[1024];
+			strcpy ( pGetDataString, "/api/discount/codes/generate?" );
+			strcat ( pGetDataString, DISCOUNTKEY );
+			strcat ( pGetDataString, "&discount=gamegurutrial" );
+			UINT iError = GetURLData ( pDataReturned, &dwDataReturnedSize, pGetDataString );
+			if ( iError <= 0 && *pDataReturned != 0 && strchr(pDataReturned, '{') != 0 && dwDataReturnedSize < 10240 )
+			{
+				// break up response string
+				// {
+				// "success": true,
+				// "discount_code": "GGTRIAL507CD20E3B2",
+				// "expires": "2019-08-13 10:17:40"
+				// }
+				char pCodeText[10240];
+				strcpy ( pCodeText, "" );
+				char pExpiryText[10240];
+				strcpy ( pExpiryText, "" );
+
+				// work through data returned
+				char pWorkStr[10240];
+				strcpy ( pWorkStr, pDataReturned );
+				if ( pWorkStr[0]=='{' ) strcpy ( pWorkStr, pWorkStr+1 );
+				int n = 10200;
+				for (; n>0; n-- ) if ( pWorkStr[n] == '}' ) { pWorkStr[n] = 0; break; }
+				char* pChop = strstr ( pWorkStr, "," );
+				char pStatusStr[10240];
+				strcpy ( pStatusStr, pWorkStr );
+				if ( pChop ) pStatusStr[pChop-pWorkStr] = 0;
+				if ( pChop[0]==',' ) pChop += 1;
+				if ( strstr ( pStatusStr, "success" ) != NULL )
+				{
+					// success
+					// code
+					pChop = strstr ( pChop, ":" ) + 2;
+					strcpy ( pCodeText, pChop );
+					char pEndOfChunk[4];
+					pEndOfChunk[0]='"';
+					pEndOfChunk[1]=',';
+					pEndOfChunk[2]='"';
+					pEndOfChunk[3]=0;
+					char* pCodeTextEnd = strstr ( pCodeText, pEndOfChunk );
+					pCodeText[pCodeTextEnd-pCodeText] = 0;
+					pChop += strlen(pCodeText);
+
+					// expiry
+					pChop = strstr ( pChop, ":" ) + 2;
+					strcpy ( pExpiryText, pChop );
+					LPSTR pFindSpaceBetweenDateAndTime = strstr ( pExpiryText, " " );
+					if ( pFindSpaceBetweenDateAndTime ) *pFindSpaceBetweenDateAndTime = 0;
+
+					// copy to globals
+					strcpy ( g_trialDiscountCode, pCodeText );
+					strcpy ( g_trialDiscountExpires, pExpiryText );
+
+					// only when get code can trial countdown start
+					// create time stamp
+					OpenToWrite ( 1, pTrialStampFile );
+					WriteLong ( 1, iTotalDays );
+					WriteString ( 1, g_trialDiscountCode );
+					WriteString ( 1, g_trialDiscountExpires );
+					CloseFile ( 1 );
+				}
+				else
+				{
+					// error
+					char* pMessageValue = strstr ( pChop, ":" ) + 1;
+				}
+			}
+
+			// no code, no trial start!
+			if ( strcmp ( g_trialDiscountCode, "" ) == NULL )
+			{
+				strcpy ( g_trialDiscountCode, "No Discount" );
+				strcpy ( g_trialDiscountExpires, "Unable To Get Code" );
+			}
+
+			// starts at 7 days
 			g_trialStampDaysLeft = 7;
 		 }
 		 else
 		 {
 			OpenToRead ( 1, pTrialStampFile );
 			int iDateTrialFirstUsed = ReadLong ( 1 );
+			LPSTR pCode = ReadString ( 1 );
+			LPSTR pExpiry = ReadString ( 1 );
 			CloseFile ( 1 );
+			strcpy ( g_trialDiscountCode, pCode );
+			strcpy ( g_trialDiscountExpires, pExpiry );
 			g_trialStampDaysLeft = 7-(iTotalDays-iDateTrialFirstUsed);
 		 }
 		 if ( g_trialStampDaysLeft <= 0 )
