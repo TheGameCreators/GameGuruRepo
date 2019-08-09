@@ -995,8 +995,8 @@ void entity_loaddata ( void )
 	if (  FileExist(t.strwork.Get()) == 1 || FileExist(t.tprofile_s.Get()) == 1 ) 
 	{
 
-	//  Export entity FPE file if flagged
-	if (  g.gexportassets == 1 ) 
+	// Export entity FPE file if flagged
+	if ( g.gexportassets == 1 ) 
 	{
 		t.strwork = t.entdir_s+t.ent_s;
 		t.tthumbbmpfile_s = "";	t.tthumbbmpfile_s=t.tthumbbmpfile_s + Left(t.strwork.Get(),(Len(t.entdir_s.Get())+Len(t.ent_s.Get()))-4)+".bmp";
