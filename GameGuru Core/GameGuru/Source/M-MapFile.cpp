@@ -943,6 +943,16 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
 			}
 
+			// Export entity FPE BMP file if flagged
+			if ( g.gexportassets == 1 ) 
+			{
+				t.tfile3_s=cstr(Left(t.tentityname_s.Get(),Len(t.tentityname_s.Get())-4))+".bmp";
+				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile3_s).Get() ) == 1 ) 
+				{
+					addtocollection(t.tfile3_s.Get());
+				}
+			}
+
 			// entity characterpose file (if any)
 			t.tfile3_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dat";
 			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile3_s).Get() ) == 1 ) 
@@ -2221,10 +2231,13 @@ void mapfile_savestandalone ( void )
 
 	//  encrypt media
 	t.dest_s=t.exepath_s+t.exename_s;
-	if (  PathExist( cstr(t.dest_s + "\\Files").Get() ) ) 
+	if ( g.gexportassets == 0 ) 
 	{
-		//  NOTE; Need to exclude lightmaps from encryptor  set encrypt ignore list "lightmaps"
-		EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
+		if ( PathExist( cstr(t.dest_s + "\\Files").Get() ) ) 
+		{
+			// NOTE; Need to exclude lightmaps from encryptor  set encrypt ignore list "lightmaps"
+			EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
+		}
 	}
 
 	//  if not tignorelevelbankfiles, copy unencrypted files 

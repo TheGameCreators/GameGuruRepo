@@ -2236,6 +2236,13 @@ DARKSDK bool SetupDX11 ( void )
 		hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevelsD3D11ONLY, ARRAYSIZE(featureLevelsD3D11ONLY),
 												D3D11_SDK_VERSION, &sd, &m_pSwapChain[0], &m_pD3D, 
 												&g_featureLevel, &m_pImmediateContext );
+		if( FAILED( hr ) )
+		{
+			// if it fails, revert to more common device feature level (some DX12 PCs don't have D3D_FEATURE_LEVEL_11_1)
+			hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevels, ARRAYSIZE(featureLevels),
+													D3D11_SDK_VERSION, &sd, &m_pSwapChain[0], &m_pD3D, 
+													&g_featureLevel, &m_pImmediateContext );
+		}
 	}
 	else
 	{
