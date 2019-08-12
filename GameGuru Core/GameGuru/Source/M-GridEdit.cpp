@@ -1972,6 +1972,7 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	// ensure all locked entity transparency shown again
 	for ( t.tte = 1 ; t.tte<=  g.entityelementlist; t.tte++ )
 	{
+		/* this messes up depth render order, totally, best to leave as solid, just locked
 		if ( t.entityelement[t.tte].editorlock == 1 ) 
 		{
 			t.tobj=t.entityelement[t.tte].obj;
@@ -1984,6 +1985,7 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 				}
 			}
 		}
+		*/
 		if ( t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].beenmoved = 1;
 	}
 

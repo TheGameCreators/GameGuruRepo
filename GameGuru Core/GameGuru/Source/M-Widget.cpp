@@ -602,8 +602,9 @@ void widget_loop ( void )
 									// toggle lock flag
 									t.entityelement[e].editorlock = 1 - t.entityelement[e].editorlock;
 
-									//  also recreate entity as a clone and set as semi-transparent
-									if (  t.entityelement[e].editorlock == 1 ) 
+									// also recreate entity as a clone and set as semi-transparent
+									/* this messes up depth render order, totally, best to leave as solid, just locked
+									if ( t.entityelement[e].editorlock == 1 ) 
 									{
 										t.tte=e; t.tobj=t.entityelement[t.tte].obj;
 										if ( t.tobj>0 ) 
@@ -614,6 +615,7 @@ void widget_loop ( void )
 											}
 										}
 									}
+									*/
 								}
 								gridedit_clearentityrubberbandlist();
 							}
@@ -1343,7 +1345,6 @@ void widget_loop ( void )
 
 void widget_correctwidgetpanel ( void )
 {
-
 	//  reverse widget when facing away from user
 	if (  WrapValue(CameraAngleY())>180 || WrapValue(CameraAngleY())<1  )  t.txflip = 0; else t.txflip = 1;
 	if (  t.txflip == 1 ) 
@@ -1359,14 +1360,10 @@ void widget_correctwidgetpanel ( void )
 	if (  WrapValue(CameraAngleY())>270 || WrapValue(CameraAngleY())<90 ) 
 	{
 		YRotateObject (  t.widget.widgetZObj,180 );
-		if (  t.txflip == 1 ) 
-		{
+		if ( t.txflip == 1 ) 
 			YRotateObject (  t.widget.widgetXZObj,90 );
-		}
 		else
-		{
 			YRotateObject (  t.widget.widgetXZObj,0 );
-		}
 		YRotateObject (  t.widget.widgetYZObj,0 );
 	}
 	else
@@ -1444,16 +1441,13 @@ void widget_correctwidgetpanel ( void )
 	}
 
 	// if camera BELOW vertical of widget, HIDE the XZ gadget as it messes up badly
-	if (  t.widget.mode  ==  0 ) 
-	{
-		if ( CameraPositionY(0) < ObjectPositionY(t.widget.widgetXZObj) )
-			HideObject ( t.widget.widgetXZObj );
-		else
-			ShowObject ( t.widget.widgetXZObj );
-	}
-
-return;
-
+	//if (  t.widget.mode  ==  0 ) 
+	//{
+	//	if ( CameraPositionY(0) < ObjectPositionY(t.widget.widgetXZObj) )
+	//		HideObject ( t.widget.widgetXZObj );
+	//	else
+	//		ShowObject ( t.widget.widgetXZObj );
+	//}
 }
 
 void widget_updatewidgetobject ( void )
