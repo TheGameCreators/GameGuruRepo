@@ -12,8 +12,17 @@
 #include <iostream>
 //#include "FBXExporter\FBXExporter.h" - requires libfbxsdk-mt.lib
 
+// VR Mode Override (thanks MS)
+bool g_bDisableVRDetectionByUserRequest = false;
+
 void GuruMain ( void )
 {
+	if ( MessageBox ( NULL, "Do you have Windows Mixed Reality Portal installed and running, and a connected headset and controller?", "VR Mode Confirmation", MB_YESNO ) == IDNO )
+	{
+		// this will ignore any VRMODE that may have been required by this executable
+		g_bDisableVRDetectionByUserRequest = true;
+	}
+
 	// Launch GameGuru 
 	common_init();
 }
