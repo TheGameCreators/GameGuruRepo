@@ -616,6 +616,15 @@ int PhotonIsPlayerTheServer()
 	return 0;
 }
 
+void PhotonCheckIfGameRunning()
+{
+	if ( g_pPhotonView )
+	{
+		MsgGetGlobalStates_t msg;
+		g_pLBL->sendMessage ( (nByte*)&msg, sizeof(MsgGetGlobalStates_t), true );
+	}
+}
+
 int PhotonIsGameRunning()
 {
 	if ( g_pPhotonView )
@@ -683,6 +692,10 @@ int PhotonAmIFileSynced()
 {
 	if ( g_pPhotonView )
 	{
+		// as this is called while client is waiting for server sync, call client FPM download code
+		g_pLBL->GetFileDone();
+
+		// return if synced
 		return IamSyncedWithServerFiles;
 	}
 	return 0;

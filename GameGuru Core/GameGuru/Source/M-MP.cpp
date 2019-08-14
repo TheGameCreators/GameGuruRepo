@@ -3,6 +3,8 @@
 //----------------------------------------------------
 
 #include "gameguru.h"
+#include <wininet.h>
+#include "Common-Keys.h"
 
 // flag to switch workshop handling from workshop to game managed, by default set to false, set to true for multiplayer mode
 #ifdef PHOTONMP
@@ -94,6 +96,15 @@ void mp_fullinit ( void )
 	#else
 		// Steam initialised at very start (for other Steam features)
 	#endif
+
+	// check fpm master list at start (for good server cleanup while leaving files on server while MP screens in use)
+	mp_checkToCleanUpMasterHostList();
+}
+
+void mp_fullclose ( void )
+{
+	// this is called when leaving multiplayer screen and back to IDE
+	mp_checkToCleanUpMasterHostList();
 }
 
 bool OccluderCheckingForMultiplayer ( void )
@@ -764,7 +775,7 @@ void mp_loop ( void )
 			#endif
 			g.mp.iHaveSaidIAmAlmostReady = 1;
 			t.tempsteamingameinitialwaitingdelay = Timer();
-			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
+			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 2000 ) // not needed any more, server can serve up clients any time now.. was 20000 ) 
 			{
 				g.mp.syncedWithServerMode = 0;
 				g.mp.onlySendMapToSpecificPlayer = -1;
@@ -848,7 +859,9 @@ void mp_loop ( void )
 			g.mp.iHaveSaidIAmAlmostReady = 1;
 			t.tskipLevelSync = Timer();
 			t.tempsteamingameinitialwaitingdelay = Timer();
-			while ( Timer() - t.tempsteamingameinitialwaitingdelay < 20000 ) 
+			DWORD dwReasonableTimeOutIfWaitingForGameToStart = 3 * 60 * 1000; // 3 minutes (could simply be waiting for more players, not real time out here)
+			int iKeepCheckingForGameRunning = Timer();
+			while ( Timer() - t.tempsteamingameinitialwaitingdelay < dwReasonableTimeOutIfWaitingForGameToStart ) 
 			{
 				g.mp.syncedWithServerMode = 0;
 				g.mp.onlySendMapToSpecificPlayer = -1;
@@ -861,6 +874,7 @@ void mp_loop ( void )
 				#else
 				 SteamLoop();
 				#endif
+				// real time-out if no connection after 16 seconds of coming in here
 				if ( Timer() - t.tsteamtimeoutongamerunning > 16000 ) 
 				{
 					if ( PhotonGetClientServerConnectionStatus() == 0 ) 
@@ -876,6 +890,14 @@ void mp_loop ( void )
 				 int iIsEveryoneLoadedAndReady = SteamIsEveryoneLoadedAndReady();
 				#endif
 				if ( iIsEveryoneLoadedAndReady == 1 ) t.tempsteamingameinitialwaitingdelay = -30000; // was just = not ==
+
+				// can also skip this wait if game is already running (or was started after joining)
+				if ( Timer() - iKeepCheckingForGameRunning > 1000 ) 
+				{
+					iKeepCheckingForGameRunning = Timer();
+					PhotonCheckIfGameRunning();
+				}
+				if ( PhotonIsGameRunning() == 1 ) t.tempsteamingameinitialwaitingdelay = -30000;
 			}   
 		}
 
@@ -1575,6 +1597,220 @@ void mp_delete_entities ( void )
 	}
 }
 
+// MP FPM MASTER LIST Functions
+
+void mp_writeNewFPMMasterList ( std::vector<LPSTR> pLines )
+{
+	char pFPMMasterList[2048];
+	strcpy ( pFPMMasterList, g.fpscrootdir_s.Get() );
+	strcat ( pFPMMasterList, "\\FPMMasterList.dat" );
+	if ( FileExist ( pFPMMasterList ) ) DeleteFile ( pFPMMasterList );
+	OpenToWrite ( 5, pFPMMasterList );
+	for ( int iFileIndex = 0; iFileIndex < pLines.size(); iFileIndex++ )
+	{
+		WriteString ( 5, pLines[iFileIndex] );
+	}
+	CloseFile ( 5 );
+}
+
+void mp_addHostFPMFIleToMasterHostList ( LPSTR pFilenameToAdd )
+{
+	// clear the list
+	std::vector<LPSTR> pLines;
+	pLines.clear();
+
+	// adds filename to list just successfully added to server
+	char pFPMMasterList[2048];
+	strcpy ( pFPMMasterList, g.fpscrootdir_s.Get() );
+	strcat ( pFPMMasterList, "\\FPMMasterList.dat" );
+	if ( FileExist ( pFPMMasterList ) )
+	{
+		OpenToRead ( 5, pFPMMasterList );
+		while ( FileEnd ( 5 ) == 0 )
+		{
+			LPSTR pLineRef = ReadString ( 5 );
+			LPSTR pNewLine = new char[strlen(pLineRef)+1];
+			strcpy ( pNewLine, pLineRef );
+			pLines.push_back ( pNewLine );
+		}
+		CloseFile ( 5 );
+	}
+
+	// add new file to list
+	LPSTR pNewLine = new char[strlen(pFilenameToAdd)+1];
+	strcpy ( pNewLine, pFilenameToAdd );
+	pLines.push_back ( pNewLine );
+
+	// and write the list out
+	mp_writeNewFPMMasterList ( pLines );
+
+	// and free resources
+	for ( int iFileIndex = 0; iFileIndex < pLines.size(); iFileIndex++ )
+		delete pLines[iFileIndex];
+}
+
+bool mp_deleteFPMFileFromServer ( LPSTR pFilenameToDelete )
+{
+	char pDataReturned[2048];
+	strcpy ( pDataReturned, "" );
+	char urlWhere[2048];
+	strcpy ( urlWhere, "/api/gameguru/multiplayer/storage/delete?" );
+	strcat ( urlWhere, FPMHOSTUPLOADKEY );
+	strcat ( urlWhere, "&file=" );
+	strcat ( urlWhere, pFilenameToDelete );
+	UINT iError = 0;
+	unsigned int dwDataLength = 0;
+	HINTERNET m_hInet = InternetOpen( "InternetConnection", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0 );
+	if ( m_hInet == NULL )
+	{
+		iError = GetLastError( );
+	}
+	else
+	{
+		unsigned short wHTTPType = INTERNET_DEFAULT_HTTPS_PORT;
+		HINTERNET m_hInetConnect = InternetConnect( m_hInet, "www.thegamecreators.com", wHTTPType, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0 );
+		if ( m_hInetConnect == NULL )
+		{
+			iError = GetLastError( );
+		}
+		else
+		{
+			int m_iTimeout = 2000;
+			InternetSetOption( m_hInetConnect, INTERNET_OPTION_CONNECT_TIMEOUT, (void*)&m_iTimeout, sizeof(m_iTimeout) );  
+			HINTERNET hHttpRequest = HttpOpenRequest( m_hInetConnect, "GET", urlWhere, "HTTP/1.1", NULL, NULL, INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_SECURE, 0 );
+			if ( hHttpRequest == NULL )
+			{
+				iError = GetLastError( );
+			}
+			else
+			{
+				HttpAddRequestHeaders( hHttpRequest, "Content-Type: application/x-www-form-urlencoded", -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+				int bSendResult = 0;
+				bSendResult = HttpSendRequest( hHttpRequest, NULL, -1, NULL, 0 );
+				if ( bSendResult == 0 )
+				{
+					iError = GetLastError( );
+				}
+				else
+				{
+					int m_iStatusCode = 0;
+					char m_szContentType[150];
+					unsigned int dwBufferSize = sizeof(int);
+					unsigned int dwHeaderIndex = 0;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, (void*)&m_iStatusCode, (LPDWORD)&dwBufferSize, (LPDWORD)&dwHeaderIndex );
+					dwHeaderIndex = 0;
+					unsigned int dwContentLength = 0;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, (LPDWORD)&dwBufferSize, (LPDWORD)&dwHeaderIndex );
+					dwHeaderIndex = 0;
+					unsigned int ContentTypeLength = 150;
+					HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_TYPE, (void*)m_szContentType, (LPDWORD)&ContentTypeLength, (LPDWORD)&dwHeaderIndex );
+					char pBuffer[ 20000 ];
+					for(;;)
+					{
+						unsigned int written = 0;
+						if( !InternetReadFile( hHttpRequest, (void*) pBuffer, 2000, (LPDWORD)&written ) )
+						{
+							// error
+						}
+						if ( written == 0 ) break;
+						if ( dwDataLength + written > 10240 ) written = 10240 - dwDataLength;
+						memcpy( pDataReturned + dwDataLength, pBuffer, written );
+						dwDataLength = dwDataLength + written;
+						if ( dwDataLength >= 10240 ) break;
+					}
+					InternetCloseHandle( hHttpRequest );
+				}
+			}
+			InternetCloseHandle( m_hInetConnect );
+		}
+		InternetCloseHandle( m_hInet );
+	}
+	if ( iError > 0 )
+	{
+		char *szError = 0;
+		if ( iError > 12000 && iError < 12174 ) 
+			FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE, GetModuleHandle("wininet.dll"), iError, 0, (char*)&szError, 0, 0 );
+		else 
+			FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, iError, 0, (char*)&szError, 0, 0 );
+		if ( szError )
+		{
+			LocalFree( szError );
+		}
+	}
+
+	// check response from GET call
+	if ( pDataReturned && strchr(pDataReturned, '{') != 0 && dwDataLength < 10240 )
+	{
+		// break up response string
+		// {"success": true,"message": "deleted"} 
+		char pfilenameText[10240];
+		strcpy ( pfilenameText, "" );
+		char pWorkStr[10240];
+		strcpy ( pWorkStr, pDataReturned );
+		if ( pWorkStr[0]=='{' ) strcpy ( pWorkStr, pWorkStr+1 );
+		int n = 10200;
+		for (; n>0; n-- ) if ( pWorkStr[n] == '}' ) { pWorkStr[n] = 0; break; }
+		char* pChop = strstr ( pWorkStr, "," );
+		char pStatusStr[10240];
+		strcpy ( pStatusStr, pWorkStr );
+		if ( pChop ) pStatusStr[pChop-pWorkStr] = 0;
+		if ( pChop[0]==',' ) pChop += 1;
+		if ( strstr ( pStatusStr, "success" ) != NULL )
+		{
+			// success
+			if ( strstr ( pStatusStr, "true" ) != NULL )
+			{
+				// delete was successful
+				return true;
+			}
+		}
+	}
+
+	// failed to delete for some reason
+	return false;
+}
+
+void mp_checkToCleanUpMasterHostList ( void )
+{
+	// final list after cleanup
+	std::vector<LPSTR> pLines;
+	pLines.clear();
+
+	// go through master list, instruct all in list to be deleted from server
+	char pFPMMasterList[2048];
+	strcpy ( pFPMMasterList, g.fpscrootdir_s.Get() );
+	strcat ( pFPMMasterList, "\\FPMMasterList.dat" );
+	if ( FileExist ( pFPMMasterList ) )
+	{
+		OpenToRead ( 5, pFPMMasterList );
+		while ( FileEnd ( 5 ) == 0 )
+		{
+			LPSTR pFilenameToDelete = ReadString ( 5 );
+			if ( strlen ( pFilenameToDelete ) > 0 )
+			{
+				// attempt to delete the file from the server
+				if ( mp_deleteFPMFileFromServer ( pFilenameToDelete ) == false )
+				{
+					// if failed to delete file from server, keep it in list
+					LPSTR pNewLine = new char[strlen(pFilenameToDelete)+1];
+					strcpy ( pNewLine, pFilenameToDelete );
+					pLines.push_back ( pNewLine );
+				}
+			}
+		}
+		CloseFile ( 5 );
+
+		// write out new potentially empty or shorter list
+		mp_writeNewFPMMasterList ( pLines );
+	}
+
+	// and free resources
+	for ( int iFileIndex = 0; iFileIndex < pLines.size(); iFileIndex++ )
+		delete pLines[iFileIndex];
+}
+
+// MP Server Client Syncing
+
 void mp_pre_game_file_sync ( void )
 {
 	// handle file transfer activity
@@ -1669,8 +1905,9 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 				//g_dwSendLastTime = timeGetTime() + 200; // 8K * (1000/200) = 40K per second max sent rate (1MB file=24 seconds)
 				//g_dwSendLastTime = timeGetTime() + 100; // 8K * (1000/100) = 80K per second max sent rate (1MB file=12 seconds)
 				//g_dwSendLastTime = timeGetTime() + 500; // 8K * (1000/500) = 16K per second max sent rate (1MB file=60 seconds)
-				g_dwSendLastTime = timeGetTime() + 250; // 8K * (1000/250) = 32K per second max sent rate (1MB file=30 seconds)
-				if ( PhotonSendFileDone() == 1 ) 
+				//g_dwSendLastTime = timeGetTime() + 250; // 8K * (1000/250) = 32K per second max sent rate (1MB file=30 seconds)
+				g_dwSendLastTime = timeGetTime() + 1; // new FPM HOST Transfer to Server (much quicker and no drop out)
+				if ( PhotonSendFileDone() == 1 )
 				{
 					g.mp.syncedWithServerMode = 2;
 					g.mp.oldtime = Timer();

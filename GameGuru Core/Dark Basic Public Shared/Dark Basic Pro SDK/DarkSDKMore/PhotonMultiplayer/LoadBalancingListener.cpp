@@ -1,16 +1,43 @@
+// Include
 #include <stdafx.h>
 #include <iostream>
 #include <stdlib.h>
 #include "Common-cpp/inc/UTF8String.h"
 #include "Common-cpp/inc/MemoryManagement/Allocate.h"
 #include "LoadBalancingListener.h"
+#include <wininet.h>
+#include "..\..\..\..\GameGuru\Include\Common-Keys.h"
+
+// Better way to transfer FPM files faster
+#define FASTFPMTRANSFER
 
 // Externals
 void timestampactivity ( int iStamp, char* pText );
+void mp_addHostFPMFIleToMasterHostList ( LPSTR pFilenameToAdd );
 
 // Namespaces 
 using namespace ExitGames::Common;
 using namespace ExitGames::LoadBalancing;
+
+// Globals for FPM server transfer
+MsgClientSendFileBegin_t g_msgSendFPMFile;
+FILE* g_http_oFile = NULL;
+FILE* g_http_fFile = NULL;
+bool g_http_bSaveToFile = false;
+char g_http_szLocalFile[2048];
+char g_http_szUploadFile[2048];
+float g_http_fProgress = 0.0f;
+int g_http_iStatusCode = 0;
+HANDLE g_http_hHttpRequest = NULL;
+HANDLE g_http_hInetConnect = NULL;
+HANDLE g_http_hInet = NULL;
+int g_http_iTotalWritten = 0;
+int g_http_iTotalLength = 0;
+bool g_http_bTerminate = false;
+LPSTR g_http_pDataReturned = NULL;
+DWORD g_http_dwDataReturnedBufferSize = 0;
+unsigned int g_http_dwDataLength = 0;
+DWORD g_http_dwExpectedSize = 0;
 
 LoadBalancingListener::LoadBalancingListener ( PhotonView* pView, LPSTR pRootPath ) : mpLbc(NULL), mPhotonView(pView), mLocalPlayerNr(0), mMap("Forest")
 {
@@ -22,6 +49,9 @@ LoadBalancingListener::LoadBalancingListener ( PhotonView* pView, LPSTR pRootPat
 	}
 	miCurrentServerPlayerID = -1;
 	mbIsServer = false;
+	miGetFPMFromServerNow = 0;
+	miGetFPMFromServerName = NULL;
+	miGetFPMFromServerExpectedSize = 0;
 	strcpy ( mpRootPath, pRootPath );
 
 	// initialise remap array
@@ -412,6 +442,9 @@ void LoadBalancingListener::migrateHostIfServer ( void )
 			}
 		}
 		mbIsServer = false;
+		miGetFPMFromServerNow = 0;
+		miGetFPMFromServerName = NULL;
+		miGetFPMFromServerExpectedSize = 0;
 	}
 }
 
@@ -511,10 +544,19 @@ void LoadBalancingListener::SendFileBegin ( int index , LPSTR pString, LPSTR pRo
 	if ( mbIsServer == true )
 	{
 		// specify filename of file
-		MsgClientSendFileBegin_t msg;
-		msg.index = index;
-		strcpy ( msg.fileName , pString );
+		g_msgSendFPMFile.index = index;
+		strcpy ( g_msgSendFPMFile.fileName, pString );
 
+		#ifdef FASTFPMTRANSFER
+		// send signal that we are using the TGC server to store the FPM
+		g_msgSendFPMFile.fileSize = -1001;
+		serverHowManyFileChunks = -1001;
+		serverChunkToSendCount = 1;
+		if ( serverOnlySendMapToSpecificPlayer == - 1 )
+			sendMessage ( (nByte*)&g_msgSendFPMFile, sizeof(MsgClientSendFileBegin_t), true );
+		else
+			sendMessageToPlayer ( serverOnlySendMapToSpecificPlayer, (nByte*)&g_msgSendFPMFile, sizeof(MsgClientSendFileBegin_t), true );
+		#else
 		// now get full asbolute path to file
 		char pAbsFilename[2048];
 		strcpy ( pAbsFilename, pRootPath );
@@ -536,7 +578,620 @@ void LoadBalancingListener::SendFileBegin ( int index , LPSTR pString, LPSTR pRo
 			else
 				sendMessageToPlayer ( serverOnlySendMapToSpecificPlayer, (nByte*)&msg, sizeof(MsgClientSendFileBegin_t), true );
 		}
+		#endif
 	}
+}
+
+int DecodeUTF8Char( const char* str, int *numBytes )
+{
+	if (numBytes) *numBytes = 1;
+
+	const unsigned char* ustr = (const unsigned char*) str;
+	if ( *ustr < 128 ) 
+	{
+		// one byte
+		return *ustr;
+	}
+	else
+	{
+		int result;
+
+		if ( *ustr < 194 ) return -1; // not valid as the first byte
+
+		if ( *ustr < 224 )
+		{
+			// two bytes
+			result = (*ustr & 0x1F);
+			result <<= 6;
+
+			ustr++;
+			if ( (*ustr & 0xC0) != 0x80 ) return -1; // second byte must start 10xxxxxx
+			result |= (*ustr & 0x3F);
+
+			if (numBytes) (*numBytes)++;
+			
+			return result;
+		}
+		
+		if ( *ustr < 240 )
+		{
+			// three bytes
+			result = (*ustr & 0x0F);
+			result <<= 6;
+
+			ustr++;
+			if ( (*ustr & 0xC0) != 0x80 ) return -1; // second byte must start 10xxxxxx
+			result |= (*ustr & 0x3F);
+			result <<= 6;
+
+			if (numBytes) (*numBytes)++;
+
+			ustr++;
+			if ( (*ustr & 0xC0) != 0x80 ) return -1; // third byte must start 10xxxxxx
+			result |= (*ustr & 0x3F);
+
+			if (numBytes) (*numBytes)++;
+
+			if ( result < 0x800 ) return -1; // overlong encoding
+			if ( result >= 0xD800 && result <= 0xDFFF ) return -1; // reserved for UTF-16, not valid characters
+			
+			return result;
+		}
+		
+		if ( *ustr < 245 )
+		{
+			// four bytes
+			result = (*ustr & 0x07);
+			result <<= 6;
+
+			ustr++;
+			if ( (*ustr & 0xC0) != 0x80 ) return -1; // second byte must start 10xxxxxx
+			result |= (*ustr & 0x3F);
+			result <<= 6;
+
+			if (numBytes) (*numBytes)++;
+
+			ustr++;
+			if ( (*ustr & 0xC0) != 0x80 ) return -1; // third byte must start 10xxxxxx
+			result |= (*ustr & 0x3F);
+			result <<= 6;
+
+			if (numBytes) (*numBytes)++;
+
+			ustr++;
+			if ( (*ustr & 0xC0) != 0x80 ) return -1; // fourth byte must start 10xxxxxx
+			result |= (*ustr & 0x3F);
+
+			if (numBytes) (*numBytes)++;
+
+			if ( result < 0x10000 ) return -1; // overlong encoding
+			if ( result > 0x10FFFF ) return -1; // outside valid character range
+			
+			return result;
+		}
+		
+		// invalid
+		return -1;
+	}
+}
+
+void ASCIIReplace( LPSTR pData, int iLength, unsigned int find, unsigned int replace )
+{
+	if ( iLength == 0 ) return;
+	if ( find == 0 ) return;
+	if ( replace < 128 ) // can only take this shortcut if replace is also ascii
+	{
+		char *str = pData;
+		while ( *str )
+		{
+			if ( *str == find ) *str = replace;
+			str++;
+		}
+		return;
+	}
+}
+
+int ASCIIRevFind( LPSTR pData, int iLength, int cFind )
+{
+	if ( iLength == 0 || !pData ) return -1;
+	//if ( cFind >= 128 ) return -1;
+	char *str = pData + (iLength-1);
+	int pos = iLength-1;
+	while ( str != pData )
+	{
+		if ( *str == cFind ) return pos;
+		pos--;
+		str--;
+	}
+	if ( *str == cFind ) return 0;
+	return -1;
+}
+
+int SendFileInternal ( LPSTR szServerFile, bool bSaveToFile, LPSTR szLocalFile, LPSTR szUploadFile, LPSTR szPostData )
+{
+	// init vars
+	g_http_oFile = NULL;
+	g_http_fProgress = 0;
+	g_http_iStatusCode = 0;
+	g_http_bSaveToFile = bSaveToFile;
+	strcpy ( g_http_szLocalFile, szLocalFile );
+	strcpy ( g_http_szUploadFile, szUploadFile );
+
+	// if no server URL address, leave
+	if ( strlen(szServerFile) == 0 ) return 0;
+
+	// if going to save a file
+	if ( g_http_bSaveToFile )
+	{
+		// ensure output file specified
+		if ( !szLocalFile ) 
+			return 0;
+
+		// open output file for writing
+		g_http_oFile = fopen ( g_http_szLocalFile, "wb" );
+		if ( g_http_oFile == NULL )
+		{
+			return 0;
+		}
+		fclose ( g_http_oFile );//oFile.Close();
+		g_http_oFile = NULL;
+	}
+
+	if ( strlen(g_http_szUploadFile) == 0 ) //szUploadFile.GetLength() == 0 )
+	{
+		return 0;
+	}
+
+	g_http_fFile = NULL;
+	g_http_fFile = fopen ( g_http_szUploadFile, "rb" ); //if ( !fFile.OpenToRead( szUploadFile ) )
+	if ( g_http_fFile == NULL )
+	{
+		return 0;
+	}
+
+	char sFinalPostData[2048];//uString sFinalPostData;
+	strcpy ( sFinalPostData, "" );
+	char sName[ 256 ];
+	char sValue[ 512 ];
+	const char* remaining = szPostData;//.GetStr();
+	int count = 0;//szPostData.Count( '&' ) + 1;
+	if ( szPostData != NULL && strlen(szPostData) > 0 )
+	{
+		int iUTF8Find = '&';//find;
+		char* ptr = szPostData;
+		int numBytes;
+		while ( *ptr )
+		{
+			int c = DecodeUTF8Char( ptr, &numBytes );
+			if ( c == iUTF8Find ) count++;
+			ptr += numBytes;
+		}
+	}
+	count = count + 1;
+
+	for ( int i = 0; i < count; i++ )
+	{
+		int pos = (int) strcspn( remaining, "=" );
+		strncpy( sName, remaining, pos ); 
+		sName[ pos ] = '\0';
+		remaining += pos+1;
+		pos = (int) strcspn( remaining, "&" );
+		strncpy( sValue, remaining, pos ); 
+		sValue[ pos ] = '\0';
+		remaining += pos+1;
+		if ( strlen( sName ) == 0 || strlen( sValue ) == 0 ) continue;
+		strcat ( sFinalPostData, "--------------------AaB03x\r\nContent-Disposition: form-data; name=\"" );//sFinalPostData.Append( "--------------------AaB03x\r\nContent-Disposition: form-data; name=\"" );
+		strcat ( sFinalPostData, sName );//sFinalPostData.Append( sName );
+		strcat ( sFinalPostData, "\"\r\n\r\n" );//sFinalPostData.Append( "\"\r\n\r\n" );
+		strcat ( sFinalPostData, sValue );//sFinalPostData.Append( sValue );
+		strcat ( sFinalPostData, "\r\n" );//sFinalPostData.Append( "\r\n" );
+	}
+	ASCIIReplace ( g_http_szUploadFile, strlen(g_http_szUploadFile), '\\', '/');//szUploadFile.Replace( '\\', '/' );
+	
+	char sFilename[2048];//uString sFilename;
+	int pos = ASCIIRevFind ( g_http_szUploadFile, strlen(g_http_szUploadFile), '/' );//szUploadFile.RevFind( '/' );
+	if ( pos >= 0 ) strcpy ( sFilename, g_http_szUploadFile+pos+1 );//szUploadFile.SubString( sFilename, pos+1 );
+	else strcpy ( sFilename, g_http_szUploadFile );//sFilename.SetStr( szUploadFile );
+
+	strcat ( sFinalPostData, "--------------------AaB03x\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" );//sFinalPostData.Append( "--------------------AaB03x\r\nContent-Disposition: form-data; name=\"myfile\"; filename=\"" );
+	strcat ( sFinalPostData, sFilename );//sFinalPostData.Append( sFilename );
+	strcat ( sFinalPostData, "\"\r\nContent-Type: application/x-zip-compressed\r\n\r\n" );//sFinalPostData.Append( "\"\r\nContent-Type: application/x-zip-compressed\r\n\r\n" );
+
+	char sEndPostData[2048];//uString sEndPostData( "\r\n--------------------AaB03x--\r\n" );
+	strcpy ( sEndPostData, "\r\n--------------------AaB03x--\r\n" );
+
+	DWORD dwFileSize = 0;//fFile.GetSize()
+	fseek ( g_http_fFile, 0, SEEK_END );
+	dwFileSize = ftell ( g_http_fFile );
+	rewind ( g_http_fFile );
+	g_http_iTotalLength = strlen(sFinalPostData) + dwFileSize + strlen(sEndPostData) ;//sFinalPostData.GetLength() + fFile.GetSize() + sEndPostData.GetLength();
+
+	// start internet connection
+	UINT iError = 0;
+	g_http_hInet = InternetOpen( "InternetConnection", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0 );
+	if ( g_http_hInet == NULL )
+	{
+		iError = GetLastError( );
+		return NULL;
+	}
+
+	// and connect to it
+	unsigned short wHTTPType = INTERNET_DEFAULT_HTTPS_PORT;
+	g_http_hInetConnect = InternetConnect( g_http_hInet, "www.thegamecreators.com", wHTTPType, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0 );
+	if ( g_http_hInetConnect == NULL )
+	{
+		InternetCloseHandle( g_http_hInet );
+		iError = GetLastError( );
+		return 0;
+	}
+
+	// set timeout options
+	int m_iTimeout = 2000;
+	InternetSetOption( g_http_hInetConnect, INTERNET_OPTION_CONNECT_TIMEOUT, (void*)&m_iTimeout, sizeof(m_iTimeout) );  
+
+	// prepare request
+	DWORD dwFlag = INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_NO_CACHE_WRITE;
+	dwFlag |= INTERNET_FLAG_SECURE;
+	g_http_hHttpRequest = HttpOpenRequest( g_http_hInetConnect, "POST", szServerFile, "HTTP/1.1", "The Agent", NULL, dwFlag, 0 );
+	if ( !g_http_hHttpRequest )
+	{
+		InternetCloseHandle( g_http_hInetConnect );
+		InternetCloseHandle( g_http_hInet );
+		return 0;
+	}
+
+	// add Content-Length header
+	char sHeader[2048];//uString sHeader; 
+	sprintf ( sHeader, "Content-Length: %d", g_http_iTotalLength );//sHeader.Format( "Content-Length: %d", iTotalLength );
+	HttpAddRequestHeaders( g_http_hHttpRequest, sHeader, -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+
+	// add Content-Type header
+	HttpAddRequestHeaders( g_http_hHttpRequest, "Content-Type: multipart/form-data; boundary=------------------AaB03x", -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+
+	// start request
+	BOOL bSendResult = HttpSendRequestEx( g_http_hHttpRequest, NULL, NULL, NULL, NULL );
+	if ( !bSendResult )
+	{
+		InternetCloseHandle( g_http_hHttpRequest );
+		InternetCloseHandle( g_http_hInetConnect );
+		InternetCloseHandle( g_http_hInet );
+		return 0;
+	}
+
+	// send initial post data
+	DWORD iWritten = 0;
+	g_http_iTotalWritten = 0;
+	bSendResult = InternetWriteFile( g_http_hHttpRequest, (void*)(sFinalPostData), strlen(sFinalPostData), &iWritten );//(void*)(sFinalPostData.GetStr()), sFinalPostData.GetLength(), &iWritten );
+	if ( !bSendResult )
+	{
+		//uString error;
+		//error.Format( "Failed to send initial data: %d", ::GetLastError( ) );
+		//agk::Warning( error );
+		InternetCloseHandle( g_http_hHttpRequest );
+		InternetCloseHandle( g_http_hInetConnect );
+		InternetCloseHandle( g_http_hInet );
+		return 0;
+	}
+	g_http_iTotalWritten += iWritten;
+
+	// successfully started async send
+	return 1;
+}
+
+bool SendFileInternalAsync ( LPSTR* ppDataReturned, DWORD* pdwDataReturnedSize )
+{
+	// default is zero data returned
+	if ( pdwDataReturnedSize ) *pdwDataReturnedSize = 0;
+	
+	//send file data a chunk at a time, allows progress bar to update
+	BOOL bSendResult;
+	DWORD dwWritten = 0;
+	char bytes[ 40000 ];
+	//while ( !feof(g_http_fFile) && !bTerminate )//!fFile.IsEOF() && !bTerminate )
+	if ( !feof(g_http_fFile) )//!fFile.IsEOF() && !bTerminate )
+	{
+		int bytesread = fread ( bytes, 1, 40000, g_http_fFile );//int bytesread = fFile.ReadData( bytes, 20000 );
+		if ( bytesread > 0 )
+		{
+			bSendResult = InternetWriteFile( g_http_hHttpRequest, (void*)bytes, bytesread, &dwWritten );
+			if ( !bSendResult )
+			{
+				//uString error;
+				//error.Format( "Failed to send file data: %d", ::GetLastError( ) );
+				//agk::Warning( error );
+				g_http_bTerminate = true;
+			}
+			g_http_iTotalWritten += dwWritten;
+			g_http_fProgress = g_http_iTotalWritten*100.0f / g_http_iTotalLength;
+		}
+	}
+	if ( feof(g_http_fFile) || g_http_bTerminate == true )
+	{
+		// finished uploading file
+		if ( g_http_fFile )
+		{
+			fclose ( g_http_fFile );
+			g_http_fFile = NULL;
+		}
+
+		if ( g_http_bTerminate == true ) 
+		{
+			//uString error( "Could not upload file, upload aborted by user" );
+			//agk::Warning( error );
+			InternetCloseHandle( g_http_hHttpRequest );
+			InternetCloseHandle( g_http_hInetConnect );
+			InternetCloseHandle( g_http_hInet );
+			return true;
+		}
+
+		// this duplicated from above (dangerous if we change seperator)
+		char sEndPostData[2048];
+		strcpy ( sEndPostData, "\r\n--------------------AaB03x--\r\n" );
+
+		// send ending
+		bSendResult = InternetWriteFile( g_http_hHttpRequest, (void*)(sEndPostData), strlen(sEndPostData), &dwWritten );//(void*)(sEndPostData.GetStr()), sEndPostData.GetLength(), &iWritten );
+		if ( !bSendResult )
+		{
+			//uString error;
+			//error.Format( "Failed to send final data: %d", ::GetLastError( ) );
+			//agk::Warning( error );
+			InternetCloseHandle( g_http_hHttpRequest );
+			InternetCloseHandle( g_http_hInetConnect );
+			InternetCloseHandle( g_http_hInet );
+			return true;
+		}
+
+		//close request
+		bSendResult = HttpEndRequest( g_http_hHttpRequest, NULL, NULL, NULL );
+		if ( !bSendResult )
+		{
+			//uString error;
+			//error.Format( "Failed to close request: %d", ::GetLastError( ) );
+			//agk::Warning( error );
+			InternetCloseHandle( g_http_hHttpRequest );
+			InternetCloseHandle( g_http_hInetConnect );
+			InternetCloseHandle( g_http_hInet );
+			return true;
+		}
+
+		g_http_fProgress = 99.9f;
+
+		// finished sending, start receiving
+		DWORD dwBufferSize = sizeof(int);
+		DWORD dwHeaderIndex = 0;
+		BOOL bReturnHeader = HttpQueryInfo( g_http_hHttpRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, (void*)&g_http_iStatusCode, &dwBufferSize, &dwHeaderIndex );
+
+		DWORD dwContentLength = 0;
+		dwBufferSize = sizeof(DWORD);
+		dwHeaderIndex = 0;
+		bReturnHeader = HttpQueryInfo( g_http_hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, &dwBufferSize, &dwHeaderIndex );
+
+		dwHeaderIndex = 0;
+		char szContentType[150];
+		DWORD ContentTypeLength = 150;
+		HttpQueryInfo( g_http_hHttpRequest, HTTP_QUERY_CONTENT_TYPE, (void*)szContentType, &ContentTypeLength, &dwHeaderIndex );
+
+		DWORD dwArraySize = 0;
+		DWORD dwDataLength = 0;
+
+		// server is not guaranteed to send a content length
+		if ( dwContentLength > 0 && !g_http_bSaveToFile )
+		{
+			*ppDataReturned = new char [ dwContentLength + 1 ];
+			dwArraySize = dwContentLength + 1;
+		}
+
+		if ( g_http_bSaveToFile ) g_http_oFile = fopen ( g_http_szLocalFile, "wb" );//oFile.OpenToWrite( szLocalFile );
+
+		// create a read buffer
+		char pBuffer[ 20000 ];
+
+		// data comes in chunks
+		for(;;)
+		{
+			// read the data from the HINTERNET handle.
+			DWORD written = 0;
+			if( !InternetReadFile( g_http_hHttpRequest, (LPVOID) pBuffer, 20000, &written ) )
+			{
+				if ( *ppDataReturned ) delete [] *ppDataReturned;
+				if ( g_http_bSaveToFile ) { fclose (g_http_oFile); g_http_oFile=NULL; }//oFile.Close();
+				InternetCloseHandle( g_http_hHttpRequest );
+				InternetCloseHandle( g_http_hInetConnect );
+				InternetCloseHandle( g_http_hInet );
+				return true;
+			}
+
+			// Check the size of the remaining data. If it is zero it reached the end.
+			if ( written == 0 ) break;
+
+			// Add part-data to overall data returned
+			DWORD dwNewDataSize = dwDataLength + written;
+
+			if ( g_http_bSaveToFile )
+			{
+				fwrite( pBuffer, 1, written, g_http_oFile );//oFile.WriteData( pBuffer, written );
+			}
+			else
+			{
+				if ( dwArraySize <= dwNewDataSize )
+				{
+					// recreate a bigger array in 10KB chunks
+					LPSTR pNewData = new char [ dwNewDataSize + 20000 ];
+				
+					if ( *ppDataReturned && dwDataLength > 0 ) 
+					{
+						memcpy( pNewData, *ppDataReturned, dwDataLength );
+						delete [] *ppDataReturned;
+					}
+					*ppDataReturned = pNewData;
+
+					dwArraySize = dwNewDataSize + 20000;
+				}
+
+				memcpy( *ppDataReturned + dwDataLength, pBuffer, written );
+			}
+
+			dwDataLength = dwNewDataSize;
+		}
+
+		if ( g_http_bSaveToFile ) { fclose (g_http_oFile); g_http_oFile=NULL; }//oFile.Close();
+
+		g_http_fProgress = 100;
+
+		InternetCloseHandle( g_http_hHttpRequest );
+		InternetCloseHandle( g_http_hInetConnect );
+		InternetCloseHandle( g_http_hInet );
+
+		if ( *ppDataReturned ) (*ppDataReturned) [ dwDataLength ] = '\0';
+		else
+		{
+			*ppDataReturned = new char[1];
+			(*ppDataReturned)[0] = 0;
+		}
+		if ( pdwDataReturnedSize ) *pdwDataReturnedSize = dwDataLength;
+
+		// successfully uploaded file and got good response back (we want to get to this true)
+		return true;
+	}
+
+	// not yet finished, keep going around
+	return false;
+}
+
+UINT GetURLFile ( LPSTR urlWhere, DWORD dwExpectedSize )
+{
+	// temps and inits
+	UINT iError = 0;
+	int bSendResult = 0;
+	g_http_dwExpectedSize = dwExpectedSize;
+	g_http_dwDataReturnedBufferSize = 2048000;
+	g_http_pDataReturned = new char[g_http_dwDataReturnedBufferSize+1];
+	g_http_dwDataLength = 0;
+	memset ( g_http_pDataReturned, 0, g_http_dwDataReturnedBufferSize+1 );
+
+	// connect and get file data
+	g_http_hInet = InternetOpen( "InternetConnection", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0 );
+	if ( g_http_hInet == NULL )
+	{
+		iError = GetLastError( );
+	}
+	else
+	{
+		unsigned short wHTTPType = INTERNET_DEFAULT_HTTPS_PORT;
+		g_http_hInetConnect = InternetConnect( g_http_hInet, "www.thegamecreators.com", wHTTPType, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0 );
+		if ( g_http_hInetConnect == NULL )
+		{
+			iError = GetLastError( );
+		}
+		else
+		{
+			int m_iTimeout = 2000;
+			InternetSetOption( g_http_hInetConnect, INTERNET_OPTION_CONNECT_TIMEOUT, (void*)&m_iTimeout, sizeof(m_iTimeout) );  
+			g_http_hHttpRequest = HttpOpenRequest( g_http_hInetConnect, "GET", urlWhere, "HTTP/1.1", NULL, NULL, INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_SECURE, 0 );
+			if ( g_http_hHttpRequest == NULL )
+			{
+				iError = GetLastError( );
+			}
+			else
+			{
+				HttpAddRequestHeaders( g_http_hHttpRequest, "Content-Type: application/x-www-form-urlencoded", -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+				bSendResult = HttpSendRequest( g_http_hHttpRequest, NULL, -1, NULL, 0 );
+				if ( bSendResult == 0 )
+				{
+					iError = GetLastError( );
+				}
+				else
+				{
+					int m_iStatusCode = 0;
+					char m_szContentType[150];
+					unsigned int dwBufferSize = sizeof(int);
+					unsigned int dwHeaderIndex = 0;
+					HttpQueryInfo( g_http_hHttpRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, (void*)&m_iStatusCode, (LPDWORD)&dwBufferSize, (LPDWORD)&dwHeaderIndex );
+					dwHeaderIndex = 0;
+					unsigned int dwContentLength = 0;
+					HttpQueryInfo( g_http_hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, (LPDWORD)&dwBufferSize, (LPDWORD)&dwHeaderIndex );
+					dwHeaderIndex = 0;
+					unsigned int ContentTypeLength = 150;
+					HttpQueryInfo( g_http_hHttpRequest, HTTP_QUERY_CONTENT_TYPE, (void*)m_szContentType, (LPDWORD)&ContentTypeLength, (LPDWORD)&dwHeaderIndex );
+
+					// success
+					return 1;
+				}
+			}
+		}
+	}
+
+	// some error prevented connection
+	InternetCloseHandle( g_http_hHttpRequest );
+	InternetCloseHandle( g_http_hInetConnect );
+	InternetCloseHandle( g_http_hInet );
+	if ( g_http_pDataReturned )
+	{
+		delete g_http_pDataReturned;
+		g_http_pDataReturned = NULL;
+	}
+	return 0;
+}
+
+UINT GetURLFileAsync ( FILE* pOutputFileHandle, float* pfProgress )
+{
+	// keep going until all filedata downloaded
+	int iError = 0;
+	char pBuffer[ 40000 ];
+	unsigned int written = 0;
+	if( !InternetReadFile( g_http_hHttpRequest, (void*) pBuffer, 40000, (LPDWORD)&written ) )
+	{
+		// error
+	}
+	if ( written > 0 )
+	{
+		// write more to file data
+		if ( g_http_dwDataLength + written > g_http_dwDataReturnedBufferSize-1024 )
+		{
+			// increase size of data as file data gets better
+			g_http_dwDataReturnedBufferSize = g_http_dwDataReturnedBufferSize+4096000;
+			LPSTR pNewDataReturned = new char[g_http_dwDataReturnedBufferSize+1];
+			memcpy ( pNewDataReturned, g_http_pDataReturned, g_http_dwDataLength );
+			g_http_pDataReturned = pNewDataReturned;
+		}
+		memcpy( g_http_pDataReturned + g_http_dwDataLength, pBuffer, written );
+		g_http_dwDataLength = g_http_dwDataLength + written;
+		*pfProgress = 50.0f + (((float)g_http_dwDataLength/(float)g_http_dwExpectedSize)*50.0f);
+	}
+	else
+	{
+		// finish file data and save it
+		InternetCloseHandle( g_http_hHttpRequest );
+		InternetCloseHandle( g_http_hInetConnect );
+		InternetCloseHandle( g_http_hInet );
+		if ( iError > 0 )
+		{
+			char *szError = 0;
+			if ( iError > 12000 && iError < 12174 ) 
+				FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE, GetModuleHandle("wininet.dll"), iError, 0, (char*)&szError, 0, 0 );
+			else 
+				FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, iError, 0, (char*)&szError, 0, 0 );
+			if ( szError )
+			{
+				LocalFree( szError );
+			}
+		}
+
+		// save file from filedata
+		if ( pOutputFileHandle && g_http_dwDataLength > 0 )
+		{
+			fwrite ( g_http_pDataReturned, 1, g_http_dwDataLength, pOutputFileHandle );
+		}
+
+		// free usages
+		delete g_http_pDataReturned;
+
+		// finished
+		return 1;
+	}
+
+	// keep going
+	return 0;
 }
 
 int LoadBalancingListener::SendFileDone()
@@ -551,17 +1206,105 @@ int LoadBalancingListener::SendFileDone()
 			if ( iSlotIndex >= 0 && m_rgpPlayer[iSlotIndex] == NULL )
 			{
 				// player server was sending file to has gone
+				#ifdef FASTFPMTRANSFER
+				// no mhServerFile used for server upload of FPM
+				#else
 				if ( mhServerFile )
 				{
 					// close file if still open for old writing
 					fclose ( mhServerFile );
 					mhServerFile = NULL;
 				}
+				#endif
 				return 1;
 			}
 		}
 
 		// if file open and ready to read data
+		#ifdef FASTFPMTRANSFER
+		// use count to stage process of sending and signaling
+		if ( serverChunkToSendCount == 1 )
+		{
+			// start uploading the FPM to the server
+			LPSTR szServerFile = "/api/gameguru/multiplayer/storage/upload";
+			bool bSaveToFile = false;
+			LPSTR szLocalFile = "";
+			LPSTR szUploadFile = g_msgSendFPMFile.fileName;
+			LPSTR szPostData = FPMHOSTUPLOADKEY;
+			SendFileInternal ( szServerFile, bSaveToFile, szLocalFile, szUploadFile, szPostData );
+			serverChunkToSendCount = 2;
+		}
+		if ( serverChunkToSendCount == 2 )
+		{
+			DWORD dwDataReturnedSize = 0;
+			LPSTR pDataReturned = NULL;
+			if ( SendFileInternalAsync ( &pDataReturned, &dwDataReturnedSize ) == true )
+			{
+				if ( pDataReturned && strchr(pDataReturned, '{') != 0 && dwDataReturnedSize < 10240 )
+				{
+					// break up response string
+					// {
+					// "success": true,
+					// "filename": "312321321321321321321.zip",
+					// }
+					char pfilenameText[10240];
+					strcpy ( pfilenameText, "" );
+					char pWorkStr[10240];
+					memset ( pWorkStr, 0, sizeof(pWorkStr) );
+					strcpy ( pWorkStr, pDataReturned );
+					if ( pWorkStr[0]=='{' ) strcpy ( pWorkStr, pWorkStr+1 );
+					int n = 10200;
+					for (; n>0; n-- ) if ( pWorkStr[n] == '}' ) { pWorkStr[n-1] = 0; break; }
+					char* pChop = strstr ( pWorkStr, "," );
+					char pStatusStr[10240];
+					strcpy ( pStatusStr, pWorkStr );
+					if ( pChop ) pStatusStr[pChop-pWorkStr] = 0;
+					if ( pChop[0]==',' ) pChop += 1;
+					if ( strstr ( pStatusStr, "success" ) != NULL )
+					{
+						// success
+						if ( strstr ( pStatusStr, "true" ) != NULL )
+						{
+							// filename
+							pChop = strstr ( pChop, ":" ) + 2;
+							strcpy ( pfilenameText, pChop );
+
+							// when upload of FPM finished, and got back server side filename, signal this filename to rest
+							MsgClientSendChunk_t msg;
+							strcpy ( (LPSTR)msg.chunk, pfilenameText );
+							msg.index = g_http_iTotalLength;
+							if ( serverOnlySendMapToSpecificPlayer == - 1 )
+								sendMessage ( (nByte*)&msg, sizeof(MsgClientSendChunk_t), true );
+							else
+								sendMessageToPlayer ( serverOnlySendMapToSpecificPlayer, (nByte*)&msg, sizeof(MsgClientSendChunk_t), true );
+
+							// also record this filename in hosts local list, as hosts are responsible for deleting this file from server
+							// either when you leave mulitplayer, or next time inside multiplayer (server cleaned by user who made the mess)
+							mp_addHostFPMFIleToMasterHostList ( pfilenameText );
+
+							// send has been completed
+							return 1;
+						}
+					}
+					else
+					{
+						// error
+						char* pMessageValue = strstr ( pChop, ":" ) + 1;
+					}
+				}
+			}
+			else
+			{
+				// keepng going - still uploading file to server - keep client(s) informed as to server upload process
+				MsgClientSendProgress_t msg;
+				msg.fProgress = g_http_fProgress / 2.0f;
+				if ( serverOnlySendMapToSpecificPlayer == - 1 )
+					sendMessage ( (nByte*)&msg, sizeof(MsgClientSendProgress_t), true );
+				else
+					sendMessageToPlayer ( serverOnlySendMapToSpecificPlayer, (nByte*)&msg, sizeof(MsgClientSendProgress_t), true );
+			}
+		}
+		#else
 		if ( mhServerFile )
 		{
 			// send a chunk of the file data
@@ -584,8 +1327,66 @@ int LoadBalancingListener::SendFileDone()
 			}
 			return 0;
 		}
+		#endif
 	}
 	return 0;
+}
+
+void LoadBalancingListener::GetFileDone ( void )
+{
+	// only clients get files
+	if ( mbIsServer == false )
+	{
+		if ( miGetFPMFromServerNow == 1 )
+		{
+			// get request from server
+			char urlWhere[2048];
+			strcpy ( urlWhere, "/api/gameguru/multiplayer/storage/download?" );
+			strcat ( urlWhere, FPMHOSTUPLOADKEY );
+			strcat ( urlWhere, "&file=" );
+			strcat ( urlWhere, miGetFPMFromServerName );
+			if ( GetURLFile ( urlWhere, miGetFPMFromServerExpectedSize  ) == 1 )
+			{
+				miGetFPMFromServerNow = 2;
+				mfFileProgress = 2.0f;
+
+				// free usage
+				if ( miGetFPMFromServerName )
+				{
+					delete miGetFPMFromServerName;
+					miGetFPMFromServerName = NULL;
+				}
+			}
+			else
+			{
+				// could not find FPM server file
+				MessageBox ( NULL, "could not find server FPM file", "file not found", MB_OK );
+			}
+		}
+		else
+		{
+			if ( miGetFPMFromServerNow == 2 )
+			{
+				// do we have all the file
+				if ( GetURLFileAsync ( mhServerFile, &mfFileProgress ) == 1 )
+				{
+					// yes, close file
+					fclose ( mhServerFile );
+					mhServerFile = NULL;
+
+					// send signal the client has the file
+					IamSyncedWithServerFiles = 1;
+					MsgClientPlayerIamSyncedWithServerFiles_t msg;
+					msg.index = muPhotonPlayerIndex;
+					sendMessage ( (nByte*)&msg, sizeof(MsgClientPlayerIamSyncedWithServerFiles_t), true );
+
+					// finished FPM download process
+					miGetFPMFromServerNow = 0;
+					mfFileProgress = 100.0f;
+				}
+			}
+		}
+	}
 }
 
 void LoadBalancingListener::CloseFileNow ( void )
@@ -873,9 +1674,30 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 						strcat ( pAbsFilename, pmsg->fileName );
 
 						mhServerFile = fopen ( pAbsFilename, "wb" );
+						#ifdef FASTFPMTRANSFER
+						// pmsg->fileSize == -1001 (i.e g_msgSendFPMFile.fileSize = -1001) - not used now
+						#else
 						serverHowManyFileChunks = (int)ceil( (float)pmsg->fileSize / float(FILE_CHUNK_SIZE) );
 						serverFileFileSize = pmsg->fileSize;
+						#endif
 						mfFileProgress = 0.0f;
+					}
+				}
+			}
+			break;
+		case k_EMsgClientSendProgress:
+			{
+				if ( mbIsServer == false )
+				{
+					if ( cubMsgSize == sizeof( MsgClientSendProgress_t ) )
+					{
+						MsgClientSendProgress_t* pmsg = (MsgClientSendProgress_t*)pchRecvBuf;
+						if ( mhServerFile ) 
+						{
+							#ifdef FASTFPMTRANSFER
+							mfFileProgress = pmsg->fProgress;
+							#endif
+						}
 					}
 				}
 			}
@@ -890,6 +1712,18 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 						MsgClientSendChunk_t* pmsg = (MsgClientSendChunk_t*)pchRecvBuf;
 						if ( mhServerFile ) 
 						{
+							#ifdef FASTFPMTRANSFER
+							// GET FPM file from server (chunk download needs to be outside message system (from TGC-server not photon)
+							if ( miGetFPMFromServerNow == 0 )
+							{
+								miGetFPMFromServerNow = 1;
+								LPSTR pMsgFileName = (LPSTR)pmsg->chunk;
+								miGetFPMFromServerName = new char[strlen(pMsgFileName)+1];
+								strcpy ( miGetFPMFromServerName, pMsgFileName );
+								miGetFPMFromServerExpectedSize = pmsg->index;
+								mfFileProgress = 1.0f;
+							}
+							#else
 							int chunkSize = FILE_CHUNK_SIZE;
 							if ( pmsg->index == serverHowManyFileChunks )
 							{
@@ -898,11 +1732,8 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 								else
 									chunkSize = serverFileFileSize - ((serverHowManyFileChunks-1) * FILE_CHUNK_SIZE	);				
 							}
-
 							mfFileProgress = ((float)(pmsg->index * FILE_CHUNK_SIZE) / (float)serverFileFileSize ) * 100.0f;
-
 							fwrite( &pmsg->chunk[0] , 1 , chunkSize , mhServerFile );
-
 							if ( pmsg->index == serverHowManyFileChunks )
 							{
 								fclose ( mhServerFile );
@@ -919,6 +1750,7 @@ void LoadBalancingListener::handleMessage(int playerNr, EMessage eMsg, DWORD cub
 								else
 									IamSyncedWithServerFiles = 0;
 							}
+							#endif
 						}
 					}
 				}

@@ -38,6 +38,7 @@ int PhotonGetClientServerConnectionStatus();
 void PhotonStartServer();
 int PhotonIsServerRunning();
 int PhotonIsPlayerTheServer();
+void PhotonCheckIfGameRunning();
 int PhotonIsGameRunning();
 int PhotonGetMyPlayerIndex();
 int PhotonGetMyRealPlayerNr();

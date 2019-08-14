@@ -58,6 +58,7 @@ public:
 	void SetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer);
 	void SendFileBegin ( int index , LPSTR pString, LPSTR pRootPath );
 	int SendFileDone();
+	void GetFileDone();
 	void CloseFileNow ( void );
 	int IsEveryoneFileSynced();
 	float GetFileProgress();
@@ -107,6 +108,9 @@ private:
 	PhotonView* mPhotonView;
 
 	bool mbIsServer = false;
+	int miGetFPMFromServerNow = 0;
+	LPSTR miGetFPMFromServerName = NULL;
+	DWORD miGetFPMFromServerExpectedSize = 0;
 
 	char mpRootPath[2048];
 	FILE* mhServerFile = NULL;

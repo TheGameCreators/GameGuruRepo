@@ -73,6 +73,7 @@ enum EMessage
 	k_EMsgClientSendAvatarDone = k_EMsgClientBegin+39,
 	k_EMsgGetGlobalStates = k_EMsgClientBegin+40,
 	k_EMsgClientLuaPlayerSpecificString = k_EMsgClientBegin+41,
+	k_EMsgClientSendProgress = k_EMsgClientBegin+42,
 
 	// P2P authentication messages
 	k_EMsgP2PBegin = 600, 
@@ -560,6 +561,17 @@ public:
 	int index;
 	char fileName[512];
 	int	fileSize;
+};
+
+struct MsgClientSendProgress_t
+{
+	MsgClientSendProgress_t() : m_dwMessageType( LittleDWord( k_EMsgClientSendProgress ) ) {}
+	DWORD GetMessageType() { return LittleDWord( m_dwMessageType ); }
+
+private:
+	const DWORD m_dwMessageType;
+public:
+	float fProgress;
 };
 
 struct MsgClientSendChunk_t

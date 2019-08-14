@@ -167,6 +167,7 @@ void game_masterroot ( int iUseVRTest )
 			if ( t.game.cancelmultiplayer == 1 ) 
 			{
 				// user selected BACK (cancel multiplayer)
+				mp_fullclose();
 				t.game.levelloop=0;
 			}
 			else

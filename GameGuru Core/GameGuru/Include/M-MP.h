@@ -6,8 +6,10 @@
 
 void mp_init ( void );
 void mp_fullinit ( void );
+void mp_fullclose ( void );
 void mp_loop ( void );
 void mp_free ( void );
+void mp_checkToCleanUpMasterHostList ( void );
 void mp_checkVoiceChat ( void );
 void mp_spawn_objects ( void );
 void mp_lua ( void );
