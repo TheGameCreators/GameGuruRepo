@@ -1930,17 +1930,32 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					// 4 : RESERVED - HOLDING VALUE (see code)
 					// 5 : detects VR920/iWear (switches OFF if not found)
 					// 6 : special case, side by side rendering
-					if ( g_bDisableVRDetectionByUserRequest == true )
-					{
-						// this executable can completely override VR mode choice
-						g.gvrmode = 0;
-						g.gvrmodemag = 0;
+					//if ( g_bDisableVRDetectionByUserRequest == true )
+					//{
+					//	// this executable can completely override VR mode choice
+					//	g.gvrmode = 0;
+					//	g.gvrmodemag = 0;
+					//}
+					//else
+					//{
+					t.tryfield_s = "vrmode" ; 
+					if (  t.field_s == t.tryfield_s  )  
+					{ 
+						g.gvrmode = t.value1; 
+						g.gvrmodeoriginal = t.value1; 
+						if ( g.gvrmode != 0 )
+						{
+							#ifndef GURULIGHTMAPPER
+							if ( MessageBox ( NULL, "Please confirm if you have the Windows Mixed Reality Portal software running and a connected headset and controller(s). If you do click Yes, if you want to use VR Quest without a headset click No.", "VR Mode Confirmation", MB_YESNO ) == IDNO )
+							{
+								// this will ignore any VRMODE that may have been required by this executable
+								g.gvrmode = 0;
+							}
+							#endif
+						}
 					}
-					else
-					{
-						t.tryfield_s = "vrmode" ; if (  t.field_s == t.tryfield_s  )  { g.gvrmode = t.value1; g.gvrmodeoriginal = t.value1; }
-						t.tryfield_s = "vrmodemag" ; if (  t.field_s == t.tryfield_s  )  g.gvrmodemag = t.value1;
-					}
+					t.tryfield_s = "vrmodemag" ; if (  t.field_s == t.tryfield_s  )  g.gvrmodemag = t.value1;
+					//}
 
 					t.tryfield_s = "dynamiclighting" ; if (  t.field_s == t.tryfield_s  )  g.gdynamiclightingstate = t.value1;
 					t.tryfield_s = "dynamicshadows" ; if (  t.field_s == t.tryfield_s ) g.gdynamicshadowsstate = t.value1  ; t.newdynamicshadows = t.value1;
