@@ -1809,7 +1809,9 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	
 	//PE: Convex hull - We keep gVertices,gIndices as mem1/2 , gVertices is used for height data directly on terrain.
 	//PE: so we later can test terrain and convex hull. remove (iTerrainMesh != 1)
-	if( iHullReduction > 0 && iTerrainMesh != 1) //PE: test iObjectNumber > 70000 ||
+	int ch_size = ch_vertexBuffer.size();
+
+	if( iHullReduction > 0 && iTerrainMesh != 1 && ch_size > 6 ) //PE: test iObjectNumber > 70000 ||
 	{
 		//PE: Add support for convex hull (collisionmode = 9) for faster physics.
 
@@ -1820,34 +1822,99 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
         hull->buildHull(margin);
         btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(&(hull->getVertexPointer()[0].getX()),hull->numVertices());
         SAFE_DELETE(ch_collShape);
+		
+		btRigidBody* body;
+		btDefaultMotionState* myMotionState;
+		float mass;
+		int hull_size = hull->numVertices();
 
-		g_collisionShapes.push_back(simplifiedConvexShape);
+		if (hull_size < 6) {
+			//
+			ch_vertexBuffer.clear();
 
-		if (isDynamic == 0) fVolume = 0;
-		btScalar mass(fVolume / gMs);
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic == 1) simplifiedConvexShape->calculateLocalInertia(mass, localInertia);
+			m_indexVertexArrays = new btTriangleIndexVertexArray();
 
-		// physics object pos and rotation
-		btTransform startTransform;
-		startTransform.setIdentity();
-		startTransform.setOrigin(btVector3(fXPos, fYPos, fZPos));
-		GGQUATERNION QuatAroundX(1, 0, 0, fXRot);
-		GGQUATERNION QuatAroundY(0, 1, 0, fYRot);
-		GGQUATERNION QuatAroundZ(0, 0, 1, fZRot);
-		GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), fXRot);
-		GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), fYRot);
-		GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), fZRot);
-		GGQUATERNION finalOrientation = QuatAroundX * QuatAroundY * QuatAroundZ;
-		startTransform.setRotation(btQuaternion(finalOrientation.x, finalOrientation.y, finalOrientation.z, finalOrientation.w));
-		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, simplifiedConvexShape, localInertia);
-		btRigidBody* body = new btRigidBody(rbInfo);
+			if (bDWORDSizeIndices == true)
+			{
+				btMesh.m_indexType = PHY_INTEGER;
+				btMesh.m_triangleIndexStride = 3 * sizeof(DWORD);
+				m_indexVertexArrays->addIndexedMesh(btMesh, PHY_INTEGER);
+			}
+			else
+			{
+				btMesh.m_indexType = PHY_SHORT;
+				btMesh.m_triangleIndexStride = 3 * sizeof(WORD);
+				m_indexVertexArrays->addIndexedMesh(btMesh, PHY_SHORT);
+			}
+
+
+			// these are deleted ONLY when world is destroyed
+			g_indexvertexarrays.push_back(m_indexVertexArrays);
+
+
+			trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays, useQuantizedAabbCompression, aabbMin, aabbMax, buildBvh);
+			trimeshShape->buildOptimizedBvh(); // done manually here for slightly faster build time?!?
+
+											   //bool buildBvh = false; // will make raycasting/etc slower!
+											   //btBvhTriangleMeshShape* trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays,useQuantizedAabbCompression,aabbMin,aabbMax,false);
+											   //trimeshShape->buildOptimizedBvh(); // done manually here for slightly faster build time?!?
+			g_collisionShapes.push_back(trimeshShape);
+			// mass/volume calculation
+			if (isDynamic == 0) fVolume = 0;
+			mass = fVolume / gMs;
+			btVector3 localInertia(0, 0, 0);
+
+			if (isDynamic == 1) trimeshShape->calculateLocalInertia(mass, localInertia);
+
+			// physics object pos and rotation
+			btTransform startTransform;
+			startTransform.setIdentity();
+			startTransform.setOrigin(btVector3(fXPos, fYPos, fZPos));
+			GGQUATERNION QuatAroundX(1, 0, 0, fXRot);
+			GGQUATERNION QuatAroundY(0, 1, 0, fYRot);
+			GGQUATERNION QuatAroundZ(0, 0, 1, fZRot);
+			GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), fXRot);
+			GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), fYRot);
+			GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), fZRot);
+			GGQUATERNION finalOrientation = QuatAroundX * QuatAroundY * QuatAroundZ;
+			startTransform.setRotation(btQuaternion(finalOrientation.x, finalOrientation.y, finalOrientation.z, finalOrientation.w));
+			myMotionState = new btDefaultMotionState(startTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, trimeshShape, localInertia);
+			body = new btRigidBody(rbInfo);
+
+		}
+		else {
+
+			g_collisionShapes.push_back(simplifiedConvexShape);
+
+			if (isDynamic == 0) fVolume = 0;
+			mass = fVolume / gMs;
+			btVector3 localInertia(0, 0, 0);
+			if (isDynamic == 1) simplifiedConvexShape->calculateLocalInertia(mass, localInertia);
+
+			// physics object pos and rotation
+			btTransform startTransform;
+			startTransform.setIdentity();
+			startTransform.setOrigin(btVector3(fXPos, fYPos, fZPos));
+			GGQUATERNION QuatAroundX(1, 0, 0, fXRot);
+			GGQUATERNION QuatAroundY(0, 1, 0, fYRot);
+			GGQUATERNION QuatAroundZ(0, 0, 1, fZRot);
+			GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), fXRot);
+			GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), fYRot);
+			GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), fZRot);
+			GGQUATERNION finalOrientation = QuatAroundX * QuatAroundY * QuatAroundZ;
+			startTransform.setRotation(btQuaternion(finalOrientation.x, finalOrientation.y, finalOrientation.z, finalOrientation.w));
+			myMotionState = new btDefaultMotionState(startTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, simplifiedConvexShape, localInertia);
+			body = new btRigidBody(rbInfo);
+
+		}
 
 		// pass material index as usrptr
 		int iArbValue = 0;
 		if (pRealObject->ppMeshList != NULL) iArbValue = pRealObject->ppMeshList[0]->Collision.dwArbitaryValue;
 		body->setUserPointer((void*)iArbValue);
+
 
 		// add physics object to system
 		short sCollidesWith = COL_OBJECT | COL_CAPSULECHAR | COL_TERRAIN;
@@ -1855,7 +1922,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 			g_dynamicsWorld->addRigidBody(body, COL_TERRAIN, sCollidesWith);
 		else
 			g_dynamicsWorld->addRigidBody(body, COL_OBJECT, sCollidesWith);
-
 		// boyancy mode
 		bool bBouyant = false;
 		if (isDynamic == 1)
@@ -1866,7 +1932,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 		//PE: DestroyThisObject relase gVertices,gIndices so:
 		//PE: Keep it there if we want to try terrain using convex hull.
 		ODEAddObject(iObjectNumber, pObject, body, isDynamic, myMotionState, false, bBouyant, gVertices, gIndices, 1, 1, fFriction, mass);
-		
 		ch_vertexBuffer.clear();
 		return;
 
