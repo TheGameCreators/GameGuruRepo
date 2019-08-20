@@ -142,9 +142,7 @@ int loadinternalsound ( char* tfile_s )
 {
 	int soundid = 0;
 	soundid=loadinternalsoundcore(tfile_s,0);
-//endfunction soundid
-	return soundid
-;
+	return soundid;
 }
 
 int changeplrforsound ( int tplrid, int tsnd )
@@ -178,9 +176,7 @@ int changeplrforsound ( int tplrid, int tsnd )
 			}
 		}
 	}
-//endfunction tplrid
-	return tplrid
-;
+	return tplrid;
 }
 
 void deleteinternalsound ( int soundid )

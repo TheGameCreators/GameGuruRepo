@@ -2062,6 +2062,7 @@ void sliders_getchoice ( void )
 		if (  t.slidersmenuvaluechoice == 114  )  t.sliderschoicemax  =  t.importer.scriptFileCount;
 		if (  t.slidersmenuvaluechoice == 115  )  t.sliderschoicemax  =  2;
 		if (  t.slidersmenuvaluechoice == 116  )  t.sliderschoicemax  =  3;
+		if (  t.slidersmenuvaluechoice == 117  )  t.sliderschoicemax  =  3;
 	}
 }
 
@@ -2295,6 +2296,12 @@ void sliders_getnamefromvalue ( void )
 			if (  t.slidersmenuvalueindex == 1  )  t.slidervaluename_s = "None";
 			if (  t.slidersmenuvalueindex == 2  )  t.slidervaluename_s = "Center Floor";
 			if (  t.slidersmenuvalueindex == 3  )  t.slidervaluename_s = "Center All";
+		}
+		if ( t.slidersmenuvaluechoice == 117 ) 
+		{
+			if (  t.slidersmenuvalueindex == 1  )  t.slidervaluename_s = "No";
+			if (  t.slidersmenuvalueindex == 2  )  t.slidervaluename_s = "Yes";
+			if (  t.slidersmenuvalueindex == 3  )  t.slidervaluename_s = "Use Uber Anims";
 		}
 	}
 }

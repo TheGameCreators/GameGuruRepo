@@ -1,0 +1,40 @@
+;header
+desc          = _exp3
+
+;visualinfo
+textured      = AmmoBox_color.DDS
+effect        = effectbank\reloaded\apbr_basic.fx
+castshadow    = 0
+
+;orientation
+model         = AmmoBox break.X
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 2
+
+;statistics
+strength      = 25
+isimmobile    = 1
+collisionmode = 0
+
+;ai
+aiinit	      = appear.lua
+aimain	      = graphix\graphix_explosion.lua
+aidestroy     = disappear.lua
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+;Animation info
+animmax       = 1
+anim0        = 0,399
+playanimineditor = 0
+
+

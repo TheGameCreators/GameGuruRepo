@@ -2335,13 +2335,28 @@ int SetSpriteSize ( lua_State *L )
 	float sizeX = lua_tonumber(L, 2);
 	float sizeY = lua_tonumber(L, 3);
 
+
+	//PE: vertex data use iXOffset)+iWidth-0.5f, (-0.5f) soo add a bit.
+	//PE: mainly visible when using 100 percent
+	//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/423
+	//PE: So 100 percent do not fill the entire screen.
+	//PE: Did not want to change vertex data as it might change how sprites display on other level.
+	//PE: So for now just do this to fill the hole screen. (should be changed in vertex at some point)
+
+	if (sizeX == 100 ) {
+		sizeX += 0.1;
+	}
+	if (sizeY == 100) {
+		sizeY += 0.1;
+	}
+
 	if ( sizeX == -1 && sizeY == -1 ) return 0;
 
 	if ( sizeX != -1 )
 	{
 		sizeX = ( sizeX * g_dwScreenWidth ) / 100.0f;
 	}
-
+	
 	if ( sizeY != -1 )
 	{
 		sizeY = ( sizeY * g_dwScreenHeight ) / 100.0f;
@@ -4877,6 +4892,19 @@ int ParticlesLoadImage(lua_State *L)
 	return 1;
 }
 
+int ParticlesLoadEffect(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	char pFileName[256];
+	strcpy(pFileName, lua_tostring(L, 1));
+
+	lua_pushnumber(L, ravey_particles_load_effect(pFileName, lua_tonumber(L, 2)));
+	return 1;
+}
+
 int ParticlesSetFrames(lua_State *L)
 {
 	lua = L;
@@ -6235,19 +6263,20 @@ void addFunctions()
 	lua_register(lua, "ParticlesAddEmitter" ,     ParticlesAddEmitter );
 	lua_register(lua, "ParticlesAddEmitterEx" ,   ParticlesAddEmitterEx );
 	lua_register(lua, "ParticlesDeleteEmitter" ,  ParticlesDeleteEmitter );
-	lua_register(lua, "ParticlesSpawnParticle",   ParticlesSpawnParticle);
-	lua_register(lua, "ParticlesLoadImage",       ParticlesLoadImage);
-	lua_register(lua, "ParticlesSetFrames",       ParticlesSetFrames);
-	lua_register(lua, "ParticlesSetSpeed",        ParticlesSetSpeed);
-	lua_register(lua, "ParticlesSetGravity",      ParticlesSetGravity);
-	lua_register(lua, "ParticlesSetOffset",       ParticlesSetOffset);
-	lua_register(lua, "ParticlesSetAngle",        ParticlesSetAngle);
-	lua_register(lua, "ParticlesSetRotation",     ParticlesSetRotation);
-	lua_register(lua, "ParticlesSetScale",        ParticlesSetScale);
-	lua_register(lua, "ParticlesSetAlpha",        ParticlesSetAlpha);
-	lua_register(lua, "ParticlesSetLife",         ParticlesSetLife);
-	lua_register(lua, "ParticlesSetWindVector",   ParticlesSetWindVector);
-	lua_register(lua, "ParticlesSetNoWind",       ParticlesSetNoWind);
+	lua_register(lua, "ParticlesSpawnParticle",   ParticlesSpawnParticle );
+	lua_register(lua, "ParticlesLoadImage",       ParticlesLoadImage );
+	lua_register(lua, "ParticlesLoadEffect",      ParticlesLoadEffect );
+	lua_register(lua, "ParticlesSetFrames",       ParticlesSetFrames );
+	lua_register(lua, "ParticlesSetSpeed",        ParticlesSetSpeed );
+	lua_register(lua, "ParticlesSetGravity",      ParticlesSetGravity );
+	lua_register(lua, "ParticlesSetOffset",       ParticlesSetOffset );
+	lua_register(lua, "ParticlesSetAngle",        ParticlesSetAngle );
+	lua_register(lua, "ParticlesSetRotation",     ParticlesSetRotation );
+	lua_register(lua, "ParticlesSetScale",        ParticlesSetScale );
+	lua_register(lua, "ParticlesSetAlpha",        ParticlesSetAlpha );
+	lua_register(lua, "ParticlesSetLife",         ParticlesSetLife );
+	lua_register(lua, "ParticlesSetWindVector",   ParticlesSetWindVector );
+	lua_register(lua, "ParticlesSetNoWind",       ParticlesSetNoWind );
 
 	lua_register(lua, "GetBulletHit",             GetBulletHit);
 

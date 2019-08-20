@@ -16,6 +16,7 @@ extern bool g_bSkipTerrainRender;
 // extern to global that toggles when load map removed from entities
 extern bool g_bBlackListRemovedSomeEntities;
 extern bool gbWelcomeSystemActive;
+extern int g_trialStampDaysLeft;
 
 //  GOTO LABEL (jump from common_init)
 void mapeditorexecutable ( void )
@@ -175,7 +176,7 @@ void mapeditorexecutable ( void )
 	{
 		// Welcome quick start page
 		g.quickstartmenumode = 0;
-		if ( g.iFreeVersionModeActive == 1 )
+		if ( g.iFreeVersionModeActive != 0 )
 		{
 			editor_showquickstart ( 0 );
 		}
@@ -896,14 +897,15 @@ void editor_showquickstart ( int iForceMainOpen )
 	// can stay here forever if quit triggered
 	if ( g.iTriggerSoftwareToQuit != 0 ) 
 	{
-		welcome_show(WELCOME_EXITAPP);
+		if ( g.iFreeVersionModeActive == 2 ) 
+			welcome_show(WELCOME_FREETRIALEXITAPP);
+		else
+			welcome_show(WELCOME_EXITAPP);
 	}
 	else
 	{
-		if ( g.iFreeVersionModeActive == 1 )
-		{
-			welcome_show(WELCOME_FREEINTROAPP);
-		}
+		if ( g.iFreeVersionModeActive == 1 ) welcome_show(WELCOME_FREEINTROAPP);
+		if ( g.iFreeVersionModeActive == 2 ) welcome_show(WELCOME_FREETRIALINTROAPP);
 	}
 
 	// if first time run
@@ -2286,12 +2288,13 @@ void input_getfilemapcontrols ( void )
 		if (  GetFileMapDWORD( 1, 908 ) == 1 ) 
 		{
 			// show outtro message if free version mode
-			if ( g.iFreeVersionModeActive == 1 )
+			if ( g.iFreeVersionModeActive == 1 || ( g.iFreeVersionModeActive == 2 && g_trialStampDaysLeft > 0 ) )
 			{
 				t.inputsys.ignoreeditorintermination = 1;
 				welcome_init(1);
 				welcome_init(0);
-				welcome_show(WELCOME_FREEINTROAPP);
+				if ( g.iFreeVersionModeActive == 1 ) welcome_show(WELCOME_FREEINTROAPP);
+				if ( g.iFreeVersionModeActive == 2 ) welcome_show(WELCOME_FREETRIALINTROAPP);
 				t.inputsys.ignoreeditorintermination = 0;
 			}
 
@@ -2381,7 +2384,7 @@ void input_getfilemapcontrols ( void )
 			}
 			if (  t.toolbarset == 9 ) 
 			{
-				//  rem LAUNCH TEST GAME
+				//  rem LAUNCH TEST GAME 
 				switch (  t.toolbarindex ) 
 				{
 					case 1 :
@@ -9197,14 +9200,17 @@ void interface_openpropertywindow ( void )
 						setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
 					}
 					setpropertystring2(t.group,Str(t.grideleprof.speed),t.strarr_s[455].Get(),t.strarr_s[245].Get()) ; ++t.controlindex;
-					if (  t.playercontrol.thirdperson.enabled == 1 ) 
-					{
-						t.tanimspeed_f=t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
-					}
-					else
-					{
+
+					//PE: we cant do this , as t.playercontrol.thirdperson.enabled is a global and will trigger for ALL objects.
+					//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/310
+//					if (  t.playercontrol.thirdperson.enabled == 1 ) 
+//					{
+//						t.tanimspeed_f=t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
+//					}
+//					else
+//					{
 						t.tanimspeed_f=t.grideleprof.animspeed;
-					}
+//					}
 					setpropertystring2(t.group,Str(t.tanimspeed_f),"Anim Speed","Sets the default speed of any animation associated with this entity"); ++t.controlindex;
 				}
 				if (  t.tflaghurtfall == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.hurtfall),t.strarr_s[456].Get(),t.strarr_s[246].Get())  ; ++t.controlindex; }
@@ -9554,14 +9560,16 @@ void interface_copydatatoentity ( void )
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[455].Get()) ) == 0 )  t.grideleprof.speed = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Anim Speed") ) == 0 ) 
 			{
-				if (  t.playercontrol.thirdperson.enabled == 1 ) 
-				{
-					t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed=ValF(t.tdata_s.Get());
-				}
-				else
-				{
+				//PE: we cant do this , as t.playercontrol.thirdperson.enabled is a global and will trigger for ALL objects.
+				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/310
+//				if (  t.playercontrol.thirdperson.enabled == 1 ) 
+//				{
+//					t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed=ValF(t.tdata_s.Get());
+//				}
+//				else
+//				{
 					t.grideleprof.animspeed=ValF(t.tdata_s.Get());
-				}
+//				}
 			}
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[432].Get()) ) == 0 )  t.grideleprof.quantity = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[460].Get()) ) == 0 )  t.grideleprof.quantity = ValF(t.tdata_s.Get());

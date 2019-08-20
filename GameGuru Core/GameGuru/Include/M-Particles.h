@@ -7,6 +7,7 @@
 void ravey_particles_init                ( void );
 void ravey_particles_load_images         ( void );
 int  ravey_particles_load_image          ( LPSTR szFilename, int iID );
+int  ravey_particles_load_effect         ( LPSTR szFilename, int iID );
 void ravey_particles_update              ( void );
 void ravey_particles_update_emitters     ( void );
 bool ravey_particles_update_particles    ( void );

@@ -1325,8 +1325,13 @@ ParticlesAddEmitterEx:  Same as ParticlesAddEmitter with 4 extra parameters (i.e
 						
 ParticlesDeleteEmitter: ParticlesDeleteEmitter(emitterId) -- where emitterId is the index of the particle emitter
 
-ParticlesLoadImage;  Example imageFile = ParticlesLoadImage( "effectbank\\particles\\flowerpuff.dds" )
+ParticlesLoadImage:  Example imageFile = ParticlesLoadImage( "effectbank\\particles\\flowerpuff.dds" )
 					Allows dynamic loading of custom image files which can then be passed into ParticlesAddEmitterEx
+					Note: sprite sheets have to be square, e.g. 2x2 or 6x6 (4 frames and 36 frames respectively), maximum
+					size is 64x64 (4096 frames)
+					
+ParticlesLoadEffect: Example effectId = ParticlesLoadEffect( "effectbank\\reloaded\\decal_basic_additive.fx", emitterId )
+                    Changes the shader effect used for a given particle emitter
 
 					
 -- the following commands allow on-the-fly altering of specific particle creation parameters

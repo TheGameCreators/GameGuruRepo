@@ -896,8 +896,33 @@ DARKSDK_DLL bool AppendAnimationData ( sObject* pObject, LPSTR szFilename, int i
 
 	// append some animation data
 	bool bAnimationAppended = false;
-	sAnimation* pOrigCurrent = pObject->pAnimationSet->pAnimation;
 	sAnimation* pCurrent = pLoadObject->pAnimationSet->pAnimation;
+	sAnimation* pOrigCurrent = NULL;
+	if ( pObject->pAnimationSet ) pOrigCurrent = pObject->pAnimationSet->pAnimation;
+	if ( pOrigCurrent == NULL )
+	{
+		// object being appended to has no animations, so create blank ones from structure of imported one
+		if ( pObject->pAnimationSet == NULL ) pObject->pAnimationSet = new sAnimationSet();
+		sAnimation* pLastAnim = NULL;
+		sAnimation* pLoadedAnim = pCurrent;
+		while ( pLoadedAnim )
+		{
+			// create new anim
+			sAnimation* pAnim = new sAnimation();
+			if ( pObject->pAnimationSet->pAnimation == NULL )
+				pObject->pAnimationSet->pAnimation = pAnim;
+			else
+				pLastAnim->pNext = pAnim;
+			
+			// copy name over
+			strcpy ( pAnim->szName, pLoadedAnim->szName );
+
+			// go to next loaded anim
+			pLastAnim = pAnim;
+			pLoadedAnim = pLoadedAnim->pNext;
+		}
+		pOrigCurrent = pObject->pAnimationSet->pAnimation;
+	}
 	while(pCurrent)
 	{
 		// ensure animnames match
