@@ -3250,6 +3250,10 @@ struct globalstype
 	int hidedistantshadows;
 	int realshadowresolution;
 	int realshadowcascadecount;
+	int flashlightshadows;
+	int speedshadows;
+	int drawcalloptimizer;
+	int forcenowaterreflection;
 	int realshadowcascade[8];
 	int realshadowsize[8];
 	float realshadowdistance;
@@ -3281,6 +3285,10 @@ struct globalstype
 		 realshadowcascade[6] = 100;
 		 realshadowcascade[7] = 100;
 		 realshadowcascadecount = 4;
+		 speedshadows = 1;
+		 drawcalloptimizer = 0;
+		 forcenowaterreflection = 0;
+		 flashlightshadows = 0;
 		 realshadowresolution = 1024;
 		 hidedistantshadows = 1;
 		 hideebe = 0;
@@ -5115,6 +5123,8 @@ struct entityprofiletype
 	int approxmemused;
 	int playanimineditor;
 	int startanimingame;
+	int drawcalloptimizer;
+	int drawcalloptimizeroff;
 	int ignorecsirefs;
 	int autoflatten;
 	int physicsobjectcount;
@@ -5181,6 +5191,8 @@ struct entityprofiletype
 		 ignorecsirefs = 0;
 		 playanimineditor = 0;
 		 startanimingame = 0;
+		 drawcalloptimizeroff = 0;
+		 drawcalloptimizer = 0;
 		 approxmemused = 0;
 		 custombiped = 0;
 		 reserve6 = 0;
@@ -5874,7 +5886,9 @@ struct entitytype
 	int lastfootfallframeindex;
 	int lastfootfallsound;
 	float climbgravity;
-
+	int dc_obj[4];
+	int draw_call_obj;
+	bool dc_merged;
 	// Constructor
 	entitytype ( )
 	{
@@ -6080,6 +6094,12 @@ struct entitytype
 		 isflak = 0;
 		 enterwater = 0;
 		 animspeedmod = 1.0f;
+		 dc_obj[0] = 0;
+		 dc_obj[1] = 0;
+		 dc_obj[2] = 0;
+		 dc_obj[3] = 0;
+		 draw_call_obj = 0;
+		 dc_merged = false;
 	}
 	// End of Constructor
 };

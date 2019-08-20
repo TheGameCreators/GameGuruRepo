@@ -1844,11 +1844,24 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 
 					// DOCDOC: realshadowresolution = Size of the texture plate dimension to render the shadow onto. Default is 2048.
 					t.tryfield_s = "realshadowresolution" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowresolution = t.value1;
+          
+					t.tryfield_s = "speedshadows"; if (t.field_s == t.tryfield_s) g.globals.speedshadows = t.value1;
+					t.tryfield_s = "drawcalloptimizer"; if (t.field_s == t.tryfield_s) g.globals.drawcalloptimizer = t.value1;
+					t.tryfield_s = "forcenowaterreflection"; if (t.field_s == t.tryfield_s) g.globals.forcenowaterreflection = t.value1;
+					
+					t.tryfield_s = "flashlightshadows"; if (t.field_s == t.tryfield_s) {
+						g.globals.flashlightshadows = t.value1;
+						if (g.globals.flashlightshadows > 1) g.globals.flashlightshadows = 1;
+						if (g.globals.flashlightshadows < 0) g.globals.flashlightshadows = 0;
+					}
 
 					// DOCDOC: realshadowcascadecount = Set the number of shadow cascades to use. Default is 4, Min is 2 and Max is 8.
 					t.tryfield_s = "realshadowcascadecount" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascadecount = t.value1;
 					if (g.globals.realshadowcascadecount < 2) g.globals.realshadowcascadecount = 2; //PE: Limit cascades.
 					if (g.globals.realshadowcascadecount > 8) g.globals.realshadowcascadecount = 8; //PE: Limit cascades.
+					if (g.globals.flashlightshadows == 1) {
+						if (g.globals.realshadowcascadecount > 7) g.globals.realshadowcascadecount = 7; //PE: Limit cascades.
+					}
 
 					// DOCDOC: realshadowcascade0 thru realshadowcascade7 = Set the distance as a percentage when cascade kicks in
 					t.tryfield_s = "realshadowcascade0" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[0] = t.value1;

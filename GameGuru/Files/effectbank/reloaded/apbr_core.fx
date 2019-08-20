@@ -269,7 +269,9 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
    output.normal = mul(inputNormal, wsTransform);   
    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
    output.viewDepth = mul(output.position, View).z;
-   output.cameraPosition = eyePos.xyz;
+
+   output.cameraPosition = eyePos.xyz; //PE: fixed now, used for faster render.
+
    #ifdef PBRVEGETATION
     output.uv = input.uv;
     // fade alpha with distance from camera
@@ -323,6 +325,8 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
 
 	float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
 	float3 eyeraw = trueCameraPosition - output.position.xyz;
+	
+//	output.cameraPosition = trueCameraPosition; //PE:
 
 	output.VertexLight.xyz = CalcExtLightingVS(output.normal.xyz, output.position.xyz, eyeraw.xyz );
 
@@ -1190,7 +1194,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    clip(input.clip);
    
    // inverse of camera view holds true camera position
-   float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
+//   float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
+   float3 trueCameraPosition = input.cameraPosition;
 
    // put input data into attributes structure
    Attributes attributes;
@@ -1333,10 +1338,15 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    #else
     float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
 	// allow this to be toggled in the FPE for artist control (could be a way to do this with math, eliminate the IF)
+#ifdef PBRTERRAIN
+	//PE: Just to remove a branch.
+	rawnormalmap.y = 1.0f - rawnormalmap.y;
+#else
 	if ( ArtFlagControl1.x == 1 )
 	{
 	  rawnormalmap.y = 1.0f - rawnormalmap.y;
 	}  
+#endif
     float3 norm = rawnormalmap * 2.0 - 1.0;
     norm = mul(norm.rgb, toWorld);
     attributes.normal = normalize(norm);
