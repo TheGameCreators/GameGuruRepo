@@ -1031,7 +1031,8 @@ void visuals_updateobjectmasks ( void )
 			if (  t.visuals.reflectionmode == 0 ) 
 			{
 				//  no water at all
-				t.hardwareinfoglobals.nowater=2;
+				if( g.globals.forcenowaterreflection == 0 )
+					t.hardwareinfoglobals.nowater=2;
 				//  set all entities to never reflect
 				for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 				{

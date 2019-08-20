@@ -2741,8 +2741,10 @@ void terrain_shadowupdate ( void )
 					SetShadowTexelSize(g.globals.realshadowresolution);
 					SetEffectShadowMappingMode ( 255 );
 
+					static int speed_shadows = 0;
+					speed_shadows = 1 - speed_shadows;
 					//PE: PBR both terrain and entity must be set to low/medium before lowering cascades.
-					//PE: Editor always use highest.
+					//PE: Editor always use medium.
 					if (t.game.set.ismapeditormode != 1 && t.visuals.shaderlevels.terrain >= 4 && t.visuals.shaderlevels.entities >= 3) 
 					{
 						//PE: Lowest disable shadows.
@@ -2754,11 +2756,38 @@ void terrain_shadowupdate ( void )
 							g_CascadedShadow.m_iCascadePartitionsZeroToOne[icl] = 0;
 
 						SetEffectShadowMappingMode( (1<< g.globals.realshadowcascadecount-1) + (1<< (g.globals.realshadowcascadecount-2)) );
-						g.globals.realshadowdistance = g.globals.realshadowdistancehigh*0.65; //PE: Lower distance by 35%.
+						g.globals.realshadowdistance = g.globals.realshadowdistancehigh*0.6; //PE: Lower distance by 40%.
 						SetShadowTexelSize(2048); // Needed when we use so low a resolution.
-						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 2] = 24;
+						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 2] = 25;
 						g_CascadedShadow.m_iCascadePartitionsZeroToOne[g.globals.realshadowcascadecount - 1] = 100;
+
+						if (g.globals.speedshadows != 0)
+						{
+							if (speed_shadows) {
+								SetEffectShadowMappingMode((1 << g.globals.realshadowcascadecount - 1));
+							}
+							else {
+								SetEffectShadowMappingMode((1 << g.globals.realshadowcascadecount - 2));
+							}
+						}
 					}
+					else {
+						//Full shadows.
+						if (g.globals.speedshadows != 0)
+						{
+							if (g.globals.realshadowcascadecount == 4) {
+								if (speed_shadows) {
+									SetEffectShadowMappingMode(1+4);
+								}
+								else {
+									SetEffectShadowMappingMode(2 + 8);
+								}
+							}
+						}
+					}
+
+
+
 				}
 				else
 				{
@@ -4683,6 +4712,11 @@ void terrain_water_setfog ( void )
 
 void terrain_water_loop ( void )
 {
+	if (g.globals.forcenowaterreflection == 1) {
+		t.visuals.reflectionmode = 1; //PE:
+		t.visuals.reflectionmodepixelsrendered = 1;
+	}
+
 	//  Adjust reflective processing based on actual number of water pixels in final scene
 	t.visuals.reflectionmodepixelsrendered=0;
 	if (  t.visuals.reflectionmode>0 ) 
@@ -4718,7 +4752,7 @@ void terrain_water_loop ( void )
 		//  Refraction camera (looks bad with stuff floating in it)
 		HideObject (  t.terrain.objectstartindex+5 );
 		//  Reflection camera
-		if (  t.visuals.reflectionmode>0 ) 
+		if (  t.visuals.reflectionmode>1 ) 
 		{
 			//  special render technique for terrain reflection
 			SetEffectTechnique ( t.terrain.effectstartindex+1, "UseReflection" );

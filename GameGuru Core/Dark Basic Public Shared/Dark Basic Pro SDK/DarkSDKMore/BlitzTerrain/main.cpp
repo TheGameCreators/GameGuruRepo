@@ -2402,6 +2402,7 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 		BT_Main.CurrentEffect=Mesh->pVertexShaderEffect;
 		for ( int iQualityPass=0; iQualityPass<2; iQualityPass++ )
 		{
+			//PE: Todo fullshadowsoreditor is always 1 , so hDistantTechnique is never used ?
 			// Set correct technique
 			GGTECHNIQUE hTechniqueUsed = NULL;
 			if ( g_iQualityTechniqueMode==0 )
@@ -2483,14 +2484,15 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 
 				// Ensure normal invert in effect for terrain (NOTE: not liking duplicated of code)
 				#ifdef DX11
-				GGHANDLE pArtFlags = Mesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
-				if ( pArtFlags )
-				{
-					float fInvertNormal = 0.0f;
-					if ( Mesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
-					GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, 0.0f, 0.0f, 0.0f );
-					pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
-				}
+				//PE: removed , terrain always invert normal.
+//				GGHANDLE pArtFlags = Mesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+//				if ( pArtFlags )
+//				{
+//					float fInvertNormal = 0.0f;
+//					if ( Mesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+//					GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, 0.0f, 0.0f, 0.0f );
+//					pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+//				}
 				#endif
 
 				// apply effect ready for rendering
@@ -2499,9 +2501,11 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 				// Set textures (AFTER Apply which overrides texture view ptrs)
 				for ( unsigned long i = 0; i < Mesh->dwTextureCount; i++ ) // terrain now has lots of textures
 				{
-					ID3D11ShaderResourceView* lpTexture = NULL; 
-					if ( Mesh->dwTextureCount > i ) lpTexture = Mesh->pTextures[i].pTexturesRefView;
-					m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
+					if (i != 1 && i != 5 && i != 7) { //PE: only for more gpu mem (cache) they are not used.
+						ID3D11ShaderResourceView* lpTexture = NULL;
+						if (Mesh->dwTextureCount > i) lpTexture = Mesh->pTextures[i].pTexturesRefView;
+						m_pImmediateContext->PSSetShaderResources(i, 1, &lpTexture);
+					}
 				}
 
 				// assign constants
@@ -2522,8 +2526,10 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 				//for(unsigned long i=0;i<=8;i++)
 				for ( unsigned long i = 0; i < Mesh->dwTextureCount; i++ )
 				{
-					ID3D11ShaderResourceView* lpTexture = NULL; 
-					m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
+					if (i != 1 && i != 5 && i != 7) { //PE: 
+						ID3D11ShaderResourceView *const pSRV[1] = { NULL };
+						m_pImmediateContext->PSSetShaderResources(i, 1, pSRV);
+					}
 				}
 			}
 		}
@@ -3159,7 +3165,8 @@ static void BT_Intern_RenderSector(s_BT_Sector* Sector)
 				m_pImmediateContext->VSSetConstantBuffers ( 0, 1, &m_pCBChangePerTerrsainChunk );
 				m_pImmediateContext->PSSetConstantBuffers ( 0, 1, &m_pCBChangePerTerrsainChunk );
 			}
-			if ( m_pCBChangePerTerrsainChunkPS )
+			//PE: Not used on terrain anymore.
+			if ( 1==2 ) //&& m_pCBChangePerTerrsainChunkPS
 			{
 				CBChangePerTerrsainChunkPS cbps;
 				//cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r,pMesh->mMaterial.Emissive.g,pMesh->mMaterial.Emissive.b,pMesh->mMaterial.Emissive.a);

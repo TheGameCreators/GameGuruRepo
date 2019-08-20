@@ -276,19 +276,83 @@ float4 PS_Fresnel_Reflect(output IN) : COLOR
 
 float4 PS_Fresnel_NoReflect(output IN) : COLOR 
 {
-   float Mask=WatermaskTX.Sample(SampleClamp,IN.Tex0).r;
-   float Fresnel = 1-saturate(dot(IN.ViewVec,IN.ViewVec));
-   Fresnel = FresnelBias+Fresnel*(1-FresnelBias);
-   float3 WaterColor = float3(34.0/256.0,54.0/256.0,107.0/256.0);
-   float4 cameraPos = mul(IN.WPos, View);
-   float hudfogfactor = saturate((cameraPos.z- HudFogDist.x)/(HudFogDist.y - HudFogDist.x));
-   float fMaskValue = 0.1f+((Mask*(1.0f-Fresnel))*0.9f);
-   float4 result = float4(WaterColor,fMaskValue);
-   float finalFactor = hudfogfactor*HudFogColor.w;
-   float3 hudfogresult = lerp(result.xyz,HudFogColor.xyz,finalFactor);
-   finalFactor += cameraPos.z/2500.0; // PE: Hide terrain lod.
-   return float4(hudfogresult,clamp(fMaskValue+finalFactor,0.0,1.0));
-} 
+	float3 Nn = normalize(IN.WorldNormal);
+	float4 cameraPos = mul(IN.WPos, View);
+
+	float4 normalmap = WaterbumpTX.Sample(SampleWrap, IN.Tex1 + ((time / WaterSpeed1)*flowdirection));
+	float genericwave = (normalmap.b - 0.5*2.0) + 0.5;
+
+	float3 dudv = normalize(normalmap.rgb * 2.0 - 1.0) * distortion;
+	float3 dudv2 = normalize(normalmap.rgb * 2.0 - 1.0) * distortion2;
+
+	normalmap = WaterbumpTX.Sample(SampleWrap, IN.Tex1 + dudv2.rg + ((time / WaterSpeed2)*flowdirection));
+	// pattern removal.
+	normalmap = lerp(normalmap , WaterbumpTX.Sample(SampleWrap, (IN.Tex1 / 4.0) + dudv2.rg + ((time / WaterSpeed2)*flowdirection)) , clamp((cameraPos.z / 9500.0) - 0.1,0.0,0.50));
+
+	genericwave = clamp((((normalmap.b - 0.75)*2.80) + 0.1),genericwaveIntensity,1.0);
+	genericwave = (genericwave + clamp((normalmap.a + 0.4) + (cameraPos.z / 7000.0),genericwaveIntensity,1.0)) * 0.5;
+	float halfinvInt = (1.0 - genericwaveIntensity)*0.5;
+	genericwave = clamp((1.0 - genericwave) + genericwaveIntensity + (halfinvInt*0.5)  , genericwaveIntensity , 1.0 + halfinvInt); // genericwaveIntensity
+
+	float3x3 tangentbasis = float3x3(2 * normalize(IN.Tn), 2 * normalize(IN.Bn), Nn);
+	float3 Nb = normalmap.xyz;
+	float3 Nb2 = normalmap.xyz;
+
+	Nb.xy = Nb.xy * 2.0 - 1.0;
+	Nb.z = sqrt(1.0 - dot(Nb.xy, Nb.xy));
+	Nb = mul(Nb,tangentbasis);
+	Nb = normalize((Nb + IN.WorldNormal)*0.5);
+
+	Nb2.xy = Nb2.xy * 2.07 - 1.0; //1.2
+	Nb2.z = sqrt(1.0 - dot(Nb2.xy, Nb2.xy));
+	Nb2 = mul(Nb2,tangentbasis);
+	Nb2 = normalize((Nb2 + IN.WorldNormal)*0.5);
+
+	float3 Ln = normalize(LightSource.xyz);
+	float3 V = (eyePos.xyz - IN.WPos.xyz);
+	float3 Vn = normalize(-V); // PE: eyePos not set ? normally use (V)
+	float3 Hn = normalize(Vn + Ln);
+	float4 lighting = lit(dot(Ln,Nb),dot(Hn,Nb),24);
+	//lighting.y = lerp(0.65,lighting.y,SurfaceSunFactor); // PE: not set in this shader.
+	lighting.y = clamp(lighting.y,0.8,1.0);
+
+	float3 MaterialSpecularColor = float3(0.35,0.35,0.35);
+	float3 E = normalize(IN.WPos.xyz - eyePos.xyz); // eye , facing the camera.
+	float3 R = reflect(-Ln,Nb); // reflect direction
+	float cosAlpha = clamp(dot(E,R),0.0,1.0);
+	cosAlpha = pow(cosAlpha,6.0);
+	float3 spec = MaterialSpecularColor * cosAlpha;  //Specular
+
+													 //fade away lighting.z to remove more patterns.
+	lighting.z = spec.z - clamp((cameraPos.z / 48500.0) - 0.40,0.0,spec.z);
+
+	float3 WaterColor2 = (WaterCol + lighting.z) * lighting.y * 0.75;
+
+	float3 sparckle = (clamp(dot(Ln,Nb2),0.80,1.0)*1.0605) + (lighting.z * 0.41); //0.35
+	sparckle = clamp(sparckle - 0.980 , 0.0,0.020) * 40.0;
+
+	sparckle.r = sparckle.r - clamp((cameraPos.z / 3000.0) - 0.2,0.0,sparckle.r);
+
+	WaterColor2 = WaterColor2 * genericwave;
+
+	float3 WaterColor = WaterColor2;
+
+#ifdef USEREFLECTIONSPARKLE
+	WaterColor = lerp(WaterColor , WaterColor*reflectionSparkleIntensity , sparckle.r);
+#else
+	WaterColor = lerp(WaterColor , float3(WaterSparkleCol) , sparckle.r);
+#endif
+
+	// Adding in fog
+	float hudfogfactor = saturate((cameraPos.z - HudFogDist.x) / (HudFogDist.y - HudFogDist.x));
+
+	float4 result = float4(WaterColor,WaterTransparancy);
+
+	float finalFactor = hudfogfactor*HudFogColor.w;
+	float4 hudfogresult = lerp(result,float4(HudFogColor.xyz,0),finalFactor);
+	finalFactor += cameraPos.z / 2500.0; // PE: Hide terrain lod. 
+	return float4(hudfogresult.xyz,clamp(WaterTransparancy + finalFactor,0.0,1.0));
+}
 
 // techniques   
 

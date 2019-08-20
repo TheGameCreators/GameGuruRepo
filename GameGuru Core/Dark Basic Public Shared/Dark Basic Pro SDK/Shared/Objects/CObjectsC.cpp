@@ -28,6 +28,10 @@ extern bool g_bSkipAnyDedicatedDepthRendering;
 // Global Lists
 std::vector< GGHANDLE > g_EffectParamHandleList;
 
+
+void timestampactivity(int i, char* desc_s); // for debug
+
+
 // Global Intersect All Helpers
 struct OrderByCamDistance
 {
@@ -433,7 +437,6 @@ DARKSDK_DLL void LoadCore ( SDK_LPSTR szFilename, SDK_LPSTR szOrgFilename, int i
 	}
 }
 
-void timestampactivity(int i, char* desc_s); // for debug
 
 DARKSDK_DLL void LoadObject(LPSTR szFilename, int iID)
 {
@@ -4595,6 +4598,12 @@ CFirstPersonCamera*         g_pActiveCamera = &g_ViewerCamera;
 
 DARKSDK_DLL void SetEffectToShadowMappingEx ( int iEffectID, int iDebugObjStart, int iDebugEffectIndex, int iHideDistantShadows, int iRealShadowResolution, int iRealShadowCascadeCount, int iC0, int iC1, int iC2, int iC3, int iC4, int iC5, int iC6, int iC7 )
 {
+
+//	char mdebug[1024];
+//	sprintf(mdebug, "iRealShadowCascadeCount: %d (%d) ", iRealShadowCascadeCount , iRealShadowResolution );
+//	timestampactivity(0, mdebug);
+
+
 	// setup effect to support shadow mapping
 	g_PrimaryShadowEffect = iEffectID;
 	if ( iDebugObjStart > 0 )
@@ -8773,7 +8782,8 @@ DARKSDK_DLL int ObjectExist ( int iID )
 {
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{ 
-		RunTimeError ( RUNTIMEERROR_B3DMODELNUMBERILLEGAL );
+		//PE: We use ObjectExist to check if a object can be used, so why this ?
+		//RunTimeError ( RUNTIMEERROR_B3DMODELNUMBERILLEGAL );
 		return 0;
 	}
 	if ( iID < g_iObjectListCount )

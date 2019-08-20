@@ -664,6 +664,353 @@ void game_masterroot ( void )
 			//  Load any light map objects if available
 			timestampactivity(0,"load lightmapped objects");
 			lm_loadscene ( );
+			
+			g.merged_new_objects = 0;
+			if ( t.tlmloadsuccess == 0  ) { //&& !g.disable_drawcall_optimizer
+
+				//###################################################################
+				//#### PE: Very simple but effectively draw call optimizer       ####
+				//#### Could be made more intelligent when time allow :)         ####
+				//#### On a 2000 object level it takes below 2 sec to run.       ####
+				//#### setup.ini "drawcalloptimizer=1" will optimize everything  ####
+				//#### setup.ini "drawcalloptimizer=0" only fpe settings counts. ####
+				//#### .fpe "drawcalloptimizer=1" will optimize this object.     ####
+				//#### .fpe "drawcalloptimizer=0" will NOT optimize object.      ####
+				//#### .fpe "drawcalloptimizeroff=1" will NOT optimize object.   ####
+				//#### (drawcalloptimizeroff is used when you optimize           ####
+				//####  everything but have problems with a object )             ####
+				//###################################################################
+
+				timestampactivity(0, "draw call optimizer.");
+				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+				{
+					if (t.entityelement[t.e].obj > 0 && t.e < g.entityelementlist )
+					{
+						t.entityelement[t.e].dc_merged = false;
+						if (t.entityelement[t.e].draw_call_obj > 0) {
+
+							if (t.entityelement[t.e].draw_call_obj > 0 && ObjectExist(t.entityelement[t.e].draw_call_obj) == 1) {
+								DeleteObject(t.entityelement[t.e].draw_call_obj);
+								t.entityelement[t.e].draw_call_obj = 0;
+							}
+						}
+					}
+				}
+				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+				{
+					t.entid = t.entityelement[t.e].bankindex;
+					t.obj = t.entityelement[t.e].obj;
+					if (t.obj > 0 && t.e < g.entityelementlist && t.entityelement[t.e].dc_merged == false && (g.globals.drawcalloptimizer==1 || t.entityprofile[t.entid].drawcalloptimizer == 1) && t.entityprofile[t.entid].drawcalloptimizeroff == 0 )
+					{
+						int glueid = t.entityelement[t.e+1].bankindex;
+						int glueobj = t.entityelement[t.e+1].obj;
+
+						if (glueobj > 0 && ObjectExist(t.obj) && ObjectExist(glueobj))
+						{
+							bool validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_basic.fx") == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_tree.fx") == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\entity_basic.fx") == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_illum.fx") == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "") == 0)
+								validshader = true;
+							if(t.entityprofile[t.entid].animmax == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\treea_basic.fx") == 0)
+								validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_anim.fx") == 0)
+								validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_treea.fx") == 0)
+								validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_anim8bone.fx") == 0)
+								validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_animwithtran.fx") == 0)
+								validshader = false;
+							if (t.entityprofile[t.entid].animmax > 0)
+								validshader = false;
+
+
+							if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[t.e].staticflag == 1)
+							{
+								//Validate if same master object.
+								sObject* pObject = g_ObjectList[t.obj];
+								int instanceonly = 0;
+								if (pObject && pObject->pInstanceOfObject) {
+									pObject = pObject->pInstanceOfObject;
+									instanceonly++;
+								}
+
+								sObject* pObject2 = g_ObjectList[glueobj];
+								if (pObject2 && pObject2->pInstanceOfObject) {
+									pObject2 = pObject2->pInstanceOfObject;
+									instanceonly++;
+								}
+
+								//PE: Later validate this.
+								//int iPolyCount = GetObjectPolygonCount(t.obj);
+
+								t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e+1].x;
+								t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e+1].z;
+								t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+
+								//PE: Keep objects distance below 700 for best culling.
+								if (pObject && pObject2 && instanceonly >= 2  && t.tdd_f < 700 && g.merged_new_objects < 4980 ) {
+									
+									if (pObject == pObject2) {
+										//Same master glue it.
+
+										if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
+
+										float gluescalex = ObjectScaleX(glueobj);
+										float gluescaley = ObjectScaleY(glueobj);
+										float gluescalez = ObjectScaleZ(glueobj);
+
+										float src_scalex = ObjectScaleX(t.obj);
+										float src_scaley = ObjectScaleY(t.obj);
+										float src_scalez = ObjectScaleZ(t.obj);
+
+										int tmpobj = (g.merged_new_objects+100) + 85000; //PE: TODO change 85000
+										if (g_ObjectList[tmpobj])
+										{
+											if (g_ObjectList[tmpobj]->pFrame)
+											{
+												DeleteObject(tmpobj);
+											}
+										}
+
+										CloneObject(tmpobj, t.obj);
+
+										//PE: Hmm the lod removal could be improved.
+										int bestlod = -1;
+										PerformCheckListForLimbs(tmpobj);
+										for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
+										{
+											t.tname_s = Lower(ChecklistString(t.c));
+											if (t.tname_s == "lod_0" ) bestlod = 0;
+											if (t.tname_s == "lod_1" && (bestlod < 0 || bestlod > 1) )  bestlod = 1;
+											if (t.tname_s == "lod_2" && (bestlod < 0) )  bestlod = 2;
+										}
+										if (bestlod >= 0) {
+											for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
+											{
+												t.tname_s = Lower(ChecklistString(t.c));
+												if (bestlod == 0 && ( t.tname_s == "lod_1" || t.tname_s == "lod_2" || t.tname_s == "lod_3") ) {
+													RemoveLimb(tmpobj, t.c - 1);
+												}
+												if (bestlod == 1 && t.tname_s == "lod_2") {
+													RemoveLimb(tmpobj, t.c - 1);
+												}
+												if (bestlod == 2 && t.tname_s == "lod_3") {
+													RemoveLimb(tmpobj, t.c - 1);
+												}
+											}
+											if(t.c > 0)
+												OffsetLimb(tmpobj, t.c - 1, 0, 0, 0, 0);
+										}
+
+										PositionObject(tmpobj, 0, 0, 0); //PE: Need to be at 0,0,0
+										ScaleObject(tmpobj, 100, 100, 100); //PE: no scale.
+
+										MakeMeshFromObject(g.meshlightmapwork, tmpobj); //PE: mesh from source.
+
+										if (GetMeshExist(g.meshlightmapwork) == 1)
+										{
+											int destobj = g.merged_new_objects + 85000; //PE: TODO change 85000 , perhaps reverse from 90000 ?
+											if (g_ObjectList[destobj])
+											{
+												if (g_ObjectList[destobj]->pFrame)
+												{
+													DeleteObject(destobj);
+												}
+											}
+
+											t.tmasterx_f = ObjectPositionX(t.obj);
+											t.tmastery_f = ObjectPositionY(t.obj);
+											t.tmasterz_f = ObjectPositionZ(t.obj);
+
+											CloneObject(destobj, tmpobj); //We use the cleaned tmpobj instead of t.obj
+											int testypos = 0; //50
+											PositionObject(destobj, 0, 0, 0); //PE: Need to be at 0,0,0
+											ScaleObject(destobj, 100, 100, 100); //PE: no scale.
+
+											float src_angx = ObjectAngleX(t.obj);
+											float src_angy = ObjectAngleY(t.obj);
+											float src_angz = ObjectAngleZ(t.obj);
+
+											PerformCheckListForLimbs(destobj);
+											AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+											t.tox_f = ObjectPositionX(glueobj) - t.tmasterx_f;
+											t.toy_f = ObjectPositionY(glueobj) - t.tmastery_f;
+											t.toz_f = ObjectPositionZ(glueobj) - t.tmasterz_f;
+
+											OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+											//PE: not needed anymore fixed above when we reset scale to 100,100,100
+//											if (t.entityprofile[t.entid].scale != 100 ) {
+//												float scalejust = t.entityprofile[t.entid].scale - 100;
+//												gluescalex -= scalejust;
+//												gluescaley -= scalejust;
+//												gluescalez -= scalejust;
+//											}
+											
+											RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj), ObjectAngleY(glueobj), ObjectAngleZ(glueobj));
+											ScaleLimb(destobj, ChecklistQuantity(), gluescalex, gluescaley, gluescalez);
+											for (int i = ChecklistQuantity()-1; i >= 0; i--) {
+												RotateLimb(destobj, i, src_angx, src_angy, src_angz);
+												ScaleLimb(destobj, i, ObjectScaleX(t.obj), ObjectScaleY(t.obj), ObjectScaleZ(t.obj));
+											}
+
+											//PE: TODO if possible add one more object.
+
+											bool additionaladded2 = false;
+											int glueid2 = 0;
+											int glueobj2 = 0;
+											if ( t.e < g.entityelementlist - 1) {
+												glueid2 = t.entityelement[t.e + 2].bankindex;
+												glueobj2 = t.entityelement[t.e + 2].obj;
+
+												sObject* pObject3 = g_ObjectList[glueobj2];
+												if (pObject3 && pObject3->pInstanceOfObject) {
+													pObject3 = pObject3->pInstanceOfObject;
+													if (pObject3 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e + 2].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e + 2].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < 700) {
+															//Object ok add.
+															float gluescalex2 = ObjectScaleX(glueobj2);
+															float gluescaley2 = ObjectScaleY(glueobj2);
+															float gluescalez2 = ObjectScaleZ(glueobj2);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj2) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj2) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj2) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj2), ObjectAngleY(glueobj2), ObjectAngleZ(glueobj2));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex2, gluescaley2, gluescalez2);
+															additionaladded2 = true;
+														}
+													}
+												}
+											}
+											bool additionaladded3 = false;
+											int glueid3 = 0;
+											int glueobj3 = 0;
+											if ( t.e < g.entityelementlist - 2) {
+												glueid3 = t.entityelement[t.e + 3].bankindex;
+												glueobj3 = t.entityelement[t.e + 3].obj;
+
+												sObject* pObject4 = g_ObjectList[glueobj3];
+												if (pObject4 && pObject4->pInstanceOfObject) {
+													pObject4 = pObject4->pInstanceOfObject;
+													if (pObject4 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e + 3].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e + 3].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < 700) {
+															//Object ok add.
+															float gluescalex3 = ObjectScaleX(glueobj3);
+															float gluescaley3 = ObjectScaleY(glueobj3);
+															float gluescalez3 = ObjectScaleZ(glueobj3);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj3) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj3) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj3) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj3), ObjectAngleY(glueobj3), ObjectAngleZ(glueobj3));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex3, gluescaley3, gluescalez3);
+															additionaladded3 = true;
+														}
+													}
+												}
+											}
+
+											//PE: Merge everything into a single mesh.
+											DeleteMesh(g.meshlightmapwork);
+											MakeMeshFromObject(g.meshlightmapwork, destobj);
+											DeleteObject(destobj);
+											MakeObject(destobj, g.meshlightmapwork, -1);
+											PositionObject(destobj, t.tmasterx_f, t.tmastery_f + testypos, t.tmasterz_f);
+
+											//PE: TODO
+											//PE: Objects like plant 08.fpe get VERY large ? , need to be checked why!
+											//float objectsizex = ObjectSizeX(destobj);
+											//if (objectsizex > 1000) {
+											//	SetObjectMask(destobj, 1);
+											//}
+
+											if (t.entityprofile[t.entid].canseethrough == 1)
+											{
+												SetObjectCollisionProperty(destobj, 1);
+											}
+
+											if (t.entityprofile[t.entid].ischaracter == 0)
+											{
+												if (t.entityprofile[t.entid].collisionmode == 11)
+												{
+													SetObjectCollisionProperty(destobj, 1);
+												}
+											}
+
+											if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
+												
+											CloneObject(destobj, t.obj, 101); //PE: Copy textures only.
+
+											//PE: TODO store t.e and glueobj under pObject->draw_call_obj
+											//PE: So we can access them directly in drawobject.
+											//pObject->draw_call_obj = g_ObjectList[destobj];
+
+											//Disable if any LOD setup from original object.
+											if (bestlod >= 0) {
+												SetObjectLOD(destobj, 1, 50000);
+												SetObjectLOD(destobj, 2, 50000);
+											}
+
+											t.entityelement[t.e].draw_call_obj = destobj;
+											t.entityelement[t.e].dc_obj[0] = glueobj;
+											t.entityelement[t.e + 1].dc_merged = true;
+											if (additionaladded2) {
+												t.entityelement[t.e].dc_obj[1] = glueobj2;
+												t.entityelement[t.e + 2].dc_merged = true;
+												HideObject(glueobj2);
+											}
+											if (additionaladded3) {
+												t.entityelement[t.e].dc_obj[2] = glueobj3;
+												t.entityelement[t.e + 3].dc_merged = true;
+												HideObject(glueobj3);
+											}
+											//Hide org objects.
+											HideObject(t.obj);
+											HideObject(glueobj);
+											ShowObject(t.entityelement[t.e].draw_call_obj);
+
+											g.merged_new_objects++;
+										}
+
+										DeleteObject(tmpobj);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
 
 			//  Setup variables for main game loop
 			timestampactivity(0,"initialise final game variables");
@@ -963,6 +1310,43 @@ void game_masterroot ( void )
 			//  Free any level resources
 			game_freelevel ( );
 
+			//PE: Draw call optimizer
+//			if (!g.disable_drawcall_optimizer)
+			{
+				//PE: restore all states. delete all batched objects.
+				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+				{
+					t.entid = t.entityelement[t.e].bankindex;
+					t.obj = t.entityelement[t.e].obj;
+
+					if (t.obj > 0 && t.e < g.entityelementlist && ObjectExist(t.obj) == 1)
+					{
+						if (t.entityelement[t.e].draw_call_obj > 0) {
+
+							if (t.entityelement[t.e].draw_call_obj > 0 && ObjectExist(t.entityelement[t.e].draw_call_obj) == 1) {
+								DeleteObject(t.entityelement[t.e].draw_call_obj);
+								t.entityelement[t.e].draw_call_obj = 0;
+								if(ObjectExist(t.obj) == 1)
+									ShowObject(t.obj);
+							}
+
+							if (t.entityelement[t.e].dc_obj[0] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[0]) == 1)
+								ShowObject(t.entityelement[t.e].dc_obj[0]);
+							if (t.entityelement[t.e].dc_obj[1] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[1]) == 1)
+								ShowObject(t.entityelement[t.e].dc_obj[1]);
+							if (t.entityelement[t.e].dc_obj[2] > 0 &&  ObjectExist(t.entityelement[t.e].dc_obj[2]) == 1)
+								ShowObject(t.entityelement[t.e].dc_obj[2]);
+							if (t.entityelement[t.e].dc_obj[3] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[3]) == 1)
+								ShowObject(t.entityelement[t.e].dc_obj[3]);
+
+							t.entityelement[t.e].dc_obj[0] = 0;
+							t.entityelement[t.e].dc_obj[1] = 0;
+							t.entityelement[t.e].dc_obj[2] = 0;
+							t.entityelement[t.e].dc_obj[3] = 0;
+						}
+					}
+				}
+			}
 			// must reset LUA here for clean end-game-screens
 			// ensure LUA is completely reset before loading new ones in
 			// the free call is because game options menu init, but not freed back then

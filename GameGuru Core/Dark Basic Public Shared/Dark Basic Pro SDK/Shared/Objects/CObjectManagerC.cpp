@@ -1,6 +1,8 @@
 //
 // CObjectManager Functions Implementation
 //
+#include "..\..\GameGuru\Include\gameguru.h"
+
 #include "CommonC.h"
 #include "SoftwareCulling.h"
 #include "ShadowMapping\cShadowMaps.h"
@@ -2955,9 +2957,20 @@ bool CObjectManager::ShaderPass ( sMesh* pMesh, UINT uPass, UINT uPasses, bool b
 	}
 	else
 	{
+
+
 		// if using RT, determine if should switch to RT or final render target (current)
 		if ( bEffectRendering )
 		{
+#ifdef DX11
+			//PE: Only shader Apply needed.
+			if (g_pGlob->dwRenderCameraID >= 31) {
+				ID3DX11EffectTechnique* pTech = pMesh->pVertexShaderEffect->m_hCurrentTechnique;//m_pEffect->GetTechniqueByIndex(0);
+				ID3DX11EffectPass* pPass = pTech->GetPassByIndex(uPass);
+				pPass->Apply(0, m_pImmediateContext);
+				return true;
+			}
+#endif
 			// commit var
 			LPGGEFFECT pEffect = pMesh->pVertexShaderEffect->m_pEffect;
 			bool bMustCommit = false;
@@ -3722,7 +3735,6 @@ inline DWORD FtoDW( FLOAT f ) { return *((DWORD*)&f); }
 //#pragma comment(lib, "dxerr.lib")
 
 
-
 bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sObject* pObject, sFrame* pFrame)
 {
 	// get pointer to drawbuffers
@@ -3748,10 +3760,21 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 		}
 	}
 
-	// call the renderstate function
-	if ( !SetMeshRenderStates ( pMesh ) )
-		return false;
-
+	//PE: Use fastest for depth only (shadows)
+	if (g_pGlob->dwRenderCameraID >= 31) {
+		//PE: fastest setup for depth only.
+		m_pImmediateContext->OMSetDepthStencilState(m_pDepthStencilState, 0 );
+		m_pImmediateContext->OMSetBlendState(m_pBlendStateNoAlpha, 0, 0xffffffff);
+		if (pMesh->bCull == false)
+			m_pImmediateContext->RSSetState(m_pRasterStateNoCull);
+		else
+			m_pImmediateContext->RSSetState(m_pRasterState);
+	}
+	else {
+		// call the renderstate function
+		if (!SetMeshRenderStates(pMesh))
+			return false;
+	}
 	// set the input streams
 	if ( !SetInputStreams ( pMesh ) )
 		return false;
@@ -3992,7 +4015,15 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 	LPGGRENDERTARGETVIEW pCurrentRenderTarget = NULL;
 	LPGGDEPTHSTENCILVIEW pCurrentDepthTarget = NULL;
 	bool bLocalOverrideAllTexturesAndEffects = false;
+
 	ShaderStart ( pMesh, &pCurrentRenderTarget, &pCurrentDepthTarget, &uPasses, &bEffectRendering, &bLocalOverrideAllTexturesAndEffects );
+
+	//PE: Speed up depth rendering.
+	int iTextureCount = pMesh->dwTextureCount;
+	if (g_pGlob->dwRenderCameraID >= 31) {
+		//Optimize for depth render.
+		iTextureCount = 1;
+	}
 
 	// when activated, can SKIP a DEPTH PASS if effect has this pass
 	UINT uPassStartIndex = 0; 
@@ -4042,38 +4073,70 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 				GGMatrixTranspose(&cb.mProjection,&cb.mProjection);
 				m_pImmediateContext->UpdateSubresource( g_pCBPerMesh, 0, NULL, &cb, 0, 0 );
 				m_pImmediateContext->VSSetConstantBuffers ( 0, 1, &g_pCBPerMesh );
-				m_pImmediateContext->PSSetConstantBuffers ( 0, 1, &g_pCBPerMesh );
 
-				CBPerMeshPS cbps;
-				cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r,pMesh->mMaterial.Emissive.g,pMesh->mMaterial.Emissive.b,pMesh->mMaterial.Emissive.a);
-				if ( pMesh->bAlphaOverride == true )
-					cbps.fAlphaOverride = (pMesh->dwAlphaOverride>>24)/255.0f;
-				else
-					cbps.fAlphaOverride = 1.0f;
+				if (g_pGlob->dwRenderCameraID < 31) { //PE: Not used in PS when depth only.
 
-				// feed camera zero matrices into pixel shader constant buffer for depth-to-world calc 
-				tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData ( 0 );
-				float fDet = 0.0f;
-				GGMatrixInverse ( &cbps.mViewInv, &fDet, &m_Camera_Ptr->matView );
-				GGMatrixTranspose(&cbps.mViewInv,&cbps.mViewInv);
-				cbps.mViewProj = g_matThisViewProj;
-				GGMatrixTranspose(&cbps.mViewProj,&cbps.mViewProj);
-				cbps.mPrevViewProj = g_matPreviousViewProj;
-				GGMatrixTranspose(&cbps.mPrevViewProj,&cbps.mPrevViewProj);
-				m_pImmediateContext->UpdateSubresource( g_pCBPerMeshPS, 0, NULL, &cbps, 0, 0 );
-				m_pImmediateContext->PSSetConstantBuffers ( 1, 1, &g_pCBPerMeshPS );
+					m_pImmediateContext->PSSetConstantBuffers ( 0, 1, &g_pCBPerMesh );
+
+					//PE: not used in PS with normal objects anymore.
+
+					int iEid = g.guishadereffectindex;
+					if(pMesh && pMesh->pVertexShaderEffect)
+						iEid = pMesh->pVertexShaderEffect->m_iEffectID;
+					
+					if ( iEid == g.guishadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) { //pObject->dwObjectNumber == 70001
+						CBPerMeshPS cbps;
+						cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r, pMesh->mMaterial.Emissive.g, pMesh->mMaterial.Emissive.b, pMesh->mMaterial.Emissive.a);
+						if (pMesh->bAlphaOverride == true)
+							cbps.fAlphaOverride = (pMesh->dwAlphaOverride >> 24) / 255.0f;
+						else
+							cbps.fAlphaOverride = 1.0f;
+
+						// feed camera zero matrices into pixel shader constant buffer for depth-to-world calc 
+						tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData(0);
+						float fDet = 0.0f;
+						GGMatrixInverse(&cbps.mViewInv, &fDet, &m_Camera_Ptr->matView);
+						GGMatrixTranspose(&cbps.mViewInv, &cbps.mViewInv);
+						cbps.mViewProj = g_matThisViewProj;
+						GGMatrixTranspose(&cbps.mViewProj, &cbps.mViewProj);
+						cbps.mPrevViewProj = g_matPreviousViewProj;
+						GGMatrixTranspose(&cbps.mPrevViewProj, &cbps.mPrevViewProj);
+						m_pImmediateContext->UpdateSubresource(g_pCBPerMeshPS, 0, NULL, &cbps, 0, 0);
+						m_pImmediateContext->PSSetConstantBuffers(1, 1, &g_pCBPerMeshPS);
+					}
+				}
 			}
 
 			// apply textures for shader
 			#ifdef DX11
-			for ( int i = 0; i < pMesh->dwTextureCount; i++ )
+			for ( int i = 0; i < iTextureCount; i++ )
 			{
-				//PE: pMesh->pTextures[i].dwStage not used so stages must be in correct order in the shaders.
-				ID3D11ShaderResourceView* lpTexture = GetImagePointerView ( pMesh->pTextures[i].iImageID );
-				m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
+				if (i != 5) { //PE: We can always enable 5 again.
+					//PE: pMesh->pTextures[i].dwStage not used so stages must be in correct order in the shaders.
+					ID3D11ShaderResourceView* lpTexture = GetImagePointerView(pMesh->pTextures[i].iImageID);
+					m_pImmediateContext->PSSetShaderResources(i, 1, &lpTexture);
+				}
 			}
 
 			//PE: Debug.
+			//dwObjectNumber
+			/*
+			for (int cl = 1; cl <= g.entityelementlist; cl++)
+			{
+				if (t.entityelement[cl].obj == pObject->dwObjectNumber) {
+					if (t.entityelement[cl].draw_call_obj  > 0 ) {
+						GGHANDLE pSurfColor = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("SurfColor");
+						if (pSurfColor)
+						{
+							GGVECTOR4 vec4 = GGVECTOR4(1.0f, 0.0f, 0.0f, 1.0f);
+							pSurfColor->AsVector()->SetFloatVector((float*)&vec4);
+						}
+					}
+					break;
+				}
+			}
+			*/
+
 			//GGHANDLE pSurfColor = pMesh->pVertexShaderEffect->m_pEffect->GetVariableByName("SurfColor");
 			//if (pSurfColor)
 			//{
@@ -4261,7 +4324,7 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 			if ( 1 )
 			{
 				// can release extra resources if postprocess RT render targets involved
-				int iClearExtraPSResSlotsForPostProcessRTs = pMesh->dwTextureCount;
+				int iClearExtraPSResSlotsForPostProcessRTs = iTextureCount;
 				if ( pMesh->pVertexShaderEffect ) 
 					if ( pMesh->pVertexShaderEffect->m_bUsesAtLeastOneRT==true )
 						if ( iClearExtraPSResSlotsForPostProcessRTs < 5 ) 
@@ -4270,9 +4333,12 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 				// release input resources
 				for ( int i = 0; i < iClearExtraPSResSlotsForPostProcessRTs; i++ )
 				{
-					ID3D11ShaderResourceView *const pSRV[1] = { NULL };
-					m_pImmediateContext->PSSetShaderResources ( i, 1, pSRV );
+					if (i != 5) {
+						ID3D11ShaderResourceView *const pSRV[1] = { NULL };
+						m_pImmediateContext->PSSetShaderResources(i, 1, pSRV);
+					}
 				}
+				
 			}
 			#endif
 
@@ -5253,6 +5319,7 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 {
 	// work vars
 	int iObject = 0;
+	static int iOnlyOneSortPerSync = 0;
 	bool bUseStencilWrite=false;
 	GGVECTOR3 vecShadowPos;
 
@@ -5272,6 +5339,7 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 	{
 	case -1 : // Very Early Objects (rendered even before StencilStart)
 		{
+			iOnlyOneSortPerSync = 0;
 			// choose camera to render sky (and other early objects) to (used by cube map generator)
 			int iPreferredCamera = 0;
 			if ( g_pGlob->dwRenderCameraID == 30 ) iPreferredCamera = 30;
@@ -5334,6 +5402,7 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				// call the draw function
 				//if ( !DrawObject ( pObject, false ) )
 				//	return false;
+
 				DrawObject ( pObject, false );
 			}
         }
@@ -5343,97 +5412,102 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 
         if ( ! m_vVisibleObjectTransparent.empty() )
         {
-			// leeadd - 021205 - new feature which can divide transparent depth-sorted objects by a water
-			// line so everything below is rendered, then the water, then everything at normal surface order
-			bool bWaterPlaneDivision = false;
-			float fWaterPlaneDivisionY = 99999.99f;
 
-			// get list of ghosted objects for depth sort
-	        for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectTransparent.size(); ++iIndex )
-            {
-                sObject* pObject = m_vVisibleObjectTransparent [ iIndex ];
-				if ( !pObject ) continue;
+			if (iOnlyOneSortPerSync++ == 0) {
 
-				// leeadd - 211006 - u63 - ignore objects whose masks reject the current camera
-				if ( (pObject->dwCameraMaskBits & dwCurrentCameraBit)==0 )
-					continue;
+				// leeadd - 021205 - new feature which can divide transparent depth-sorted objects by a water
+				// line so everything below is rendered, then the water, then everything at normal surface order
+				bool bWaterPlaneDivision = false;
+				float fWaterPlaneDivisionY = 99999.99f;
 
-				// calculate distance from object to camera (fills fCamDistance)
-				if ( pObject->bTransparencyWaterLine==true )
+				// get list of ghosted objects for depth sort
+				for (DWORD iIndex = 0; iIndex < m_vVisibleObjectTransparent.size(); ++iIndex)
 				{
-/*							
-							// leeadd - 021205 - transparent object water line, using HEIGHY (Y) as ordering (great for water planes)
-							if ( pObject->position.vecPosition.y < fWaterPlaneDivisionY )
-								fWaterPlaneDivisionY = pObject->position.vecPosition.y;
+					sObject* pObject = m_vVisibleObjectTransparent[iIndex];
+					if (!pObject) continue;
 
-							// set as furthest surface distance object (and first to be drawn after underwater objs)
-							// u74b8 - use the current camera
-							if (g_eGlobalSortOrder != E_SORT_BY_DEPTH)
-								pObject->position.fCamDistance = CalculateObjectDistanceFromCamera ( pObject );
-							else
-								pObject->position.fCamDistance = 0.0f;
+					// leeadd - 211006 - u63 - ignore objects whose masks reject the current camera
+					if ((pObject->dwCameraMaskBits & dwCurrentCameraBit) == 0)
+						continue;
 
-							pObject->position.fCamDistance += m_pCamera->fZFar;
-*/							
-
-					//PE: Another try :)
-					//PE: Distance to water object (0,600,0) can be huge (we have default camera in center), so below waterline objects dont trigger.
-					//PE: If we just set it to m_pCamera->fZFar , they will trigger as they use (+= m_pCamera->fZFar)
-					//PE: This fix some of the problems and allow pObject->bRenderBeforeWater "SetObjectTransparency(Obj,8)".
-
-					if (pObject->position.vecPosition.y < fWaterPlaneDivisionY)
-						fWaterPlaneDivisionY = pObject->position.vecPosition.y;
-
-					pObject->position.fCamDistance = m_pCamera->fZFar;
-
-					bWaterPlaneDivision = true;
-				}
-				else
-				{
-					// regular object vs camera distance
-                    // u74b8 - If already sorted by distance, then we've also already
-                    //         calculated the camera distance and there's no need to do it again.
-                    if (g_eGlobalSortOrder != E_SORT_BY_DEPTH)
-                    {
-						pObject->position.fCamDistance = CalculateObjectDistanceFromCamera ( pObject );
-                    }
-				}
-			}
-
-			// if some objs underwater division, increase their cam distances so they ALL are drawn first (in same order)
-			// OR some objects have a distance offset to affect draw order
-            for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectTransparent.size(); ++iIndex )
-            {
-				// get obj ptr
-                sObject* pObject = m_vVisibleObjectTransparent [ iIndex ];
-
-				// record original cam distance value
-				pObject->position.fStoreLastCamDistance = pObject->position.fCamDistance;
-
-				// for waterline object itself
-				if ( bWaterPlaneDivision==true )
-				{
-					if ( pObject->bTransparencyWaterLine==false )
+					// calculate distance from object to camera (fills fCamDistance)
+					if (pObject->bTransparencyWaterLine == true)
 					{
-						// for LARGE explosion decals, above water bangs are forced to render FIRST
-						float fBaseOfObj = pObject->position.vecPosition.y;
-						if ( fBaseOfObj < fWaterPlaneDivisionY )
+						/*
+													// leeadd - 021205 - transparent object water line, using HEIGHY (Y) as ordering (great for water planes)
+													if ( pObject->position.vecPosition.y < fWaterPlaneDivisionY )
+														fWaterPlaneDivisionY = pObject->position.vecPosition.y;
+
+													// set as furthest surface distance object (and first to be drawn after underwater objs)
+													// u74b8 - use the current camera
+													if (g_eGlobalSortOrder != E_SORT_BY_DEPTH)
+														pObject->position.fCamDistance = CalculateObjectDistanceFromCamera ( pObject );
+													else
+														pObject->position.fCamDistance = 0.0f;
+
+													pObject->position.fCamDistance += m_pCamera->fZFar;
+						*/
+
+						//PE: Another try :)
+						//PE: Distance to water object (0,600,0) can be huge (we have default camera in center), so below waterline objects dont trigger.
+						//PE: If we just set it to m_pCamera->fZFar , they will trigger as they use (+= m_pCamera->fZFar)
+						//PE: This fix some of the problems and allow pObject->bRenderBeforeWater "SetObjectTransparency(Obj,8)".
+
+						if (pObject->position.vecPosition.y < fWaterPlaneDivisionY)
+							fWaterPlaneDivisionY = pObject->position.vecPosition.y;
+
+						pObject->position.fCamDistance = m_pCamera->fZFar;
+
+						bWaterPlaneDivision = true;
+					}
+					else
+					{
+						// regular object vs camera distance
+						// u74b8 - If already sorted by distance, then we've also already
+						//         calculated the camera distance and there's no need to do it again.
+						if (g_eGlobalSortOrder != E_SORT_BY_DEPTH)
 						{
-							// u74b8 - use the current camera
-							pObject->position.fCamDistance += m_pCamera->fZFar;
-						}
-						else if( pObject->bRenderBeforeWater ) {
-							pObject->position.fCamDistance += m_pCamera->fZFar;
+							pObject->position.fCamDistance = CalculateObjectDistanceFromCamera(pObject);
 						}
 					}
 				}
 
-				// also apply any artificial distance to object to affect draw order
-				pObject->position.fCamDistance += pObject->fArtificialDistanceOffset;
-			}
+				// if some objs underwater division, increase their cam distances so they ALL are drawn first (in same order)
+				// OR some objects have a distance offset to affect draw order
+				for (DWORD iIndex = 0; iIndex < m_vVisibleObjectTransparent.size(); ++iIndex)
+				{
+					// get obj ptr
+					sObject* pObject = m_vVisibleObjectTransparent[iIndex];
 
-			// u74b7 - sort objects by distance, replaced bubblesort with STL sort
-            std::sort(m_vVisibleObjectTransparent.begin(), m_vVisibleObjectTransparent.end(), OrderByReverseCameraDistance() );
+					// record original cam distance value
+					pObject->position.fStoreLastCamDistance = pObject->position.fCamDistance;
+
+					// for waterline object itself
+					if (bWaterPlaneDivision == true)
+					{
+						//if(  t.terrain.vegetationshaderindex)
+						if (pObject->bTransparencyWaterLine == false)
+						{
+							// for LARGE explosion decals, above water bangs are forced to render FIRST
+							float fBaseOfObj = pObject->position.vecPosition.y;
+							if (fBaseOfObj < fWaterPlaneDivisionY)
+							{
+								// u74b8 - use the current camera
+								pObject->position.fCamDistance += m_pCamera->fZFar;
+							}
+							else if (pObject->bRenderBeforeWater) {
+								pObject->position.fCamDistance += m_pCamera->fZFar;
+							}
+						}
+					}
+
+					// also apply any artificial distance to object to affect draw order
+					pObject->position.fCamDistance += pObject->fArtificialDistanceOffset;
+				}
+
+				// u74b7 - sort objects by distance, replaced bubblesort with STL sort
+				std::sort(m_vVisibleObjectTransparent.begin(), m_vVisibleObjectTransparent.end(), OrderByReverseCameraDistance());
+			}
 
             // draw in correct back to front order
             for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectTransparent.size(); ++iIndex )

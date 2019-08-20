@@ -897,6 +897,65 @@ void conkitedit_loop ( void )
 			if (  (KeyState(g.keymap[67]) == 1 || t.conkit.forceaction == 68) && t.conkit.edit.conkitkeypressed == 0  )  t.conkit.edit.conkitkeypressed = 1;
 			if (  (KeyState(g.keymap[67]) == 0 && t.conkit.forceaction != 68) && t.conkit.edit.conkitkeypressed == 1 ) 
 			{
+
+				//PE: Disable draw call optimizer.
+//				if(!g.disable_drawcall_optimizer)
+				{
+					//PE: restore all states. delete all batched objects.
+					//g.disable_drawcall_optimizer = true;
+					for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+					{
+						t.entid = t.entityelement[t.e].bankindex;
+						t.obj = t.entityelement[t.e].obj;
+
+						if (t.obj > 0 && t.e < g.entityelementlist)
+						{
+							if (t.entityelement[t.e].draw_call_obj > 0) {
+
+								if (t.entityelement[t.e].draw_call_obj > 0 && ObjectExist(t.entityelement[t.e].draw_call_obj) == 1) {
+									DeleteObject(t.entityelement[t.e].draw_call_obj);
+									t.entityelement[t.e].draw_call_obj = 0;
+									
+									if (ObjectExist(t.obj) == 1) {
+										t.tobj = t.obj;
+										t.tte = t.e;
+										entity_positionandscale();
+									}
+								}
+								int tmpobj;
+								if (t.entityelement[t.e].dc_obj[0] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[0]) == 1) {
+									if (t.entityelement[t.e + 1].obj > 0 && ObjectExist(t.entityelement[t.e + 1].obj) == 1) {
+										t.tobj = t.entityelement[t.e + 1].obj;
+										t.tte = t.e + 1;
+										entity_positionandscale();
+									}
+								}
+								if (t.entityelement[t.e].dc_obj[1] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[1]) == 1) {
+									if (t.entityelement[t.e + 2].obj > 0 && ObjectExist(t.entityelement[t.e + 2].obj) == 1) {
+										t.tobj = t.entityelement[t.e + 2].obj;
+										t.tte = t.e + 2;
+										entity_positionandscale();
+									}
+								}
+								if (t.entityelement[t.e].dc_obj[2] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[2]) == 1) {
+									if (t.entityelement[t.e + 3].obj > 0 && ObjectExist(t.entityelement[t.e + 3].obj) == 1) {
+										t.tobj = t.entityelement[t.e + 3].obj;
+										t.tte = t.e + 3;
+										entity_positionandscale();
+									}
+								}
+
+								t.entityelement[t.e].dc_obj[0] = 0;
+								t.entityelement[t.e].dc_obj[1] = 0;
+								t.entityelement[t.e].dc_obj[2] = 0;
+								t.entityelement[t.e].dc_obj[3] = 0;
+							}
+						}
+					}
+
+				}
+
+
 				//  disable third person controls during 3D EDIT MODE
 				if (  t.playercontrol.thirdperson.enabled == 1 ) 
 				{
