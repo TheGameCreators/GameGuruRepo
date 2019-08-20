@@ -1128,10 +1128,15 @@ HRESULT CascadedShadowsManager::RenderScene ( int iEffectID, LPGGEFFECT pEffectP
 	GGMatrixTranslation( &dxmatTextureTranslation, .5,.5,0 );
 	
 	// assign cascade metrics to shader
-	GGVECTOR4 m_vCascadeScale[8];
-	GGVECTOR4 m_vCascadeOffset[8];
-	for(int index=0; index < m_CopyOfCascadeConfig.m_nCascadeLevels; ++index ) 
+	static GGVECTOR4 m_vCascadeScale[8];
+	static GGVECTOR4 m_vCascadeOffset[8];
+	for(int index=0; index < m_CopyOfCascadeConfig.m_nCascadeLevels+ g.globals.flashlightshadows; ++index )
 	{
+		if(g.globals.speedshadows != 0)
+		{
+			if (((1 << index) & m_dwMask) == 0)
+				continue;
+		}
 		GGMATRIX mShadowTexture = m_matShadowProj[index] * dxmatTextureScale * dxmatTextureTranslation;
 		m_vCascadeScale[index].x = mShadowTexture._11;
 		m_vCascadeScale[index].y = mShadowTexture._22;
@@ -1146,7 +1151,7 @@ HRESULT CascadedShadowsManager::RenderScene ( int iEffectID, LPGGEFFECT pEffectP
 	GGHANDLE hCascadeOffsetArrayParam = m_pEffectParam[iEffectID]->m_vCascadeOffset;
 
     // Copy intervals for the depth interval selection method.
-	float m_fCascadeFrustumsEyeSpaceDepths[MAX_CASCADES];
+	static float m_fCascadeFrustumsEyeSpaceDepths[MAX_CASCADES];
 	for ( int i=0; i<MAX_CASCADES; i++ )
 	{
 		m_fCascadeFrustumsEyeSpaceDepths[i] = m_fCascadePartitionsFrustum[i];

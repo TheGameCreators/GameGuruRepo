@@ -1158,6 +1158,8 @@ struct Sglobals
 	int projectileEventType_damage;
 	int projectileEventType_entityhit;
 	int reloadWeaponGunspecs;
+	bool disable_drawcall_optimizer;
+	int merged_new_objects;
 	// Constructor
 	Sglobals ( )
 	{
@@ -1188,6 +1190,8 @@ struct Sglobals
 		 flashLightKeyEnabled = true;
 		 noPlayerGuns = false;
          lastTabMode = 0;
+		 disable_drawcall_optimizer = false;
+		 merged_new_objects = 0;
 		 LUASpriteoffset = 0;
 		 LUASpriteoffsetMax = 0;
 		 LUAImageoffset = 0;

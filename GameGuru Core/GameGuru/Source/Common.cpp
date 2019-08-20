@@ -1799,8 +1799,20 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "realshadowresolution" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowresolution = t.value1;
 					t.tryfield_s = "realshadowcascadecount" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascadecount = t.value1;
 
+					t.tryfield_s = "speedshadows"; if (t.field_s == t.tryfield_s) g.globals.speedshadows = t.value1;
+					t.tryfield_s = "drawcalloptimizer"; if (t.field_s == t.tryfield_s) g.globals.drawcalloptimizer = t.value1;
+					t.tryfield_s = "forcenowaterreflection"; if (t.field_s == t.tryfield_s) g.globals.forcenowaterreflection = t.value1;					
+					t.tryfield_s = "flashlightshadows"; if (t.field_s == t.tryfield_s) {
+						g.globals.flashlightshadows = t.value1;
+						if (g.globals.flashlightshadows > 1) g.globals.flashlightshadows = 1;
+						if (g.globals.flashlightshadows < 0) g.globals.flashlightshadows = 0;
+					}
+
 					if (g.globals.realshadowcascadecount < 2) g.globals.realshadowcascadecount = 2; //PE: Limit cascades.
 					if (g.globals.realshadowcascadecount > 8) g.globals.realshadowcascadecount = 8; //PE: Limit cascades.
+					if (g.globals.flashlightshadows == 1) {
+						if (g.globals.realshadowcascadecount > 7) g.globals.realshadowcascadecount = 7; //PE: Limit cascades.
+					}
 
 					t.tryfield_s = "realshadowcascade0" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[0] = t.value1;
 					t.tryfield_s = "realshadowcascade1" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascade[1] = t.value1;

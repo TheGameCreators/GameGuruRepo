@@ -28,6 +28,10 @@ extern bool g_bSkipAnyDedicatedDepthRendering;
 // Global Lists
 std::vector< GGHANDLE > g_EffectParamHandleList;
 
+
+void timestampactivity(int i, char* desc_s); // for debug
+
+
 // Global Intersect All Helpers
 struct OrderByCamDistance
 {
@@ -8882,7 +8886,8 @@ DARKSDK_DLL int ObjectExist ( int iID )
 {
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{ 
-		RunTimeError ( RUNTIMEERROR_B3DMODELNUMBERILLEGAL );
+		//PE: We use ObjectExist to check if a object can be used, so why this ? (LB: Just in case a dodgy index is passed in which can be caught and distinguished from an object that has not been created)
+		//RunTimeError ( RUNTIMEERROR_B3DMODELNUMBERILLEGAL );
 		return 0;
 	}
 	if ( iID < g_iObjectListCount )

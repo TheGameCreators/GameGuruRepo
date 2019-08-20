@@ -108,6 +108,7 @@ void CalculatePCFPercentLit ( in float fCurrentPixelDepth , in int iCurrentCasca
 {
    // offset z depth value with sbias to defeat distance rendering
    vShadowTexCoord.z -= sbias;
+   vShadowTexCoord.z -= sbias;
    
    // Use PCF to sample the depth map and return a percent lit value.
    fPercentLit = 0.0f;

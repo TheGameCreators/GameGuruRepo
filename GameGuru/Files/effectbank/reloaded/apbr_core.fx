@@ -269,7 +269,9 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
    output.normal = mul(inputNormal, wsTransform);   
    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
    output.viewDepth = mul(output.position, View).z;
-   output.cameraPosition = eyePos.xyz;
+
+   output.cameraPosition = eyePos.xyz; //PE: fixed now, used for faster render.
+
    #ifdef PBRVEGETATION
     output.uv = input.uv;
     // fade alpha with distance from camera
@@ -323,6 +325,8 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
 
 	float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
 	float3 eyeraw = trueCameraPosition - output.position.xyz;
+	
+//	output.cameraPosition = trueCameraPosition; //PE:
 
 	output.VertexLight.xyz = CalcExtLightingVS(output.normal.xyz, output.position.xyz, eyeraw.xyz );
 
@@ -810,19 +814,23 @@ float3 ComputeLight(Material mat, DirectionalLight L, float3 normal, float3 toEy
     #ifdef LIGHTMAPPED
      float3 thisSunColor = mSunColor * SurfaceSunFactor;
     #else
+    // float3 thisSunColor = mSunColor;
      float3 thisSunColor = mSunColor;
 	#endif
 	#ifdef PBRVEGETATION
-	 return clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) * ((albedo)*0.85);
+	 float3 vegFinalSun = clamp(dot(-L.Direction, normal) * thisSunColor, 0.10, 1.0);
+	 vegFinalSun = lerp(0.65, vegFinalSun, SurfaceSunFactor); //PE: SurfaceSunFactor even out directional light on vegetation.
+	 return  vegFinalSun * ((albedo)*0.85);
 	#endif
 	float3 albedoAdd = lerp( max(albedo.rgb, dot(-L.Direction,normal)*0.15) , albedo.rgb , RealisticVsCool ); // Give light side a bit more spec.
 	float3 specular = CookTorranceSpecFactor(normal, toEye, mat.Properties.g, mat.Properties.b, L.Direction, albedoAdd);
-	specular = specular * GlobalSpecular;
+	specular = (specular * GlobalSpecular) * SurfaceSunFactor; //PE: SurfaceSunFactor also remove specular from sun only.
     #ifdef LIGHTMAPPED
      float3 thisNonSunColor = mSunColor * (1-SurfaceSunFactor);
      float3 thisFinalSunColor = clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0) + thisNonSunColor;
     #else
      float3 thisFinalSunColor = clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0);
+	 thisFinalSunColor = lerp(0.65, thisFinalSunColor, SurfaceSunFactor); //PE: SurfaceSunFactor is used to even out directional light :)
 	#endif
 	return thisFinalSunColor * ((albedoAdd * (1.0-specular))*0.85) + (specular*thisSunColor);
 #else
@@ -1186,7 +1194,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    clip(input.clip);
    
    // inverse of camera view holds true camera position
-   float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
+//   float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
+   float3 trueCameraPosition = input.cameraPosition;
 
    // put input data into attributes structure
    Attributes attributes;
@@ -1250,7 +1259,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      Atlas16DiffuseLookupCenter(float4(0,0,0.0625*14,0),attributes.uv/16.0,variation_d); // 14   
      #ifdef REMOVEGRASSNORMALS
       Atlas16DiffuseLookupCenterDist(float4(0,0,0.0625*4,0),attributes.uv,grass_d,input.viewDepth);
-      grass_n = float4(0.5,0.5,1.0,1.0); // 126,128 , neutral normal.
+      grass_n = float3(0.5,0.5,1.0); // 126,128 , neutral normal.
      #else
       Atlas16DiffuseNormalLookupCenter(float4(0,0,0.0625*4,0),attributes.uv,grass_d,grass_n,input.viewDepth);
      #endif
@@ -1329,10 +1338,15 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    #else
     float3x3 toWorld = float3x3(attributes.tangent, attributes.binormal, attributes.normal);
 	// allow this to be toggled in the FPE for artist control (could be a way to do this with math, eliminate the IF)
+#ifdef PBRTERRAIN
+	//PE: Just to remove a branch.
+	rawnormalmap.y = 1.0f - rawnormalmap.y;
+#else
 	if ( ArtFlagControl1.x == 1 )
 	{
 	  rawnormalmap.y = 1.0f - rawnormalmap.y;
 	}  
+#endif
     float3 norm = rawnormalmap * 2.0 - 1.0;
     norm = mul(norm.rgb, toWorld);
     attributes.normal = normalize(norm);
@@ -1357,6 +1371,9 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 #else
        float3 addillum = IlluminationMap.Sample(SampleWrap,attributes.uv).rgb;
 //       rawdiffusemap.xyz += addillum;
+#endif
+#ifdef LIGHTMAPPED
+	   addillum *= 1.5; //PE: illum on lightmapped object need additional boost.
 #endif
 
      #else
@@ -1564,7 +1581,6 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	visibility = clamp( visibility+( length(dynlight) ) , 0.15 ,1.0 ); //PE: Set lowest dark shadow, to stop uneven shadow colors.
 	
 	light = light + dynlight;
-	
 
 	//light += (rawdiffusemap.xyz) * flashlight);
 
@@ -1584,6 +1600,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	 ambientIntensity *= AmbientPBRAdd; //PE: Some ambient is lost in PBR. make it look more like terrain.
 	#endif
 	float3 albedoContrib = originalrawdiffusemap.rgb * irradiance * AmbiColor.xyz * ambientIntensity * (0.5f+(visibility*0.5));
+	
 	float3 lightContrib = ((max(float3(0,0,0),light) * lightIntensity)+flashlightContrib) * SurfColor.xyz * visibility;
    	float3 reflectiveContrib = envMap * envFresnel * reflectionIntensity * (0.5f+(visibility/2.0f));
 
@@ -1703,11 +1720,20 @@ float4 depthPS(in VSOutput input) : SV_TARGET
 #ifdef ALPHADISABLED
     rawdiffusemap.a = 1;
 #else
-	if( rawdiffusemap.a < ALPHACLIP ) 
-	{
-		clip(-1);
-		return rawdiffusemap;
-	}
+
+#ifdef SHADOWALPHACLIP
+   if( rawdiffusemap.a < SHADOWALPHACLIP ) 
+   {
+      clip(-1);
+      return rawdiffusemap;
+   }
+#else
+   if( rawdiffusemap.a < ALPHACLIP ) 
+   {
+      clip(-1);
+      return rawdiffusemap;
+   }
+#endif
 #endif
    return rawdiffusemap;
 }
