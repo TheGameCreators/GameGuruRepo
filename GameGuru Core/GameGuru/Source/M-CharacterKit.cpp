@@ -15,7 +15,10 @@ void characterkit_init ( void )
 		pastebitmapfontcenter("PREPARING CHARACTERS",GetChildWindowWidth()/2,40,1,255) ; Sync (  );
 	}
 
-	//  hide waypoints
+	// hide paint tool
+	terrain_paintselector_hide();
+
+	// hide waypoints
 	waypoint_hideall ( );
 
 	t.characterkit.oldMouseClick = 1;
@@ -332,7 +335,6 @@ void characterkit_init ( void )
 	t.importerTabs[4].selected = 0;
 	t.importerTabs[4].tabpage = -1;
 
-
 	t.importerTabs[7].x = t.txpos;
 	t.importerTabs[7].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 32;
 	t.importerTabs[7].label = "Skin Tone";
@@ -369,8 +371,10 @@ void characterkit_init ( void )
 	t.importerTabs[12].selected = 0;
 	t.importerTabs[12].tabpage = -1;
 
-	t.importerTabs[5].x = t.txpos;
-	t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 +42;
+	//t.importerTabs[5].x = t.txpos;
+	//t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 +42;
+	t.importerTabs[5].x = 40 + 200;
+	t.importerTabs[5].y = 40;
 	t.importerTabs[5].label = "Save Character";
 	t.importerTabs[5].selected = 0;
 	t.importerTabs[5].tabpage = -1;
@@ -832,9 +836,11 @@ void characterkit_alignUI ( void )
 	t.importerTabs[11].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 + t.toffset;
 	t.importerTabs[11].y += iMovePanelUp;
 
-	t.importerTabs[5].x = t.txpos;
-	t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 + 90 + 38;
-	t.importerTabs[5].y += iMovePanelUp;
+	//t.importerTabs[5].x = t.txpos;
+	//t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 + 90 + 38;
+	//t.importerTabs[5].y += iMovePanelUp;
+	t.importerTabs[5].x = 40 + 200;
+	t.importerTabs[5].y = 40;
 
 	t.importerTabs[6].x = 40;
 	t.importerTabs[6].y = 40;
@@ -869,6 +875,7 @@ void characterkit_draw ( void )
 		for ( t.t = 0 ; t.t <=  12 ; t.t++ ) t.importerTabs[t.t].x=t.txpos ;
 		t.importerTabs[1].label = "Head";
 		t.importerTabs[2].label = "Body";
+		t.importerTabs[5].x = 40 + 200;
 		t.importerTabs[5].label = "Save Character";
 		t.importerTabs[6].label = "Back to Editor";
 		t.importerTabs[6].x = 40;

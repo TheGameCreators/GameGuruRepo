@@ -2214,6 +2214,13 @@ void mapfile_savestandalone ( void )
 		}
 	}
 
+	// Optimization Modes
+	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "" ; ++t.i;
+	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "[OPTIMIZESETTINGS]" ; ++t.i;
+	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "drawcalloptimizer=1"; ++t.i;
+	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "speedshadows=1"; ++t.i;
+	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "forcenowaterreflection=1"; ++t.i;
+
 	if (  FileExist(t.setupfile_s.Get()) == 1  )  DeleteAFile (  t.setupfile_s.Get() );
 	SaveArray (  t.setupfile_s.Get(),t.setuparr_s );
 	UnDim (  t.setuparr_s );
