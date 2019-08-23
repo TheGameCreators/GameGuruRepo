@@ -49,6 +49,7 @@ namespace BasicHologram
 		ID3D11DepthStencilView*	GetPassOutDepthStencilView(void) { return m_pPassOutDepthStencilView; }
 		DWORD GetPassOutRenderTargetWidth(void) { return m_dwPassOutRenderTargetWidth; }
 		DWORD GetPassOutRenderTargetHeight(void) { return m_dwPassOutRenderTargetHeight; }
+		ID3D11ShaderResourceView* GetPassOutLeftShaderResourceView(void) { return m_pPassOutLeftShaderResourceView; }
 		winrt::Windows::Foundation::Numerics::float4x4 GetPassOutProjectionLeft(void) { return m_matProjectionLeft; }
 		winrt::Windows::Foundation::Numerics::float4x4 GetPassOutProjectionRight(void) { return m_matProjectionRight; }
 		float GetPassOutHeadPosX(void) { return m_fHeadPosX; }
@@ -144,6 +145,8 @@ namespace BasicHologram
 		ID3D11DepthStencilView*										m_pPassOutDepthStencilView = NULL;
 		DWORD														m_dwPassOutRenderTargetWidth = 0;
 		DWORD														m_dwPassOutRenderTargetHeight = 0;
+		ID3D11ShaderResourceView*									m_pPassOutLeftShaderResourceView = NULL;
+		
 		winrt::Windows::Foundation::Numerics::float4x4				m_matProjectionLeft;
 		winrt::Windows::Foundation::Numerics::float4x4				m_matProjectionRight;
 		float														m_fHeadPosX = 0;

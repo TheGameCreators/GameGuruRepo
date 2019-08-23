@@ -24,7 +24,7 @@ extern "C"
 	DLLEXPORT void GGWMR_GetThumbAndTrigger ( float* pSideButtonValue, float* pTriggerValue, float* pThumbStickX, float* pThumbStickY );
 	DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouchedisRightHand, bool* pbTouched, bool* pbPressed, float* pfTouchPadX, float* pfTouchPadY );
 	DLLEXPORT void GGWMR_GetHandPosAndOrientation ( int iLeftHandMode, float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ );
-	DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
+	DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight, void** ppLeftShaderResourceView );
 	DLLEXPORT void GGWMR_Present ( void );
 }
 
@@ -48,7 +48,7 @@ namespace BasicHologram
 													float* pM02, float* pM12, float* pM22, float* pM32,
 													float* pM03, float* pM13, float* pM23, float* pM33);
 		void UpdateRender();
-		void GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight );
+		void GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight, void** ppLeftShaderResourceView );
 		void Present();
         void Uninitialize();
 

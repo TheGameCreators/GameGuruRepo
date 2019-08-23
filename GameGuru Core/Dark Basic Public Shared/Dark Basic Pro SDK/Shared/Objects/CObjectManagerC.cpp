@@ -4075,17 +4075,16 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 				m_pImmediateContext->UpdateSubresource( g_pCBPerMesh, 0, NULL, &cb, 0, 0 );
 				m_pImmediateContext->VSSetConstantBuffers ( 0, 1, &g_pCBPerMesh );
 
-				if (g_pGlob->dwRenderCameraID < 31) { //PE: Not used in PS when depth only.
-
+				if (g_pGlob->dwRenderCameraID < 31) 
+				{ 
+					//PE: Not used in PS when depth only.
+					//PE: not used in PS with normal objects anymore.
 					m_pImmediateContext->PSSetConstantBuffers ( 0, 1, &g_pCBPerMesh );
 
-					//PE: not used in PS with normal objects anymore.
-
 					int iEid = g.guishadereffectindex;
-					if(pMesh && pMesh->pVertexShaderEffect)
-						iEid = pMesh->pVertexShaderEffect->m_iEffectID;
-					
-					if ( iEid == g.guishadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) { //pObject->dwObjectNumber == 70001
+					if(pMesh && pMesh->pVertexShaderEffect) iEid = pMesh->pVertexShaderEffect->m_iEffectID;
+					if ( iEid == g.guishadereffectindex || iEid == g.guidiffuseshadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) 
+					{
 						CBPerMeshPS cbps;
 						cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r, pMesh->mMaterial.Emissive.g, pMesh->mMaterial.Emissive.b, pMesh->mMaterial.Emissive.a);
 						if (pMesh->bAlphaOverride == true)
@@ -5179,6 +5178,11 @@ float py,pz;
 
 void CObjectManager::UpdateInitOnce ( void )
 {
+	// can skip some operations when in VR (reflection camera and right eye camera)
+	bool bSkipRepeatedWorkloads = false;
+	if ( g_pGlob->dwRenderCameraID == 3 || g_pGlob->dwRenderCameraID == 7 )
+		bSkipRepeatedWorkloads = true;
+
 	// ensure that the D3D device is valid
 	if ( !m_pD3D )
 		return;
@@ -5190,7 +5194,8 @@ void CObjectManager::UpdateInitOnce ( void )
 	//PE: Start mesh light system.
 	start_mesh_light();
 
-	SortTextureList();
+	// Sort is sort of expensive
+	if ( bSkipRepeatedWorkloads == false ) SortTextureList();
 
     // get camera data into member variable
 	m_pCamera = (tagCameraData*)GetCameraInternalData ( g_pGlob->dwRenderCameraID );
@@ -5221,17 +5226,21 @@ void CObjectManager::UpdateInitOnce ( void )
 	if ( !SetupFrustum ( 0.0f ) )
 		return;
 
-	// setup the visibility list
-	if ( !SortVisibilityList ( ) )
-		return;
+	// only need to do this for camera zero and six really
+	if ( bSkipRepeatedWorkloads == false )
+	{
+		// setup the visibility list (sort of expensive)
+		if ( !SortVisibilityList ( ) )
+			return;
 
-	// update only those that are visible
-	if ( !m_ObjectManager.UpdateOnlyVisible() )
-		return;
+		// update only those that are visible
+		if ( !m_ObjectManager.UpdateOnlyVisible() )
+			return;
 
-	// refresh all data in VB (from any vertex changes in objects)
-	if ( !m_ObjectManager.UpdateAllObjectsInBuffers() )
-		return;
+		// refresh all data in VB (from any vertex changes in objects)
+		if ( !m_ObjectManager.UpdateAllObjectsInBuffers() )
+			return;
+	}
 
 	// can render even earlier in pipeline, so this can be flagged to happen earlier in UpdateOnce
 	g_bScenePrepared = false;

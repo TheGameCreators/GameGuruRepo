@@ -19,9 +19,9 @@ DARKSDK bool 		UpdateCameraPtr      			( int iID );
 DARKSDK void 		CameraInternalUpdate			( int iID );
 
 DARKSDK void  		StartScene						( void );
-DARKSDK void  		StartSceneEx					( int );
+DARKSDK void  		StartSceneEx					( int, bool bSpecialQuickVRRendering );
 DARKSDK int   		FinishScene						( void );
-DARKSDK int			FinishSceneEx					( bool bKnowInAdvanceCameraIsUsed );
+DARKSDK int			FinishSceneEx					( bool bKnowInAdvanceCameraIsUsed, bool bSpecialQuickVRRendering );
 DARKSDK int	  		GetRenderCamera					( void );
 DARKSDK void  		RunCode							( int );
 
@@ -99,7 +99,7 @@ DARKSDK void		SetCurrentCamera				( int iID );
 DARKSDK void		SetCameraToImage				( int iID, int iImage, int iWidth, int iHeight, int iGenerateCameraAlpha, DWORD dwOwnD3DFMTValue );
 DARKSDK void		SetCameraToImage				( int iID, int iImage, int iWidth, int iHeight, int iGenerateCameraAlpha );
 DARKSDK void		SetCameraToImage				( int iID, int iImage, int iWidth, int iHeight );
-DARKSDK void		SetCameraToView					( int iID, void* pRenderTargetView, void* pDepthStencilView, DWORD dwWidth, DWORD dwHeight );
+DARKSDK void		SetCameraToView					( int iID, void* pRenderTargetView, void* pDepthStencilView, DWORD dwWidth, DWORD dwHeight, void* pLeftShaderResourceView );
 DARKSDK void		ResetCamera						( int iID );
 DARKSDK void		MoveCameraLeft					( int iID, float fStep );
 DARKSDK void		MoveCameraRight					( int iID, float fStep );

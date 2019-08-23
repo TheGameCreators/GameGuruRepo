@@ -32,6 +32,9 @@ char* g_pVRDebugLog[10000];
 // Support debug log system
 int DebugVRlog ( const char* pReportLog )
 {
+	// remove for now - performance?
+	return 0;
+
 	// Log File
 	#ifdef ACTIVATEVRDEBUGLOGGING
 	if ( pReportLog == NULL )
@@ -97,8 +100,8 @@ BOOL APIENTRY GGWMRMain(HMODULE hModule,
 	hModule = hModule;
 	ul_reason_for_call = ul_reason_for_call;
 	lpReserved = lpReserved;
-	DebugVRlog(NULL);
-	DebugVRlog("WMR DLL Activated");
+	//DebugVRlog(NULL);
+	//DebugVRlog("WMR DLL Activated");
 	return TRUE;
 }
 
@@ -108,23 +111,23 @@ DLLEXPORT int GGWMR_CreateHolographicSpace1 ( HWND hWnd, int iDebugLoggingActive
 	g_iDebugLoggingActive = iDebugLoggingActive;
 
 	// test abilty to write VR debug log file
-	if ( DebugVRlog("test VR debug log file writing") == 1 )
-		return 51;
+	//if ( //DebugVRlog("test VR debug log file writing") == 1 )
+	//	return 51;
 
 	// now go through VR setup
-	DebugVRlog("GetInitialised");
+	//DebugVRlog("GetInitialised");
 	if ( app.GetInitialised() == false )
 	{
 		// COM init
-		DebugVRlog("init_apartment");
+		//DebugVRlog("init_apartment");
 		winrt::init_apartment();
 
 		// Initialize global strings, and perform application initialization.
-		DebugVRlog("Initialize");
+		//DebugVRlog("Initialize");
 		app.Initialize();
 
 		// Create the HWND and the HolographicSpace.
-		DebugVRlog("CreateHolographicSpaceA");
+		//DebugVRlog("CreateHolographicSpaceA");
 		int iErrorCode = app.CreateHolographicSpaceA(hWnd);
 		if ( iErrorCode > 0 ) return iErrorCode;
 	}
@@ -145,11 +148,11 @@ DLLEXPORT int GGWMR_CreateHolographicSpace2 ( void* pD3DDevice, void* pD3DContex
 	if ( app.GetInitialised() == false )
 	{
 		// now initialised
-		DebugVRlog("SetInitialised");
+		//DebugVRlog("SetInitialised");
 		app.SetInitialised(true);
 
 		// complete holographic space creation using existing device and context from engine
-		DebugVRlog("CreateHolographicSpaceB");
+		//DebugVRlog("CreateHolographicSpaceB");
 	    int iSuccess = app.CreateHolographicSpaceB((ID3D11Device*)pD3DDevice, (ID3D11DeviceContext*)pD3DContext);
 		if ( iSuccess == 0 ) 
 		{
@@ -171,7 +174,7 @@ DLLEXPORT void GGWMR_GetUpdate ( void )
 	}
 	catch (...)
 	{
-		DebugVRlog("failed app.UpdateFrame");
+		//DebugVRlog("failed app.UpdateFrame");
 	}
 }
 
@@ -200,14 +203,14 @@ DLLEXPORT void GGWMR_GetTouchPadData ( bool* pbTouchedisRightHand, bool* pbTouch
 
 DLLEXPORT void GGWMR_GetHandPosAndOrientation ( int iLeftHandMode, float* pRHX, float* pRHY, float* pRHZ, float* pQuatW, float* pQuatX, float* pQuatY, float* pQuatZ )
 {
-	DebugVRlog("GetHandPosAndOrientation");
+	//DebugVRlog("GetHandPosAndOrientation");
 	app.GetHandPosAndOrientation ( iLeftHandMode, pRHX, pRHY, pRHZ, pQuatW, pQuatX, pQuatY, pQuatZ );
 }
 
-DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight)
+DLLEXPORT void GGWMR_GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight, void** ppLeftShaderResourceView )
 {
 	app.UpdateRender();
-	app.GetRenderTargetAndDepthStencilView ( ppRenderTargetLeft, ppRenderTargetRight, ppDepthStencil, pdwWidth, pdwHeight );
+	app.GetRenderTargetAndDepthStencilView ( ppRenderTargetLeft, ppRenderTargetRight, ppDepthStencil, pdwWidth, pdwHeight, ppLeftShaderResourceView );
 }
 
 DLLEXPORT void GGWMR_Present ( void )
@@ -220,9 +223,9 @@ DLLEXPORT void GGWMR_Present ( void )
 void App::Initialize()
 {
     // At this point we have access to the device and we can create device-dependent
-	DebugVRlog("DeviceResources");
+	//DebugVRlog("DeviceResources");
     m_deviceResources = std::make_shared<DX::DeviceResources>();
-	DebugVRlog("BasicHologramMain");
+	//DebugVRlog("BasicHologramMain");
     m_main = std::make_unique<BasicHologramMain>(m_deviceResources);
 }
 
@@ -232,13 +235,13 @@ int App::CreateHolographicSpaceA(HWND hWnd)
 	//MessageBox ( NULL, "VR error1", "", MB_OK );
     using namespace winrt::Windows::Graphics::Holographic;
 	//MessageBox ( NULL, "VR error2", "", MB_OK );
-	DebugVRlog("IHolographicSpaceInterop");
+	//DebugVRlog("IHolographicSpaceInterop");
     winrt::com_ptr<IHolographicSpaceInterop> holographicSpaceInterop = winrt::get_activation_factory<HolographicSpace, IHolographicSpaceInterop>();
 	//MessageBox ( NULL, "VR error3", "", MB_OK );
-	DebugVRlog("IHolographicSpace");
+	//DebugVRlog("IHolographicSpace");
     winrt::com_ptr<ABI::Windows::Graphics::Holographic::IHolographicSpace> spHolographicSpace;
 	//MessageBox ( NULL, "VR error4", "", MB_OK );
-	DebugVRlog("CreateForWindow");
+	//DebugVRlog("CreateForWindow");
 	//MessageBox ( NULL, "VR error5", "", MB_OK );
     winrt::check_hresult(holographicSpaceInterop->CreateForWindow(hWnd, __uuidof(ABI::Windows::Graphics::Holographic::IHolographicSpace), winrt::put_abi(spHolographicSpace)));
 	//MessageBox ( NULL, "VR error6", "", MB_OK );
@@ -250,22 +253,22 @@ int App::CreateHolographicSpaceA(HWND hWnd)
     }
 
     // Store the holographic space.
-	DebugVRlog("HolographicSpace");
+	//DebugVRlog("HolographicSpace");
     m_holographicSpace = spHolographicSpace.as<HolographicSpace>();
 	if ( m_holographicSpace == nullptr )
 		return 2;
 
 	// Create spatial interaction manager for hand/controller input
-	DebugVRlog("get_activation_factory");
+	//DebugVRlog("get_activation_factory");
 	winrt::com_ptr<ISpatialInteractionManagerInterop> spatialInteractionManagerInterop = winrt::get_activation_factory<SpatialInteractionManager, ISpatialInteractionManagerInterop>();
 	if (!spatialInteractionManagerInterop)
 	{
 		winrt::check_hresult(E_FAIL);
 		return 3;
 	}
-	DebugVRlog("ISpatialInteractionManager");
+	//DebugVRlog("ISpatialInteractionManager");
 	winrt::com_ptr<ABI::Windows::UI::Input::Spatial::ISpatialInteractionManager> spSpatialInteractionManager;
-	DebugVRlog("spatialInteractionManagerInterop");
+	//DebugVRlog("spatialInteractionManagerInterop");
 	winrt::check_hresult(spatialInteractionManagerInterop->GetForWindow(hWnd, __uuidof(ABI::Windows::UI::Input::Spatial::ISpatialInteractionManager), winrt::put_abi(spSpatialInteractionManager)));
 	if (!spSpatialInteractionManager)
 	{
@@ -274,15 +277,15 @@ int App::CreateHolographicSpaceA(HWND hWnd)
 	}
 
 	// create interaction manager
-	DebugVRlog("SpatialInteractionManager");
+	//DebugVRlog("SpatialInteractionManager");
 	m_interactionManager = spSpatialInteractionManager.as<SpatialInteractionManager>();
 	if ( m_interactionManager == nullptr )
 		return 5;
 
-	DebugVRlog("SourceUpdated");
+	//DebugVRlog("SourceUpdated");
 	m_sourceUpdatedEventToken = m_interactionManager.SourceUpdated(bind(&App::OnSourceUpdated, this, _1, _2));
 
-	DebugVRlog("SourceLost");
+	//DebugVRlog("SourceLost");
 	m_sourceUpdatedEventToken = m_interactionManager.SourceLost(bind(&App::OnSourceLost, this, _1, _2));
 
 	// success
@@ -293,7 +296,7 @@ void App::ReconnectWithHolographicSpaceControllers(void)
 {
     if (g_holographicFrame != nullptr)
     {
-		DebugVRlog("SourceUpdated");
+		//DebugVRlog("SourceUpdated");
 		m_sourceUpdatedEventToken = m_interactionManager.SourceUpdated(bind(&App::OnSourceUpdated, this, _1, _2));
 	}
 }
@@ -304,12 +307,12 @@ int App::CreateHolographicSpaceB(ID3D11Device* pDevice,ID3D11DeviceContext* pCon
     // space (when available) to create a Direct3D device. The HolographicSpace
     // uses this ID3D11Device to create and manage device-based resources such as
     // swap chains.
-	DebugVRlog("deviceResources SetHolographicSpace");
+	//DebugVRlog("deviceResources SetHolographicSpace");
     int iSuccess = m_deviceResources->SetHolographicSpace ( m_holographicSpace, pDevice, pContext );
 	if ( iSuccess == 0 ) return 0;
 
     // The main class uses the holographic space for updates and rendering.
-	DebugVRlog("main SetHolographicSpace");
+	//DebugVRlog("main SetHolographicSpace");
     m_main->SetHolographicSpace(m_holographicSpace, &m_interactionManager);
 
 	// success
@@ -333,7 +336,7 @@ void App::UpdateFrame()
 		}
 		catch(...)
 		{
-			DebugVRlog("failed m_main->Update(&pSpatialStationaryFrameOfReference)");
+			//DebugVRlog("failed m_main->Update(&pSpatialStationaryFrameOfReference)");
 			///MessageBox ( NULL, "FAILED g_holographicFrame = m_main->Update(&pSpatialStationaryFrameOfReference)", "4", MB_OK );
 		}
 	}
@@ -502,13 +505,14 @@ void App::UpdateRender()
 	}
 }
 
-void App::GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight )
+void App::GetRenderTargetAndDepthStencilView ( void** ppRenderTargetLeft, void** ppRenderTargetRight, void** ppDepthStencil, DWORD* pdwWidth, DWORD* pdwHeight, void** ppLeftShaderResourceView )
 {
 	*ppRenderTargetLeft = m_main->GetPassOutRenderTargetLeftView();
 	*ppRenderTargetRight = m_main->GetPassOutRenderTargetRightView();
 	*ppDepthStencil = m_main->GetPassOutDepthStencilView();
 	*pdwWidth = m_main->GetPassOutRenderTargetWidth();
 	*pdwHeight = m_main->GetPassOutRenderTargetHeight();
+	*ppLeftShaderResourceView = m_main->GetPassOutLeftShaderResourceView();
 }
 
 void App::Present()

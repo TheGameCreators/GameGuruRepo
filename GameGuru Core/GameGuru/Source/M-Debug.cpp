@@ -78,17 +78,17 @@ void backuptimestampactivity(void)
 
 void timestampactivity ( int i, char* desc_s )
 {
-	cstr videomemsofardesc_s =  "";
-	cstr videomemdesc_s =  "";
-	cstr memdesc_s =  "";
-	cstr tpart1_s =  "";
-	cstr tpart2_s =  "";
-	cstr tpart3_s =  "";
-	cstr file_s =  "";
-	int smem = 0;
-	int mem = 0;
 	if ( g.gproducelogfiles > 0 ) 
 	{
+		cstr videomemsofardesc_s =  "";
+		cstr videomemdesc_s =  "";
+		cstr memdesc_s =  "";
+		cstr tpart1_s =  "";
+		cstr tpart2_s =  "";
+		cstr tpart3_s =  "";
+		cstr file_s =  "";
+		int smem = 0;
+		int mem = 0;
 		if ( i == 0 ) 
 		{
 			++g.timestampactivityindex;

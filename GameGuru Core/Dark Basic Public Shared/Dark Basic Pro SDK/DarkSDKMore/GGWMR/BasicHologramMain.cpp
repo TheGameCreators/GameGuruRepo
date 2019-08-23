@@ -337,6 +337,7 @@ bool BasicHologramMain::Render(HolographicFrame const& holographicFrame)
 				m_pPassOutDepthStencilView = pCameraResources->GetDepthStencilView();
 				m_dwPassOutRenderTargetWidth = (DWORD)pCameraResources->GetRenderTargetSize().Width;
 				m_dwPassOutRenderTargetHeight = (DWORD)pCameraResources->GetRenderTargetSize().Height;
+				m_pPassOutLeftShaderResourceView = pCameraResources->GetLeftShaderResourceView();
 
 				// The projection transform for each frame is provided by the cameraPose
 			    HolographicStereoTransform cameraProjectionTransform = cameraPose.ProjectionTransform();

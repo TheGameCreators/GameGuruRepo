@@ -363,8 +363,19 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 	if ( iSkipSyncRateCodeAkaFastSync==0 )
 		UpdateAnimationCycle();
 
+	// Special VR rendering camera order (skip zero and copy contents of camera 6 to zero at end)
+	tagCameraData* pCam6 = NULL;
+	bool bSpecialQuickVRRendering = false;
+	if ( CameraExist ( 6 ) == 1 ) 
+	{
+		pCam6 = (tagCameraData*)GetCameraInternalData ( 6 );
+		if ( pCam6 )
+			if ( pCam6->iCameraToImage == -2 )
+				bSpecialQuickVRRendering = true;
+	}
+
 	// Draw all 3D - all cameras loop
-	StartSceneEx ( iMode );
+	StartSceneEx ( iMode, false );
 	do 
 	{
 		int iThisCamera = 1 + GetRenderCamera();
@@ -379,10 +390,32 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 		if ( iThisCamera > 0 )
 		{
 			// Push all polygons for 3D components
-			ExecuteRenderList();
+			if ( iThisCamera == 1 && bSpecialQuickVRRendering == true )
+			{
+				// simplified camera zero handling, render nout!
+			}
+			else
+			{
+				// regular rendering
+				ExecuteRenderList();	
+			}
 		}
 		// Next camera or finish..
-	} while (FinishSceneEx(false)==0);
+	} while (FinishSceneEx ( false, false )==0);
+
+	// on special VR mode, copy camera 6 to camera 0 (saves rendering it all)
+	if ( bSpecialQuickVRRendering == true && pCam6 )
+	{
+		// copy camera 6 to camera 0
+		if ( g_dwSyncMask & 1 )
+		{
+			// but only if camera zero is being rendered (i.e. SYNC call, not FASTSYNC call)
+			LPGGTEXTUREREF pCam6TextureView = pCam6->pImageDepthResourceView;
+			int iCam6Width = g_pGlob->iScreenWidth;
+			int iCam6Height = g_pGlob->iScreenHeight;
+			PasteImageRaw ( pCam6TextureView, iCam6Width, iCam6Height, 0, 0, 1, 1, 0 );
+		}
+	}
 
 	// After 3D operations, direct whether SPRITES/2D/IMAGE
 	// drawing is to take place by default (bitmap or camera zero)

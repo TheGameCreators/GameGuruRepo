@@ -148,7 +148,7 @@ typedef void (*sGGWMR_GetProjectionMatrixFnc)(int,float*,float*,float*,float*,fl
 typedef void (*sGGWMR_GetThumbAndTriggerFnc)(float*,float*,float*,float*); sGGWMR_GetThumbAndTriggerFnc GGWMR_GetThumbAndTrigger = NULL;
 typedef void (*sGGWMR_GetTouchPadDataFnc)(bool*,bool*,bool*,float*,float*); sGGWMR_GetTouchPadDataFnc GGWMR_GetTouchPadData = NULL;
 typedef void (*sGGWMR_GetHandPosAndOrientationFnc)(int,float*,float*,float*,float*,float*,float*,float*); sGGWMR_GetHandPosAndOrientationFnc GGWMR_GetHandPosAndOrientation = NULL;
-typedef void (*sGGWMR_GetRenderTargetAndDepthStencilViewFnc)(void**,void**,void**,DWORD*,DWORD*); sGGWMR_GetRenderTargetAndDepthStencilViewFnc GGWMR_GetRenderTargetAndDepthStencilView = NULL;
+typedef void (*sGGWMR_GetRenderTargetAndDepthStencilViewFnc)(void**,void**,void**,DWORD*,DWORD*,void**); sGGWMR_GetRenderTargetAndDepthStencilViewFnc GGWMR_GetRenderTargetAndDepthStencilView = NULL;
 typedef void (*sGGWMR_PresentFnc)(void); sGGWMR_PresentFnc GGWMR_Present = NULL;
 
 // OpenVR (Steam)
@@ -333,7 +333,7 @@ int GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbs
 
 	// Assign VR System Mode to Use
 	g_iDebuggingActive = iDebuggingActive;
-	DebugGGVRlog ( NULL );
+	//DebugGGVRlog ( NULL );
 	if ( GGVR_EnabledMode == 0 )
 	{
 		// Set VR System Mode
@@ -364,7 +364,7 @@ int GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbs
 				GGWMR_Present = (sGGWMR_PresentFnc) GetProcAddress ( hGGWMRDLL, "GGWMR_Present" );
 
 				// confirm proc exists
-				if ( GGWMR_CreateHolographicSpace1 ) DebugGGVRlog ( "CreateHolographicSpace1 Valid" );
+				//if ( GGWMR_CreateHolographicSpace1 ) //DebugGGVRlog ( "CreateHolographicSpace1 Valid" );
 			}
 		}
 	}
@@ -372,23 +372,6 @@ int GGVR_ChooseVRSystem ( int iGGVREnabledMode, int iDebuggingActive, LPSTR pAbs
 	// to prevent first appearance of WMR portal wiping out directsound device, do this early
 	int iErrorCode = GGVR_PreSubmit(2+g_iDebuggingActive);
 	if ( iErrorCode == 0 ) iErrorCode = GGVR_PreSubmit(2+g_iDebuggingActive);
-
-	/* need something like this to detect headset and switch OFF VR!
-	if ( iErrorCode == 0 )
-	{
-		// this will determine if headset available for rendering or not
-		ID3D11RenderTargetView* pRenderTargetLeftView = NULL;
-		ID3D11RenderTargetView* pRenderTargetRightView = NULL;
-		ID3D11DepthStencilView* pDepthStencilView = NULL;
-		DWORD dwWidth, dwHeight;
-		GGWMR_GetRenderTargetAndDepthStencilView ( (void**)&pRenderTargetLeftView, (void**)&pRenderTargetRightView, (void**)&pDepthStencilView, &dwWidth, &dwHeight );
-		if ( pRenderTargetLeftView == NULL )
-		{
-			// seems there is nothing to render to, no headset!
-			iErrorCode = 75;
-		}
-	}
-	*/
 	if ( iErrorCode > 0 ) return iErrorCode;
 
 	// no error code
@@ -651,7 +634,7 @@ void GGVR_UpdatePoses(void)
 	char pInfo[1024];
 	sprintf ( pInfo, "Info: EnabledMode:%d  EnabledState:%d", GGVR_EnabledMode, GGVR_EnabledState );
 	timestampactivity ( 0, pInfo );
-	DebugGGVRlog ( pInfo );
+	//DebugGGVRlog ( pInfo );
 
 	// Handles HMD orientation and Motion Controller handling
 	if ( GGVR_EnabledMode == 1 )
@@ -774,7 +757,7 @@ void GGVR_UpdatePoses(void)
 		{
 			// WMR Tracking
 			timestampactivity ( 0, "TS: Calling GGWMR_GetUpdate" );
-			DebugGGVRlog ( "Calling GGWMR_GetUpdate" );
+			//DebugGGVRlog ( "Calling GGWMR_GetUpdate" );
 			///MessageBox ( NULL, "Hard Debug Trace", "0.A", MB_OK );
 			GGWMR_GetUpdate();
 			pGamePoseArray[0].bPoseIsValid = true;
@@ -785,7 +768,7 @@ void GGVR_UpdatePoses(void)
 				float fUpX, fUpY, fUpZ;
 				float fDirX, fDirY, fDirZ;
 				timestampactivity ( 0, "TS: Calling GGWMR_GetHeadPosAndDir" );
-				DebugGGVRlog ( "Calling GGWMR_GetHeadPosAndDir" );
+				//DebugGGVRlog ( "Calling GGWMR_GetHeadPosAndDir" );
 				GGWMR_GetHeadPosAndDir ( &fPosX, &fPosY, &fPosZ, &fUpX, &fUpY, &fUpZ, &fDirX, &fDirY, &fDirZ );
 				GGMATRIX matTransform;
 				KMaths::Vector3 up = KMaths::Vector3(fUpX,fUpY,fUpZ);
@@ -820,7 +803,7 @@ void GGVR_UpdatePoses(void)
 				float fThumbStickX = 0.0f;
 				float fThumbStickY = 0.0f;
 				timestampactivity ( 0, "TS: Calling GGWMR_GetThumbAndTrigger" );
-				DebugGGVRlog ( "Calling GGWMR_GetThumbAndTrigger" );
+				//DebugGGVRlog ( "Calling GGWMR_GetThumbAndTrigger" );
 				GGWMR_GetThumbAndTrigger ( &fSideButtonValue, &fTriggerValue, &fThumbStickX, &fThumbStickY );
 
 				// Update controller input : GGVR_AxisType[controllerID][typeofinput]
@@ -850,7 +833,7 @@ void GGVR_UpdatePoses(void)
 				GGVR_fTouchPadX = 0.0f;
 				GGVR_fTouchPadY = 0.0f;
 				timestampactivity ( 0, "TS: Calling GGWMR_GetTouchPadData" );
-				DebugGGVRlog ( "Calling GGWMR_GetTouchPadData" );
+				//DebugGGVRlog ( "Calling GGWMR_GetTouchPadData" );
 				GGWMR_GetTouchPadData ( &GGVR_bTouchPadIsRightHand, &GGVR_bTouchPadTouched, &GGVR_bTouchPadPressed, &GGVR_fTouchPadX, &GGVR_fTouchPadY );
 
 				// also need position/orientation of RIGHT controller
@@ -862,7 +845,7 @@ void GGVR_UpdatePoses(void)
 				float fQuatY = 0.0f;
 				float fQuatZ = 0.0f;
 				timestampactivity ( 0, "TS: Calling GGWMR_GetHandPosAndOrientation right" );
-				DebugGGVRlog ( "Calling GGWMR_GetHandPosAndOrientation right" );
+				//DebugGGVRlog ( "Calling GGWMR_GetHandPosAndOrientation right" );
 				GGWMR_GetHandPosAndOrientation ( 0, &fRightHandX, &fRightHandY, &fRightHandZ, &fQuatW, &fQuatX, &fQuatY, &fQuatZ );
 				GGMATRIX matRot;
 				GGQUATERNION QuatRot = GGQUATERNION ( -fQuatX, -fQuatY, -fQuatZ, fQuatW );
@@ -883,7 +866,7 @@ void GGVR_UpdatePoses(void)
 
 				// also need position/orientation of LEFT controller
 				timestampactivity ( 0, "TS: Calling GGWMR_GetHandPosAndOrientation left" );
-				DebugGGVRlog ( "Calling GGWMR_GetHandPosAndOrientation left" );
+				//DebugGGVRlog ( "Calling GGWMR_GetHandPosAndOrientation left" );
 				float fLeftHandX = 0.0f;
 				float fLeftHandY = 0.0f;
 				float fLeftHandZ = 0.0f;
@@ -916,7 +899,7 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 {
 	// Update the HMD and controller feedbacks
 	timestampactivity ( 0, "TS: Calling GGVR_UpdatePoses" );
-	DebugGGVRlog ( "Calling GGVR_UpdatePoses" );
+	//DebugGGVRlog ( "Calling GGVR_UpdatePoses" );
 	GGVR_UpdatePoses();
 
 	//Position the Base Object offset from the origin
@@ -1079,6 +1062,7 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 	// create teleport arc control points or laser
 	GGVR_Player.LaserGuideActive = 0;
 	static int g_iControllerVisualMode = 0;
+	bool bCannotLandHereCancelDestination = false;
 	if ( bShowControllerWand == true && g_iLastControllerActive > 0 )
 	{
 		std::vector <GGVECTOR3> vecControlPoints;
@@ -1102,10 +1086,11 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 			vecControlPoints.push_back ( pnt );
 
 			// when drop below ground
-			if ( y < BT_GetGroundHeight ( iTerrainID, x, z ) )
+			float fActualTerrainGroundY = BT_GetGroundHeight ( iTerrainID, x, z );
+			if ( y < fActualTerrainGroundY )
 			{
 				GGVR_fTelePortDestinationX = x;
-				GGVR_fTelePortDestinationY = y;
+				GGVR_fTelePortDestinationY = fActualTerrainGroundY;
 				GGVR_fTelePortDestinationZ = z;
 				bAboveGround = false;
 			}
@@ -1119,6 +1104,7 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 				GGVR_fTelePortDestinationY = ChecklistFValueB(6);
 				GGVR_fTelePortDestinationZ = ChecklistFValueC(6);
 				bAboveGround = false;
+				if ( ny >= 0.0f ) bCannotLandHereCancelDestination = true;
 			}
 			fLastX = x; fLastY = y; fLastZ = z;
 		}
@@ -1143,6 +1129,36 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 			y = ObjectPositionY ( GGVR_Player.ObjLeftHand );
 			z = ObjectPositionZ ( GGVR_Player.ObjLeftHand );
 		}
+
+		// before we settle on final teleport dest, ensure its not too close to a surface (so dont get trapped inside it)
+		float fDirX = GGVR_fTelePortDestinationX - x;
+		float fDirZ = GGVR_fTelePortDestinationZ - z;
+		float fDirDist = sqrt ( fabs(fDirX*fDirX)+fabs(fDirZ*fDirZ) );
+		fDirX /= fDirDist;
+		fDirZ /= fDirDist;
+		fDirX *= 25.0f;
+		fDirZ *= 25.0f;
+		float fPosNearerPlrX = GGVR_fTelePortDestinationX - fDirX;
+		float fPosNearerPlrZ = GGVR_fTelePortDestinationZ - fDirZ;
+		float fPosEndOfCircleX = GGVR_fTelePortDestinationX + fDirX;
+		float fPosEndOfCircleZ = GGVR_fTelePortDestinationZ + fDirZ;
+		float fYOffsetAboveDest = 5.0f;
+		IntersectAll(iLMObjStart,iLMObjFinish,0,0,0,0,0,0,-123);
+		int tDoesCircleIntersect = IntersectAll(iEntObjStart,iEndObjEnd,fPosNearerPlrX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,fPosNearerPlrZ,fPosEndOfCircleX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,fPosEndOfCircleZ,0);
+		if ( tDoesCircleIntersect > 0 )
+		{
+			// the circle is intersecting something, cannot land here
+			bCannotLandHereCancelDestination = true;
+		}
+		IntersectAll(iLMObjStart,iLMObjFinish,0,0,0,0,0,0,-123);
+		tDoesCircleIntersect = IntersectAll(iEntObjStart,iEndObjEnd,GGVR_fTelePortDestinationX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,GGVR_fTelePortDestinationZ,GGVR_fTelePortDestinationX,GGVR_fTelePortDestinationY+85.0f,GGVR_fTelePortDestinationZ,0);
+		if ( tDoesCircleIntersect > 0 )
+		{
+			// the circle is intersecting above (so player cannot fit in), cannot land here
+			bCannotLandHereCancelDestination = true;
+		}
+
+		// create objects for the arc
 		if ( g_iControllerVisualMode != 1 && ObjectExist(GGVR_Player.ObjTeleportStart) == 1 ) DeleteObject ( GGVR_Player.ObjTeleportStart );
 		for ( int o = GGVR_Player.ObjTeleportStart; o < GGVR_Player.ObjTeleportFinish; o++ )
 		{
@@ -1194,7 +1210,10 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 		}
 		PositionObject ( GGVR_Player.ObjTeleportFinish, GGVR_fTelePortDestinationX, GGVR_fTelePortDestinationY+5.0f, GGVR_fTelePortDestinationZ );
 		RotateObject ( GGVR_Player.ObjTeleportFinish, 0, 0, 0 );
-		ShowObject ( GGVR_Player.ObjTeleportFinish );
+		if ( bCannotLandHereCancelDestination == false )
+			ShowObject ( GGVR_Player.ObjTeleportFinish );
+		else
+			HideObject ( GGVR_Player.ObjTeleportFinish );
 	}
 	else
 	{
@@ -1238,12 +1257,17 @@ bool GGVR_HandlePlayerTeleport ( float* pNewPosX, float* pNewPosY, float* pNewPo
 {
 	if ( GGVR_bTouchPadPressed==true && GGVR_bTouchPadNeedToRelease==false && GGVR_fTelePortDestinationX != 0.0f )
 	{
-		*pNewPosX = GGVR_fTelePortDestinationX;
-		*pNewPosY = GGVR_fTelePortDestinationY+30;
-		*pNewPosZ = GGVR_fTelePortDestinationZ;
-		*pNewAngleY = CameraAngleY(0);
 		GGVR_bTouchPadNeedToRelease = true;
-		return true;
+		if ( GetVisible ( GGVR_Player.ObjTeleportFinish ) == 1 )
+		{
+			*pNewPosX = GGVR_fTelePortDestinationX;
+			*pNewPosY = GGVR_fTelePortDestinationY+30;
+			*pNewPosZ = GGVR_fTelePortDestinationZ;
+			*pNewAngleY = CameraAngleY(0);
+			return true;
+		}
+		else
+			return false;
 	}
 	if ( GGVR_bTouchPadPressed==false )
 	{
@@ -2408,7 +2432,7 @@ int GGVR_PlayerData::GetLHandObjID()
 
 int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath, int iDebugMode )
 {
-	DebugGGVRlog ( "Calling GGWMR_CreateHolographicSpace1" );
+	//DebugGGVRlog ( "Calling GGWMR_CreateHolographicSpace1" );
 	try
 	{
 		int iAdapterOrdinal = 0;
@@ -2416,9 +2440,9 @@ int GGVR_CreateHolographicSpace1 ( HWND hWnd, LPSTR pRootPath, int iDebugMode )
 		int iFeatureLevel = 0;
 		GetD3DExtraInfo ( &iAdapterOrdinal, pAdapterName, &iFeatureLevel );
 		char pDebugStr[2048];
-		sprintf ( pDebugStr, "Graphics Adapter Ordinal : %d", iAdapterOrdinal ); DebugGGVRlog ( pDebugStr );
-		sprintf ( pDebugStr, "Graphics Adapter Name : %s", pAdapterName ); DebugGGVRlog ( pDebugStr );
-		sprintf ( pDebugStr, "Graphics Feature Level : %d", iFeatureLevel ); DebugGGVRlog ( pDebugStr );
+		sprintf ( pDebugStr, "Graphics Adapter Ordinal : %d", iAdapterOrdinal ); //DebugGGVRlog ( pDebugStr );
+		sprintf ( pDebugStr, "Graphics Adapter Name : %s", pAdapterName ); //DebugGGVRlog ( pDebugStr );
+		sprintf ( pDebugStr, "Graphics Feature Level : %d", iFeatureLevel ); //DebugGGVRlog ( pDebugStr );
 		return GGWMR_CreateHolographicSpace1 ( hWnd, iDebugMode );
 	}
 	catch (exception& e)
@@ -2452,11 +2476,11 @@ int GGVR_PreSubmit ( int iDebugMode )
 			if ( iTrueDebugMode >=2 ) iTrueDebugMode -= 2;
 
 			// initialise VR hardware
-			DebugGGVRlog ( "Calling GGVR_CreateHolographicSpace1" );
+			//DebugGGVRlog ( "Calling GGVR_CreateHolographicSpace1" );
 			int iErrorCode = GGVR_CreateHolographicSpace1 ( g_pGlob->hOriginalhWnd, "", iTrueDebugMode );
 			char pErrStr[1024];
 			sprintf ( pErrStr, "Error Value From GGVR_CreateHolographicSpace1 : %d", iErrorCode );
-			DebugGGVRlog ( pErrStr );
+			//DebugGGVRlog ( pErrStr );
 			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }
 			iErrorCode = GGVR_CreateHolographicSpace2 ( m_pD3D, m_pImmediateContext );
 			if ( iErrorCode > 0 ) { GGVR_EnabledState=99; return iErrorCode; }
@@ -2490,8 +2514,9 @@ int GGVR_PreSubmit ( int iDebugMode )
 			ID3D11RenderTargetView* pRenderTargetLeftView = NULL;
 			ID3D11RenderTargetView* pRenderTargetRightView = NULL;
 			ID3D11DepthStencilView* pDepthStencilView = NULL;
+			ID3D11ShaderResourceView* pLeftShaderResourceView = NULL;
 			DWORD dwWidth, dwHeight;
-			GGWMR_GetRenderTargetAndDepthStencilView ( (void**)&pRenderTargetLeftView, (void**)&pRenderTargetRightView, (void**)&pDepthStencilView, &dwWidth, &dwHeight );
+			GGWMR_GetRenderTargetAndDepthStencilView ( (void**)&pRenderTargetLeftView, (void**)&pRenderTargetRightView, (void**)&pDepthStencilView, &dwWidth, &dwHeight, (void**)&pLeftShaderResourceView );
 			if ( pRenderTargetLeftView == NULL )
 			{
 				// tried to run VR but no headset to render to
@@ -2499,8 +2524,9 @@ int GGVR_PreSubmit ( int iDebugMode )
 			}
 			else
 			{
-				SetCameraToView ( 6, pRenderTargetLeftView, pDepthStencilView, dwWidth, dwHeight );
-				SetCameraToView ( 7, pRenderTargetRightView, pDepthStencilView, dwWidth, dwHeight );
+				// additionally, copy left view shader resource view (so can paste to camera zero for quick preview)
+				SetCameraToView ( 6, pRenderTargetLeftView, pDepthStencilView, dwWidth, dwHeight, pLeftShaderResourceView );
+				SetCameraToView ( 7, pRenderTargetRightView, pDepthStencilView, dwWidth, dwHeight, NULL );
 
 				// get projection matrix for left and right eyes
 				float fM00, fM10, fM20, fM30;

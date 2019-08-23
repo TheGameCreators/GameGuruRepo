@@ -127,6 +127,29 @@ void DX::CameraResources::CreateResourcesForBackBuffer(
 		{
 			DebugVRlog("failed m_holographicCamera.RenderTargetSize()");
 		}
+
+		// create shader resource view of left backbuffer (will be used to copy to camera zero for preview)
+		if ( m_d3dLeftShaderResourceView == nullptr )
+		{
+			DebugVRlog("CreateLeftShaderResourceView");
+			try
+			{
+				CD3D11_SHADER_RESOURCE_VIEW_DESC leftShaderResourceViewDesc(
+					D3D11_SRV_DIMENSION_TEXTURE2D,
+					m_dxgiFormat
+				);
+				winrt::check_hresult(
+					device->CreateShaderResourceView(
+						m_d3dBackBuffer.Get(),
+						&leftShaderResourceViewDesc,
+						&m_d3dLeftShaderResourceView
+					));
+			}
+			catch(...)
+			{
+				DebugVRlog("failed CreateLeftShaderResourceView");
+			}
+		}
     }
 
     // Refresh depth stencil resources, if needed.

@@ -341,12 +341,12 @@ void HandleClippingPlane ( void )
 	}
 }
 
-DARKSDK void StartSceneEx ( int iMode )
+DARKSDK void StartSceneEx ( int iMode, bool bSpecialQuickVRRendering )
 {
 	// iMode : 0-regular, 1-no camera backdrop (when disable camera rendering)
 
 	// start render chain for cameras
-	m_iRenderCamera=0;
+	m_iRenderCamera = 0;
 
 	// update the pointer
 	if ( UpdateCameraPtr ( m_iRenderCamera ) )
@@ -395,24 +395,35 @@ DARKSDK void StartSceneEx ( int iMode )
 	}
 
 	// allow globstruct to keep track of which camera doing the rendering
-	if(g_pGlob) g_pGlob->dwRenderCameraID=m_iRenderCamera;
+	if(g_pGlob) g_pGlob->dwRenderCameraID = m_iRenderCamera;
 }
 
 DARKSDK void StartScene ( void )
 {
 	// see above
-	StartSceneEx ( 0 );
+	StartSceneEx ( 0, false );
 
 	// U69 - 180508 - start a new camera render loop, reset stereoscopic update flag
 	g_pStereoscopicCameraUpdated = NULL;
 }
 
-DARKSDK int FinishSceneEx ( bool bKnowInAdvanceCameraIsUsed )
+DARKSDK int FinishSceneEx ( bool bKnowInAdvanceCameraIsUsed, bool bSpecialQuickVRRendering )
 {
-	// leeadd - 130906 - u63 - bKnowInAdvanceCameraIsUsed set from SYNC MASK logic in core
-	m_iRenderCamera = m_CameraManager.GetNextID ( m_iRenderCamera );
-	if(g_pGlob) g_pGlob->dwRenderCameraID=m_iRenderCamera;
-	if(m_iRenderCamera != -1 )
+	if ( bSpecialQuickVRRendering == true )
+	{
+		// ensure cameras 6 and 7 are always skipped (even though masked out)
+		m_iRenderCamera = m_CameraManager.GetNextID ( m_iRenderCamera );
+		while ( m_iRenderCamera == 6 || m_iRenderCamera == 7 )
+			m_iRenderCamera = m_CameraManager.GetNextID ( m_iRenderCamera );
+	}
+	else
+	{
+		// simply take cameras sequentially
+		m_iRenderCamera = m_CameraManager.GetNextID ( m_iRenderCamera );
+	}
+
+	if ( g_pGlob ) g_pGlob->dwRenderCameraID = m_iRenderCamera;
+	if ( m_iRenderCamera != -1 )
 	{
 		// update the pointer for Next Camera
 		UpdateCameraPtr ( m_iRenderCamera );
@@ -423,10 +434,9 @@ DARKSDK int FinishSceneEx ( bool bKnowInAdvanceCameraIsUsed )
 	else
 	{
 		// restore camera output to current bitmap (if changed)
-		if (g_bCameraOutputToImage == true)
+		if ( g_bCameraOutputToImage == true )
 		{
 			#ifdef DX11
-			//SetRenderAndDepthTarget ( g_pGlob->pCurrentBitmapSurfaceView, g_pGlob->pHoldDepthBufferPtr );
 			SetRenderAndDepthTarget ( g_pGlob->pCurrentBitmapSurfaceView, g_pGlob->pCurrentBitmapDepthView );
 			#else
 			m_pD3D->SetRenderTarget(0, g_pGlob->pCurrentBitmapSurface);
@@ -464,7 +474,7 @@ DARKSDK int FinishScene ( void )
 {
 	// assume next camera is valid, so we set it up and clear render target
 	// leenote - 130906 - u63 - discovered this would wipe out previous camera is using multiple SYNC MASK calls (post-process tricks)
-	return FinishSceneEx ( true );
+	return FinishSceneEx ( true, false );
 }
 
 
@@ -1883,7 +1893,7 @@ DARKSDK void SetCameraToImage ( int iID, int iImage, int iWidth, int iHeight )
 	SetCameraToImage ( iID, iImage, iWidth, iHeight, 0, 0 );
 }
 
-DARKSDK void SetCameraToView ( int iID, void* pRenderTargetView, void* pDepthStencilView, DWORD dwWidth, DWORD dwHeight )
+DARKSDK void SetCameraToView ( int iID, void* pRenderTargetView, void* pDepthStencilView, DWORD dwWidth, DWORD dwHeight, void* pLeftShaderResourceView )
 {
 	if ( iID < 0 || iID > MAXIMUMVALUE )
 	{
@@ -1898,6 +1908,7 @@ DARKSDK void SetCameraToView ( int iID, void* pRenderTargetView, void* pDepthSte
 	SetCameraToImage ( iID, -2, dwWidth, dwHeight, 0, 0 ); // -2 mode will strip any image, but get camera ready to carry render target below
 	m_ptr->pCameraToImageSurfaceView = (ID3D11RenderTargetView*)pRenderTargetView;
 	m_ptr->pImageDepthSurfaceView = (ID3D11DepthStencilView*)pDepthStencilView;
+	m_ptr->pImageDepthResourceView = (ID3D11ShaderResourceView*)pLeftShaderResourceView;
 }
 
 DARKSDK void MoveCameraUp ( int iID, float fStep )
@@ -3182,3 +3193,4 @@ void SetCameraProjectionMatrix ( int iID, GGMATRIX* pMatrix )
 	m_ptr->bOverride = true;
 	m_ptr->matProjection = *pMatrix;
 }
+

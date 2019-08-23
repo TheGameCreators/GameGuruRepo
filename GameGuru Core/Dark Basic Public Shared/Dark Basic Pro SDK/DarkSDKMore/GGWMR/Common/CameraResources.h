@@ -35,6 +35,8 @@ namespace DX
         ID3D11RenderTargetView* GetBackBufferRenderTargetLeftView() const { return m_d3dRenderTargetLeftView.Get(); }
         ID3D11RenderTargetView* GetBackBufferRenderTargetRightView()const { return m_d3dRenderTargetRightView.Get(); }
         ID3D11DepthStencilView* GetDepthStencilView()               const { return m_d3dDepthStencilView.Get(); }
+        ID3D11ShaderResourceView* GetLeftShaderResourceView()       const { return m_d3dLeftShaderResourceView.Get(); }
+		
         ID3D11Texture2D*        GetBackBufferTexture2D()            const { return m_d3dBackBuffer.Get();       }
         ID3D11Texture2D*        GetDepthStencilTexture2D()          const { return m_d3dDepthStencil.Get();     }
         D3D11_VIEWPORT          GetViewport()                       const { return m_d3dViewport;               }
@@ -52,6 +54,7 @@ namespace DX
         Microsoft::WRL::ComPtr<ID3D11RenderTargetView>              m_d3dRenderTargetLeftView;
         Microsoft::WRL::ComPtr<ID3D11RenderTargetView>              m_d3dRenderTargetRightView;
         Microsoft::WRL::ComPtr<ID3D11DepthStencilView>              m_d3dDepthStencilView;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>            m_d3dLeftShaderResourceView;
         Microsoft::WRL::ComPtr<ID3D11Texture2D>                     m_d3dBackBuffer;
         Microsoft::WRL::ComPtr<ID3D11Texture2D>                     m_d3dDepthStencil;
 

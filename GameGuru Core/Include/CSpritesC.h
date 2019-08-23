@@ -65,6 +65,7 @@ DARKSDK void RestoreSpritesBack      ( void );								// backsave
 //DARKSDK void SetErrorHandler ( LPVOID pErrorHandlerPtr );
 DARKSDK void GetSpritesDiffuse ( int iID, int* piRed, int* piGreen, int* piBlue );	// get the diffuse of a sprite
 DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV );
+DARKSDK void PasteImageRaw ( LPGGTEXTUREREF	lpTextureView, int iWidth, int iHeight, int iX, int iY, float fU, float fV, int iTransparent );
 DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV, int iTransparent );
 DARKSDK void PasteTextureToRect ( LPGGTEXTUREREF pTexture, float fU, float fV, RECT Rect );
 
