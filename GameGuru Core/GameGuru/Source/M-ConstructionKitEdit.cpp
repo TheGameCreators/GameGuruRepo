@@ -944,6 +944,13 @@ void conkitedit_loop ( void )
 										entity_positionandscale();
 									}
 								}
+								if (t.entityelement[t.e].dc_obj[3] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[3]) == 1) {
+									if (t.entityelement[t.e + 4].obj > 0 && ObjectExist(t.entityelement[t.e + 4].obj) == 1) {
+										t.tobj = t.entityelement[t.e + 4].obj;
+										t.tte = t.e + 4;
+										entity_positionandscale();
+									}
+								}
 
 								t.entityelement[t.e].dc_obj[0] = 0;
 								t.entityelement[t.e].dc_obj[1] = 0;

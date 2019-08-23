@@ -939,6 +939,42 @@ void game_masterroot ( void )
 													}
 												}
 											}
+											bool additionaladded4 = false;
+											int glueid4 = 0;
+											int glueobj4 = 0;
+											if (t.e < g.entityelementlist - 3) {
+												glueid4 = t.entityelement[t.e + 4].bankindex;
+												glueobj4 = t.entityelement[t.e + 4].obj;
+
+												sObject* pObject5 = g_ObjectList[glueobj4];
+												if (pObject5 && pObject5->pInstanceOfObject) {
+													pObject5 = pObject5->pInstanceOfObject;
+													if (pObject5 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e + 4].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e + 4].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < 700) {
+															//Object ok add.
+															float gluescalex4 = ObjectScaleX(glueobj4);
+															float gluescaley4 = ObjectScaleY(glueobj4);
+															float gluescalez4 = ObjectScaleZ(glueobj4);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj4) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj4) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj4) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj4), ObjectAngleY(glueobj4), ObjectAngleZ(glueobj4));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex4, gluescaley4, gluescalez4);
+															additionaladded4 = true;
+														}
+													}
+												}
+											}
 
 											//PE: Merge everything into a single mesh.
 											DeleteMesh(g.meshlightmapwork);
@@ -965,6 +1001,14 @@ void game_masterroot ( void )
 												{
 													SetObjectCollisionProperty(destobj, 1);
 												}
+											}
+											if (t.entityprofile[t.entid].cullmode != 0)
+											{
+												SetObjectCull(destobj, 0);
+											}
+											else
+											{
+												SetObjectCull(destobj, 1);
 											}
 
 											if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
@@ -993,6 +1037,11 @@ void game_masterroot ( void )
 												t.entityelement[t.e].dc_obj[2] = glueobj3;
 												t.entityelement[t.e + 3].dc_merged = true;
 												HideObject(glueobj3);
+											}
+											if (additionaladded4) {
+												t.entityelement[t.e].dc_obj[3] = glueobj4;
+												t.entityelement[t.e + 4].dc_merged = true;
+												HideObject(glueobj4);
 											}
 											//Hide org objects.
 											HideObject(t.obj);
@@ -1343,6 +1392,7 @@ void game_masterroot ( void )
 							t.entityelement[t.e].dc_obj[1] = 0;
 							t.entityelement[t.e].dc_obj[2] = 0;
 							t.entityelement[t.e].dc_obj[3] = 0;
+
 						}
 					}
 				}
