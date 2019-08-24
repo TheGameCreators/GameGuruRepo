@@ -363,7 +363,7 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 	if ( iSkipSyncRateCodeAkaFastSync==0 )
 		UpdateAnimationCycle();
 
-	// Special VR rendering camera order (skip zero and copy contents of camera 6 to zero at end)
+	// Special VR rendering camera order (skip zero and copy contents of camera 6 to zero at end) 
 	tagCameraData* pCam6 = NULL;
 	bool bSpecialQuickVRRendering = false;
 	if ( CameraExist ( 6 ) == 1 ) 

@@ -5180,7 +5180,8 @@ void CObjectManager::UpdateInitOnce ( void )
 {
 	// can skip some operations when in VR (reflection camera and right eye camera)
 	bool bSkipRepeatedWorkloads = false;
-	if ( g_pGlob->dwRenderCameraID == 3 || g_pGlob->dwRenderCameraID == 7 )
+	//if ( g_pGlob->dwRenderCameraID == 3 || g_pGlob->dwRenderCameraID == 7 )
+	if ( g_pGlob->dwRenderCameraID == 7 )
 		bSkipRepeatedWorkloads = true;
 
 	// ensure that the D3D device is valid

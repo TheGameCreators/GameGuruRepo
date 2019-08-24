@@ -13,6 +13,7 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder );
 void FPSC_Full_Data_Init ( void );
 void common_switchtomysystemfolder ( void );
 void FPSC_Setup ( void );
+LPSTR FindFileFromEntityBank ( LPSTR pFindThisFilename );
 void common_loadfonts ( void );
 void common_loadcommonassets ( int iShowScreenPrompts );
 void common_hide_mouse ( void );

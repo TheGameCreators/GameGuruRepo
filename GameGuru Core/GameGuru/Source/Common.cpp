@@ -2198,6 +2198,265 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 
 	// special global flag which can affect how shaders are loaded
 	if ( g.gforceloadtestgameshaders != 0 ) gbAlwaysIgnoreShaderBlobFile = true;
+
+	// new feature which scans entitybank folders and confirms there are no missing model or texture files
+	/* useful - we can make this a feature
+	LPSTR pOriginalDir = GetDir();
+	cstr pReport = "";
+	bool bFixAnyEntityIssues = true;
+	if ( bFixAnyEntityIssues == true )
+	{
+		g.filecollectionmax = 0;
+		Undim ( t.filecollection_s );
+		Dim ( t.filecollection_s, 500 );
+		SetDir ( "Files\\entitybank" );
+		addallinfoldertocollection("Objects - Copy","");
+	}
+	bool bRunScanOnEntityFiles = true;
+	if ( bRunScanOnEntityFiles == true )
+	{
+		// first scan main folders
+		SetDir ( pOriginalDir );
+		SetDir ( "Files\\entitybank\\Objects" );
+		LPSTR pEntityBankDir = GetDir();
+		std::vector<cstr> folderlist;
+		folderlist.clear();
+		ChecklistForFiles();
+		for ( int c = 1; c <= ChecklistQuantity(); c++ )
+		{
+			if ( ChecklistValueA(c) == 1 )
+			{
+				LPSTR pFilename = ChecklistString(c);
+				if ( strcmp ( pFilename, "." ) != NULL && strcmp ( pFilename, ".." ) != NULL )
+				{
+					folderlist.push_back ( pFilename );
+				}
+			}
+		}
+		if ( folderlist.size() > 0 )
+		{
+			for ( int f = 0; f < folderlist.size(); f++ )
+			{
+				LPSTR pFolderName = folderlist[f].Get();
+				SetDir ( pEntityBankDir );
+				SetDir ( pFolderName );
+				ChecklistForFiles();
+				for ( int c = 1; c <= ChecklistQuantity(); c++ )
+				{
+					LPSTR pFilename = ChecklistString(c);
+					if ( strcmp ( pFilename + strlen(pFilename) - 4, ".fpe" ) == NULL )
+					{
+						// found entity file
+						pReport = cstr("VALIDATE : ") + pFolderName + "\\" + pFilename + " : ";
+
+						// find model and texture
+						LPSTR pModelFile = NULL;
+						LPSTR pTextureFile = NULL;
+						std::vector<cstr> entityFileData;
+						Dim ( entityFileData, 999 );
+						LoadArray ( pFilename, entityFileData );
+						for ( int l = 0; l <= 999; l++ )
+						{
+							// get this line
+							cstr line_s = entityFileData[l];
+							LPSTR pLinePtr = line_s.Get();
+							if ( Len(pLinePtr) > 0 ) 
+							{
+								// found model filename
+								if ( strnicmp (pLinePtr, "model", 5 ) == NULL )
+								{
+									pLinePtr = strstr ( pLinePtr, "model" );
+									if ( pLinePtr )
+									{
+										pLinePtr = strstr ( pLinePtr+5, "=" );
+										if ( pLinePtr )
+										{
+											pLinePtr = pLinePtr + 1;
+											while ( *pLinePtr == 32 ) pLinePtr++;
+											pModelFile = new char[1024];
+											strcpy ( pModelFile, pLinePtr );
+										}
+									}
+								}
+
+								// found textured filename
+								if ( strnicmp (pLinePtr, "textured", 8 ) == NULL )
+								{
+									pLinePtr = strstr ( pLinePtr, "textured" );
+									if ( pLinePtr )
+									{
+										pLinePtr = strstr ( pLinePtr+8, "=" );
+										if ( pLinePtr )
+										{
+											pLinePtr = pLinePtr + 1;
+											while ( *pLinePtr == 32 ) pLinePtr++;
+											pTextureFile = new char[1024];
+											strcpy ( pTextureFile, pLinePtr );
+										}
+									}
+								}
+							}
+
+							// can quit when we have both model filename and textured filename
+							if ( pModelFile && pTextureFile ) break;
+						}
+
+						// check if all files available
+						bool bReportIt = false;
+						bool bModelOkay = false;
+						bool bTextureOkay = false;
+						if ( pModelFile && FileExist ( pModelFile ) == 1 ) bModelOkay = true;
+						if ( pTextureFile )
+						{
+							char pStoreOrigTextureFilename[1024];
+							strcpy ( pStoreOrigTextureFilename, pTextureFile );
+							if ( FileExist ( pTextureFile ) == 0 ) 
+							{
+								pTextureFile[strlen(pTextureFile)-4] = 0;
+								strcat ( pTextureFile, ".dds" );
+							}
+							if ( FileExist ( pTextureFile ) == 0 ) 
+							{
+								pTextureFile[strlen(pTextureFile)-4] = 0;
+								strcat ( pTextureFile, ".png" );
+							}
+							if ( FileExist ( pTextureFile ) == 0 ) 
+							{
+								pTextureFile[strlen(pTextureFile)-4] = 0;
+								strcat ( pTextureFile, ".jpg" );
+							}
+							if ( FileExist ( pTextureFile ) == 0 ) 
+								strcpy ( pTextureFile, pStoreOrigTextureFilename );
+							else
+								bTextureOkay = true;
+						}
+						if ( bModelOkay == false || bTextureOkay == false )
+						{
+							if ( pModelFile == NULL ) 
+							{
+								pReport = pReport + "MODEL NAME NOT GIVEN ";
+								bReportIt = true;
+							}
+							else
+							{
+								if ( bModelOkay == false )
+								{
+									if ( bFixAnyEntityIssues == true )
+									{
+										LPSTR pFindMissingFile = FindFileFromEntityBank(pModelFile);
+										if ( pFindMissingFile )
+										{
+											CopyFile ( pFindMissingFile, pModelFile, TRUE );
+											if ( FileExist ( pModelFile ) == 1 )
+											{
+												// only if copied okay can remove from source
+												//DeleteFile ( pFindMissingFile );
+											}
+											pReport = pReport + "MODEL FILE COPIED OVER " + pModelFile + " ";
+											delete pFindMissingFile;
+											bReportIt = true;
+										}
+										else
+										{
+											pReport = pReport + "MODEL FILE UNKNOWN " + pModelFile + " ";
+											bReportIt = true;
+										}
+									}
+									else
+									{
+										pReport = pReport + "MODEL FILE MISSING ";
+										bReportIt = true;
+									}
+								}
+							}
+							if ( pTextureFile == NULL ) 
+							{
+								pReport = pReport + "TEXTURE NAME NOT GIVEN ";
+								bReportIt = true;
+							}
+							else
+							{
+								if ( bTextureOkay == false )
+								{
+									if ( bFixAnyEntityIssues == true )
+									{
+										LPSTR pFindMissingFile = FindFileFromEntityBank(pTextureFile);
+										if ( pFindMissingFile )
+										{
+											CopyFile ( pFindMissingFile, pTextureFile, TRUE );
+											if ( FileExist ( pTextureFile ) == 1 )
+											{
+												// only if copied okay can remove from source
+												//DeleteFile ( pFindMissingFile );
+											}
+											pReport = pReport + "TEXTURE FILE COPIED OVER " + pTextureFile + " ";
+											delete pFindMissingFile;
+											bReportIt = true;
+										}
+										else
+										{
+											pReport = pReport + "TEXTURE FILE UNKNOWN " + pTextureFile + " ";
+											bReportIt = true;
+										}
+									}
+									else
+									{
+										pReport = pReport + "TEXTURE FILE MISSING ";
+										bReportIt = true;
+									}
+								}
+							}
+						}
+						else
+						{
+							pReport = pReport + "VALID";
+						}
+						if ( bReportIt == true )
+						{
+							timestampactivity(0, pReport.Get());
+						}
+
+						// free usages if any
+						if ( pModelFile ) delete pModelFile;
+						if ( pTextureFile ) delete pTextureFile;
+					}
+				}
+			}
+		}
+	}
+	SetDir ( pOriginalDir );
+	*/
+}
+
+LPSTR FindFileFromEntityBank ( LPSTR pFindThisFilename )
+{
+	// look through entire file collection for this file
+	for ( int f = 1; f <= g.filecollectionmax; f++ )
+	{
+		LPSTR pFile = t.filecollection_s[f].Get();
+		LPSTR pFileNameOnly = NULL;
+		for ( int n = strlen(pFile); n > 0; n-- )
+		{
+			if ( pFile[n] == '\\' || pFile[n] == '/' )
+			{
+				pFileNameOnly = pFile+n+1;
+				break;
+			}
+		}
+		if ( pFileNameOnly )
+		{
+			if ( stricmp ( pFileNameOnly, pFindThisFilename ) == NULL )
+			{
+				// found the file!
+				LPSTR pReturnAbsPathToFile = new char[2048];
+				strcpy ( pReturnAbsPathToFile, g.fpscrootdir_s.Get() );
+				strcat ( pReturnAbsPathToFile, "\\Files\\entitybank\\Objects - Copy\\" );
+				strcat ( pReturnAbsPathToFile, pFile );
+				return pReturnAbsPathToFile;
+			}
+		}
+	}
+	return NULL;
 }
 
 void FPSC_LoadKEYMAP ( void )
