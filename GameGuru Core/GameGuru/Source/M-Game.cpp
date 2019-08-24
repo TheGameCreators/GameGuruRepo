@@ -733,7 +733,6 @@ void game_masterroot ( void )
 							if (t.entityprofile[t.entid].animmax > 0)
 								validshader = false;
 
-
 							if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[t.e].staticflag == 1)
 							{
 								//Validate if same master object.
@@ -832,7 +831,9 @@ void game_masterroot ( void )
 											t.tmastery_f = ObjectPositionY(t.obj);
 											t.tmasterz_f = ObjectPositionZ(t.obj);
 
-											CloneObject(destobj, tmpobj); //We use the cleaned tmpobj instead of t.obj
+											//CloneObject(destobj, tmpobj); //We use the cleaned tmpobj instead of t.obj
+											MakeObject(destobj, g.meshlightmapwork, -1); //Use mesh to prevent any transforms.
+
 											int testypos = 0; //50
 											PositionObject(destobj, 0, 0, 0); //PE: Need to be at 0,0,0
 											ScaleObject(destobj, 100, 100, 100); //PE: no scale.
