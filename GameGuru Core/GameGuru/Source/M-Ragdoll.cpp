@@ -267,12 +267,22 @@ void ragdoll_create ( void )
 					}
 					else
 					{
-						g.L_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger")).Get()) != -1 ) 
+						{
+							g.L_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						}
+						else
+						{
+							g.L_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger1")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						}
 					}
 				}
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Hand, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger0")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Hand, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Hand, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
+				if ( g.L_Hand != -1 )
+				{
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Hand, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger0")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Hand, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Hand, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
+				}
 			}
 
 			// add calf->thigh bone
@@ -329,13 +339,30 @@ void ragdoll_create ( void )
 				}
 				else
 				{
-					t.R_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0")).Get()) != -1 ) 
+					{
+						t.R_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					}
+					else
+					{
+						if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger")).Get()) != -1 ) 
+						{
+							t.R_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						}
+						else
+						{
+							t.R_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger1")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						}
+					}
 				}
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Hand, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Hand, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; };
-				if ( getlimbbyname(t.tphyobj, "FIRESPOT") != -1 ) 
+				if ( t.R_Hand != -1 )
 				{
-					t.tlmb = getlimbbyname(t.tphyobj, "FIRESPOT") ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Hand, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Hand, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Hand, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; };
+					if ( getlimbbyname(t.tphyobj, "FIRESPOT") != -1 ) 
+					{
+						t.tlmb = getlimbbyname(t.tphyobj, "FIRESPOT") ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Hand, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
+					}
 				}
 			}
 

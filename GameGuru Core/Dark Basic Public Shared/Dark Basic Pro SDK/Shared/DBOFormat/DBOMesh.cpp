@@ -2982,7 +2982,7 @@ void AnimateBoneMeshBONE ( sObject* pObject, sFrame* pFrame, sMesh* pMesh )
 
 			// multiply the vector and the bone matrix with weight
 			GGVECTOR3 newVec = MultiplyVectorAndMatrix ( vec, matrices [ iBone ] ) * fWeight;
-			
+
 			// accumilate vertex for final result
 			*(pDestVertexBase+0) += newVec.x;
 			*(pDestVertexBase+1) += newVec.y;

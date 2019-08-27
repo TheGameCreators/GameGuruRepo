@@ -9,6 +9,10 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseFREE|Win32">
+      <Configuration>ReleaseFREE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -21,6 +25,12 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
@@ -45,6 +55,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
@@ -65,9 +79,13 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\..\..\Lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">$(ProjectDir)..\..\..\..\Lib\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</IgnoreImportLibrary>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">true</IgnoreImportLibrary>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">false</LinkIncremental>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
@@ -75,18 +93,26 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'" />
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'" />
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);D:\Apps\Microsoft DirectX SDK (August 2007)\Lib\x86</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);D:\Apps\Microsoft DirectX SDK (August 2007)\Lib\x86</LibraryPath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI</IncludePath>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Basic3D</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">Basic3D</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Basic3D</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">Basic3D</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);D:\Apps\Microsoft DirectX SDK (August 2007)\Lib\x86</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">
     <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);D:\Apps\Microsoft DirectX SDK (August 2007)\Lib\x86</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -265,6 +291,71 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Release/Objects.tlb</TypeLibraryName>
+      <HeaderFileName>
+      </HeaderFileName>
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/EHa  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\..\Include\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <StringPooling>
+      </StringPooling>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>
+      </FunctionLevelLinking>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>.\Release/Objects.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
+      <ObjectFileName>.\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <DisableSpecificWarnings>4005;4995;4723</DisableSpecificWarnings>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0809</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>nvapi.lib;odbc32.lib;odbccp32.lib;winmm.lib;dxguid.lib;d3d9.lib;dxerr9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)DBPro$(TargetName)Debug.dll</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>.\Release/DBProBasic3DDebug.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>false</GenerateMapFile>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>.\Release/DBProBasic3DDebug.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <Bscmake>
+      <OutputFile>
+      </OutputFile>
+    </Bscmake>
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Include\CObjectsC.h" />
     <ClInclude Include="..\..\Shared\Objects\CObjectDataC.h" />
@@ -305,7 +396,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Objects\CObjectsC.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -317,7 +410,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Objects\CommonC.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -329,7 +424,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Objects\CPositionC.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -341,7 +438,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Error\CError.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -353,7 +452,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Objects\BoxCollision\3DCol.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -365,7 +466,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Objects\BoxCollision\cBoxCol.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -377,7 +480,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Objects\BoxCollision\CCollision.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -389,7 +494,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Objects\BoxCollision\PolyPool.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -401,7 +508,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\DBOBlock.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -413,7 +522,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\SHARED\DBOFORMAT\DBOData.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -425,7 +536,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\DBOEffects.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -437,7 +550,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\DBOExternals.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -449,7 +564,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\DBOFile.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -461,7 +578,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\DBOFormat.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -473,7 +592,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\DBOFrame.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -485,7 +606,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\DBOMesh.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -497,7 +620,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\DBORawMesh.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -509,7 +634,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\DBOFormat\Extras\NVMeshMenderD3DX.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -521,7 +648,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\Shared\Objects\Occlusion\cOcclusion.cpp" />
     <ClCompile Include="..\..\Shared\Objects\ShadowMapping\cShadowMaps.cpp" />
@@ -537,7 +666,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">true</BrowseInformation>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MinSpace</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">MinSpace</Optimization>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;OBJECTS_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -548,6 +679,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

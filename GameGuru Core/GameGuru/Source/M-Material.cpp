@@ -88,14 +88,18 @@ void material_init ( void )
 
 void material_startup ( void )
 {
-	for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 1;
-	//t.m=0 ; t.material[t.m].usedinlevel=1;
-	//t.m=1 ; t.material[t.m].usedinlevel=1;
-	//t.m=2 ; t.material[t.m].usedinlevel=1;
-	//t.m=3 ; t.material[t.m].usedinlevel=1;
-	//t.m=17 ; t.material[t.m].usedinlevel=1;
-	//t.m=18 ; t.material[t.m].usedinlevel=1;
-	//material_loadsounds ( );
+	#ifdef FREETRIALVERSION
+	 // Good impression, reduces load time from 13 seconds to much less!
+	 for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 0;
+	 t.m=0 ; t.material[t.m].usedinlevel=1;
+	 t.m=1 ; t.material[t.m].usedinlevel=1;
+	 t.m=2 ; t.material[t.m].usedinlevel=1;
+	 t.m=3 ; t.material[t.m].usedinlevel=1;
+	 t.m=17 ; t.material[t.m].usedinlevel=1;
+	 t.m=18 ; t.material[t.m].usedinlevel=1;
+	#else
+	 for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 1;
+	#endif
 }
 
 void material_loadsounds ( void )
@@ -117,7 +121,13 @@ void material_loadsounds ( void )
 	{
 		if (  t.material[t.m].name_s != "" && t.material[t.m].usedinlevel == 1 ) 
 		{
-			for ( t.msoundtypes = 0 ; t.msoundtypes<=  6; t.msoundtypes++ )
+			#ifdef FREETRIALVERSION
+			 // for now, trial does not use scrape, impact or destroy sounds!
+			 int msoundtypescount = 3;
+			#else
+			 int msoundtypescount = 6;
+			#endif
+			for ( t.msoundtypes = 0 ; t.msoundtypes <= msoundtypescount; t.msoundtypes++ )
 			{
 				if (  t.msoundtypes == 0  )  t.snd_s = t.material[t.m].tred0_s;
 				if (  t.msoundtypes == 1  )  t.snd_s = t.material[t.m].tred1_s;
@@ -170,9 +180,6 @@ void material_loadsounds ( void )
 			g.materialsoundmax=t.tnewmax;
 		}
 	}
-
-return;
-
 }
 
 void material_loadplayersounds ( void )

@@ -1367,13 +1367,21 @@ void cSpecialEffect::ApplyEffect ( sMesh* pMesh )
 			{
 				// CPU does animation (or no anim transforms sent to shader)
 				for ( DWORD dwMatrixIndex = 0; dwMatrixIndex < dwBoneMax; dwMatrixIndex++ )
+				{
 					GGMatrixIdentity ( &g_EffectConstant.matBoneMatrixPalette [ dwMatrixIndex ] );
+				}
 			}
 			else
 			{
 				// GPU needs matrices to do animation
 				for ( DWORD dwMatrixIndex = 0; dwMatrixIndex < dwBoneMax; dwMatrixIndex++ )
+				{
+					//to test geometry with no animation skinning
+					//GGMATRIX matIdent;
+					//GGMatrixIdentity ( &matIdent );
+					//g_EffectConstant.matBoneMatrixPalette [ dwMatrixIndex ] = matIdent;
 					GGMatrixMultiply ( &g_EffectConstant.matBoneMatrixPalette [ dwMatrixIndex ], &pMesh->pBones [ dwMatrixIndex ].matTranslation, pMesh->pFrameMatrices [ dwMatrixIndex ] );
+				}
 			}
 
 			// send matrix array to effect (column-based is default by FX compiler)

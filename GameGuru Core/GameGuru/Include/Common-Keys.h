@@ -1,0 +1,1 @@
+#define DISCOUNTKEY "sc=[discountcodekey]"

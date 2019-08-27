@@ -15,6 +15,8 @@
 #define WELCOME_FREEINTROAPP 7
 #define WELCOME_ANNOUNCEMENTS 8
 #define WELCOME_SAVESTANDALONE 9
+#define WELCOME_FREETRIALINTROAPP 10
+#define WELCOME_FREETRIALEXITAPP 11
 
 // Functions
 void welcome_init ( int iLoadingPart );

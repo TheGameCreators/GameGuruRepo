@@ -22,7 +22,7 @@ function gameplayercontrol.main()
  gameplayercontrol.weaponselectzoom()
  gameplayercontrol.lookmove()
  gameplayercontrol.control()
- if ( g_Scancode == 87 and IsTestGame()) then g_specialPBRDebugView = 1 end
+ if ( g_Scancode == 87 and IsTestGame() == 1 ) then g_specialPBRDebugView = 1 end
  if ( g_specialPBRDebugView == 1 ) then gameplayercontrol.debug() end
 end
 	
