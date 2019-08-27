@@ -228,6 +228,7 @@ void ravey_particles_set_life( int iID, int iSpawnRate, float iLifeMin, float iL
 
 void ravey_particles_update ( void )
 {
+	
 	if ( g.ravey_particles_old_time > 0 ) 
 	{
 		g.ravey_particles_time_passed = Timer() - g.ravey_particles_old_time;
@@ -289,7 +290,7 @@ void generateParticle( travey_particle_emitter* this_emitter )
 	}
 
 	this_emitter->firstParticle = FALSE;
-
+	
 	// movement speed
 	this_particle->movementSpeedX = doCalc( this_emitter->movementSpeedMinX, this_emitter->movementSpeedMaxX );
 	this_particle->movementSpeedY = doCalc( this_emitter->movementSpeedMinY, this_emitter->movementSpeedMaxY );
@@ -315,19 +316,20 @@ void generateParticle( travey_particle_emitter* this_emitter )
 
 	t.tobj = t.tfound + g.raveyparticlesobjectoffset;
 
-	//SetObjectEffect( t.obj, g.decaleffectoffset ); //WHAT A BUG!
-	//PE: Particle change whatever is currently in t.obj, can be anything.
-	//PE: https://forum.game-guru.com/thread/220798?page=2#msg2616640
-
-	//PE: FYI: SetObjectEffect is pretty slow so should not really be in here.
-	//SetObjectEffect(t.tobj, g.decaleffectoffset);
-
 	PositionObject( t.tobj, this_particle->x, this_particle->y, this_particle->z );
-	TextureObject( t.tobj, 0, this_emitter->imageNumber );
+
+	//PE: TextureObject will clear animation list and trigger a new to be generated , so just texture them directly.
+	//TextureObject( t.tobj, 0, this_emitter->imageNumber ); //PE: This makes everything slow ?
+	sObject* pObject = g_ObjectList[t.tobj];
+	if (pObject) {
+		for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+			SetBaseTextureStage(pObject->ppMeshList[iMesh], 0, this_emitter->imageNumber);
+	}
+
 
 	SetAlphaMappingOn( t.tobj, t.ravey_particles[t.c].alpha );
 	ScaleObject( t.tobj, this_particle->scaleStart, this_particle->scaleStart, this_particle->scaleStart );
-
+	
 	//  animation
 	this_particle->frameDivide = this_emitter->frameDivide;
 	this_particle->frameMulti = this_emitter->frameMulti;
@@ -396,7 +398,7 @@ void generateParticle( travey_particle_emitter* this_emitter )
 
 		ScaleObjectTexture( t.tobj, t.left_f, t.top_f );
 	}
-
+	
 	ShowObject( t.tobj );
 	//  end of new particle	
 }
