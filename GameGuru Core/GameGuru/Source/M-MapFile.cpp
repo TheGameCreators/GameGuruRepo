@@ -608,6 +608,9 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("audiobank\\misc\\Bullet_FlyBy_03.wav");
 	addtocollection("audiobank\\misc\\Bullet_FlyBy_04.wav");
 	addtocollection("editors\\gfx\\14.png");
+	addtocollection("editors\\gfx\\14-white.png");
+	addtocollection("editors\\gfx\\14-red.png");
+	addtocollection("editors\\gfx\\14-green.png");
 	addtocollection("scriptbank\\gameloop.lua");
 	addtocollection("scriptbank\\gameplayercontrol.lua");
 	addtocollection("scriptbank\\global.lua");

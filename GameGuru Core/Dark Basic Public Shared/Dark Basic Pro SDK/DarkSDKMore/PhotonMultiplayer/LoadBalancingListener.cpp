@@ -164,6 +164,7 @@ void LoadBalancingListener::updateRoomList(void)
 {
 	const JVector<Room*>& rooms = mpLbc->getRoomList();
 	mPhotonView->ClearRoomList();
+	int iRoomCountForMaxLimit = 0;
 	for(unsigned int i=0; i<rooms.getSize(); ++i)
 	{
 		// get all rooms visible on this serber
@@ -180,7 +181,14 @@ void LoadBalancingListener::updateRoomList(void)
 
 		// add room to visible list for user to select
 		if ( bMatchedSiteKey == true || mPhotonView->IsTeacherViewAllMode() == true )
-			mPhotonView->AddRoomToList((LPSTR)str);
+		{
+			// keep a limit of the first 200 games listed
+			if ( iRoomCountForMaxLimit < 200 )
+			{
+				mPhotonView->AddRoomToList((LPSTR)str);
+				iRoomCountForMaxLimit++;
+			}
+		}
 	}
 }
 

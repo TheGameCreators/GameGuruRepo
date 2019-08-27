@@ -8849,7 +8849,7 @@ void interface_openpropertywindow ( void )
 	{
 		// special VRQ2 mode also hides concepts of lives, health, blood, violence (substitute health for strength)
 		bool bVRQ2ZeroViolenceMode = false;
-		if ( g.gvrmode == 3 ) bVRQ2ZeroViolenceMode = true;
+		if ( g.vrqcontrolmode != 0 ) bVRQ2ZeroViolenceMode = true;//if ( g.gvrmode == 3 ) bVRQ2ZeroViolenceMode = true;
 
 		//  Setup usage flags
 		t.tsimplecharview=0;

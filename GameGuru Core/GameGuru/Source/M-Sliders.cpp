@@ -434,10 +434,10 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][2].value=0;
 	t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex=6;
 
-	//  Player status in-game panel
+	// Player status in-game panel
 	++g.slidersmenumax;
 	t.slidersmenunames.player=g.slidersmenumax;
-	if (  t.player[1].health == 99999 || g.vrqcontrolmode != 0 || g.gvrmodeoriginal != 0 ) 
+	if ( t.player[1].health == 99999 || g.vrqcontrolmode != 0 || g.gvrmodeoriginal != 0 ) 
 	{
 		//  hide health panel if no health in start marker
 		t.slidersmenu[g.slidersmenumax].tabpage=-10;

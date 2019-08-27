@@ -14,7 +14,7 @@ extern UINT g_StereoEyeToggle;
 
 void lua_prompt ( void )
 {
-	if ( g.gvrmode > 0 )
+	if ( g.vrqcontrolmode != 0 ) //g.gvrmode > 0 )
 	{
 		// use VR prompt instead
 		lua_prompt3d ( t.s_s.Get(), Timer(), 0 );
@@ -28,7 +28,7 @@ void lua_prompt ( void )
 
 void lua_promptimage ( void )
 {
-	if ( g.gvrmode > 0 )
+	if ( g.vrqcontrolmode != 0 ) //g.gvrmode > 0 )
 	{
 		// use VR prompt instead
 		lua_prompt3d ( "image", Timer(), t.v );
@@ -37,7 +37,7 @@ void lua_promptimage ( void )
 
 void lua_promptduration ( void )
 {
-	if ( g.gvrmode > 0 )
+	if ( g.vrqcontrolmode != 0 ) //g.gvrmode > 0 )
 	{
 		// use VR prompt instead
 		lua_prompt3d ( t.s_s.Get(), Timer()+t.v, 0 );
@@ -56,7 +56,7 @@ void lua_prompttextsize ( void )
 
 void lua_promptlocalcore ( int iTrueLocalOrForVR )
 {
-	if ( g.gvrmode > 0 )
+	if ( g.vrqcontrolmode != 0 ) //g.gvrmode > 0 )
 	{
 		// use VR prompt instead
 		if ( iTrueLocalOrForVR == 0 ) lua_prompt3d ( t.s_s.Get(), Timer()+1000, 0 );

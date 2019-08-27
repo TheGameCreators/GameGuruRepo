@@ -226,20 +226,9 @@ void lua_loop_begin ( void )
 		LuaSetFloat (  "g_PlayerPosY",ObjectPositionY(t.aisystem.objectstartindex) );
 		LuaSetFloat (  "g_PlayerPosZ",ObjectPositionZ(t.aisystem.objectstartindex) );
 	}
-
-	// detect VR mode, and override player angle with headset angle
-	//if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
-	//{
-	//	LuaSetFloat ( "g_PlayerAngX", wrapangleoffset(GGVR_GetHMDAngleX()) );
-	//	LuaSetFloat ( "g_PlayerAngY", wrapangleoffset(GGVR_GetHMDAngleY()) );
-	//	LuaSetFloat ( "g_PlayerAngZ", wrapangleoffset(GGVR_GetHMDAngleZ()) );
-	//}
-	//else
-	//{
-		LuaSetFloat ( "g_PlayerAngX", wrapangleoffset(CameraAngleX(0)) );
-		LuaSetFloat ( "g_PlayerAngY", wrapangleoffset(CameraAngleY(0)) );
-		LuaSetFloat ( "g_PlayerAngZ", wrapangleoffset(CameraAngleZ(0)) );
-	//}
+	LuaSetFloat ( "g_PlayerAngX", wrapangleoffset(CameraAngleX(0)) );
+	LuaSetFloat ( "g_PlayerAngY", wrapangleoffset(CameraAngleY(0)) );
+	LuaSetFloat ( "g_PlayerAngZ", wrapangleoffset(CameraAngleZ(0)) );
 	LuaSetInt (  "g_PlayerObjNo", t.aisystem.objectstartindex );
 	LuaSetInt (  "g_PlayerHealth", t.player[t.plrid].health );
 	LuaSetInt (  "g_PlayerLives", t.player[t.plrid].lives );

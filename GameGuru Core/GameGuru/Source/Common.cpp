@@ -2984,6 +2984,14 @@ void FPSC_Setup ( void )
 		}
 	}
 
+	// standalones need to know we are running in VR flavor
+	#ifdef VRQUEST
+	 if ( g.iTriggerSoftwareToQuit == 0 )
+	 {
+		 g.vrqcontrolmode = 1;
+	 }
+	#endif
+
 	//  Review Request Reminder state
 	/*
 	g.reviewRequestReminder = 0;
@@ -5733,11 +5741,11 @@ void loadscreenpromptassets ( int iUseVRTest )
 					// 050917 - check if this file exists for consideration
 					if ( t.game.gameisexe == 1 ) 
 					{
-						if ( iUseVRTest > 0 )
-							sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
-						else
-							sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
-
+						#ifdef VRQUEST
+						 sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded\\watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
+						#else
+						 sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
+						#endif
 						if ( FileExist ( t.szwork ) == 1 )
 						{
 							tclosest=tdiff;
@@ -5764,17 +5772,22 @@ void loadscreenpromptassets ( int iUseVRTest )
 				if ( tclosest != 9999999 )
 				{
 					// use closest to current resolution
-					sprintf ( t.szwork , "gameguru-watermark-%ix%i.jpg" , tclosestreswidth , tclosestresheight );
+					#ifdef VRQUEST
+					 sprintf ( t.szwork , "watermark-%ix%i.jpg" , tclosestreswidth , tclosestresheight );
+					#else
+					 sprintf ( t.szwork , "gameguru-watermark-%ix%i.jpg" , tclosestreswidth , tclosestresheight );
+					#endif
 					respart_s = t.szwork;
 				}
 				else
 				{
 					// could not find any matching resolution files, just pick any file in the watermark folder
 					LPSTR pOldDir = GetDir();
-					if ( iUseVRTest > 0 )
-						sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded", g.language_s.Get() );
-					else
-						sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark", g.language_s.Get() );
+					#ifdef VRQUEST
+					 sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded", g.language_s.Get() );
+					#else
+					 sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark", g.language_s.Get() );
+					#endif
 					SetDir(t.szwork);
 					ChecklistForFiles (  );
 					for ( int c = 1 ; c<=  ChecklistQuantity(); c++ )
@@ -5798,10 +5811,11 @@ void loadscreenpromptassets ( int iUseVRTest )
 				{
 					// show splash initially
 					tfile_s = respart_s;
-					if ( iUseVRTest > 0 )
-						sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\branded\\%s", g.language_s.Get(), tfile_s.Get() );
-					else
-						sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
+					#ifdef VRQUEST
+					 sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\branded\\%s", g.language_s.Get(), tfile_s.Get() );
+					#else
+					 sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
+					#endif
 					SetMipmapNum(1);
 					LoadImage ( t.szwork, g.testgamesplashimage );
 					SetMipmapNum(-1);
@@ -5819,17 +5833,10 @@ void loadscreenpromptassets ( int iUseVRTest )
 				{	
 					if ( g.vrqcontrolmode != 0 )
 					{
-						//if ( iUseVRTest == 2 )
-						//{
-						//	sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\socialvr.png", g.language_s.Get() );
-						//}
-						//else
-						//{
 						if ( (g.gvrmode == 3 && iUseVRTest == 1) || iUseVRTest == 2 )
 							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-vr.png", g.language_s.Get() );
 						else
 							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-noweapons.png", g.language_s.Get() );
-						//}
 					}
 					else
 					{

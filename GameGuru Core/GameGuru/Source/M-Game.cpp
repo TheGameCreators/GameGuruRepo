@@ -3041,8 +3041,8 @@ void game_main_loop ( void )
 	// Handle occlusion if active
 	if ( g.globals.occlusionmode == 1 ) 
 	{
-		// VR cannot use occlusion at the moment
-		if ( g.vrglobals.GGVREnabled == 0 )
+		// VR software cannot use occlusion at the moment
+		if ( g.vrqcontrolmode == 0 ) //g.vrglobals.GGVREnabled == 0 )
 		{
 			// detect velocity of XZ motion of player and advance 'virtual camera' ahead of real camera
 			// in order to give occluder time to reveal visible objects in advance of getting there
