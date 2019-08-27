@@ -1292,6 +1292,12 @@ int LoadBalancingListener::SendFileDone()
 						char* pMessageValue = strstr ( pChop, ":" ) + 1;
 					}
 				}
+				else
+				{
+					// error uploading (likely permission denied due to invalid FPMHOSTUPLOADKEY)
+					serverChunkToSendCount = 0;
+					return -1;
+				}
 			}
 			else
 			{

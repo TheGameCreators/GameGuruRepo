@@ -3281,12 +3281,14 @@ void editor_init ( void )
 	LoadImage ( t.strwork.Get(), g.editorimagesoffset+61 );
 
 	// Cursor for entity highlighting
-	LoadImage (  "editors\\gfx\\9.png",g.editorimagesoffset+7 );
-	LoadImage (  "editors\\gfx\\13.bmp",g.editorimagesoffset+13 );
-	LoadImage (  "editors\\gfx\\14.png",g.editorimagesoffset+14 );
-	LoadImage (  "editors\\gfx\\18.png",g.editorimagesoffset+18 );
-	LoadImage (  "editors\\gfx\\26.bmp",g.editorimagesoffset+26 );
-	LoadImage (  "editors\\gfx\\cursor.dds",g.editorimagesoffset+10 );
+	LoadImage ( "editors\\gfx\\9.png",g.editorimagesoffset+7 );
+	LoadImage ( "editors\\gfx\\13.bmp",g.editorimagesoffset+13 );
+	LoadImage ( "editors\\gfx\\14-white.png",g.editorimagesoffset+14 );
+	LoadImage ( "editors\\gfx\\14-red.png",g.editorimagesoffset+16 );
+	LoadImage ( "editors\\gfx\\14-green.png",g.editorimagesoffset+17 );
+	LoadImage ( "editors\\gfx\\18.png",g.editorimagesoffset+18 );	
+	LoadImage ( "editors\\gfx\\26.png",g.editorimagesoffset+26 );//LoadImage (  "editors\\gfx\\26.bmp",g.editorimagesoffset+26 );
+	LoadImage ( "editors\\gfx\\cursor.dds",g.editorimagesoffset+10 );
 
 	//  F9 Edit Mode Graphical Prompts
 	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\f9-help-terrain.png";

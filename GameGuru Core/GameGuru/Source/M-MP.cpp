@@ -856,12 +856,15 @@ void mp_loop ( void )
 			#else
 			 SteamSendIAmLoadedAndReady (  );
 			#endif
-			g.mp.iHaveSaidIAmAlmostReady = 1;
 			t.tskipLevelSync = Timer();
 			t.tempsteamingameinitialwaitingdelay = Timer();
+			g.mp.iKeepCheckingForGameRunning = Timer();
+			g.mp.iHaveSaidIAmAlmostReady = 1;
+		}
+		if ( g.mp.iHaveSaidIAmAlmostReady == 1 ) 
+		{
 			DWORD dwReasonableTimeOutIfWaitingForGameToStart = 3 * 60 * 1000; // 3 minutes (could simply be waiting for more players, not real time out here)
-			int iKeepCheckingForGameRunning = Timer();
-			while ( Timer() - t.tempsteamingameinitialwaitingdelay < dwReasonableTimeOutIfWaitingForGameToStart ) 
+			if ( Timer() - t.tempsteamingameinitialwaitingdelay < dwReasonableTimeOutIfWaitingForGameToStart ) 
 			{
 				g.mp.syncedWithServerMode = 0;
 				g.mp.onlySendMapToSpecificPlayer = -1;
@@ -889,51 +892,76 @@ void mp_loop ( void )
 				#else
 				 int iIsEveryoneLoadedAndReady = SteamIsEveryoneLoadedAndReady();
 				#endif
-				if ( iIsEveryoneLoadedAndReady == 1 ) t.tempsteamingameinitialwaitingdelay = -30000; // was just = not ==
+				if ( iIsEveryoneLoadedAndReady == 1 ) t.tempsteamingameinitialwaitingdelay = -3000000; // was just = not ==
 
 				// can also skip this wait if game is already running (or was started after joining)
-				if ( Timer() - iKeepCheckingForGameRunning > 1000 ) 
+				if ( Timer() - g.mp.iKeepCheckingForGameRunning > 1000 ) 
 				{
-					iKeepCheckingForGameRunning = Timer();
+					g.mp.iKeepCheckingForGameRunning = Timer();
 					PhotonCheckIfGameRunning();
 				}
-				if ( PhotonIsGameRunning() == 1 ) t.tempsteamingameinitialwaitingdelay = -30000;
-			}   
-		}
-
-		// wait for everyone before starting to load, at this GetPoint ( they have all the files they need, they just have not loaded them )
-		if ( g.mp.okayToLoadLevel == 0 && g.mp.syncedWithServerMode == 99 ) 
-		{
-			t.game.titleloop=0;
-			t.game.levelloop=1;
-			t.game.runasmultiplayer=1;
-			t.game.levelloadprogress=0;
-			t.game.cancelmultiplayer=0;
-			t.game.quitflag=0;
-			t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
-			g.mp.playGame = 1;
-			g.mp.okayToLoadLevel = 1;
-			PhotonResetFile ( );
-			t.tskipLevelSync = Timer();
-		}
-		else
-		{
-			if ( g.mp.playGame == 1 ) 
-			{
-				if ( t.game.titleloop == 1 ) 
+				int iGameRunning = PhotonIsGameRunning();
+				if ( iGameRunning == 1 ) 
 				{
-					t.game.titleloop=0;
-					t.game.levelloop=1;
-					t.game.runasmultiplayer=1;
-					t.game.levelloadprogress=0;
-					t.game.cancelmultiplayer=0;
-					t.game.quitflag=0;
-					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+					t.tempsteamingameinitialwaitingdelay = -3000000;
 				}
-			}
-			if ( g.mp.okayToLoadLevel == 0 ) 
+
+				// if user presses SPACE, force a disconnect and leave
+				mp_text(-1,95,3,"(press SPACE KEY to return to main menu)");
+				bool bEscapeEarly = false;
+				if ( ScanCode() == 57 ) bEscapeEarly = true;
+				if ( bEscapeEarly == true )
+				{
+					// forcing a quit
+					t.tsteamconnectionlostmessage_s = "User terminated transfer and returning to main menu";
+					g.mp.mode = MP_MODE_MAIN_MENU;
+					mp_lostConnection ( );
+					g.mp.iHaveSaidIAmAlmostReady = 0;
+				}
+			}   
+			else
 			{
-				mp_pre_game_file_sync_client ( );
+				// okay, the game has been started and we can move on
+				g.mp.iHaveSaidIAmAlmostReady = 2;
+			}
+		}
+		if ( g.mp.iHaveSaidIAmAlmostReady == 2 ) 
+		{
+			// wait for everyone before starting to load, at this point
+			// they have all the files they need, they just have not loaded them
+			if ( g.mp.okayToLoadLevel == 0 && g.mp.syncedWithServerMode == 99 ) 
+			{
+				t.game.titleloop=0;
+				t.game.levelloop=1;
+				t.game.runasmultiplayer=1;
+				t.game.levelloadprogress=0;
+				t.game.cancelmultiplayer=0;
+				t.game.quitflag=0;
+				t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+				g.mp.playGame = 1;
+				g.mp.okayToLoadLevel = 1;
+				PhotonResetFile ( );
+				t.tskipLevelSync = Timer();
+			}
+			else
+			{
+				if ( g.mp.playGame == 1 ) 
+				{
+					if ( t.game.titleloop == 1 ) 
+					{
+						t.game.titleloop=0;
+						t.game.levelloop=1;
+						t.game.runasmultiplayer=1;
+						t.game.levelloadprogress=0;
+						t.game.cancelmultiplayer=0;
+						t.game.quitflag=0;
+						t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+					}
+				}
+				if ( g.mp.okayToLoadLevel == 0 ) 
+				{
+					mp_pre_game_file_sync_client ( );
+				}
 			}
 		}
 	}
@@ -1907,10 +1935,21 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 				//g_dwSendLastTime = timeGetTime() + 500; // 8K * (1000/500) = 16K per second max sent rate (1MB file=60 seconds)
 				//g_dwSendLastTime = timeGetTime() + 250; // 8K * (1000/250) = 32K per second max sent rate (1MB file=30 seconds)
 				g_dwSendLastTime = timeGetTime() + 1; // new FPM HOST Transfer to Server (much quicker and no drop out)
-				if ( PhotonSendFileDone() == 1 )
+				int iSendFileStatus = PhotonSendFileDone();
+				if ( iSendFileStatus == 1 )
 				{
 					g.mp.syncedWithServerMode = 2;
 					g.mp.oldtime = Timer();
+				}
+				else
+				{
+					if ( iSendFileStatus == -1 )
+					{
+						// error uploading (permissed denied)
+						t.tsteamconnectionlostmessage_s = "Server Error While Uploading File";
+						g.mp.mode = MP_MODE_MAIN_MENU;
+						mp_lostConnection ( );
+					}
 				}
 			}
 			break;
@@ -5117,6 +5156,7 @@ void mp_checkForEveryoneLeft ( void )
 			t.tname_s = SteamGetOtherPlayerName(t.tcount);
 			if ( t.tname_s != "Player"  )  ++t.tsteamhowmanynow;
 		}
+		/*
 		if ( t.tsteamhowmanynow  <= 1 ) 
 		{
 			t.tsteamlostconnectioncustommessage_s = "Everyone else left the game! (Code MP014)";
@@ -5124,6 +5164,7 @@ void mp_checkForEveryoneLeft ( void )
 			mp_lostConnection ( );
 			return;
 		}
+		*/
 	}
 }
 
@@ -5133,7 +5174,7 @@ void mp_lostConnection ( void )
 	editor_hideall3d ( );
 	SetDir ( cstr(g.fpscrootdir_s + "\\Files").Get() );
 	if ( t.tsteamconnectionlostmessage_s == "GAMEOVER" )  g.mp.backtoeditorforyou = 1;
-	t.tsteamconnectionlostmessage_s = "Lost connection to server";
+	if ( t.tsteamconnectionlostmessage_s == "" ) t.tsteamconnectionlostmessage_s = "Lost connection to server";
 	if ( t.tsteamlostconnectioncustommessage_s != "" )  t.tsteamconnectionlostmessage_s = t.tsteamlostconnectioncustommessage_s;
 	while ( Timer() - t.tTime < 5000 ) 
 	{
@@ -5158,14 +5199,14 @@ void mp_lostConnection ( void )
 	if ( g.mp.mode == MP_IN_GAME_CLIENT || g.mp.mode == MP_IN_GAME_SERVER || g.mp.backtoeditorforyou > 0 ) 
 	{
 		mp_resetGameStats ( );
-		if ( g.mp.backtoeditorforyou != 2 ) 
-		{
-			mp_setLuaResetStats ( );
-		}
-		else
-		{
-			g.mp.goBackToEditor = 1;
-		}
+		//if ( g.mp.backtoeditorforyou != 2 ) 
+		//{
+		//	mp_setLuaResetStats ( );
+		//}
+		//else
+		//{
+		g.mp.goBackToEditor = 1;
+		//}
 	}
 	g.mp.backtoeditorforyou = 0;
 	mp_resetGameStats ( );
@@ -5298,6 +5339,7 @@ void mp_gameLoop ( void )
 	if ( t.tconnectionStatus == 0 ) 
 	{
 		t.tsteamconnectionlostmessage_s = "GAMEOVER";
+		t.tsteamlostconnectioncustommessage_s = "Game Over. The server closed.";
 		mp_lostConnection ( );
 		return;
 	}
@@ -6904,7 +6946,7 @@ return;
 
 void mp_buildingWorkshopItemFailed ( void )
 {
-	t.tsteamlostconnectioncustommessage_s = "Could not build workshop item (Error MP015)";
+	t.tsteamlostconnectioncustommessage_s = "Could not build item (Error MP015)";
 	mp_lostConnection ( );
 	g.mp.mode = MP_SERVER_CHOOSING_FPM_TO_USE;
 }

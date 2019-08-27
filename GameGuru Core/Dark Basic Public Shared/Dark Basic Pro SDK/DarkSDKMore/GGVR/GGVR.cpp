@@ -1171,8 +1171,23 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 				SetObjectEffect ( o, GGVR_Player.ShaderID );
 				SetSphereRadius ( o, 0 );
 				SetObjectMask ( o, (1<<6) + (1<<7) + 1 );
-				TextureObject ( o, 0, GGVR_Player.TextureID );
+				// from editimage+14 (also have +16 for red and +17 for green)
+				if ( bCannotLandHereCancelDestination == true )
+					TextureObject ( o, 0, GGVR_Player.TextureID+2 );
+				else
+					TextureObject ( o, 0, GGVR_Player.TextureID+3 );
+				SetObjectTransparency ( o, 2 );
+				SetObjectLight ( o, 0 );
+				SetAlphaMappingOn ( o, 50 );
 				g_iControllerVisualMode = 1;
+			}
+			else
+			{
+				// from editimage+14 (also have +16 for red and +17 for green)
+				if ( bCannotLandHereCancelDestination == true )
+					TextureObject ( o, 0, GGVR_Player.TextureID+2 );
+				else
+					TextureObject ( o, 0, GGVR_Player.TextureID+3 );
 			}
 			HideObject ( o );
 			if ( ObjectExist ( o ) && iLastControlPoint != iThisUniqueControlPoint )
@@ -1206,8 +1221,14 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 			SetObjectEffect ( GGVR_Player.ObjTeleportFinish, GGVR_Player.ShaderID );
 			SetSphereRadius ( GGVR_Player.ObjTeleportFinish, 0 );
 			SetObjectMask ( GGVR_Player.ObjTeleportFinish, (1<<6) + (1<<7) + 1 );
-			TextureObject ( GGVR_Player.ObjTeleportFinish, 0, GGVR_Player.TextureID );
+			SetObjectTransparency ( GGVR_Player.ObjTeleportFinish, 2 );
+			SetObjectLight ( GGVR_Player.ObjTeleportFinish, 0 );
+			SetAlphaMappingOn ( GGVR_Player.ObjTeleportFinish, 50 );
 		}
+		if ( bCannotLandHereCancelDestination == true )
+			TextureObject ( GGVR_Player.ObjTeleportFinish, 0, GGVR_Player.TextureID+2 );
+		else
+			TextureObject ( GGVR_Player.ObjTeleportFinish, 0, GGVR_Player.TextureID+3 );
 		PositionObject ( GGVR_Player.ObjTeleportFinish, GGVR_fTelePortDestinationX, GGVR_fTelePortDestinationY+5.0f, GGVR_fTelePortDestinationZ );
 		RotateObject ( GGVR_Player.ObjTeleportFinish, 0, 0, 0 );
 		if ( bCannotLandHereCancelDestination == false )
@@ -1227,7 +1248,10 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 				SetObjectEffect ( o, GGVR_Player.ShaderID );
 				SetSphereRadius ( o, 0 );
 				SetObjectMask ( o, (1<<6) + (1<<7) + 1 );
-				TextureObject ( o, 0, GGVR_Player.TextureID );
+				TextureObject ( o, 0, GGVR_Player.TextureID+3 );
+				SetObjectTransparency ( o, 2 );
+				SetObjectLight ( o, 0 );
+				SetAlphaMappingOn ( o, 50 );
 				g_iControllerVisualMode = 2;
 			}
 			if ( ObjectExist ( o ) )

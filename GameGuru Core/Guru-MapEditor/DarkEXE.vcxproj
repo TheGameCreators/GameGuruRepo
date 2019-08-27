@@ -1337,6 +1337,7 @@
     <ClInclude Include="..\GameGuru\Include\Common-Fonts.h" />
     <ClInclude Include="..\GameGuru\Include\Common-Images.h" />
     <ClInclude Include="..\GameGuru\Include\Common-Input.h" />
+    <ClInclude Include="..\GameGuru\Include\Common-Keys.h" />
     <ClInclude Include="..\GameGuru\Include\Common-Sounds.h" />
     <ClInclude Include="..\GameGuru\Include\Common-Strings.h" />
     <ClInclude Include="..\GameGuru\Include\Common.h" />

@@ -518,6 +518,7 @@ struct mptype
 	int isAnimating;
 	int okayToLoadLevel;
 	int iHaveSaidIAmAlmostReady;
+	int iKeepCheckingForGameRunning;
 	int attachmentcount;
 	int gunCount;
 	int gunid;

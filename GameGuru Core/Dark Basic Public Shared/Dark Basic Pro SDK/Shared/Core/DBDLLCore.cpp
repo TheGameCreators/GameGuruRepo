@@ -413,7 +413,20 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 			LPGGTEXTUREREF pCam6TextureView = pCam6->pImageDepthResourceView;
 			int iCam6Width = g_pGlob->iScreenWidth;
 			int iCam6Height = g_pGlob->iScreenHeight;
-			PasteImageRaw ( pCam6TextureView, iCam6Width, iCam6Height, 0, 0, 1, 1, 0 );
+			// correct for HMD aspect ratio
+			float fCam6FinalWidth = iCam6Height;
+			float fCam6FinalHeight = iCam6Height;
+			// now expand so width is completely filling screen
+			float fDiff = (iCam6Width-fCam6FinalWidth);
+			float fDiffPerc = (fDiff/(float)iCam6Width)*2.0f;
+			fCam6FinalWidth *= (1.0f+fDiffPerc);
+			fCam6FinalHeight *= (1.0f+fDiffPerc);
+			float fDiffX = (iCam6Width-fCam6FinalWidth);
+			float fDiffY = (iCam6Height-fCam6FinalHeight);
+			float fX = fDiffX/2.0f;
+			float fY = fDiffY/2.0f;
+			// and finally draw it
+			PasteImageRaw ( pCam6TextureView, fCam6FinalWidth, fCam6FinalHeight, fX, fY, 1, 1, 0 );
 		}
 	}
 

@@ -3640,7 +3640,9 @@ void FPSC_Setup ( void )
 		}
 
 		// Need editor 14.PNG for teleport graphic
-		LoadImage ( "editors\\gfx\\14.png",g.editorimagesoffset+14 );
+		LoadImage ( "editors\\gfx\\14-white.png",g.editorimagesoffset+14 );
+		LoadImage ( "editors\\gfx\\14-red.png",g.editorimagesoffset+16 );
+		LoadImage ( "editors\\gfx\\14-green.png",g.editorimagesoffset+17 );
 
 		// Init default material sounds
 		material_init ( );

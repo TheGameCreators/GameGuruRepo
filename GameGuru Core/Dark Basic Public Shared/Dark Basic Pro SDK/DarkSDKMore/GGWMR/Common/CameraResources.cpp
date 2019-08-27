@@ -18,7 +18,9 @@ DX::CameraResources::CameraResources(HolographicCamera const& camera) :
     m_isStereo(camera.IsStereo()),
     m_d3dRenderTargetSize(camera.RenderTargetSize())
 {
-	m_holographicCamera.SetNearPlaneDistance(1.0f);
+	//m_holographicCamera.SetNearPlaneDistance(1.0f);
+	//m_holographicCamera.SetFarPlaneDistance(70000.0f); created big Z clash!
+	m_holographicCamera.SetNearPlaneDistance(5.0f);
 	m_holographicCamera.SetFarPlaneDistance(70000.0f);
 
     m_d3dViewport = CD3D11_VIEWPORT(

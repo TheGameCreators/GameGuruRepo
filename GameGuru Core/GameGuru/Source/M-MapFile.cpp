@@ -597,7 +597,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	Dim ( t.filecollection_s, 500 );
 
 	//  Stage 1 - specify all common files
-	addtocollection("editors\\gfx\\guru-forexe.ico");
+	//addtocollection("editors\\gfx\\guru-forexe.ico");
 	addtocollection( cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-wordcount.ini").Get() );
 	addtocollection(cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-words.txt").Get() );
 	addtocollection("audiobank\\misc\\silence.wav");

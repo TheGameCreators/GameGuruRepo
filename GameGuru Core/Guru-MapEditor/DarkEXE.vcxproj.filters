@@ -389,6 +389,9 @@
     <ClInclude Include="..\GameGuru\Include\M-MP.h">
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Keys.h">
+      <Filter>GameGuruEngine\MapEditor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dbproexe.rc">
