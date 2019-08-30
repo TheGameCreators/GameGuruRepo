@@ -143,7 +143,11 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][8].name_s="Misc";
 	t.slidersmenuvalue[g.slidersmenumax][8].value=0;
 	t.slidersmenuvalue[g.slidersmenumax][8].readmodeindex=5;
-	t.slidersmenuvalue[g.slidersmenumax][9].name_s="Weapons";
+	#ifdef VRQUEST
+	 t.slidersmenuvalue[g.slidersmenumax][9].name_s="HUD";
+	#else
+	 t.slidersmenuvalue[g.slidersmenumax][9].name_s="Weapons";
+	#endif
 	t.slidersmenuvalue[g.slidersmenumax][9].value=0;
 	t.slidersmenuvalue[g.slidersmenumax][9].readmodeindex=5;
 	t.slidersmenuvalue[g.slidersmenumax][10].name_s="Occlusion";
@@ -226,7 +230,11 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][2].value=(((t.visuals.CameraFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
 	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Camera Zoom Percentage";
 	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.CameraFOVZoomed_f*100;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Weapon Horizontal FOV";
+	#ifdef VRQUEST
+	 t.slidersmenuvalue[g.slidersmenumax][4].name_s="HUD Horizontal FOV";
+	#else
+	 t.slidersmenuvalue[g.slidersmenumax][4].name_s="Weapon Horizontal FOV";
+	#endif
 	t.slidersmenuvalue[g.slidersmenumax][4].value=(((t.visuals.WeaponFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
 
 	//  Water panel

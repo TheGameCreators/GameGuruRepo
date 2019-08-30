@@ -583,7 +583,7 @@ void common_init_globals ( void )
 	//  +3 = virtual reality RIFT second eye quad
 	//  +5 = dynamic terrain shadow camera image
 	//  [be aware anything added after 150001 might mess up post process?!]
-	g.batchobjectoffset = 160001;
+	g.batchobjectoffset = 85000; //160001;
 	g.explosionsandfireobjectoffset = 170001;
 	g.raveyparticlesobjectoffset = 180001;
 	g.ebeobjectbankoffset = 189901;

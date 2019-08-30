@@ -821,7 +821,7 @@ void game_masterroot ( int iUseVRTest )
 										float src_scaley = ObjectScaleY(t.obj);
 										float src_scalez = ObjectScaleZ(t.obj);
 
-										int tmpobj = (g.merged_new_objects+100) + 85000; //PE: TODO change 85000
+										int tmpobj = (g.merged_new_objects+100) + g.batchobjectoffset;//85000; //PE: TODO change 85000
 										if (g_ObjectList[tmpobj])
 										{
 											if (g_ObjectList[tmpobj]->pFrame)
@@ -867,7 +867,7 @@ void game_masterroot ( int iUseVRTest )
 
 										if (GetMeshExist(g.meshlightmapwork) == 1)
 										{
-											int destobj = g.merged_new_objects + 85000; //PE: TODO change 85000 , perhaps reverse from 90000 ?
+											int destobj = g.merged_new_objects + g.batchobjectoffset;//85000; //PE: TODO change 85000 , perhaps reverse from 90000 ?
 											if (g_ObjectList[destobj])
 											{
 												if (g_ObjectList[destobj]->pFrame)

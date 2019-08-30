@@ -2143,26 +2143,55 @@ DARKSDK bool SetupDX11 ( void )
 		if ( m_uAdapterChoice == 99 )
 		{
 			m_uAdapterChoice = 0; // in any event, use default adapter if cannot find a better adapter
-			for ( int iAdapterIndex = 0; iAdapterIndex < 10; iAdapterIndex++ )
+			for ( int iDedicatedThenIntel = 0; iDedicatedThenIntel < 2; iDedicatedThenIntel++ )
 			{
-				if ( pFactory->EnumAdapters(iAdapterIndex, &pAdapter) != DXGI_ERROR_NOT_FOUND )
+				bool bFoundAGoodAdapter = false;
+				for ( int iAdapterIndex = 0; iAdapterIndex < 10; iAdapterIndex++ )
 				{
-					DXGI_ADAPTER_DESC adapterDesc;
-					pAdapter->GetDesc(&adapterDesc);
-					memset ( m_pAdapterName, 0, sizeof ( m_pAdapterName ) );
-					const int size = ::WideCharToMultiByte( CP_UTF8, 0, adapterDesc.Description, -1, NULL, 0, 0, NULL );
-					::WideCharToMultiByte( CP_UTF8, 0, adapterDesc.Description, -1, m_pAdapterName, size, 0, NULL );
-					strlwr ( m_pAdapterName );
-					if ( strstr ( m_pAdapterName, "intel" ) != NULL )
+					if ( pFactory->EnumAdapters(iAdapterIndex, &pAdapter) != DXGI_ERROR_NOT_FOUND )
 					{
-						// this adapter is likely an integrated Intel processor, skip this one
+						DXGI_ADAPTER_DESC adapterDesc;
+						pAdapter->GetDesc(&adapterDesc);
+						memset ( m_pAdapterName, 0, sizeof ( m_pAdapterName ) );
+						const int size = ::WideCharToMultiByte( CP_UTF8, 0, adapterDesc.Description, -1, NULL, 0, 0, NULL );
+						::WideCharToMultiByte( CP_UTF8, 0, adapterDesc.Description, -1, m_pAdapterName, size, 0, NULL );
+						strlwr ( m_pAdapterName );
+
+						// in first pass, ignore any INTEL or MICROSOFT hardware, second pass allows INTEL
+						if ( iDedicatedThenIntel == 0 )
+						{
+							if ( strstr ( m_pAdapterName, "intel" ) != NULL || strstr ( m_pAdapterName, "microsoft" ) != NULL )
+							{
+								// ignore this - this adapter is likely integrated and slower than dedicated
+							}
+							else
+							{
+								// a found non-Intel adapter
+								bFoundAGoodAdapter = true;
+							}
+						}
+						if ( iDedicatedThenIntel == 1 )
+						{
+							if ( strstr ( m_pAdapterName, "microsoft" ) != NULL )
+							{
+								// ignore this - this adapter will pick Intel over Microsoft 'reference' hardware
+							}
+							else
+							{
+								bFoundAGoodAdapter = true;
+							}
+						}
+						if ( bFoundAGoodAdapter == true )
+						{
+							m_uAdapterChoice = iAdapterIndex;
+							break;
+						}
 					}
-					else
-					{
-						// a found non-Intel adapter
-						m_uAdapterChoice = iAdapterIndex;
-						break;
-					}
+				}
+				if ( bFoundAGoodAdapter == true )
+				{
+					// no need to go to next pass
+					break;
 				}
 			}
 		}

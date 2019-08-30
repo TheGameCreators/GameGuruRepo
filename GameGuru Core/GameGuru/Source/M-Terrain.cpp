@@ -336,17 +336,33 @@ void terrain_paintselector_show ( void )
 	if ( t.conkit.editmodeactive != 0 )  
 		return;
 
+	// if switch from terrain paint to grass paint, hide and reshow (grass does not need texture panel)
+	if ( SpriteExist ( terrainbuild.iTexHelpSpr ) == 1 )
+	{
+		bool bSwitchFromToPaintModes = false;
+		if ( t.terrain.terrainpaintermode == 10 && SpriteVisible(terrainbuild.iTexHelpSpr) == 1 ) bSwitchFromToPaintModes = true;
+		if ( t.terrain.terrainpaintermode != 10 && SpriteVisible(terrainbuild.iTexHelpSpr) == 0 ) bSwitchFromToPaintModes = true;
+		if ( bSwitchFromToPaintModes == true )
+		{
+			// allows show code below to set correct sprites to visible
+			terrain_paintselector_hide();
+		}
+	}
+
 	if ( terrainbuild.active == 0 )
 	{
 		// show UI elements
 		if ( terrainbuild.iTexturePanelSprite[0] > 0 )
 		{
-			if ( SpriteExist ( terrainbuild.iTexHelpSpr ) == 1 ) ShowSprite ( terrainbuild.iTexHelpSpr );
 			if ( SpriteExist ( terrainbuild.iHelpSpr ) == 1 ) ShowSprite ( terrainbuild.iHelpSpr );
-			if ( SpriteExist ( terrainbuild.iTexturePanelHighSprite ) == 1 ) ShowSprite ( terrainbuild.iTexturePanelHighSprite );
-			for ( int iTex = 0; iTex < TERRAINTEXPANELSPRMAX; iTex++ )
+			if ( t.terrain.terrainpaintermode != 10 )
 			{
-				if ( SpriteExist ( terrainbuild.iTexturePanelSprite[iTex] ) == 1 ) ShowSprite ( terrainbuild.iTexturePanelSprite[iTex] );
+				if ( SpriteExist ( terrainbuild.iTexHelpSpr ) == 1 ) ShowSprite ( terrainbuild.iTexHelpSpr );
+				if ( SpriteExist ( terrainbuild.iTexturePanelHighSprite ) == 1 ) ShowSprite ( terrainbuild.iTexturePanelHighSprite );
+				for ( int iTex = 0; iTex < TERRAINTEXPANELSPRMAX; iTex++ )
+				{
+					if ( SpriteExist ( terrainbuild.iTexturePanelSprite[iTex] ) == 1 ) ShowSprite ( terrainbuild.iTexturePanelSprite[iTex] );
+				}
 			}
 		}
 		terrainbuild.active = 1;
@@ -429,6 +445,8 @@ void terrain_paintselector_control ( void )
 					t.visuals.terrain_s = "CUSTOM";
 					g.terrainstyleindex = t.visuals.terrainindex;
 					g.terrainstyle_s = t.visuals.terrain_s;
+
+					// diffuse file
 					char pNewLocationForFile[512];
 					if ( bUseFirstChoice == true )
 						strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+TEXTURE_D_NAME).Get() );
@@ -436,18 +454,24 @@ void terrain_paintselector_control ( void )
 						strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+"texture_D.dds").Get() );
 					if ( FileExist ( pNewLocationForFile ) == 1 ) DeleteFile ( pNewLocationForFile );
 					CopyFile ( pOldTerrainTextureFile, pNewLocationForFile, FALSE );
-					if ( bUseFirstChoice == true )
-					{
+
+					// normal file
+					#ifdef VRQUEST
+					#else
+					 if ( bUseFirstChoice == true )
+					 {
 						strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\")+TEXTURE_N_NAME).Get() );
 						strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+TEXTURE_N_NAME).Get() );
-					}
-					else
-					{
+					 }
+					 else
+					 {
 						strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\texture_N.dds")).Get() );
 						strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+"texture_N.dds").Get() );
-					}
-					if ( FileExist ( pNewLocationForFile ) == 1 ) DeleteFile ( pNewLocationForFile );
-					CopyFile ( pOldTerrainTextureFile, pNewLocationForFile, FALSE );
+					 }
+					 if ( FileExist ( pNewLocationForFile ) == 1 ) DeleteFile ( pNewLocationForFile );
+					 CopyFile ( pOldTerrainTextureFile, pNewLocationForFile, FALSE );
+					#endif
+
 					if ( bUseFirstChoice == true )
 						strcpy ( pOldTerrainTextureFile, cstr(g.mysystem.levelBankTestMap_s+TEXTURE_D_NAME).Get() );
 					else
@@ -576,6 +600,8 @@ int terrain_loadcustomtexture ( LPSTR pDestPathAndFile, int iTextureSlot )
 	terrain_createnewterraintexture ( TEXTURE_D_NAME, iTextureSlot, tLoadFile.Get(), 0, 1 );
 	
 	// if a normal map exists for it, use that too
+	#ifdef VRQUEST
+	#else
 	cstr tOrigLoadNormalFile = tLoadFile;
 	cstr tLoadNormalFile = cstr(Left(tOrigLoadNormalFile.Get(),strlen(tOrigLoadNormalFile.Get())-6)) + "_N.dds";
 	if ( FileExist ( tLoadNormalFile.Get() ) == 0 ) tLoadNormalFile = cstr(Left(tOrigLoadNormalFile.Get(),strlen(tOrigLoadNormalFile.Get())-6)) + "_N.jpg";
@@ -583,10 +609,7 @@ int terrain_loadcustomtexture ( LPSTR pDestPathAndFile, int iTextureSlot )
 	{
 		tLoadNormalFile = g.fpscrootdir_s + "\\Files\\effectbank\\reloaded\\media\\blank_N.dds";
 	}
-	#ifdef VRQUEST
-	 terrain_createnewterraintexture ( TEXTURE_N_NAME, iTextureSlot, tLoadNormalFile.Get(), 0, 1 );
-	#else
-	 terrain_createnewterraintexture ( TEXTURE_N_NAME, iTextureSlot, tLoadNormalFile.Get(), 0, 0 );
+    terrain_createnewterraintexture ( TEXTURE_N_NAME, iTextureSlot, tLoadNormalFile.Get(), 0, 0 );
 	#endif
 
 	// restore current folder
@@ -976,12 +999,17 @@ void terrain_loadlatesttexture ( void )
 		else
 			LoadImage ( cstr(cstr(pLocationOfTerrainTexture)+"\\texture_D.dds").Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
 	}
-	if ( FileExist ( cstr(cstr(pLocationOfTerrainTexture)+"\\"+TEXTURE_N_NAME).Get() ) == 1 )
-	{
+
+	// normals for terrain
+	#ifdef VRQUEST
+	 LoadImage ( "effectbank\\reloaded\\media\\blank_N.dds", t.terrain.imagestartindex+21, 0, g.gdividetexturesize );
+	#else
+	 if ( FileExist ( cstr(cstr(pLocationOfTerrainTexture)+"\\"+TEXTURE_N_NAME).Get() ) == 1 )
+	 {
 		LoadImage ( cstr(cstr(pLocationOfTerrainTexture)+"\\"+TEXTURE_N_NAME).Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
-	}
-	else
-	{
+	 }
+	 else
+	 {
 		if ( FileExist ( cstr(cstr(pLocationOfTerrainTexture)+"\\texture_N.dds").Get() ) == 1 )
 		{
 			LoadImage (  cstr(cstr(pLocationOfTerrainTexture)+"\\texture_N.dds").Get(), t.terrain.imagestartindex+21,0,g.gdividetexturesize );
@@ -990,7 +1018,8 @@ void terrain_loadlatesttexture ( void )
 		{
 			LoadImage ( "effectbank\\reloaded\\media\\blank_N.dds", t.terrain.imagestartindex+21,0,g.gdividetexturesize );
 		}
-	}
+	 }
+	#endif
 	TextureObject ( t.terrain.terrainobjectindex,2,t.terrain.imagestartindex+13 );
 	// stage 3 : rem circle texture for highlighter
 	TextureObject ( t.terrain.terrainobjectindex,4,t.terrain.imagestartindex+21 );
@@ -1041,6 +1070,8 @@ void terrain_changestyle ( void )
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 15, "Rocky_D.dds", 0, 1 );
 				
 					// and now the normals file
+					#ifdef VRQUEST
+					#else
 					if ( bUseNewJPG == true )
 						strcpy ( pNewTerrainTextureFile, TEXTURE_N_NAME );
 					else
@@ -1061,6 +1092,7 @@ void terrain_changestyle ( void )
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 13, "Rocky_N.dds", 0, 0 );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 14, "Rocky_N.dds", 0, 0 );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 15, "Rocky_N.dds", 0, 0 );
+					#endif
 
 					// restore directory after terrain texture file creation
 					SetDir ( pOldDir );
@@ -2458,8 +2490,8 @@ void terrain_make ( void )
 			if (  g.gdividetexturesize == 0 ) 
 			{
 				t.tthistexdir_s="effectbank\\reloaded\\media\\white_D.dds";
-				LoadImage (  t.tthistexdir_s.Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
-				LoadImage (  t.tthistexdir_s.Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+				LoadImage ( t.tthistexdir_s.Get(), t.terrain.imagestartindex+13, 0, g.gdividetexturesize );
+				LoadImage ( t.tthistexdir_s.Get(), t.terrain.imagestartindex+21, 0, g.gdividetexturesize );
 			}
 			else
 			{
@@ -2471,13 +2503,17 @@ void terrain_make ( void )
 				else
 					LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\texture_D.dds").Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
 
-				t.tsplashstatusprogress_s="LOADING TERRAIN NORMALS";
-				timestampactivity(0,t.tsplashstatusprogress_s.Get());
-				version_splashtext_statusupdate ( );
-				if ( FileExist ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\"+TEXTURE_N_NAME).Get() ) == 1 )
+				#ifdef VRQUEST
+				 LoadImage ( "effectbank\\reloaded\\media\\blank_N.dds", t.terrain.imagestartindex+21, 0, g.gdividetexturesize );
+				#else
+				 t.tsplashstatusprogress_s="LOADING TERRAIN NORMALS";
+				 timestampactivity(0,t.tsplashstatusprogress_s.Get());
+				 version_splashtext_statusupdate ( );
+				 if ( FileExist ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\"+TEXTURE_N_NAME).Get() ) == 1 )
 					LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\"+TEXTURE_N_NAME).Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
-				else
+				 else
 					LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\texture_N.dds").Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+				#endif
 			}
 			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 

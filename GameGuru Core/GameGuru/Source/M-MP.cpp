@@ -3486,8 +3486,6 @@ void mp_showdeath ( void )
 
 					MoveCamera (  g.mp.spectatorfollowdistance );
 					t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
-//       `tEndEntity = entityviewstartobj+entityelementlist
-
 					t.tHitObj=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.x_f,t.y_f,t.z_f,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tobjtosee);
 					t.tdistancewecanmovecam_f = g.mp.spectatorfollowdistance;
 					if (  t.tHitObj > 0 ) 

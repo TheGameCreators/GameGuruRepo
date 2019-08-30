@@ -15,7 +15,7 @@ GGMATRIX GGVR_GetLeftEyeProjectionMatrix();
 void GGVR_SetWorldScale( float scale );
 float GGVR_GetWorldScale(  );
 void GGVR_Shutdown();
-void GGVR_UpdatePlayer(bool bPlayerDucking, int iTerrainID, int iLMObjStart, int iLMObjFinish, int iEntObjStart, int iEndObjEnd);
+void GGVR_UpdatePlayer(bool bPlayerDucking, int iTerrainID, int iLMObjStart, int iLMObjFinish, int iEntObjStart, int iEndObjEnd, int iBatchStart, int iBatchEnd );
 bool GGVR_HandlePlayerTeleport ( float* pNewPosX, float* pNewPosY, float* pNewPosZ, float* pNewAngleY );
 void GGVR_SetPlayerPosition( float X, float Y, float Z );
 void GGVR_SetPlayerRotation( float X, float Y, float Z );

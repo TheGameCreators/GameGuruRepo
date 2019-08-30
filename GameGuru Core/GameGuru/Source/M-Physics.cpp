@@ -1478,7 +1478,9 @@ void physics_player_gatherkeycontrols ( void )
 			}
 			try
 			{
-				GGVR_UpdatePlayer(false,t.terrain.TerrainID,g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,g.entityviewstartobj,g.entityviewendobj);
+				int iBatchStart = g.batchobjectoffset;
+				int iBatchEnd = g.batchobjectoffset + g.merged_new_objects + 1;
+				GGVR_UpdatePlayer(false,t.terrain.TerrainID,g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,g.entityviewstartobj,g.entityviewendobj, iBatchStart, iBatchEnd);
 			}
 			catch(...)
 			{

@@ -894,8 +894,8 @@ void GGVR_UpdatePoses(void)
 		}
 	}
 }
-
-void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, int iLMObjFinish, int iEntObjStart, int iEndObjEnd )
+														
+void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, int iLMObjFinish, int iEntObjStart, int iEndObjEnd, int iBatchEntObjStart, int iBatchEndObjEnd )
 {
 	// Update the HMD and controller feedbacks
 	timestampactivity ( 0, "TS: Calling GGVR_UpdatePoses" );
@@ -1098,6 +1098,7 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 			// when cut through an entity in the scene
 			IntersectAll(iLMObjStart,iLMObjFinish,0,0,0,0,0,0,-123);
 			int tHitObj = IntersectAll(iEntObjStart,iEndObjEnd,x,y,z,fLastX,fLastY,fLastZ,0);
+			if ( tHitObj == 0 ) tHitObj = IntersectAll(iBatchEntObjStart,iBatchEndObjEnd,x,y,z,fLastX,fLastY,fLastZ,0);
 			if ( tHitObj > 0 )
 			{
 				GGVR_fTelePortDestinationX = ChecklistFValueA(6);
@@ -1145,6 +1146,7 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 		float fYOffsetAboveDest = 5.0f;
 		IntersectAll(iLMObjStart,iLMObjFinish,0,0,0,0,0,0,-123);
 		int tDoesCircleIntersect = IntersectAll(iEntObjStart,iEndObjEnd,fPosNearerPlrX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,fPosNearerPlrZ,fPosEndOfCircleX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,fPosEndOfCircleZ,0);
+		if ( tDoesCircleIntersect == 0 ) tDoesCircleIntersect = IntersectAll(iBatchEntObjStart,iBatchEndObjEnd,fPosNearerPlrX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,fPosNearerPlrZ,fPosEndOfCircleX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,fPosEndOfCircleZ,0);
 		if ( tDoesCircleIntersect > 0 )
 		{
 			// the circle is intersecting something, cannot land here
@@ -1152,6 +1154,7 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 		}
 		IntersectAll(iLMObjStart,iLMObjFinish,0,0,0,0,0,0,-123);
 		tDoesCircleIntersect = IntersectAll(iEntObjStart,iEndObjEnd,GGVR_fTelePortDestinationX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,GGVR_fTelePortDestinationZ,GGVR_fTelePortDestinationX,GGVR_fTelePortDestinationY+85.0f,GGVR_fTelePortDestinationZ,0);
+		if ( tDoesCircleIntersect == 0 ) tDoesCircleIntersect = IntersectAll(iBatchEntObjStart,iBatchEndObjEnd,GGVR_fTelePortDestinationX,GGVR_fTelePortDestinationY+fYOffsetAboveDest,GGVR_fTelePortDestinationZ,GGVR_fTelePortDestinationX,GGVR_fTelePortDestinationY+85.0f,GGVR_fTelePortDestinationZ,0);
 		if ( tDoesCircleIntersect > 0 )
 		{
 			// the circle is intersecting above (so player cannot fit in), cannot land here

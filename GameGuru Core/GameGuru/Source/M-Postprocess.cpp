@@ -634,7 +634,9 @@ void postprocess_preterrain ( void )
 		// update HMD position and controller feedback
 		bool bPlayerDucking = false;
 		if ( t.aisystem.playerducking != 0 ) bPlayerDucking = true;
-		GGVR_UpdatePlayer(bPlayerDucking,t.terrain.TerrainID,g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,g.entityviewstartobj,g.entityviewendobj);
+		int iBatchStart = g.batchobjectoffset;
+		int iBatchEnd = g.batchobjectoffset + g.merged_new_objects + 1;
+		GGVR_UpdatePlayer(bPlayerDucking,t.terrain.TerrainID,g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,g.entityviewstartobj,g.entityviewendobj,iBatchStart,iBatchEnd);
 
 		// handle teleport
 		float fTelePortDestX = 0.0f;
