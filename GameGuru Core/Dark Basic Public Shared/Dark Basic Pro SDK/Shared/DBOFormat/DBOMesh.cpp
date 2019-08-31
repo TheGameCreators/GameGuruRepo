@@ -1007,7 +1007,7 @@ DARKSDK_DLL void ReduceMeshPolygons ( sMesh* pOriginalMesh, int iBlockMode, int 
 
 	// create new mesh
 	DWORD dwVertexOffset=0, dwIndexOffset=0;
-	if ( SetupMeshData ( pOriginalMesh, dwVertexCount, dwIndexCount ) )
+	if ( SetupMeshData ( pOriginalMesh, dwVertexCount, dwIndexCount, false ) )
 	{
 		// default values
 		DWORD dwColor = GGCOLOR(1,1,1,1);
@@ -1333,7 +1333,7 @@ DARKSDK_DLL bool AddMeshToData ( sMesh* pFinalMesh, sMesh* pMeshToAdd )
 	DWORD dwTotalIndices = pOriginalMesh->dwIndexCount + pStandardMesh->dwIndexCount;
 
 	// if creation successful, continue
-	if ( SetupMeshFVFData ( pFinalMesh, pOriginalMesh->dwFVF, dwTotalVertices, dwTotalIndices ) )
+	if ( SetupMeshFVFData ( pFinalMesh, pOriginalMesh->dwFVF, dwTotalVertices, dwTotalIndices, false ) )
 	{
 		// copy over original to final
 		memcpy ( pFinalMesh->pVertexData, pOriginalMesh->pVertexData, pOriginalMesh->dwVertexCount * pOriginalMesh->dwFVFSize );
@@ -3192,7 +3192,7 @@ DARKSDK_DLL bool MakeMeshPlain ( bool bCreateNew, sMesh* pMesh, float fWidth, fl
 	// create memory
 	DWORD dwVertexCount = 6;									// store number of vertices
 	DWORD dwIndexCount  = 0;									// store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return false;
@@ -3222,7 +3222,7 @@ DARKSDK_DLL bool MakeMeshPlainEx ( bool bCreateNew, sMesh* pMesh, float fWidth, 
 	// create memory
 	DWORD dwVertexCount = 6;									// store number of vertices
 	DWORD dwIndexCount  = 0;									// store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return false;
@@ -3257,7 +3257,7 @@ DARKSDK_DLL bool MakeMeshBox ( bool bCreateNew, sMesh* pMesh, float fWidth1, flo
 	DWORD dwIndexCount  = 36;
 	if ( bCreateNew )
 	{
-		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount, false ) )
 		{
 			RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 			return false;
@@ -3321,7 +3321,7 @@ DARKSDK_DLL bool MakeMeshPyramid ( bool bCreateNew, sMesh* pMesh, float fSize, D
 	DWORD dwIndexCount  = 36;
 	if ( bCreateNew )
 	{
-		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount, false ) )
 		{
 			RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 			return false;
@@ -3392,7 +3392,7 @@ DARKSDK_DLL bool MakeMeshSphere ( bool bCreateNew, sMesh* pMesh, GGVECTOR3 vecCe
 	DWORD dwVertexCount		= ( iRings + 1 ) * ( iSegments + 1 );
 	if ( bCreateNew )
 	{
-		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount, false ) )
 		{
 			RunTimeError ( RUNTIMEERROR_B3DMEMORYERROR );
 			return false;

@@ -1636,6 +1636,14 @@ void darkai_loop ( void )
 			t.tte=t.charanimstate.e ; entity_converttoclone ( );
 			entity_setupcharobjsettings ( );
 
+			// always restore unfrozen characters in idle pose
+			if ( t.entityprofile[t.tentid].animmax>0 && t.entityprofile[t.tentid].playanimineditor>0 ) 
+			{
+				t.q=t.entityprofile[t.tentid].playanimineditor-1;
+				LoopObject ( t.obj,t.entityanim[t.tentid][t.q].start,t.entityanim[t.tentid][t.q].finish );
+				t.tfinalspeed_f=t.entityelement[t.charanimstate.e].speedmodulator_f*t.charanimstate.animationspeed_f*2.5*g.timeelapsed_f;
+				SetObjectSpeed ( t.obj,t.tfinalspeed_f );
+			}
 		}
 
 		//  For valid A.I entities
@@ -1658,12 +1666,11 @@ void darkai_loop ( void )
 				//  Freeze All A.I for character out of range
 				if (  t.charanimstate.outofrange == 0 ) 
 				{
-
 					//  Character is out of range
 					t.charanimstate.outofrange=1;
 
 					//  reset for when resume
-					t.charanimstate.playcsi=g.csi_unarmed;
+					if ( t.charanimstate.playcsi != g.csi_limbo ) t.charanimstate.playcsi = g.csi_unarmed;
 					t.charanimstate.alerted=0;
 
 					//  capture latest position for later resume

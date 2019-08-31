@@ -58,9 +58,12 @@ public:
 	void SetSendFileCount ( int count, int iOnlySendMapToSpecificPlayer);
 	void SendFileBegin ( int index , LPSTR pString, LPSTR pRootPath );
 	int SendFileDone();
+	float GetSendProgress ( void );
+	void GetSendError ( LPSTR pErrorString );
 	void GetFileDone();
 	void CloseFileNow ( void );
 	int IsEveryoneFileSynced();
+	void RegisterEveryonePresentAsHere();
 	float GetFileProgress();
 
 	void leaveRoom(void);

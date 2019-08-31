@@ -507,6 +507,8 @@ void mp_loop ( void )
 				}
 				#ifdef PHOTONMP
 				 PhotonStartServer ( );
+				 // at moment of starting server, register all present players so they dont get re-added when game starts
+				 PhotonRegisterEveryonePresentAsHere();
 				#else
 				 SteamStartServer ( );
 				#endif
@@ -1926,7 +1928,11 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 			break;
 
 		case 1:
-			mp_textDots(-1,50,3,"sharing files with incoming player");
+		{
+			char pProgressFloat[1024];
+			sprintf ( pProgressFloat, "%.1f", PhotonGetSendProgress() );
+			cstr sShowSendingProgress = cstr("sharing files (") + pProgressFloat + "%) with incoming player";
+			mp_textDots(-1,50,3,sShowSendingProgress.Get());
 			// take precaution not to send too much too quickly (Photon Server will ise error 1040 and timeout!!)
 			if ( timeGetTime() > g_dwSendLastTime )
 			{
@@ -1946,13 +1952,16 @@ void mp_pre_game_file_sync_server ( int iOnlySendMapToSpecificPlayer )
 					if ( iSendFileStatus == -1 )
 					{
 						// error uploading (permissed denied)
-						t.tsteamconnectionlostmessage_s = "Server Error While Uploading File";
+						char pError[1024];
+						PhotonGetSendError ( pError );
+						t.tsteamconnectionlostmessage_s = cstr("Upload Error (") + pError + ")";
 						g.mp.mode = MP_MODE_MAIN_MENU;
 						mp_lostConnection ( );
 					}
 				}
 			}
-			break;
+		}
+		break;
 
 		case 2:
 			//mp_textDots(-1,30,3,"Waiting for player to join game");
@@ -6335,7 +6344,30 @@ void mp_lobbyListBox ( void )
 					t.tempsteamselectedY_f = t.tempsteamyminY_f + (t.tempsteamselected_f * (GetDisplayHeight() * 0.05));
 					InkEx ( 64, 64, 64 );
 					BoxEx (  t.tLeft,t.tempsteamselectedY_f,t.tRight,t.tempsteamselectedY_f+(GetDisplayHeight() * 0.05) );
-					if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0  )  g.mp.selectedLobby  =  t.tempsteamselected_f+g.mp.lobbyoffset;
+					if (  t.mc  ==  1 && t.tempsteamoldmc  ==  0  )  
+					{
+						// do not allow selection if game file and too large
+						bool bAllowItemToBeHighlighted = true;
+						if ( g.mp.listboxmode == 1 ) 
+						{
+							int iSizeOfFPMFile = atoi(t.tfpmfilesizelist_s[t.tempsteamselected_f+g.mp.lobbyoffset].Get());
+							if ( iSizeOfFPMFile < 100 )
+							{
+								// this is allowed to be selected
+							}
+							else
+							{
+								// for now, files 100MB or over are not allowed
+								bAllowItemToBeHighlighted = false;
+							}
+						}
+
+						// select this item from the list
+						if ( bAllowItemToBeHighlighted == true )
+						{
+							g.mp.selectedLobby  =  t.tempsteamselected_f+g.mp.lobbyoffset;
+						}
+					}
 				}
 			}
 		}
@@ -6535,10 +6567,22 @@ void mp_lobbyListBox ( void )
 			if ( g.mp.listboxmode == 1 ) 
 			{
 				t.mp_lobbies_s[t.tlobbycount] = t.tfpmfilelist_s[t.c];
-				t.tsteamstring_s = t.mp_lobbies_s[t.tlobbycount] + " (" + t.tfpmfilesizelist_s[t.c] + "MB)";
-				t.tr = 255;
-				t.tg = 255;
-				t.tb = 255;
+				LPSTR pExtra = "";
+				int iSizeOfFPMFile = atoi(t.tfpmfilesizelist_s[t.c].Get());
+				if ( iSizeOfFPMFile < 100 )
+				{
+					t.tr = 255;
+					t.tg = 255;
+					t.tb = 255;
+				}
+				else
+				{
+					t.tr = 255;
+					t.tg = 255;
+					t.tb = 128;
+					pExtra = " (too large to host)";
+				}
+				t.tsteamstring_s = t.mp_lobbies_s[t.tlobbycount] + " (" + t.tfpmfilesizelist_s[t.c] + "MB)" + pExtra;
 			}
 
 			t.tlobbytring_s = t.tsteamstring_s;

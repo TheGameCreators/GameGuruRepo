@@ -679,6 +679,23 @@ void PhotonSendFileBegin ( int index , LPSTR pString, LPSTR pRootPath )
 	}
 }
 
+float PhotonGetSendProgress()
+{
+	if ( g_pPhotonView )
+	{
+		return g_pLBL->GetSendProgress();
+	}
+	return 0;
+}
+
+void PhotonGetSendError ( LPSTR pErrorString )
+{
+	if ( g_pPhotonView )
+	{
+		return g_pLBL->GetSendError(pErrorString);
+	}
+}
+
 int PhotonSendFileDone()
 {
 	if ( g_pPhotonView )
@@ -717,6 +734,14 @@ int PhotonIsEveryoneFileSynced()
 		return g_pLBL->IsEveryoneFileSynced();
 	}
 	return 0;
+}
+
+void PhotonRegisterEveryonePresentAsHere()
+{
+	if ( g_pPhotonView )
+	{
+		g_pLBL->RegisterEveryonePresentAsHere();
+	}
 }
 
 void PhotonSetThisPlayerAsCurrentServer()

@@ -1851,7 +1851,7 @@ DARKSDK_DLL bool CreateSingleMeshFromObjectCore ( sMesh** ppMesh, sObject* pObje
 			}
 
 			// make vertex and index buffers for single mesh
-			SetupMeshFVFData ( *ppMesh, dwNewMeshFVF, dwTotalVertices, dwTotalIndices );
+			SetupMeshFVFData ( *ppMesh, dwNewMeshFVF, dwTotalVertices, dwTotalIndices, false );
 
 			// reset counters to fill single mesh
 			dwTotalVertices = 0;
@@ -2014,7 +2014,7 @@ DARKSDK_DLL bool CreateSingleMeshFromLimb ( sMesh** ppMesh, sObject* pObject, in
 		if ( iPass==1 )
 		{
 			// 010804 - verts only due to size
-			SetupMeshFVFData ( *ppMesh, dwNewMeshFVF, dwTotalVertices, 0 );
+			SetupMeshFVFData ( *ppMesh, dwNewMeshFVF, dwTotalVertices, 0, false );
 
 			// reset counters to fill single mesh
 			dwTotalVertices = 0;
@@ -2205,7 +2205,7 @@ DARKSDK_DLL void UpdateLocalMeshWithDXMesh ( sMesh* pMesh, LPGGMESH pDXMesh )
 	else
 	{
 		// now create new mesh data from new FVF
-		SetupMeshFVFData ( pMesh, pDXMesh->GetFVF(), dwVertexCount, dwIndexCount );
+		SetupMeshFVFData ( pMesh, pDXMesh->GetFVF(), dwVertexCount, dwIndexCount, false );
 	}
 
 	// get vertex and index buffer
@@ -2633,6 +2633,7 @@ DARKSDK_DLL bool MakeLocalMeshFromOtherLocalMesh ( sMesh* pMesh, sMesh* pOtherMe
 	DWORD dwFVFSize			= pOtherMesh->dwFVFSize;
 
 	// mesh can hold regular FVF and custom declarations
+	bool bTempAllow32BitIndexSoCanProduceVertOnlyMesh = false;
 	if ( dwFVF==0 )
 	{
 		// now create new mesh data from declaration
@@ -2641,8 +2642,13 @@ DARKSDK_DLL bool MakeLocalMeshFromOtherLocalMesh ( sMesh* pMesh, sMesh* pOtherMe
 	}
 	else
 	{
+		// 310819 - if the indexcount is over 16bit, we know the next call will fail, so convert mesh to vertex only
+		if ( dwIndexCount > 0 )
+			if ( dwIndexCount > 0x0000FFFF )
+				bTempAllow32BitIndexSoCanProduceVertOnlyMesh = true;
+
 		// create new mesh from FVF
-		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount, bTempAllow32BitIndexSoCanProduceVertOnlyMesh ) )
 			return false;
 	}
 
@@ -2652,6 +2658,7 @@ DARKSDK_DLL bool MakeLocalMeshFromOtherLocalMesh ( sMesh* pMesh, sMesh* pOtherMe
 
 	// copy index data
 	DWORD dwIndiceDataSize = sizeof(WORD) * pOtherMesh->dwIndexCount;
+	if ( bTempAllow32BitIndexSoCanProduceVertOnlyMesh == true ) dwIndiceDataSize = sizeof(DWORD) * pOtherMesh->dwIndexCount;
 	if ( pMesh->pIndices ) memcpy ( pMesh->pIndices, pOtherMesh->pIndices, dwIndiceDataSize );
 
 	// setup mesh drawing properties
@@ -2665,6 +2672,10 @@ DARKSDK_DLL bool MakeLocalMeshFromOtherLocalMesh ( sMesh* pMesh, sMesh* pOtherMe
 		// calculate a value that makes most sense
 		pMesh->iDrawPrimitives=pMesh->iDrawVertexCount/3;
 	}
+
+	// we 'still' do not support 32bit indices (ouch), so convert this mesh to vert only so it works with everything else
+	if ( bTempAllow32BitIndexSoCanProduceVertOnlyMesh == true )
+		ConvertLocalMeshToVertsOnly ( pMesh );
 
 	// okay
 	return true;
@@ -2680,7 +2691,7 @@ DARKSDK_DLL bool MakeLocalMeshFromOtherLocalMesh ( sMesh* pMesh, sMesh* pOtherMe
 DARKSDK_DLL bool MakeLocalMeshFromPureMeshData ( sMesh* pMesh, DWORD dwFVF, DWORD dwFVFSize, float* pMeshData, DWORD dwVertexCount, DWORD dwPrimType )
 {
 	// create new mesh
-	if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, 0 ) )
+	if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, 0, false ) )
 		return false;
 
 	// copy vertex data
@@ -6388,12 +6399,13 @@ DARKSDK_DLL bool CalculateAllBounds ( sObject* pObject, bool bNotUsed )
 	return true;
 }
 
-DARKSDK_DLL bool SetupMeshData ( sMesh* pMesh, DWORD dwVertexCount, DWORD dwIndexCount )
+DARKSDK_DLL bool SetupMeshData ( sMesh* pMesh, DWORD dwVertexCount, DWORD dwIndexCount, bool bTempAllow32BitIndexBuffer )
 {
-	// if index size exceeds 16bit, cannot allow index buffer
-	if ( dwIndexCount > 0 )
-		if ( dwIndexCount > 0x0000FFFF )
-			return false;
+	// if index size exceeds 16bit, cannot allow index buffer (except when temporarily allowing 32bit indices to copy in other mesh, then convert to vert only, done elsewhere)
+	if ( bTempAllow32BitIndexBuffer == false )
+		if ( dwIndexCount > 0 )
+			if ( dwIndexCount > 0x0000FFFF )
+				return false;
 
 	// ensure the mesh is valid
 	SAFE_MEMORY ( pMesh );
@@ -6410,8 +6422,16 @@ DARKSDK_DLL bool SetupMeshData ( sMesh* pMesh, DWORD dwVertexCount, DWORD dwInde
 	// create new index mesh data
 	if ( dwIndexCount>0 )
 	{
-		pMesh->dwIndexCount		= dwIndexCount;
-		pMesh->pIndices			= new WORD [ pMesh->dwIndexCount ];
+		if ( bTempAllow32BitIndexBuffer == false )
+		{
+			pMesh->dwIndexCount		= dwIndexCount;
+			pMesh->pIndices			= new WORD [ pMesh->dwIndexCount ];
+		}
+		else
+		{
+			pMesh->dwIndexCount		= dwIndexCount;
+			pMesh->pIndices			= (WORD*)new DWORD [ pMesh->dwIndexCount ];
+		}
 	}
 	else
 	{
@@ -6449,14 +6469,14 @@ DARKSDK_DLL bool SetupMeshDeclarationData ( sMesh* pMesh, CONST GGVERTEXELEMENT*
 	pMesh->pVertexDec = pNewVertexDec;
 
 	// now setup the data
-	if ( !SetupMeshData ( pMesh, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshData ( pMesh, dwVertexCount, dwIndexCount, false ) )
 		return false;
 
 	// complete
 	return true;
 }
 
-DARKSDK_DLL bool SetupMeshFVFData ( sMesh* pMesh, DWORD dwFVF, DWORD dwVertexCount, DWORD dwIndexCount )
+DARKSDK_DLL bool SetupMeshFVFData ( sMesh* pMesh, DWORD dwFVF, DWORD dwVertexCount, DWORD dwIndexCount, bool bTempAllow32BitIndexBuffer )
 {
 	// set up mesh properties for the given FVF
 	pMesh->dwFVF = dwFVF;
@@ -6467,7 +6487,7 @@ DARKSDK_DLL bool SetupMeshFVFData ( sMesh* pMesh, DWORD dwFVF, DWORD dwVertexCou
 	pMesh->dwFVFSize = offsetMap.dwByteSize;
 
 	// now setup the data
-	if ( !SetupMeshData ( pMesh, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshData ( pMesh, dwVertexCount, dwIndexCount, bTempAllow32BitIndexBuffer ) )
 		return false;
 
 	// complete

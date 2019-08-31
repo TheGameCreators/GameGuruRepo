@@ -218,7 +218,7 @@ BEGIN
         MENUITEM "Save Standalone",             ID_FILE_BUILDGAME
         MENUITEM "Download Store Items",        ID_FILE_DOWNLOADSTOREITEMS
         MENUITEM "Character Creator...",        ID_FILE_CHARACTERCREATOR33003
-        MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
+        //MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
         MENUITEM SEPARATOR
         MENUITEM "Preferences...",              ID_FILE_PREFERENCES, INACTIVE
         MENUITEM SEPARATOR
@@ -367,7 +367,7 @@ BEGIN
         MENUITEM "Save Standalone",             ID_FILE_BUILDGAME
         MENUITEM "Download Store Items",        ID_FILE_DOWNLOADSTOREITEMS
         MENUITEM "Character Creator...",        ID_FILE_CHARACTERCREATOR33003
-        MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
+        //MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
         MENUITEM SEPARATOR
         MENUITEM "Preferences...",              ID_FILE_PREFERENCES, INACTIVE
         MENUITEM SEPARATOR

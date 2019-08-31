@@ -99,8 +99,8 @@ DARKSDK bool		SetupStandardVertexDec				( sMesh* pMesh, BYTE* pVertex, int iOffs
 DARKSDK bool		GetFVFValueOffsetMap				( DWORD dwFVF, sOffsetMap* psOffsetMap );
 DARKSDK bool		GetFVFOffsetMap						( sMesh* pMesh, sOffsetMap* psOffsetMap );
 DARKSDK bool		SetupMeshDeclarationData			( sMesh* pMesh, CONST GGVERTEXELEMENT* pDeclaration, DWORD dwVertexSize, DWORD dwVertexCount, DWORD dwIndexCount );
-DARKSDK bool		SetupMeshFVFData					( sMesh* pMesh, DWORD dwFVF, DWORD dwSize, DWORD dwIndexCount );
-DARKSDK bool		SetupMeshData						( sMesh* pMesh, DWORD dwVertexCount, DWORD dwIndexCount );
+DARKSDK bool		SetupMeshFVFData					( sMesh* pMesh, DWORD dwFVF, DWORD dwSize, DWORD dwIndexCount, bool bTempAllow32BitIndexBuffer );
+DARKSDK bool		SetupMeshData						( sMesh* pMesh, DWORD dwVertexCount, DWORD dwIndexCount, bool bTempAllow32BitIndexBuffer );
 
 DARKSDK bool		CreateVertexShaderFromFVF			( DWORD dwFVF, DWORD* pdwShader );
 

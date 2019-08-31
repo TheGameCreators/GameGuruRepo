@@ -982,7 +982,7 @@ DARKSDK_DLL void CreateMeshForObject ( int iID, DWORD dwFVF, DWORD dwVertexCount
 		return;
 	}
 	
-	if ( !SetupMeshFVFData ( pObject->pFrame->pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pObject->pFrame->pMesh, dwFVF, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -2603,7 +2603,7 @@ DARKSDK int MakeNewObjectPanel	( int iID , int iNumberOfCharacters )
 	// create memory
 	DWORD dwVertexCount = 6 * iNumberOfCharacters; // store number of vertices
 	DWORD dwIndexCount  = 0; // store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_DIFFUSE | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_DIFFUSE | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return 0;
@@ -2736,7 +2736,7 @@ DARKSDK_DLL void MakeObjectTriangle ( int iID, float x1, float y1, float z1, flo
 	// create vertex memory
 	DWORD dwVertexCount = 3;									// store number of vertices
 	DWORD dwIndexCount  = 0;									// store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -2831,7 +2831,7 @@ DARKSDK_DLL void MakeObjectCylinder ( int iID, float fSize )
 	// create vrtex memory
 	DWORD dwVertexCount = ( iSegments + 1 ) * 2;					// store number of vertices
 	DWORD dwIndexCount  = 0;										// store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -2899,7 +2899,7 @@ DARKSDK_DLL void MakeObjectCone ( int iID, float fSize )
 	// create vrtex memory
 	DWORD dwVertexCount = (iSegments * 2) + 1;						// store number of vertices
 	DWORD dwIndexCount  = iSegments * 3;							// store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -6078,14 +6078,33 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 								pNewMesh->bUseMultiMaterial = false;
 								pNewMesh->fSpecularOverride = 1.0f;
 								pNewMesh->bUsesMaterial = false;
-								// pMultiMaterial [ dwMaterialIndex ].mMaterial ignored
 
 								// modify index data so mesh only points to revelant polygons
 								DWORD dwPolyCount = pMultiMaterial [ dwMaterialIndex ].dwPolyCount;
-								pNewMesh->dwIndexCount = dwPolyCount*3;
-								pNewMesh->iDrawVertexCount = pMesh->iDrawVertexCount;
-								pNewMesh->iDrawPrimitives  = dwPolyCount;
-								memcpy ( pNewMesh->pIndices, pMesh->pIndices + pMultiMaterial [ dwMaterialIndex ].dwIndexStart, dwPolyCount*3*sizeof(WORD) );
+								if ( pNewMesh->pIndices != NULL )
+								{
+									// straight copy of relevant indices for this material 
+									pNewMesh->dwIndexCount = dwPolyCount*3;
+									pNewMesh->iDrawVertexCount = pMesh->iDrawVertexCount;
+									pNewMesh->iDrawPrimitives  = dwPolyCount;
+									memcpy ( pNewMesh->pIndices, pMesh->pIndices + pMultiMaterial [ dwMaterialIndex ].dwIndexStart, dwPolyCount*3*sizeof(WORD) );
+								}
+								else
+								{
+									// mesh exceeded 16bit index buffer, so need to manually copy the relevant verts for vert only mesh
+									pNewMesh->dwIndexCount = 0;
+									pNewMesh->iDrawVertexCount = dwPolyCount*3;
+									pNewMesh->iDrawPrimitives  = dwPolyCount;
+									for ( int i = 0; i < dwPolyCount*3; i+=3 )
+									{
+										int iV0 = pMultiMaterial [ dwMaterialIndex ].dwIndexStart + i + 0;
+										int iV1 = pMultiMaterial [ dwMaterialIndex ].dwIndexStart + i + 1;
+										int iV2 = pMultiMaterial [ dwMaterialIndex ].dwIndexStart + i + 2;
+										*((GGVECTOR3*)pNewMesh->pVertexData+i+0) = *(GGVECTOR3*)pMesh->pVertexData+iV0;
+										*((GGVECTOR3*)pNewMesh->pVertexData+i+1) = *(GGVECTOR3*)pMesh->pVertexData+iV1;
+										*((GGVECTOR3*)pNewMesh->pVertexData+i+2) = *(GGVECTOR3*)pMesh->pVertexData+iV2;
+									}
+								}
 
 								// add to new mesh list
 								pTotalMeshList [ dwMaterialMeshIndex ] = pNewMesh;

@@ -262,16 +262,28 @@ void lua_updateprompt3d ( void )
 	if ( fX == 0.0f && fY == 0.0f && fZ == 0.0f )
 	{
 		// projects forward from camera pos, finds floor and raises up 50 units, should stay put in all render views
-		float fStCamX = CameraAngleX();
-		float fStCamZ = CameraAngleZ();
-		RotateCamera ( 0, 0, CameraAngleY(0), 0 );
+		float fStCamX = CameraPositionX();
+		float fStCamY = CameraPositionY();
+		float fStCamZ = CameraPositionZ();
+		float fStCamAX = CameraAngleX();
+		float fStCamAY = CameraAngleY();
+		float fStCamAZ = CameraAngleZ();
+		if ( g.vrglobals.GGVREnabled != 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+		{
+			RotateCamera ( 0, CameraAngleX(6), CameraAngleY(6), CameraAngleZ(6) );
+			bFaceCamera = true;
+		}
+		else
+		{
+			RotateCamera ( 0, 0, CameraAngleY(0), 0 );
+		}
 		MoveCamera ( 0, 75.0f );
 		fX = CameraPositionX(0);
 		fZ = CameraPositionZ(0);
 		fY = BT_GetGroundHeight(t.terrain.TerrainID,fX,fZ) + 50.0f;
 		fA = CameraAngleY(0);
-		MoveCamera ( 0, -75.0f );
-		RotateCamera ( 0, fStCamX, CameraAngleY(0), fStCamZ );
+		PositionCamera ( 0,  fStCamX, fStCamY, fStCamZ );
+		RotateCamera ( 0, fStCamAX, fStCamAY, fStCamAZ );
 	}
 	if ( ObjectExist( g.prompt3dobjectoffset ) == 1 )
 	{
@@ -279,9 +291,13 @@ void lua_updateprompt3d ( void )
 		PointObject ( g.prompt3dobjectoffset, ObjectPositionX(t.aisystem.objectstartindex), ObjectPositionY(t.aisystem.objectstartindex)+35.0f, ObjectPositionZ(t.aisystem.objectstartindex) );
 		MoveObject ( g.prompt3dobjectoffset, 15.0f );
 		if ( bFaceCamera == true )
-			PointObject ( g.prompt3dobjectoffset, CameraPositionX(0), CameraPositionY(0), CameraPositionZ(0) );
+		{
+			PointObject ( g.prompt3dobjectoffset, CameraPositionX(0), fY, CameraPositionZ(0) );
+		}
 		else
+		{
 			RotateObject ( g.prompt3dobjectoffset, 0, fA+180.0f, 0 );
+		}
 		ShowObject ( g.prompt3dobjectoffset );
 	}
 }

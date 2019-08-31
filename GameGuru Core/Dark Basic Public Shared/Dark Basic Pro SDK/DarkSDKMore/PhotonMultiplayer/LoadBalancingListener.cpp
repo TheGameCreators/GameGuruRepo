@@ -34,6 +34,7 @@ HANDLE g_http_hInet = NULL;
 int g_http_iTotalWritten = 0;
 int g_http_iTotalLength = 0;
 bool g_http_bTerminate = false;
+char g_http_pErrorString[1024];
 LPSTR g_http_pDataReturned = NULL;
 DWORD g_http_dwDataReturnedBufferSize = 0;
 unsigned int g_http_dwDataLength = 0;
@@ -59,6 +60,9 @@ LoadBalancingListener::LoadBalancingListener ( PhotonView* pView, LPSTR pRootPat
 	remapPlayerIndex = new int[iRemapPlayerArraySize];
 	for ( int i = 0; i < iRemapPlayerArraySize; i++ )
 		remapPlayerIndex[i] = -1;
+
+	// general resets
+	strcpy ( g_http_pErrorString, "" );
 }
 
 LoadBalancingListener::~LoadBalancingListener(void)
@@ -724,6 +728,7 @@ int SendFileInternal ( LPSTR szServerFile, bool bSaveToFile, LPSTR szLocalFile, 
 	g_http_bSaveToFile = bSaveToFile;
 	strcpy ( g_http_szLocalFile, szLocalFile );
 	strcpy ( g_http_szUploadFile, szUploadFile );
+	strcpy ( g_http_pErrorString, "" );
 
 	// if no server URL address, leave
 	if ( strlen(szServerFile) == 0 ) return 0;
@@ -850,7 +855,7 @@ int SendFileInternal ( LPSTR szServerFile, bool bSaveToFile, LPSTR szLocalFile, 
 
 	// add Content-Length header
 	char sHeader[2048];//uString sHeader; 
-	sprintf ( sHeader, "Content-Length: %d", g_http_iTotalLength );//sHeader.Format( "Content-Length: %d", iTotalLength );
+	sprintf ( sHeader, "Content-Length: %d", g_http_iTotalLength );
 	HttpAddRequestHeaders( g_http_hHttpRequest, sHeader, -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
 
 	// add Content-Type header
@@ -904,9 +909,17 @@ bool SendFileInternalAsync ( LPSTR* ppDataReturned, DWORD* pdwDataReturnedSize )
 			bSendResult = InternetWriteFile( g_http_hHttpRequest, (void*)bytes, bytesread, &dwWritten );
 			if ( !bSendResult )
 			{
-				//uString error;
-				//error.Format( "Failed to send file data: %d", ::GetLastError( ) );
-				//agk::Warning( error );
+				int iError = GetLastError();
+				char *szError = 0;
+				if ( iError > 12000 && iError < 12174 ) 
+					FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE, GetModuleHandle("wininet.dll"), iError, 0, (char*)&szError, 0, 0 );
+				else 
+					FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, iError, 0, (char*)&szError, 0, 0 );
+				if ( szError )
+				{
+					if ( strlen(szError) < 1020 ) strcpy ( g_http_pErrorString, szError );
+					LocalFree( szError );
+				}
 				g_http_bTerminate = true;
 			}
 			g_http_iTotalWritten += dwWritten;
@@ -1064,6 +1077,16 @@ bool SendFileInternalAsync ( LPSTR* ppDataReturned, DWORD* pdwDataReturnedSize )
 
 	// not yet finished, keep going around
 	return false;
+}
+
+float LoadBalancingListener::GetSendProgress ( void ) 
+{
+	return g_http_fProgress;
+}
+
+void LoadBalancingListener::GetSendError( LPSTR pErrorString )
+{
+	strcpy ( pErrorString, g_http_pErrorString );
 }
 
 UINT GetURLFile ( LPSTR urlWhere, DWORD dwExpectedSize )
@@ -1437,6 +1460,19 @@ int LoadBalancingListener::IsEveryoneFileSynced()
 		return 1;
 	}
 	return 0;
+}
+
+void LoadBalancingListener::RegisterEveryonePresentAsHere()
+{
+	// go through current players, mark them as here (so they are not considered as new arrivals when game starts)
+	for( uint32 i = 0; i < MAX_PLAYERS_PER_SERVER; ++i )
+	{
+		if ( m_rgpPlayer[i] )
+		{
+			// reset new player flag (only used when players join a game already in session)
+			m_rgpPlayer[i]->newplayer = 0;
+		}
+	}
 }
 
 float LoadBalancingListener::GetFileProgress ( void )

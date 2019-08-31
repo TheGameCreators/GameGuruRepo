@@ -13,7 +13,7 @@ sObject* BT_Intern_CreateBlankObject(DWORD ObjectId, DWORD FrameCount)
 
 void BT_Intern_SetupMesh(sMesh* Mesh, DWORD VertexCount, DWORD IndexCount, DWORD Fvf)
 {
-	SetupMeshFVFData( Mesh, Fvf, VertexCount, IndexCount );
+	SetupMeshFVFData( Mesh, Fvf, VertexCount, IndexCount, false );
     Mesh->iPrimitiveType = GGPT_TRIANGLELIST;
     Mesh->iDrawVertexCount = VertexCount;
     Mesh->iDrawPrimitives = (IndexCount ? IndexCount : VertexCount)  / 3;

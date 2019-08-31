@@ -695,7 +695,7 @@ void welcome_main_page ( int iHighlightingButton )
 	welcome_drawrotatedimage ( g.editorimagesoffset+56, 22.5f, 22, 0, 0, 0, false );
 	welcome_drawrotatedimage ( g.editorimagesoffset+57, 50.0f, 22, 0, 0, 0, false );
 	welcome_drawrotatedimage ( g.editorimagesoffset+58, 77.5f, 22, 0, 0, 0, false );
-	iID = 1; welcome_textinbox ( iID, "LEARN", 1, 22.5f, 60, g_welcomebutton[iID].alpha );
+	iID = 1; welcome_textinbox ( iID, "USER GUIDE", 1, 22.5f, 60, g_welcomebutton[iID].alpha );
 	iID = 2; welcome_textinbox ( iID, "PLAY", 1, 50, 60, g_welcomebutton[iID].alpha );
 	iID = 3; welcome_textinbox ( iID, "CREATE", 1, 77.5f, 60, g_welcomebutton[iID].alpha );
 
@@ -770,7 +770,7 @@ void welcome_mainvr_page ( int iHighlightingButton )
 	welcome_text ( "Click to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
 	welcome_drawrotatedimage ( g.editorimagesoffset+56, 37.5f, 22, 0, 0, 0, false );
 	welcome_drawrotatedimage ( g.editorimagesoffset+58, 62.5f, 22, 0, 0, 0, false );
-	iID = 1; welcome_textinbox ( iID, "LEARN", 1, 37.5f, 60, g_welcomebutton[iID].alpha );
+	iID = 1; welcome_textinbox ( iID, "USER GUIDE", 1, 37.5f, 60, g_welcomebutton[iID].alpha );
 	iID = 3; welcome_textinbox ( iID, "CREATE", 1, 62.5f, 60, g_welcomebutton[iID].alpha );
 
 	// control page

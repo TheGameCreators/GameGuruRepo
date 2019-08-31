@@ -951,6 +951,12 @@ void entity_load ( void )
 			}
 		}
 
+		// 300819 - reenable offset X and Z (for when geometry is shifted from center)
+		if ( t.entityprofile[t.entid].defaultstatic == 1 && t.entityprofile[t.entid].isimmobile == 1 )
+		{
+			OffsetLimb ( t.entobj, 0, t.entityprofile[t.entid].offx, t.entityprofile[t.entid].offy, t.entityprofile[t.entid].offz, 1 );
+		}
+
 		// 010917 - hide any firespot limb meshes
 		if ( t.entityprofile[t.entid].firespotlimb > 0 )
 		{
@@ -1729,7 +1735,10 @@ void entity_loaddata ( void )
 					t.tryfield_s = "drawcalloptimizer";
 					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcalloptimizer = t.value1;
 					t.tryfield_s = "drawcalloptimizeroff";
-					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcalloptimizeroff = t.value1;
+					if (t.field_s == t.tryfield_s)  
+					{
+						t.entityprofile[t.entid].drawcalloptimizeroff = t.value1;
+					}
 
 					//  entity animation sets
 					t.tryfield_s="ignorecsirefs";

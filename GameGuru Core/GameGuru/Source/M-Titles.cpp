@@ -1809,24 +1809,29 @@ void titles_base ( void )
 			{
 				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
-					// picked the level, create lobby
-					mp_selectedALevel ( );
-					#ifdef PHOTONMP
-					 // Photon does not support custom content at this time in this way!
-					 mp_createLobby ( );
-					 titles_steamCreateLobby ( );
-					#else
-					 if ( g.mp.levelContainsCustomContent ==  0 || g.mp.workshopItemChangedFlag  ==  0 ) 
-					 {
-						mp_createLobby ( );
-						titles_steamCreateLobby ( );
-					 }
-					 else
-					 {
-						titles_steamdoyouwanttocreateorupdateaworkshopitem ( );
-					 }
-					#endif
-					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+					int iSizeOfFPMFile = atoi(t.tfpmfilesizelist_s[g.mp.selectedLobby].Get());
+					if ( iSizeOfFPMFile < 100 )
+					{
+						// picked the level, create lobby
+						mp_selectedALevel ( );
+						#ifdef PHOTONMP
+						 // Photon does not support custom content at this time in this way!
+						 mp_createLobby ( );
+						 titles_steamCreateLobby ( );
+						#else
+						 if ( g.mp.levelContainsCustomContent ==  0 || g.mp.workshopItemChangedFlag  ==  0 ) 
+						 {
+							mp_createLobby ( );
+							titles_steamCreateLobby ( );
+						 }
+						 else
+						 {
+							titles_steamdoyouwanttocreateorupdateaworkshopitem ( );
+						 }
+						#endif
+						t.tescapepress=0;
+					}
+					t.ttitlesbuttonhighlight=0;
 				}
 				if ( t.ttitlesbuttonhighlight == 2 ) 
 				{
