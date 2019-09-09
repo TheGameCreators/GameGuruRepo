@@ -225,18 +225,33 @@ void characterkit_init ( void )
 		int iMovePanelUp = 32-((GetChildWindowHeight()/2)-281-3);
 		t.slidersmenu[g.slidersmenumax].ttop = ((GetChildWindowHeight()/2)-281-3)+iMovePanelUp; //also set in characterkit_alignUI
 		t.slidersmenu[g.slidersmenumax].tleft = (GetChildWindowWidth() ) - 265;
-		t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Character View Angle";
-		t.slidersmenuvalue[g.slidersmenumax][1].value = 180;
-		t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex = 0;
-		t.slidersmenuvalue[g.slidersmenumax][1].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][1].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][1].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Character View Height";
-		t.slidersmenuvalue[g.slidersmenumax][2].value = 5;
-		t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex = 0;
-		t.slidersmenuvalue[g.slidersmenumax][2].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][2].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][2].valueMax = 10;
+		#ifdef VRQUEST
+		 t.slidersmenuvalue[g.slidersmenumax][1].name_s = "";
+		 t.slidersmenuvalue[g.slidersmenumax][1].gadgettype = -1;
+		 t.slidersmenuvalue[g.slidersmenumax][1].useCustomRange = 1;
+		 t.slidersmenuvalue[g.slidersmenumax][1].valueMin = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][1].valueMax = 360;
+		 t.slidersmenuvalue[g.slidersmenumax][1].value = 180;
+		 t.slidersmenuvalue[g.slidersmenumax][2].name_s = "";
+		 t.slidersmenuvalue[g.slidersmenumax][2].gadgettype = -1;
+		 t.slidersmenuvalue[g.slidersmenumax][2].useCustomRange = 1;
+		 t.slidersmenuvalue[g.slidersmenumax][2].valueMin = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][2].valueMax = 10;
+		 t.slidersmenuvalue[g.slidersmenumax][2].value = 5;
+		#else
+		 t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Character View Angle";
+		 t.slidersmenuvalue[g.slidersmenumax][1].value = 180;
+		 t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][1].useCustomRange = 1;
+		 t.slidersmenuvalue[g.slidersmenumax][1].valueMin = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][1].valueMax = 360;
+		 t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Character View Height";
+		 t.slidersmenuvalue[g.slidersmenumax][2].value = 5;
+		 t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][2].useCustomRange = 1;
+		 t.slidersmenuvalue[g.slidersmenumax][2].valueMin = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][2].valueMax = 10;
+		#endif
 
 		t.slidersmenuvalue[g.slidersmenumax][3].name_s = "";
 		t.slidersmenuvalue[g.slidersmenumax][3].gadgettype = -1;
@@ -888,8 +903,11 @@ void characterkit_draw ( void )
 	}
 	else
 	{
-		pastebitmapfont("Left click the section of the object you wish to change",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("Left click the section of the object you wish to change",1)/2),GetChildWindowHeight()-100,1,255);
-		pastebitmapfont("or right click to rotate",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("or right click to rotate",1)/2),GetChildWindowHeight()-70,1,255);
+		#ifdef VRQUEST
+		#else
+		 pastebitmapfont("Left click the section of the object you wish to change",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("Left click the section of the object you wish to change",1)/2),GetChildWindowHeight()-100,1,255);
+		 pastebitmapfont("or right click to rotate",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("or right click to rotate",1)/2),GetChildWindowHeight()-70,1,255);
+		#endif
 	}
 
 	//  draw to screen if active
@@ -1707,24 +1725,27 @@ void characterkit_mousePick ( void )
 {
 	if (  t.importer.objectRotateMode  !=  0 || t.characterkit.thumbGadgetOn  ==  1 || t.characterkit.skinPickOn  ==  1   )  return;
 
-	//  try attachments first
-	t.tpick = 0;
-	#ifdef DX11
-	float fMX = (GetDisplayWidth()+0.0) / 800.0f;
-	float fMY = (GetDisplayHeight()+0.0) / 600.0f;
-	t.tadjustedtoareax_f = t.tccoldmousex*fMX;
-	t.tadjustedtoareay_f = t.tccoldmousey*fMY;
+	#ifdef VRQUEST
+	 // No picking in CC for now
 	#else
-	t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
-	t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
-	t.tadjustedtoareax_f=((t.tccoldmousex+0.0)/800.0)/t.tadjustedtoareax_f;
-	t.tadjustedtoareay_f=((t.tccoldmousey+0.0)/600.0)/t.tadjustedtoareay_f;
-	t.tadjustedtoareax_f=t.tadjustedtoareax_f*(GetChildWindowWidth()+0.0);
-	t.tadjustedtoareay_f=t.tadjustedtoareay_f*(GetChildWindowHeight()+0.0);
-	#endif
-	if (  t.tpick  ==  0  )  t.tpick  =  PickScreenObjectEx ( t.tadjustedtoareax_f , t.tadjustedtoareay_f , t.characterkit.objectstart , t.characterkit.objectstart+10 , 1 ) ;
-	if (  t.tpick  !=  0 ) 
-	{
+	 //  try attachments first
+	 t.tpick = 0;
+	 #ifdef DX11
+	 float fMX = (GetDisplayWidth()+0.0) / 800.0f;
+	 float fMY = (GetDisplayHeight()+0.0) / 600.0f;
+	 t.tadjustedtoareax_f = t.tccoldmousex*fMX;
+	 t.tadjustedtoareay_f = t.tccoldmousey*fMY;
+	 #else
+	 t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
+	 t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
+	 t.tadjustedtoareax_f=((t.tccoldmousex+0.0)/800.0)/t.tadjustedtoareax_f;
+	 t.tadjustedtoareay_f=((t.tccoldmousey+0.0)/600.0)/t.tadjustedtoareay_f;
+	 t.tadjustedtoareax_f=t.tadjustedtoareax_f*(GetChildWindowWidth()+0.0);
+	 t.tadjustedtoareay_f=t.tadjustedtoareay_f*(GetChildWindowHeight()+0.0);
+	 #endif
+	 if (  t.tpick  ==  0  )  t.tpick  =  PickScreenObjectEx ( t.tadjustedtoareax_f , t.tadjustedtoareay_f , t.characterkit.objectstart , t.characterkit.objectstart+10 , 1 ) ;
+	 if (  t.tpick  !=  0 ) 
+	 {
 		//  long message, handles with two lines
 		t.tccmessage_s = "*1";
 		t.characterkit.selected = t.tpick - t.characterkit.objectstart;
@@ -1760,9 +1781,9 @@ void characterkit_mousePick ( void )
 			}
 			t.characterkit.picked = t.tpick;
 		}
-	}
-	else
-	{
+	 }
+	 else
+	 {
 		if (  t.characterkit.picked  !=  0 ) 
 		{
 			if (  t.characterkit.picked < t.characterkit.objectstart+3 ) 
@@ -1779,7 +1800,8 @@ void characterkit_mousePick ( void )
 			}
 			t.characterkit.picked = 0;
 		}
-	}
+	 }
+	#endif
 }
 
 void characterkit_mouseRotate ( void )

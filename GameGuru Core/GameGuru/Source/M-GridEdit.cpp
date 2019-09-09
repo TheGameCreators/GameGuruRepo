@@ -2326,7 +2326,18 @@ void input_getfilemapcontrols ( void )
 						editor_multiplayermode ( );
 					break;
 					case 3 :
-						editor_previewmap ( 1 );
+						if ( g.gvrmode == 0 )
+						{
+							HWND hThisWnd = GetForegroundWindow();
+							MessageBox ( hThisWnd, "You are not in VR mode. You need to exit the software. When you restart, select YES when asked whether you would like VR enabled.", "Not in VR Mode", MB_OK );
+							OpenFileMap (  1, "FPSEXCHANGE" );
+							SetFileMapDWORD (  1, 970, 1 );
+							SetEventAndWait (  1 );
+						}
+						else
+						{
+							editor_previewmap ( 1 );
+						}
 					break;
 				}
 			}

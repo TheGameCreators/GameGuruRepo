@@ -2826,11 +2826,31 @@ void scanallfolder ( cstr subThisFolder_s, cstr subFolder_s )
 
 bool IsFileAStockAsset ( LPSTR pCheckThisFile )  
 {
+	// check if this file exists in stock assets
+	char pFileToCheck[2048];
+	strcpy ( pFileToCheck, pCheckThisFile );
 	for ( int n = 0; n < g_sDefaultAssetFiles.size(); n++ )
 	{
 		LPSTR pCompare = g_sDefaultAssetFiles[n].Get();
-		if ( stricmp ( pCheckThisFile, pCompare ) == NULL )
+		if ( stricmp ( pFileToCheck, pCompare ) == NULL )
 			return true;
+	}
+	// before we return false, check special case for DBO files that have X files
+	bool bSecondaryCheck = false;
+	if ( strnicmp ( pCheckThisFile + strlen(pCheckThisFile) - 4, ".dbo", 4 ) == NULL )
+	{
+		pFileToCheck[strlen(pFileToCheck)-4] = 0;
+		strcat ( pFileToCheck, ".x" );
+		bSecondaryCheck = true;
+	}
+	if ( bSecondaryCheck == true )
+	{
+		for ( int n = 0; n < g_sDefaultAssetFiles.size(); n++ )
+		{
+			LPSTR pCompare = g_sDefaultAssetFiles[n].Get();
+			if ( stricmp ( pFileToCheck, pCompare ) == NULL )
+				return true;
+		}
 	}
 	return false;
 }

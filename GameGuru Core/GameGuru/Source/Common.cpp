@@ -1958,7 +1958,8 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 						if ( g.gvrmode != 0 )
 						{
 							#ifndef GURULIGHTMAPPER
-							if ( MessageBox ( NULL, "Do you have the Windows Mixed Reality Portal, and the headset and controllers set up and running? If you do, you can click Yes for the full VR experience. If not, you can enjoy VR Quest without a headset by clicking No.", "VR Mode Confirmation", MB_YESNO ) == IDNO )
+							HWND hThisWnd = g_pGlob->hWnd;
+							if ( MessageBox ( hThisWnd, "Do you have the Windows Mixed Reality Portal, and the headset set up and running? If you do, click Yes for the full VR experience. If not, you can enjoy VR Quest without a headset by clicking No.", "VR Mode Confirmation", MB_YESNO | MB_TOPMOST ) == IDNO )
 							{
 								// this will ignore any VRMODE that may have been required by this executable
 								g.gvrmode = 0;
