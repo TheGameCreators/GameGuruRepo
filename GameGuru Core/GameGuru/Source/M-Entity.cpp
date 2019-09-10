@@ -1722,7 +1722,9 @@ void entity_loaddata ( void )
 					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcalloptimizer = t.value1;
 					t.tryfield_s = "drawcalloptimizeroff";
 					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcalloptimizeroff = t.value1;
-
+					t.tryfield_s = "drawcallscaleadjust";
+					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcallscaleadjust = t.value1;
+					
 
 					t.tryfield_s="animstyle";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].animstyle = t.value1;

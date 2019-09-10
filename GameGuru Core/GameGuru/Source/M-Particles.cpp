@@ -232,6 +232,7 @@ void ravey_particles_set_life( int iID, int iSpawnRate, float iLifeMin, float iL
 
 void ravey_particles_update ( void )
 {
+	
 	if ( g.ravey_particles_old_time > 0 ) 
 	{
 		g.ravey_particles_time_passed = Timer() - g.ravey_particles_old_time;
@@ -293,7 +294,7 @@ void generateParticle( travey_particle_emitter* this_emitter, int tfound )
 	}
 
 	this_emitter->firstParticle = FALSE;
-
+	
 	// movement speed
 	this_particle->movementSpeedX = doCalc( this_emitter->movementSpeedMinX, this_emitter->movementSpeedMaxX );
 	this_particle->movementSpeedY = doCalc( this_emitter->movementSpeedMinY, this_emitter->movementSpeedMaxY );
@@ -318,6 +319,7 @@ void generateParticle( travey_particle_emitter* this_emitter, int tfound )
 
 	int obj = tfound + g.raveyparticlesobjectoffset;
 
+
 	if ( this_particle->effectId != this_emitter->effectId )
 	{
 		SetObjectEffect( obj, this_emitter->effectId );
@@ -325,7 +327,15 @@ void generateParticle( travey_particle_emitter* this_emitter, int tfound )
 	}
 
 	PositionObject( obj, this_particle->x, this_particle->y, this_particle->z );
-	TextureObject(  obj, 0, this_emitter->imageNumber );
+	//TextureObject(  obj, 0, this_emitter->imageNumber );
+  
+  //PE: TextureObject will clear animation list and trigger a new to be generated , so just texture them directly.
+	sObject* pObject = g_ObjectList[obj];
+	if (pObject) {
+		for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+			SetBaseTextureStage(pObject->ppMeshList[iMesh], 0, this_emitter->imageNumber);
+	}
+
 
 	SetAlphaMappingOn( obj, this_particle->alphaStart );
 	ScaleObject( obj, this_particle->scaleStart, this_particle->scaleStart, this_particle->scaleStart );
@@ -336,6 +346,7 @@ void generateParticle( travey_particle_emitter* this_emitter, int tfound )
 	this_particle->animationSpeed = this_emitter->animationSpeed;
 	this_particle->frameDivide    = this_emitter->frameDivide;
 	this_particle->frameMulti     = this_emitter->frameMulti;
+
 
 	if ( this_emitter->animationSpeed == 0.0 &&
 		 this_emitter->frameCount > 0 )
@@ -393,8 +404,9 @@ void generateParticle( travey_particle_emitter* this_emitter, int tfound )
 
 		ScaleObjectTexture( obj, Floor(this_particle->frame - line_f) * this_particle->frameMulti, fa * this_particle->frameMulti );
 	}
-
+  
 	ShowObject( obj );
+
 	//  end of new particle	
 }
 

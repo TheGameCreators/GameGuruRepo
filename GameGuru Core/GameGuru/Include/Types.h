@@ -5125,6 +5125,7 @@ struct entityprofiletype
 	int startanimingame;
 	int drawcalloptimizer;
 	int drawcalloptimizeroff;
+	int drawcallscaleadjust;
 	int ignorecsirefs;
 	int autoflatten;
 	int physicsobjectcount;
@@ -5192,6 +5193,7 @@ struct entityprofiletype
 		 playanimineditor = 0;
 		 startanimingame = 0;
 		 drawcalloptimizeroff = 0;
+		 drawcallscaleadjust = 0;
 		 drawcalloptimizer = 0;
 		 approxmemused = 0;
 		 custombiped = 0;
@@ -5886,9 +5888,11 @@ struct entitytype
 	int lastfootfallframeindex;
 	int lastfootfallsound;
 	float climbgravity;
-	int dc_obj[4];
+	int dc_obj[8];
+	int dc_entid[8];
 	int draw_call_obj;
 	bool dc_merged;
+	float dc_distance;
 	// Constructor
 	entitytype ( )
 	{
@@ -6098,6 +6102,18 @@ struct entitytype
 		 dc_obj[1] = 0;
 		 dc_obj[2] = 0;
 		 dc_obj[3] = 0;
+		 dc_obj[4] = 0;
+		 dc_obj[5] = 0;
+		 dc_obj[6] = 0;
+
+		 dc_entid[0] = 0;
+		 dc_entid[1] = 0;
+		 dc_entid[2] = 0;
+		 dc_entid[3] = 0;
+		 dc_entid[4] = 0;
+		 dc_entid[5] = 0;
+		 dc_entid[6] = 0;
+
 		 draw_call_obj = 0;
 		 dc_merged = false;
 	}
