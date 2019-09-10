@@ -6,6 +6,7 @@
 #include "cOccluderThread.h"
 #include "CGfxC.h"
 #include "DarkLUA.h"
+#include <algorithm>
 
 extern bool g_occluderOn;
 extern bool	g_occluderf9Mode;
@@ -727,8 +728,10 @@ void game_masterroot ( int iUseVRTest )
 				//#### .fpe "drawcalloptimizeroff=1" will NOT optimize object.   ####
 				//#### (drawcalloptimizeroff is used when you optimize           ####
 				//####  everything but have problems with a object )             ####
+				//#### .fpe "drawcallscaleadjust" adjust scale.                  ####
 				//###################################################################
 
+				#define DC_DISTANCE 1000
 				timestampactivity(0, "draw call optimizer.");
 				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 				{
@@ -744,16 +747,75 @@ void game_masterroot ( int iUseVRTest )
 						}
 					}
 				}
+
 				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 				{
 					t.entid = t.entityelement[t.e].bankindex;
 					t.obj = t.entityelement[t.e].obj;
 					if (t.obj > 0 && t.e < g.entityelementlist && t.entityelement[t.e].dc_merged == false && (g.globals.drawcalloptimizer==1 || t.entityprofile[t.entid].drawcalloptimizer == 1) && t.entityprofile[t.entid].drawcalloptimizeroff == 0 )
 					{
-						int glueid = t.entityelement[t.e+1].bankindex;
-						int glueobj = t.entityelement[t.e+1].obj;
 
-						if (glueobj > 0 && ObjectExist(t.obj) && ObjectExist(glueobj))
+						struct OrderByObjectDistance
+						{
+							bool operator()(int pObjectA, int pObjectB)
+							{
+								
+								if (t.entityelement[pObjectA].dc_distance < t.entityelement[pObjectB].dc_distance)
+									return true;
+
+								if (t.entityelement[pObjectA].dc_distance == t.entityelement[pObjectB].dc_distance)
+									return true;
+								return false;
+							}
+						};
+
+						int nextObjeid = 0;
+						std::vector< int >     vObjList;
+						if (1 == 1) {
+							//PE: Sort a list by object,distance to increase hit rate.
+							
+							if (ObjectExist(t.obj)) {
+								//for (int i = t.e + 1; i <= g.entityelementlist; i++) {
+								for (int i = 1; i <= g.entityelementlist; i++) {
+									int testobj = t.entityelement[i].obj;
+									if (testobj > 0 && i != t.e && ObjectExist(testobj) && t.entityelement[i].dc_merged == false) {
+
+										sObject* pObject = g_ObjectList[t.obj];
+										int instanceonly = 0;
+										if (pObject && pObject->pInstanceOfObject) {
+											pObject = pObject->pInstanceOfObject;
+										}
+
+										sObject* pObjectTest = g_ObjectList[testobj];
+										if (pObjectTest && pObjectTest->pInstanceOfObject) {
+											pObjectTest = pObjectTest->pInstanceOfObject;
+										}
+
+										if (pObject && pObjectTest && pObject == pObjectTest) {
+
+											t.tdx_f = t.entityelement[t.e].x - t.entityelement[i].x;
+											t.tdz_f = t.entityelement[t.e].z - t.entityelement[i].z;
+											t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+
+											t.entityelement[i].dc_distance = t.tdd_f;
+											vObjList.push_back(i);
+										}
+
+									}
+								}
+								//Sort list
+								std::sort(vObjList.begin(), vObjList.end(), OrderByObjectDistance());
+
+							}
+						}
+
+						if (vObjList.size() > 0)
+							nextObjeid = vObjList[0];
+
+						int glueid = t.entityelement[nextObjeid].bankindex;
+						int glueobj = t.entityelement[nextObjeid].obj;
+
+						if (vObjList.size() > 0 && glueobj > 0 && ObjectExist(t.obj) && ObjectExist(glueobj))
 						{
 							bool validshader = false;
 							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_basic.fx") == 0)
@@ -781,9 +843,9 @@ void game_masterroot ( int iUseVRTest )
 							if (t.entityprofile[t.entid].animmax > 0)
 								validshader = false;
 
-
-							if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[t.e].staticflag == 1)
+							if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[nextObjeid].staticflag == 1)
 							{
+
 								//Validate if same master object.
 								sObject* pObject = g_ObjectList[t.obj];
 								int instanceonly = 0;
@@ -801,12 +863,12 @@ void game_masterroot ( int iUseVRTest )
 								//PE: Later validate this.
 								//int iPolyCount = GetObjectPolygonCount(t.obj);
 
-								t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e+1].x;
-								t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e+1].z;
-								t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+//								t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e+1].x;
+//								t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e+1].z;
+//								t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
 
 								//PE: Keep objects distance below 700 for best culling.
-								if (pObject && pObject2 && instanceonly >= 2  && t.tdd_f < 700 && g.merged_new_objects < 4980 ) {
+								if (pObject && pObject2 && instanceonly >= 2  && t.entityelement[nextObjeid].dc_distance < DC_DISTANCE && g.merged_new_objects < 4980 ) {
 									
 									if (pObject == pObject2) {
 										//Same master glue it.
@@ -821,7 +883,8 @@ void game_masterroot ( int iUseVRTest )
 										float src_scaley = ObjectScaleY(t.obj);
 										float src_scalez = ObjectScaleZ(t.obj);
 
-										int tmpobj = (g.merged_new_objects+100) + g.batchobjectoffset;//85000; //PE: TODO change 85000
+										float scaleadjust = t.entityprofile[t.entid].drawcallscaleadjust;
+										int tmpobj = (g.merged_new_objects+100) + 85000; //PE: TODO change 85000
 										if (g_ObjectList[tmpobj])
 										{
 											if (g_ObjectList[tmpobj]->pFrame)
@@ -867,7 +930,7 @@ void game_masterroot ( int iUseVRTest )
 
 										if (GetMeshExist(g.meshlightmapwork) == 1)
 										{
-											int destobj = g.merged_new_objects + g.batchobjectoffset;//85000; //PE: TODO change 85000 , perhaps reverse from 90000 ?
+											int destobj = g.merged_new_objects + 85000; //PE: TODO change 85000 , perhaps reverse from 90000 ?
 											if (g_ObjectList[destobj])
 											{
 												if (g_ObjectList[destobj]->pFrame)
@@ -880,7 +943,9 @@ void game_masterroot ( int iUseVRTest )
 											t.tmastery_f = ObjectPositionY(t.obj);
 											t.tmasterz_f = ObjectPositionZ(t.obj);
 
-											CloneObject(destobj, tmpobj); //We use the cleaned tmpobj instead of t.obj
+											//CloneObject(destobj, tmpobj); //We use the cleaned tmpobj instead of t.obj
+											MakeObject(destobj, g.meshlightmapwork, -1); //Use mesh to prevent any transforms.
+
 											int testypos = 0; //50
 											PositionObject(destobj, 0, 0, 0); //PE: Need to be at 0,0,0
 											ScaleObject(destobj, 100, 100, 100); //PE: no scale.
@@ -907,10 +972,10 @@ void game_masterroot ( int iUseVRTest )
 //											}
 											
 											RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj), ObjectAngleY(glueobj), ObjectAngleZ(glueobj));
-											ScaleLimb(destobj, ChecklistQuantity(), gluescalex, gluescaley, gluescalez);
+											ScaleLimb(destobj, ChecklistQuantity(), gluescalex + scaleadjust, gluescaley + scaleadjust, gluescalez + scaleadjust);
 											for (int i = ChecklistQuantity()-1; i >= 0; i--) {
 												RotateLimb(destobj, i, src_angx, src_angy, src_angz);
-												ScaleLimb(destobj, i, ObjectScaleX(t.obj), ObjectScaleY(t.obj), ObjectScaleZ(t.obj));
+												ScaleLimb(destobj, i, ObjectScaleX(t.obj) + scaleadjust, ObjectScaleY(t.obj) + scaleadjust, ObjectScaleZ(t.obj) + scaleadjust);
 											}
 
 											//PE: TODO if possible add one more object.
@@ -918,18 +983,20 @@ void game_masterroot ( int iUseVRTest )
 											bool additionaladded2 = false;
 											int glueid2 = 0;
 											int glueobj2 = 0;
-											if ( t.e < g.entityelementlist - 1) {
-												glueid2 = t.entityelement[t.e + 2].bankindex;
-												glueobj2 = t.entityelement[t.e + 2].obj;
+							
+											if (vObjList.size() > 1 ) {
+												nextObjeid = vObjList[1];
+												glueid2 = t.entityelement[nextObjeid].bankindex;
+												glueobj2 = t.entityelement[nextObjeid].obj;
 
 												sObject* pObject3 = g_ObjectList[glueobj2];
 												if (pObject3 && pObject3->pInstanceOfObject) {
 													pObject3 = pObject3->pInstanceOfObject;
 													if (pObject3 == pObject2) {
-														t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e + 2].x;
-														t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e + 2].z;
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
 														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-														if (t.tdd_f < 700) {
+														if (t.tdd_f < DC_DISTANCE) {
 															//Object ok add.
 															float gluescalex2 = ObjectScaleX(glueobj2);
 															float gluescaley2 = ObjectScaleY(glueobj2);
@@ -945,27 +1012,30 @@ void game_masterroot ( int iUseVRTest )
 															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
 
 															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj2), ObjectAngleY(glueobj2), ObjectAngleZ(glueobj2));
-															ScaleLimb(destobj, ChecklistQuantity(), gluescalex2, gluescaley2, gluescalez2);
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex2 + scaleadjust, gluescaley2 + scaleadjust, gluescalez2 + scaleadjust);
 															additionaladded2 = true;
 														}
 													}
 												}
 											}
+
+
 											bool additionaladded3 = false;
 											int glueid3 = 0;
 											int glueobj3 = 0;
-											if ( t.e < g.entityelementlist - 2) {
-												glueid3 = t.entityelement[t.e + 3].bankindex;
-												glueobj3 = t.entityelement[t.e + 3].obj;
+											if (vObjList.size() > 2) {
+												nextObjeid = vObjList[2];
+												glueid3 = t.entityelement[nextObjeid].bankindex;
+												glueobj3 = t.entityelement[nextObjeid].obj;
 
 												sObject* pObject4 = g_ObjectList[glueobj3];
 												if (pObject4 && pObject4->pInstanceOfObject) {
 													pObject4 = pObject4->pInstanceOfObject;
 													if (pObject4 == pObject2) {
-														t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e + 3].x;
-														t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e + 3].z;
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
 														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-														if (t.tdd_f < 700) {
+														if (t.tdd_f < DC_DISTANCE) {
 															//Object ok add.
 															float gluescalex3 = ObjectScaleX(glueobj3);
 															float gluescaley3 = ObjectScaleY(glueobj3);
@@ -981,8 +1051,122 @@ void game_masterroot ( int iUseVRTest )
 															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
 
 															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj3), ObjectAngleY(glueobj3), ObjectAngleZ(glueobj3));
-															ScaleLimb(destobj, ChecklistQuantity(), gluescalex3, gluescaley3, gluescalez3);
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex3 + scaleadjust, gluescaley3 + scaleadjust, gluescalez3 + scaleadjust);
 															additionaladded3 = true;
+														}
+													}
+												}
+											}
+
+											bool additionaladded4 = false;
+											int glueid4 = 0;
+											int glueobj4 = 0;
+											if (vObjList.size() > 3) {
+												nextObjeid = vObjList[3];
+												glueid4 = t.entityelement[nextObjeid].bankindex;
+												glueobj4 = t.entityelement[nextObjeid].obj;
+
+												sObject* pObject5 = g_ObjectList[glueobj4];
+												if (pObject5 && pObject5->pInstanceOfObject) {
+													pObject5 = pObject5->pInstanceOfObject;
+													if (pObject5 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < DC_DISTANCE) {
+															//Object ok add.
+															float gluescalex4 = ObjectScaleX(glueobj4);
+															float gluescaley4 = ObjectScaleY(glueobj4);
+															float gluescalez4 = ObjectScaleZ(glueobj4);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj4) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj4) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj4) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj4), ObjectAngleY(glueobj4), ObjectAngleZ(glueobj4));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex4 + scaleadjust, gluescaley4 + scaleadjust, gluescalez4 + scaleadjust);
+															additionaladded4 = true;
+														}
+													}
+												}
+											}
+
+											bool additionaladded5 = false;
+											int glueid5 = 0;
+											int glueobj5 = 0;
+											if ( vObjList.size() > 4) {
+												nextObjeid = vObjList[4];
+												glueid5 = t.entityelement[nextObjeid].bankindex;
+												glueobj5 = t.entityelement[nextObjeid].obj;
+
+												sObject* pObject6 = g_ObjectList[glueobj5];
+												if (pObject6 && pObject6->pInstanceOfObject) {
+													pObject6 = pObject6->pInstanceOfObject;
+													if (pObject6 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < DC_DISTANCE) {
+															//Object ok add.
+															float gluescalex5 = ObjectScaleX(glueobj5);
+															float gluescaley5 = ObjectScaleY(glueobj5);
+															float gluescalez5 = ObjectScaleZ(glueobj5);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj5) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj5) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj5) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj5), ObjectAngleY(glueobj5), ObjectAngleZ(glueobj5));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex5 + scaleadjust, gluescaley5 + scaleadjust, gluescalez5 + scaleadjust);
+															additionaladded5 = true;
+														}
+													}
+												}
+											}
+
+											bool additionaladded6 = false;
+											int glueid6 = 0;
+											int glueobj6 = 0;
+											if (vObjList.size() > 5) {
+												nextObjeid = vObjList[5];
+												glueid6 = t.entityelement[nextObjeid].bankindex;
+												glueobj6 = t.entityelement[nextObjeid].obj;
+
+												sObject* pObject7 = g_ObjectList[glueobj6];
+												if (pObject7 && pObject7->pInstanceOfObject) {
+													pObject7 = pObject7->pInstanceOfObject;
+													if (pObject7 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < DC_DISTANCE) {
+															//Object ok add.
+															float gluescalex6 = ObjectScaleX(glueobj6);
+															float gluescaley6 = ObjectScaleY(glueobj6);
+															float gluescalez6 = ObjectScaleZ(glueobj6);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj6) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj6) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj6) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj6), ObjectAngleY(glueobj6), ObjectAngleZ(glueobj6));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex6 + scaleadjust, gluescaley6 + scaleadjust, gluescalez6 + scaleadjust);
+															additionaladded6 = true;
 														}
 													}
 												}
@@ -1014,6 +1198,14 @@ void game_masterroot ( int iUseVRTest )
 													SetObjectCollisionProperty(destobj, 1);
 												}
 											}
+											if (t.entityprofile[t.entid].cullmode != 0)
+											{
+												SetObjectCull(destobj, 0);
+											}
+											else
+											{
+												SetObjectCull(destobj, 1);
+											}
 
 											if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
 												
@@ -1031,16 +1223,37 @@ void game_masterroot ( int iUseVRTest )
 
 											t.entityelement[t.e].draw_call_obj = destobj;
 											t.entityelement[t.e].dc_obj[0] = glueobj;
-											t.entityelement[t.e + 1].dc_merged = true;
+											t.entityelement[t.e].dc_entid[0] = vObjList[0];
+											t.entityelement[vObjList[0]].dc_merged = true;
 											if (additionaladded2) {
 												t.entityelement[t.e].dc_obj[1] = glueobj2;
-												t.entityelement[t.e + 2].dc_merged = true;
+												t.entityelement[t.e].dc_entid[1] = vObjList[1];
+												t.entityelement[vObjList[1]].dc_merged = true;
 												HideObject(glueobj2);
 											}
 											if (additionaladded3) {
 												t.entityelement[t.e].dc_obj[2] = glueobj3;
-												t.entityelement[t.e + 3].dc_merged = true;
+												t.entityelement[t.e].dc_entid[2] = vObjList[2];
+												t.entityelement[vObjList[2]].dc_merged = true;
 												HideObject(glueobj3);
+											}
+											if (additionaladded4) {
+												t.entityelement[t.e].dc_obj[3] = glueobj4;
+												t.entityelement[t.e].dc_entid[3] = vObjList[3];
+												t.entityelement[vObjList[3]].dc_merged = true;
+												HideObject(glueobj4);
+											}
+											if (additionaladded5) {
+												t.entityelement[t.e].dc_obj[4] = glueobj5;
+												t.entityelement[t.e].dc_entid[4] = vObjList[4];
+												t.entityelement[vObjList[4]].dc_merged = true;
+												HideObject(glueobj5);
+											}
+											if (additionaladded6) {
+												t.entityelement[t.e].dc_obj[5] = glueobj6;
+												t.entityelement[t.e].dc_entid[5] = vObjList[5];
+												t.entityelement[vObjList[5]].dc_merged = true;
+												HideObject(glueobj6);
 											}
 											//Hide org objects.
 											HideObject(t.obj);
@@ -1048,6 +1261,12 @@ void game_masterroot ( int iUseVRTest )
 											ShowObject(t.entityelement[t.e].draw_call_obj);
 
 											g.merged_new_objects++;
+
+//											DWORD dwArtFlags = 0;
+//											if (t.entityprofile[t.e].invertnormal == 1) dwArtFlags = 1;
+//											if (t.entityprofile[t.e].preservetangents == 1) dwArtFlags |= 1 << 1;
+//											SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
+
 										}
 
 										DeleteObject(tmpobj);
@@ -1372,11 +1591,25 @@ void game_masterroot ( int iUseVRTest )
 								ShowObject(t.entityelement[t.e].dc_obj[2]);
 							if (t.entityelement[t.e].dc_obj[3] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[3]) == 1)
 								ShowObject(t.entityelement[t.e].dc_obj[3]);
+							if (t.entityelement[t.e].dc_obj[4] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[4]) == 1)
+								ShowObject(t.entityelement[t.e].dc_obj[4]);
+							if (t.entityelement[t.e].dc_obj[5] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[5]) == 1)
+								ShowObject(t.entityelement[t.e].dc_obj[5]);
 
 							t.entityelement[t.e].dc_obj[0] = 0;
 							t.entityelement[t.e].dc_obj[1] = 0;
 							t.entityelement[t.e].dc_obj[2] = 0;
 							t.entityelement[t.e].dc_obj[3] = 0;
+							t.entityelement[t.e].dc_obj[4] = 0;
+							t.entityelement[t.e].dc_obj[5] = 0;
+
+							t.entityelement[t.e].dc_entid[0] = 0;
+							t.entityelement[t.e].dc_entid[1] = 0;
+							t.entityelement[t.e].dc_entid[2] = 0;
+							t.entityelement[t.e].dc_entid[3] = 0;
+							t.entityelement[t.e].dc_entid[4] = 0;
+							t.entityelement[t.e].dc_entid[5] = 0;
+
 						}
 					}
 				}
@@ -2980,8 +3213,8 @@ void game_main_loop ( void )
 
 		// 111115 - had to add t.visuals.shaderlevels.entities==1 so HIGHEST entities allow self shadow characters and detailed entities which flicker when shadow update is delayed!
 		// but also need constant updates for third person (as can see delay!)
-		// 250419 - and default MEDIUM has flicker on lower-end PCs, so bite bullet and allow full shadow rendering (no delay) for medium too
-		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.visuals.shaderlevels.entities==2 || t.playercontrol.thirdperson.enabled != 0 )
+		// PE: Its way better to cycle the different cascades so we dont get these "spicks" in FPS. way more smooth. ()
+		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.playercontrol.thirdperson.enabled != 0 || g.globals.speedshadows == 1)
 		{
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
 			terrainshadowdelay = 0;

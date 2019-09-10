@@ -923,23 +923,44 @@ void conkitedit_loop ( void )
 								}
 								int tmpobj;
 								if (t.entityelement[t.e].dc_obj[0] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[0]) == 1) {
-									if (t.entityelement[t.e + 1].obj > 0 && ObjectExist(t.entityelement[t.e + 1].obj) == 1) {
-										t.tobj = t.entityelement[t.e + 1].obj;
-										t.tte = t.e + 1;
+									if (t.entityelement[t.entityelement[t.e].dc_entid[0]].obj > 0 && ObjectExist(t.entityelement[t.entityelement[t.e].dc_entid[0]].obj) == 1) {
+										t.tobj = t.entityelement[t.entityelement[t.e].dc_entid[0]].obj;
+										t.tte = t.entityelement[t.e].dc_entid[0];
 										entity_positionandscale();
 									}
 								}
 								if (t.entityelement[t.e].dc_obj[1] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[1]) == 1) {
-									if (t.entityelement[t.e + 2].obj > 0 && ObjectExist(t.entityelement[t.e + 2].obj) == 1) {
-										t.tobj = t.entityelement[t.e + 2].obj;
-										t.tte = t.e + 2;
+									if (t.entityelement[t.entityelement[t.e].dc_entid[1]].obj > 0 && ObjectExist(t.entityelement[t.entityelement[t.e].dc_entid[1]].obj) == 1) {
+										t.tobj = t.entityelement[t.entityelement[t.e].dc_entid[1]].obj;
+										t.tte = t.entityelement[t.e].dc_entid[1];
 										entity_positionandscale();
 									}
 								}
 								if (t.entityelement[t.e].dc_obj[2] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[2]) == 1) {
-									if (t.entityelement[t.e + 3].obj > 0 && ObjectExist(t.entityelement[t.e + 3].obj) == 1) {
-										t.tobj = t.entityelement[t.e + 3].obj;
-										t.tte = t.e + 3;
+									if (t.entityelement[t.entityelement[t.e].dc_entid[2]].obj > 0 && ObjectExist(t.entityelement[t.entityelement[t.e].dc_entid[2]].obj) == 1) {
+										t.tobj = t.entityelement[t.entityelement[t.e].dc_entid[2]].obj;
+										t.tte = t.entityelement[t.e].dc_entid[2];
+										entity_positionandscale();
+									}
+								}
+								if (t.entityelement[t.e].dc_obj[3] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[3]) == 1) {
+									if (t.entityelement[t.entityelement[t.e].dc_entid[3]].obj > 0 && ObjectExist(t.entityelement[t.entityelement[t.e].dc_entid[3]].obj) == 1) {
+										t.tobj = t.entityelement[t.entityelement[t.e].dc_entid[3]].obj;
+										t.tte = t.entityelement[t.e].dc_entid[3];
+										entity_positionandscale();
+									}
+								}
+								if (t.entityelement[t.e].dc_obj[4] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[4]) == 1) {
+									if (t.entityelement[t.entityelement[t.e].dc_entid[4]].obj > 0 && ObjectExist(t.entityelement[t.entityelement[t.e].dc_entid[4]].obj) == 1) {
+										t.tobj = t.entityelement[t.entityelement[t.e].dc_entid[4]].obj;
+										t.tte = t.entityelement[t.e].dc_entid[4];
+										entity_positionandscale();
+									}
+								}
+								if (t.entityelement[t.e].dc_obj[5] > 0 && ObjectExist(t.entityelement[t.e].dc_obj[5]) == 1) {
+									if (t.entityelement[t.entityelement[t.e].dc_entid[5]].obj > 0 && ObjectExist(t.entityelement[t.entityelement[t.e].dc_entid[5]].obj) == 1) {
+										t.tobj = t.entityelement[t.entityelement[t.e].dc_entid[5]].obj;
+										t.tte = t.entityelement[t.e].dc_entid[5];
 										entity_positionandscale();
 									}
 								}
@@ -948,6 +969,15 @@ void conkitedit_loop ( void )
 								t.entityelement[t.e].dc_obj[1] = 0;
 								t.entityelement[t.e].dc_obj[2] = 0;
 								t.entityelement[t.e].dc_obj[3] = 0;
+								t.entityelement[t.e].dc_obj[4] = 0;
+								t.entityelement[t.e].dc_obj[5] = 0;
+
+								t.entityelement[t.e].dc_entid[0] = 0;
+								t.entityelement[t.e].dc_entid[1] = 0;
+								t.entityelement[t.e].dc_entid[2] = 0;
+								t.entityelement[t.e].dc_entid[3] = 0;
+								t.entityelement[t.e].dc_entid[4] = 0;
+								t.entityelement[t.e].dc_entid[5] = 0;
 							}
 						}
 					}

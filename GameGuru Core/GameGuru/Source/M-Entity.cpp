@@ -1735,10 +1735,9 @@ void entity_loaddata ( void )
 					t.tryfield_s = "drawcalloptimizer";
 					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcalloptimizer = t.value1;
 					t.tryfield_s = "drawcalloptimizeroff";
-					if (t.field_s == t.tryfield_s)  
-					{
-						t.entityprofile[t.entid].drawcalloptimizeroff = t.value1;
-					}
+					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcalloptimizeroff = t.value1;
+					t.tryfield_s = "drawcallscaleadjust";
+					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcallscaleadjust = t.value1;
 
 					//  entity animation sets
 					t.tryfield_s="ignorecsirefs";
