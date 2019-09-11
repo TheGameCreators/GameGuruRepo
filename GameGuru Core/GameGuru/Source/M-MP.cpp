@@ -1681,7 +1681,7 @@ void mp_addHostFPMFIleToMasterHostList ( LPSTR pFilenameToAdd )
 
 bool mp_deleteFPMFileFromServer ( LPSTR pFilenameToDelete )
 {
-	char pDataReturned[2048];
+	char pDataReturned[10340];
 	strcpy ( pDataReturned, "" );
 	char urlWhere[2048];
 	strcpy ( urlWhere, "/api/gameguru/multiplayer/storage/delete?" );

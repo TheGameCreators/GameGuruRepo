@@ -2081,6 +2081,24 @@ void BT_RenderTerrain(unsigned long TerrainID)
 }
 // === END FUNCTION ===
 
+void BT_NoRenderTerrain(unsigned long TerrainID)
+{
+	BT_Main.CurrentFunction=C_BT_FUNCTION_RENDER;
+	if(BT_Intern_TerrainExist(TerrainID))
+	{
+		if(BT_Main.Terrains[TerrainID].Generated==true)
+		{
+			BT_Intern_AddToInstructionQueue(C_BT_INSTRUCTION_NORENDERTERRAIN,(char)TerrainID);
+		}else{
+			BT_Intern_Error(C_BT_ERROR_TERRAINNOTGENERATED);
+			return;
+		}
+	}else{
+		BT_Intern_Error(C_BT_ERROR_TERRAINDOESNTEXIST);
+		return;
+	}
+}
+
 
 
 // ===========================
@@ -2272,6 +2290,23 @@ void BT_Intern_Render()
 
 						// Render terrain
 						BT_Intern_RenderTerrain(&BT_Main.Terrains[TerrainID]);
+					}
+				}
+
+				// Increase position
+				CurrentPos+=2;
+			}
+			else if(BT_Main.InstructionQueue[CurrentPos]==C_BT_INSTRUCTION_NORENDERTERRAIN)
+			{
+				// this mimics the above, but calls BT_Intern_NoRenderTerrain 
+				// which renders no terrain but keeps state changes as though it was (fixes VR rendering)
+				unsigned long TerrainID=BT_Main.InstructionQueue[CurrentPos+1];
+				if ( BT_Main.Terrains[TerrainID].Object->pFrame )
+				{
+					if(BT_Main.Terrains[TerrainID].Object->pFrame->pMesh->bVisible==true)
+					{
+						BT_Main.LODCamPosition=BT_Main.CurrentUpdateCamera->vecPosition;
+						BT_Intern_NoRenderTerrain(&BT_Main.Terrains[TerrainID]);
 					}
 				}
 
@@ -2714,6 +2749,220 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 }
 // === END FUNCTION ===
 
+static void BT_Intern_NoRenderTerrain(s_BT_terrain* Terrain)
+{
+	// Variables
+	tagCameraData* Camera = BT_Main.CurrentUpdateCamera;
+	GGMATRIX World;
+	sMesh* Mesh = Terrain->Object->pFrame->pMesh;
+
+	// create constant buffer for quick world position changes
+	if ( m_pCBChangePerTerrsainChunk == NULL )
+	{
+		D3D11_BUFFER_DESC bdChangePerTerrsainChunkBuffer;
+		std::memset ( &bdChangePerTerrsainChunkBuffer, 0, sizeof ( bdChangePerTerrsainChunkBuffer ) );
+		bdChangePerTerrsainChunkBuffer.Usage          = D3D11_USAGE_DEFAULT;
+		bdChangePerTerrsainChunkBuffer.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+		bdChangePerTerrsainChunkBuffer.CPUAccessFlags = 0;
+		bdChangePerTerrsainChunkBuffer.ByteWidth      = sizeof ( CBChangePerTerrsainChunk );
+		if ( FAILED ( m_pD3D->CreateBuffer ( &bdChangePerTerrsainChunkBuffer, NULL, &m_pCBChangePerTerrsainChunk ) ) )
+			return;
+	}
+	if ( m_pCBChangePerTerrsainChunkPS == NULL )
+	{
+		D3D11_BUFFER_DESC bdChangePerTerrsainChunkBuffer;
+		std::memset ( &bdChangePerTerrsainChunkBuffer, 0, sizeof ( bdChangePerTerrsainChunkBuffer ) );
+		bdChangePerTerrsainChunkBuffer.Usage          = D3D11_USAGE_DEFAULT;
+		bdChangePerTerrsainChunkBuffer.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+		bdChangePerTerrsainChunkBuffer.CPUAccessFlags = 0;
+		bdChangePerTerrsainChunkBuffer.ByteWidth      = sizeof ( CBChangePerTerrsainChunkPS );
+		if ( FAILED ( m_pD3D->CreateBuffer ( &bdChangePerTerrsainChunkBuffer, NULL, &m_pCBChangePerTerrsainChunkPS ) ) )
+			return;
+	}
+
+	// Transforms
+	GGSetTransform(GGTS_PROJECTION,&Camera->matProjection);
+	GGSetTransform(GGTS_VIEW,&Camera->matView);
+
+	// Viewport
+    D3D11_VIEWPORT vp;
+	GGVIEWPORT* pvp = &Camera->viewPort3D;
+    vp.TopLeftX = pvp->X;
+    vp.TopLeftY = pvp->Y;
+    vp.Width = (FLOAT)pvp->Width;
+    vp.Height = (FLOAT)pvp->Height;
+    vp.MinDepth = pvp->MinZ;
+    vp.MaxDepth = pvp->MaxZ;
+	SetupSetViewport ( g_pGlob->dwRenderCameraID, &vp, NULL );
+
+	/*
+	// Set current render terrain
+	BT_Main.CurrentRenderTerrain=Terrain;
+
+	// Unlock sectors
+	BT_Intern_UnlockSectorsRec(Terrain,Terrain->QuadTree,Terrain->QuadTreeLevels);
+
+	// Check if theres an effect
+	if ( Mesh->pVertexShaderEffect != NULL )
+	{
+		// Vertex Declaration
+		m_pImmediateContext->IASetInputLayout ( Terrain->VertexDeclaration );
+
+		// Variables
+		LPGGEFFECT Effect = Mesh->pVertexShaderEffect->m_pEffect;
+
+		// Obtain technique handles
+		GGTECHNIQUE hNearTechnique = Mesh->pVertexShaderEffect->m_hCurrentTechnique;
+		GGTECHNIQUE hDistantTechnique = Effect->GetTechniqueByName ( "Distant" );
+		
+		// Two passes, one NORMAL technique and one VERY LOW technique (distant terrain)
+		BT_Main.CurrentEffect=Mesh->pVertexShaderEffect;
+		for ( int iQualityPass=0; iQualityPass<2; iQualityPass++ )
+		{
+			//PE: Todo fullshadowsoreditor is always 1 , so hDistantTechnique is never used ?
+			// Set correct technique
+			GGTECHNIQUE hTechniqueUsed = NULL;
+			if ( g_iQualityTechniqueMode==0 )
+			{
+				if ( iQualityPass==0 ) hTechniqueUsed = hNearTechnique;
+				if ( iQualityPass==1 ) hTechniqueUsed = hDistantTechnique;
+			}
+			else
+			{
+				if ( g_iQualityTechniqueMode==1 ) hTechniqueUsed = hNearTechnique;
+				if ( g_iQualityTechniqueMode==2 ) hTechniqueUsed = hDistantTechnique;
+			}
+
+			// only one pass (removed secondary depth pass for DX11)
+			if ( hTechniqueUsed->IsValid() )
+			{
+				// Move plenty of effect setup to here (performance)
+				m_pImmediateContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+				// state blocks for raster, blend and depthstencil
+				m_pImmediateContext->RSSetState(m_pRasterState);
+				m_pImmediateContext->OMSetBlendState(m_pBlendStateNoAlpha, 0, 0xffffffff);
+				m_pImmediateContext->OMSetDepthStencilState( m_pDepthStencilState, 0 );
+
+				// Update shadow textures of terrain shader (added for DX11 - not sure where DX9 did this)
+				DWORD dwEffectIndex = Mesh->pVertexShaderEffect->m_dwEffectIndex;
+				if ( dwEffectIndex < EFFECT_INDEX_SIZE )
+				{
+					if ( g_CascadedShadow.m_pEffectParam[dwEffectIndex] )
+					{
+						GGHANDLE hdepthHandle0 = g_CascadedShadow.m_pEffectParam[dwEffectIndex]->DepthMapTX1;
+						GGHANDLE hdepthHandle1 = g_CascadedShadow.m_pEffectParam[dwEffectIndex]->DepthMapTX2;
+						GGHANDLE hdepthHandle2 = g_CascadedShadow.m_pEffectParam[dwEffectIndex]->DepthMapTX3;
+						GGHANDLE hdepthHandle3 = g_CascadedShadow.m_pEffectParam[dwEffectIndex]->DepthMapTX4;
+						GGHANDLE hdepthHandle4 = g_CascadedShadow.m_pEffectParam[dwEffectIndex]->DepthMapTX5;
+						GGHANDLE hdepthHandle5 = g_CascadedShadow.m_pEffectParam[dwEffectIndex]->DepthMapTX6;
+						GGHANDLE hdepthHandle6 = g_CascadedShadow.m_pEffectParam[dwEffectIndex]->DepthMapTX7;
+						GGHANDLE hdepthHandle7 = g_CascadedShadow.m_pEffectParam[dwEffectIndex]->DepthMapTX8;
+						if ( hdepthHandle0 && g_CascadedShadow.m_depthTexture[0] ) hdepthHandle0->AsShaderResource()->SetResource ( g_CascadedShadow.m_depthTexture[0]->getTextureResourceView() );
+						if ( hdepthHandle1 && g_CascadedShadow.m_depthTexture[1] ) hdepthHandle1->AsShaderResource()->SetResource ( g_CascadedShadow.m_depthTexture[1]->getTextureResourceView() );
+						if ( hdepthHandle2 && g_CascadedShadow.m_depthTexture[2] ) hdepthHandle2->AsShaderResource()->SetResource ( g_CascadedShadow.m_depthTexture[2]->getTextureResourceView() );
+						if ( hdepthHandle3 && g_CascadedShadow.m_depthTexture[3] ) hdepthHandle3->AsShaderResource()->SetResource ( g_CascadedShadow.m_depthTexture[3]->getTextureResourceView() );
+						if ( hdepthHandle4 && g_CascadedShadow.m_depthTexture[4] ) hdepthHandle4->AsShaderResource()->SetResource ( g_CascadedShadow.m_depthTexture[4]->getTextureResourceView() );
+						if ( hdepthHandle5 && g_CascadedShadow.m_depthTexture[5] ) hdepthHandle5->AsShaderResource()->SetResource ( g_CascadedShadow.m_depthTexture[5]->getTextureResourceView() );
+						if ( hdepthHandle6 && g_CascadedShadow.m_depthTexture[6] ) hdepthHandle6->AsShaderResource()->SetResource ( g_CascadedShadow.m_depthTexture[6]->getTextureResourceView() );
+						if ( hdepthHandle7 && g_CascadedShadow.m_depthTexture[7] ) hdepthHandle7->AsShaderResource()->SetResource ( g_CascadedShadow.m_depthTexture[7]->getTextureResourceView() );
+					}
+				}
+
+				// pass clipping data to shader
+				if ( Mesh->pVertexShaderEffect->m_VecClipPlaneEffectHandle )
+				{
+					GGVECTOR4 vec;
+					tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData ( g_pGlob->dwRenderCameraID );
+					if ( m_Camera_Ptr )
+					{
+						if ( m_Camera_Ptr->iClipPlaneOn==1 )
+						{
+							// special mode which creates plane but does not use RenderState to set clip
+							// as you cannot mix FF clip and HLSL clip in same scene (artefacts)
+							vec.x = m_Camera_Ptr->planeClip.a;
+							vec.y = m_Camera_Ptr->planeClip.b;
+							vec.z = m_Camera_Ptr->planeClip.c;
+							vec.w = m_Camera_Ptr->planeClip.d;
+						}
+						else
+						{
+							// ensure shader stops using clip plane when not being clipped!
+							vec = GGVECTOR4( 0.0f, 1.0f, 0.0f, 99999.0f );
+						}
+					}
+					else
+					{
+						// ensure shader stops using clip plane when not being clipped!
+						vec = GGVECTOR4( 0.0f, 1.0f, 0.0f, 99999.0f );
+					}
+					Mesh->pVertexShaderEffect->m_VecClipPlaneEffectHandle->AsVector()->SetFloatVector ( (float*)&vec );
+				}
+
+				// Ensure normal invert in effect for terrain (NOTE: not liking duplicated of code)
+				#ifdef DX11
+				//PE: removed , terrain always invert normal.
+//				GGHANDLE pArtFlags = Mesh->pVertexShaderEffect->m_pEffect->GetVariableByName ( "ArtFlagControl1" );
+//				if ( pArtFlags )
+//				{
+//					float fInvertNormal = 0.0f;
+//					if ( Mesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
+//					GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, 0.0f, 0.0f, 0.0f );
+//					pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
+//				}
+				#endif
+
+				// apply effect ready for rendering
+				hTechniqueUsed->GetPassByIndex(0)->Apply(0,m_pImmediateContext);
+
+				// Set textures (AFTER Apply which overrides texture view ptrs)
+				for ( unsigned long i = 0; i < Mesh->dwTextureCount; i++ ) // terrain now has lots of textures
+				{
+					if (i != 1 && i != 5 && i != 7) 
+					{ 
+						//PE: only for more gpu mem (cache) they are not used.
+						ID3D11ShaderResourceView* lpTexture = NULL; 
+						if ( Mesh->dwTextureCount > i ) lpTexture = Mesh->pTextures[i].pTexturesRefView;
+						m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
+					}
+				}
+
+				// assign constants
+				GGMATRIX matWorld;
+				GGGetTransform ( GGTS_WORLD, &matWorld );
+				Mesh->pVertexShaderEffect->Start ( Mesh, matWorld );
+
+				//PE: Terrain should be split into smaller meshes for better light.
+				update_mesh_light(Mesh, NULL,NULL);
+
+				// Render many terrain chunks (only CB changes for world position for faster rendering)
+				BT_Intern_RenderTerrainRec(Terrain,Terrain->QuadTree,Terrain->QuadTreeLevels,iQualityPass);
+
+				// End effect
+				BT_Main.CurrentEffect=NULL;
+
+				// Free textures (especially camera image texture which needs to be output bound next cycle)
+				for ( unsigned long i = 0; i < Mesh->dwTextureCount; i++ )
+				{
+					if (i != 1 && i != 5 && i != 7) 
+					{ 
+						//PE: 
+						ID3D11ShaderResourceView* lpTexture = NULL; 
+						m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		// no rendering if no effect shader
+	}
+	*/
+
+	// zero current render terrain
+	BT_Main.CurrentRenderTerrain=NULL;
+}
 
 
 // ======================================

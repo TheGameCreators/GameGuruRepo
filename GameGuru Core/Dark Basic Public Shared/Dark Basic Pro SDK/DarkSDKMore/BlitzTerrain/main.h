@@ -384,6 +384,7 @@ static void BT_Intern_RenderSector(s_BT_Sector* Sector);
 static float BT_Intern_DistanceToLODCamera(s_BT_terrain* Terrain,s_BT_CullBox* CullBox);
 static void BT_Intern_ContinueBuild();
 static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain);
+static void BT_Intern_NoRenderTerrain(s_BT_terrain* Terrain);
 bool BT_Intern_TerrainExist(unsigned long terrainid);
 static long BT_Intern_ImageExist(unsigned long imageid);
 void BT_Intern_Error(int number);
@@ -510,6 +511,7 @@ static void BT_Intern_SmoothTerrain(s_BT_terrain* Terrain);
 #define C_BT_INSTRUCTION_UPDATETERRAINCULL 3
 #define C_BT_INSTRUCTION_UPDATETERRAINLOD 4
 #define C_BT_INSTRUCTION_RENDERTERRAIN 5
+#define C_BT_INSTRUCTION_NORENDERTERRAIN 6
 
 
 #define C_BT_INTERNALSCALE 128.0f

@@ -1065,6 +1065,16 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 	bool bCannotLandHereCancelDestination = false;
 	if ( bShowControllerWand == true && g_iLastControllerActive > 0 )
 	{
+		// only intersect scan a few times a second
+		float fIntersectChecksEveryUnits = 0.0f;
+		bool bDoAScanAndUpdateStatus = false;
+		static DWORD g_dwTeleportScanTimer = 0;
+		if ( timeGetTime() > g_dwTeleportScanTimer )
+		{
+			bDoAScanAndUpdateStatus = true;
+			g_dwTeleportScanTimer = timeGetTime() + 200;
+		}
+
 		std::vector <GGVECTOR3> vecControlPoints;
 		vecControlPoints.clear();
 		bool bAboveGround = true;
@@ -1096,18 +1106,60 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 			}
 
 			// when cut through an entity in the scene
-			IntersectAll(iLMObjStart,iLMObjFinish,0,0,0,0,0,0,-123);
-			int tHitObj = IntersectAll(iEntObjStart,iEndObjEnd,x,y,z,fLastX,fLastY,fLastZ,0);
-			if ( tHitObj == 0 ) tHitObj = IntersectAll(iBatchEntObjStart,iBatchEndObjEnd,x,y,z,fLastX,fLastY,fLastZ,0);
-			if ( tHitObj > 0 )
+			if ( bDoAScanAndUpdateStatus == true )
 			{
-				GGVR_fTelePortDestinationX = ChecklistFValueA(6);
-				GGVR_fTelePortDestinationY = ChecklistFValueB(6);
-				GGVR_fTelePortDestinationZ = ChecklistFValueC(6);
-				bAboveGround = false;
-				if ( ny >= 0.0f ) bCannotLandHereCancelDestination = true;
+				bool bCheckedRay = false;
+				if ( fIntersectChecksEveryUnits == 0.0f || bAboveGround == false )
+				{
+					// check ray between last and current
+					IntersectAll(iLMObjStart,iLMObjFinish,0,0,0,0,0,0,-123);
+					int tHitObj = IntersectAll(iEntObjStart,iEndObjEnd,x,y,z,fLastX,fLastY,fLastZ,0);
+					if ( tHitObj == 0 ) tHitObj = IntersectAll(iBatchEntObjStart,iBatchEndObjEnd,x,y,z,fLastX,fLastY,fLastZ,0);
+					if ( tHitObj > 0 )
+					{
+						GGVR_fTelePortDestinationX = ChecklistFValueA(6);
+						GGVR_fTelePortDestinationY = ChecklistFValueB(6);
+						GGVR_fTelePortDestinationZ = ChecklistFValueC(6);
+						bAboveGround = false;
+						if ( ny >= 0.0f ) bCannotLandHereCancelDestination = true;
+					}
+					bCheckedRay = true;
+				}
+				float fDistX = x - fLastX;
+				float fDistY = y - fLastY;
+				float fDistZ = z - fLastZ;
+				if ( bCheckedRay == true )
+				{
+					fLastX = x; fLastY = y; fLastZ = z;
+				}
+				fIntersectChecksEveryUnits = sqrt ( fabs(fDistX*fDistX)+fabs(fDistY*fDistY)+fabs(fDistZ*fDistZ));
+				if ( fIntersectChecksEveryUnits >= 100.0f ) fIntersectChecksEveryUnits = 0.0f;
 			}
-			fLastX = x; fLastY = y; fLastZ = z;
+		}
+
+		// only check now and again
+		static float g_iLastScanHitGGVR_fTelePortDestinationX = 0;
+		static float g_iLastScanHitGGVR_fTelePortDestinationY = 0;
+		static float g_iLastScanHitGGVR_fTelePortDestinationZ = 0;
+		static bool g_iLastScanHitbAboveGround = 0;
+		static bool g_iLastScanHitbCannotLandHereCancelDestination = 0;
+		if ( bDoAScanAndUpdateStatus == true )
+		{
+			// store last results of scan
+			g_iLastScanHitGGVR_fTelePortDestinationX = GGVR_fTelePortDestinationX;
+			g_iLastScanHitGGVR_fTelePortDestinationY = GGVR_fTelePortDestinationY;
+			g_iLastScanHitGGVR_fTelePortDestinationZ = GGVR_fTelePortDestinationZ;
+			g_iLastScanHitbAboveGround = bAboveGround;
+			g_iLastScanHitbCannotLandHereCancelDestination = bCannotLandHereCancelDestination;
+		}
+		else
+		{
+			// rest of time simply remember last result
+			GGVR_fTelePortDestinationX = g_iLastScanHitGGVR_fTelePortDestinationX;
+			GGVR_fTelePortDestinationY = g_iLastScanHitGGVR_fTelePortDestinationY;
+			GGVR_fTelePortDestinationZ = g_iLastScanHitGGVR_fTelePortDestinationZ;
+			bAboveGround = g_iLastScanHitbAboveGround;
+			bCannotLandHereCancelDestination = g_iLastScanHitbCannotLandHereCancelDestination;;
 		}
 
 		// work out spread from perfect arc data to available dots below

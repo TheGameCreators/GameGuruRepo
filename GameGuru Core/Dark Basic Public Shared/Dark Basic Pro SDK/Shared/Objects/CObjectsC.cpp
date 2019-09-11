@@ -7168,11 +7168,17 @@ DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, flo
 			float fDist = sqrt((fDX*fDX)+(fDY*fDY)+(fDZ*fDZ));
 			if ( fDist <= ((pObject->collision.fLargestRadius*3)+fDistanceBetweenPoints) )
 			{
+				// 110919 - ensure any offset applied to frame zero is accounted for (OFFSETX/Y/Z)
+				GGMATRIX matWorldWithFrameOffset = pObject->position.matWorld;
+				sObject* pActualObj = pObject;
+				if ( pObject->pInstanceOfObject ) pActualObj = pObject->pInstanceOfObject;
+				if ( pActualObj->ppFrameList[0] ) matWorldWithFrameOffset = pActualObj->ppFrameList[0]->matAbsoluteWorld;
+
 				// instead of transforming box to object world orientation, transform ray
 				// on a per object basis back into object space, for quicker box checking
 				float fDet;
 				GGMATRIX matInvWorld;
-				GGMatrixInverse(&matInvWorld,&fDet,&pObject->position.matWorld);
+				GGMatrixInverse(&matInvWorld,&fDet,&matWorldWithFrameOffset);//pObject->position.matWorld);
 				GGVECTOR3 vecFrom = GGVECTOR3(fX,fY,fZ);
 				GGVECTOR3 vecTo = GGVECTOR3(fNewX,fNewY,fNewZ);
 				GGVec3TransformCoord(&vecFrom,&vecFrom,&matInvWorld);

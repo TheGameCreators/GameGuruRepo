@@ -655,10 +655,10 @@ void postprocess_preterrain ( void )
 			physics_setupplayer ( );
 		}
 
-		//  render terrains now
-		if (t.hardwareinfoglobals.noterrain == 0)
+		// render VR cameras now
+		if ( 1 ) //t.hardwareinfoglobals.noterrain == 0)
 		{
-			if (t.terrain.TerrainID > 0)
+			if ( 1 ) //t.terrain.TerrainID > 0)
 			{
 				// for WMR style VR
 				int iDebugMode = 0;
@@ -701,11 +701,14 @@ void postprocess_preterrain ( void )
 					if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex), CameraPositionZ(t.tcamindex));
 					if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex) + 7000, CameraPositionZ(t.tcamindex));
 
-					//  render terrain for this camera
+					// render terrain for this camera
 					BT_SetCurrentCamera(t.tcamindex);
 					BT_UpdateTerrainCull(t.terrain.TerrainID);
 					BT_UpdateTerrainLOD(t.terrain.TerrainID);
-					BT_RenderTerrain(t.terrain.TerrainID);
+					if ( t.hardwareinfoglobals.noterrain == 0 && t.terrain.TerrainID > 0 )
+						BT_RenderTerrain(t.terrain.TerrainID);
+					else
+						BT_NoRenderTerrain(t.terrain.TerrainID);
 
 					// The camera perspective matrix needs to be overridden directly inside the camera data structure
 					tagCameraData* pCameraPtr = (tagCameraData*)GetCameraInternalData ( t.tcamindex );
