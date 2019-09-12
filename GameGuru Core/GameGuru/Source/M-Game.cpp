@@ -704,7 +704,8 @@ void game_masterroot ( void )
 				{
 					t.entid = t.entityelement[t.e].bankindex;
 					t.obj = t.entityelement[t.e].obj;
-					if (t.obj > 0 && t.e < g.entityelementlist && t.entityelement[t.e].dc_merged == false && (g.globals.drawcalloptimizer==1 || t.entityprofile[t.entid].drawcalloptimizer == 1) && t.entityprofile[t.entid].drawcalloptimizeroff == 0 )
+
+					if (t.obj > 0 && t.e < g.entityelementlist && t.entityelement[t.e].dc_merged == false && (g.globals.drawcalloptimizer==1 || t.entityprofile[t.entid].drawcalloptimizer == 1) && t.entityprofile[t.entid].drawcalloptimizeroff == 0 && t.entityprofile[t.e].isimmobile != 1 && t.entityelement[t.e].eleprof.isimmobile != 1)
 					{
 
 						struct OrderByObjectDistance
@@ -730,7 +731,9 @@ void game_masterroot ( void )
 								//for (int i = t.e + 1; i <= g.entityelementlist; i++) {
 								for (int i = 1; i <= g.entityelementlist; i++) {
 									int testobj = t.entityelement[i].obj;
-									if (testobj > 0 && i != t.e && ObjectExist(testobj) && t.entityelement[i].dc_merged == false) {
+									int iEntid = t.entityelement[i].bankindex;
+									
+									if (testobj > 0 && i != t.e && ObjectExist(testobj) && t.entityelement[i].dc_merged == false && t.entityprofile[iEntid].isimmobile != 1 && t.entityelement[i].eleprof.isimmobile != 1 && t.entityelement[i].staticflag == 1) {
 
 										sObject* pObject = g_ObjectList[t.obj];
 										int instanceonly = 0;
@@ -795,7 +798,7 @@ void game_masterroot ( void )
 							if (t.entityprofile[t.entid].animmax > 0)
 								validshader = false;
 
-							if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[nextObjeid].staticflag == 1)
+							if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[nextObjeid].staticflag == 1 && t.entityprofile[t.entid].isimmobile != 1 && t.entityelement[t.e].eleprof.isimmobile != 1  && t.entityelement[t.e].staticflag == 1)
 							{
 
 								//Validate if same master object.
