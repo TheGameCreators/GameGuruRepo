@@ -684,6 +684,9 @@ void game_masterroot ( void )
 				//###################################################################
 
 				#define DC_DISTANCE 1000
+				#define MAX_DRAWPRIMITIVES 32765 // max faces.
+				#define MAX_DRAWVERTEX 65520 // max vertex 65530.
+
 				timestampactivity(0, "draw call optimizer.");
 				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 				{
@@ -797,6 +800,7 @@ void game_masterroot ( void )
 								validshader = false;
 							if (t.entityprofile[t.entid].animmax > 0)
 								validshader = false;
+							
 
 							if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[nextObjeid].staticflag == 1 && t.entityprofile[t.entid].isimmobile != 1 && t.entityelement[t.e].eleprof.isimmobile != 1  && t.entityelement[t.e].staticflag == 1)
 							{
@@ -815,14 +819,27 @@ void game_masterroot ( void )
 									instanceonly++;
 								}
 
-								//PE: Later validate this.
-								//int iPolyCount = GetObjectPolygonCount(t.obj);
+								int iMeshWithTexture = -1;
+								if (pObject)
+								{
+									for (int i = 0; i < pObject->iFrameCount; i++)
+									{
+										if (pObject->ppFrameList[i]->pMesh)
+										{
+											iMeshWithTexture = i;
+											break;
+										}
+									}
+								}
+								
+								//PE: Cant do multi material for now.
+								//CloneObject(destobj, t.obj, 101); do not support this.
+								if (iMeshWithTexture >= 0 && pObject->ppFrameList[iMeshWithTexture]->pMesh) {
+									if (pObject->ppFrameList[iMeshWithTexture]->pMesh->bUseMultiMaterial)
+										instanceonly = 0;
+								}
 
-//								t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e+1].x;
-//								t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e+1].z;
-//								t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-
-								//PE: Keep objects distance below 700 for best culling.
+								//PE: Keep objects distance below DC_DISTANCE for best culling.
 								if (pObject && pObject2 && instanceonly >= 2  && t.entityelement[nextObjeid].dc_distance < DC_DISTANCE && g.merged_new_objects < 4980 ) {
 									
 									if (pObject == pObject2) {
@@ -839,6 +856,7 @@ void game_masterroot ( void )
 										float src_scalez = ObjectScaleZ(t.obj);
 
 										float scaleadjust = t.entityprofile[t.entid].drawcallscaleadjust;
+
 										int tmpobj = (g.merged_new_objects+100) + 85000; //PE: TODO change 85000
 										if (g_ObjectList[tmpobj])
 										{
@@ -856,21 +874,34 @@ void game_masterroot ( void )
 										for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
 										{
 											t.tname_s = Lower(ChecklistString(t.c));
-											if (t.tname_s == "lod_0" ) bestlod = 0;
-											if (t.tname_s == "lod_1" && (bestlod < 0 || bestlod > 1) )  bestlod = 1;
-											if (t.tname_s == "lod_2" && (bestlod < 0) )  bestlod = 2;
+
+											LPSTR pRightFive = "";
+											if (strlen(t.tname_s.Get()) > 5)
+												pRightFive = t.tname_s.Get() + strlen(t.tname_s.Get()) - 5;
+
+											if ( (t.tname_s == "lod_0" || stricmp(pRightFive,"_lod0") == 0 ) ) bestlod = 0;
+											if ( (t.tname_s == "lod_1" || stricmp(pRightFive,"_lod1") == 0 ) && (bestlod < 0 || bestlod > 1) )  bestlod = 1;
+											if ( (t.tname_s == "lod_2" || stricmp(pRightFive,"_lod2") == 0 ) && (bestlod < 0) )  bestlod = 2;
+
 										}
 										if (bestlod >= 0) {
 											for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
 											{
 												t.tname_s = Lower(ChecklistString(t.c));
+												LPSTR pRightFive = "";
+												if (strlen(t.tname_s.Get()) > 5)
+													pRightFive = t.tname_s.Get() + strlen(t.tname_s.Get()) - 5;
+
 												if (bestlod == 0 && ( t.tname_s == "lod_1" || t.tname_s == "lod_2" || t.tname_s == "lod_3") ) {
 													RemoveLimb(tmpobj, t.c - 1);
 												}
-												if (bestlod == 1 && t.tname_s == "lod_2") {
+												if (bestlod == 0 && (stricmp(pRightFive, "_lod1") == 0 || stricmp(pRightFive, "_lod2") == 0 || stricmp(pRightFive, "_lod3") == 0 )) {
 													RemoveLimb(tmpobj, t.c - 1);
 												}
-												if (bestlod == 2 && t.tname_s == "lod_3") {
+												if (bestlod == 1 && (t.tname_s == "lod_2" || stricmp(pRightFive, "_lod2") == 0) ) {
+													RemoveLimb(tmpobj, t.c - 1);
+												}
+												if (bestlod == 2 && (t.tname_s == "lod_3" || stricmp(pRightFive, "_lod3") == 0 ) ) {
 													RemoveLimb(tmpobj, t.c - 1);
 												}
 											}
@@ -881,9 +912,31 @@ void game_masterroot ( void )
 										PositionObject(tmpobj, 0, 0, 0); //PE: Need to be at 0,0,0
 										ScaleObject(tmpobj, 100, 100, 100); //PE: no scale.
 
+										int iAfterPolygonTotal = 0;
+										int iAfterVertex = 0;
+
+										sObject* pAfterObject = g_ObjectList[tmpobj];
+										if (pAfterObject)
+										{
+											if (pAfterObject->iMeshCount>0)
+											{
+												for (int iM = 0; iM<pAfterObject->iMeshCount; iM++)
+												{
+													sMesh* pMesh = pAfterObject->ppMeshList[iM];
+													if (pMesh)
+													{
+														iAfterPolygonTotal += pMesh->iDrawPrimitives;
+														iAfterVertex += pMesh->dwVertexCount;
+													}
+												}
+											}
+										}
+//										printf("after %d vertex %d", iAfterPolygonTotal, iAfterVertex);
+						
+
 										MakeMeshFromObject(g.meshlightmapwork, tmpobj); //PE: mesh from source.
 
-										if (GetMeshExist(g.meshlightmapwork) == 1)
+										if( (iAfterPolygonTotal * 2 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 2 < MAX_DRAWVERTEX)  && GetMeshExist(g.meshlightmapwork) == 1)
 										{
 											int destobj = g.merged_new_objects + 85000; //PE: TODO change 85000 , perhaps reverse from 90000 ?
 											if (g_ObjectList[destobj])
@@ -901,7 +954,7 @@ void game_masterroot ( void )
 											//CloneObject(destobj, tmpobj); //We use the cleaned tmpobj instead of t.obj
 											MakeObject(destobj, g.meshlightmapwork, -1); //Use mesh to prevent any transforms.
 
-											int testypos = 0; //50
+											int testypos = 0; //50,150
 											PositionObject(destobj, 0, 0, 0); //PE: Need to be at 0,0,0
 											ScaleObject(destobj, 100, 100, 100); //PE: no scale.
 
@@ -939,7 +992,7 @@ void game_masterroot ( void )
 											int glueid2 = 0;
 											int glueobj2 = 0;
 							
-											if (vObjList.size() > 1 ) {
+											if ((iAfterPolygonTotal * 3 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 3 < MAX_DRAWVERTEX) && vObjList.size() > 1 ) {
 												nextObjeid = vObjList[1];
 												glueid2 = t.entityelement[nextObjeid].bankindex;
 												glueobj2 = t.entityelement[nextObjeid].obj;
@@ -978,7 +1031,7 @@ void game_masterroot ( void )
 											bool additionaladded3 = false;
 											int glueid3 = 0;
 											int glueobj3 = 0;
-											if (vObjList.size() > 2) {
+											if ((iAfterPolygonTotal * 4 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 4 < MAX_DRAWVERTEX)  && vObjList.size() > 2) {
 												nextObjeid = vObjList[2];
 												glueid3 = t.entityelement[nextObjeid].bankindex;
 												glueobj3 = t.entityelement[nextObjeid].obj;
@@ -1016,7 +1069,7 @@ void game_masterroot ( void )
 											bool additionaladded4 = false;
 											int glueid4 = 0;
 											int glueobj4 = 0;
-											if (vObjList.size() > 3) {
+											if ((iAfterPolygonTotal * 5 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 5 < MAX_DRAWVERTEX)  && vObjList.size() > 3) {
 												nextObjeid = vObjList[3];
 												glueid4 = t.entityelement[nextObjeid].bankindex;
 												glueobj4 = t.entityelement[nextObjeid].obj;
@@ -1054,7 +1107,7 @@ void game_masterroot ( void )
 											bool additionaladded5 = false;
 											int glueid5 = 0;
 											int glueobj5 = 0;
-											if ( vObjList.size() > 4) {
+											if ((iAfterPolygonTotal * 6 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 6 < MAX_DRAWVERTEX)  && vObjList.size() > 4) {
 												nextObjeid = vObjList[4];
 												glueid5 = t.entityelement[nextObjeid].bankindex;
 												glueobj5 = t.entityelement[nextObjeid].obj;
@@ -1092,7 +1145,7 @@ void game_masterroot ( void )
 											bool additionaladded6 = false;
 											int glueid6 = 0;
 											int glueobj6 = 0;
-											if (vObjList.size() > 5) {
+											if ((iAfterPolygonTotal * 7 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 7 < MAX_DRAWVERTEX)  && vObjList.size() > 5) {
 												nextObjeid = vObjList[5];
 												glueid6 = t.entityelement[nextObjeid].bankindex;
 												glueobj6 = t.entityelement[nextObjeid].obj;
@@ -1145,7 +1198,6 @@ void game_masterroot ( void )
 											{
 												SetObjectCollisionProperty(destobj, 1);
 											}
-
 											if (t.entityprofile[t.entid].ischaracter == 0)
 											{
 												if (t.entityprofile[t.entid].collisionmode == 11)
@@ -1161,6 +1213,7 @@ void game_masterroot ( void )
 											{
 												SetObjectCull(destobj, 1);
 											}
+											SetObjectSpecularPower(destobj, t.entityelement[t.entid].eleprof.specularperc / 100.0f);
 
 											if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
 												
