@@ -883,6 +883,10 @@ void game_masterroot ( void )
 											if ( (t.tname_s == "lod_1" || stricmp(pRightFive,"_lod1") == 0 ) && (bestlod < 0 || bestlod > 1) )  bestlod = 1;
 											if ( (t.tname_s == "lod_2" || stricmp(pRightFive,"_lod2") == 0 ) && (bestlod < 0) )  bestlod = 2;
 
+											if (t.entityprofile[t.entid].resetlimbmatrix == 1)
+											{
+												OffsetLimb(tmpobj, t.c - 1, 0, 0, 0, 0);
+											}
 										}
 										if (bestlod >= 0) {
 											for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
@@ -905,8 +909,6 @@ void game_masterroot ( void )
 													RemoveLimb(tmpobj, t.c - 1);
 												}
 											}
-											if(t.c > 0)
-												OffsetLimb(tmpobj, t.c - 1, 0, 0, 0, 0);
 										}
 
 										PositionObject(tmpobj, 0, 0, 0); //PE: Need to be at 0,0,0
