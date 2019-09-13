@@ -708,7 +708,7 @@ void game_masterroot ( void )
 					t.entid = t.entityelement[t.e].bankindex;
 					t.obj = t.entityelement[t.e].obj;
 
-					if (t.obj > 0 && t.e < g.entityelementlist && t.entityelement[t.e].dc_merged == false && (g.globals.drawcalloptimizer==1 || t.entityprofile[t.entid].drawcalloptimizer == 1) && t.entityprofile[t.entid].drawcalloptimizeroff == 0 && t.entityprofile[t.e].isimmobile != 1 && t.entityelement[t.e].eleprof.isimmobile != 1)
+					if (t.obj > 0 && t.e < g.entityelementlist && t.entityelement[t.e].dc_merged == false && (g.globals.drawcalloptimizer==1 || t.entityprofile[t.entid].drawcalloptimizer == 1) && t.entityprofile[t.entid].drawcalloptimizeroff == 0 && t.entityprofile[t.entid].isimmobile != 1 && t.entityelement[t.e].eleprof.isimmobile != 1)
 					{
 
 						struct OrderByObjectDistance
