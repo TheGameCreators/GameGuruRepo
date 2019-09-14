@@ -322,11 +322,10 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
    output.normal = normalize(output.normal);
    output.clip = dot(output.position, clipPlane);                                                                      
 
-
 	float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
 	float3 eyeraw = trueCameraPosition - output.position.xyz;
-	
-//	output.cameraPosition = trueCameraPosition; //PE:
+
+	//	output.cameraPosition = trueCameraPosition; //PE:
 
 	output.VertexLight.xyz = CalcExtLightingVS(output.normal.xyz, output.position.xyz, eyeraw.xyz );
 
@@ -1194,8 +1193,8 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    clip(input.clip);
    
    // inverse of camera view holds true camera position
-//   float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
-   float3 trueCameraPosition = input.cameraPosition;
+   float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
+//   float3 trueCameraPosition = input.cameraPosition; //PE: interpolated not as good , switch back for now.
 
    // put input data into attributes structure
    Attributes attributes;

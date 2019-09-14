@@ -4084,7 +4084,10 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 					if(pMesh && pMesh->pVertexShaderEffect)
 						iEid = pMesh->pVertexShaderEffect->m_iEffectID;
 					
-					if ( iEid == g.guishadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) { //pObject->dwObjectNumber == 70001
+					//PE: interpolated cameraPosition do not look the same as trueCameraPosition. need fix , switch back for now.
+					//if ( iEid == g.guishadereffectindex || iEid == g.guidiffuseshadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) { //pObject->dwObjectNumber == 70001
+					if( 1 ) {
+
 						CBPerMeshPS cbps;
 						cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r, pMesh->mMaterial.Emissive.g, pMesh->mMaterial.Emissive.b, pMesh->mMaterial.Emissive.a);
 						if (pMesh->bAlphaOverride == true)
