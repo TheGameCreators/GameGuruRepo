@@ -653,7 +653,7 @@ void ebe_refreshmesh ( int iBuildObj, int x1, int y1, int z1, int x2, int y2, in
 					sMesh* pMesh = pObject->ppFrameList[iLimbIndex]->pMesh;
 					DWORD dwVertPos = pVertCountStore[iSlotIndex];
 					DWORD dwIndicePos = (dwVertPos/2)*3;
-					SetupMeshFVFData ( pMesh, pMesh->dwFVF, dwVertPos, dwIndicePos );
+					SetupMeshFVFData ( false, pMesh, pMesh->dwFVF, dwVertPos, dwIndicePos );
 					pMesh->iPrimitiveType = GGPT_TRIANGLELIST;
 					pMesh->iDrawVertexCount = dwVertPos;
 					pMesh->iDrawPrimitives  = dwIndicePos / 3;
@@ -1951,7 +1951,7 @@ void ebe_optimize_object ( int iObj, int iEntID )
 		g_vRefreshMeshList.push_back ( pMesh );
 		DWORD dwVertPos = iCountMaterialForThisMesh * 24;
 		DWORD dwIndicePos = (dwVertPos/2)*3;
-		SetupMeshFVFData ( pMesh, pMesh->dwFVF, dwVertPos, dwIndicePos );
+		SetupMeshFVFData ( false, pMesh, pMesh->dwFVF, dwVertPos, dwIndicePos );
 		pMesh->iPrimitiveType = GGPT_TRIANGLELIST;
 		pMesh->iDrawVertexCount = dwVertPos;
 		pMesh->iDrawPrimitives  = dwIndicePos / 3;

@@ -1310,7 +1310,7 @@ DARKSDK_DLL void GetMeshData( int iMeshID, DWORD* pdwFVF, DWORD* pdwFVFSize, DWO
 		// copy from existing mesh
 		GGMATRIX matWorld;
 		GGMatrixIdentity ( &matWorld );
-		MakeMeshFromOtherMesh ( true, pActualMesh, pOriginalMesh, &matWorld );
+		MakeMeshFromOtherMesh ( true, false, pActualMesh, pOriginalMesh, &matWorld );
 
 		// eliminate any index data from new mesh
 		ConvertLocalMeshToVertsOnly ( pActualMesh );

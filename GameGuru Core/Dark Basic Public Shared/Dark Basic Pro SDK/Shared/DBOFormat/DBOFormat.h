@@ -77,11 +77,12 @@ DARKSDK LPGGMESH	LocalMeshToDXMesh					( sMesh* pMesh, CONST LPGGVERTEXELEMENT d
 DARKSDK void		UpdateLocalMeshWithDXMesh			( sMesh* pMesh, LPGGMESH pDXMesh );
 DARKSDK void		RestoreLocalMesh					( sMesh* pMesh );
 DARKSDK void		ConvertLocalMeshToFVF				( sMesh* pMesh, DWORD dwFVF );
+DARKSDK void		ConvertLocalMeshToVertsOnly			( bool bOverrideAs32BitIndices, sMesh* pMesh );
 DARKSDK void		ConvertLocalMeshToVertsOnly			( sMesh* pMesh );
 DARKSDK bool		ConvertLocalMeshToTriList			( sMesh* pMesh );
 DARKSDK void		ConvertToSharedVerts				( sMesh* pMesh, float fEpsilon );
-DARKSDK bool		MakeLocalMeshFromOtherLocalMesh		( sMesh* pMesh, sMesh* pOtherMesh, DWORD dwIndexCount, DWORD dwVertexCount );
-DARKSDK bool		MakeLocalMeshFromOtherLocalMesh		( sMesh* pMesh, sMesh* pOtherMesh );
+DARKSDK bool		MakeLocalMeshFromOtherLocalMesh		( bool bAllow32BitIndices, sMesh* pMesh, sMesh* pOtherMesh, DWORD dwIndexCount, DWORD dwVertexCount );
+DARKSDK bool		MakeLocalMeshFromOtherLocalMesh		( bool bAllow32BitIndices, sMesh* pMesh, sMesh* pOtherMesh );
 DARKSDK bool		MakeLocalMeshFromPureMeshData		( sMesh* pMesh, DWORD dwFVF, DWORD dwFVFSize, float* pMeshData, DWORD dwVertMax, DWORD dwPrimType );
 DARKSDK void		FlipNormals							( sMesh* pMesh, int iFlipMode );
 DARKSDK void		GenerateNewNormalsForMesh			( sMesh* pMesh, int iMode );
@@ -98,9 +99,9 @@ DARKSDK bool		SetupStandardVertex					( DWORD dwFVF, BYTE* pVertex, int iOffset,
 DARKSDK bool		SetupStandardVertexDec				( sMesh* pMesh, BYTE* pVertex, int iOffset, float x, float y, float z, float nx, float ny, float nz, DWORD dwDiffuseColour, float tu, float tv );
 DARKSDK bool		GetFVFValueOffsetMap				( DWORD dwFVF, sOffsetMap* psOffsetMap );
 DARKSDK bool		GetFVFOffsetMap						( sMesh* pMesh, sOffsetMap* psOffsetMap );
-DARKSDK bool		SetupMeshDeclarationData			( sMesh* pMesh, CONST GGVERTEXELEMENT* pDeclaration, DWORD dwVertexSize, DWORD dwVertexCount, DWORD dwIndexCount );
-DARKSDK bool		SetupMeshFVFData					( sMesh* pMesh, DWORD dwFVF, DWORD dwSize, DWORD dwIndexCount );
-DARKSDK bool		SetupMeshData						( sMesh* pMesh, DWORD dwVertexCount, DWORD dwIndexCount );
+DARKSDK bool		SetupMeshDeclarationData			( bool bAllow32BitIndices, sMesh* pMesh, CONST GGVERTEXELEMENT* pDeclaration, DWORD dwVertexSize, DWORD dwVertexCount, DWORD dwIndexCount );
+DARKSDK bool		SetupMeshFVFData					( bool bAllow32BitIndices, sMesh* pMesh, DWORD dwFVF, DWORD dwSize, DWORD dwIndexCount );
+DARKSDK bool		SetupMeshData						( bool bAllow32BitIndices, sMesh* pMesh, DWORD dwVertexCount, DWORD dwIndexCount );
 
 DARKSDK bool		CreateVertexShaderFromFVF			( DWORD dwFVF, DWORD* pdwShader );
 

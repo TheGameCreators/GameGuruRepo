@@ -114,6 +114,6 @@ DARKSDK bool  MakeMeshPlainEx			( bool bCreateNew, sMesh* pMesh, float fWidth, f
 DARKSDK bool  MakeMeshBox				( bool bCreateNew, sMesh* pMesh, float fWidth1, float fHeight1, float fDepth1, float fWidth2, float fHeight2, float fDepth2, DWORD dwFVF, DWORD dwColor );
 DARKSDK bool  MakeMeshPyramid			( bool bCreateNew, sMesh* pMesh, float fSize, DWORD dwFVF, DWORD dwColor );
 DARKSDK bool  MakeMeshSphere			( bool bCreateNew, sMesh* pMesh, GGVECTOR3 vecCenter, float fRadius, int iRings, int iSegments, DWORD dwFVF, DWORD dwColor );
-DARKSDK bool  MakeMeshFromOtherMesh		( bool bCreateNew, sMesh* pMesh, sMesh* pOtherMesh, GGMATRIX* pmatWorld );
-DARKSDK bool  MakeMeshFromOtherMesh		( bool bCreateNew, sMesh* pMesh, sMesh* pOtherMesh, GGMATRIX* pmatWorld, DWORD dwIndexCount, DWORD dwVertexCount );
+DARKSDK bool  MakeMeshFromOtherMesh		( bool bCreateNew, bool bAllow32BitIndices, sMesh* pMesh, sMesh* pOtherMesh, GGMATRIX* pmatWorld );
+DARKSDK bool  MakeMeshFromOtherMesh		( bool bCreateNew, bool bAllow32BitIndices, sMesh* pMesh, sMesh* pOtherMesh, GGMATRIX* pmatWorld, DWORD dwIndexCount, DWORD dwVertexCount );
 DARKSDK bool  MakeLODMeshFromMesh		( sMesh* pMeshIn, int iVertexNum, sMesh** ppMeshOut );

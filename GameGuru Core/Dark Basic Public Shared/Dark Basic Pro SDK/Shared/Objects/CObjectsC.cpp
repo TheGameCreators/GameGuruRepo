@@ -647,7 +647,7 @@ DARKSDK_DLL void SaveObject ( LPSTR szFilename, int iID )
 						// make a new mesh from the original mesh, and ensure it's verts only
 						sMesh* pVertOnlyMesh = new sMesh;
 						sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
-						MakeMeshFromOtherMesh       ( true, pVertOnlyMesh, pMesh, NULL );
+						MakeMeshFromOtherMesh ( true, false, pVertOnlyMesh, pMesh, NULL );
 						ConvertLocalMeshToVertsOnly ( pVertOnlyMesh );
 
 						// group name
@@ -892,7 +892,7 @@ DARKSDK_DLL void CreateMeshForObject ( int iID, DWORD dwFVF, DWORD dwVertexCount
 		return;
 	}
 	
-	if ( !SetupMeshFVFData ( pObject->pFrame->pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( false, pObject->pFrame->pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -1513,7 +1513,7 @@ DARKSDK_DLL void MakeObject ( int iID, int iMeshID, int iImageID )
 
 	// setup general object data
 	sMesh* pMesh = g_ObjectList [ iID ]->pFrame->pMesh;
-	MakeMeshFromOtherMesh ( true, pMesh, g_RawMeshList [ iMeshID ], &matWorld );
+	MakeMeshFromOtherMesh ( true, false, pMesh, g_RawMeshList [ iMeshID ], &matWorld );
 
 	// setup new object and introduce to buffers
 	SetNewObjectFinalProperties ( iID, -1.0f );
@@ -1624,7 +1624,7 @@ DARKSDK_DLL void MakeObjectFromLimbEx ( int iNewID, int iSrcID, int iLimbID, int
 				GGMatrixIdentity ( &matWorld );
 
 				// mesh copy
-				MakeMeshFromOtherMesh ( true, pDestMesh, pSrcMesh, &matWorld );
+				MakeMeshFromOtherMesh ( true, false, pDestMesh, pSrcMesh, &matWorld );
 				pNewObject->ppMeshList [ m ] = pDestMesh;
 
 				// bone data copy
@@ -1772,7 +1772,7 @@ DARKSDK_DLL void MakeObjectFromLimbEx ( int iNewID, int iSrcID, int iLimbID, int
 		GGMATRIX matWorld = pSrcFrame->matCombined * pSrcObject->position.matObjectNoTran;
 
 		// create new mesh from existing mesh
-		MakeMeshFromOtherMesh ( true, pDestMesh, pSrcMesh, &matWorld );
+		MakeMeshFromOtherMesh ( true, false, pDestMesh, pSrcMesh, &matWorld );
 
 		// setup new object and introduce to buffers
 		SetNewObjectFinalProperties ( iNewID, -1.0f );
@@ -1949,7 +1949,7 @@ void AddLODToObject ( int iCurrentID, int iLODModelID, int iLODLevel, float fDis
 									GGMatrixIdentity ( &matWorld );
 
 									// mesh copy
-									MakeMeshFromOtherMesh ( true, pDestMesh, pSrcMesh, &matWorld );
+									MakeMeshFromOtherMesh ( true, false, pDestMesh, pSrcMesh, &matWorld );
 									if ( iLODLevel < 2 )
 										pFrame->pLOD [ iLODLevel ] = pDestMesh;
 									else
@@ -2514,7 +2514,7 @@ DARKSDK int MakeNewObjectPanel	( int iID , int iNumberOfCharacters )
 	// create memory
 	DWORD dwVertexCount = 6 * iNumberOfCharacters; // store number of vertices
 	DWORD dwIndexCount  = 0; // store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_DIFFUSE | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_DIFFUSE | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return 0;
@@ -2647,7 +2647,7 @@ DARKSDK_DLL void MakeObjectTriangle ( int iID, float x1, float y1, float z1, flo
 	// create vertex memory
 	DWORD dwVertexCount = 3;									// store number of vertices
 	DWORD dwIndexCount  = 0;									// store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -2742,7 +2742,7 @@ DARKSDK_DLL void MakeObjectCylinder ( int iID, float fSize )
 	// create vrtex memory
 	DWORD dwVertexCount = ( iSegments + 1 ) * 2;					// store number of vertices
 	DWORD dwIndexCount  = 0;										// store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -2810,7 +2810,7 @@ DARKSDK_DLL void MakeObjectCone ( int iID, float fSize )
 	// create vrtex memory
 	DWORD dwVertexCount = (iSegments * 2) + 1;						// store number of vertices
 	DWORD dwIndexCount  = iSegments * 3;							// store number of indices
-	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -5888,7 +5888,7 @@ DARKSDK_DLL void SetVertexShaderOff ( int iID )
 		SetNoShader ( pObject->ppMeshList [ iMesh ] );
 }
 
-DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones )
+DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBonesFromLM )
 {
 	// check the object exists
 	if ( !ConfirmObject ( iID ) )
@@ -5900,8 +5900,9 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 		return;
 
 	// create new mesh list to store ALL new meshes (erase bones means lightmapper process)
-	if ( dwEraseBones==1 )
+	if ( dwEraseBonesFromLM==1 )
 	{
+		// add up all materials used
 		DWORD dwTotalMaterialCount = 0;
 		for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
 		{
@@ -5942,10 +5943,10 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 							sMesh* pNewMesh = new sMesh();
 							if ( pNewMesh )
 							{
-								// duplicate mesh
+								// now duplicate mesh (which is modified to have only the indices for this material)
 								GGMATRIX matWorld;
 								GGMatrixIdentity ( &matWorld );
-								MakeMeshFromOtherMesh ( true, pNewMesh, pMesh, &matWorld );
+								MakeMeshFromOtherMesh ( true, true, pNewMesh, pMesh, &matWorld );
 
 								// copy in correct texture
 								if ( pNewMesh->pTextures==NULL )
@@ -5965,12 +5966,22 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 								pNewMesh->bUsesMaterial = false;
 								// pMultiMaterial [ dwMaterialIndex ].mMaterial ignored
 
-								// modify index data so mesh only points to revelant polygons
+								// modify index data so mesh only points to revelant polygons (now done above)
 								DWORD dwPolyCount = pMultiMaterial [ dwMaterialIndex ].dwPolyCount;
 								pNewMesh->dwIndexCount = dwPolyCount*3;
 								pNewMesh->iDrawVertexCount = pMesh->iDrawVertexCount;
 								pNewMesh->iDrawPrimitives  = dwPolyCount;
-								memcpy ( pNewMesh->pIndices, pMesh->pIndices + pMultiMaterial [ dwMaterialIndex ].dwIndexStart, dwPolyCount*3*sizeof(WORD) );
+								if ( pMesh->dwVertexCount > 0xFFFF)
+									memcpy ( pNewMesh->pIndices, (DWORD*)pMesh->pIndices + pMultiMaterial [ dwMaterialIndex ].dwIndexStart, dwPolyCount*3*sizeof(DWORD) );
+								else
+									memcpy ( pNewMesh->pIndices, pMesh->pIndices + pMultiMaterial [ dwMaterialIndex ].dwIndexStart, dwPolyCount*3*sizeof(WORD) );
+
+								// if original mesh used 32bit indices, NEED to convert new mesh to verts only as cannot render 32-bit indices (even if lower than 22K polys now)
+								if ( pMesh->dwVertexCount > 0xFFFF )
+								{
+									// always treat as 32-bit indices, even if newmesh uses less than this (as source was 32bit)
+									ConvertLocalMeshToVertsOnly ( true, pNewMesh );
+								}
 
 								// add to new mesh list
 								pTotalMeshList [ dwMaterialMeshIndex ] = pNewMesh;
@@ -6091,7 +6102,7 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 		ConvertToFVF ( pObject->ppMeshList [ iMesh ], dwFVF );
 
 	// lee - 050914 - also remove any bone animation data as converted object cannot animate without correct FVF skinning
-	if ( dwEraseBones==1 )
+	if ( dwEraseBonesFromLM==1 )
 	{
 		for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
 		{
@@ -7692,7 +7703,7 @@ DARKSDK_DLL void AddLimb ( int iID, int iLimbID, int iMeshID )
 	GGMatrixIdentity ( &matWorld );
 
 	// make a copy of the mesh
-	MakeMeshFromOtherMesh ( true, pNewMesh, g_RawMeshList [ iMeshID ], &matWorld );
+	MakeMeshFromOtherMesh ( true, false, pNewMesh, g_RawMeshList [ iMeshID ], &matWorld );
 
 	// add new frame to end of 
 	if ( !AddNewFrame ( pObject, pNewMesh, "new limb" ) )
@@ -7903,7 +7914,7 @@ DARKSDK_DLL void ChangeMesh ( int iObjectID, int iLimbID, int iMeshID )
 		GGMatrixIdentity ( &matWorld );
 
 		// make a copy of the mesh
-		MakeMeshFromOtherMesh ( true, pNewMesh, g_RawMeshList [ iMeshID ], &matWorld );
+		MakeMeshFromOtherMesh ( true, false, pNewMesh, g_RawMeshList [ iMeshID ], &matWorld );
 
 		// lee - 280306 - u6rc2 - if specify limb with no mesh, exit now
 		if ( pOldMesh==NULL )
