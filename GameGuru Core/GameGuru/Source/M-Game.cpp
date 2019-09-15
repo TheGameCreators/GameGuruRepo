@@ -1268,7 +1268,10 @@ void game_masterroot ( void )
 											//Hide org objects.
 											HideObject(t.obj);
 											HideObject(glueobj);
+
+											SetObjectEffect(t.entityelement[t.e].draw_call_obj, t.entityprofile[t.entid].usingeffect );
 											ShowObject(t.entityelement[t.e].draw_call_obj);
+											SetObjectMask(t.entityelement[t.e].draw_call_obj, 1);
 
 											g.merged_new_objects++;
 
