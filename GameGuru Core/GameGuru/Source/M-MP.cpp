@@ -7971,6 +7971,7 @@ void mp_cleanupGame ( void )
 	t.terrain.playerax_f=0.0;
 	t.terrain.playeray_f=0.0;
 	t.terrain.playeraz_f=0.0;
+	t.camangy_f=0.0;
 
 	// remove light map objects for return to IDE editor
 	lm_restoreall ( );

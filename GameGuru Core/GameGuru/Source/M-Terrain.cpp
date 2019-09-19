@@ -214,6 +214,7 @@ void terrain_setupedit ( void )
 	t.terrain.playerax_f=0;
 	t.terrain.playeray_f=0;
 	t.terrain.playeraz_f=0;
+	t.camangy_f=0;
 }
 
 cstr terrain_getterrainfolder ( void )

@@ -495,6 +495,7 @@ void entity_lua_transporttoifused ( void )
 		t.terrain.playerz_f=t.entityelement[t.transporttoe].z;
 		t.terrain.playerax_f=0;
 		t.terrain.playeray_f=t.entityelement[t.transporttoe].ry;
+		t.camangy_f=t.terrain.playeray_f;
 		t.terrain.playeraz_f=0;
 		physics_setupplayer ( );
 	}

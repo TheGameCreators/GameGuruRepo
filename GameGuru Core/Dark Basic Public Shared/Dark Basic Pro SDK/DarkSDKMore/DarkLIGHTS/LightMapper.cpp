@@ -261,7 +261,7 @@ DLLEXPORT void LMAddCollisionObject( sObject *pObject, int iTransparent )
 
 			pAddStatus = "ConvertLocalMeshToVertsOnly";
 			int iPrimitiveType = pMesh->iPrimitiveType;
-			if ( iPrimitiveType == 5 )  ConvertLocalMeshToVertsOnly( pMesh );
+			if ( iPrimitiveType == 5 )  ConvertLocalMeshToVertsOnly( pMesh, false );
 
 			DWORD dwFVFSize = pMesh->dwFVFSize;
 			int iNumVertices = pMesh->dwVertexCount;

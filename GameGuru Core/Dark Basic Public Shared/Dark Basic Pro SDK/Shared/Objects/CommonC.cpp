@@ -1312,7 +1312,7 @@ DARKSDK_DLL void GetMeshData( int iMeshID, DWORD* pdwFVF, DWORD* pdwFVFSize, DWO
 		MakeMeshFromOtherMesh ( true, pActualMesh, pOriginalMesh, &matWorld );
 
 		// eliminate any index data from new mesh
-		ConvertLocalMeshToVertsOnly ( pActualMesh );
+		ConvertLocalMeshToVertsOnly ( pActualMesh, false );
 
 		// mesh data
 		*pdwFVF = pActualMesh->dwFVF;

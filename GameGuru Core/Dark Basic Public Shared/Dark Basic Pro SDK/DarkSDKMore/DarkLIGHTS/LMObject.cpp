@@ -688,7 +688,7 @@ void LMObject::CreateTriOnlyAndApplyUVData ( void )
 	}
 
 	// make a tri-only new mesh contents
-	ConvertLocalMeshToVertsOnly ( pMesh );
+	ConvertLocalMeshToVertsOnly ( pMesh, false );
 	ConvertToFVF( pMesh, pMesh->dwFVF );
 	DWORD dwVertexCount = iTotalPolyCount * 3;
 	if ( pMesh->dwVertexCount==dwVertexCount )

@@ -22,7 +22,7 @@ struct IntersectBox
 DARKSDK void RefreshMeshShortList ( sMesh* pMesh );
 DARKSDK void ConvertToFVF ( sMesh* pMesh, DWORD dwFVF );
 DARKSDK void SmoothNormals ( sMesh* pMesh, float fAngle );
-DARKSDK void ConvertLocalMeshToVertsOnly ( sMesh* pMesh );
+DARKSDK void ConvertLocalMeshToVertsOnly ( sMesh* pMesh, bool bIs32BitIndexData );
 DARKSDK bool CalcObjectWorld ( sObject* pObject );
 DARKSDK void CalculateAbsoluteWorldMatrix ( sObject* pObject, sFrame* pFrame, sMesh* pMesh );
 DARKSDK void ConvertLocalMeshToFVF ( sMesh* pMesh, DWORD dwFVF );

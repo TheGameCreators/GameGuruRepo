@@ -665,7 +665,7 @@ DARKSDK_DLL void ReduceMeshPolygons ( sMesh* pOriginalMesh, int iBlockMode, int 
 	// create a work mesh
 	sMesh* pMesh = new sMesh;
 	MakeLocalMeshFromOtherLocalMesh ( pMesh, pOriginalMesh );
-	ConvertLocalMeshToVertsOnly ( pMesh );
+	ConvertLocalMeshToVertsOnly ( pMesh, false );
 	DWORD dwNumberOfVertices=pMesh->dwVertexCount;
 
 	// boundary of mesh
@@ -1678,7 +1678,6 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 					iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
 					if (iImageIndex == 0)
 					{
-
 						// okay, check if texture file alongside model as DDS)
 						Path[strlen(Path) - 4] = 0;
 						strcat(Path, ".dds");
@@ -1715,13 +1714,20 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 											sprintf(Path, "%s%s", TexturePath, pDDSFile);
 											iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
 										}
-
 										if (iImageIndex == 0)
 										{
 											//PE: This can generates doubble loads. so this is the last combi to test.
 											iImageIndex = LoadImageInternalEx(pNoPath, iDivideTextureSize);
-										}
 
+											//LB: also test for DDS of NoPath (multitextured models that use PNG internally)
+											if ( iImageIndex == 0 )
+											{
+												strcpy ( Path, pNoPath );
+												Path[strlen(Path) - 4] = 0;
+												strcat(Path, ".dds");
+												iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+											}
+										}
 									}
 								}
 							}

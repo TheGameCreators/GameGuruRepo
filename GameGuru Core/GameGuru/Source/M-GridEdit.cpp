@@ -1716,23 +1716,6 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	t.storecy_f=CameraPositionY();
 	t.storecz_f=CameraPositionZ();
 
-	// default start position is edit-camera XZ
-	/* remove this so as not to influence start marker positioning
-	t.terrain.playerx_f=CameraPositionX(0);
-	t.terrain.playerz_f=CameraPositionZ(0);
-	if ( t.terrain.TerrainID>0 ) 
-	{
-		t.terrain.playery_f=BT_GetGroundHeight(t.terrain.TerrainID,t.terrain.playerx_f,t.terrain.playerz_f)+150.0;
-	}
-	else
-	{
-		t.terrain.playery_f=1000.0+150.0;
-	}
-	t.terrain.playerax_f=0.0;
-	t.terrain.playeray_f=0.0;
-	t.terrain.playeraz_f=0.0;
-	*/
-
 	// store all editor entity positions and rotations
 	t.storedentityelementlist=g.entityelementlist;
 	t.storedentityviewcurrentobj=g.entityviewcurrentobj;

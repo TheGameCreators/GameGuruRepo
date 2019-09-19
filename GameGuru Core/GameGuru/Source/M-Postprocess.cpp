@@ -651,6 +651,7 @@ void postprocess_preterrain ( void )
 			t.terrain.playerz_f=fTelePortDestZ;
 			t.terrain.playerax_f=0;
 			t.terrain.playeray_f=CameraAngleY(0);
+			t.camangy_f=t.terrain.playeray_f;
 			t.terrain.playeraz_f=0;
 			physics_setupplayer ( );
 		}

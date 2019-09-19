@@ -1825,6 +1825,7 @@ void game_loadinleveldata ( void )
 	t.terrain.playerax_f=0.0;
 	t.terrain.playeray_f=0.0;
 	t.terrain.playeraz_f=0.0;
+	t.camangy_f=0;
 
 	//  hide all markers
 	t.screenprompt_s="GAME OBJECT CLEANUP";

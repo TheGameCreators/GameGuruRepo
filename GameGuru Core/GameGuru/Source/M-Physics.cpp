@@ -1118,6 +1118,7 @@ void physics_player_init ( void )
 			t.terrain.playerz_f=t.entityelement[t.e].z;
 			t.terrain.playerax_f=0;
 			t.terrain.playeray_f=t.entityelement[t.e].ry;
+			t.camangy_f=t.terrain.playeray_f;
 			t.terrain.playeraz_f=0;
 			t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 
@@ -1192,6 +1193,7 @@ void physics_player_init ( void )
 		t.terrain.playery_f=t.mpmultiplayerstart[iChoose].y;
 		t.terrain.playerz_f=t.mpmultiplayerstart[iChoose].z;
 		t.terrain.playeray_f=t.mpmultiplayerstart[iChoose].angle;
+		t.camangy_f=t.terrain.playeray_f;
 		if ( t.terrain.playerx_f < 100 )
 		{
 			// no start position, revert to regular start marker
@@ -1199,6 +1201,7 @@ void physics_player_init ( void )
 			t.terrain.playery_f = fGoodY;
 			t.terrain.playerz_f = fGoodZ;
 			t.terrain.playeray_f = fGoodA;
+			t.camangy_f=t.terrain.playeray_f;
 		}
 		t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 	}
@@ -2080,6 +2083,7 @@ void physics_player_control_F9 ( void )
 		t.terrain.playerz_f=ObjectPositionZ(t.aisystem.objectstartindex);
 		t.terrain.playerax_f=0;
 		t.terrain.playeray_f=CameraAngleY(0);
+		t.camangy_f=t.terrain.playeray_f;
 		t.terrain.playeraz_f=0;
 		t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 		physics_setupplayer ( );
@@ -2184,6 +2188,7 @@ void physics_player_control_LUA ( void )
 			t.terrain.playerz_f=ObjectPositionZ(t.aisystem.objectstartindex);
 			t.terrain.playerax_f=0;
 			t.terrain.playeray_f=CameraAngleY(0);
+			t.camangy_f=t.terrain.playeray_f;
 			t.terrain.playeraz_f=0;
 			t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 			physics_disableplayer ( );
@@ -2453,6 +2458,7 @@ void physics_player_gotolastcheckpoint ( void )
 	t.terrain.playerz_f=t.playercheckpoint.z;
 	t.terrain.playerax_f=0;
 	t.terrain.playeray_f=t.playercheckpoint.a;
+	t.camangy_f=t.terrain.playeray_f;
 	t.terrain.playeraz_f=0;
 	t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 	physics_resetplayer_core ( );

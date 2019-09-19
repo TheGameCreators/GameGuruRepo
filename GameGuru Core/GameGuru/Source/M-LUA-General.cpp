@@ -810,6 +810,7 @@ void lua_unfreezeplayer ( void )
 	t.terrain.playerax_f = t.freezeplayerax;
 	t.terrain.playeray_f = t.freezeplayeray;
 	t.terrain.playeraz_f = t.freezeplayeraz;
+	t.camangy_f=t.terrain.playeray_f;
 
 	// Restart character to ensure they don't move
 	physics_disableplayer ( );
@@ -857,6 +858,7 @@ void lua_transporttofreezeposition ( void )
 		t.terrain.playerax_f = t.freezeplayerax;
 		t.terrain.playeray_f = t.freezeplayeray;
 		t.terrain.playeraz_f = t.freezeplayeraz;
+		t.camangy_f=t.terrain.playeray_f;
 	}
 	physics_setupplayer ( );
 	if ( t.freezeplayerposonly==0 )

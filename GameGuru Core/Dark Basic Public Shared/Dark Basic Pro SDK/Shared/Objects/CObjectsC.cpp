@@ -535,78 +535,81 @@ DARKSDK_DLL void LoadObject(LPSTR szFilename, int iID)
 	strcpy(VirtualFilename, szFilename);
 	g_pGlob->UpdateFilenameFromVirtualTable((DWORD)VirtualFilename);
 
-	// store current folder
+	// store current folder (typically mode dir)
 	char pStoreCurrentDir[_MAX_PATH];
 	GetCurrentDirectory(_MAX_PATH, pStoreCurrentDir);
 
+	// determine if loading an encrypted model file
 	bool bTempFolderChangeForEncrypt = CheckForWorkshopFile(VirtualFilename);
 
+	// get path of original model file passed in
 	char pPathToOriginalFile[_MAX_PATH];
-	if (bTempFolderChangeForEncrypt)
+	//if (bTempFolderChangeForEncrypt) LB:Prevents pPathToOriginalFile from being filled
+	//{
+	strcpy(pPathToOriginalFile, "");
+	//FILE* tempFile = NULL;
+	//tempFile = fopen(VirtualFilename, "r");
+	//if (tempFile)
+	// LB: No need to check existence, just that it has a size
+	if ( strlen(VirtualFilename) > 0 )
 	{
-		strcpy(pPathToOriginalFile, "");
-		FILE* tempFile = NULL;
-		tempFile = fopen(VirtualFilename, "r");
-		if (tempFile)
+		// get relative path from current
+		strcpy(pPathToOriginalFile, VirtualFilename);
+		for (DWORD n = strlen(pPathToOriginalFile) - 1; n > 0; n--)
 		{
-			// get relative path from current
-			strcpy(pPathToOriginalFile, VirtualFilename);
-			for (DWORD n = strlen(pPathToOriginalFile) - 1; n > 0; n--)
+			if (pPathToOriginalFile[n] == '\\' || pPathToOriginalFile[n] == '/' || (unsigned char)(pPathToOriginalFile[n]) < 32)
 			{
-				if (pPathToOriginalFile[n] == '\\' || pPathToOriginalFile[n] == '/' || (unsigned char)(pPathToOriginalFile[n]) < 32)
-				{
-					pPathToOriginalFile[n] = 0;
-					break;
-				}
+				pPathToOriginalFile[n] = 0;
+				break;
 			}
-
-			fclose(tempFile);
 		}
+	//	fclose(tempFile);
 	}
+	//}
 
 	// Decrypt and use media, re-encrypt
 	g_pGlob->Decrypt((DWORD)VirtualFilename);
 
-	// if encrypting model file (and model MAY load internal textures, ensure current directory is temporarily in model file folder
-//	if ( bTempFolderChangeForEncrypt==true )
-//	{
-//		// assign new one (at original model file location)
-//		SetCurrentDirectory ( pPathToOriginalFile );
-//	}
-
+	// NOT USED if encrypting model file (and model MAY load internal textures, ensure current directory is temporarily in model file folder
+	//	if ( bTempFolderChangeForEncrypt==true )
+	//	{
+	//		// assign new one (at original model file location)
+	//		SetCurrentDirectory ( pPathToOriginalFile );
+	//	}
 
 	//PE: We will now find it using the original path (model) , so we cant change dir.
 	//PE: Lightmap object still need dir change.
-
 	//char mdebug[1024];
 	//sprintf(mdebug, "DIRS: %s (%s)", VirtualFilename, szFilename);
 	//timestampactivity(0, mdebug);
 
-
-	if (strstr(VirtualFilename, "lightmaps\\") != NULL) //PEREV:
-	{
-		SetCurrentDirectory ( pPathToOriginalFile );
-	}
+	// this changes from models dir to lightmap dir
+	//LB: When this was done, models that looked for internal textures could not find them in the lightmaps\\ folder! Multitexture models could not be lightmapped!
+	//if (strstr(VirtualFilename, "lightmaps\\") != NULL)
+	//{
+	//	SetCurrentDirectory ( pPathToOriginalFile );
+	//}
 
 	// Load media
 	LoadCore ( (SDK_LPSTR)VirtualFilename, (SDK_LPSTR) szFilename, iID, 0, 0 );
 
-	if (strstr(VirtualFilename, "lightmaps\\") != NULL)
-	{
-		SetCurrentDirectory ( pStoreCurrentDir );
-		bTempFolderChangeForEncrypt = false;
-	}
+	// this restores dir to previous model dir
+	//LB: When this was done, models that looked for internal textures could not find them in the lightmaps\\ folder! Multitexture models could not be lightmapped!
+	//if (strstr(VirtualFilename, "lightmaps\\") != NULL)
+	//{
+	//	SetCurrentDirectory ( pStoreCurrentDir );
+	//	bTempFolderChangeForEncrypt = false;
+	//}
 
-	// restore current directory
-//	if ( bTempFolderChangeForEncrypt==true )
-//	{
-//		SetCurrentDirectory ( pStoreCurrentDir );
-//		bTempFolderChangeForEncrypt = false;
-//	}
+	// restore current directory NOT USED
+	//	if ( bTempFolderChangeForEncrypt==true )
+	//	{
+	//		SetCurrentDirectory ( pStoreCurrentDir );
+	//		bTempFolderChangeForEncrypt = false;
+	//	}
 
 	// Re-encrypt
 	g_pGlob->Encrypt( (DWORD)VirtualFilename );
-
 }
 
 DARKSDK_DLL void LoadObject ( LPSTR szFilename, int iID, int iDBProMode )
@@ -738,7 +741,7 @@ DARKSDK_DLL void SaveObject ( LPSTR szFilename, int iID )
 						sMesh* pVertOnlyMesh = new sMesh;
 						sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
 						MakeMeshFromOtherMesh       ( true, pVertOnlyMesh, pMesh, NULL );
-						ConvertLocalMeshToVertsOnly ( pVertOnlyMesh );
+						ConvertLocalMeshToVertsOnly ( pVertOnlyMesh, false );
 
 						// group name
 						pLine = "# Mesh\n";
@@ -8080,7 +8083,7 @@ DARKSDK_DLL void ConvertMeshToVertexData ( int iMeshID )
 		return;
 
 	// do the conversion
-	if ( g_RawMeshList ) ConvertLocalMeshToVertsOnly ( g_RawMeshList [ iMeshID ] ); 
+	if ( g_RawMeshList ) ConvertLocalMeshToVertsOnly ( g_RawMeshList [ iMeshID ], false ); 
 }
 
 DARKSDK_DLL void MakeMeshFromObject ( int iMeshID, int iObjectID, int iIgnoreMode )
@@ -8110,7 +8113,7 @@ DARKSDK_DLL void MakeMeshFromObject ( int iMeshID, int iObjectID, int iIgnoreMod
 	// ConvertLocalMeshToVertsOnly ( pNewMesh ); 
 	// leeadd - 141008 - u70 - also make mesh from sphere and cylinder object need this - so put back in this case!
 	if ( pNewMesh->iPrimitiveType!=GGPT_TRIANGLELIST )
-		ConvertLocalMeshToVertsOnly ( pNewMesh ); 
+		ConvertLocalMeshToVertsOnly ( pNewMesh, false ); 
 
 	// check memory allocation
 	ID_MESH_ALLOCATION ( iMeshID );
@@ -8158,7 +8161,7 @@ DARKSDK_DLL void MakeMeshFromLimb ( int iMeshID, int iObjectID, int iLimbNumber 
 	// ConvertLocalMeshToVertsOnly ( pNewMesh ); 
 	// leeadd - 141008 - u70 - also make mesh from sphere and cylinder object need this - so put back in this case!
 	if ( pNewMesh->iPrimitiveType!=GGPT_TRIANGLELIST )
-		ConvertLocalMeshToVertsOnly ( pNewMesh ); 
+		ConvertLocalMeshToVertsOnly ( pNewMesh, false ); 
 
 	// check memory allocation
 	ID_MESH_ALLOCATION ( iMeshID );

@@ -77,7 +77,7 @@ DARKSDK LPGGMESH	LocalMeshToDXMesh					( sMesh* pMesh, CONST LPGGVERTEXELEMENT d
 DARKSDK void		UpdateLocalMeshWithDXMesh			( sMesh* pMesh, LPGGMESH pDXMesh );
 DARKSDK void		RestoreLocalMesh					( sMesh* pMesh );
 DARKSDK void		ConvertLocalMeshToFVF				( sMesh* pMesh, DWORD dwFVF );
-DARKSDK void		ConvertLocalMeshToVertsOnly			( sMesh* pMesh );
+DARKSDK void		ConvertLocalMeshToVertsOnly			( sMesh* pMesh, bool bIs32BitIndexData );
 DARKSDK bool		ConvertLocalMeshToTriList			( sMesh* pMesh );
 DARKSDK void		ConvertToSharedVerts				( sMesh* pMesh, float fEpsilon );
 DARKSDK bool		MakeLocalMeshFromOtherLocalMesh		( sMesh* pMesh, sMesh* pOtherMesh, DWORD dwIndexCount, DWORD dwVertexCount );

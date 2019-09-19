@@ -1772,7 +1772,7 @@ DARKSDK_DLL bool CreateSingleMeshFromObjectCore ( sMesh** ppMesh, sObject* pObje
 					//	bVertexOnlyBuffer=true;
 
 					// just verts
-					if ( bVertexOnlyBuffer==true ) ConvertLocalMeshToVertsOnly ( pStandardMesh ); 
+					if ( bVertexOnlyBuffer==true ) ConvertLocalMeshToVertsOnly ( pStandardMesh, false ); 
 
 					// pass one - count all verts/indexes
 					if ( iPass==1 )
@@ -2344,12 +2344,12 @@ DARKSDK_DLL void ConvertLocalMeshToFVF ( sMesh* pMesh, DWORD dwFVF )
 	#endif
 }
 
-DARKSDK_DLL void ConvertLocalMeshToVertsOnly ( sMesh* pMesh )
+DARKSDK_DLL void ConvertLocalMeshToVertsOnly ( sMesh* pMesh, bool bIs32BitIndexData )
 {
 	// mesh 'can' store 32bit index data temporarily for later conversion to vertex only.
 	// and should only use 32bit if going to do a vertex expanding (due to >16bit verts)
 	bool b32BITIndexData=false;
-	if ( pMesh->dwVertexCount > 0xFFFF )
+	if ( pMesh->dwVertexCount > 0xFFFF || bIs32BitIndexData == true )
 		b32BITIndexData=true;
 
 	// ensure it is a trilist first
@@ -2644,7 +2644,7 @@ DARKSDK_DLL bool MakeLocalMeshFromOtherLocalMesh ( sMesh* pMesh, sMesh* pOtherMe
 	{
 		// 310819 - if the indexcount is over 16bit, we know the next call will fail, so convert mesh to vertex only
 		if ( dwIndexCount > 0 )
-			if ( dwIndexCount > 0x0000FFFF )
+			if ( dwVertexCount > 0xFFFF )//if ( dwIndexCount > 0x0000FFFF )
 				bTempAllow32BitIndexSoCanProduceVertOnlyMesh = true;
 
 		// create new mesh from FVF
@@ -2675,7 +2675,7 @@ DARKSDK_DLL bool MakeLocalMeshFromOtherLocalMesh ( sMesh* pMesh, sMesh* pOtherMe
 
 	// we 'still' do not support 32bit indices (ouch), so convert this mesh to vert only so it works with everything else
 	if ( bTempAllow32BitIndexSoCanProduceVertOnlyMesh == true )
-		ConvertLocalMeshToVertsOnly ( pMesh );
+		ConvertLocalMeshToVertsOnly ( pMesh, bTempAllow32BitIndexSoCanProduceVertOnlyMesh );
 
 	// okay
 	return true;
@@ -6404,7 +6404,7 @@ DARKSDK_DLL bool SetupMeshData ( sMesh* pMesh, DWORD dwVertexCount, DWORD dwInde
 	// if index size exceeds 16bit, cannot allow index buffer (except when temporarily allowing 32bit indices to copy in other mesh, then convert to vert only, done elsewhere)
 	if ( bTempAllow32BitIndexBuffer == false )
 		if ( dwIndexCount > 0 )
-			if ( dwIndexCount > 0x0000FFFF )
+			if ( dwVertexCount > 0xFFFF ) //if ( dwIndexCount > 0x0000FFFF )
 				return false;
 
 	// ensure the mesh is valid
