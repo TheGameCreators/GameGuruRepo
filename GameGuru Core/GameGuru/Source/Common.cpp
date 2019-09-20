@@ -1578,7 +1578,7 @@ Dim (  t.frags,g.multiplayermax );
 
 void FPSC_SetDefaults ( void )
 {
-	//  Very first task is find and load BUILD.INI (if flagged)
+	//  Very first task is find and load BUILD.INI (if flagged) 
 	g.gcompilestandaloneexe = 0;
 	g.gpretestsavemode = 0;
 

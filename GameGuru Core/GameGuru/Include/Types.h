@@ -3597,6 +3597,7 @@ struct titlesbartype
 	int x2;
 	int y2;
 	int fill;
+	char text[256];
 
 	// Constructor
 	titlesbartype ( )
@@ -3608,6 +3609,7 @@ struct titlesbartype
 		 x1 = 0;
 		 img = 0;
 		 mode = 0;
+		 strcpy ( text, "" );
 	}
 	// End of Constructor
 

@@ -2738,29 +2738,78 @@ void CreateItineraryFile ( void )
 		// Create itinerary file
 		g_sDefaultAssetFiles.clear();
 		scanallfolder ( "Files", "" );
-
-		// Save g_sDefaultAssetFiles to pItineraryFile
 		SetDir ( pOldDir );
-		OpenToWrite ( 1, pItineraryFile.Get() );
-		WriteLong ( 1, g_sDefaultAssetFiles.size() );
+
+		// Save g_sDefaultAssetFiles to pItineraryFile (slow file, it takes 2.5 second to load!)
+		//OpenToWrite ( 1, pItineraryFile.Get() );
+		//WriteLong ( 1, g_sDefaultAssetFiles.size() );
+		//for ( int n = 0; n < g_sDefaultAssetFiles.size(); n++ )
+		//{
+		//	WriteString ( 1, g_sDefaultAssetFiles[n].Get() );
+		//}
+		//CloseFile ( 1 );
+
+		// Create binay block and dump string data to that (faster)
+		DWORD dwStringBlockSize = 0;
+		dwStringBlockSize += 4;
 		for ( int n = 0; n < g_sDefaultAssetFiles.size(); n++ )
 		{
-			WriteString ( 1, g_sDefaultAssetFiles[n].Get() );
+			DWORD dwStringSize = strlen(g_sDefaultAssetFiles[n].Get());
+			dwStringBlockSize += dwStringSize;
+			dwStringBlockSize++;
 		}
+		MakeMemblock ( 1, dwStringBlockSize );
+		int pos = 0;
+		WriteMemblockDWord ( 1, pos, dwStringBlockSize ); pos += 4;
+		for ( int n = 0; n < g_sDefaultAssetFiles.size(); n++ )
+		{
+			LPSTR pString = g_sDefaultAssetFiles[n].Get();
+			for ( int c = 0; c < strlen(pString); c++ )
+				WriteMemblockByte ( 1, pos++, pString[c] );
+			WriteMemblockByte ( 1, pos++, 0 );
+		}
+		OpenToWrite ( 1, pItineraryFile.Get() );
+		MakeFileFromMemblock ( 1, 1 );
 		CloseFile ( 1 );
+		DeleteMemblock ( 1 );
 	}
 	else
 	{
-		// Load itinerary file
+		// Load itinerary file (slow)
+		//g_sDefaultAssetFiles.clear();
+		//OpenToRead ( 1, pItineraryFile.Get() );
+		//int iItineraryCount = ReadLong ( 1 );
+		//for ( int n = 0; n < iItineraryCount; n++ )
+		//{
+		//	cstr pFileRef = ReadString ( 1 );
+		//	g_sDefaultAssetFiles.push_back ( pFileRef );
+		//}
+		//CloseFile ( 1 );
+
+		// Load itinerary file (fast)
 		g_sDefaultAssetFiles.clear();
 		OpenToRead ( 1, pItineraryFile.Get() );
-		int iItineraryCount = ReadLong ( 1 );
-		for ( int n = 0; n < iItineraryCount; n++ )
+		MakeMemblockFromFile ( 1, 1 );
+		int pos = 0;
+		char pString[2050];
+		LPSTR pStringPtr = pString;
+		DWORD dwMemblockSize = ReadMemblockDWord ( 1, pos ); pos += 4;
+		while ( pos < dwMemblockSize )
 		{
-			cstr pFileRef = ReadString ( 1 );
-			g_sDefaultAssetFiles.push_back ( pFileRef );
+			*pStringPtr = ReadMemblockByte ( 1, pos ); pos++;
+			if ( *pStringPtr == 0 )
+			{
+				g_sDefaultAssetFiles.push_back ( pString );
+				memset ( pString, 0, sizeof(pString) );
+				pStringPtr = pString;
+			}
+			else
+			{
+				pStringPtr++;
+			}
 		}
 		CloseFile ( 1 );
+		DeleteMemblock ( 1 );	
 	}
 }
 

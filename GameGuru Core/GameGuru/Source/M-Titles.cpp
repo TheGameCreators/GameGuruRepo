@@ -635,6 +635,14 @@ void titles_steampage ( void )
 	t.titlesbar[t.titlespage][g.titlesbarmax].x2=GetDisplayWidth();
 	t.titlesbar[t.titlespage][g.titlesbarmax].y1=0;
 	t.titlesbar[t.titlespage][g.titlesbarmax].y2=GetDisplayHeight();
+
+	// Add SOCIAL VR title text
+	++g.titlesbarmax;
+	t.titlesbar[t.titlespage][g.titlesbarmax].mode=2;
+	strcpy ( t.titlesbar[t.titlespage][g.titlesbarmax].text, "Social VR" );
+	t.titlesbar[t.titlespage][g.titlesbarmax].x1=GetDisplayWidth()/2;
+	t.titlesbar[t.titlespage][g.titlesbarmax].y1=GetDisplayHeight()*0.1f;
+
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
@@ -1359,7 +1367,7 @@ void titles_base ( void )
 		t.p=t.titlespage;
 		for ( t.b = 1 ; t.b<=  g.titlesbarmax; t.b++ )
 		{
-			if (  t.titlesbar[t.p][t.b].mode == 0 ) 
+			if ( t.titlesbar[t.p][t.b].mode == 0 ) 
 			{
 				t.timg=t.titlesbar[t.p][t.b].img;
 				if (  t.game.runasmultiplayer == 1 ) 
@@ -1380,7 +1388,7 @@ void titles_base ( void )
 					}
 				}
 			}
-			if (  t.titlesbar[t.p][t.b].mode == 1 ) 
+			if ( t.titlesbar[t.p][t.b].mode == 1 ) 
 			{
 				if (  t.titlesbar[t.p][t.b].img>0 ) 
 				{
@@ -1409,6 +1417,11 @@ void titles_base ( void )
 					InkEx ( 255, 255, 255 );//  Rgb(255,255,255),0 );
 					BoxEx (  t.titlesbar[t.p][t.b].x1,t.titlesbar[t.p][t.b].y1,t.titlesbar[t.p][t.b].x1+t.ttxx,t.titlesbar[t.p][t.b].y2 );
 				}
+			}
+			if ( t.titlesbar[t.p][t.b].mode == 2 )
+			{
+				// write text to screen (no image)
+				pastebitmapfontcenter ( t.titlesbar[t.p][t.b].text, t.titlesbar[t.p][t.b].x1, t.titlesbar[t.p][t.b].y1, 5, 255);
 			}
 		}
 
