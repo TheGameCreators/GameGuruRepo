@@ -2742,6 +2742,7 @@ void terrain_shadowupdate ( void )
 					SetEffectShadowMappingMode ( 255 );
 
 					static int speed_shadows = 0;
+					static int speed_shadows_new = 0;
 					speed_shadows = 1 - speed_shadows;
 					//PE: PBR both terrain and entity must be set to low/medium before lowering cascades.
 					//PE: Editor always use medium.
@@ -2776,11 +2777,31 @@ void terrain_shadowupdate ( void )
 						if (g.globals.speedshadows != 0)
 						{
 							if (g.globals.realshadowcascadecount == 4) {
-								if (speed_shadows) {
-									SetEffectShadowMappingMode(1+4);
+
+								if (g.globals.speedshadows == 2) {
+									if (speed_shadows_new == 0) {
+										SetEffectShadowMappingMode(1 + 2);
+									}
+									else if (speed_shadows_new == 1) {
+										SetEffectShadowMappingMode(1 + 4);
+									}
+									else if (speed_shadows_new == 2) {
+										SetEffectShadowMappingMode(1 + 2);
+									}
+									else if (speed_shadows_new == 3) {
+										SetEffectShadowMappingMode(1 + 8);
+									}
+									speed_shadows_new++;
+									if (speed_shadows_new >= 4)
+										speed_shadows_new = 0;
 								}
 								else {
-									SetEffectShadowMappingMode(2 + 8);
+									if (speed_shadows) {
+										SetEffectShadowMappingMode(1 + 4);
+									}
+									else {
+										SetEffectShadowMappingMode(2 + 8);
+									}
 								}
 							}
 						}
