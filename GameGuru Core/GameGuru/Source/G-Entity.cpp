@@ -1634,7 +1634,10 @@ void entity_hasbulletrayhit(void)
 	}
 	
 	// create a ray and check for object hit (first intersectall command simply fills a secondary range of objects)
-	t.ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
+	if(g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
+		t.ttt = IntersectAll(85000, 85000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
+	else
+		t.ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
 	// Character creator can override the limb hit, to make the cc head report the head limb of the main character
 	t.ccLimbHitOverride = false;
 	// check if character creator characters are in the game

@@ -537,7 +537,10 @@ void weapon_projectile_loop ( void )
 							//Dave - don't need to do raycasts for the nade hitting anything as it is controlled by physics
 							if ( t.WeaponProjectileBase[t.tProjType].resultBounce>0 ) 
 							{
-								t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
+								if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
+									t.ttt = IntersectAll(85000, 85000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
+								else
+									t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
 								t.tHitObj=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tXNewPos_f,t.tYNewPos_f,t.tZNewPos_f,t.tIgnoreObject);
 							}
 							else

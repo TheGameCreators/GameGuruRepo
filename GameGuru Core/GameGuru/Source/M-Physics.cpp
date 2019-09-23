@@ -1042,7 +1042,10 @@ void physics_explodesphere ( void )
 				fRayDestFromExplosionY += t.texplodey_f;
 				fRayDestFromExplosionZ += t.texplodez_f;
 
-				t.ttt = IntersectAll( g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, t.brayx1_f, t.brayy1_f, t.brayz1_f, 0, 0, 0, -123 );
+				if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
+					t.ttt = IntersectAll(85000, 85000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
+				else
+					t.ttt = IntersectAll( g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, t.brayx1_f, t.brayy1_f, t.brayz1_f, 0, 0, 0, -123 );
 
 				t.tintersectvalue = IntersectAll( g.entityviewstartobj, g.entityviewendobj, 
 					                              t.texplodex_f, t.texplodey_f, t.texplodez_f, 

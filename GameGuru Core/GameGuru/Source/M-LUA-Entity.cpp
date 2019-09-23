@@ -151,7 +151,12 @@ void entity_lua_getentityplrvisible ( void )
 			{
 				t.ty2_f=t.ty2_f+ObjectSizeY(t.tsrcobj,1)*0.5;
 			}
-			t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,t.tx1_f,t.ty1_f,t.tz1_f,0,0,0,-123);
+
+			if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
+				t.ttt = IntersectAll(85000, 85000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
+			else
+				t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,t.tx1_f,t.ty1_f,t.tz1_f,0,0,0,-123);
+
 			if (  IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.tx1_f,t.ty1_f,t.tz1_f,t.tx2_f,t.ty2_f,t.tz2_f,t.tobj)>0 ) 
 			{
 				t.entityelement[t.e].plrvisible=0;
