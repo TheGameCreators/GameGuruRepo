@@ -2,7 +2,7 @@
 //--- GAMEGURU - Common
 //----------------------------------------------------
 
-// Includes
+// Includes 
 #include "gameguru.h"
 #include <stdio.h>
 #include <stdlib.h>
