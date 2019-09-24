@@ -2809,7 +2809,10 @@ int IntersectCore ( lua_State *L, int iStaticOnly )
 	float fNewY = lua_tonumber(L, 5);
 	float fNewZ = lua_tonumber(L, 6);
 	int iIgnoreObjNo = lua_tonumber(L, 7);
-	int ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
+	if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
+		int ttt = IntersectAll(85000, 85000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
+	else
+		int ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
 	int tthitvalue=IntersectAllEx(g.entityviewstartobj,g.entityviewendobj,fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, iStaticOnly);
 	lua_pushnumber ( L, tthitvalue );
 	return 1;

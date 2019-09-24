@@ -1220,6 +1220,8 @@ void game_masterroot ( void )
 												
 											CloneObject(destobj, t.obj, 101); //PE: Copy textures only.
 
+											SetObjectStatic(destobj, true); //Mark as static.
+
 											//PE: TODO store t.e and glueobj under pObject->draw_call_obj
 											//PE: So we can access them directly in drawobject.
 											//pObject->draw_call_obj = g_ObjectList[destobj];
@@ -3234,7 +3236,7 @@ void game_main_loop ( void )
 		// 111115 - had to add t.visuals.shaderlevels.entities==1 so HIGHEST entities allow self shadow characters and detailed entities which flicker when shadow update is delayed!
 		// but also need constant updates for third person (as can see delay!)
 		// PE: Its way better to cycle the different cascades so we dont get these "spicks" in FPS. way more smooth. ()
-		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.playercontrol.thirdperson.enabled != 0 || g.globals.speedshadows == 1)
+		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.playercontrol.thirdperson.enabled != 0 || g.globals.speedshadows >= 1)
 		{
 			terrainshadowdelay = 0;
 			terrain_shadowupdate ( );

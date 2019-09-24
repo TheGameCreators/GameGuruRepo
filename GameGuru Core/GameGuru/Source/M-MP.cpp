@@ -2913,7 +2913,10 @@ void mp_showdeath ( void )
 						t.tZOldPos_f = CameraPositionZ();
 
 						MoveCamera (  g.mp.spectatorfollowdistance );
-						t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
+						if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
+							t.ttt = IntersectAll(85000, 85000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
+						else
+							t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,0,0,0,0,0,0,-123);
 //       `tEndEntity = entityviewstartobj+entityelementlist
 
 						t.tHitObj=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.x_f,t.y_f,t.z_f,t.tXOldPos_f,t.tYOldPos_f,t.tZOldPos_f,t.tobjtosee);
