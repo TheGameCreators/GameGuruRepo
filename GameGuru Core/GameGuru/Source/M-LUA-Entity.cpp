@@ -157,14 +157,38 @@ void entity_lua_getentityplrvisible ( void )
 			else
 				t.ttt=IntersectAll(g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,t.tx1_f,t.ty1_f,t.tz1_f,0,0,0,-123);
 
-			if (  IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.tx1_f,t.ty1_f,t.tz1_f,t.tx2_f,t.ty2_f,t.tz2_f,t.tobj)>0 ) 
+
+			//PE: door.lua , we are hitting t.entityelement[t.playercontrol.thirdperson.charactere].obj
+			//PE: Disable t.entityelement[t.playercontrol.thirdperson.charactere].obj from check.
+			//https://github.com/TheGameCreators/GameGuruRepo/issues/619
+
+			bool reneableThirdperson = false;
+			sObject* pObjectThirdperson = NULL;
+			if (t.playercontrol.thirdperson.enabled == 1) {
+				//Hide TPP or we will hit it.
+				int thirdpersonObj = t.entityelement[t.playercontrol.thirdperson.charactere].obj;
+				if (thirdpersonObj > 0) {
+					pObjectThirdperson = g_ObjectList[thirdpersonObj];
+					if (pObjectThirdperson->bVisible) {
+						pObjectThirdperson->bVisible = false;
+						reneableThirdperson = true;
+					}
+				}
+			}
+
+			if ( IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.tx1_f,t.ty1_f,t.tz1_f,t.tx2_f,t.ty2_f,t.tz2_f,t.tobj) > 0 )
 			{
-				t.entityelement[t.e].plrvisible=0;
+ 					t.entityelement[t.e].plrvisible=0;
 			}
 			else
 			{
 				t.entityelement[t.e].plrvisible=1;
 			}
+
+			if (reneableThirdperson && pObjectThirdperson) {
+				pObjectThirdperson->bVisible = true;
+			}
+
 			t.entityelement[t.e].lua.flagschanged=1;
 		}
 	}
