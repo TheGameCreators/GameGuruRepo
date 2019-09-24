@@ -356,15 +356,40 @@ void lua_setpostbloom ( void )
 	visuals_justshaderupdate ( );
 }
 
+//PE: fix for https://github.com/TheGameCreators/GameGuruRepo/issues/615
+//PE: To make it work on current and new levels , it will work on range 0.0-1.0 and range 0-100.
+
 void lua_setpostvignetteradius ( void )
 {
-	t.visuals.VignetteRadius_f=t.v_f;
+	if (t.v_f > 1.0) {
+		t.visuals.VignetteRadius_f = t.v_f / 100.0;
+	}
+	else {
+		t.visuals.VignetteRadius_f = t.v_f;
+	}
+
+	if (t.visuals.VignetteRadius_f > 1.0)
+		t.visuals.VignetteRadius_f = 1.0;
+	if (t.visuals.VignetteRadius_f < 0.0)
+		t.visuals.VignetteRadius_f = 0.0;
+
 	visuals_justshaderupdate ( );
 }
 
 void lua_setpostvignetteintensity ( void )
 {
-	t.visuals.VignetteIntensity_f=t.v_f;
+	if (t.v_f > 1.0) {
+		t.visuals.VignetteIntensity_f = t.v_f / 100.0;
+	}
+	else {
+		t.visuals.VignetteIntensity_f = t.v_f;
+	}
+
+	if (t.visuals.VignetteIntensity_f > 1.0)
+		t.visuals.VignetteIntensity_f = 1.0;
+	if (t.visuals.VignetteIntensity_f < 0.0)
+		t.visuals.VignetteIntensity_f = 0.0;
+
 	visuals_justshaderupdate ( );
 }
 
