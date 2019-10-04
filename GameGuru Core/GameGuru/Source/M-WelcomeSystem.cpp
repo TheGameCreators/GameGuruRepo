@@ -14,6 +14,10 @@ extern int g_trialStampDaysLeft;
 extern char g_trialDiscountExpires[1024];
 extern char g_trialDiscountCode[1024];
 
+// Prototypes
+UINT OpenURLForDataOrFile ( LPSTR pDataReturned, DWORD* pReturnDataSize, LPSTR pUniqueCode, LPSTR pVerb, LPSTR urlWhere, LPSTR pLocalFileForImageOrNews );
+void CleanStringOfEscapeSlashes ( char* pText );
+
 // Globals
 int g_welcomesystemclosedown = 0;
 struct welcomepagetype
@@ -131,7 +135,11 @@ void welcome_init ( int iLoadingPart )
 		{
 			// only used for free trial version
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-trial.png", g.editorimagesoffset+60 );
-			welcome_loadasset ( welcomePath, "welcome-assets\\free-trial-prompt.png", g.editorimagesoffset+62 );
+			#ifdef STEAMTRIAL
+			 welcome_loadasset(welcomePath, "welcome-assets\\free-steam-trial-prompt.png", g.editorimagesoffset + 62);
+			#else
+			 welcome_loadasset ( welcomePath, "welcome-assets\\free-trial-prompt.png", g.editorimagesoffset+62 );
+			#endif
 			welcome_loadasset ( welcomePath, "welcome-assets\\free-trial-click.png", g.editorimagesoffset+63 );
 		}
 		
@@ -856,8 +864,70 @@ void welcome_freetrialexitapp_page ( int iHighlightingButton )
 		if ( iHighlightingButton == 1 && g_welcomeCycle >= 0 ) 
 		{
 			// go to GameGuru Page
-			ExecuteFile ( "http://bit.ly/2M6GfX8","","",0 );
+			#ifdef STEAMTRIAL
+			 ExecuteFile("http://bit.ly/336P3lo", "", "", 0);
+			#else
+			 ExecuteFile ( "http://bit.ly/2M6GfX8","","",0 );
+			#endif
 			g_welcomeCycle = -1;
+		}
+	}
+}
+
+void welcome_findbestpromotion ( LPSTR pReturnString )
+{
+	// connect to server, get best promotion, copy to return string
+	strcpy ( pReturnString, "" );
+
+	// request data from server
+	DWORD dwDataReturnedSize = 0;
+	char pDataReturned[10240];
+	memset(pDataReturned, 0, sizeof(pDataReturned));
+	UINT iError = OpenURLForDataOrFile(pDataReturned, &dwDataReturnedSize, "", "GET", "/api/gameguru/trial/offers", NULL);
+	if (iError <= 0 && *pDataReturned != 0 && strchr(pDataReturned, '{') != 0)
+	{
+		// break up response string
+		// "status": "success"
+		// "offers": [array]
+		char pFirstSteamURL[10240];
+		strcpy ( pFirstSteamURL, "" );
+		char pWorkStr[10240];
+		strcpy(pWorkStr, pDataReturned);
+		if (pWorkStr[0] == '{') strcpy(pWorkStr, pWorkStr + 1);
+		int n = 10200;
+		for (; n>0; n--) if (pWorkStr[n] == '}') { pWorkStr[n] = 0; break; }
+		char* pChop = strstr(pWorkStr, ",");
+		char pStatusStr[10240];
+		strcpy(pStatusStr, pWorkStr);
+		if (pChop) pStatusStr[pChop - pWorkStr] = 0;
+		char* pStatusValue = strstr(pStatusStr, ":") + 1;
+		if (pChop[0] == ',') pChop += 1;
+		if (strstr(pStatusValue, "success") != NULL)
+		{
+			// success
+			// offers - first URL
+			char pSearchForToken[8];
+			pSearchForToken[0] = '"';
+			pSearchForToken[1] = 'u';
+			pSearchForToken[2] = 'r';
+			pSearchForToken[3] = 'l';
+			pSearchForToken[4] = '"';
+			pSearchForToken[5] = ':';
+			pSearchForToken[6] = '"';
+			pSearchForToken[7] = 0;
+			pChop = strstr(pChop, pSearchForToken ) + 7;
+			strcpy(pFirstSteamURL, pChop);
+			char pEndOfChunk[2];
+			pEndOfChunk[0] = '"';
+			pEndOfChunk[1] = 0;
+			char* pFirstSteamURLEnd = strstr(pFirstSteamURL, pEndOfChunk);
+			pFirstSteamURL[pFirstSteamURLEnd - pFirstSteamURL] = 0;
+			if ( strlen ( pFirstSteamURL ) < 2040 ) strcpy ( pReturnString, pFirstSteamURL );
+		}
+		else
+		{
+			// error, pReturnString remains blank
+			char* pMessageValue = strstr(pChop, ":") + 1;
 		}
 	}
 }
@@ -884,7 +954,11 @@ void welcome_freetrialintroapp_page ( int iHighlightingButton )
 
 	// expiry of discount code info
 	char pDiscountNotice[1024];
-	sprintf ( pDiscountNotice, "* Discount Code Expires: %s", g_trialDiscountExpires );
+	#ifdef STEAMTRIAL
+	 sprintf ( pDiscountNotice, "* Best Discount Right Now On Steam" );
+	#else
+	 sprintf(pDiscountNotice, "* Discount Code Expires: %s", g_trialDiscountExpires);
+	#endif
 	welcome_text ( pDiscountNotice, 1, 50, 78, 192, true, false );
 
 	// control page
@@ -894,11 +968,17 @@ void welcome_freetrialintroapp_page ( int iHighlightingButton )
 		{
 			t.tclosequick = 1;
 		}
-		if ( iHighlightingButton == 2 && g_welcomeCycle == 0 ) 
+		if (iHighlightingButton == 2 && g_welcomeCycle == 0)
 		{
 			// go to GameGuru Order Page with 50% discount
 			char pGoToLinkString[1024];
-			sprintf ( pGoToLinkString, "https://gameguru.thegamecreators.com/basket/add/17473/10723?discount_code=%s", g_trialDiscountCode );
+			#ifdef STEAMTRIAL
+			 // interrogate TGC server to find current promotion, then send the user to that promotion
+			 welcome_findbestpromotion(pGoToLinkString);
+			 CleanStringOfEscapeSlashes(pGoToLinkString);
+			#else
+			 sprintf(pGoToLinkString, "https://gameguru.thegamecreators.com/basket/add/17473/10723?discount_code=%s", g_trialDiscountCode);
+			#endif
 			ExecuteFile ( pGoToLinkString,"","",0 );
 			g_welcomeCycle = -1;
 			t.tclosequick = 1;

@@ -256,7 +256,7 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug Build All|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug Build All|x64'">true</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\GameGuru\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">$(ProjectDir)..\..\GameGuru\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">$(ProjectDir)..\..\GameGuruTrial\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">$(ProjectDir)..\..\GameGuru\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseEXE|Win32'">$(ProjectDir)..\..\GameGuru\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
@@ -946,7 +946,7 @@
     <ClCompile>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <PreprocessorDefinitions>FREETRIALVERSION;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FREETRIALVERSION;STEAMTRIAL;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
