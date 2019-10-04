@@ -194,6 +194,57 @@ function GameLoopQuit()
  gameloop.quit()
 end
 
+function GameLoopSaveStats()
+ file = io.open("savegames\\standalonelevelstats.dat", "w+")
+ io.output(file)
+ io.write("v1\n")
+ io.write(g_PlayerHealth .. "\n")
+ io.write(g_PlayerLives .. "\n")
+ WeaponID = GetPlayerWeaponID()
+ io.write(WeaponID .. "\n")
+ for index = 1, 10, 1 do
+  WeaponID = GetWeaponSlot ( index )
+  io.write(WeaponID .. "\n")
+  WeaponAmmoQty = GetWeaponAmmo ( index )
+  io.write(WeaponAmmoQty .. "\n")
+  WeaponAmmoClipQty = GetWeaponClipAmmo ( index )
+  io.write(WeaponAmmoClipQty .. "\n")
+  WeaponAmmoPoolQty = GetWeaponPoolAmmo ( index )
+  io.write(WeaponAmmoPoolQty .. "\n")
+ end
+ io.close(file)
+end
+
+function GameLoopLoadStats()
+ file = io.open("savegames\\standalonelevelstats.dat", "r")
+ if file ~= nil then
+  io.input(file)
+  versionString = io.read()
+  g_PlayerHealth = tonumber(io.read())
+  g_PlayerLives = tonumber(io.read())
+  SetPlayerHealth(g_PlayerHealth)
+  SetPlayerLives(g_PlayerLives)
+  CurrentlyHeldWeaponID = tonumber(io.read())
+  for index = 1, 10, 1 do
+   WeaponID = tonumber(io.read())
+   if WeaponID > 0 then
+    SetWeaponSlot ( index, WeaponID, WeaponID )
+    ChangePlayerWeaponID(WeaponID)
+   else
+    SetWeaponSlot ( index, 0, 0 )
+   end
+   WeaponAmmoQty = tonumber(io.read())
+   SetWeaponAmmo ( index, WeaponAmmoQty ) 
+   WeaponAmmoClipQty = tonumber(io.read())
+   SetWeaponClipAmmo ( index, WeaponAmmoClipQty )
+   WeaponAmmoPoolQty = tonumber(io.read())
+   SetWeaponPoolAmmo ( index, WeaponAmmoPoolQty )
+  end
+  io.close(file)
+  ChangePlayerWeaponID(CurrentlyHeldWeaponID)
+ end
+end
+
 function PlayerControl()
  gameplayercontrol = require "scriptbank\\gameplayercontrol"
  gameplayercontrol.main()

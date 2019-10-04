@@ -189,10 +189,7 @@ void game_masterroot ( void )
 					}
 
 					// work out first level from exe name (copied to jumplevel_s)
-					//g.projectfilename_s = ""; 
-					//g.projectfilename_s = g.projectfilename_s + "mapbank\\" + t.game.jumplevel_s;
-					g.projectfilename_s = g.mysystem.mapbank_s + t.game.jumplevel_s;
-					
+					g.projectfilename_s = g.mysystem.mapbank_s + t.game.jumplevel_s;				
 					if ( cstr(Lower(Right(g.projectfilename_s.Get(),4))) != ".fpm" )
 						g.projectfilename_s=g.projectfilename_s+".fpm";
 
@@ -202,7 +199,6 @@ void game_masterroot ( void )
 						// go into mapbank folder
 						cstr tthisold_s =  "";
 						tthisold_s=GetDir();
-						//SetDir ( cstr(g.fpscrootdir_s+"\\Files\\mapbank\\").Get() );
 						SetDir ( g.mysystem.mapbankAbs_s.Get() );
 
 						// scan for ALL files/folders
@@ -216,8 +212,6 @@ void game_masterroot ( void )
 								if ( tfolder_s != "." && tfolder_s != ".." ) 
 								{
 									// skip . and .. folders
-									//cstr newlevellocation = "";
-									//newlevellocation = newlevellocation + "mapbank\\" + tfolder_s + "\\" + t.game.jumplevel_s;
 									cstr newlevellocation = g.mysystem.mapbank_s + tfolder_s + "\\" + t.game.jumplevel_s;
 									if ( cstr(Lower(Right(newlevellocation.Get(),4))) != ".fpm" )
 										newlevellocation = newlevellocation + ".fpm";
@@ -1291,7 +1285,6 @@ void game_masterroot ( void )
 				}
 			}
 
-
 			//  Setup variables for main game loop
 			timestampactivity(0,"initialise final game variables");
 			game_init ( );
@@ -1409,6 +1402,16 @@ void game_masterroot ( void )
 
 			// resort texture list to ignore objects set to be ignored
 			DoTextureListSort ( );
+
+			// if reloading standalone level, need to restore basic stats from LUA save file
+			if ( g.iStandaloneIsReloading == 2 )
+			{
+				// call LUA function from game which updates stats via LUA script
+				char pLUACustomLoadCall[256];
+				strcpy ( pLUACustomLoadCall, "GameLoopLoadStats" );
+				LuaSetFunction ( pLUACustomLoadCall, 0, 0 ); 
+				LuaCall ( );
+			}
 
 			// one final command to improve static physics performance
 			physics_finalize ( );
@@ -1579,6 +1582,15 @@ void game_masterroot ( void )
 				game_sync ( );
 
 			} //  Game cycle loop end
+
+			// first save current level stats before reset LUA
+			if ( t.game.allowfragmentation == 2 )
+			{
+				char pLUACustomSaveCall[256];
+				strcpy ( pLUACustomSaveCall, "GameLoopSaveStats" );
+				LuaSetFunction ( pLUACustomSaveCall, 0, 0 ); 
+				LuaCall ( );
+			}
 
 			// free any lua activity (restore FOV if ingame activity there)
 			timestampactivity(0,"finalising LUA system before reset");
