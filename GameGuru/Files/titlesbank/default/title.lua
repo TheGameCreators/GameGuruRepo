@@ -18,7 +18,6 @@ g_sprCursor = 0
 g_sprCursorPtrX = 50
 g_sprCursorPtrY = 33
 g_sprCursorPtrClick = 0
-
 g_playtitlemusic = 0
 
 function title_init()
@@ -130,6 +129,12 @@ function title_main()
 end
 
 function title_free()
+ -- stop title music when leave
+ if g_playtitlemusic == 1 then
+  StopGlobalSound ( 1 )
+  DeleteGlobalSound ( 1 )
+  g_playtitlemusic = 0
+ end  
  -- free resources
  for i = 1, TITLE_QUIT, 1
  do
