@@ -1977,9 +1977,12 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	SetFileMapDWORD (  1, 970, 1 );
 	SetEventAndWait (  1 );
 
+	// LB101019 - this can cause a freeze due to DirectInput bug when screensaver/hybernate kicks in
+	// as the key pressed when waking up the boot screen remains in the key buffer even though key not pressed
+	// though does get cleared later somehow (replace DX Input at some point to avoid this issue)
 	// wait until all mouse activity over and escape key released
-	while ( MouseClick() != 0 ) {}
-	while ( ScanCode() != 0 ) {}
+	//while ( MouseClick() != 0 ) {}
+	//while ( ScanCode() != 0 ) {}
 
 	// Restore camera
 	editor_restoreeditcamera ( );

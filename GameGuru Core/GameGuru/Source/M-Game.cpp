@@ -1262,11 +1262,11 @@ void game_masterroot ( int iUseVRTest )
 
 											g.merged_new_objects++;
 
+// NOTE: Does this mean batched objects will not benefit from these important flags (some models have OpenGL normals and the auto-generated tangents shift about)											
 //											DWORD dwArtFlags = 0;
 //											if (t.entityprofile[t.e].invertnormal == 1) dwArtFlags = 1;
 //											if (t.entityprofile[t.e].preservetangents == 1) dwArtFlags |= 1 << 1;
 //											SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
-
 										}
 
 										DeleteObject(tmpobj);
