@@ -2057,9 +2057,10 @@ void editor_previewmapormultiplayer ( void )
 	SetFileMapDWORD (  1, 970, 1 );
 	SetEventAndWait (  1 );
 
-	//  wait until all mouse activity over and escape key released
-	while ( MouseClick() != 0 ) {}
-	while ( ScanCode() != 0 ) {}
+	// prevents freezing if go into hybernation and return by pressing a key on boot screen
+	// wait until all mouse activity over and escape key released
+	// while ( MouseClick() != 0 ) {}
+	// while ( ScanCode() != 0 ) {}
 
 	//  Restore camera
 	editor_restoreeditcamera ( );
