@@ -1,0 +1,68 @@
+;header
+desc          = Uber Character
+
+;character creator
+charactercreator = t.v:2:male_civilian_1_royals:male_civilian_1:none:none:-1:109:68:-1:0:0:-1:1:1:-1:73:229:-1:1:0:-1:0:0
+
+;ai
+aimain        = default.lua
+soundset      = male
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+;orientation
+model         = Uber Character.x
+offx          = 0
+offsety       = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+scale         = 100
+
+; basic attributes
+fixnewy        = 0
+effect         = effectbank\reloaded\character_basic.fx
+ragdoll        = 1
+skipfvfconvert = 1
+
+;cone of sight
+coneheight    = 53
+coneangle     = 50
+
+;visualinfo
+textured      = Uber Character_D2.dds
+castshadow    = 0
+
+;decals
+decalmax      = 0
+
+;identity details
+strength      = 100
+ischaracter   = 1
+
+;passive anim set
+animspeed        = 100
+animmax          = 17
+playanimineditor = 1
+ignorecsirefs    = 1
+anim0            = 3000,3110 ;idle
+anim1            = 3905,3925 ;move
+anim2            = 3110,3430 ;kick
+anim3            = 4971,5021 ;hurt
+anim4            = 3110,3420 ;converse
+anim5            = 0,0       ;reserved
+anim6            = 0,0       ;reserved
+anim7            = 3710,3744 ;duck
+anim8            = 3744,3828 ;duck idle
+anim9            = 3828,3862 ;unduck
+anim10           = 3905,3925 ;run
+anim11           = 900,939   ;roll to duck
+anim12           = 3870,3900 ;crouch dash
+anim13 	         = 3000,3110 ;idle sentry
+anim14           = 3870,3900 ;relaxed move
+anim15           = 3905,3925 ;strafe left
+anim16           = 3905,3925 ;strafe right

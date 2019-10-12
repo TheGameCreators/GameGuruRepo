@@ -3368,8 +3368,7 @@ void FPSC_Setup ( void )
 			}
 
 			// allow _e_ usage override
-			if ( FileExist ( cstr(g.exeroot_s + cstr("\\leeandraveyrock.txt")).Get() ) == 1 )
-				SetCanUse_e_(1);
+			SetCanUse_e_(1);
 
 			// if flag set to generate DOCDOC help, do this here
 			if ( g.globals.generatehelpfromdocdoc == 1 )
@@ -4030,6 +4029,7 @@ void common_justbeforeend ( void )
 	}
 
 	// save number of minutes user been in session (added to global recorded when we entered)
+	/* notused any more
 	DWORD dwTimeNow = timeGetTime();
 	DWORD dwTimeDifference = dwTimeNow - g.dwReviewRequestTimeStart;
 	int moreMinutes = (int)(dwTimeDifference / 1000 / 60);
@@ -4043,6 +4043,7 @@ void common_justbeforeend ( void )
 	WriteString ( 1, theFlag.Get() );
 	WriteString ( 1, theMinutes.Get() );
 	CloseFile (  1 );
+	*/
 }
 
 void common_loadfonts ( void )

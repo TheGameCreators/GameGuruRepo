@@ -91,8 +91,10 @@ void interactive_init ( void )
 	}
 	SetDir (  t.toldd_s.Get() );
 
-	//  By default this is ON
+	// By default this is ON
 	t.interactive.showonstartup=1;
+	t.interactive.active = 0;
+	/* not used any more
 	t.tfile_s=g.fpscrootdir_s+"\\tutorialonstartup.ini";
 	if (  FileExist(t.tfile_s.Get()) == 1 ) 
 	{
@@ -108,9 +110,7 @@ void interactive_init ( void )
 	{
 		t.interactive.active=0;
 	}
-
-return;
-
+	*/
 }
 
 void interactive_loop ( void )
