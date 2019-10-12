@@ -644,7 +644,7 @@ DARKSDK void CreateShaderResourceViewFor ( tagImgData* pImgPtr, int iTextureFlag
 	HRESULT hr = m_pD3D->CreateShaderResourceView(pImgPtr->lpTexture, &shaderResourceViewDesc, &pImgPtr->lpTextureView);
 	if ( FAILED ( hr ) )
 	{
-		Error ( "Failed to create resource view for image" );
+		Error1 ( "Failed to create resource view for image" );
 		return;
 	}
 }
@@ -1382,7 +1382,7 @@ DARKSDK LPGGTEXTURE GetTextureCore ( char* szFilename, GGIMAGE_INFO* info, int i
 
 	// check the texture loaded in ok
 	if ( !lpTexture )
-		Error ( "Failed to load texture for image library" );
+		Error1 ( "Failed to load texture for image library" );
 
 	// needed image info
 	m_iWidth  = (*info).Width;		// file width
@@ -1789,7 +1789,7 @@ DARKSDK void SetImageMemory ( int iMode )
 
 	// check that the mode is valid
 	if ( iMode < 0 || iMode > 2 )
-		Error ( "Invalid memory mode specified" );
+		Error1 ( "Invalid memory mode specified" );
 
 	// save the mode
 	m_iMemory = iMode;
@@ -1835,7 +1835,7 @@ DARKSDK void WriteImage ( int iID, int iX, int iY, int iA, int iR, int iG, int i
 		return;
 
 	if ( !m_imgptr->bLocked )
-		Error ( "Unable to modify texture data for image library as it isn't locked" );
+		Error1 ( "Unable to modify texture data for image library as it isn't locked" );
 	
 	#ifdef DX11
 	#else
@@ -1858,7 +1858,7 @@ DARKSDK void GetImage ( int iID, int iX, int iY, int* piR, int* piG, int* piB )
 
 	// check the image is locked
 	if ( !m_imgptr->bLocked )
-		Error ( "Unable to get texture data for image library as it isn't locked" );
+		Error1 ( "Unable to get texture data for image library as it isn't locked" );
 
 	#ifdef DX11
 	#else
@@ -1923,7 +1923,7 @@ DARKSDK LPGGTEXTURE MakeFormat ( int iID, int iWidth, int iHeight, GGFORMAT form
 	HRESULT hr = m_pD3D->CreateTexture2D( &StagedDesc, NULL, (ID3D11Texture2D**)&test->lpTexture );
 	if ( FAILED ( hr ) )
 	{
-		Error ( "Failed to create new image" );
+		Error1 ( "Failed to create new image" );
 		return NULL;
 	}
 
@@ -2468,14 +2468,29 @@ DARKSDK bool SaveImageCore ( char* szFilename, int iID, int iCompressionMode )
 		}
 
 		// save surface of image to file
-		hRes = D3DX11SaveTextureToFile( m_pImmediateContext, pTexSurface, DestFormat, szFilename );
-		if ( FAILED ( hRes ) )
+		try
 		{
-			char pStrClue[512];
-			wsprintf ( pStrClue, "tex:%d filename:%s", (int)pTexSurface, szFilename );
-			RunTimeError(RUNTIMEERROR_IMAGEERROR,pStrClue);
-			SAFE_RELEASE(pTexSurface);
-			return false;
+			hRes = D3DX11SaveTextureToFile( m_pImmediateContext, pTexSurface, DestFormat, szFilename );
+			if ( FAILED ( hRes ) )
+			{
+				char pStrClue[512];
+				wsprintf ( pStrClue, "tex:%d filename:%s", (int)pTexSurface, szFilename );
+				RunTimeError(RUNTIMEERROR_IMAGEERROR,pStrClue);
+				SAFE_RELEASE(pTexSurface);
+				return false;
+			}
+		}
+		catch (...)
+		{
+			// this can fail when file is locked, so try waiting 3 seconds, then try again, else silent fail so no crash!
+			Sleep(3000);
+			hRes = D3DX11SaveTextureToFile( m_pImmediateContext, pTexSurface, DestFormat, szFilename );
+			if ( FAILED ( hRes ) )
+			{
+				// so joy, silent fail!
+				SAFE_RELEASE(pTexSurface);
+				return false;
+			}
 		}
 	}
 

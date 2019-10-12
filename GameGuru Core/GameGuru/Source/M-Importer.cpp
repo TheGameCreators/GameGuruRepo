@@ -1490,7 +1490,11 @@ void importer_loadmodel ( void )
 	//  Dummy character object
 	t.importer.dummyCharacterObjectNumber=g.importermenuobjectoffset+2;
 	if (  ObjectExist(t.importer.dummyCharacterObjectNumber)  )  DeleteObject (  t.importer.dummyCharacterObjectNumber );
-	LoadObject (  "entitybank\\characters\\Uber Soldier.X",t.importer.dummyCharacterObjectNumber );
+	#ifdef PHOTONMP
+	 LoadObject (  "entitybank\\characters\\Uber Size Guide.X",t.importer.dummyCharacterObjectNumber );
+	#else
+	 LoadObject (  "entitybank\\characters\\Uber Soldier.X",t.importer.dummyCharacterObjectNumber );
+	#endif
 	TextureObject (  t.importer.dummyCharacterObjectNumber,0 );
 	DisableObjectZDepth (  t.importer.dummyCharacterObjectNumber );
 	LockObjectOn (  t.importer.dummyCharacterObjectNumber );

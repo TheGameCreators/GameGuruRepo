@@ -233,6 +233,92 @@ DARKSDK_DLL void SmoothNormals ( sMesh* pMesh, float fPercentage )
 	sOffsetMap offsetMap;
 	GetFVFOffsetMap ( pMesh, &offsetMap );
 
+	// faster method assumes vertices are shared, so go through faces, collect normals for each vertex in the face
+	// then we can average them at the end
+	if ( offsetMap.dwZ>0 && offsetMap.dwNZ>0 )
+	{
+		// index buffer or raw vertice list
+		bool bUsingIndices = true;
+		DWORD iCount = pMesh->dwIndexCount;
+		if ( iCount == 0 ) { iCount = pMesh->dwVertexCount; bUsingIndices = false; }
+
+		// a normal for each vertex in mesh (we will accumilate normals into these slots)
+		int* iNormalCount = new int [pMesh->dwVertexCount];
+		GGVECTOR3* fNormals = new GGVECTOR3 [pMesh->dwVertexCount];
+		for ( DWORD v=0; v<pMesh->dwVertexCount; v++ ) 
+		{
+			iNormalCount[v] = 0;
+			fNormals[v] = GGVECTOR3(0,0,0);
+		}
+
+		// go through all polys, collect normals for each face vert
+		for ( DWORD i=0; i<iCount; i+=3 )
+		{
+			// read face
+			DWORD dwFace0, dwFace1, dwFace2;
+			if ( bUsingIndices == true )
+			{
+				dwFace0 = pMesh->pIndices[i+0];
+				dwFace1 = pMesh->pIndices[i+1];
+				dwFace2 = pMesh->pIndices[i+2];
+			}
+			else
+			{
+				dwFace0 = i+0;
+				dwFace1 = i+1;
+				dwFace2 = i+2;
+			}
+
+			// get vertex
+			GGVECTOR3 vecVert0 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace0 ) );
+			GGVECTOR3 vecVert1 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace1 ) );
+			GGVECTOR3 vecVert2 = *(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwX + ( offsetMap.dwSize * dwFace2 ) );
+
+			// get normal
+			//GGVECTOR3* pvecNorm0 = (GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace0 ) );
+			//GGVECTOR3* pvecNorm1 = (GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace1 ) );
+			//GGVECTOR3* pvecNorm2 = (GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace2 ) );
+
+			// calculate normal from vertices
+			GGVECTOR3 vNormal;
+			GGVec3Cross ( &vNormal, &( vecVert2 - vecVert1 ), &( vecVert0 - vecVert1 ) );
+			GGVec3Normalize ( &vNormal, &vNormal );
+
+			// apply new normal to geometry for all normals associated with the poly
+			//*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace0 ) ) = vNormal;
+			//*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace1 ) ) = vNormal;
+			//*(GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * dwFace2 ) ) = vNormal;
+
+			// for now average everything, ignore percentage threshold
+			fNormals[dwFace0] += vNormal;
+			fNormals[dwFace1] += vNormal;
+			fNormals[dwFace2] += vNormal;
+			iNormalCount[dwFace0] += 1;
+			iNormalCount[dwFace1] += 1;
+			iNormalCount[dwFace2] += 1;
+		}
+
+		// we now have accumilated normals associated with vertices, now average them and write result into normal vector
+		for ( int iCurrentVertex = 0; iCurrentVertex < (int)pMesh->dwVertexCount; iCurrentVertex++ )
+		{
+			// get normal vector for vertex
+			GGVECTOR3* pvecOrigNormal = (GGVECTOR3*)( ( float* ) pMesh->pVertexData + offsetMap.dwNX + ( offsetMap.dwSize * iCurrentVertex ) );
+
+			// can only average normals that are used by faces
+			if ( iNormalCount[iCurrentVertex] > 0 )
+			{
+				// average normal
+				GGVECTOR3 vecAveragedNormal = fNormals[iCurrentVertex] / iNormalCount[iCurrentVertex];
+				*pvecOrigNormal = vecAveragedNormal;
+			}
+		}
+
+		// free usages
+		SAFE_DELETE ( iNormalCount );
+		SAFE_DELETE ( fNormals );
+	}
+
+	/*
 	// assume no more than 32 shared vertex points
 	DWORD dwSharedVertexMax=32;
 	DWORD dwNumberOfVertices=pMesh->dwVertexCount;
@@ -247,6 +333,8 @@ DARKSDK_DLL void SmoothNormals ( sMesh* pMesh, float fPercentage )
 	// make sure we have data in the vertices
 	if ( offsetMap.dwZ>0 && offsetMap.dwNZ>0 )
 	{
+		// This is super slow (8-15seconds on regular 18K character)
+		// each vertex checks every other vertex 7000*7000 iterations!
 		// go through all of the vertices
 		for ( int iCurrentVertex = 0; iCurrentVertex < (int)dwNumberOfVertices; iCurrentVertex++ )
 		{
@@ -350,6 +438,7 @@ DARKSDK_DLL void SmoothNormals ( sMesh* pMesh, float fPercentage )
 	SAFE_DELETE ( NormalCount );
 	SAFE_DELETE ( fNormals );
 	SAFE_DELETE ( pNormalRef );
+	*/
 
 	// flag mesh for a VB update
 	pMesh->bVBRefreshRequired=true;
@@ -437,6 +526,7 @@ DARKSDK_DLL void LoadCore ( SDK_LPSTR szFilename, SDK_LPSTR szOrgFilename, int i
 	}
 }
 
+void timestampactivity(int i, char* desc_s); // for debug
 
 DARKSDK_DLL void LoadObject(LPSTR szFilename, int iID)
 {
@@ -445,78 +535,81 @@ DARKSDK_DLL void LoadObject(LPSTR szFilename, int iID)
 	strcpy(VirtualFilename, szFilename);
 	g_pGlob->UpdateFilenameFromVirtualTable((DWORD)VirtualFilename);
 
-	// store current folder
+	// store current folder (typically mode dir)
 	char pStoreCurrentDir[_MAX_PATH];
 	GetCurrentDirectory(_MAX_PATH, pStoreCurrentDir);
 
+	// determine if loading an encrypted model file
 	bool bTempFolderChangeForEncrypt = CheckForWorkshopFile(VirtualFilename);
 
+	// get path of original model file passed in
 	char pPathToOriginalFile[_MAX_PATH];
-	if (bTempFolderChangeForEncrypt)
+	//if (bTempFolderChangeForEncrypt) LB:Prevents pPathToOriginalFile from being filled
+	//{
+	strcpy(pPathToOriginalFile, "");
+	//FILE* tempFile = NULL;
+	//tempFile = fopen(VirtualFilename, "r");
+	//if (tempFile)
+	// LB: No need to check existence, just that it has a size
+	if ( strlen(VirtualFilename) > 0 )
 	{
-		strcpy(pPathToOriginalFile, "");
-		FILE* tempFile = NULL;
-		tempFile = fopen(VirtualFilename, "r");
-		if (tempFile)
+		// get relative path from current
+		strcpy(pPathToOriginalFile, VirtualFilename);
+		for (DWORD n = strlen(pPathToOriginalFile) - 1; n > 0; n--)
 		{
-			// get relative path from current
-			strcpy(pPathToOriginalFile, VirtualFilename);
-			for (DWORD n = strlen(pPathToOriginalFile) - 1; n > 0; n--)
+			if (pPathToOriginalFile[n] == '\\' || pPathToOriginalFile[n] == '/' || (unsigned char)(pPathToOriginalFile[n]) < 32)
 			{
-				if (pPathToOriginalFile[n] == '\\' || pPathToOriginalFile[n] == '/' || (unsigned char)(pPathToOriginalFile[n]) < 32)
-				{
-					pPathToOriginalFile[n] = 0;
-					break;
-				}
+				pPathToOriginalFile[n] = 0;
+				break;
 			}
-
-			fclose(tempFile);
 		}
+	//	fclose(tempFile);
 	}
+	//}
 
 	// Decrypt and use media, re-encrypt
 	g_pGlob->Decrypt((DWORD)VirtualFilename);
 
-	// if encrypting model file (and model MAY load internal textures, ensure current directory is temporarily in model file folder
-//	if ( bTempFolderChangeForEncrypt==true )
-//	{
-//		// assign new one (at original model file location)
-//		SetCurrentDirectory ( pPathToOriginalFile );
-//	}
-
+	// NOT USED if encrypting model file (and model MAY load internal textures, ensure current directory is temporarily in model file folder
+	//	if ( bTempFolderChangeForEncrypt==true )
+	//	{
+	//		// assign new one (at original model file location)
+	//		SetCurrentDirectory ( pPathToOriginalFile );
+	//	}
 
 	//PE: We will now find it using the original path (model) , so we cant change dir.
 	//PE: Lightmap object still need dir change.
-
 	//char mdebug[1024];
 	//sprintf(mdebug, "DIRS: %s (%s)", VirtualFilename, szFilename);
 	//timestampactivity(0, mdebug);
 
-
-	if (strstr(VirtualFilename, "lightmaps\\") != NULL) //PEREV:
-	{
-		SetCurrentDirectory ( pPathToOriginalFile );
-	}
+	// this changes from models dir to lightmap dir
+	//LB: When this was done, models that looked for internal textures could not find them in the lightmaps\\ folder! Multitexture models could not be lightmapped!
+	//if (strstr(VirtualFilename, "lightmaps\\") != NULL)
+	//{
+	//	SetCurrentDirectory ( pPathToOriginalFile );
+	//}
 
 	// Load media
 	LoadCore ( (SDK_LPSTR)VirtualFilename, (SDK_LPSTR) szFilename, iID, 0, 0 );
 
-	if (strstr(VirtualFilename, "lightmaps\\") != NULL)
-	{
-		SetCurrentDirectory ( pStoreCurrentDir );
-		bTempFolderChangeForEncrypt = false;
-	}
+	// this restores dir to previous model dir
+	//LB: When this was done, models that looked for internal textures could not find them in the lightmaps\\ folder! Multitexture models could not be lightmapped!
+	//if (strstr(VirtualFilename, "lightmaps\\") != NULL)
+	//{
+	//	SetCurrentDirectory ( pStoreCurrentDir );
+	//	bTempFolderChangeForEncrypt = false;
+	//}
 
-	// restore current directory
-//	if ( bTempFolderChangeForEncrypt==true )
-//	{
-//		SetCurrentDirectory ( pStoreCurrentDir );
-//		bTempFolderChangeForEncrypt = false;
-//	}
+	// restore current directory NOT USED
+	//	if ( bTempFolderChangeForEncrypt==true )
+	//	{
+	//		SetCurrentDirectory ( pStoreCurrentDir );
+	//		bTempFolderChangeForEncrypt = false;
+	//	}
 
 	// Re-encrypt
 	g_pGlob->Encrypt( (DWORD)VirtualFilename );
-
 }
 
 DARKSDK_DLL void LoadObject ( LPSTR szFilename, int iID, int iDBProMode )
@@ -647,8 +740,8 @@ DARKSDK_DLL void SaveObject ( LPSTR szFilename, int iID )
 						// make a new mesh from the original mesh, and ensure it's verts only
 						sMesh* pVertOnlyMesh = new sMesh;
 						sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
-						MakeMeshFromOtherMesh ( true, false, pVertOnlyMesh, pMesh, NULL );
-						ConvertLocalMeshToVertsOnly ( pVertOnlyMesh );
+						MakeMeshFromOtherMesh       ( true, pVertOnlyMesh, pMesh, NULL );
+						ConvertLocalMeshToVertsOnly ( pVertOnlyMesh, false );
 
 						// group name
 						pLine = "# Mesh\n";
@@ -892,7 +985,7 @@ DARKSDK_DLL void CreateMeshForObject ( int iID, DWORD dwFVF, DWORD dwVertexCount
 		return;
 	}
 	
-	if ( !SetupMeshFVFData ( false, pObject->pFrame->pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pObject->pFrame->pMesh, dwFVF, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -1141,7 +1234,6 @@ DARKSDK_DLL void SetObjectTransparency ( int iID, int iTransparency )
 	// 5 - water line object (seperates depth sort automatically)
 	// 6 - combination of 3 and 4 (second phase render with alpha blend AND alpha test, used for fading LOD leaves)
 	// 7 - very early draw phase no alpha
-	// 8 - below water line , render before water.
 
 	// check the object exists
 	if ( !ConfirmObjectInstance ( iID ) )
@@ -1158,7 +1250,7 @@ DARKSDK_DLL void SetObjectTransparency ( int iID, int iTransparency )
 	{
 		SetTransparency ( pObject->ppMeshList [ iMesh ], bTransparency==TRUE );
 		SetAlphaTest ( pObject->ppMeshList [ iMesh ], 0x0 ); 
-		if ( iTransparency==4 || iTransparency==6 || iTransparency == 8 )
+		if ( iTransparency==4 || iTransparency==6 )
 		{
 			SetAlphaTest ( pObject->ppMeshList [ iMesh ], 0x000000CF );
 		}
@@ -1513,7 +1605,7 @@ DARKSDK_DLL void MakeObject ( int iID, int iMeshID, int iImageID )
 
 	// setup general object data
 	sMesh* pMesh = g_ObjectList [ iID ]->pFrame->pMesh;
-	MakeMeshFromOtherMesh ( true, false, pMesh, g_RawMeshList [ iMeshID ], &matWorld );
+	MakeMeshFromOtherMesh ( true, pMesh, g_RawMeshList [ iMeshID ], &matWorld );
 
 	// setup new object and introduce to buffers
 	SetNewObjectFinalProperties ( iID, -1.0f );
@@ -1624,7 +1716,7 @@ DARKSDK_DLL void MakeObjectFromLimbEx ( int iNewID, int iSrcID, int iLimbID, int
 				GGMatrixIdentity ( &matWorld );
 
 				// mesh copy
-				MakeMeshFromOtherMesh ( true, false, pDestMesh, pSrcMesh, &matWorld );
+				MakeMeshFromOtherMesh ( true, pDestMesh, pSrcMesh, &matWorld );
 				pNewObject->ppMeshList [ m ] = pDestMesh;
 
 				// bone data copy
@@ -1772,7 +1864,7 @@ DARKSDK_DLL void MakeObjectFromLimbEx ( int iNewID, int iSrcID, int iLimbID, int
 		GGMATRIX matWorld = pSrcFrame->matCombined * pSrcObject->position.matObjectNoTran;
 
 		// create new mesh from existing mesh
-		MakeMeshFromOtherMesh ( true, false, pDestMesh, pSrcMesh, &matWorld );
+		MakeMeshFromOtherMesh ( true, pDestMesh, pSrcMesh, &matWorld );
 
 		// setup new object and introduce to buffers
 		SetNewObjectFinalProperties ( iNewID, -1.0f );
@@ -1949,7 +2041,7 @@ void AddLODToObject ( int iCurrentID, int iLODModelID, int iLODLevel, float fDis
 									GGMatrixIdentity ( &matWorld );
 
 									// mesh copy
-									MakeMeshFromOtherMesh ( true, false, pDestMesh, pSrcMesh, &matWorld );
+									MakeMeshFromOtherMesh ( true, pDestMesh, pSrcMesh, &matWorld );
 									if ( iLODLevel < 2 )
 										pFrame->pLOD [ iLODLevel ] = pDestMesh;
 									else
@@ -2514,7 +2606,7 @@ DARKSDK int MakeNewObjectPanel	( int iID , int iNumberOfCharacters )
 	// create memory
 	DWORD dwVertexCount = 6 * iNumberOfCharacters; // store number of vertices
 	DWORD dwIndexCount  = 0; // store number of indices
-	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_DIFFUSE | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_DIFFUSE | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return 0;
@@ -2647,7 +2739,7 @@ DARKSDK_DLL void MakeObjectTriangle ( int iID, float x1, float y1, float z1, flo
 	// create vertex memory
 	DWORD dwVertexCount = 3;									// store number of vertices
 	DWORD dwIndexCount  = 0;									// store number of indices
-	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -2742,7 +2834,7 @@ DARKSDK_DLL void MakeObjectCylinder ( int iID, float fSize )
 	// create vrtex memory
 	DWORD dwVertexCount = ( iSegments + 1 ) * 2;					// store number of vertices
 	DWORD dwIndexCount  = 0;										// store number of indices
-	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -2810,7 +2902,7 @@ DARKSDK_DLL void MakeObjectCone ( int iID, float fSize )
 	// create vrtex memory
 	DWORD dwVertexCount = (iSegments * 2) + 1;						// store number of vertices
 	DWORD dwIndexCount  = iSegments * 3;							// store number of indices
-	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return;
@@ -3825,6 +3917,38 @@ DARKSDK_DLL void SetObjectToCameraOrientation ( int iID )
 
 // Texture commands
 
+DARKSDK_DLL void TextureObjectRef ( int iID, LPGGSHADERRESOURCEVIEW pTextureRef, float fClipU, float fClipV )
+{
+	// check the object exists
+	g_pGlob->dwInternalFunctionCode=12001;
+	if ( !ConfirmObject ( iID ) )
+		return;
+
+	// apply to all meshes
+	sObject* pObject = g_ObjectList [ iID ];
+	for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
+	{
+		sMesh* pMesh = pObject->ppMeshList [ iMesh ];
+		SetBaseTextureStageRef ( pMesh, 0, pTextureRef );
+
+		// get the offset map for the FVF
+		sOffsetMap offsetMap;
+		GetFVFOffsetMap ( pMesh, &offsetMap );
+
+		// change the UV offsets
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTU[0] + ( offsetMap.dwSize * 0 ) ) = fClipU;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTU[0] + ( offsetMap.dwSize * 2 ) ) = fClipU;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTV[0] + ( offsetMap.dwSize * 2 ) ) = fClipV;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTV[0] + ( offsetMap.dwSize * 4 ) ) = fClipV;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTU[0] + ( offsetMap.dwSize * 5 ) ) = fClipU;
+		*( ( float* ) pMesh->pVertexData + offsetMap.dwTV[0] + ( offsetMap.dwSize * 5 ) ) = fClipV;
+
+		// flag mesh for a VB update
+		pMesh->bVBRefreshRequired=true;
+		g_vRefreshMeshList.push_back ( pMesh );
+	}
+}
+
 DARKSDK_DLL void TextureObject ( int iID, int iImage )
 {
 	// check the object exists
@@ -4598,12 +4722,6 @@ CFirstPersonCamera*         g_pActiveCamera = &g_ViewerCamera;
 
 DARKSDK_DLL void SetEffectToShadowMappingEx ( int iEffectID, int iDebugObjStart, int iDebugEffectIndex, int iHideDistantShadows, int iRealShadowResolution, int iRealShadowCascadeCount, int iC0, int iC1, int iC2, int iC3, int iC4, int iC5, int iC6, int iC7 )
 {
-
-//	char mdebug[1024];
-//	sprintf(mdebug, "iRealShadowCascadeCount: %d (%d) ", iRealShadowCascadeCount , iRealShadowResolution );
-//	timestampactivity(0, mdebug);
-
-
 	// setup effect to support shadow mapping
 	g_PrimaryShadowEffect = iEffectID;
 	if ( iDebugObjStart > 0 )
@@ -5888,7 +6006,7 @@ DARKSDK_DLL void SetVertexShaderOff ( int iID )
 		SetNoShader ( pObject->ppMeshList [ iMesh ] );
 }
 
-DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBonesFromLM )
+DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones )
 {
 	// check the object exists
 	if ( !ConfirmObject ( iID ) )
@@ -5900,9 +6018,8 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 		return;
 
 	// create new mesh list to store ALL new meshes (erase bones means lightmapper process)
-	if ( dwEraseBonesFromLM==1 )
+	if ( dwEraseBones==1 )
 	{
-		// add up all materials used
 		DWORD dwTotalMaterialCount = 0;
 		for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
 		{
@@ -5943,10 +6060,10 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 							sMesh* pNewMesh = new sMesh();
 							if ( pNewMesh )
 							{
-								// now duplicate mesh (which is modified to have only the indices for this material)
+								// duplicate mesh
 								GGMATRIX matWorld;
 								GGMatrixIdentity ( &matWorld );
-								MakeMeshFromOtherMesh ( true, true, pNewMesh, pMesh, &matWorld );
+								MakeMeshFromOtherMesh ( true, pNewMesh, pMesh, &matWorld );
 
 								// copy in correct texture
 								if ( pNewMesh->pTextures==NULL )
@@ -5964,23 +6081,32 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 								pNewMesh->bUseMultiMaterial = false;
 								pNewMesh->fSpecularOverride = 1.0f;
 								pNewMesh->bUsesMaterial = false;
-								// pMultiMaterial [ dwMaterialIndex ].mMaterial ignored
 
-								// modify index data so mesh only points to revelant polygons (now done above)
+								// modify index data so mesh only points to revelant polygons
 								DWORD dwPolyCount = pMultiMaterial [ dwMaterialIndex ].dwPolyCount;
-								pNewMesh->dwIndexCount = dwPolyCount*3;
-								pNewMesh->iDrawVertexCount = pMesh->iDrawVertexCount;
-								pNewMesh->iDrawPrimitives  = dwPolyCount;
-								if ( pMesh->dwVertexCount > 0xFFFF)
-									memcpy ( pNewMesh->pIndices, (DWORD*)pMesh->pIndices + pMultiMaterial [ dwMaterialIndex ].dwIndexStart, dwPolyCount*3*sizeof(DWORD) );
-								else
-									memcpy ( pNewMesh->pIndices, pMesh->pIndices + pMultiMaterial [ dwMaterialIndex ].dwIndexStart, dwPolyCount*3*sizeof(WORD) );
-
-								// if original mesh used 32bit indices, NEED to convert new mesh to verts only as cannot render 32-bit indices (even if lower than 22K polys now)
-								if ( pMesh->dwVertexCount > 0xFFFF )
+								if ( pNewMesh->pIndices != NULL )
 								{
-									// always treat as 32-bit indices, even if newmesh uses less than this (as source was 32bit)
-									ConvertLocalMeshToVertsOnly ( true, pNewMesh );
+									// straight copy of relevant indices for this material 
+									pNewMesh->dwIndexCount = dwPolyCount*3;
+									pNewMesh->iDrawVertexCount = pMesh->iDrawVertexCount;
+									pNewMesh->iDrawPrimitives  = dwPolyCount;
+									memcpy ( pNewMesh->pIndices, pMesh->pIndices + pMultiMaterial [ dwMaterialIndex ].dwIndexStart, dwPolyCount*3*sizeof(WORD) );
+								}
+								else
+								{
+									// mesh exceeded 16bit index buffer, so need to manually copy the relevant verts for vert only mesh
+									pNewMesh->dwIndexCount = 0;
+									pNewMesh->iDrawVertexCount = dwPolyCount*3;
+									pNewMesh->iDrawPrimitives  = dwPolyCount;
+									for ( int i = 0; i < dwPolyCount*3; i+=3 )
+									{
+										int iV0 = pMultiMaterial [ dwMaterialIndex ].dwIndexStart + i + 0;
+										int iV1 = pMultiMaterial [ dwMaterialIndex ].dwIndexStart + i + 1;
+										int iV2 = pMultiMaterial [ dwMaterialIndex ].dwIndexStart + i + 2;
+										*((GGVECTOR3*)pNewMesh->pVertexData+i+0) = *(GGVECTOR3*)pMesh->pVertexData+iV0;
+										*((GGVECTOR3*)pNewMesh->pVertexData+i+1) = *(GGVECTOR3*)pMesh->pVertexData+iV1;
+										*((GGVECTOR3*)pNewMesh->pVertexData+i+2) = *(GGVECTOR3*)pMesh->pVertexData+iV2;
+									}
 								}
 
 								// add to new mesh list
@@ -6102,7 +6228,7 @@ DARKSDK_DLL void CloneMeshToNewFormat ( int iID, DWORD dwFVF, DWORD dwEraseBones
 		ConvertToFVF ( pObject->ppMeshList [ iMesh ], dwFVF );
 
 	// lee - 050914 - also remove any bone animation data as converted object cannot animate without correct FVF skinning
-	if ( dwEraseBonesFromLM==1 )
+	if ( dwEraseBones==1 )
 	{
 		for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
 		{
@@ -6920,7 +7046,7 @@ DARKSDK_DLL int IntersectAll_OLD ( int iPrimaryStart, int iPrimaryEnd, float fX,
 //Dave Performance
 //Previous intersect all is above, incase of issues
 //This version combines the orignal method with the shortlist of boxes checked to provide the best of both versions
-DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly )
+DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo )
 {
 	// special iIgnoreObjNo mode
 	if (iIgnoreObjNo == -123 || iIgnoreObjNo == -124 || iIgnoreObjNo == -125)
@@ -7023,12 +7149,6 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 					continue;
 			}
 
-			// check if object has animation and flag rejects animating entities (moving characters, trees cannot be used for third person camera collision)
-			sObject* pRealObject = pObject;
-			if ( pObject->pInstanceOfObject ) pRealObject = pObject->pInstanceOfObject;
-			if ( iStaticOnly == 1 && pRealObject->fAnimTotalFrames > 0.0f )
-				continue;
-
 			// check if object in same 'region' as ray
 			float fDX=0, fDY=0, fDZ=0;
 			if ( pObject->position.iGluedToObj>0 )
@@ -7051,11 +7171,17 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 			float fDist = sqrt((fDX*fDX)+(fDY*fDY)+(fDZ*fDZ));
 			if ( fDist <= ((pObject->collision.fLargestRadius*3)+fDistanceBetweenPoints) )
 			{
+				// 110919 - ensure any offset applied to frame zero is accounted for (OFFSETX/Y/Z)
+				GGMATRIX matWorldWithFrameOffset = pObject->position.matWorld;
+				sObject* pActualObj = pObject;
+				if ( pObject->pInstanceOfObject ) pActualObj = pObject->pInstanceOfObject;
+				if ( pActualObj->ppFrameList[0] ) matWorldWithFrameOffset = pActualObj->ppFrameList[0]->matAbsoluteWorld;
+
 				// instead of transforming box to object world orientation, transform ray
 				// on a per object basis back into object space, for quicker box checking
 				float fDet;
 				GGMATRIX matInvWorld;
-				GGMatrixInverse(&matInvWorld,&fDet,&pObject->position.matWorld);
+				GGMatrixInverse(&matInvWorld,&fDet,&matWorldWithFrameOffset);//pObject->position.matWorld);
 				GGVECTOR3 vecFrom = GGVECTOR3(fX,fY,fZ);
 				GGVECTOR3 vecTo = GGVECTOR3(fNewX,fNewY,fNewZ);
 				GGVec3TransformCoord(&vecFrom,&vecFrom,&matInvWorld);
@@ -7220,11 +7346,6 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 
 	// return hit value depending on what was hit
 	return iHitValue;
-}
-
-DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo )
-{
-	return IntersectAllEx ( iPrimaryStart, iPrimaryEnd, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, 0 );
 }
 
 DARKSDK void SetObjectCollisionProperty ( int iObjectID, int iPropertyValue )
@@ -7703,7 +7824,7 @@ DARKSDK_DLL void AddLimb ( int iID, int iLimbID, int iMeshID )
 	GGMatrixIdentity ( &matWorld );
 
 	// make a copy of the mesh
-	MakeMeshFromOtherMesh ( true, false, pNewMesh, g_RawMeshList [ iMeshID ], &matWorld );
+	MakeMeshFromOtherMesh ( true, pNewMesh, g_RawMeshList [ iMeshID ], &matWorld );
 
 	// add new frame to end of 
 	if ( !AddNewFrame ( pObject, pNewMesh, "new limb" ) )
@@ -7914,7 +8035,7 @@ DARKSDK_DLL void ChangeMesh ( int iObjectID, int iLimbID, int iMeshID )
 		GGMatrixIdentity ( &matWorld );
 
 		// make a copy of the mesh
-		MakeMeshFromOtherMesh ( true, false, pNewMesh, g_RawMeshList [ iMeshID ], &matWorld );
+		MakeMeshFromOtherMesh ( true, pNewMesh, g_RawMeshList [ iMeshID ], &matWorld );
 
 		// lee - 280306 - u6rc2 - if specify limb with no mesh, exit now
 		if ( pOldMesh==NULL )
@@ -7962,7 +8083,7 @@ DARKSDK_DLL void ConvertMeshToVertexData ( int iMeshID )
 		return;
 
 	// do the conversion
-	if ( g_RawMeshList ) ConvertLocalMeshToVertsOnly ( g_RawMeshList [ iMeshID ] ); 
+	if ( g_RawMeshList ) ConvertLocalMeshToVertsOnly ( g_RawMeshList [ iMeshID ], false ); 
 }
 
 DARKSDK_DLL void MakeMeshFromObject ( int iMeshID, int iObjectID, int iIgnoreMode )
@@ -7992,7 +8113,7 @@ DARKSDK_DLL void MakeMeshFromObject ( int iMeshID, int iObjectID, int iIgnoreMod
 	// ConvertLocalMeshToVertsOnly ( pNewMesh ); 
 	// leeadd - 141008 - u70 - also make mesh from sphere and cylinder object need this - so put back in this case!
 	if ( pNewMesh->iPrimitiveType!=GGPT_TRIANGLELIST )
-		ConvertLocalMeshToVertsOnly ( pNewMesh ); 
+		ConvertLocalMeshToVertsOnly ( pNewMesh, false ); 
 
 	// check memory allocation
 	ID_MESH_ALLOCATION ( iMeshID );
@@ -8040,7 +8161,7 @@ DARKSDK_DLL void MakeMeshFromLimb ( int iMeshID, int iObjectID, int iLimbNumber 
 	// ConvertLocalMeshToVertsOnly ( pNewMesh ); 
 	// leeadd - 141008 - u70 - also make mesh from sphere and cylinder object need this - so put back in this case!
 	if ( pNewMesh->iPrimitiveType!=GGPT_TRIANGLELIST )
-		ConvertLocalMeshToVertsOnly ( pNewMesh ); 
+		ConvertLocalMeshToVertsOnly ( pNewMesh, false ); 
 
 	// check memory allocation
 	ID_MESH_ALLOCATION ( iMeshID );
@@ -8793,7 +8914,7 @@ DARKSDK_DLL int ObjectExist ( int iID )
 {
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{ 
-		//PE: We use ObjectExist to check if a object can be used, so why this ?
+		//PE: We use ObjectExist to check if a object can be used, so why this ? (LB: Just in case a dodgy index is passed in which can be caught and distinguished from an object that has not been created)
 		//RunTimeError ( RUNTIMEERROR_B3DMODELNUMBERILLEGAL );
 		return 0;
 	}

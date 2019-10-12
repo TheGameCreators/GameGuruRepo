@@ -84,6 +84,7 @@ DARKSDK LPSTR	ReadFilemapString				( LPSTR pFilemapname );
 
 DARKSDK void	OpenToRead						( int f, LPSTR pFilename );
 DARKSDK void	OpenToWrite						( int f, LPSTR pFilename );
+DARKSDK bool	OpenToWriteEx					( int f, LPSTR pFilename );
 DARKSDK void	CloseFile						( int f );
 DARKSDK int		ReadByte						( int f );
 DARKSDK int		ReadWord						( int f );

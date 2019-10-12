@@ -2388,7 +2388,7 @@ bool PathFinderAdvanced::QuickPolygonsCheck ( float fSX, float fSY, float fEX, f
 	}
 	else
 	{
-		// allows AI objects in other containers to move freely (floor zones up and down stairs)
+		// no obstacles created for non-zero containers, so assume no collisions (allowing free movement of AI inside non-zero containers)
 		return false;
 	}
 	/* broken!!

@@ -4,7 +4,7 @@ g_mysprite = {}
 g_myangle = {}
 
 function imageinzone_init(e)
- g_myimage[e] = LoadImage("scriptbank\\images\\sprite test\\lee.png")
+ g_myimage[e] = LoadImage(GetEntityString(e,0))
  g_mysprite[e] = 0
  g_myangle[e] = 0
 end
@@ -19,9 +19,9 @@ function imageinzone_main(e)
   SetSpriteSize ( g_mysprite[e], 50*aspectratio, 50 )
   SetSpriteOffset ( g_mysprite[e], 25*aspectratio, 25 )
   SetSpritePosition ( g_mysprite[e], 50, 50 )
-  g_myangle[e] = g_myangle[e] + 0.1
-  SetSpriteAngle( g_mysprite[e], g_myangle[e] )
-  SetSpriteColor ( g_mysprite[e], math.random(0,255), math.random(0,255), math.random(0,255), 255 )
+  --g_myangle[e] = g_myangle[e] + 0.1
+  --SetSpriteAngle( g_mysprite[e], g_myangle[e] )
+  --SetSpriteColor ( g_mysprite[e], math.random(0,255), math.random(0,255), math.random(0,255), 255 )
  else
   if g_mysprite[e] > 0 then
    DeleteSprite ( g_mysprite[e] )

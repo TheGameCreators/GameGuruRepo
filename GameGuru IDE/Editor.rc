@@ -89,6 +89,29 @@ IDB_BITMAP8             BITMAP                  "res\\GameToolbar.bmp"
 // Toolbar
 //
 
+IDR_COMBINEDTOOLBAR TOOLBAR 42, 42
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE_EX
+    BUTTON      ID_VIEW_ZOOMIN
+    BUTTON      ID_VIEW_ZOOMOUT
+    BUTTON      ID_ENTITY_VIEW
+    BUTTON      ID_MARKER_VIEW
+    BUTTON      ID_SEGMENT_VIEW
+    BUTTON      ID_TERRAIN_RAISE
+    BUTTON      ID_TERRAIN_LEVEL
+    BUTTON      ID_TERRAIN_STORE
+    BUTTON      ID_TERRAIN_BLEND
+    BUTTON      ID_TERRAIN_RAMP
+    BUTTON      ID_TERRAIN_TEXTURE
+    BUTTON      ID_TERRAIN_GRASS
+    BUTTON      ID_WAYPOINT_CREATE
+    BUTTON      ID_WAYPOINT_SELECT
+    BUTTON      ID_TEST_GAME
+    BUTTON      ID_MULTIPLAYER_GAME
+END
+
 IDR_MAINFRAME TOOLBAR 42, 42
 BEGIN
     BUTTON      ID_FILE_NEW
@@ -195,7 +218,7 @@ BEGIN
         MENUITEM "Save Standalone",             ID_FILE_BUILDGAME
         MENUITEM "Download Store Items",        ID_FILE_DOWNLOADSTOREITEMS
         MENUITEM "Character Creator...",        ID_FILE_CHARACTERCREATOR33003
-        MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
+        //MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
         MENUITEM SEPARATOR
         MENUITEM "Preferences...",              ID_FILE_PREFERENCES, INACTIVE
         MENUITEM SEPARATOR
@@ -344,7 +367,7 @@ BEGIN
         MENUITEM "Save Standalone",             ID_FILE_BUILDGAME
         MENUITEM "Download Store Items",        ID_FILE_DOWNLOADSTOREITEMS
         MENUITEM "Character Creator...",        ID_FILE_CHARACTERCREATOR33003
-        MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
+        //MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
         MENUITEM SEPARATOR
         MENUITEM "Preferences...",              ID_FILE_PREFERENCES, INACTIVE
         MENUITEM SEPARATOR

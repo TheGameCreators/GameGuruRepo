@@ -407,16 +407,26 @@ void entity_loop ( void )
 			{
 				if ( ObjectExist(t.tobj) == 1 ) 
 				{
-					if (  Timer()>(int)t.entityelement[t.e].overprompttimer ) 
+					if ( Timer()>(int)t.entityelement[t.e].overprompttimer ) 
 					{
-						t.entityelement[t.e].overprompttimer=0;
+						if ( t.entityelement[t.e].overpromptuse3D == false ) 
+							t.entityelement[t.e].overprompttimer=0;
+						else
+							lua_hideperentity3d ( t.e );
 					}
 					else
 					{
-						if (  GetInScreen(t.tobj) == 1 ) 
+						if ( t.entityelement[t.e].overpromptuse3D == false )
 						{
-							t.t_s=t.entityelement[t.e].overprompt_s ; t.twidth=getbitmapfontwidth(t.t_s.Get(),1)/2;
-							pastebitmapfont(t.t_s.Get(),GetScreenX(t.tobj)-t.twidth,GetScreenY(t.tobj),1,255);
+							if ( GetInScreen(t.tobj) == 1 ) 
+							{
+								t.t_s=t.entityelement[t.e].overprompt_s ; t.twidth=getbitmapfontwidth(t.t_s.Get(),1)/2;
+								pastebitmapfont(t.t_s.Get(),GetScreenX(t.tobj)-t.twidth,GetScreenY(t.tobj),1,255);
+							}
+						}
+						else
+						{
+							lua_updateperentity3d ( t.e, t.entityelement[t.e].overprompt_s.Get(), t.entityelement[t.e].overprompt3dX, t.entityelement[t.e].overprompt3dY, t.entityelement[t.e].overprompt3dZ, t.entityelement[t.e].overprompt3dAY, t.entityelement[t.e].overprompt3dFaceCamera );
 						}
 					}
 				}
@@ -577,33 +587,37 @@ void entity_loop ( void )
 				{
 					// only glue head if enemy is visible
 					t.tconstantlygluehead=0;
-					if ( t.tobj>0 ) {  if ( GetVisible(t.tobj)==1 ) { t.tconstantlygluehead=1; } } 
-					if (  t.game.runasmultiplayer == 1 ) 
+					if ( t.tobj>0 ) { if ( GetVisible(t.tobj)==1 ) { t.tconstantlygluehead=1; } } 
+					if ( t.game.runasmultiplayer == 1 ) 
 					{
-						//  deal with multiplayer issues
-						//  if (  its me,  )  only show me when im dead
-						if (  t.characterkitcontrol.showmyhead == 1 && t.e == t.mp_playerEntityID[g.mp.me] ) 
+						// deal with multiplayer issues - if ( its me, ) only show me when im dead
+						if ( t.characterkitcontrol.showmyhead == 1 && t.e == t.mp_playerEntityID[g.mp.me] ) 
 						{
 							t.tconstantlygluehead=1;
 						}
-						//  if other players are dead and transitioning to a new spawn postion
-						for ( t.ttemploop = 0 ; t.ttemploop<=  MP_MAX_NUMBER_OF_PLAYERS; t.ttemploop++ )
+						// if other players are dead and transitioning to a new spawn postion
+						for ( t.ttemploop = 0 ; t.ttemploop <= MP_MAX_NUMBER_OF_PLAYERS; t.ttemploop++ )
 						{
-							if (  t.ttemploop != g.mp.me ) 
+							if ( t.ttemploop != g.mp.me ) 
 							{
-								if (  t.e == t.mp_playerEntityID[t.ttemploop] && t.mp_forcePosition[t.ttemploop]>0 && SteamGetPlayerAlive(t.ttemploop) == 1 ) 
+								#ifdef PHOTONMP
+								 int iAlive = PhotonGetPlayerAlive(t.ttemploop);
+								#else
+								 int iAlive = SteamGetPlayerAlive(t.ttemploop);
+								#endif
+								if ( t.e == t.mp_playerEntityID[t.ttemploop] && t.mp_forcePosition[t.ttemploop]>0 && iAlive == 1 ) 
 								{
 									t.tconstantlygluehead=0;
 								}
 							}
 						}
 					}
-					//  if head is flagged to by glued, attach to body now
-					if (  t.tconstantlygluehead == 1 ) 
+					// if head is flagged to by glued, attach to body now
+					if ( t.tconstantlygluehead == 1 ) 
 					{
-						//  NOTE; re-searching for head limb is a performance hit
+						// NOTE; re-searching for head limb is a performance hit
 						t.tSourcebip01_head=getlimbbyname(t.entityelement[t.e].obj, "Bip01_Head");
-						if (  t.tSourcebip01_head>0 ) 
+						if ( t.tSourcebip01_head>0 ) 
 						{
 							//Dave - fix to heads being backwards for characters when switched off (3000 units away)
 							float tdx = CameraPositionX(0) - ObjectPositionX(t.entityelement[t.e].obj);
@@ -1071,7 +1085,23 @@ void entity_updatepos ( void )
 				}
 				else
 				{
-					ODESetLinearVelocity ( t.tobj,t.tvx_f,t.tvgravity_f*5.0,t.tvz_f );
+					if ( t.entityelement[t.te].nogravity == 1 )
+					{
+						// special case of non character entity with gravity off (pickupable objects)
+						float fNoGravY = t.entityelement[t.te].y - ObjectPositionY(t.tobj);
+						if ( fabs(fNoGravY) > 0.0f )
+						{
+							if ( fNoGravY > fDistCap ) fNoGravY = fDistCap;
+							if ( fNoGravY < -fDistCap ) fNoGravY = -fDistCap;
+							fNoGravY *= 30.0f; // keep it in eye view when look up and down 15.0f;
+						}
+						ODESetLinearVelocity ( t.tobj, t.tvx_f*2, fNoGravY*2, t.tvz_f*2 );
+					}
+					else
+					{
+						// default
+						ODESetLinearVelocity ( t.tobj,t.tvx_f,t.tvgravity_f*5.0,t.tvz_f );
+					}
 				}
 			}
 		}
@@ -1184,6 +1214,9 @@ void entity_applydamage ( void )
 {
 	if ( t.entityelement[t.ttte].obj <= 0 ) return;
 	if ( ObjectExist ( t.entityelement[t.ttte].obj ) == 0 ) return;
+
+	// 090419 - special VR mode also disables concepts of being damaged
+	if ( g.vrqcontrolmode != 0 ) return;//g.gvrmode == 3 ) return;
 
 	//  if entity being damaged is protagonist
 	if (  t.tskiplayerautoreject == 0 ) 
@@ -2408,7 +2441,7 @@ void entity_converttoinstance ( void )
 				t.tstorevis=GetVisible(t.tobj);
 				DeleteObject (  t.tobj );
 				t.ttsourceobj=g.entitybankoffset+t.entityelement[t.tte].bankindex;
-				if ( t.entityprofile[t.entityelement[t.tte].bankindex].cpuanims==0 )
+				if ( t.entityprofile[t.entityelement[t.tte].bankindex].cpuanims==0 && t.entityprofile[t.entityelement[t.tte].bankindex].ischaracter == 0 )
 					InstanceObject (  t.tobj,t.ttsourceobj );
 				else
 					CloneObject ( t.tobj, t.ttsourceobj, 1 );
@@ -2453,7 +2486,10 @@ void entity_createobj ( void )
 		//		bUniqueSpecular = true;
 		//  Create new object
 		bool bUniqueSpecular = entity_isuniquespecularoruv ( t.tupdatee );
-		if ( t.entityprofile[t.tentid].ismarker != 0 || t.entityprofile[t.tentid].cpuanims != 0 || t.entityprofile[t.gridentity].isebe != 0 || bUniqueSpecular == true ) 
+		bool bCreateAsClone = false;
+		if ( t.entityprofile[t.tentid].ismarker != 0 || t.entityprofile[t.tentid].cpuanims != 0 || t.entityprofile[t.gridentity].isebe != 0 || bUniqueSpecular == true ) bCreateAsClone = true;
+		if ( t.entityprofile[t.tentid].ischaractercreator == 1 ) bCreateAsClone = true; // needed to keep head attached!
+		if ( bCreateAsClone == true )
 		{
 			CloneObject (  t.obj,t.sourceobj,1 );
 			if (  t.tupdatee != -1  )  t.entityelement[t.tupdatee].isclone = 1;

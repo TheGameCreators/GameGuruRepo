@@ -139,7 +139,11 @@ void ebe_init ( int BuildObj, int iEntID )
 
 	// Help Dialog Shortcut Keys
 	ebebuild.iEBETexHelpSpr = g.ebeinterfacesprite + 2;
-	ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\ebe-texturehelp.png");
+	//#ifdef VRQUEST
+	// ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\branded\\ebe-texturehelp.png");
+	//#else
+	 ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\ebe-texturehelp.png");
+	//#endif
 	Sprite ( ebebuild.iEBETexHelpSpr, ebebuild.iTexturePanelX - 10, ebebuild.iTexturePanelY - 10 - ImageHeight(ebebuild.iEBETexHelpImg), ebebuild.iEBETexHelpImg );
 
 	// Load TXP default file
@@ -298,12 +302,15 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 			}
 			sDDSFile = tRawPathAndFile + cstr("_D.dds");
 			CopyFile ( tDDSSource.Get(), sDDSFile.Get(), FALSE );
-			tDDSSource = tSourceRaw + "_N.dds";
-			sDDSFile = tRawPathAndFile + cstr("_N.dds");
-			CopyFile ( tDDSSource.Get(), sDDSFile.Get(), FALSE );
-			tDDSSource = tSourceRaw + "_S.dds";
-			sDDSFile = tRawPathAndFile + cstr("_S.dds");
-			CopyFile ( tDDSSource.Get(), sDDSFile.Get(), FALSE );
+			#ifdef VRQUEST
+			#else
+			 tDDSSource = tSourceRaw + "_N.dds";
+			 sDDSFile = tRawPathAndFile + cstr("_N.dds");
+			 CopyFile ( tDDSSource.Get(), sDDSFile.Get(), FALSE );
+			 tDDSSource = tSourceRaw + "_S.dds";
+			 sDDSFile = tRawPathAndFile + cstr("_S.dds");
+			 CopyFile ( tDDSSource.Get(), sDDSFile.Get(), FALSE );
+			#endif
 			sDDSFile = tRawPathAndFile + cstr("_D.dds");
 		}
 		if ( FileExist(sDDSFile.Get()) == 1 ) 
@@ -311,21 +318,20 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 			cstr tDDSFilename = "ebebank\\default\\textures_D.dds";
 			if ( FileExist(tDDSFilename.Get()) == 1 ) DeleteAFile ( tDDSFilename.Get() );
 			CopyFile ( sDDSFile.Get(), tDDSFilename.Get(), FALSE );
-			sDDSFile = tRawPathAndFile + cstr("_N.dds");
-			tDDSFilename = "ebebank\\default\\textures_N.dds";
-			if ( FileExist(tDDSFilename.Get()) == 1 ) DeleteAFile ( tDDSFilename.Get() );
-			CopyFile ( sDDSFile.Get(), tDDSFilename.Get(), FALSE );
-			sDDSFile = tRawPathAndFile + cstr("_S.dds");
-			tDDSFilename = "ebebank\\default\\textures_S.dds";
-			if ( FileExist(tDDSFilename.Get()) == 1 ) DeleteAFile ( tDDSFilename.Get() );
-			CopyFile ( sDDSFile.Get(), tDDSFilename.Get(), FALSE );
+			#ifdef VRQUEST
+			#else
+			 sDDSFile = tRawPathAndFile + cstr("_N.dds");
+			 tDDSFilename = "ebebank\\default\\textures_N.dds";
+			 if ( FileExist(tDDSFilename.Get()) == 1 ) DeleteAFile ( tDDSFilename.Get() );
+			 CopyFile ( sDDSFile.Get(), tDDSFilename.Get(), FALSE );
+			 sDDSFile = tRawPathAndFile + cstr("_S.dds");
+			 tDDSFilename = "ebebank\\default\\textures_S.dds";
+			 if ( FileExist(tDDSFilename.Get()) == 1 ) DeleteAFile ( tDDSFilename.Get() );
+			 CopyFile ( sDDSFile.Get(), tDDSFilename.Get(), FALSE );
+			#endif
 		}
 
 		// and the TXP file too (260317 - generate, as copy may not exist)
-		//sLongFilename = cstr("ebebank\\default\\") + ebe_constructlongTXPname(".txp");
-		//cstr sTextureTXPFile = "ebebank\\default\\textures_profile.txp";
-		//if ( FileExist(sTextureTXPFile.Get()) == 1 ) DeleteAFile ( sTextureTXPFile.Get() );
-		//CopyFile ( sLongFilename.Get(), sTextureTXPFile.Get(), FALSE );
 		ebe_savetxp(cstr(cstr("ebebank\\default\\")+cstr("textures_profile.txp")).Get());
 
 		// and update EBE editor texture plate image for selector
@@ -371,25 +377,26 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 
 	// Apply texture plate
 	int iTexD = loadinternaltexture("ebebank\\default\\textures_D.dds");
-	int iTexN = loadinternaltexture("ebebank\\default\\textures_N.dds");
-	int iTexS = loadinternaltexture("ebebank\\default\\textures_S.dds");
-	//t.entityprofile[entid].texdid = iTexD;
-	//t.entityprofile[entid].texnid = iTexN;
-	//t.entityprofile[entid].texsid = iTexS;
-	//int iTexD = t.entityprofile[entid].texdid;
-	//int iTexN = t.entityprofile[entid].texnid;
-	//int iTexS = t.entityprofile[entid].texsid;
-	//if ( iTexD > 0 && ImageExist ( iTexD ) == 1 ) DeleteImage ( iTexD );
-	//if ( iTexN > 0 && ImageExist ( iTexN ) == 1 ) DeleteImage ( iTexN );
-	//if ( iTexS > 0 && ImageExist ( iTexS ) == 1 ) DeleteImage ( iTexS );
-	LoadImage ( "ebebank\\default\\textures_D.dds", iTexD, 0, g.gdividetexturesize);
-	LoadImage ( "ebebank\\default\\textures_N.dds", iTexN, 0, g.gdividetexturesize);
-	LoadImage ( "ebebank\\default\\textures_S.dds", iTexS, 0, g.gdividetexturesize);
+	#ifdef VRQUEST
+	 int iTexN = loadinternaltexture("effectbank\\reloaded\\media\\blank_N.dds");
+	 int iTexS = loadinternaltexture("effectbank\\reloaded\\media\\blank_medium_S.DDS");
+	#else
+	 int iTexN = loadinternaltexture("ebebank\\default\\textures_N.dds");
+	 int iTexS = loadinternaltexture("ebebank\\default\\textures_S.dds");
+	#endif
+	#ifdef VRQUEST
+	 LoadImage ( "effectbank\\reloaded\\media\\blank_N.dds", iTexN );
+	 LoadImage ( "effectbank\\reloaded\\media\\blank_medium_S.DDS", iTexS );
+	#else
+	 LoadImage ( "ebebank\\default\\textures_N.dds", iTexN );
+	 LoadImage ( "ebebank\\default\\textures_S.dds", iTexS );
+	#endif
+	LoadImage ( "ebebank\\default\\textures_D.dds", iTexD );
 	TextureObject ( iBuildObj, 0, iTexD );
 	TextureObject ( iBuildObj, 1, loadinternaltexture("effectbank\\reloaded\\media\\blank_O.dds") );
 	TextureObject ( iBuildObj, 2, iTexN );
 	TextureObject ( iBuildObj, 3, iTexS );
-	TextureObject ( iBuildObj, 4, t.terrain.imagestartindex );
+	TextureObject ( iBuildObj, 4, loadinternaltexture("effectbank\\reloaded\\media\\materials\\0_Gloss.dds") );
 	TextureObject ( iBuildObj, 5, g.postprocessimageoffset+5 );
 	TextureObject ( iBuildObj, 6, loadinternaltexture("effectbank\\reloaded\\media\\blank_I.dds") );
 	SetObjectTransparency ( iBuildObj, 0 );
@@ -653,7 +660,7 @@ void ebe_refreshmesh ( int iBuildObj, int x1, int y1, int z1, int x2, int y2, in
 					sMesh* pMesh = pObject->ppFrameList[iLimbIndex]->pMesh;
 					DWORD dwVertPos = pVertCountStore[iSlotIndex];
 					DWORD dwIndicePos = (dwVertPos/2)*3;
-					SetupMeshFVFData ( false, pMesh, pMesh->dwFVF, dwVertPos, dwIndicePos );
+					SetupMeshFVFData ( pMesh, pMesh->dwFVF, dwVertPos, dwIndicePos, false );
 					pMesh->iPrimitiveType = GGPT_TRIANGLELIST;
 					pMesh->iDrawVertexCount = dwVertPos;
 					pMesh->iDrawPrimitives  = dwIndicePos / 3;
@@ -1075,11 +1082,15 @@ void ebe_loop ( void )
 				ebe_settexturehighlight();
 
 				// and if it was right mouse, customise this texture too
+				//#ifdef VRQUEST
+				// Cannot allow custom EBE textures - bloats FPM making transfer over multiplayer very slow
+				//#else
 				if ( t.inputsys.mclick == 2 )
 				{
 					// replace texture within texture atlas
 					ebebuild.bCustomiseTexture = true;
 				}
+				//#endif
 
 				// ensure we do not write into builder if selecting texture
 				t.inputsys.mclick = 0;
@@ -1951,7 +1962,7 @@ void ebe_optimize_object ( int iObj, int iEntID )
 		g_vRefreshMeshList.push_back ( pMesh );
 		DWORD dwVertPos = iCountMaterialForThisMesh * 24;
 		DWORD dwIndicePos = (dwVertPos/2)*3;
-		SetupMeshFVFData ( false, pMesh, pMesh->dwFVF, dwVertPos, dwIndicePos );
+		SetupMeshFVFData ( pMesh, pMesh->dwFVF, dwVertPos, dwIndicePos, false );
 		pMesh->iPrimitiveType = GGPT_TRIANGLELIST;
 		pMesh->iDrawVertexCount = dwVertPos;
 		pMesh->iDrawPrimitives  = dwIndicePos / 3;
@@ -2082,32 +2093,29 @@ void ebe_optimize_object ( int iObj, int iEntID )
 	CalculateObjectBounds ( iObj );
 
 	// Apply texture plate
-	//int iTexD = t.entityprofile[iEntID].texdid;
-	//int iTexN = t.entityprofile[iEntID].texnid;
-	//int iTexS = t.entityprofile[iEntID].texsid;
 	int iTexD = loadinternaltexture(cstr(cstr("ebebank\\default\\") + ebe_constructlongTXPname("_D.dds")).Get());
-	int iTexN = loadinternaltexture(cstr(cstr("ebebank\\default\\") + ebe_constructlongTXPname("_N.dds")).Get());
-	int iTexS = loadinternaltexture(cstr(cstr("ebebank\\default\\") + ebe_constructlongTXPname("_S.dds")).Get());
+	#ifdef VRQUEST
+	 int iTexN = loadinternaltexture("effectbank\\reloaded\\media\\blank_N.dds");
+	 int iTexS = loadinternaltexture("effectbank\\reloaded\\media\\blank_medium_S.DDS");
+	#else
+	 int iTexN = loadinternaltexture(cstr(cstr("ebebank\\default\\") + ebe_constructlongTXPname("_N.dds")).Get());
+	 int iTexS = loadinternaltexture(cstr(cstr("ebebank\\default\\") + ebe_constructlongTXPname("_S.dds")).Get());
+	#endif
 	t.entityprofile[iEntID].texdid = iTexD;
 	t.entityprofile[iEntID].texnid = iTexN;
 	t.entityprofile[iEntID].texsid = iTexS;
-	//if ( iTexD > 0 && ImageExist ( iTexD ) == 1 ) DeleteImage ( iTexD );
-	//if ( iTexN > 0 && ImageExist ( iTexN ) == 1 ) DeleteImage ( iTexN );
-	//if ( iTexS > 0 && ImageExist ( iTexS ) == 1 ) DeleteImage ( iTexS );
-	//LoadImage ( cstr(cstr("ebebank\\default\\") + ebe_constructlongTXPname("_D.dds")).Get(), iTexD );
-	//LoadImage ( cstr(cstr("ebebank\\default\\") + ebe_constructlongTXPname("_N.dds")).Get(), iTexN );
-	//LoadImage ( cstr(cstr("ebebank\\default\\") + ebe_constructlongTXPname("_S.dds")).Get(), iTexS );
 	TextureObject ( iObj, 0, iTexD );
 	TextureObject ( iObj, 1, loadinternaltexture("effectbank\\reloaded\\media\\blank_O.dds") );
 	TextureObject ( iObj, 2, iTexN );
 	TextureObject ( iObj, 3, iTexS );
-	TextureObject ( iObj, 4, t.terrain.imagestartindex );
+	TextureObject ( iObj, 4, loadinternaltexture("effectbank\\reloaded\\media\\materials\\0_Gloss.dds") );
 	TextureObject ( iObj, 5, g.postprocessimageoffset+5 );
 	TextureObject ( iObj, 6, loadinternaltexture("effectbank\\reloaded\\media\\blank_I.dds") );
+	TextureObject ( iObj, 7, loadinternaltexture("effectbank\\reloaded\\media\\detail_default.dds") );
 	SetObjectTransparency ( iObj, 0 );
-
-	// now apply regular entity shader (so has proper shading and can be lightmapped)
-	int iEffectIndex = loadinternaleffect("effectbank\\reloaded\\entity_basic.fx");
+	
+	// now apply regular entity shader
+	int iEffectIndex = loadinternaleffect("effectbank\\reloaded\\apbr_basic.fx");
 	SetObjectEffect ( iObj, iEffectIndex );
 	SetObjectMask ( iObj, 0x1+(1<<31) );
 
@@ -2503,7 +2511,6 @@ void ebe_save_ebefile ( cStr tSaveFile, int iEntID )
 	{
 		if ( strnicmp ( tRawPath.Get(), "levelbank", 9 ) != NULL )
 		{
-			//tDDSSourceRaw = cstr("levelbank\\testmap\\") + Left(t.entityprofile[iEntID].texd_s.Get(),strlen(t.entityprofile[iEntID].texd_s.Get())-6);
 			tDDSSourceRaw = g.mysystem.levelBankTestMap_s + Left(t.entityprofile[iEntID].texd_s.Get(),strlen(t.entityprofile[iEntID].texd_s.Get())-6);
 			tDDSSourceFilename = tDDSSourceRaw + "_D.dds";
 		}
@@ -2513,14 +2520,17 @@ void ebe_save_ebefile ( cStr tSaveFile, int iEntID )
 		cstr sDDSFile = tRawPathAndFile + cstr("_D.dds");
 		if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
 		CopyFile ( tDDSSourceFilename.Get(), sDDSFile.Get(), FALSE );
-		tDDSSourceFilename = tDDSSourceRaw + "_N.dds";
-		sDDSFile = tRawPathAndFile + cstr("_N.dds");
-		if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
-		CopyFile ( tDDSSourceFilename.Get(), sDDSFile.Get(), FALSE );
-		tDDSSourceFilename = tDDSSourceRaw + "_S.dds";
-		sDDSFile = tRawPathAndFile + cstr("_S.dds");
-		if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
-		CopyFile ( tDDSSourceFilename.Get(), sDDSFile.Get(), FALSE );
+		#ifdef VRQUEST
+		#else
+		 tDDSSourceFilename = tDDSSourceRaw + "_N.dds";
+		 sDDSFile = tRawPathAndFile + cstr("_N.dds");
+		 if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
+		 CopyFile ( tDDSSourceFilename.Get(), sDDSFile.Get(), FALSE );
+		 tDDSSourceFilename = tDDSSourceRaw + "_S.dds";
+		 sDDSFile = tRawPathAndFile + cstr("_S.dds");
+		 if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
+		 CopyFile ( tDDSSourceFilename.Get(), sDDSFile.Get(), FALSE );
+		#endif
 	}
 }
 
@@ -2573,9 +2583,12 @@ int ebe_loadcustomtexture ( int iEntityProfileIndex, int iWhichTextureOver )
 	// work out if _D.dds or not
 	int iTexSetsPossible = 1;
 	LPSTR pLoadFilename = tLoadFile.Get();
+	#ifdef VRQUEST
+	#else
 	cstr pFileExt = Right ( pLoadFilename, 6 );
 	if ( stricmp ( pFileExt.Get(), "_d.dds" ) == NULL )
 		iTexSetsPossible = 3;
+	#endif
 
 	// go through texture subsets (D, N, S )
 	for ( int iTexSet = 0; iTexSet < iTexSetsPossible; iTexSet++ )
@@ -2610,7 +2623,7 @@ int ebe_loadcustomtexture ( int iEntityProfileIndex, int iWhichTextureOver )
 		if ( iTexSet == 0 ) 
 		{
 			// texture used by texture plate
-			LoadImage ( pPlateFilename.Get(), ebebuild.iTexPlateImage,0,g.gdividetexturesize);
+			LoadImage ( pPlateFilename.Get(), ebebuild.iTexPlateImage );
 			TextureObject ( ebebuild.iBuildObj, 0, ebebuild.iTexPlateImage );
 			TextureObject ( ebebuild.iBuildObj, 1, ebebuild.iTexPlateImage );
 		}
@@ -2840,10 +2853,16 @@ void ebe_finishsite ( void )
 				t.entityprofile[entid].texdid = loadinternaltextureex(tthistexdir_s.Get(),1,0);
 			else
 				t.entityprofile[entid].texdid = loadinternaltextureex(tthistexdir_s.Get(),5,0);
-			tthistexdir_s = t.entityprofile[entid].texpath_s + ebe_constructlongTXPname("_N.dds");
-			t.entityprofile[entid].texnid = loadinternaltextureex(tthistexdir_s.Get(),5,0);
-			tthistexdir_s = t.entityprofile[entid].texpath_s + ebe_constructlongTXPname("_S.dds");
-			t.entityprofile[entid].texsid = loadinternaltextureex(tthistexdir_s.Get(),1,0);
+
+			#ifdef VRQUEST
+			 t.entityprofile[entid].texnid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_N.dds",5,0);
+			 t.entityprofile[entid].texsid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_medium_S.DDS",1,0);
+			#else
+			 tthistexdir_s = t.entityprofile[entid].texpath_s + ebe_constructlongTXPname("_N.dds");
+			 t.entityprofile[entid].texnid = loadinternaltextureex(tthistexdir_s.Get(),5,0);
+			 tthistexdir_s = t.entityprofile[entid].texpath_s + ebe_constructlongTXPname("_S.dds");
+			 t.entityprofile[entid].texsid = loadinternaltextureex(tthistexdir_s.Get(),1,0);
+			#endif
 
 			// recreate entity using optimized polygons
 			ebe_optimize_e();
@@ -3091,13 +3110,16 @@ void ebe_savetxp ( LPSTR pTXPFilename )
 		cstr sDDSFile = tRawPathAndFile + cstr("_D.dds");
 		if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
 		CopyFile ( tDDSFilename.Get(), sDDSFile.Get(), FALSE );
-		tDDSFilename = "ebebank\\default\\textures_N.dds";
-		sDDSFile = tRawPathAndFile + cstr("_N.dds");
-		if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
-		CopyFile ( tDDSFilename.Get(), sDDSFile.Get(), FALSE );
-		tDDSFilename = "ebebank\\default\\textures_S.dds";
-		sDDSFile = tRawPathAndFile + cstr("_S.dds");
-		if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
-		CopyFile ( tDDSFilename.Get(), sDDSFile.Get(), FALSE );
+		#ifdef VRQUEST
+		#else
+		 tDDSFilename = "ebebank\\default\\textures_N.dds";
+		 sDDSFile = tRawPathAndFile + cstr("_N.dds");
+		 if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
+		 CopyFile ( tDDSFilename.Get(), sDDSFile.Get(), FALSE );
+		 tDDSFilename = "ebebank\\default\\textures_S.dds";
+		 sDDSFile = tRawPathAndFile + cstr("_S.dds");
+		 if ( FileExist(sDDSFile.Get()) == 1 ) DeleteAFile ( sDDSFile.Get() );
+		 CopyFile ( tDDSFilename.Get(), sDDSFile.Get(), FALSE );
+		#endif
 	}
 }

@@ -1,17 +1,32 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#define PHOTONMP
+
+// Includes
 #include "SteamCheckForWorkshop.h"
 #include <stdio.h>
-
-// New include
 #include "SteamCommands.h"
 
-bool CheckForWorkshopFile ( LPSTR VirtualFilename)
-{
+// Globals
+LPSTR g_pRootFolder = NULL;
 
+void SetWorkshopFolder ( LPSTR pFolder ) 
+{ 
+	// used to reference levelbank\testmap when loading custom content from FPM load area
+	if ( g_pRootFolder == NULL )
+	{
+		g_pRootFolder = new char[2048];
+		strcpy ( g_pRootFolder, pFolder ); 
+	}
+}
+
+bool CheckForWorkshopFile ( LPSTR VirtualFilename )
+{
+	// actually checks for existence of _e_ file in place of original!
+
+	// some quick rejections
 	if ( !VirtualFilename ) return false;
 	if ( strlen ( VirtualFilename ) < 3 ) return false;
-
 	char* tempCharPointerCheck = NULL;
 	tempCharPointerCheck = strrchr( VirtualFilename, '\\' );
 	if ( tempCharPointerCheck == VirtualFilename+strlen(VirtualFilename)-1 ) return false;
@@ -31,6 +46,7 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 			szEncryptedFilenameFolder[c] = '\\';
 	}
 
+	// assemble _e_ filename
 	tempCharPointer = strrchr( szEncryptedFilenameFolder, '\\' );
 	if ( tempCharPointer && tempCharPointer != szEncryptedFilenameFolder+strlen(szEncryptedFilenameFolder)-1 )
 	{
@@ -41,6 +57,8 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 	{
 		sprintf ( szEncryptedFilename , "_e_%s" , szEncryptedFilenameFolder );
 	}
+
+	// check it exists
 	FILE* tempFile = NULL;
 	tempFile = fopen ( szEncryptedFilename ,"r" );
 	if ( tempFile )
@@ -51,6 +69,46 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 	}
 	// end of encrypted file check
 
+	#ifdef PHOTONMP
+		// Photon has no workshop support 
+		if ( VirtualFilename && strlen ( VirtualFilename ) > 0 )
+		{
+			// but can load in custom content from levelbank\testmap if transported by FPM
+			// clean file reference
+			LPSTR pOneFiledStr = new char[10+strlen(VirtualFilename)+1];
+			strcpy ( pOneFiledStr, "CUSTOM_" );
+			int nnn = 7;
+			for ( int n = 0; n < strlen(VirtualFilename); n++ )
+			{
+				if ( VirtualFilename[n] == '\\' && VirtualFilename[n+1] == '\\' ) n++; // skip duplicate backslashes
+				if ( VirtualFilename[n] == '\\' )
+					pOneFiledStr[nnn++] = '_';
+				else
+					pOneFiledStr[nnn++] = VirtualFilename[n];
+			}
+			pOneFiledStr[nnn] = 0; 
+
+			// attempt to load onefile reference from levelbank\testmap
+			if ( g_pRootFolder )
+			{
+				LPSTR plevelBankTestMapRef = "\\Files\\levelbank\\testmap\\";
+				LPSTR pOneFilePath = new char[strlen(g_pRootFolder)+strlen(plevelBankTestMapRef)+strlen(pOneFiledStr)+10];
+				strcpy ( pOneFilePath, g_pRootFolder );
+				strcat ( pOneFilePath, plevelBankTestMapRef );
+				strcat ( pOneFilePath, pOneFiledStr );
+				tempFile = fopen ( pOneFilePath ,"r" );
+				if ( tempFile )
+				{
+					fclose ( tempFile );
+					if ( (strlen(pOneFilePath)+5) < _MAX_PATH ) strcpy ( VirtualFilename , pOneFilePath );
+					delete pOneFilePath;
+					return true;
+				}
+				delete pOneFilePath;
+			}
+		}
+
+	#else
 		char szWorkshopFilename[_MAX_PATH];
 		char szWorkshopFilenameFolder[_MAX_PATH];
 		char szWorkShopItemPath[_MAX_PATH];
@@ -117,15 +175,6 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 			strcat ( szTempName , "\\" );
 			strcat ( szTempName , szWorkshopFilenameFolder );
 
-			/*FILE* tempy = NULL;
-			tempy = fopen ( "f:\\DUMPFILE.txt" ,"a" );
-			if ( tempy )
-			{
-				fputs ( szTempName , tempy );
-				fputs ( "\n" , tempy );
-				fclose ( tempy );
-			}*/
-
 			FILE* tempFile = NULL;
 			tempFile = fopen ( szTempName ,"r" );
 			if ( tempFile )
@@ -134,20 +183,6 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 				int szTempNamelength = strlen(szTempName);
 				int virtualfilelength = strlen(VirtualFilename);				
 				strcpy ( VirtualFilename , szTempName );
-
-				/*FILE* tempy = NULL;
-				tempy = fopen ( "f:\\DUMPFILE.txt" ,"a" );
-				if ( tempy )
-				{					
-					fputs ( szWorkShopItemPath , tempy );
-					fputs ( "\n" , tempy );
-					fputs ( VirtualFilename , tempy );
-					fputs ( "\n" , tempy );
-					fputs ( "============" , tempy );
-					fputs ( "\n" , tempy );
-					fclose ( tempy );
-				}*/
-
 				return true;
 			}
 			else // check for encrypted version
@@ -174,7 +209,7 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename)
 				}
 			}
 		}
-
+	#endif
 	return false;
 }
 

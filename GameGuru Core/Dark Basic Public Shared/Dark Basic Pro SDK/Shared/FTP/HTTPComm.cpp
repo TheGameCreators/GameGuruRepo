@@ -122,8 +122,8 @@ bool HTTP_Connect ( char* url, DWORD dwPort, int secure )
 				// 20120418 IanM - Force the port number into the valid range.
 				hInetConnect = InternetConnect(	hInet,
 												url,
-												(WORD)(dwPort & 0xffff),
-												"",
+												INTERNET_DEFAULT_HTTPS_PORT,//(WORD)(dwPort & 0xffff),
+												NULL,//"",
 												NULL,
 												INTERNET_SERVICE_HTTP,
 												0, 0);
@@ -184,12 +184,21 @@ LPSTR HTTP_RequestData ( LPSTR pVerb, LPSTR pObjectName, LPSTR pHeaderString, DW
 	LPSTR pDataReturned = NULL;
 	strcpy ( g_pFeedbackAreaString, "" );
 
+	// ensure decent timeout
+	int m_iTimeout = 5000;
+	InternetSetOption( hInetConnect, INTERNET_OPTION_CONNECT_TIMEOUT, (void*)&m_iTimeout, sizeof(m_iTimeout) );  
+
 	// prepare request
 	// 20120418 IanM - Take into account the secure setting when submitting the new request
-	HINTERNET hHttpRequest = HttpOpenRequest ( hInetConnect, pVerb, pObjectName, "HTTP/1.1", "The Agent", NULL, dwFlag | g_dwSecureFlag, 0 );
+	//HINTERNET hHttpRequest = HttpOpenRequest ( hInetConnect, pVerb, pObjectName, "HTTP/1.1", "The Agent", NULL, dwFlag | g_dwSecureFlag, 0 );
+	HINTERNET hHttpRequest = HttpOpenRequest ( hInetConnect, pVerb, pObjectName, "HTTP/1.1", NULL, NULL, INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_SECURE, 0 );//dwFlag | g_dwSecureFlag, 0 );
+
+	// added this from other HTTP working code
+	//HttpAddRequestHeaders( hHttpRequest, "Content-Type: application/x-www-form-urlencoded", -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
 
 	// send request with header
 	BOOL bSendResult = HttpSendRequest ( hHttpRequest, pHeaderString, dwHeaderSize, pPostData, dwPostDataSize );
+	//BOOL bSendResult = HttpSendRequest ( hHttpRequest, NULL, -1, pPostData, dwPostDataSize );
 	if ( bSendResult )
 	{
 		// reading all data
@@ -247,7 +256,7 @@ LPSTR HTTP_RequestData ( LPSTR pVerb, LPSTR pObjectName, LPSTR pHeaderString, DW
 					DWORD dwNewDataSize = dwDataReturned + dwDownloaded;
 					LPSTR pNewData = new char [ dwNewDataSize+1 ];
 					memcpy ( pNewData, lpszData, dwDataReturned );
-					memcpy ( pNewData+dwDataReturned, lpszData+dwDataReturned, dwDownloaded );
+					memcpy ( pNewData+dwDataReturned, lpszData, dwDownloaded );
 
 					// delete old and replace varvalues
 					delete pDataReturned;

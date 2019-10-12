@@ -14,6 +14,7 @@
 #include <vector>
 
 //new includes
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 #include "DarkAI.h"
 #include "CTextC.h"
@@ -712,6 +713,14 @@ luaMessage** ppLuaMessages = NULL;
 		case 1 : g.luacameraoverride = tvalue; break;
 		case 11 : if ( tcameraid == 0 ) { PositionCamera ( tcameraid, fX, fY, fZ ); } break;
 		case 12 : if ( tcameraid == 0 ) { RotateCamera ( tcameraid, fX, fY, fZ ); } break;
+		case 13 : if ( tcameraid == 0 ) 
+		{
+			RotateCamera ( tcameraid, 0, 0, 0 );
+			RollCameraRight ( tcameraid, fZ );
+			TurnCameraRight ( tcameraid, fY );
+			PitchCameraUp ( tcameraid, fX );
+		} 
+		break;
 	}
 	return 0;
  }
@@ -766,6 +775,7 @@ luaMessage** ppLuaMessages = NULL;
  int SetCameraOverride(lua_State *L) { return RawSetCameraData ( L, 1 ); }
  int SetCameraPosition(lua_State *L) { return RawSetCameraData ( L, 11 ); }
  int SetCameraAngle(lua_State *L) { return RawSetCameraData ( L, 12 ); }
+ int SetCameraFreeFlight(lua_State *L) { return RawSetCameraData ( L, 13 ); }
  int GetCameraPositionX(lua_State *L) { return RawGetCameraData ( L, 1 ); }
  int GetCameraPositionY(lua_State *L) { return RawGetCameraData ( L, 2 ); }
  int GetCameraPositionZ(lua_State *L) { return RawGetCameraData ( L, 3 ); }
@@ -1932,7 +1942,11 @@ int GetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
+	#ifdef VRQUEST
+	 if ( GGVR_IsHmdPresent() > 0 && g.vrglobals.GGVRUsingVRSystem == 1 ) id = 1;
+	#else
+	 if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
+	#endif
 	lua_pushinteger ( L , id );
 	return 1;
 }
@@ -1940,32 +1954,47 @@ int ResetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	SetupResetTracking();
+	#ifdef VRQUEST
+	#else
+	 SetupResetTracking();
+	#endif
 	lua_pushinteger ( L , id );
 	return 1;
 }
 int GetHeadTrackerYaw(lua_State *L)
 {
 	lua = L;
-	float fValue = g_fVR920TrackingYaw + g_fDriverCompensationYaw;
-	if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
-	lua_pushinteger ( L , fValue );
+	#ifdef VRQUEST
+	 float fValue = GGVR_GetHMDYaw();// + g_fDriverCompensationYaw;
+	#else
+	 float fValue = g_fVR920TrackingYaw + g_fDriverCompensationYaw;
+	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#endif
+	lua_pushnumber ( L , fValue );
 	return 1;
 }
 int GetHeadTrackerPitch(lua_State *L)
 {
 	lua = L;
-	float fValue = g_fVR920TrackingPitch + g_fDriverCompensationPitch;
-	if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
-	lua_pushinteger ( L , fValue );
+	#ifdef VRQUEST
+	 float fValue = GGVR_GetHMDPitch();// + g_fDriverCompensationYaw;
+	#else
+	 float fValue = g_fVR920TrackingPitch + g_fDriverCompensationPitch;
+	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#endif
+	lua_pushnumber ( L , fValue );
 	return 1;
 }
 int GetHeadTrackerRoll(lua_State *L)
 {
 	lua = L;
-	float fValue = g_fVR920TrackingRoll + g_fDriverCompensationRoll;
-	if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
-	lua_pushinteger ( L , fValue );
+	#ifdef VRQUEST
+	 float fValue = GGVR_GetHMDRoll();// + g_fDriverCompensationYaw;
+	#else
+	 float fValue = g_fVR920TrackingRoll + g_fDriverCompensationRoll;
+	 if ( g_VR920AdapterAvailable == false ) fValue = 0.0f;
+	#endif
+	lua_pushnumber ( L , fValue );
 	return 1;
 }
 
@@ -1978,7 +2007,7 @@ int Prompt3D(lua_State *L)
 	char pTextToRender[1024];
 	strcpy ( pTextToRender, lua_tostring(L, 1));
 	DWORD dwPrompt3DTime = lua_tonumber(L, 2);
-	lua_prompt3d ( pTextToRender, Timer()+dwPrompt3DTime );
+	lua_prompt3d ( pTextToRender, Timer()+dwPrompt3DTime, 0 );
 	return 1;
 }
 
@@ -1990,7 +2019,7 @@ int PositionPrompt3D(lua_State *L)
 	float fY = lua_tonumber(L, 2);
 	float fZ = lua_tonumber(L, 3);
 	float fAY = lua_tonumber(L, 4);
-	lua_positionprompt3d ( fX, fY, fZ, fAY );
+	lua_positionprompt3d ( 0, fX, fY, fZ, fAY, false );
 	return 1;
 }
 
@@ -2757,7 +2786,128 @@ int ControlDynamicCharacterController ( lua_State *L )
 	float fPushAngle = lua_tonumber(L, 6);
 	float fPushForce = lua_tonumber(L, 7);
 	float fThrustUpwards = lua_tonumber(L, 8);
-	ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, fAngleY, fAngleX, fSpeed, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards );
+	if ( g.vrglobals.GGVREnabled == 0 )
+	{
+		// no VR control
+		ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, fAngleY, fAngleX, fSpeed, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards );
+	}
+	else
+	{
+		// VR Control (standing or seated)
+		double Modified_fAngleY = 0.0;
+		double norm = 0.0;
+		if ( g.vrglobals.GGVRStandingMode == 1 )
+		{
+			// VR Controlled player capsule
+			double norm_XOffset = 0.0;
+			double norm_ZOffset = 0.0;
+
+			// Rotate the offset around the Yaw of the HMD to make it relative to the HMD facing
+			double radian = 0.0174532988888;
+			double modifiedX = 0.0;
+			double modifiedZ = 0.0;
+			double HMDYaw = GGVR_GetHMDYaw();
+			double camL = t.playercontrol.finalcameraangley_f;
+
+			if (HMDYaw < 0.0)
+			{
+				HMDYaw = 360.0 + HMDYaw;
+			}
+			if (HMDYaw > 360.0)
+			{
+				HMDYaw = HMDYaw - 360.0;
+			}
+			if (camL < 0.0)
+			{
+				camL = 360.0 + camL;
+			}
+			if (camL > 360.0)
+			{
+				camL = camL - 360.0;
+			}
+
+			double yl = (camL - HMDYaw);
+
+			if (yl < 0.0f)
+			{
+				yl = 360.0f + yl;
+			}
+			if (yl > 360.0f)
+			{
+				yl = yl - 360.0f;
+			}
+		
+			yl = yl *  radian;
+			double cosYL = cos(yl);  double sinYL = sin(yl); double nsinYL = -sin(yl);
+
+			// move player along X and Z if in standing mode
+			modifiedX = (sin(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*cosYL) + (g.vrglobals.GGVR_ZposOffsetChange*sinYL));
+			modifiedZ = (cos(fAngleY*radian)*fSpeed) + ((g.vrglobals.GGVR_XposOffsetChange*nsinYL) + (g.vrglobals.GGVR_ZposOffsetChange*cosYL));
+		
+			norm_XOffset = 0.0;
+			norm_ZOffset = 0.0;
+			Modified_fAngleY = 0.0;
+		
+			//Work out the motion angle of the HMD in the play area
+			norm = sqrt((modifiedX*modifiedX) + (modifiedZ*modifiedZ));
+			if (norm != 0.0)
+			{
+				double XOffset = modifiedX / norm;
+				double ZOffset = modifiedZ / norm;
+				double MovementAngle = 0.0f;
+
+				if (XOffset == 0.0)
+				{
+					if (ZOffset > 0.0f)
+					{
+						MovementAngle = 0.0f;
+					}
+					else
+					{
+						MovementAngle = 180.0f;
+					}
+				}
+				if (XOffset > 0.0)
+				{
+					if (ZOffset >= 0.0f)
+					{
+						MovementAngle = Asin(XOffset);
+					}
+					else
+					{
+						MovementAngle = 180.0f - Asin(XOffset);
+					}
+				}
+				if (XOffset < 0.0)
+				{
+					if (ZOffset >= 0.0)
+					{
+						MovementAngle = 360.0f + Asin(XOffset);
+					}
+					else
+					{
+						MovementAngle = 180.0f - Asin(XOffset);
+					}
+				}
+
+				Modified_fAngleY = MovementAngle;
+
+			}
+			else
+			{
+				norm_XOffset = 0.0;
+				norm_ZOffset = 0.0;
+				norm = 0.0;
+				Modified_fAngleY = fAngleY;
+			}
+		}
+		else
+		{
+			norm = fSpeed;
+			Modified_fAngleY = fAngleY;
+		}
+		ODEControlDynamicCharacterController(t.aisystem.objectstartindex, Modified_fAngleY, fAngleX, norm, fJump, fDucking, fPushAngle, fPushForce, fThrustUpwards);
+	}
 	return 0;
 }
 int GetCharacterHitFloor ( lua_State *L )
@@ -3091,17 +3241,28 @@ int GetObjectPosAng( lua_State *L )
 	int n = lua_gettop( L );
 	if (n < 1) return 0;
 	int iID = lua_tonumber( L, 1 );
-	if (!ConfirmObjectInstance(iID))
-		return 0;
-	// object information
-	sObject* pObject = g_ObjectList[iID];
-
-	lua_pushnumber ( L, pObject->position.vecPosition.x );
-	lua_pushnumber ( L, pObject->position.vecPosition.y );
-	lua_pushnumber ( L, pObject->position.vecPosition.z );
-	lua_pushnumber ( L, pObject->position.vecRotate.x );
-	lua_pushnumber ( L, pObject->position.vecRotate.y );
-	lua_pushnumber ( L, pObject->position.vecRotate.z );
+	if ( !ConfirmObjectInstance(iID) )
+	{
+		// seems can be called in LUA when object not exist, so return zeros
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		lua_pushnumber ( L, 0 );
+		return 6;
+	}
+	else
+	{
+		// object information
+		sObject* pObject = g_ObjectList[iID];
+		lua_pushnumber ( L, pObject->position.vecPosition.x );
+		lua_pushnumber ( L, pObject->position.vecPosition.y );
+		lua_pushnumber ( L, pObject->position.vecPosition.z );
+		lua_pushnumber ( L, pObject->position.vecRotate.x );
+		lua_pushnumber ( L, pObject->position.vecRotate.y );
+		lua_pushnumber ( L, pObject->position.vecRotate.z );
+	}
 	return 6;
 }
 int GetObjectColBox( lua_State *L )
@@ -4027,6 +4188,8 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 187 : t.tshakez_f = lua_tonumber(L, 1); break;		
 		case 188 : t.huddamage.immunity = lua_tonumber(L, 1); break;		
 		case 189 : g.charanimindex = lua_tonumber(L, 1); break;	
+
+		// 190-200 reserved for MOTION CONTROLLER actions
 	
 		case 201 : t.gun[gunId].settings.ismelee         = lua_tonumber( L, param ); break;
 		case 202 : t.gun[gunId].settings.alternate       = lua_tonumber( L, param ); break;
@@ -4321,7 +4484,19 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 187 : lua_pushnumber ( L, t.tshakez_f ); break;	
 		case 188 : lua_pushnumber ( L, t.huddamage.immunity ); break;	
 		case 189 : lua_pushnumber ( L, g.charanimindex ); break;				
-			
+
+		case 190 : if ( GGVR_IsHmdPresent() > 0 ) { lua_pushnumber ( L, 1 ); } else { lua_pushnumber ( L, 0 ); } break;
+		case 191 : lua_pushnumber ( L, GGVR_IsHmdPresent() ); break;				
+		case 192 : lua_pushnumber ( L, GGVR_RightController_JoyX() ); break;
+		case 193 : lua_pushnumber ( L, GGVR_RightController_JoyY() ); break;
+		case 194 : lua_pushnumber ( L, GGVR_GetBestHandX() ); break;
+		case 195 : lua_pushnumber ( L, GGVR_GetBestHandY() ); break;
+		case 196 : lua_pushnumber ( L, GGVR_GetBestHandZ() ); break;
+		case 197 : lua_pushnumber ( L, GGVR_GetBestHandAngleX() ); break;
+		case 198 : lua_pushnumber ( L, GGVR_GetBestHandAngleY() ); break;
+		case 199 : lua_pushnumber ( L, GGVR_GetBestHandAngleZ() ); break;
+		case 200 : lua_pushnumber ( L, GGVR_GetLaserGuidedEntityObj(g.entityviewstartobj,g.entityviewendobj) ); break;
+
 		case 201 : lua_pushnumber ( L, t.gun[gunId].settings.ismelee         ); break;
 		case 202 : lua_pushnumber ( L, t.gun[gunId].settings.alternate       ); break;
 		case 203 : lua_pushnumber ( L, t.gun[gunId].settings.modessharemags  ); break;
@@ -4751,6 +4926,18 @@ int SetGamePlayerStateImmunity ( lua_State *L ) { return SetGamePlayerControlDat
 int GetGamePlayerStateImmunity ( lua_State *L ) { return GetGamePlayerControlData ( L, 188 ); }
 int SetGamePlayerStateCharAnimIndex ( lua_State *L ) { return SetGamePlayerControlData ( L, 189 ); }
 int GetGamePlayerStateCharAnimIndex ( lua_State *L ) { return GetGamePlayerControlData ( L, 189 ); }
+
+int GetGamePlayerStateMotionController ( lua_State *L ) { return GetGamePlayerControlData ( L, 190 ); }
+int GetGamePlayerStateMotionControllerType ( lua_State *L ) { return GetGamePlayerControlData ( L, 191 ); }
+int MotionControllerThumbstickX ( lua_State *L ) { return GetGamePlayerControlData ( L, 192 ); }
+int MotionControllerThumbstickY ( lua_State *L ) { return GetGamePlayerControlData ( L, 193 ); }
+int MotionControllerBestX ( lua_State *L ) { return GetGamePlayerControlData ( L, 194 ); }
+int MotionControllerBestY ( lua_State *L ) { return GetGamePlayerControlData ( L, 195 ); }
+int MotionControllerBestZ ( lua_State *L ) { return GetGamePlayerControlData ( L, 196 ); }
+int MotionControllerBestAngleX ( lua_State *L ) { return GetGamePlayerControlData ( L, 197 ); }
+int MotionControllerBestAngleY ( lua_State *L ) { return GetGamePlayerControlData ( L, 198 ); }
+int MotionControllerBestAngleZ ( lua_State *L ) { return GetGamePlayerControlData ( L, 199 ); }
+int MotionControllerLaserGuidedEntityObj ( lua_State *L ) { return GetGamePlayerControlData ( L, 200 ); }
 
 int SetGamePlayerStateIsMelee ( lua_State *L ) { return SetGamePlayerControlData ( L, 201 ); }
 int GetGamePlayerStateIsMelee ( lua_State *L ) { return GetGamePlayerControlData ( L, 201 ); }
@@ -5561,6 +5748,7 @@ void addFunctions()
 	lua_register(lua, "SetCameraFOV", SetCameraFOV);
 	lua_register(lua, "SetCameraPosition", SetCameraPosition);
 	lua_register(lua, "SetCameraAngle", SetCameraAngle);
+	lua_register(lua, "SetCameraFreeFlight", SetCameraFreeFlight);
 	lua_register(lua, "GetCameraPositionX", GetCameraPositionX);
 	lua_register(lua, "GetCameraPositionY", GetCameraPositionY);
 	lua_register(lua, "GetCameraPositionZ", GetCameraPositionZ);
@@ -6161,6 +6349,18 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateImmunity" , GetGamePlayerStateImmunity );
 	lua_register(lua, "SetGamePlayerStateCharAnimIndex" , SetGamePlayerStateCharAnimIndex );
 	lua_register(lua, "GetGamePlayerStateCharAnimIndex" , GetGamePlayerStateCharAnimIndex );
+
+	lua_register(lua, "GetGamePlayerStateMotionController" , GetGamePlayerStateMotionController );
+	lua_register(lua, "GetGamePlayerStateMotionControllerType" , GetGamePlayerStateMotionControllerType );
+	lua_register(lua, "MotionControllerThumbstickX" , MotionControllerThumbstickX );
+	lua_register(lua, "MotionControllerThumbstickY" , MotionControllerThumbstickY );
+	lua_register(lua, "MotionControllerBestX" , MotionControllerBestX );
+	lua_register(lua, "MotionControllerBestY" , MotionControllerBestY );
+	lua_register(lua, "MotionControllerBestZ" , MotionControllerBestZ );
+	lua_register(lua, "MotionControllerBestAngleX" , MotionControllerBestAngleX );
+	lua_register(lua, "MotionControllerBestAngleY" , MotionControllerBestAngleY );
+	lua_register(lua, "MotionControllerBestAngleZ" , MotionControllerBestAngleZ );
+	lua_register(lua, "MotionControllerLaserGuidedEntityObj" , MotionControllerLaserGuidedEntityObj );
 	
 	lua_register(lua, "SetGamePlayerStateIsMelee" , SetGamePlayerStateIsMelee );
 	lua_register(lua, "GetGamePlayerStateIsMelee" , GetGamePlayerStateIsMelee );
@@ -8636,7 +8836,6 @@ CDarkLUA::CDarkLUA()
 
 bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 {
-
 	if ( !VirtualFilename ) return false;
 	if ( strlen ( VirtualFilename ) < 3 ) return false;
 
@@ -8679,6 +8878,9 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 	}
 	// end of encrypted file check
 
+	// Workshop handling
+	#ifdef PHOTONMP
+	#else
 		char szWorkshopFilename[_MAX_PATH];
 		char szWorkshopFilenameFolder[_MAX_PATH];
 		char szWorkShopItemPath[_MAX_PATH];
@@ -8742,15 +8944,6 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 			strcat ( szTempName , "\\" );
 			strcat ( szTempName , szWorkshopFilenameFolder );
 
-			/*FILE* tempy = NULL;
-			tempy = fopen ( "f:\\DUMPFILE.txt" ,"a" );
-			if ( tempy )
-			{
-				fputs ( szTempName , tempy );
-				fputs ( "\n" , tempy );
-				fclose ( tempy );
-			}*/
-
 			FILE* tempFile = NULL;
 			tempFile = fopen ( szTempName ,"r" );
 			if ( tempFile )
@@ -8759,20 +8952,6 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 				int szTempNamelength = strlen(szTempName);
 				int virtualfilelength = strlen(VirtualFilename);				
 				strcpy ( VirtualFilename , szTempName );
-
-				/*FILE* tempy = NULL;
-				tempy = fopen ( "f:\\DUMPFILE.txt" ,"a" );
-				if ( tempy )
-				{					
-					fputs ( szWorkShopItemPath , tempy );
-					fputs ( "\n" , tempy );
-					fputs ( VirtualFilename , tempy );
-					fputs ( "\n" , tempy );
-					fputs ( "============" , tempy );
-					fputs ( "\n" , tempy );
-					fclose ( tempy );
-				}*/
-
 				return true;
 			}
 			else // check for encrypted version
@@ -8799,9 +8978,8 @@ bool LuaCheckForWorkshopFile ( LPSTR VirtualFilename)
 				}
 			}
 		}
-
+	#endif
 	return false;
-	// END OF CHECK FOR WORKSHOP ITEM
 }
 
 

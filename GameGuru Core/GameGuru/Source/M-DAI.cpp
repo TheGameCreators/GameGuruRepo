@@ -1125,9 +1125,12 @@ void darkai_shooteffect ( void )
 		else
 		{
 			t.tsteamplayer = t.entityelement[t.te].mp_coopControlledByPlayer;
-			t.tplayerx_f = ObjectPositionX(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
-			t.tplayery_f = ObjectPositionY(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
-			t.tplayerz_f = ObjectPositionZ(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+			if ( t.mp_playerEntityID[t.tsteamplayer] > 0 )
+			{
+				t.tplayerx_f = ObjectPositionX(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+				t.tplayery_f = ObjectPositionY(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+				t.tplayerz_f = ObjectPositionZ(t.entityelement[t.mp_playerEntityID[t.tsteamplayer]].obj);
+			}
 		}
 	}
 
@@ -1637,6 +1640,14 @@ void darkai_loop ( void )
 			t.tte=t.charanimstate.e ; entity_converttoclone ( );
 			entity_setupcharobjsettings ( );
 
+			// always restore unfrozen characters in idle pose
+			if ( t.entityprofile[t.tentid].animmax>0 && t.entityprofile[t.tentid].playanimineditor>0 ) 
+			{
+				t.q=t.entityprofile[t.tentid].playanimineditor-1;
+				LoopObject ( t.obj,t.entityanim[t.tentid][t.q].start,t.entityanim[t.tentid][t.q].finish );
+				t.tfinalspeed_f=t.entityelement[t.charanimstate.e].speedmodulator_f*t.charanimstate.animationspeed_f*2.5*g.timeelapsed_f;
+				SetObjectSpeed ( t.obj,t.tfinalspeed_f );
+			}
 		}
 
 		//  For valid A.I entities
@@ -1659,12 +1670,11 @@ void darkai_loop ( void )
 				//  Freeze All A.I for character out of range
 				if (  t.charanimstate.outofrange == 0 ) 
 				{
-
 					//  Character is out of range
 					t.charanimstate.outofrange=1;
 
 					//  reset for when resume
-					t.charanimstate.playcsi=g.csi_unarmed;
+					if ( t.charanimstate.playcsi != g.csi_limbo ) t.charanimstate.playcsi = g.csi_unarmed;
 					t.charanimstate.alerted=0;
 
 					//  capture latest position for later resume
@@ -2004,8 +2014,11 @@ void darkai_character_loop ( void )
 					else
 					{
 						t.tsteamotherplayer = t.entityelement[t.mp_playerEntityID[t.entityelement[t.te].mp_coopControlledByPlayer]].obj;
-						t.tdx_f=ObjectPositionX(t.tsteamotherplayer)-ObjectPositionX(t.charanimstate.obj);
-						t.tdz_f=ObjectPositionZ(t.tsteamotherplayer)-ObjectPositionZ(t.charanimstate.obj);
+						if ( t.tsteamotherplayer > 0 )
+						{
+							t.tdx_f=ObjectPositionX(t.tsteamotherplayer)-ObjectPositionX(t.charanimstate.obj);
+							t.tdz_f=ObjectPositionZ(t.tsteamotherplayer)-ObjectPositionZ(t.charanimstate.obj);
+						}
 					}
 				}
 				t.tdirectangley_f=atan2deg(t.tdx_f,t.tdz_f);

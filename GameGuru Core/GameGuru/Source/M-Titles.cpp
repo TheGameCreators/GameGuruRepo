@@ -20,6 +20,13 @@ void titles_init ( void )
 	// safe write folder
 	if ( PathExist(g.myownrootdir_s.Get()) == 0 ) file_createmydocsfolder ( );
 
+	// load backdrop used in titles
+	if ( g.vrqcontrolmode != 0 )
+	{
+		cstr pPath = cstr("languagebank\\")+g.language_s+cstr("\\artwork\\branded\\socialvr.png");
+		LoadImage ( pPath.Get(), g.editorimagesoffset+64 );
+	}
+
 	/* redundant now LUA in control of titles system
 	//  determine the resolution we should use
 	t.tclosest=9999999;
@@ -493,7 +500,7 @@ void titles_loadingpageupdate ( void )
 	}
 
 	//  dave added a skip test for syncing to prevent the editor being drawn when switching to mp game start
-	if (  Timer() - t.tskipLevelSync > 2000  )  Sync (  );
+	if (  Timer() - t.tskipLevelSync > 200  )  Sync (  );
 }
 
 void titles_loadingpagefree ( void )
@@ -608,12 +615,11 @@ void titles_gamelostpage ( void )
 
 void titles_steampage ( void )
 {
-
 	//  grab avatar info so we only have to do it once
 	t.tShowAvatarSprite = 1;
 	characterkit_loadMyAvatarInfo ( );
 
-	InkEx ( 255, 255, 255 );//  Rgb(255,255,255),0 );
+	InkEx ( 255, 255, 255 );
 	t.titlespage=7;
 	t.titlesname_s="";
 	t.titlesclearmode=1;
@@ -629,6 +635,14 @@ void titles_steampage ( void )
 	t.titlesbar[t.titlespage][g.titlesbarmax].x2=GetDisplayWidth();
 	t.titlesbar[t.titlespage][g.titlesbarmax].y1=0;
 	t.titlesbar[t.titlespage][g.titlesbarmax].y2=GetDisplayHeight();
+
+	// Add SOCIAL VR title text
+	++g.titlesbarmax;
+	t.titlesbar[t.titlespage][g.titlesbarmax].mode=2;
+	strcpy ( t.titlesbar[t.titlespage][g.titlesbarmax].text, "Social VR" );
+	t.titlesbar[t.titlespage][g.titlesbarmax].x1=GetDisplayWidth()/2;
+	t.titlesbar[t.titlespage][g.titlesbarmax].y1=GetDisplayHeight()*0.1f;
+
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
@@ -641,12 +655,18 @@ void titles_steampage ( void )
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
-	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="SEARCH FOR LOBBIES";
+	#ifdef PHOTONMP
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="SEARCH FOR GAMES";
+	#else
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="SEARCH FOR LOBBIES";
+	#endif
 	t.timgwid=200 ; t.timghig=16;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y1=(GetDisplayHeight()-350.0*t.tva_f)-t.timghig;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y2=(GetDisplayHeight()-350.0*t.tva_f)+t.timghig;
+
+	// BACK
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
@@ -657,8 +677,19 @@ void titles_steampage ( void )
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y1=(GetDisplayHeight()-300.0*t.tva_f)-t.timghig;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y2=(GetDisplayHeight()-300.0*t.tva_f)+t.timghig;
 
-	//  add another button if the user has character creator entities made
-	if (  CharacterKitCheckForUserMade()  ==  1 ) 
+	// Add TEACHER CODE button (for extra functionalities; such as viewing ALL games across VRQ server)
+	++g.titlesbuttonmax;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="ENTER TEACHER CODE";
+	t.timgwid=200 ; t.timghig=16;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y1=(GetDisplayHeight()-200.0*t.tva_f)-t.timghig;
+	t.titlesbutton[t.titlespage][g.titlesbuttonmax].y2=(GetDisplayHeight()-200.0*t.tva_f)+t.timghig;
+
+	// add another button if the user has character creator entities made
+	if ( CharacterKitCheckForUserMade() == 1 ) 
 	{
 		++g.titlesbuttonmax;
 		t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
@@ -676,7 +707,7 @@ void titles_steampage ( void )
 void titles_steamCreateLobby ( void )
 {
 	t.titlespage=8;
-	t.titlesname_s="My Lobby";
+	t.titlesname_s="";//"My Lobby";
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
 	g.titlesbuttonmax=0;
@@ -702,7 +733,11 @@ void titles_steamCreateLobby ( void )
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
-	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE LOBBY";
+	#ifdef PHOTONMP
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE GAME";
+	#else
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE LOBBY";
+	#endif
 	t.timgwid=200 ; t.timghig=16;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
@@ -714,7 +749,7 @@ void titles_steamCreateLobby ( void )
 void titles_steamSearchLobbies ( void )
 {
 	t.titlespage=9;
-	t.titlesname_s="Searching for a lobby to join";
+	t.titlesname_s="";//Searching for a lobby to join"; prevent overwriting other title
 	
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
@@ -732,7 +767,11 @@ void titles_steamSearchLobbies ( void )
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
-	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="JOIN LOBBY";
+	#ifdef PHOTONMP
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="JOIN GAME";
+	#else
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="JOIN LOBBY";
+	#endif
 	t.timgwid=200 ; t.timghig=16;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
@@ -753,7 +792,7 @@ void titles_steamSearchLobbies ( void )
 void titles_steamInLobbyGuest ( void )
 {
 	t.titlespage=10;
-	t.titlesname_s="In Lobby";
+	t.titlesname_s="";//In Lobby";
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
 	g.titlesbuttonmax=0;
@@ -770,7 +809,11 @@ void titles_steamInLobbyGuest ( void )
 	++g.titlesbuttonmax;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].img=0;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].imghigh=0;
-	t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE LOBBY";
+	#ifdef PHOTONMP
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE GAME";
+	#else
+	 t.titlesbutton[t.titlespage][g.titlesbuttonmax].name_s="LEAVE LOBBY";
+	#endif
 	t.timgwid=200 ; t.timghig=16;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x1=(GetDisplayWidth()/2)-t.timgwid;
 	t.titlesbutton[t.titlespage][g.titlesbuttonmax].x2=(GetDisplayWidth()/2)+t.timgwid;
@@ -1054,7 +1097,7 @@ void titles_steamchoosetypeoflevel ( void )
 void titles_steamchoosefpmtouse ( void )
 {
 	t.titlespage=15;
-	t.titlesname_s="Choose a level to play";
+	t.titlesname_s="";//"Choose a level to play";
 	t.titlesclearmode=1;
 	t.titlesnamey=40;
 	g.titlesbuttonmax=0;
@@ -1304,15 +1347,27 @@ void titles_base ( void )
 			//CloseFileMap (  1 );
 		}
 
-		//  Display
-		if (  t.titlesclearmode == 1  )  CLS (  0 );
+		// Display
+		if ( t.titlesclearmode == 1 )  
+		{
+			CLS ( 0 );
+			if ( g.vrqcontrolmode != 0 )
+			{
+				if ( ImageExist ( g.editorimagesoffset+64 ) )
+				{
+					Sprite ( 123, -100000, -100000, g.editorimagesoffset+64 );
+					SizeSprite ( 123, GetDisplayWidth(), GetDisplayHeight() );
+					PasteSprite ( 123, 0, 0 );
+				}
+			}
+		}
 		pastebitmapfontcenter(t.titlesname_s.Get(),GetDisplayWidth()/2,t.titlesnamey,1,255);
 
 		//  Draw bars
 		t.p=t.titlespage;
 		for ( t.b = 1 ; t.b<=  g.titlesbarmax; t.b++ )
 		{
-			if (  t.titlesbar[t.p][t.b].mode == 0 ) 
+			if ( t.titlesbar[t.p][t.b].mode == 0 ) 
 			{
 				t.timg=t.titlesbar[t.p][t.b].img;
 				if (  t.game.runasmultiplayer == 1 ) 
@@ -1333,7 +1388,7 @@ void titles_base ( void )
 					}
 				}
 			}
-			if (  t.titlesbar[t.p][t.b].mode == 1 ) 
+			if ( t.titlesbar[t.p][t.b].mode == 1 ) 
 			{
 				if (  t.titlesbar[t.p][t.b].img>0 ) 
 				{
@@ -1362,6 +1417,11 @@ void titles_base ( void )
 					InkEx ( 255, 255, 255 );//  Rgb(255,255,255),0 );
 					BoxEx (  t.titlesbar[t.p][t.b].x1,t.titlesbar[t.p][t.b].y1,t.titlesbar[t.p][t.b].x1+t.ttxx,t.titlesbar[t.p][t.b].y2 );
 				}
+			}
+			if ( t.titlesbar[t.p][t.b].mode == 2 )
+			{
+				// write text to screen (no image)
+				pastebitmapfontcenter ( t.titlesbar[t.p][t.b].text, t.titlesbar[t.p][t.b].x1, t.titlesbar[t.p][t.b].y1, 5, 255);
 			}
 		}
 
@@ -1476,19 +1536,21 @@ void titles_base ( void )
 			}
 		}
 
-		//  Controls
+		// Controls
 		t.tescapepress=0;
-		if (  t.mc == 1 && t.mcselected == 0  )  t.mcselected = 1;
-		if (  t.mc == 0 && t.mcselected == 1  )  t.mcselected = 2;
-		if (  EscapeKey() == 1 ) 
+		if ( t.mc == 1 && t.mcselected == 0  )  t.mcselected = 1;
+		if ( t.mc == 0 && t.mcselected == 1  )  t.mcselected = 2;
+		if ( EscapeKey() == 1 ) 
 		{
 			while ( EscapeKey() != 0 ) {}
 			t.mcselected=2 ; t.tescapepress=1;
+			t.ttitlesbuttonhighlight = 0;
 		}
-		if (  t.mcselected == 2 ) 
+		if ( t.mcselected == 2 ) 
 		{
 			t.mcselected=0;
-			//  TITLE PAGE
+
+			// TITLE PAGE
 			t.titlespagetousehere=t.titlespage;
 			if (  t.titlespagetousehere == 1 ) 
 			{
@@ -1552,19 +1614,28 @@ void titles_base ( void )
 					mp_quitGame ( );
 				}
 			}
-			//  STEAM PAGE (Multiplayer Lobby)
+
+			//
+			// MULTIPLAYER SCREENS
+			//
+
+			// MAIN MULTIPLAYER MENU
 			if (  t.titlespagetousehere == 7 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
-					//  choose type of level
+					// choose type of level
 					characterkit_loadMyAvatarInfo ( );
-					titles_steamchoosetypeoflevel ( );
+					//titles_steamchoosetypeoflevel ( ); redundant as only one item!
+					//  create list
+					g.mp.listboxmode = 1;
+					mp_searchForFpms ( );
+					titles_steamchoosefpmtouse();
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
-					//  search for lobbies
+					// search for lobbies
 					g.mp.listboxmode = 0;
 					mp_searchForLobbies ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
@@ -1572,7 +1643,7 @@ void titles_base ( void )
 				}
 				if (  t.ttitlesbuttonhighlight == 3 ) 
 				{
-					//  back to IDE/Title
+					// back to IDE/Title
 					mp_backToStart ( );
 					mp_quitGame ( );
 					t.game.masterloop = 0;
@@ -1580,49 +1651,153 @@ void titles_base ( void )
 				}
 				if (  t.ttitlesbuttonhighlight == 4 ) 
 				{
+					// enter Teacher Code
+					bool bCodeValid = false;
+					int iGotCode = 0;
+					ClearEntryBuffer();
+					char pCursor[32];
+					strcpy ( pCursor, "|" );
+					DWORD dwTimeFlash = Timer() + 500;
+					while ( iGotCode == 0 )
+					{
+						// clear screen
+						Sprite ( 123, -100000, -100000, g.editorimagesoffset+64 );
+						SizeSprite ( 123, GetDisplayWidth(), GetDisplayHeight() );
+						PasteSprite ( 123, 0, 0 );
+
+						// title and instructions for entry system
+						pastebitmapfontcenter("TEACHER CODE ENTRY",GetDisplayWidth()/2,50,1,255);
+						pastebitmapfontcenter("Type out the 'Teacher Code' provided by your Admin",GetDisplayWidth()/2,GetDisplayHeight()-150,1,255);
+						pastebitmapfontcenter("to view all VR Quest(r) games across the server",GetDisplayWidth()/2,GetDisplayHeight()-100,1,255);
+
+						// extra instructions
+						pastebitmapfontcenter("Enter Code:",GetDisplayWidth()/2,(GetDisplayHeight()/2)-50,1,255);
+						pastebitmapfontcenter("( press RETURN to submit code, press ESCAPE to quit entry )",GetDisplayWidth()/2,(GetDisplayHeight()/2)+50,1,255);
+
+						// box for entry
+						InkEx ( 255, 255, 255 );
+						BoxEx ( (GetDisplayWidth()/2)-100, (GetDisplayHeight()/2)-7, (GetDisplayWidth()/2)+100, (GetDisplayHeight()/2)+33 );
+						InkEx ( 8, 8, 8 );
+						BoxEx ( (GetDisplayWidth()/2)-98, (GetDisplayHeight()/2)-6, (GetDisplayWidth()/2)+98, (GetDisplayHeight()/2)+32 );
+						InkEx ( 255, 255, 255 );
+
+						// entry string
+						LPSTR pEntryString = Entry(0);
+						cstr pFullDisplay = cstr(pEntryString) + pCursor;
+						pastebitmapfontcenter(pFullDisplay.Get(),GetDisplayWidth()/2,(GetDisplayHeight()/2)-3,1,255);
+						if ( ReturnKey() == 1 )
+						{
+							iGotCode = 1;
+							LPSTR pValidTeacherCode = "12345";
+							if ( strnicmp ( pEntryString, pValidTeacherCode, strlen(pValidTeacherCode) ) == NULL )
+								bCodeValid = true;
+						}
+						if ( EscapeKey() == 1 )
+						{
+							iGotCode = 2;
+							t.mcselected = 0;
+						}
+
+						// Flash cursor
+						if ( Timer() > dwTimeFlash )
+						{
+							dwTimeFlash = Timer() + 500;
+							if ( strcmp ( pCursor, "|" ) == NULL )
+								strcpy ( pCursor, " " );
+							else
+								strcpy ( pCursor, "|" );
+						}
+
+						// Update screen
+						Sync();
+					}
+
+					// if escaped, ignore all we did
+					if ( iGotCode != 2 )
+					{
+						// write special file to activate teacher mode
+						if ( bCodeValid == true )
+						{
+							// teacher mode on
+							if ( FileOpen(1) ) CloseFile ( 1 );
+							OpenToWrite ( 1, cstr(g.fpscrootdir_s + "\\teacherviewallmode.dat").Get() );
+							WriteString ( 1, Str(1) );
+							CloseFile ( 1 );
+						}
+						else
+						{
+							// teacher mode off
+							LPSTR pTeacherViewAllFile = cstr(g.fpscrootdir_s + "\\teacherviewallmode.dat").Get();
+							if ( FileExist ( pTeacherViewAllFile ) ) DeleteFile ( pTeacherViewAllFile );
+						}
+
+						// reset multiplayer system and force a full init (to setup new server state)
+						mp_restartMultiplayerSystem();
+						mp_backToStart ( );
+						t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+					}
+				}
+				if (  t.ttitlesbuttonhighlight == 5 ) 
+				{
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					characterkit_chooseOnlineAvatar ( );
+					// reset multiplayer system and force a full init (to setup new server state)
+					mp_restartMultiplayerSystem();
+					mp_backToStart ( );
+					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 			}
-			//  STEAM PAGE Created Lobby (Multiplayer Lobby)
-			if (  t.titlespagetousehere == 8 ) 
+
+			// INSIDE MY OWN LOBBY/ROOM SCREEN - READY TO START THE GAME WITH PRESENT PLAYERS
+			if ( t.titlespagetousehere == 8 ) 
 			{
-				if (  t.ttitlesbuttonhighlight == 1 ) 
+				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
-					//  start the game server
+					// start the game server
 					mp_launchGame ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
-				if (  t.ttitlesbuttonhighlight == 2 ) 
+				if ( t.ttitlesbuttonhighlight == 2 ) 
 				{
-					//  exit and drop the lobby
+					// exit and drop the lobby
 					mp_leaveALobby ( );
-					mp_resetSteam ( );
+					#ifdef PHOTONMP
+					 // Photon can have host leave and rejoin, no need to reset everything!
+					#else
+					 mp_resetSteam ( );
+					#endif
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Search for lobbies (Multiplayer Lobby)
-			if (  t.titlespagetousehere == 9 ) 
+
+			// GAME LIST SCREEN - READY TO SELECT A LOBBY/ROOM TO ENTER
+			if ( t.titlespagetousehere == 9 ) 
 			{
-				if (  t.ttitlesbuttonhighlight == 1 ) 
+				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
 					mp_joinALobby ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
-					if (  g.mp.mode  ==  MP_JOINING_LOBBY ) 
+					if ( g.mp.mode == MP_JOINING_LOBBY ) 
 					{
-						characterkit_loadMyAvatarInfo ( );
+						#ifdef PHOTONMP
+						 // not yet, but soon!
+						#else
+						 characterkit_loadMyAvatarInfo ( );
+						#endif
 						titles_steamInLobbyGuest ( );
 					}
 				}
-				if (  t.ttitlesbuttonhighlight == 2 ) 
+				if ( t.ttitlesbuttonhighlight == 2 ) 
 				{
 					mp_backToStart ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Choose type of level (host)
+
+			/* 160419 - seems redundant, one one choice, so we go direct to it
+			// PLAY ONE OF YOUR LEVELS BUTTON SCREEN
 			if (  t.titlespagetousehere == 14 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1633,7 +1808,6 @@ void titles_base ( void )
 					titles_steamchoosefpmtouse ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				} 
-				//  TAKE THIS Line (  OUT BELOW WHEN YOU PUT THE CODE ABOVE BACK! )
 				if (  t.ttitlesbuttonhighlight == 2 ) 
 				{
 					mp_backToStart ( );
@@ -1641,33 +1815,47 @@ void titles_base ( void )
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE Choose level from list (host)
-			if (  t.titlespagetousehere == 15 ) 
+			*/
+
+			// SELECTED OWN LEVEL - CREATE LOBBY/ROOM FOR IT
+			if ( t.titlespagetousehere == 15 ) 
 			{
-				if (  t.ttitlesbuttonhighlight == 1 ) 
+				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
-					//  picked the level, create lobby
-					mp_selectedALevel ( );
-					if (  g.mp.levelContainsCustomContent  ==  0 || g.mp.workshopItemChangedFlag  ==  0 ) 
+					int iSizeOfFPMFile = atoi(t.tfpmfilesizelist_s[g.mp.selectedLobby].Get());
+					if ( iSizeOfFPMFile < 100 )
 					{
-						mp_createLobby ( );
-						titles_steamCreateLobby ( );
+						// picked the level, create lobby
+						mp_selectedALevel ( );
+						#ifdef PHOTONMP
+						 // Photon does not support custom content at this time in this way!
+						 mp_createLobby ( );
+						 titles_steamCreateLobby ( );
+						#else
+						 if ( g.mp.levelContainsCustomContent ==  0 || g.mp.workshopItemChangedFlag  ==  0 ) 
+						 {
+							mp_createLobby ( );
+							titles_steamCreateLobby ( );
+						 }
+						 else
+						 {
+							titles_steamdoyouwanttocreateorupdateaworkshopitem ( );
+						 }
+						#endif
+						t.tescapepress=0;
 					}
-					else
-					{
-						titles_steamdoyouwanttocreateorupdateaworkshopitem ( );
-					}
-					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
+					t.ttitlesbuttonhighlight=0;
 				}
-				if (  t.ttitlesbuttonhighlight == 2 ) 
+				if ( t.ttitlesbuttonhighlight == 2 ) 
 				{
 					mp_backToStart ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 					titles_steampage ( );
 				}
 			}
-			//  STEAM PAGE do you want to create/update a workshop item? (host)
-			if (  t.titlespagetousehere == 16 ) 
+
+			// INSIDE SOMEONE ELSES LOBBY/ROOM SCREEN - WAITING FOR HOST TO START GAME
+			if ( t.titlespagetousehere == 16 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
 				{
@@ -1690,10 +1878,11 @@ void titles_base ( void )
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
 				}
 			}
-			//  STEAM PAGE in someone elses lobby (Multiplayer Lobby)
-			if (  t.titlespagetousehere == 10 ) 
+
+			// CAN LEAVE LOBBY/ROOM FROM HERE
+			if ( t.titlespagetousehere == 10 ) 
 			{
-				if (  t.ttitlesbuttonhighlight == 1 ) 
+				if ( t.ttitlesbuttonhighlight == 1 ) 
 				{
 					mp_leaveALobby ( );
 					t.tescapepress=0 ; t.ttitlesbuttonhighlight=0;
@@ -1701,7 +1890,8 @@ void titles_base ( void )
 					return;
 				}
 			}
-			//  STEAM PAGE do you want to subscribe to this item
+
+			// SUBSCRIBE TO WORKSHOP ITEM (CUSTOM LEVEL) SCREEN
 			if (  t.titlespagetousehere == 18 ) 
 			{
 				if (  t.ttitlesbuttonhighlight == 1 ) 
@@ -1720,7 +1910,8 @@ void titles_base ( void )
 					titles_steamSearchLobbies ( );
 				}
 			}
-			//  STEAM PAGE waiting for subscription results (user does not need to wait if they dont want to)
+
+			// WAITING FOR SUBSCRIPTION RESULTS SCREEN
 			if (  t.titlespagetousehere == 19 ) 
 			{
 				//  back to searching for lobbies
@@ -1733,7 +1924,8 @@ void titles_base ( void )
 					titles_steamSearchLobbies ( );
 				}
 			}
-			//  STEAM PAGE using selected to join a red workshop item
+
+			// BACK TO SEARCH FOR LOBBIES
 			if (  t.titlespagetousehere == 20 ) 
 			{
 				//  back to searching for lobbies
@@ -1746,6 +1938,7 @@ void titles_base ( void )
 					titles_steamSearchLobbies ( );
 				}
 			}
+
 			//  GRAPHICS SETTINGS
 			if (  t.titlespagetousehere == 12 ) 
 			{
@@ -1853,7 +2046,7 @@ void titles_base ( void )
 			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			//  Update screen
 			//  dave added a skip test for syncing to prevent the editor being drawn when switching to mp game start
-			if (  Timer() - t.tskipLevelSync > 2000  )  Sync (  );
+			if (  Timer() - t.tskipLevelSync > 200  )  Sync (  );
 		}
 
 	}

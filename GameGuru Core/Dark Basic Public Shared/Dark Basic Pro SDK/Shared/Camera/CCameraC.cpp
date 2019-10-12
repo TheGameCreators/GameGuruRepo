@@ -224,7 +224,7 @@ DARKSDK void SetViewportForSurface ( int iCameraID, GGVIEWPORT* pvp, LPGGSURFACE
 
 DARKSDK bool CameraToImage ( void )
 {
-	if ( m_ptr->iCameraToImage > 0 )
+	if ( m_ptr->iCameraToImage > 0 || m_ptr->iCameraToImage == -2 )
 	{
 		// determine if camera goes straight to cubemap face
 		int iCubeMapFace=-1;
@@ -341,12 +341,12 @@ void HandleClippingPlane ( void )
 	}
 }
 
-DARKSDK void StartSceneEx ( int iMode )
+DARKSDK void StartSceneEx ( int iMode, bool bSpecialQuickVRRendering )
 {
 	// iMode : 0-regular, 1-no camera backdrop (when disable camera rendering)
 
 	// start render chain for cameras
-	m_iRenderCamera=0;
+	m_iRenderCamera = 0;
 
 	// update the pointer
 	if ( UpdateCameraPtr ( m_iRenderCamera ) )
@@ -395,24 +395,35 @@ DARKSDK void StartSceneEx ( int iMode )
 	}
 
 	// allow globstruct to keep track of which camera doing the rendering
-	if(g_pGlob) g_pGlob->dwRenderCameraID=m_iRenderCamera;
+	if(g_pGlob) g_pGlob->dwRenderCameraID = m_iRenderCamera;
 }
 
 DARKSDK void StartScene ( void )
 {
 	// see above
-	StartSceneEx ( 0 );
+	StartSceneEx ( 0, false );
 
 	// U69 - 180508 - start a new camera render loop, reset stereoscopic update flag
 	g_pStereoscopicCameraUpdated = NULL;
 }
 
-DARKSDK int FinishSceneEx ( bool bKnowInAdvanceCameraIsUsed )
+DARKSDK int FinishSceneEx ( bool bKnowInAdvanceCameraIsUsed, bool bSpecialQuickVRRendering )
 {
-	// leeadd - 130906 - u63 - bKnowInAdvanceCameraIsUsed set from SYNC MASK logic in core
-	m_iRenderCamera = m_CameraManager.GetNextID ( m_iRenderCamera );
-	if(g_pGlob) g_pGlob->dwRenderCameraID=m_iRenderCamera;
-	if(m_iRenderCamera != -1 )
+	if ( bSpecialQuickVRRendering == true )
+	{
+		// ensure cameras 6 and 7 are always skipped (even though masked out)
+		m_iRenderCamera = m_CameraManager.GetNextID ( m_iRenderCamera );
+		while ( m_iRenderCamera == 6 || m_iRenderCamera == 7 )
+			m_iRenderCamera = m_CameraManager.GetNextID ( m_iRenderCamera );
+	}
+	else
+	{
+		// simply take cameras sequentially
+		m_iRenderCamera = m_CameraManager.GetNextID ( m_iRenderCamera );
+	}
+
+	if ( g_pGlob ) g_pGlob->dwRenderCameraID = m_iRenderCamera;
+	if ( m_iRenderCamera != -1 )
 	{
 		// update the pointer for Next Camera
 		UpdateCameraPtr ( m_iRenderCamera );
@@ -423,10 +434,9 @@ DARKSDK int FinishSceneEx ( bool bKnowInAdvanceCameraIsUsed )
 	else
 	{
 		// restore camera output to current bitmap (if changed)
-		if (g_bCameraOutputToImage == true)
+		if ( g_bCameraOutputToImage == true )
 		{
 			#ifdef DX11
-			//SetRenderAndDepthTarget ( g_pGlob->pCurrentBitmapSurfaceView, g_pGlob->pHoldDepthBufferPtr );
 			SetRenderAndDepthTarget ( g_pGlob->pCurrentBitmapSurfaceView, g_pGlob->pCurrentBitmapDepthView );
 			#else
 			m_pD3D->SetRenderTarget(0, g_pGlob->pCurrentBitmapSurface);
@@ -464,7 +474,7 @@ DARKSDK int FinishScene ( void )
 {
 	// assume next camera is valid, so we set it up and clear render target
 	// leenote - 130906 - u63 - discovered this would wipe out previous camera is using multiple SYNC MASK calls (post-process tricks)
-	return FinishSceneEx ( true );
+	return FinishSceneEx ( true, false );
 }
 
 
@@ -498,13 +508,21 @@ DARKSDK void CAMERAUpdate ( void )
 
 	// set view port for new camera
 	GGVIEWPORT vp = m_ptr->viewPort3D;
-	if ( m_ptr->iCameraToImage > 0 )
+	if ( m_ptr->iCameraToImage == -2 )
 	{
-		if ( m_ptr->pCameraToImageSurface ) SetViewportForSurface ( m_iRenderCamera, &vp, m_ptr->pCameraToImageSurface );
+		// -2 is WMR view
+		SetViewportForSurface ( m_iRenderCamera, &vp, m_ptr->pCameraToImageSurface );
 	}
 	else
 	{
-		SetViewportForSurface ( m_iRenderCamera, &vp, g_pGlob->pCurrentBitmapSurface );
+		if ( m_ptr->iCameraToImage > 0 ) 
+		{
+			if ( m_ptr->pCameraToImageSurface ) SetViewportForSurface ( m_iRenderCamera, &vp, m_ptr->pCameraToImageSurface );
+		}
+		else
+		{
+			SetViewportForSurface ( m_iRenderCamera, &vp, g_pGlob->pCurrentBitmapSurface );
+		}
 	}
 
 	// leeadd - 310506 - u62 - optional camera clipping operation
@@ -522,15 +540,14 @@ DARKSDK void CAMERAUpdate ( void )
 		if ( m_ptr->iBackdropState == 1 )
 		{
 			float color[4] = {0,0,0,1};
-			//if ( m_iRenderCamera == 0 && g_pGlob->iCurrentBitmapNumber == 0 ) { color[0] = 0.1f; color[1] = 0.25f; color[2] = 0.5f; }
 			if ( m_iRenderCamera == 0 && g_pGlob->iCurrentBitmapNumber == 0 ) { color[0] = 0.1f; color[1] = 0.1f; color[2] = 0.1f; }
 			if ( m_iRenderCamera == 0 && g_pGlob->iCurrentBitmapNumber > 0  ) { color[0] = 1; color[1] = 0.5f; color[2] = 0; }
 			if ( m_iRenderCamera == 1 ) { color[0] = 0; color[1] = 1; color[2] = 0; }
 			if ( m_iRenderCamera == 2 ) { color[0] = 0; color[1] = 0; color[2] = 1; }
 			if ( m_iRenderCamera == 3 ) { color[0] = 0; color[1] = 0.25f; color[2] = 0; }
-			m_pImmediateContext->ClearRenderTargetView(g_pGlob->pCurrentRenderView, color);
+			if ( g_pGlob->pCurrentRenderView ) m_pImmediateContext->ClearRenderTargetView(g_pGlob->pCurrentRenderView, color);
 		}
-		m_pImmediateContext->ClearDepthStencilView(g_pGlob->pCurrentDepthView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+		if ( g_pGlob->pCurrentDepthView ) m_pImmediateContext->ClearDepthStencilView(g_pGlob->pCurrentDepthView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 	#else
 	if(m_ptr->iBackdropState==1)
@@ -1521,345 +1538,343 @@ DARKSDK void SetCameraToImage ( int iID, int iImage, int iWidth, int iHeight, in
 		return;
 	}
 
-	// new mode which can detatch camera from image
-	if ( iImage==-1 )
+	// camera to image modes:
+	// -1 = detatch camera from image cleanly
+	// -2 = detatch camera from image, but prepare it to accept surfaceview overrides (from WMR backbuffer views)
+	if ( iImage==-1 || iImage==-2 )
 	{
-		// free internal texture used
-		if(m_ptr->pImageDepthResourceView)
+		// no need to free if -2 as references elsehwere (WMR backbuffer)
+		if ( m_ptr->iCameraToImage == -2 )
 		{
-			m_ptr->pImageDepthResourceView->Release();
-			m_ptr->pImageDepthResourceView = NULL;
-		}
-		if(m_ptr->pImageDepthSurfaceView)
-		{
-			m_ptr->pImageDepthSurfaceView->Release();
 			m_ptr->pImageDepthSurfaceView = NULL;
-		}
-		if(m_ptr->pImageDepthSurface)
-		{
-			m_ptr->pImageDepthSurface->Release();
-			m_ptr->pImageDepthSurface = NULL;
-		}
-		if(m_ptr->pCameraToImageSurfaceView)
-		{
-			// release this surface before delete underlying texture
-			m_ptr->pCameraToImageSurfaceView->Release();
 			m_ptr->pCameraToImageSurfaceView = NULL;
 		}
-		if(m_ptr->pCameraToImageSurface)
+		else
 		{
-			// release this surface before delete underlying texture
-			m_ptr->pCameraToImageSurface->Release();
-			m_ptr->pCameraToImageSurface = NULL;
-		}
-		if(m_ptr->pCameraToImageTexture)
-		{
-			// 070714 - free image ptr if about to release
-			bool bReleased = false;
-			if ( m_ptr->iCameraToImage > 0 )
+			// free internal texture used
+			if(m_ptr->pImageDepthResourceView)
 			{
-				if ( ImageExist ( m_ptr->iCameraToImage ) ) 
+				m_ptr->pImageDepthResourceView->Release();
+				m_ptr->pImageDepthResourceView = NULL;
+			}
+			if(m_ptr->pImageDepthSurfaceView)
+			{
+				m_ptr->pImageDepthSurfaceView->Release();
+				m_ptr->pImageDepthSurfaceView = NULL;
+			}
+			if(m_ptr->pImageDepthSurface)
+			{
+				m_ptr->pImageDepthSurface->Release();
+				m_ptr->pImageDepthSurface = NULL;
+			}
+			if(m_ptr->pCameraToImageSurfaceView)
+			{
+				// release this surface before delete underlying texture
+				m_ptr->pCameraToImageSurfaceView->Release();
+				m_ptr->pCameraToImageSurfaceView = NULL;
+			}
+			if(m_ptr->pCameraToImageSurface)
+			{
+				// release this surface before delete underlying texture
+				m_ptr->pCameraToImageSurface->Release();
+				m_ptr->pCameraToImageSurface = NULL;
+			}
+			if(m_ptr->pCameraToImageTexture)
+			{
+				// 070714 - free image ptr if about to release
+				bool bReleased = false;
+				if ( m_ptr->iCameraToImage > 0 )
 				{
-					DeleteImage ( m_ptr->iCameraToImage );
-					bReleased = true;
+					if ( ImageExist ( m_ptr->iCameraToImage ) ) 
+					{
+						DeleteImage ( m_ptr->iCameraToImage );
+						bReleased = true;
+					}
 				}
+				if ( bReleased==false )
+				{
+					m_ptr->pCameraToImageTexture->Release(); 
+				}
+				m_ptr->pCameraToImageTexture=NULL;
 			}
-			if ( bReleased==false )
+
+			// free any alpha texture created
+			if(m_ptr->pCameraToImageAlphaTexture)
 			{
-				m_ptr->pCameraToImageTexture->Release(); 
+				//m_ptr->pCameraToImageAlphaTexture->Release();
+				m_ptr->pCameraToImageAlphaTexture=NULL;
 			}
-			m_ptr->pCameraToImageTexture=NULL;
 		}
 
-		// free any alpha texture created
-		if(m_ptr->pCameraToImageAlphaTexture)
+		// special camera to image modes
+		if ( iImage == -1 )
 		{
-			//m_ptr->pCameraToImageAlphaTexture->Release();
-			m_ptr->pCameraToImageAlphaTexture=NULL;
+			// switch back to camera rendering
+			m_ptr->iCameraToImage = 0;
+
+			// done
+			return;
 		}
-
-		// switch back to camera rendering
-		m_ptr->iCameraToImage = 0;
-
-		// done
-		return;
+		if ( iImage == -2 )
+		{
+			// going to use this camera by overriding the surfaceviews for WMR rendering
+			m_ptr->iCameraToImage = -2;
+		}
 	}
 
-	// valid image
-	if(iImage<1 || iImage>MAXIMUMVALUE)
+	// valid image value (allows -2 see above)
+	if ( iImage != -2 )
 	{
-		RunTimeError(RUNTIMEERROR_IMAGEILLEGALNUMBER);
-		return;
+		if ( iImage<1 || iImage>MAXIMUMVALUE )
+		{
+			RunTimeError(RUNTIMEERROR_IMAGEILLEGALNUMBER);
+			return;
+		}
 	}
 	
 	// only if camera not assigned to image
 	if ( m_ptr->pCameraToImageTexture==NULL )
 	{
-		// delete image
-		if ( ImageExist ( iImage )) DeleteImage ( iImage );
-
-		// Set camera to render to image (texture)
-		m_ptr->iCameraToImage = iImage;
-
-		#ifdef DX11
-		// use backbuffer to determine common GGFORMAT
-		D3D11_RENDER_TARGET_VIEW_DESC backbufferdesc;
-		g_pGlob->pHoldBackBufferPtr->GetDesc(&backbufferdesc);
-		GGFORMAT CommonFormat = backbufferdesc.Format;
-
-		// Alpha Camera Image or not
-		if ( iGenerateCameraAlpha==1 )
+		if ( iImage > 0 )
 		{
-			// make render target an internal texture
-			D3D11_TEXTURE2D_DESC StagedDesc = { iWidth, iHeight, 1, 1, CommonFormat, 1, 0, D3D11_USAGE_DEFAULT, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, 0, 0 };
-			HRESULT hRes = m_pD3D->CreateTexture2D( &StagedDesc, NULL, (ID3D11Texture2D**)&m_ptr->pCameraToImageTexture );
-		}
-		else
-		{
-			// Just want a camera image that retains the alpha data (for things like post process depth of field)
-			if ( iGenerateCameraAlpha==2 )
+			// delete image
+			if ( ImageExist ( iImage )) DeleteImage ( iImage );
+
+			// Set camera to render to image (texture)
+			m_ptr->iCameraToImage = iImage;
+
+			#ifdef DX11
+			// use backbuffer to determine common GGFORMAT
+			D3D11_RENDER_TARGET_VIEW_DESC backbufferdesc;
+			g_pGlob->pHoldBackBufferPtr->GetDesc(&backbufferdesc);
+			GGFORMAT CommonFormat = backbufferdesc.Format;
+
+			// Alpha Camera Image or not
+			if ( iGenerateCameraAlpha==1 )
 			{
-				// lee - 060207 - fix - allow camera alpha mode 2 to be cleared
-				GGFORMAT dwStoreFormat = CommonFormat;
-				CommonFormat=GGFMT_A8R8G8B8;
-				m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
-				CommonFormat=dwStoreFormat;
+				// make render target an internal texture
+				D3D11_TEXTURE2D_DESC StagedDesc = { iWidth, iHeight, 1, 1, CommonFormat, 1, 0, D3D11_USAGE_DEFAULT, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, 0, 0 };
+				HRESULT hRes = m_pD3D->CreateTexture2D( &StagedDesc, NULL, (ID3D11Texture2D**)&m_ptr->pCameraToImageTexture );
 			}
 			else
 			{
-				// can now choose own D3DFMT value from extra param
-				if ( iGenerateCameraAlpha==3 )
+				// Just want a camera image that retains the alpha data (for things like post process depth of field)
+				if ( iGenerateCameraAlpha==2 )
 				{
+					// lee - 060207 - fix - allow camera alpha mode 2 to be cleared
 					GGFORMAT dwStoreFormat = CommonFormat;
-					CommonFormat=(GGFORMAT)dwOwnD3DFMTValue;
+					CommonFormat=GGFMT_A8R8G8B8;
 					m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
 					CommonFormat=dwStoreFormat;
 				}
 				else
 				{
-					// no alpha so use render target as direct texture
-					m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
+					// can now choose own D3DFMT value from extra param
+					if ( iGenerateCameraAlpha==3 )
+					{
+						GGFORMAT dwStoreFormat = CommonFormat;
+						CommonFormat=(GGFORMAT)dwOwnD3DFMTValue;
+						m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
+						CommonFormat=dwStoreFormat;
+					}
+					else
+					{
+						// no alpha so use render target as direct texture
+						m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
+					}
 				}
 			}
-		}
 
-		// Open image surface for continual usage
-		///m_ptr->pCameraToImageTexture->GetSurfaceLevel( 0, &m_ptr->pCameraToImageSurface );
-		m_ptr->pCameraToImageSurface = (ID3D11Texture2D*)m_ptr->pCameraToImageTexture;
-	    m_pD3D->CreateRenderTargetView( m_ptr->pCameraToImageTexture, NULL, &m_ptr->pCameraToImageSurfaceView );
+			// Open image surface for continual usage
+			///m_ptr->pCameraToImageTexture->GetSurfaceLevel( 0, &m_ptr->pCameraToImageSurface );
+			m_ptr->pCameraToImageSurface = (ID3D11Texture2D*)m_ptr->pCameraToImageTexture;
+			m_pD3D->CreateRenderTargetView( m_ptr->pCameraToImageTexture, NULL, &m_ptr->pCameraToImageSurfaceView );
 
-		// add alpha surface
-		if ( iGenerateCameraAlpha==1 )
-		{
-			// get surface to texture alpha deposit area
-			m_ptr->pCameraToImageAlphaTexture = MakeImageJustFormat ( iImage, iWidth, iHeight, GGFMT_A8R8G8B8 );
-			///m_ptr->pCameraToImageAlphaTexture->GetSurfaceLevel( 0, &m_ptr->pCameraToImageAlphaSurface );
-			m_ptr->pCameraToImageAlphaSurface = (ID3D11Texture2D*)m_ptr->pCameraToImageAlphaTexture;
-		}
-
-		// Work out size for depth buffer
-		GGSURFACE_DESC imagerenderdesc;
-		m_ptr->pCameraToImageSurface->GetDesc(&imagerenderdesc);
-		DWORD dwDepthWidth = imagerenderdesc.Width;
-		DWORD dwDepthHeight = imagerenderdesc.Height;
-
-		// delete old image depth buffer if too small for this one
-		if( m_ptr->pImageDepthSurface && (dwDepthWidth>m_dwImageDepthWidth || dwDepthHeight>m_dwImageDepthHeight) )
-		{
-			// delete any items in the list
-			if ( m_ptr->pImageDepthResourceView )
+			// add alpha surface
+			if ( iGenerateCameraAlpha==1 )
 			{
-				m_ptr->pImageDepthResourceView->Release();
-				m_ptr->pImageDepthResourceView=NULL;
-			}
-			if ( m_ptr->pImageDepthSurfaceView )
-			{
-				m_ptr->pImageDepthSurfaceView->Release();
-				m_ptr->pImageDepthSurfaceView=NULL;
-			}
-			if ( m_ptr->pImageDepthSurface )
-			{
-				m_ptr->pImageDepthSurface->Release();
-				m_ptr->pImageDepthSurface=NULL;
-			}
-		}
-
-		/*
-		//Dave Performance - if camera 0, make a lower res texture too so we can swap between
-		if ( iID == 0  )
-		{
-			//Store HiRes image surface
-			m_ptr->pCameraToImageSurfaceHiRes = m_ptr->pCameraToImageSurface;
-
-			// create a new texture
-			HRESULT hr = S_OK;
-			if ( FAILED ( hr = D3DXCreateTexture ( 
-									  m_pD3D,
-									  iWidth * 0.83f,
-									  iHeight * 0.83f,
-									  1,
-									  GGUSAGE_RENDERTARGET,
-									  GGFMT_A8R8G8B8,
-									  D3DPOOL_DEFAULT,
-									  &m_ptr->pCameraToImageTextureLowRes
-				) ) ) 
-			{
-				RunTimeError(RUNTIMEERROR_IMAGEAREAILLEGAL);
+				// get surface to texture alpha deposit area
+				m_ptr->pCameraToImageAlphaTexture = MakeImageJustFormat ( iImage, iWidth, iHeight, GGFMT_A8R8G8B8 );
+				///m_ptr->pCameraToImageAlphaTexture->GetSurfaceLevel( 0, &m_ptr->pCameraToImageAlphaSurface );
+				m_ptr->pCameraToImageAlphaSurface = (ID3D11Texture2D*)m_ptr->pCameraToImageAlphaTexture;
 			}
 
-			hr = m_ptr->pCameraToImageTextureLowRes->GetSurfaceLevel( 0, &m_ptr->pCameraToImageSurfaceLowRes );
+			// Work out size for depth buffer
+			GGSURFACE_DESC imagerenderdesc;
+			m_ptr->pCameraToImageSurface->GetDesc(&imagerenderdesc);
+			DWORD dwDepthWidth = imagerenderdesc.Width;
+			DWORD dwDepthHeight = imagerenderdesc.Height;
 
-		}
-		*/
-
-		// create image depth surface
-		if ( m_ptr->pImageDepthSurface == NULL )
-		{
-			// Create depth stencil texture
-			m_dwImageDepthWidth = dwDepthWidth;
-			m_dwImageDepthHeight = dwDepthHeight;
-			D3D11_TEXTURE2D_DESC descDepth;
-			ZeroMemory( &descDepth, sizeof(descDepth) );
-			descDepth.Width = dwDepthWidth;
-			descDepth.Height = dwDepthHeight;
-			descDepth.MipLevels = 1;
-			descDepth.ArraySize = 1;
-			descDepth.Format = DXGI_FORMAT_R32_TYPELESS;//GetValidStencilBufferFormat(CommonFormat);//DXGI_FORMAT_D24_UNORM_S8_UINT;
-			descDepth.SampleDesc.Count = 1;
-			descDepth.SampleDesc.Quality = 0;    
-			descDepth.Usage = D3D11_USAGE_DEFAULT;
-			descDepth.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
-			descDepth.CPUAccessFlags = 0;
-			descDepth.MiscFlags = 0;
-			HRESULT hRes = m_pD3D->CreateTexture2D( &descDepth, NULL, &m_ptr->pImageDepthSurface );
-
-			// Create the depth stencil view
-			D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-			ZeroMemory( &descDSV, sizeof(descDSV) );
-			descDSV.Format = DXGI_FORMAT_D32_FLOAT;//descDepth.Format;//DXGI_FORMAT_D24_UNORM_S8_UINT;
-			descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-			descDSV.Texture2D.MipSlice = 0;
-			hRes = m_pD3D->CreateDepthStencilView( m_ptr->pImageDepthSurface, &descDSV, &m_ptr->pImageDepthSurfaceView );
-
-			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-			ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
-			shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;//DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-			shaderResourceViewDesc.Texture2D.MipLevels = 1;
-			hRes = m_pD3D->CreateShaderResourceView ( m_ptr->pImageDepthSurface, &shaderResourceViewDesc, &m_ptr->pImageDepthResourceView );
-		}
-		#else
-		// use backbuffer to determine common GGFORMAT
-		D3DSURFACE_DESC backbufferdesc;
-		g_pGlob->pHoldBackBufferPtr->GetDesc(&backbufferdesc);
-		GGFORMAT CommonFormat = backbufferdesc.Format;
-
-		// leeadd - 210604 - u54 - Alpha Camera Image or not
-		if ( iGenerateCameraAlpha==1 )
-		{
-			// make render target an internal texture
-			HRESULT hRes = D3DXCreateTexture (m_pD3D,
-									  iWidth,
-									  iHeight,
-									  D3DX_DEFAULT,
-									  GGUSAGE_RENDERTARGET,
-									  CommonFormat,
-									  D3DPOOL_DEFAULT,
-									  &m_ptr->pCameraToImageTexture );
-		}
-		else
-		{
-			// leeadd - 140906 - u63 - Just want a camera image that retains the alpha data (for things like post process depth of field)
-			if ( iGenerateCameraAlpha==2 )
+			// delete old image depth buffer if too small for this one
+			if( m_ptr->pImageDepthSurface && (dwDepthWidth>m_dwImageDepthWidth || dwDepthHeight>m_dwImageDepthHeight) )
 			{
-				// lee - 060207 - fix - allow camera alpha mode 2 to be cleared
-				GGFORMAT dwStoreFormat = CommonFormat;
-				CommonFormat=GGFMT_A8R8G8B8;
-				m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
-				CommonFormat=dwStoreFormat;
+				// delete any items in the list
+				if ( m_ptr->pImageDepthResourceView )
+				{
+					m_ptr->pImageDepthResourceView->Release();
+					m_ptr->pImageDepthResourceView=NULL;
+				}
+				if ( m_ptr->pImageDepthSurfaceView )
+				{
+					m_ptr->pImageDepthSurfaceView->Release();
+					m_ptr->pImageDepthSurfaceView=NULL;
+				}
+				if ( m_ptr->pImageDepthSurface )
+				{
+					m_ptr->pImageDepthSurface->Release();
+					m_ptr->pImageDepthSurface=NULL;
+				}
+			}
+
+			// create image depth surface
+			if ( m_ptr->pImageDepthSurface == NULL )
+			{
+				// Create depth stencil texture
+				m_dwImageDepthWidth = dwDepthWidth;
+				m_dwImageDepthHeight = dwDepthHeight;
+				D3D11_TEXTURE2D_DESC descDepth;
+				ZeroMemory( &descDepth, sizeof(descDepth) );
+				descDepth.Width = dwDepthWidth;
+				descDepth.Height = dwDepthHeight;
+				descDepth.MipLevels = 1;
+				descDepth.ArraySize = 1;
+				descDepth.Format = DXGI_FORMAT_R32_TYPELESS;//GetValidStencilBufferFormat(CommonFormat);//DXGI_FORMAT_D24_UNORM_S8_UINT;
+				descDepth.SampleDesc.Count = 1;
+				descDepth.SampleDesc.Quality = 0;    
+				descDepth.Usage = D3D11_USAGE_DEFAULT;
+				descDepth.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+				descDepth.CPUAccessFlags = 0;
+				descDepth.MiscFlags = 0;
+				HRESULT hRes = m_pD3D->CreateTexture2D( &descDepth, NULL, &m_ptr->pImageDepthSurface );
+
+				// Create the depth stencil view
+				D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+				ZeroMemory( &descDSV, sizeof(descDSV) );
+				descDSV.Format = DXGI_FORMAT_D32_FLOAT;//descDepth.Format;//DXGI_FORMAT_D24_UNORM_S8_UINT;
+				descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+				descDSV.Texture2D.MipSlice = 0;
+				hRes = m_pD3D->CreateDepthStencilView( m_ptr->pImageDepthSurface, &descDSV, &m_ptr->pImageDepthSurfaceView );
+
+				D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+				ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+				shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;//DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+				shaderResourceViewDesc.Texture2D.MipLevels = 1;
+				hRes = m_pD3D->CreateShaderResourceView ( m_ptr->pImageDepthSurface, &shaderResourceViewDesc, &m_ptr->pImageDepthResourceView );
+			}
+			#else
+			// use backbuffer to determine common GGFORMAT
+			D3DSURFACE_DESC backbufferdesc;
+			g_pGlob->pHoldBackBufferPtr->GetDesc(&backbufferdesc);
+			GGFORMAT CommonFormat = backbufferdesc.Format;
+
+			// leeadd - 210604 - u54 - Alpha Camera Image or not
+			if ( iGenerateCameraAlpha==1 )
+			{
+				// make render target an internal texture
+				HRESULT hRes = D3DXCreateTexture (m_pD3D,
+										  iWidth,
+										  iHeight,
+										  D3DX_DEFAULT,
+										  GGUSAGE_RENDERTARGET,
+										  CommonFormat,
+										  D3DPOOL_DEFAULT,
+										  &m_ptr->pCameraToImageTexture );
 			}
 			else
 			{
-				// leeadd - 170708 - u70 - can now choose own D3DFMT value from extra param
-				if ( iGenerateCameraAlpha==3 )
+				// leeadd - 140906 - u63 - Just want a camera image that retains the alpha data (for things like post process depth of field)
+				if ( iGenerateCameraAlpha==2 )
 				{
+					// lee - 060207 - fix - allow camera alpha mode 2 to be cleared
 					GGFORMAT dwStoreFormat = CommonFormat;
-					CommonFormat=(GGFORMAT)dwOwnD3DFMTValue;
+					CommonFormat=GGFMT_A8R8G8B8;
 					m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
 					CommonFormat=dwStoreFormat;
 				}
 				else
 				{
-					// no alpha so use render target as direct texture
-					m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
+					// leeadd - 170708 - u70 - can now choose own D3DFMT value from extra param
+					if ( iGenerateCameraAlpha==3 )
+					{
+						GGFORMAT dwStoreFormat = CommonFormat;
+						CommonFormat=(GGFORMAT)dwOwnD3DFMTValue;
+						m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
+						CommonFormat=dwStoreFormat;
+					}
+					else
+					{
+						// no alpha so use render target as direct texture
+						m_ptr->pCameraToImageTexture = MakeImageRenderTarget ( iImage, iWidth, iHeight, CommonFormat );
+					}
 				}
 			}
-		}
 
-		// Open image surface for continual usage
-		m_ptr->pCameraToImageTexture->GetSurfaceLevel( 0, &m_ptr->pCameraToImageSurface );
+			// Open image surface for continual usage
+			m_ptr->pCameraToImageTexture->GetSurfaceLevel( 0, &m_ptr->pCameraToImageSurface );
 
-		// leeadd - 210604 - u54 - add alpha surface
-		if ( iGenerateCameraAlpha==1 )
-		{
-			// get surface to texture alpha deposit area
-			m_ptr->pCameraToImageAlphaTexture = MakeImageJustFormat ( iImage, iWidth, iHeight, GGFMT_A8R8G8B8 );
-			m_ptr->pCameraToImageAlphaTexture->GetSurfaceLevel( 0, &m_ptr->pCameraToImageAlphaSurface );
-		}
-
-		// Work out size for depth buffer
-		D3DSURFACE_DESC imagerenderdesc;
-		m_ptr->pCameraToImageSurface->GetDesc(&imagerenderdesc);
-		DWORD dwDepthWidth = imagerenderdesc.Width;
-		DWORD dwDepthHeight = imagerenderdesc.Height;
-
-		// delete old image depth buffer if too small for this one
-		if( m_pImageDepthSurface && (dwDepthWidth>m_dwImageDepthWidth || dwDepthHeight>m_dwImageDepthHeight) )
-		{
-			// delete any items in the list
-			if ( m_pImageDepthSurface )
+			// leeadd - 210604 - u54 - add alpha surface
+			if ( iGenerateCameraAlpha==1 )
 			{
-				m_pImageDepthSurface->Release();
-				m_pImageDepthSurface=NULL;
-			}
-		}
-
-		//Dave Performance - if camera 0, make a lower res texture too so we can swap between
-		if ( iID == 0  )
-		{
-			//Store HiRes image surface
-			m_ptr->pCameraToImageSurfaceHiRes = m_ptr->pCameraToImageSurface;
-
-			// create a new texture
-			HRESULT hr = S_OK;
-			if ( FAILED ( hr = D3DXCreateTexture ( 
-									  m_pD3D,
-									  iWidth * 0.83f,
-									  iHeight * 0.83f,
-									  1,
-									  GGUSAGE_RENDERTARGET,
-									  GGFMT_A8R8G8B8,
-									  D3DPOOL_DEFAULT,
-									  &m_ptr->pCameraToImageTextureLowRes
-				) ) ) 
-			{
-				RunTimeError(RUNTIMEERROR_IMAGEAREAILLEGAL);
+				// get surface to texture alpha deposit area
+				m_ptr->pCameraToImageAlphaTexture = MakeImageJustFormat ( iImage, iWidth, iHeight, GGFMT_A8R8G8B8 );
+				m_ptr->pCameraToImageAlphaTexture->GetSurfaceLevel( 0, &m_ptr->pCameraToImageAlphaSurface );
 			}
 
-			hr = m_ptr->pCameraToImageTextureLowRes->GetSurfaceLevel( 0, &m_ptr->pCameraToImageSurfaceLowRes );
+			// Work out size for depth buffer
+			D3DSURFACE_DESC imagerenderdesc;
+			m_ptr->pCameraToImageSurface->GetDesc(&imagerenderdesc);
+			DWORD dwDepthWidth = imagerenderdesc.Width;
+			DWORD dwDepthHeight = imagerenderdesc.Height;
 
-		}
+			// delete old image depth buffer if too small for this one
+			if( m_pImageDepthSurface && (dwDepthWidth>m_dwImageDepthWidth || dwDepthHeight>m_dwImageDepthHeight) )
+			{
+				// delete any items in the list
+				if ( m_pImageDepthSurface )
+				{
+					m_pImageDepthSurface->Release();
+					m_pImageDepthSurface=NULL;
+				}
+			}
 
-		// create image depth surface
-		if ( m_pImageDepthSurface==NULL )
-		{
-			m_dwImageDepthWidth = dwDepthWidth;
-			m_dwImageDepthHeight = dwDepthHeight;
-			HRESULT hRes = m_pD3D->CreateDepthStencilSurface(	dwDepthWidth, dwDepthHeight,
-																GetValidStencilBufferFormat(CommonFormat), D3DMULTISAMPLE_NONE, 0, TRUE,
-																&m_pImageDepthSurface, NULL );
+			//Dave Performance - if camera 0, make a lower res texture too so we can swap between
+			if ( iID == 0  )
+			{
+				//Store HiRes image surface
+				m_ptr->pCameraToImageSurfaceHiRes = m_ptr->pCameraToImageSurface;
+
+				// create a new texture
+				HRESULT hr = S_OK;
+				if ( FAILED ( hr = D3DXCreateTexture ( 
+										  m_pD3D,
+										  iWidth * 0.83f,
+										  iHeight * 0.83f,
+										  1,
+										  GGUSAGE_RENDERTARGET,
+										  GGFMT_A8R8G8B8,
+										  D3DPOOL_DEFAULT,
+										  &m_ptr->pCameraToImageTextureLowRes
+					) ) ) 
+				{
+					RunTimeError(RUNTIMEERROR_IMAGEAREAILLEGAL);
+				}
+
+				hr = m_ptr->pCameraToImageTextureLowRes->GetSurfaceLevel( 0, &m_ptr->pCameraToImageSurfaceLowRes );
+
+			}
+
+			// create image depth surface
+			if ( m_pImageDepthSurface==NULL )
+			{
+				m_dwImageDepthWidth = dwDepthWidth;
+				m_dwImageDepthHeight = dwDepthHeight;
+				HRESULT hRes = m_pD3D->CreateDepthStencilSurface(	dwDepthWidth, dwDepthHeight,
+																	GetValidStencilBufferFormat(CommonFormat), D3DMULTISAMPLE_NONE, 0, TRUE,
+																	&m_pImageDepthSurface, NULL );
+			}
+			#endif
 		}
-		#endif
 
 		// Set View to entire image surface
 		SetCameraView ( iID, 0, 0, iWidth, iHeight );
@@ -1876,6 +1891,24 @@ DARKSDK void SetCameraToImage ( int iID, int iImage, int iWidth, int iHeight )
 {
 	// Regular camera image no alpha
 	SetCameraToImage ( iID, iImage, iWidth, iHeight, 0, 0 );
+}
+
+DARKSDK void SetCameraToView ( int iID, void* pRenderTargetView, void* pDepthStencilView, DWORD dwWidth, DWORD dwHeight, void* pLeftShaderResourceView )
+{
+	if ( iID < 0 || iID > MAXIMUMVALUE )
+	{
+		RunTimeError ( RUNTIMEERROR_CAMERANUMBERILLEGAL );
+		return;
+	}
+	if ( !UpdateCameraPtr ( iID ) )
+	{
+		RunTimeError ( RUNTIMEERROR_CAMERANOTEXIST );
+		return;
+	}
+	SetCameraToImage ( iID, -2, dwWidth, dwHeight, 0, 0 ); // -2 mode will strip any image, but get camera ready to carry render target below
+	m_ptr->pCameraToImageSurfaceView = (ID3D11RenderTargetView*)pRenderTargetView;
+	m_ptr->pImageDepthSurfaceView = (ID3D11DepthStencilView*)pDepthStencilView;
+	m_ptr->pImageDepthResourceView = (ID3D11ShaderResourceView*)pLeftShaderResourceView;
 }
 
 DARKSDK void MoveCameraUp ( int iID, float fStep )
@@ -3160,3 +3193,4 @@ void SetCameraProjectionMatrix ( int iID, GGMATRIX* pMatrix )
 	m_ptr->bOverride = true;
 	m_ptr->matProjection = *pMatrix;
 }
+

@@ -2,7 +2,7 @@
 //--- GAMEGURU - Common
 //----------------------------------------------------
 
-// Includes
+// Includes 
 #include "gameguru.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +10,7 @@
 #include "time.h"
 #include <wininet.h>
 #include "Common-Keys.h"
+#include "CFtpC.h"
 
 // Used for Free Weekend Promotion Build 
 //#define STEAMOWNERSHIPCHECKFREEWEEKEND
@@ -19,6 +20,7 @@ extern LPSTR gRefCommandLineString;
 extern bool gbAlwaysIgnoreShaderBlobFile;
 extern bool g_VR920RenderStereoNow;
 extern float g_fVR920Sensitivity;
+extern bool g_bDisableVRDetectionByUserRequest;
 
 // Globals
 int g_PopupControlMode = 0;
@@ -28,16 +30,17 @@ char g_trialDiscountExpires[1024];
 
 // to enable the use of _e_ in standalone
 void SetCanUse_e_ ( int flag );
+char g_pCloudKeyErrorString[10240];
 
 // C++ CONVERSION: g contains all variables that were defined as global in dbpro source
-// C++ CONVERSION: t contains all variables that were considered temporary and subject to change between routines
 Sglobals g;
+
+// C++ CONVERSION: t contains all variables that were considered temporary and subject to change between routines
 Stemps t;
 
-// 
-//  Common Between Map Editor and Game Runner
-// 
-
+// Prototypes
+void SetCanUse_e_ ( int flag );
+void SetWorkshopFolder ( LPSTR pFolder );
 
 //Subroutines
 
@@ -93,6 +96,9 @@ void common_init ( void )
 
 	//  Activate RealSense if available
 	///realsense_init ( );
+
+	// some important resets
+	strcpy ( g_pCloudKeyErrorString, "Unknown Validation Error");
 
 	//  flashlight
 	g.flashlighton = 0;
@@ -431,8 +437,15 @@ void common_init_globals ( void )
 	g.fpscrootdir_s = GetDir();
 	g.mydocumentsdir_s = Mydocdir();
 	g.mydocumentsdir_s += "\\";
-	g.myfpscfiles_s = "Game Guru Files";
+	#ifdef VRQUEST
+	 g.myfpscfiles_s = "VR Quest Files";
+	#else
+	 g.myfpscfiles_s = "Game Guru Files";
+	#endif
 	g.myownrootdir_s = g.mydocumentsdir_s+g.myfpscfiles_s+"\\";
+
+	// Store globally (for custom content loading inside SteamCheckForWorkshop)
+	SetWorkshopFolder ( g.fpscrootdir_s.Get() );
 
 	//  Image Resources
 	//  1-20 images used somewhere (terrain heightdata?)
@@ -486,6 +499,7 @@ void common_init_globals ( void )
 	g.charactercreatorEditorImageoffset = 95000;
 	g.LUAImageoffset = 96000;
 	g.LUAImageoffsetMax = 105999;
+	g.perentitypromptimageoffset = 110000; // allow 10,000 slots
 
 	// Sprite ( Resource markers )
 	g.ammopanelsprite = 63400;
@@ -520,6 +534,7 @@ void common_init_globals ( void )
 	g.effectbankoffset = 1000;
 	g.explosionandfireeffectbankoffset = 1100;
 	g.lightmappbreffectillum = 1296;
+	g.controllerpbreffect = 1296;
 	g.lightmappbreffect = 1297;
 	g.thirdpersonentityeffect = 1298;
 	g.thirdpersoncharactereffect = 1299;
@@ -551,6 +566,7 @@ void common_init_globals ( void )
 	g.entityworkobjectoffset = 3499;
 	g.entityattachmentsoffset = 3500;
 	g.entityattachmentindex = 0;
+	g.video3dobjectoffset = 5998;
 	g.prompt3dobjectoffset = 5999;
 	g.terrainobjectoffset = 6000;
 	g.hudlayersbankoffset = 16000;
@@ -598,8 +614,8 @@ void common_init_globals ( void )
 	//  +2 = light ray sun plane object quad
 	//  +3 = virtual reality RIFT second eye quad
 	//  +5 = dynamic terrain shadow camera image
-	//  [be aware anything added after 150001 might mess up post process?!]
-	g.batchobjectoffset = 160001;
+	//  [be aware anything added after 150001 might mess up post process?!] 
+	g.batchobjectoffset = 85000; //160001;
 	g.explosionsandfireobjectoffset = 170001;
 	g.raveyparticlesobjectoffset = 180001;
 	g.ebeobjectbankoffset = 189901;
@@ -609,6 +625,7 @@ void common_init_globals ( void )
 	g.charactercreatorrmodelsbankoffset = 200000;
 	g.charactercreatorrmodelsoffset = 201000;
 	g.charactercreatorrmodelsoffsetEnd = 203000;
+	g.perentitypromptoffset = 210000; // allow 10,000 slots
 
 	//  Particle Resources
 	g.particlebankoffset = 1;
@@ -741,13 +758,14 @@ void common_init_globals ( void )
 	Dim (  t.mp_isDying,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_jetpackOn,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_lobbies_s,MP_MAX_NUMBER_OF_LOBBIES  );
-	Dim (  t.mp_playerEntityID,MP_MAX_NUMBER_OF_PLAYERS  );
-	Dim (  t.mp_forcePosition,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim ( t.mp_playerEntityID,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim ( t.mp_forcePosition,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_health,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_chat,MP_MAX_CHAT_LINES  );
 	Dim (  t.mp_subbedItems,20  );
 	Dim (  t.mp_playerAvatars_s,MP_MAX_NUMBER_OF_PLAYERS  );
 	Dim (  t.mp_playerAvatarOwners_s,MP_MAX_NUMBER_OF_PLAYERS  );
+	Dim (  t.mp_playerAvatarLoaded,MP_MAX_NUMBER_OF_PLAYERS  );
 
 	Dim (  t.mpmultiplayerstart,MP_MAX_NUMBER_OF_PLAYERS );
 
@@ -1594,7 +1612,7 @@ Dim (  t.frags,g.multiplayermax );
 
 void FPSC_SetDefaults ( void )
 {
-	//  Very first task is find and load BUILD.INI (if flagged)
+	//  Very first task is find and load BUILD.INI (if flagged) 
 	g.gcompilestandaloneexe = 0;
 	g.gpretestsavemode = 0;
 
@@ -1728,6 +1746,7 @@ void FPSC_SetDefaults ( void )
 	g.gprofileinstandalone = 0;
 	g.greflectionrendersize = 512;
 	g.gadapterordinal = 0;
+	g.gadapterd3d11only = 0;
 	g.ghideallhuds = 0;
 	g.gskipobstaclecreation = 0;
 	g.gskipterrainobstaclecreation = 0;
@@ -1849,7 +1868,8 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "drawcalloptimizer"; if (t.field_s == t.tryfield_s) g.globals.drawcalloptimizer = t.value1;
 					t.tryfield_s = "forcenowaterreflection"; if (t.field_s == t.tryfield_s) g.globals.forcenowaterreflection = t.value1;
 					
-					t.tryfield_s = "flashlightshadows"; if (t.field_s == t.tryfield_s) {
+					t.tryfield_s = "flashlightshadows"; if (t.field_s == t.tryfield_s) 
+					{
 						g.globals.flashlightshadows = t.value1;
 						if (g.globals.flashlightshadows > 1) g.globals.flashlightshadows = 1;
 						if (g.globals.flashlightshadows < 0) g.globals.flashlightshadows = 0;
@@ -1859,8 +1879,26 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					t.tryfield_s = "realshadowcascadecount" ; if (  t.field_s == t.tryfield_s  ) g.globals.realshadowcascadecount = t.value1;
 					if (g.globals.realshadowcascadecount < 2) g.globals.realshadowcascadecount = 2; //PE: Limit cascades.
 					if (g.globals.realshadowcascadecount > 8) g.globals.realshadowcascadecount = 8; //PE: Limit cascades.
-					if (g.globals.flashlightshadows == 1) {
+					if (g.globals.flashlightshadows == 1) 
+					{
 						if (g.globals.realshadowcascadecount > 7) g.globals.realshadowcascadecount = 7; //PE: Limit cascades.
+					}
+
+					// DOCDOC: speedshadows = Sets the internal shadow rendering technique. Default is 2.
+					t.tryfield_s = "speedshadows"; if (t.field_s == t.tryfield_s) g.globals.speedshadows = t.value1;
+
+					// DOCDOC: drawcalloptimizer = Set to 1 to activate the automatic batching of entities to improve performance
+					t.tryfield_s = "drawcalloptimizer"; if (t.field_s == t.tryfield_s) g.globals.drawcalloptimizer = t.value1;
+
+					// DOCDOC: forcenowaterreflection = Set to 1 to switch off water reflection internally for improved performance
+					t.tryfield_s = "forcenowaterreflection"; if (t.field_s == t.tryfield_s) g.globals.forcenowaterreflection = t.value1;					
+
+					// DOCDOC: flashlightshadows = Set to 1 to activate an additional shadow cast from the flashlight (press F to activate flashlight)
+					t.tryfield_s = "flashlightshadows"; if (t.field_s == t.tryfield_s) 
+					{
+						g.globals.flashlightshadows = t.value1;
+						if (g.globals.flashlightshadows > 1) g.globals.flashlightshadows = 1;
+						if (g.globals.flashlightshadows < 0) g.globals.flashlightshadows = 0;
 					}
 
 					// DOCDOC: realshadowcascade0 thru realshadowcascade7 = Set the distance as a percentage when cascade kicks in
@@ -1934,6 +1972,9 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 
 					// DOCDOC: hideallhuds = Forces all display HUDs to hide when in the game
 					t.tryfield_s = "hideallhuds" ; if (  t.field_s == t.tryfield_s  )  g.ghideallhuds = t.value1;
+
+					// DOCDOC: adapterd3d11only = Set to 1 to change the feature levels requested when DirectX is initialised
+					t.tryfield_s = "adapterd3d11only" ; if (  t.field_s == t.tryfield_s  )  g.gadapterd3d11only = t.value1;
 
 					// DOCDOC: skipobstaclecreation = Speed up level preparation time by skipping AI obstacle creation. AI will not have pathfinding. Default is 0.
 					t.tryfield_s = "skipobstaclecreation" ; if (  t.field_s == t.tryfield_s  )  g.gskipobstaclecreation = t.value1;
@@ -2146,12 +2187,29 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 					// VRMode
 					// 0 : off
 					// 1 : VR920/iWear
+					// 2 : GGVR (OpenVR)
+					// 3 : GGVR (Microsoft WMR)
+					// 4 : RESERVED - HOLDING VALUE (see code)
 					// 5 : detects VR920/iWear (switches OFF if not found)
 					// 6 : special case, side by side rendering
-					// DOCDOC: vrmode = Not Used
-					//t.tryfield_s = "vrmode" ; if (  t.field_s == t.tryfield_s  )  { g.gvrmode = t.value1; g.gvrmodeoriginal = t.value1; }
-					// DOCDOC: vrmodemag = Not Used
-					//t.tryfield_s = "vrmodemag" ; if (  t.field_s == t.tryfield_s  )  g.gvrmodemag = t.value1;
+					t.tryfield_s = "vrmode" ; 
+					if (  t.field_s == t.tryfield_s  )  
+					{ 
+						g.gvrmode = t.value1; 
+						g.gvrmodeoriginal = t.value1; 
+						if ( g.gvrmode != 0 )
+						{
+							#ifndef GURULIGHTMAPPER
+							HWND hThisWnd = g_pGlob->hWnd;
+							if ( MessageBox ( hThisWnd, "Do you have the Windows Mixed Reality Portal, and the headset set up and running? If you do, click Yes for the full VR experience. If not, you can enjoy VR Quest without a headset by clicking No.", "VR Mode Confirmation", MB_YESNO | MB_TOPMOST ) == IDNO )
+							{
+								// this will ignore any VRMODE that may have been required by this executable
+								g.gvrmode = 0;
+							}
+							#endif
+						}
+					}
+					t.tryfield_s = "vrmodemag" ; if (  t.field_s == t.tryfield_s  )  g.gvrmodemag = t.value1;
 
 					// DOCDOC: dynamiclighting = Not Used
 					t.tryfield_s = "dynamiclighting" ; if (  t.field_s == t.tryfield_s  )  g.gdynamiclightingstate = t.value1;
@@ -2590,6 +2648,265 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 
 	// special global flag which can affect how shaders are loaded
 	if ( g.gforceloadtestgameshaders != 0 ) gbAlwaysIgnoreShaderBlobFile = true;
+
+	// new feature which scans entitybank folders and confirms there are no missing model or texture files
+	/* useful - we can make this a feature
+	LPSTR pOriginalDir = GetDir();
+	cstr pReport = "";
+	bool bFixAnyEntityIssues = true;
+	if ( bFixAnyEntityIssues == true )
+	{
+		g.filecollectionmax = 0;
+		Undim ( t.filecollection_s );
+		Dim ( t.filecollection_s, 500 );
+		SetDir ( "Files\\entitybank" );
+		addallinfoldertocollection("Objects - Copy","");
+	}
+	bool bRunScanOnEntityFiles = true;
+	if ( bRunScanOnEntityFiles == true )
+	{
+		// first scan main folders
+		SetDir ( pOriginalDir );
+		SetDir ( "Files\\entitybank\\Objects" );
+		LPSTR pEntityBankDir = GetDir();
+		std::vector<cstr> folderlist;
+		folderlist.clear();
+		ChecklistForFiles();
+		for ( int c = 1; c <= ChecklistQuantity(); c++ )
+		{
+			if ( ChecklistValueA(c) == 1 )
+			{
+				LPSTR pFilename = ChecklistString(c);
+				if ( strcmp ( pFilename, "." ) != NULL && strcmp ( pFilename, ".." ) != NULL )
+				{
+					folderlist.push_back ( pFilename );
+				}
+			}
+		}
+		if ( folderlist.size() > 0 )
+		{
+			for ( int f = 0; f < folderlist.size(); f++ )
+			{
+				LPSTR pFolderName = folderlist[f].Get();
+				SetDir ( pEntityBankDir );
+				SetDir ( pFolderName );
+				ChecklistForFiles();
+				for ( int c = 1; c <= ChecklistQuantity(); c++ )
+				{
+					LPSTR pFilename = ChecklistString(c);
+					if ( strcmp ( pFilename + strlen(pFilename) - 4, ".fpe" ) == NULL )
+					{
+						// found entity file
+						pReport = cstr("VALIDATE : ") + pFolderName + "\\" + pFilename + " : ";
+
+						// find model and texture
+						LPSTR pModelFile = NULL;
+						LPSTR pTextureFile = NULL;
+						std::vector<cstr> entityFileData;
+						Dim ( entityFileData, 999 );
+						LoadArray ( pFilename, entityFileData );
+						for ( int l = 0; l <= 999; l++ )
+						{
+							// get this line
+							cstr line_s = entityFileData[l];
+							LPSTR pLinePtr = line_s.Get();
+							if ( Len(pLinePtr) > 0 ) 
+							{
+								// found model filename
+								if ( strnicmp (pLinePtr, "model", 5 ) == NULL )
+								{
+									pLinePtr = strstr ( pLinePtr, "model" );
+									if ( pLinePtr )
+									{
+										pLinePtr = strstr ( pLinePtr+5, "=" );
+										if ( pLinePtr )
+										{
+											pLinePtr = pLinePtr + 1;
+											while ( *pLinePtr == 32 ) pLinePtr++;
+											pModelFile = new char[1024];
+											strcpy ( pModelFile, pLinePtr );
+										}
+									}
+								}
+
+								// found textured filename
+								if ( strnicmp (pLinePtr, "textured", 8 ) == NULL )
+								{
+									pLinePtr = strstr ( pLinePtr, "textured" );
+									if ( pLinePtr )
+									{
+										pLinePtr = strstr ( pLinePtr+8, "=" );
+										if ( pLinePtr )
+										{
+											pLinePtr = pLinePtr + 1;
+											while ( *pLinePtr == 32 ) pLinePtr++;
+											pTextureFile = new char[1024];
+											strcpy ( pTextureFile, pLinePtr );
+										}
+									}
+								}
+							}
+
+							// can quit when we have both model filename and textured filename
+							if ( pModelFile && pTextureFile ) break;
+						}
+
+						// check if all files available
+						bool bReportIt = false;
+						bool bModelOkay = false;
+						bool bTextureOkay = false;
+						if ( pModelFile && FileExist ( pModelFile ) == 1 ) bModelOkay = true;
+						if ( pTextureFile )
+						{
+							char pStoreOrigTextureFilename[1024];
+							strcpy ( pStoreOrigTextureFilename, pTextureFile );
+							if ( FileExist ( pTextureFile ) == 0 ) 
+							{
+								pTextureFile[strlen(pTextureFile)-4] = 0;
+								strcat ( pTextureFile, ".dds" );
+							}
+							if ( FileExist ( pTextureFile ) == 0 ) 
+							{
+								pTextureFile[strlen(pTextureFile)-4] = 0;
+								strcat ( pTextureFile, ".png" );
+							}
+							if ( FileExist ( pTextureFile ) == 0 ) 
+							{
+								pTextureFile[strlen(pTextureFile)-4] = 0;
+								strcat ( pTextureFile, ".jpg" );
+							}
+							if ( FileExist ( pTextureFile ) == 0 ) 
+								strcpy ( pTextureFile, pStoreOrigTextureFilename );
+							else
+								bTextureOkay = true;
+						}
+						if ( bModelOkay == false || bTextureOkay == false )
+						{
+							if ( pModelFile == NULL ) 
+							{
+								pReport = pReport + "MODEL NAME NOT GIVEN ";
+								bReportIt = true;
+							}
+							else
+							{
+								if ( bModelOkay == false )
+								{
+									if ( bFixAnyEntityIssues == true )
+									{
+										LPSTR pFindMissingFile = FindFileFromEntityBank(pModelFile);
+										if ( pFindMissingFile )
+										{
+											CopyFile ( pFindMissingFile, pModelFile, TRUE );
+											if ( FileExist ( pModelFile ) == 1 )
+											{
+												// only if copied okay can remove from source
+												//DeleteFile ( pFindMissingFile );
+											}
+											pReport = pReport + "MODEL FILE COPIED OVER " + pModelFile + " ";
+											delete pFindMissingFile;
+											bReportIt = true;
+										}
+										else
+										{
+											pReport = pReport + "MODEL FILE UNKNOWN " + pModelFile + " ";
+											bReportIt = true;
+										}
+									}
+									else
+									{
+										pReport = pReport + "MODEL FILE MISSING ";
+										bReportIt = true;
+									}
+								}
+							}
+							if ( pTextureFile == NULL ) 
+							{
+								pReport = pReport + "TEXTURE NAME NOT GIVEN ";
+								bReportIt = true;
+							}
+							else
+							{
+								if ( bTextureOkay == false )
+								{
+									if ( bFixAnyEntityIssues == true )
+									{
+										LPSTR pFindMissingFile = FindFileFromEntityBank(pTextureFile);
+										if ( pFindMissingFile )
+										{
+											CopyFile ( pFindMissingFile, pTextureFile, TRUE );
+											if ( FileExist ( pTextureFile ) == 1 )
+											{
+												// only if copied okay can remove from source
+												//DeleteFile ( pFindMissingFile );
+											}
+											pReport = pReport + "TEXTURE FILE COPIED OVER " + pTextureFile + " ";
+											delete pFindMissingFile;
+											bReportIt = true;
+										}
+										else
+										{
+											pReport = pReport + "TEXTURE FILE UNKNOWN " + pTextureFile + " ";
+											bReportIt = true;
+										}
+									}
+									else
+									{
+										pReport = pReport + "TEXTURE FILE MISSING ";
+										bReportIt = true;
+									}
+								}
+							}
+						}
+						else
+						{
+							pReport = pReport + "VALID";
+						}
+						if ( bReportIt == true )
+						{
+							timestampactivity(0, pReport.Get());
+						}
+
+						// free usages if any
+						if ( pModelFile ) delete pModelFile;
+						if ( pTextureFile ) delete pTextureFile;
+					}
+				}
+			}
+		}
+	}
+	SetDir ( pOriginalDir );
+	*/
+}
+
+LPSTR FindFileFromEntityBank ( LPSTR pFindThisFilename )
+{
+	// look through entire file collection for this file
+	for ( int f = 1; f <= g.filecollectionmax; f++ )
+	{
+		LPSTR pFile = t.filecollection_s[f].Get();
+		LPSTR pFileNameOnly = NULL;
+		for ( int n = strlen(pFile); n > 0; n-- )
+		{
+			if ( pFile[n] == '\\' || pFile[n] == '/' )
+			{
+				pFileNameOnly = pFile+n+1;
+				break;
+			}
+		}
+		if ( pFileNameOnly )
+		{
+			if ( stricmp ( pFileNameOnly, pFindThisFilename ) == NULL )
+			{
+				// found the file!
+				LPSTR pReturnAbsPathToFile = new char[2048];
+				strcpy ( pReturnAbsPathToFile, g.fpscrootdir_s.Get() );
+				strcat ( pReturnAbsPathToFile, "\\Files\\entitybank\\Objects - Copy\\" );
+				strcat ( pReturnAbsPathToFile, pFile );
+				return pReturnAbsPathToFile;
+			}
+		}
+	}
+	return NULL;
 }
 
 void FPSC_LoadKEYMAP ( void )
@@ -2740,48 +3057,184 @@ void common_makeserialcode ( LPSTR pInstituteName, int iFromDD, int iFromMM, int
 
 int common_isserialcodevalid ( LPSTR pSerialCode )
 {
-	// get serial code into build array
-	char pBuildString[10+12+1];
-	strcpy ( pBuildString, pSerialCode );
+	// valid code
+	int iValidCode = 0;
 
-	// extract the DD, MM and YY data from build array
-	int iFromYY = common_unalign(pBuildString[16])-69;
-	int iToDD = common_unalign(pBuildString[14])-64;
-	int iToMM = common_unalign(pBuildString[18])-65;
-	int iToYY = common_unalign(pBuildString[20])-68;
+	// confirm validity of serial code/cloud key
+	#ifdef CLOUDKEYSYSTEM
 
-	// check if system date within serial code date range
-	time_t now = time(0);
-    tm *ltm = localtime(&now);
-	int iDay   = ltm->tm_mday;
-	int iMonth = ltm->tm_mon;
-	int iYear  = ltm->tm_year-100;
-
-	// if within the years range of the code (allows any date within the last month)
-	int iDateWithinRange = 0;
-	if ( iYear >= iFromYY && iYear <= iToYY )
-	{
-		if ( iYear < iToYY )
+		// generate unique code for install if none available
+		char pUniqueCodeFile[1024];
+		strcpy ( pUniqueCodeFile, g.fpscrootdir_s.Get() );
+		strcat ( pUniqueCodeFile, "\\installcode.dat" );
+		char pUniqueCode[33];
+		memset ( pUniqueCode, 33, 0 );
+		FILE *file = fopen(pUniqueCodeFile, "r");
+		if ( file == NULL )
 		{
-			// if not the final year
-			iDateWithinRange = 1;
+			// generate
+			time_t mtime;
+			mtime = time(0);
+			srand(mtime);
+			int n = 0;
+			for (; n < 32; n++ ) 
+			{
+				pUniqueCode[n] = 65+(rand()%22);
+			}
+			pUniqueCode[32] = 0;
+			FILE* fp = fopen( pUniqueCodeFile , "w" );
+			fwrite(pUniqueCode , 1 , 32 , fp );
+			fclose(fp);
 		}
 		else
 		{
-			// if the final year
-			if ( iYear == iToYY )
+			// read
+			fread(pUniqueCode, 1, 32, file);
+			fclose(file);
+		}
+		pUniqueCode[32] = 0;
+
+		// connect to server and verify code is valid and not expired
+		LPSTR pServerHost = "keydistro.thegamecreators.com";
+		HTTPConnect ( pServerHost );
+
+		// access script from server
+		char szGetData[1024];
+		strcpy ( szGetData, "/api/key/validity?" );
+		strcat ( szGetData, "sc=hf09Rdc43aaD&key=" );
+		strcat ( szGetData, pSerialCode );
+		strcat ( szGetData, "&app_id=" );
+		strcat ( szGetData, "1" );
+		strcat ( szGetData, "&device_id=" );
+		strcat ( szGetData, pUniqueCode );
+		strcat ( szGetData, "&description=" );
+		strcat ( szGetData, "ValidationCheck" );
+		LPSTR pVerb = "GET";
+		LPSTR pDataReturned = HTTPRequestData ( pVerb, szGetData, NULL );
+
+		// disconnect from server
+		HTTPDisconnect();
+
+		// if no internet connection, cannot check license key
+		if ( strstr ( pDataReturned, "Send Request failed" ) == NULL )
+		{
+			// break up response string
+			char pValid[10240];
+			strcpy ( pValid, "" );
+			char pMessage[10240];
+			strcpy ( pMessage, "" );
+			char pWorkStr[10240];
+			strcpy ( pWorkStr, pDataReturned );
+			if ( pWorkStr[0]=='{' ) strcpy ( pWorkStr, pWorkStr+1 );
+			int n = 10200;
+			for (; n>0; n-- ) if ( pWorkStr[n] == '}' ) { pWorkStr[n] = 0; break; }
+			char* pChop = strstr ( pWorkStr, "," );
+			char pStatusStr[10240];
+			strcpy ( pStatusStr, pWorkStr );
+			pStatusStr[pChop-pWorkStr] = 0;
+			char* pStatusValue = strstr ( pStatusStr, ":" ) + 1;
+			if ( pChop[0]=',' ) pChop += 1;
+			if ( strstr ( pStatusValue, "success" ) != NULL )
 			{
-				if ( iMonth <= iToMM )
+				// success - check valid status
+				pChop = strstr ( pChop, ":" ) + 1;
+				strcpy ( pValid, pChop );
+				char pEndOfChunk[4];
+				pEndOfChunk[0]=',';
+				pEndOfChunk[1]=0;
+				char* pValidEnd = strstr ( pValid, pEndOfChunk );
+				pValid[pValidEnd-pValid] = 0;
+				pChop += (pValidEnd-pValid);
+
+				// determine if valid true or false
+				bool bIsKeyValid = true;
+				if ( strstr ( pValid, "false" ) != NULL )
+					bIsKeyValid = false;
+
+				// show prompt of not valid
+				if ( bIsKeyValid == true )
 				{
-					// and not an expired month
-					iDateWithinRange = 1;
+					// passed server check, key is valid
+					iValidCode = 1;
+				}
+				else
+				{
+					// message info
+					strcpy ( pMessage, strstr ( pChop, ":" ) + 1 );
+					char* pCurly = strstr ( pMessage, "}" );
+					if ( pCurly ) *pCurly = ' ';
+					strcpy ( g_pCloudKeyErrorString, pMessage );
+					//MessageBox ( NULL, pMessage, "Cloud Key Validation Failed", MB_OK );
+				}
+			}
+			else
+			{
+				// error prompt when server check fails
+				char* pMessageValue = strstr ( pChop, ":" );
+				if ( pMessageValue )
+				{
+					char* pCurly = strstr ( pMessageValue, "}" );
+					if ( pCurly ) *pCurly = ' ';
+					strcpy ( g_pCloudKeyErrorString, pMessageValue );
+					//MessageBox ( NULL, pMessageValue, "Cloud Key Validation Check", MB_OK );
+				}
+				else
+				{
+					strcpy ( g_pCloudKeyErrorString, pChop );
+					//MessageBox ( NULL, pChop, "Cloud Key Validation Check", MB_OK );
 				}
 			}
 		}
-	}
+		else
+		{
+			// no internet connection available
+			strcpy ( g_pCloudKeyErrorString, "No Internet Connection - Cannot Check Key" );
+			iValidCode = -1;
+		}
+
+	#else
+		// get serial code into build array
+		char pBuildString[10+12+1];
+		strcpy ( pBuildString, pSerialCode );
+
+		// extract the DD, MM and YY data from build array
+		int iFromYY = common_unalign(pBuildString[16])-69;
+		int iToDD = common_unalign(pBuildString[14])-64;
+		int iToMM = common_unalign(pBuildString[18])-65;
+		int iToYY = common_unalign(pBuildString[20])-68;
+
+		// check if system date within serial code date range
+		time_t now = time(0);
+		tm *ltm = localtime(&now);
+		int iDay   = ltm->tm_mday;
+		int iMonth = ltm->tm_mon;
+		int iYear  = ltm->tm_year-100;
+
+		// if within the years range of the code (allows any date within the last month)
+		if ( iYear >= iFromYY && iYear <= iToYY )
+		{
+			if ( iYear < iToYY )
+			{
+				// if not the final year
+				iValidCode = 1;
+			}
+			else
+			{
+				// if the final year
+				if ( iYear == iToYY )
+				{
+					if ( iMonth <= iToMM )
+					{
+						// and not an expired month
+						iValidCode = 1;
+					}
+				}
+			}
+		}
+	#endif
 
 	// return result
-	return iDateWithinRange;
+	return iValidCode;
 }
 
 void common_writeserialcode ( LPSTR pCode )
@@ -2971,6 +3424,10 @@ void FPSC_Setup ( void )
 	g.gshowannouncements = 1;
 	if ( g.trueappname_s == "Guru-MapEditor" ) 
 	{
+		// create itinerary file if first time, or just read it in
+		CreateItineraryFile();
+
+		// startup file
 		t.tfile_s="showonstartup.ini";
 		if ( FileOpen(1) == 1 ) CloseFile (  1 );
 		if ( FileExist(t.tfile_s.Get()) == 1 ) 
@@ -3076,12 +3533,25 @@ void FPSC_Setup ( void )
 		if ( strlen(g.vrqcontrolmodeserialcode.Get()) > 1 )
 		{
 			// determine FROM and TO dates from serial code
-			if ( common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get()) == 0 )
+			int iValidCode = common_isserialcodevalid(g.vrqcontrolmodeserialcode.Get());
+			if ( iValidCode <= 0 )
 			{
 				// serial code expired
-				MessageBox ( NULL, "Your serial code has expired, obtain an updated serial code to continue using the software.", "License Not Found", MB_OK );
-				g.vrqTriggerSerialCodeEntrySystem = 1;
-				g.iTriggerSoftwareToQuit = 1;
+				#ifdef CLOUDKEYSYSTEM
+				// Allow UI to offer up cloud key dialog now - message already given with more detailed info on error earlier
+				#else
+				MessageBox ( NULL, "Your code has expired, obtain an updated code to continue using the software.", "License Not Found", MB_OK );
+				#endif
+				if ( iValidCode == -1 )
+				{
+					// no internet connection so cannot check key, just quit!
+					g.iTriggerSoftwareToQuit = 4;
+				}
+				else
+				{
+					g.vrqTriggerSerialCodeEntrySystem = 1;
+					g.iTriggerSoftwareToQuit = 1;
+				}
 			}
 			else
 			{
@@ -3099,22 +3569,14 @@ void FPSC_Setup ( void )
 		// all VRQ is restricted content mode
 		g.quickparentalcontrolmode = 2;
 	}
-	else
-	{
-		// if non-VRQ, ensure Steam file present, otherwise exit software
-		if ( g.trueappname_s == "Guru-MapEditor" ) 
-		{
-			#ifdef FREETRIALVERSION
-			 // Does not need Steam files
-			#else
-			 if ( FileExist("steam_appid.txt") == 0 ) 
-			 {
-				MessageBox ( NULL, "Root file missing from installation.", "System File Not Found", MB_OK );
-				g.iTriggerSoftwareToQuit = 1;
-			 }
-			#endif
-		}
-	}
+
+	// standalones need to know we are running in VR flavor
+	#ifdef VRQUEST
+	 if ( g.iTriggerSoftwareToQuit == 0 )
+	 {
+		 g.vrqcontrolmode = 1;
+	 }
+	#endif
 
 	//  Review Request Reminder state
 	/*
@@ -3216,11 +3678,12 @@ void FPSC_Setup ( void )
 	else
 		SetDefaultCPUAnimState ( 0 );
 
-	//  set adapter ordinal for next time display mode is set (below)
-	if (  g.gadapterordinal>0 ) 
+	// set adapter ordinal for next time display mode is set (below)
+	if ( g.gadapterordinal>0 ) 
 	{
-		ForceAdapterOrdinal (  g.gadapterordinal );
+		ForceAdapterOrdinal ( g.gadapterordinal );
 	}
+	ForceAdapterD3D11ONLY ( g.gadapterd3d11only );
 
 	// true nae of app to log
 	backuptimestampactivity();
@@ -3356,8 +3819,7 @@ void FPSC_Setup ( void )
 
 			// set backbuffer for editor
 			t.bkwidth=GetDesktopWidth() ; t.bkheight=GetDesktopHeight();
-			t.thevrmodeflag = 0; 
-			if ( g.gvrmode != 0  ) t.thevrmodeflag = 1;
+			t.thevrmodeflag = 0; if ( g.gvrmode == 1 || g.gvrmode == 5 || g.gvrmode == 6 ) t.thevrmodeflag = 1;
 			if ( t.thevrmodeflag != 0 ) 
 			{
 				SetDisplayModeVR ( GetDesktopWidth(),GetDesktopHeight(),GetDisplayDepth(), g.gvsync,0,0,0,0,t.thevrmodeflag );
@@ -3423,8 +3885,8 @@ void FPSC_Setup ( void )
 					if ( g.gdisplaywidth == -1 || g.gdisplayheight == -1 ) { g.gdisplaywidth = GetDesktopWidth() ; g.gdisplayheight = GetDesktopHeight(); }
 					if ( g.gdisplaywidth != 640 || g.gdisplayheight != 480 || g.gdisplaydepth != 32 || g.gvrmode != 0 ) 
 					{
-						t.thevrmodeflag = 0 ; if (  g.gvrmode != 0  )  t.thevrmodeflag = 1;
-						if ( t.thevrmodeflag != 0 ) // CheckDisplayMode(g.gdisplaywidth,g.gdisplayheight,g.gdisplaydepth) == 1 ) 
+						t.thevrmodeflag = 0; if ( g.gvrmode == 1 || g.gvrmode == 5 || g.gvrmode == 6 ) t.thevrmodeflag = 1;
+						if ( t.thevrmodeflag != 0 )
 						{
 							SetDisplayModeVR ( g.gdisplaywidth, g.gdisplayheight, g.gdisplaydepth, g.gvsync,0,0,0,0,t.thevrmodeflag );
 						}
@@ -3587,7 +4049,7 @@ void FPSC_Setup ( void )
 	timestampactivity(0,t.szwork);
 	if (  g.trueappname_s == "Guru-MapEditor" ) 
 		bIsThisMapEditor = true;
-
+	
 	// Common redirections to new My System write/read folder
 	cstr mysystemfolder_s = "My System";
 	if ( bIsThisMapEditor == false ) g.mysystem.bUsingMySystemFolder = false;
@@ -3604,6 +4066,31 @@ void FPSC_Setup ( void )
 	if ( bIsThisMapEditor == true ) 
 	{
 		// MAP EDITOR
+
+		// Write latest location of software to registry (for future patch installers)
+		HKEY hKeyNames = 0;
+		LPCSTR pSubKeyName = "Software\\VRQuest";
+		LPSTR pThisVersion = g.version_s.Get();
+		LPSTR pThisPath = g.fpscrootdir_s.Get();
+		DWORD dwDisposition;
+		DWORD Status = RegCreateKeyEx(HKEY_CURRENT_USER, pSubKeyName, 0L, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS | KEY_WRITE, NULL, &hKeyNames, &dwDisposition);
+		if ( Status == ERROR_SUCCESS )
+		{
+			if ( dwDisposition == REG_OPENED_EXISTING_KEY )
+			{
+				RegCloseKey ( hKeyNames );
+				Status = RegOpenKeyEx(HKEY_CURRENT_USER, pSubKeyName, 0L, KEY_WRITE, &hKeyNames);
+			}
+		}
+		if ( hKeyNames != 0 )
+		{
+			if ( Status == ERROR_SUCCESS )
+			{
+				Status = RegSetValueEx(hKeyNames, "Version", 0, REG_SZ, (LPBYTE)pThisVersion, (strlen(pThisVersion)+1)*sizeof(char));
+				Status = RegSetValueEx(hKeyNames, "LatestInstallPath", 0, REG_SZ, (LPBYTE)pThisPath, (strlen(pThisPath)+1)*sizeof(char));
+			}
+			RegCloseKey(hKeyNames);
+		}
 
 		// For My System mode
 		if ( g.mysystem.bUsingMySystemFolder == true )
@@ -3653,7 +4140,7 @@ void FPSC_Setup ( void )
 		if ( g.grestoreeditorsettings == 1 ) pFirstTextToShow = "RESUMING PREVIOUS SESSION";
 		welcome_updatebackdrop(pFirstTextToShow);
 
-		//  Activate Steam (always so single player can do snapshots and get Steam notifications)
+		// Init MP System (and Activate Steam (always so single player can do snapshots and get Steam notifications) if Steam)
 		mp_init ( );
 
 		// Init default material sounds
@@ -3857,7 +4344,7 @@ void FPSC_Setup ( void )
 
 		//  Enter Map Editor specific code
 		SETUPLoadAllCoreShadersREST(g.gforceloadtestgameshaders,g.gpbroverride);
-		material_loadsounds ( );
+		material_loadsounds ( 1 );
 		mapeditorexecutable();
 	}
 	else
@@ -3869,6 +4356,30 @@ void FPSC_Setup ( void )
 	
 		//  Activate Steam (always so single player can do snapshots and get Steam notifications)
 		mp_init ( );
+
+		// VR Mode Initialisation
+		g.globals.riftmode = 0;
+		g.vrglobals.GGVREnabled = 0; 
+		g.vrglobals.GGVRUsingVRSystem = 1; 
+		if ( g.gvrmode == 2 ) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
+		if ( g.gvrmode == 3 ) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
+		char pVRSystemString[1024];
+		sprintf ( pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled );
+		timestampactivity(0,pVRSystemString);
+		int iErrorCode = GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
+		if ( iErrorCode > 0 )
+		{
+			char pErrorStr[1024];
+			sprintf ( pErrorStr, "Error Choosing VR System : Code %d", iErrorCode );
+			timestampactivity(0,pErrorStr);
+			timestampactivity(0,"switching VR off, headset not detected");
+			g.vrglobals.GGVREnabled = 0;
+		}
+
+		// Need editor 14.PNG for teleport graphic
+		LoadImage ( "editors\\gfx\\14-white.png",g.editorimagesoffset+14 );
+		LoadImage ( "editors\\gfx\\14-red.png",g.editorimagesoffset+16 );
+		LoadImage ( "editors\\gfx\\14-green.png",g.editorimagesoffset+17 );
 
 		// Init default material sounds
 		material_init ( );
@@ -3888,7 +4399,9 @@ void FPSC_Setup ( void )
 		SetCameraAspect (  t.aspect_f );
 	
 		//  set-up test game screen prompt assets (for printscreenprompt())
-		loadscreenpromptassets();
+		int iUseVRTest = 0;
+		if ( g.vrglobals.GGVREnabled > 0 ) iUseVRTest = 1;
+		loadscreenpromptassets(iUseVRTest);
 		printscreenprompt("");
 
 		// delayed material load to after logo splash
@@ -3936,14 +4449,16 @@ void FPSC_Setup ( void )
 		SetCameraRange (  1,4000 );
 		g.grav_f=-5.0;
 	
-		//  temporarily hide main screen (post process will show it when ready)
-		SetCameraView (  0,0,0,1,1 );
+		// temporarily hide main screen (post process will show it when ready)
+		SetCameraView ( 0,0,0,1,1 );
 	
-		//  full speed
-		SyncRate (  0 );
+		// full speed
+		SyncRate ( 0 );
 	
-		// Launch game in EXE mode
-		game_masterroot ( );
+		//
+		//  Launch game in EXE mode
+		//
+		game_masterroot ( iUseVRTest );
 
 		// Only if not quitting standalone
 		if ( t.game.masterloop != 0 )
@@ -4090,6 +4605,15 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 		LPSTR pLightmapPBREffect = "effectbank\\reloaded\\apbr_lightmapped_illum.fx";
 		LoadEffect(pLightmapPBREffect, g.lightmappbreffectillum, 0);
 		filleffectparamarray(g.lightmappbreffectillum);
+	}
+
+	
+	// load common lightmapper PBR shader
+	if ( GetEffectExist(g.controllerpbreffect) == 0 ) 
+	{
+		LPSTR pPBREffect = "effectbank\\reloaded\\apbr_basic.fx";
+		LoadEffect ( pPBREffect, g.controllerpbreffect, 0 );
+		filleffectparamarray(g.controllerpbreffect);
 	}
 
 	// load common third person character shader
@@ -4500,19 +5024,11 @@ return;
 
 void version_splashtext_statusupdate ( void )
 {
-	//  Update Splash Text (  with update on what is being loaded (startup IDE) )
-	if (  t.game.gameisexe != 1 ) 
+	// Update Splash Text (  with update on what is being loaded (startup IDE) )
+	if ( t.game.gameisexe != 1 ) 
 	{
-		//  and only if not running standalone
-		//  takes tsplashstatusprogress$
-		//if (  g.grestoreeditorsettings != 1 ) 
-		//{
-			welcome_updatebackdrop(t.tsplashstatusprogress_s.Get());
-			//OpenFileMap (  5, "FPSSPLASH" );
-			//SetFileMapDWORD (  5, 4, 1 );
-			//SetFileMapString (  5, 1000, t.tsplashstatusprogress_s.Get() );
-			//SetEventAndWait (  5 );
-		//}
+		// and only if not running standalone
+		welcome_updatebackdrop(t.tsplashstatusprogress_s.Get());
 	}
 }
 
@@ -4528,8 +5044,6 @@ void version_splashtext ( void )
 
 void version_onscreenlogos ( void )
 {
-return;
-
 }
 
 void version_permittestgame ( void )
@@ -5954,7 +6468,7 @@ else
 return NULL;
 } 
 
-void loadscreenpromptassets ( void )
+void loadscreenpromptassets ( int iUseVRTest )
 {
 	if ( t.levelsforstandalone == 0 )
 	{
@@ -5993,7 +6507,11 @@ void loadscreenpromptassets ( void )
 					// 050917 - check if this file exists for consideration
 					if ( t.game.gameisexe == 1 ) 
 					{
-						sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
+						#ifdef VRQUEST
+						 sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded\\watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
+						#else
+						 sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\gameguru-watermark-%ix%i.jpg", g.language_s.Get(), treswidth, tresheight );
+						#endif
 						if ( FileExist ( t.szwork ) == 1 )
 						{
 							tclosest=tdiff;
@@ -6020,14 +6538,22 @@ void loadscreenpromptassets ( void )
 				if ( tclosest != 9999999 )
 				{
 					// use closest to current resolution
-					sprintf ( t.szwork , "gameguru-watermark-%ix%i.jpg" , tclosestreswidth , tclosestresheight );
+					#ifdef VRQUEST
+					 sprintf ( t.szwork , "watermark-%ix%i.jpg" , tclosestreswidth , tclosestresheight );
+					#else
+					 sprintf ( t.szwork , "gameguru-watermark-%ix%i.jpg" , tclosestreswidth , tclosestresheight );
+					#endif
 					respart_s = t.szwork;
 				}
 				else
 				{
 					// could not find any matching resolution files, just pick any file in the watermark folder
 					LPSTR pOldDir = GetDir();
-					sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark", g.language_s.Get() );
+					#ifdef VRQUEST
+					 sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark\\branded", g.language_s.Get() );
+					#else
+					 sprintf ( t.szwork , "languagebank\\%s\\artwork\\watermark", g.language_s.Get() );
+					#endif
 					SetDir(t.szwork);
 					ChecklistForFiles (  );
 					for ( int c = 1 ; c<=  ChecklistQuantity(); c++ )
@@ -6045,14 +6571,18 @@ void loadscreenpromptassets ( void )
 					SetDir(pOldDir);
 				}
 			}
-			if (  t.game.gameisexe == 1 ) 
+			if ( t.game.gameisexe == 1 ) 
 			{
 				if ( g.iStandaloneIsReloading==0 )
 				{
 					// show splash initially
 					tfile_s = respart_s;
-					sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
-					SetMipmapNum(1); //PE: mipmaps not needed.
+					#ifdef VRQUEST
+					 sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\branded\\%s", g.language_s.Get(), tfile_s.Get() );
+					#else
+					 sprintf ( t.szwork, "languagebank\\%s\\artwork\\watermark\\%s", g.language_s.Get(), tfile_s.Get() );
+					#endif
+					SetMipmapNum(1);
 					LoadImage ( t.szwork, g.testgamesplashimage );
 					SetMipmapNum(-1);
 				}
@@ -6067,7 +6597,17 @@ void loadscreenpromptassets ( void )
 			{
 				if ( g.quickparentalcontrolmode == 2 )
 				{	
-					sprintf ( t.szwork , "languagebank\\%s\\artwork\\testgamelayout-noweapons.png", g.language_s.Get() );
+					if ( g.vrqcontrolmode != 0 )
+					{
+						if ( (g.gvrmode == 3 && iUseVRTest == 1) || iUseVRTest == 2 )
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-vr.png", g.language_s.Get() );
+						else
+							sprintf ( t.szwork , "languagebank\\%s\\artwork\\branded\\testgamelayout-noweapons.png", g.language_s.Get() );
+					}
+					else
+					{
+						sprintf ( t.szwork , "languagebank\\%s\\artwork\\testgamelayout-noweapons.png", g.language_s.Get() );
+					}
 				}
 				else
 				{
@@ -6115,7 +6655,7 @@ void printscreenprompt ( char* screenprompt_s )
 			tscrwidth_f=GetDisplayWidth();
 			txoffset_f=0;
 			tsidemax=0;
-			if ( g.globals.riftmode > 0 || g.gvrmode > 0 ) 
+			if ( g.globals.riftmode > 0 || ( g.gvrmode > 0 && g.gvrmode != 2 && g.gvrmode != 3 ) ) 
 			{
 				tscrwidth_f=tscrwidth_f/2;
 				twidth_f=twidth_f/2;

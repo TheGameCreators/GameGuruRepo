@@ -214,9 +214,9 @@ DARKSDK int FTPGetProgress(void)
 
 // HTTP Implementations
 
-DARKSDK void HTTPConnect ( DWORD dwUrl )
+DARKSDK void HTTPConnect ( LPSTR pUrl )
 {
-	char* lpUrl = (char*)dwUrl;
+	char* lpUrl = pUrl;
 	if (lpUrl && *lpUrl)
 		HTTP_Connect ( lpUrl );
 }
@@ -235,7 +235,7 @@ DARKSDK void HTTPConnect ( DWORD dwUrl, DWORD port, int secure )
 		HTTP_Connect ( lpUrl, port, secure );
 }
 
-DARKSDK DWORD HTTPRequestData ( DWORD pDestStr, DWORD dwVerb, DWORD dwObjectName, DWORD dwPostData, DWORD dwAccessFlag )
+DARKSDK LPSTR HTTPRequestData ( DWORD pDestStr, LPSTR dwVerb, LPSTR dwObjectName, LPSTR dwPostData, DWORD dwAccessFlag )
 {
 	char* lpVerb = (char*)dwVerb;
 	char* lpObjectName = (char*)dwObjectName;
@@ -255,7 +255,8 @@ DARKSDK DWORD HTTPRequestData ( DWORD pDestStr, DWORD dwVerb, DWORD dwObjectName
 		lpPostData = "";
 
 	// default HTTP comm strings
-	DWORD dwPostDataSize = strlen ( lpPostData );
+	DWORD dwPostDataSize = 0;
+	if ( lpPostData ) dwPostDataSize = strlen ( lpPostData );
 	LPSTR pHeader = new char[256];
 	wsprintf ( pHeader, "Content-Type: application/x-www-form-urlencoded\r\nContent-Length: %d\r\n", dwPostDataSize );
 	DWORD dwHeaderSize = -1L;
@@ -281,13 +282,13 @@ DARKSDK DWORD HTTPRequestData ( DWORD pDestStr, DWORD dwVerb, DWORD dwObjectName
 	SAFE_DELETE(pHeader);
 
 	// return new string
-	return (DWORD)pReturnString;
+	return pReturnString;
 }
 
-DARKSDK DWORD HTTPRequestData ( DWORD pDestStr, DWORD dwVerb, DWORD dwObjectName, DWORD dwPostData )
+DARKSDK LPSTR HTTPRequestData ( LPSTR dwVerb, LPSTR dwObjectName, LPSTR dwPostData )
 {
 	// 20120416 IanM - Cleared default security type
-	return HTTPRequestData ( pDestStr, dwVerb, dwObjectName, dwPostData, 0 );
+	return HTTPRequestData ( NULL, dwVerb, dwObjectName, dwPostData, 0 );
 }
 
 DARKSDK void HTTPDisconnect ( void )

@@ -295,7 +295,7 @@ void hud_updatehudlayerobjects ( void )
 
 void blood_damage_init ( void )
 {
-	//  set up with place holders for images
+	// set up with place holders for images
 	t.huddamage.bloodtimestart=500;
 	t.huddamage.bloodtimeend=1500;
 	t.huddamage.bloodon=1;
@@ -305,17 +305,17 @@ void blood_damage_init ( void )
 	t.huddamage.fadespeed=1500;
 	t.huddamage.damagetrackshooter=1;
 
-	//  blood splats
-	if (  t.huddamage.bloodtotal == 0 ) 
+	// blood splats
+	if ( t.huddamage.bloodtotal == 0 ) 
 	{
-//   `huddamage.maxbloodsplats=66
-
-//   `for mb=0 to huddamage.maxbloodsplats ; rem maybe 'extendedblood' mode later on (if community requests this)
-
 		t.huddamage.maxbloodsplats=7;
 		for ( t.mb = 0 ; t.mb<=  t.huddamage.maxbloodsplats; t.mb++ )
 		{
-			t.a_s = ""; t.a_s=t.a_s+"databank\\bloodsplash"+Str(t.mb+1)+".png";
+			#if VRQUEST
+			 t.a_s = ""; t.a_s=t.a_s+"databank\\splash"+Str(t.mb+1)+".png";
+			#else
+			 t.a_s = ""; t.a_s=t.a_s+"databank\\bloodsplash"+Str(t.mb+1)+".png";
+			#endif
 			if (  FileExist(t.a_s.Get()) == 1 ) 
 			{
 				LoadImage (  t.a_s.Get(),t.huddamage.bloodstart+t.mb,0,g.gdividetexturesize );
@@ -324,7 +324,6 @@ void blood_damage_init ( void )
 
 				//  keep alive with steam server
 				if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-
 			}
 		}
 	}
@@ -337,13 +336,6 @@ void blood_damage_init ( void )
 
 	//  keep alive with steam server
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-
-return;
-
-
-//BloodDamage&Direction Functions
-
-
 }
 
 void placeblood ( int damage, int x, int y, int z, int howfar )

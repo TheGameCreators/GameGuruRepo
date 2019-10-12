@@ -592,7 +592,7 @@ void cubemap_buildviews ( int iImageID, int iCubeMapSize, float fX, float fY, fl
 		HRESULT hr = m_pD3D->CreateTexture2D( &texDesc, NULL, &cubeTex );
 		if( FAILED( hr ) )
 		{
-			Error ( "Failed to CreateTexture2D\n" );
+			Error1 ( "Failed to CreateTexture2D\n" );
 			return;
 		}
 
@@ -609,7 +609,7 @@ void cubemap_buildviews ( int iImageID, int iCubeMapSize, float fX, float fY, fl
 			hr = m_pD3D->CreateRenderTargetView ( cubeTex, &rtvDesc, &_dynamicCubeMapRTV[i] );
 			if( FAILED( hr ) )
 			{
-				Error ( "Failed to CreateRenderTargetView\n" );
+				Error1 ( "Failed to CreateRenderTargetView\n" );
 				return;
 			}
 		}
@@ -641,7 +641,7 @@ void cubemap_buildviews ( int iImageID, int iCubeMapSize, float fX, float fY, fl
 		hr = m_pD3D->CreateTexture2D( &depthTexDesc, NULL, &depthTex );
 		if( FAILED( hr ) )
 		{
-			Error ( "Failed to CreateTexture2D\n" );
+			Error1 ( "Failed to CreateTexture2D\n" );
 			return;
 		}
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
@@ -653,7 +653,7 @@ void cubemap_buildviews ( int iImageID, int iCubeMapSize, float fX, float fY, fl
 		hr = m_pD3D->CreateDepthStencilView( depthTex, &dsvDesc, &_dynamicCubeMapDSV );
 		if( FAILED( hr ) )
 		{
-			Error ( "Failed to CreateDepthStencilView\n" );
+			Error1 ( "Failed to CreateDepthStencilView\n" );
 			return;
 		}
 

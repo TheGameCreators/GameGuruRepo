@@ -15,7 +15,10 @@ void characterkit_init ( void )
 		pastebitmapfontcenter("PREPARING CHARACTERS",GetChildWindowWidth()/2,40,1,255) ; Sync (  );
 	}
 
-	//  hide waypoints
+	// hide paint tool
+	terrain_paintselector_hide();
+
+	// hide waypoints
 	waypoint_hideall ( );
 
 	t.characterkit.oldMouseClick = 1;
@@ -222,18 +225,33 @@ void characterkit_init ( void )
 		int iMovePanelUp = 32-((GetChildWindowHeight()/2)-281-3);
 		t.slidersmenu[g.slidersmenumax].ttop = ((GetChildWindowHeight()/2)-281-3)+iMovePanelUp; //also set in characterkit_alignUI
 		t.slidersmenu[g.slidersmenumax].tleft = (GetChildWindowWidth() ) - 265;
-		t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Character View Angle";
-		t.slidersmenuvalue[g.slidersmenumax][1].value = 180;
-		t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex = 0;
-		t.slidersmenuvalue[g.slidersmenumax][1].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][1].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][1].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Character View Height";
-		t.slidersmenuvalue[g.slidersmenumax][2].value = 5;
-		t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex = 0;
-		t.slidersmenuvalue[g.slidersmenumax][2].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][2].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][2].valueMax = 10;
+		#ifdef VRQUEST
+		 t.slidersmenuvalue[g.slidersmenumax][1].name_s = "";
+		 t.slidersmenuvalue[g.slidersmenumax][1].gadgettype = -1;
+		 t.slidersmenuvalue[g.slidersmenumax][1].useCustomRange = 1;
+		 t.slidersmenuvalue[g.slidersmenumax][1].valueMin = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][1].valueMax = 360;
+		 t.slidersmenuvalue[g.slidersmenumax][1].value = 180;
+		 t.slidersmenuvalue[g.slidersmenumax][2].name_s = "";
+		 t.slidersmenuvalue[g.slidersmenumax][2].gadgettype = -1;
+		 t.slidersmenuvalue[g.slidersmenumax][2].useCustomRange = 1;
+		 t.slidersmenuvalue[g.slidersmenumax][2].valueMin = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][2].valueMax = 10;
+		 t.slidersmenuvalue[g.slidersmenumax][2].value = 5;
+		#else
+		 t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Character View Angle";
+		 t.slidersmenuvalue[g.slidersmenumax][1].value = 180;
+		 t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][1].useCustomRange = 1;
+		 t.slidersmenuvalue[g.slidersmenumax][1].valueMin = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][1].valueMax = 360;
+		 t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Character View Height";
+		 t.slidersmenuvalue[g.slidersmenumax][2].value = 5;
+		 t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][2].useCustomRange = 1;
+		 t.slidersmenuvalue[g.slidersmenumax][2].valueMin = 0;
+		 t.slidersmenuvalue[g.slidersmenumax][2].valueMax = 10;
+		#endif
 
 		t.slidersmenuvalue[g.slidersmenumax][3].name_s = "";
 		t.slidersmenuvalue[g.slidersmenumax][3].gadgettype = -1;
@@ -332,7 +350,6 @@ void characterkit_init ( void )
 	t.importerTabs[4].selected = 0;
 	t.importerTabs[4].tabpage = -1;
 
-
 	t.importerTabs[7].x = t.txpos;
 	t.importerTabs[7].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 32;
 	t.importerTabs[7].label = "Skin Tone";
@@ -369,8 +386,10 @@ void characterkit_init ( void )
 	t.importerTabs[12].selected = 0;
 	t.importerTabs[12].tabpage = -1;
 
-	t.importerTabs[5].x = t.txpos;
-	t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 +42;
+	//t.importerTabs[5].x = t.txpos;
+	//t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 +42;
+	t.importerTabs[5].x = 40 + 200;
+	t.importerTabs[5].y = 40;
 	t.importerTabs[5].label = "Save Character";
 	t.importerTabs[5].selected = 0;
 	t.importerTabs[5].tabpage = -1;
@@ -832,9 +851,11 @@ void characterkit_alignUI ( void )
 	t.importerTabs[11].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 + t.toffset;
 	t.importerTabs[11].y += iMovePanelUp;
 
-	t.importerTabs[5].x = t.txpos;
-	t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 + 90 + 38;
-	t.importerTabs[5].y += iMovePanelUp;
+	//t.importerTabs[5].x = t.txpos;
+	//t.importerTabs[5].y = (GetChildWindowHeight() / 2) -180 + 96 + 10 + 192 + 90 + 38;
+	//t.importerTabs[5].y += iMovePanelUp;
+	t.importerTabs[5].x = 40 + 200;
+	t.importerTabs[5].y = 40;
 
 	t.importerTabs[6].x = 40;
 	t.importerTabs[6].y = 40;
@@ -869,6 +890,7 @@ void characterkit_draw ( void )
 		for ( t.t = 0 ; t.t <=  12 ; t.t++ ) t.importerTabs[t.t].x=t.txpos ;
 		t.importerTabs[1].label = "Head";
 		t.importerTabs[2].label = "Body";
+		t.importerTabs[5].x = 40 + 200;
 		t.importerTabs[5].label = "Save Character";
 		t.importerTabs[6].label = "Back to Editor";
 		t.importerTabs[6].x = 40;
@@ -881,8 +903,11 @@ void characterkit_draw ( void )
 	}
 	else
 	{
-		pastebitmapfont("Left click the section of the object you wish to change",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("Left click the section of the object you wish to change",1)/2),GetChildWindowHeight()-100,1,255);
-		pastebitmapfont("or right click to rotate",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("or right click to rotate",1)/2),GetChildWindowHeight()-70,1,255);
+		#ifdef VRQUEST
+		#else
+		 pastebitmapfont("Left click the section of the object you wish to change",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("Left click the section of the object you wish to change",1)/2),GetChildWindowHeight()-100,1,255);
+		 pastebitmapfont("or right click to rotate",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("or right click to rotate",1)/2),GetChildWindowHeight()-70,1,255);
+		#endif
 	}
 
 	//  draw to screen if active
@@ -1168,32 +1193,32 @@ void characterkit_update_object ( void )
 
 void characterkit_save_entity ( void )
 {
-	//  Store old dir
+	// Store old dir
 	t.tolddir_s=GetDir();
 
-	//  Check if user folder exists, if not create it
-	if (  PathExist( cstr( g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() )  ==  0 ) 
+	// Check if user folder exists, if not create it
+	if ( PathExist( cstr( g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() )  ==  0 ) 
 	{
-		MakeDirectory (  cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() );
+		MakeDirectory ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() );
 	}
-	if (  PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() )  ==  0 ) 
+	if ( PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() )  ==  0 ) 
 	{
-		MakeDirectory (  cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() );
+		MakeDirectory ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() );
 	}
 
+	// allow mouse for file dialog
 	ShowMouse (  );
 
-	//  Save dialog
+	// Save dialog
 	t.tSaveFile_s="";
 	t.tentityprotected=1;
 	t.ttitlemessage_s="Save Entity";
-	while (  t.tentityprotected == 1 ) 
+	while ( t.tentityprotected == 1 ) 
 	{
 		t.tSaveFile_s=openFileBox("FPSC Entity (.fpe)|*.fpe|All Files|*.*|", cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\").Get(), t.ttitlemessage_s.Get(), ".fpe", CHARACTERKITSAVEFILE);
 		if (  t.tSaveFile_s == "Error"  )  return;
 		t.tentityprotected=0;
 	}
-
 	t.tname_s = t.tSaveFile_s;
 	if (  cstr(Lower(Right(t.tname_s.Get(),4)))  ==  ".fpe"  )  t.tname_s  =  Left(t.tname_s.Get(),Len(t.tname_s.Get())-4);
 	for ( t.tloop = Len(t.tname_s.Get()) ; t.tloop>=  1 ; t.tloop+= -1 )
@@ -1205,37 +1230,43 @@ void characterkit_save_entity ( void )
 		}
 	}
 
-	t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
+	// soldier or civilian
+	#ifdef PHOTONMP
+	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Character.fpe";
+	#else
+	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
+	#endif
+
+	// prepare destination file
 	t.tcopyto_s = t.tSaveFile_s;
-	if (  cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
-
-	if (  FileExist(t.tcopyto_s.Get())  ==  1  )  DeleteAFile (  t.tcopyto_s.Get() );
-
-	if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
-	if (  FileOpen(2)  ==  1  )  CloseFile (  2 );
-
+	if ( cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
+	if ( FileExist(t.tcopyto_s.Get())  ==  1  )  DeleteAFile (  t.tcopyto_s.Get() );
+	if ( FileOpen(1) == 1 )  CloseFile ( 1 );
+	if ( FileOpen(2) == 1 )  CloseFile ( 2 );
 	OpenToRead (  1, t.tcopyfrom_s.Get() );
 	OpenToWrite (  2,t.tcopyto_s.Get() );
 
 	// go through all source FPE
 	t.tcount = 0;
-	while (  FileEnd(1)  ==  0 ) 
+	while ( FileEnd(1)  ==  0 ) 
 	{
 		// get line by line
 		t.ts_s = ReadString ( 1 );
 
 		// adjust offset for male/female
-		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "offy" ) 
-		{
-			t.ts_s = "offy          = -6";
-			if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale" || cstr(Lower(Left(t.ts_s.Get(),7)))  ==  "1_fmale"  )  t.ts_s  =  "offy           =  -4";
-		}
+		//if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "offy" ) 
+		//{
+		//	t.ts_s = "offy          = -6";
+		//	if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale" || cstr(Lower(Left(t.ts_s.Get(),7)))  ==  "1_fmale"  )  t.ts_s  =  "offy           =  -4";
+		//}
 
 		// update description
-		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
+		if ( cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
 
 		// update weapon carried by character if any
-		if (  cstr(Lower(Left(t.ts_s.Get(),9)))  ==  "hasweapon" ) 
+		#ifdef PHOTONMP
+		#else
+		if ( cstr(Lower(Left(t.ts_s.Get(),9)))  ==  "hasweapon" ) 
 		{
 			t.ts_s = "";
 			if ( strlen( t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s.Get()) > 1 )
@@ -1244,8 +1275,11 @@ void characterkit_save_entity ( void )
 			}
 			if (  t.slidersmenuvalue[t.characterkit.properties1Index][12].value_s  ==  "None"  )  t.ts_s  =  "";
 		}
+		#endif
 
 		// profile controls the animation sets exported
+		#ifdef PHOTONMP
+		#else
 		if ( cstr(Lower(Left(t.ts_s.Get(),7))) == "animmax" 
 		||   cstr(Lower(Left(t.ts_s.Get(),16))) == "playanimineditor" 
 		||   cstr(Lower(Left(t.ts_s.Get(),13))) == "ignorecsirefs" 			
@@ -1263,6 +1297,7 @@ void characterkit_save_entity ( void )
 			// first step is blank out old animation data from source FPE
 			continue;
 		}
+		#endif
 		if ( cstr(Lower(Left(t.ts_s.Get(),5))) == ";anim" )
 		{
 			// get anim profile name (references file of same name)
@@ -1280,24 +1315,53 @@ void characterkit_save_entity ( void )
 				}
 				CloseFile(3);
 			}
-			else
-			{
-				WriteString ( 2, ";Animation Profile Not Found" );
-			}
 
 			// go to next line in source FPE
 			continue;
 		}
 
-		// write line (changed or not) to the destination FPE
-		WriteString ( 2, t.ts_s.Get() );
+		bool bSkipWritingReadLine = false;
+		bool bWriteCharacterCreationDetail = false;
+		#ifdef PHOTONMP
+		if ( cstr(Lower(Left(t.ts_s.Get(),16))) == "charactercreator" )
+		{
+			// replace with this custom character creation
+			bWriteCharacterCreationDetail = true;
+			bSkipWritingReadLine = true;
+		}
+		if ( cstr(Lower(Left(t.ts_s.Get(),16))) == "soundset" )
+		{
+			// replace with this custom character creation
+			if ( cstr(Lower(Left(t.characterkit.head_s.Get(),5))) == "fmale" || cstr(Lower(Left(t.characterkit.head_s.Get(),7))) == "1_fmale" ) 
+			{
+				WriteString ( 2,"soundset      = Female" );
+				bSkipWritingReadLine = true;
+			}
+		}
 
+		// write line (changed or not) to the destination FPE
+		if ( bSkipWritingReadLine == false )
+		{
+			WriteString ( 2, t.ts_s.Get() );
+		}
+
+		#else
 		// on the second line write, add lines for character creator specific data
 		++t.tcount;
 		if ( t.tcount == 2 ) 
 		{
+			if ( cstr(Lower(Left(t.characterkit.head_s.Get(),5))) == "fmale" || cstr(Lower(Left(t.characterkit.head_s.Get(),7))) == "1_fmale" ) 
+			{
+				WriteString ( 2,";sound" );
+				WriteString ( 2,"soundset      = Female" );
+			}
 			WriteString (  2,"" );
 			WriteString (  2,";character creator" );
+			bWriteCharacterCreationDetail = true;
+		}
+		#endif
+		if ( bWriteCharacterCreationDetail == true )
+		{
 			t.tcc_s = "charactercreator = t.v:2:";
 			t.tcc_s = t.tcc_s + t.characterkit.body_s+":"+t.characterkit.head_s+":"+t.characterkit.facialhair_s+":"+t.characterkit.hat_s+":";
 			t.tcc_s = t.tcc_s +Str(t.tnewred_f)+":"+Str(t.tnewgreen_f)+":"+Str(t.tnewblue_f)+":";
@@ -1307,11 +1371,6 @@ void characterkit_save_entity ( void )
 			t.tcc_s = t.tcc_s +Str(t.tnewredshoes_f)+":"+Str(t.tnewgreenshoes_f)+":"+Str(t.tnewblueshoes_f)+":";
 			t.tcc_s = t.tcc_s +Str(t.tnewredhat_f)+":"+Str(t.tnewgreenhat_f)+":"+Str(t.tnewbluehat_f);
 			WriteString (  2,t.tcc_s.Get() );
-			if (  cstr(Lower(Left(t.characterkit.head_s.Get(),5)))  ==  "fmale" || cstr(Lower(Left(t.characterkit.head_s.Get(),7)))  ==  "1_fmale" ) 
-			{
-				WriteString (  2,";sound" );
-				WriteString (  2,"soundset      = Female" );
-			}
 		}
 	}
 	
@@ -1323,13 +1382,13 @@ void characterkit_save_entity ( void )
 	CreateBitmap (  32,64,64 );
 	SetCurrentBitmap (  32 );
 	SetCameraAspect (  1.0 );
-	//  Make a white background Box (  )
+
+	// Make a Thumbnail
 	t.twhiteobj = 1;
 	t.tfound = 0;
-	//  Find a free object number
-	while (  t.tfound  ==  0 ) 
+	while ( t.tfound  ==  0 ) 
 	{
-		if (  ObjectExist(t.twhiteobj)  ==  1 ) 
+		if ( ObjectExist(t.twhiteobj) == 1 ) 
 		{
 			++t.twhiteobj;
 		}
@@ -1338,13 +1397,12 @@ void characterkit_save_entity ( void )
 			t.tfound = 1;
 		}
 	}
-	MakeObjectBox (  t.twhiteobj,200000,200000,1 );
-	SetObjectLight (  t.twhiteobj,0 );
-	LockObjectOn (  t.twhiteobj );
-	PositionObject (  t.twhiteobj,0,0,1000 );
+	MakeObjectBox ( t.twhiteobj,200000,200000,1 );
+	SetObjectLight ( t.twhiteobj,0 );
+	LockObjectOn ( t.twhiteobj );
+	PositionObject ( t.twhiteobj,0,0,1000 );
 	SetObjectEffect ( t.twhiteobj, g.guishadereffectindex );
 	SetObjectEmissive ( t.twhiteobj, Rgb(255,255,255) );
-
 	for ( t.tloop = 1 ; t.tloop<=  4; t.tloop++ )
 	{
 		if (  t.tloop  ==  1 ) 
@@ -1381,6 +1439,7 @@ void characterkit_save_entity ( void )
 		}
 	}
 
+	// Save Thumbnail
 	t.tSaveThumb_s = cstr(Left(t.tcopyto_s.Get(),Len(t.tcopyto_s.Get())-4)) + ".bmp";
 	if (  FileExist ( t.tSaveThumb_s.Get())  ==  1  )  DeleteAFile (  t.tSaveThumb_s.Get() ) ;
 	GrabImage (  g.importermenuimageoffset+50,0,0,64,64,3 );
@@ -1389,54 +1448,52 @@ void characterkit_save_entity ( void )
 	{
 		++t.tSprite;
 	}
-	SaveImage (  t.tSaveThumb_s.Get(), g.importermenuimageoffset+50 );
+	SaveImage ( t.tSaveThumb_s.Get(), g.importermenuimageoffset+50 );
+	DeleteImage ( g.importermenuimageoffset+50 );
+	DeleteObject ( t.twhiteobj );
 
-	DeleteImage (  g.importermenuimageoffset+50 );
-
-	DeleteObject (  t.twhiteobj );
-
-	//  check for custom head texture
+	// check for custom head texture
 	t.tcustomeHeadSave_s = cstr(Left(t.tcopyto_s.Get(),Len(t.tcopyto_s.Get())-4)) + "_cc.dds";
-	if (  FileExist(t.tcustomeHeadSave_s.Get())  ==  1  )  DeleteAFile (  t.tcustomeHeadSave_s.Get() );
-	if (  cstr(Lower(Left(t.characterkit.head_s.Get(),12)))  ==  "1_projection" || cstr(Lower(Left(t.characterkit.head_s.Get(),18)))  ==  "1_fmale_projection" ) 
+	if ( FileExist(t.tcustomeHeadSave_s.Get())  ==  1  )  DeleteAFile (  t.tcustomeHeadSave_s.Get() );
+	if ( cstr(Lower(Left(t.characterkit.head_s.Get(),12)))  ==  "1_projection" || cstr(Lower(Left(t.characterkit.head_s.Get(),18)))  ==  "1_fmale_projection" ) 
 	{
-		if (  ImageExist(t.characterkit.imagestart+14)  ==  1 ) 
+		if ( ImageExist(t.characterkit.imagestart+14)  ==  1 ) 
 		{
 			SaveImage (  t.tcustomeHeadSave_s.Get(),t.characterkit.imagestart+14 );
 		}
 	}
 
-	//  restore camera view
+	// restore camera view
 	t.aspect_f=GetDesktopWidth() ; t.aspect_f=t.aspect_f/GetDesktopHeight();
 	SetCameraAspect (  t.aspect_f );
 	SetCurrentBitmap (  0 );
 	characterkit_draw ( );
 	Sync (  );
 
-	//  Restore old dir
+	// Restore old dir
 	SetDir (  t.tolddir_s.Get() );
 }
 
 void characterkit_makeMultiplayerCharacterCreatorAvatar ( void )
 {
-	//  delete it if it exists (it shouldn't, but just in case)
-	if (  FileExist(t.avatarFile_s.Get())  ==  1  )  DeleteAFile (  t.avatarFile_s.Get() );
+	// delete it if it exists (it shouldn't, but just in case)
+	if ( FileExist(t.avatarFile_s.Get())  ==  1  )  DeleteAFile (  t.avatarFile_s.Get() );
 
-	//  Store old dir
+	// Store old dir
 	t.tolddir_s=GetDir();
 
-	//  Check if user folder exists, if not create it
-	if (  PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() )  ==  0 ) 
+	// Check if user folder exists, if not create it
+	if ( PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() )  ==  0 ) 
 	{
 		MakeDirectory ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user").Get() );
 	}
-	if (  PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() )  ==  0 ) 
+	if ( PathExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() )  ==  0 ) 
 	{
 		MakeDirectory ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator").Get() );
 	}
 
+	// create correct name
 	t.tSaveFile_s = t.avatarFile_s;
-
 	t.tname_s = t.tSaveFile_s;
 	if (  cstr(Lower(Right(t.tname_s.Get(),4)))  ==  ".fpe"  )  t.tname_s  =  Left(t.tname_s.Get(),Len(t.tname_s.Get())-4);
 	for ( t.tloop = Len(t.tname_s.Get()) ; t.tloop >= 1 ; t.tloop+= -1 )
@@ -1448,29 +1505,48 @@ void characterkit_makeMultiplayerCharacterCreatorAvatar ( void )
 		}
 	}
 
-	t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
+	// template reference
+	#ifdef PHOTONMP
+	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Character.fpe";
+	#else
+	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
+	#endif
 	t.tcopyto_s = t.tSaveFile_s;
-	if (  cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
+	if ( cstr(Lower(Right(t.tcopyto_s.Get(),4)))  !=  ".fpe"  )  t.tcopyto_s  =  t.tcopyto_s + ".fpe";
 
-	if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
-	if (  FileOpen(2)  ==  1  )  CloseFile (  2 );
-
-	OpenToRead (  1, t.tcopyfrom_s.Get() );
-	OpenToWrite (  2,t.tcopyto_s.Get() );
-
+	// now modify the copy
+	if ( FileOpen(1)  ==  1  )  CloseFile (  1 );
+	if ( FileOpen(2)  ==  1  )  CloseFile (  2 );
+	OpenToRead ( 1, t.tcopyfrom_s.Get() );
+	OpenToWrite ( 2,t.tcopyto_s.Get() );
 	t.tcount = 0;
-	while (  FileEnd(1)  ==  0 ) 
+	while ( FileEnd(1) == 0 ) 
 	{
+		// line by line
 		t.ts_s = ReadString ( 1 );
-		//  adjust offset for male/female
-		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "offy" ) 
+
+		// adjust offset for male/female
+		bool bIsFemale = false;
+		if ( cstr(Lower(Left(t.ts_s.Get(),4))) == "offy" ) 
 		{
 			t.ts_s = "offy          = -6";
-			if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale"  )  t.ts_s  =  "offy           =  -4";
+			if (  cstr(Lower(Left(t.ts_s.Get(),5)))  ==  "fmale"  )  
+			{
+				t.ts_s  =  "offy           =  -4";
+				bIsFemale = true;
+			}
 		}
-		if (  cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
+		if ( cstr(Lower(Left(t.ts_s.Get(),4)))  ==  "desc"  )  t.ts_s  =  cstr("desc           =  ") + t.tname_s;
 
-		WriteString (  2,t.ts_s.Get() );
+		// replace charactercreator and soundset fields
+		if ( cstr(Lower(Left(t.ts_s.Get(),16))) == "charactercreator" ) t.ts_s = cstr(cstr("charactercreator = ") + t.avatarString_s).Get();
+		if ( cstr(Lower(Left(t.ts_s.Get(),8))) == "soundset" ) t.ts_s = "soundset      = female";
+
+		// write back out
+		WriteString ( 2, t.ts_s.Get() );
+
+		#ifdef PHOTONMP
+		#else
 		++t.tcount;
 		if (  t.tcount  ==  2 ) 
 		{
@@ -1478,6 +1554,7 @@ void characterkit_makeMultiplayerCharacterCreatorAvatar ( void )
 			WriteString (  2,";character creator" );
 			WriteString (  2, cstr(cstr("charactercreator = ") + t.avatarString_s).Get() );
 		}
+		#endif
 	}
 
 	CloseFile (  1 );
@@ -1648,24 +1725,27 @@ void characterkit_mousePick ( void )
 {
 	if (  t.importer.objectRotateMode  !=  0 || t.characterkit.thumbGadgetOn  ==  1 || t.characterkit.skinPickOn  ==  1   )  return;
 
-	//  try attachments first
-	t.tpick = 0;
-	#ifdef DX11
-	float fMX = (GetDisplayWidth()+0.0) / 800.0f;
-	float fMY = (GetDisplayHeight()+0.0) / 600.0f;
-	t.tadjustedtoareax_f = t.tccoldmousex*fMX;
-	t.tadjustedtoareay_f = t.tccoldmousey*fMY;
+	#ifdef VRQUEST
+	 // No picking in CC for now
 	#else
-	t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
-	t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
-	t.tadjustedtoareax_f=((t.tccoldmousex+0.0)/800.0)/t.tadjustedtoareax_f;
-	t.tadjustedtoareay_f=((t.tccoldmousey+0.0)/600.0)/t.tadjustedtoareay_f;
-	t.tadjustedtoareax_f=t.tadjustedtoareax_f*(GetChildWindowWidth()+0.0);
-	t.tadjustedtoareay_f=t.tadjustedtoareay_f*(GetChildWindowHeight()+0.0);
-	#endif
-	if (  t.tpick  ==  0  )  t.tpick  =  PickScreenObjectEx ( t.tadjustedtoareax_f , t.tadjustedtoareay_f , t.characterkit.objectstart , t.characterkit.objectstart+10 , 1 ) ;
-	if (  t.tpick  !=  0 ) 
-	{
+	 //  try attachments first
+	 t.tpick = 0;
+	 #ifdef DX11
+	 float fMX = (GetDisplayWidth()+0.0) / 800.0f;
+	 float fMY = (GetDisplayHeight()+0.0) / 600.0f;
+	 t.tadjustedtoareax_f = t.tccoldmousex*fMX;
+	 t.tadjustedtoareay_f = t.tccoldmousey*fMY;
+	 #else
+	 t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
+	 t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
+	 t.tadjustedtoareax_f=((t.tccoldmousex+0.0)/800.0)/t.tadjustedtoareax_f;
+	 t.tadjustedtoareay_f=((t.tccoldmousey+0.0)/600.0)/t.tadjustedtoareay_f;
+	 t.tadjustedtoareax_f=t.tadjustedtoareax_f*(GetChildWindowWidth()+0.0);
+	 t.tadjustedtoareay_f=t.tadjustedtoareay_f*(GetChildWindowHeight()+0.0);
+	 #endif
+	 if (  t.tpick  ==  0  )  t.tpick  =  PickScreenObjectEx ( t.tadjustedtoareax_f , t.tadjustedtoareay_f , t.characterkit.objectstart , t.characterkit.objectstart+10 , 1 ) ;
+	 if (  t.tpick  !=  0 ) 
+	 {
 		//  long message, handles with two lines
 		t.tccmessage_s = "*1";
 		t.characterkit.selected = t.tpick - t.characterkit.objectstart;
@@ -1701,9 +1781,9 @@ void characterkit_mousePick ( void )
 			}
 			t.characterkit.picked = t.tpick;
 		}
-	}
-	else
-	{
+	 }
+	 else
+	 {
 		if (  t.characterkit.picked  !=  0 ) 
 		{
 			if (  t.characterkit.picked < t.characterkit.objectstart+3 ) 
@@ -1720,7 +1800,8 @@ void characterkit_mousePick ( void )
 			}
 			t.characterkit.picked = 0;
 		}
-	}
+	 }
+	#endif
 }
 
 void characterkit_mouseRotate ( void )
@@ -2579,7 +2660,6 @@ return;
 void characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( void )
 {
 	characterkit_updateCharacters ( );
-
 	for ( t.tcce = 1 ; t.tcce<=  g.entityelementlist; t.tcce++ )
 	{
 		t.tccentid=t.entityelement[t.tcce].bankindex;
@@ -2590,13 +2670,12 @@ void characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( void )
 				t.tccsourceobj = t.entityelement[t.tcce].obj;
 				if (  t.tccsourceobj > 0 ) 
 				{
-				if (  ObjectExist(t.tccsourceobj)  ==  1 ) 
-				{
-					//  glue head to body
-						t.tccobj = g.charactercreatorrmodelsoffset+((t.tcce*3)-t.characterkitcontrol.offset);
-					if (  ObjectExist(t.tccobj)  ==  1 ) 
+					if (  ObjectExist(t.tccsourceobj)  ==  1 ) 
 					{
-
+						//  glue head to body
+						t.tccobj = g.charactercreatorrmodelsoffset+((t.tcce*3)-t.characterkitcontrol.offset);
+						if (  ObjectExist(t.tccobj)  ==  1 ) 
+						{
 							PositionObject (  t.tccobj, ObjectPositionX(t.tccsourceobj),ObjectPositionY(t.tccsourceobj),ObjectPositionZ(t.tccsourceobj) );
 							if (  t.tccobj  !=  t.entityelement[t.mp_playerEntityID[g.mp.me]].obj ) 
 							{
@@ -2629,9 +2708,6 @@ void characterkit_updateAllCharacterCreatorEntitiesInMapFirstSpawn ( void )
 			}
 		}
 	}
-return;
-
-//  needs entid
 }
 
 void characterkit_loadEntityProfileObjects ( void )
@@ -3547,56 +3623,52 @@ void characterkit_checkAvatarExists ( void )
 
 void characterkit_loadMyAvatarInfo ( void )
 {
-
-	//  blank out the data first
+	// blank out the data first
 	g.mp.myAvatar_s = "";
 	g.mp.myAvatarName_s = "";
 	g.mp.myAvatarHeadTexture_s = "";
 	g.mp.haveSentMyAvatar = 0;
+	t.bTriggerAvatarRescanAndLoad = false;
 
-	for ( t.c = 0 ; t.c<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
+	for ( t.c = 0 ; t.c <= MP_MAX_NUMBER_OF_PLAYERS-1; t.c++ )
 	{
 		t.mp_playerAvatars_s[t.c] = "";
 		t.mp_playerAvatarOwners_s[t.c] = "";
+		t.mp_playerAvatarLoaded[t.c] = false;
 	}
 
-	if (  FileOpen(1)  ==  1  )  CloseFile (  1 );
-	if (  FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() )  ==  1 ) 
+	if ( FileOpen(1) == 1 ) CloseFile ( 1 );
+	if ( FileExist( cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() ) == 1 ) 
 	{
-		OpenToRead (  1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get()  );
+		OpenToRead ( 1, cstr (g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() );
 		g.mp.myAvatar_s = ReadString ( 1 );
 		g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
 		g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
-		//  store the name of the head texture
-		if (  g.mp.myAvatarHeadTexture_s  !=  "" ) 
+		// store the name of the head texture
+		if ( g.mp.myAvatarHeadTexture_s != "" ) 
 		{
 			g.mp.myAvatarHeadTexture_s = g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+ g.mp.myAvatarHeadTexture_s + "_cc.dds";
-			if (  FileExist(g.mp.myAvatarHeadTexture_s.Get())  ==  0  )  g.mp.myAvatarHeadTexture_s  =  "";
+			if ( FileExist(g.mp.myAvatarHeadTexture_s.Get()) == 0 ) g.mp.myAvatarHeadTexture_s = "";
 		}
-		CloseFile (  1 );
+		CloseFile ( 1 );
 
-		if (  t.tShowAvatarSprite  ==  1 ) 
+		if ( t.tShowAvatarSprite == 1 ) 
 		{
 			t.tShowAvatarSprite = 0;
-			if (  g.charactercreatorEditorImageoffset > 1 ) 
+			if ( g.charactercreatorEditorImageoffset > 1 ) 
 			{
-				if (  ImageExist(g.charactercreatorEditorImageoffset)  ==  1  )  DeleteImage (  g.charactercreatorEditorImageoffset );
-				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() )  ==  1 ) 
+				if ( ImageExist(g.charactercreatorEditorImageoffset) == 1 )  DeleteImage ( g.charactercreatorEditorImageoffset );
+				if ( FileExist( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() ) == 1 ) 
 				{
-					LoadImage (  cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() ,g.charactercreatorEditorImageoffset );
+					LoadImage ( cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+g.mp.myAvatarName_s+".bmp").Get() ,g.charactercreatorEditorImageoffset );
 				}
 			}
 		}
-
 	}
-
-return;
-
 }
 
 void characterkit_customHead ( void )
 {
-
 	switch (  t.characterkitcontrol.customHeadMode ) 
 	{
 		//  choose image

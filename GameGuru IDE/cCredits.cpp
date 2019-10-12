@@ -96,6 +96,9 @@ int cCredits::OnCreate ( LPCREATESTRUCT lpCreateStruct )
 
 	SetCurrentDirectory ( theApp.m_szLanguagePath );
 	SetCurrentDirectory ( "artwork" );
+	#ifdef GGBRANDED
+	SetCurrentDirectory ( "branded" );	
+	#endif
 	
 	m_hDCSRC = CreateCompatibleDC ( NULL ); 
 	m_hBMP = LoadImage ( NULL, "aboutsplash.bmp", IMAGE_BITMAP, 320, 160, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_CREATEDIBSECTION );

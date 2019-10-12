@@ -104,7 +104,7 @@ DARKSDK void FreeDevices( void );
 // INTERNAL FUNCTIONS ////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
-DARKSDK void InputConstructor ( )
+DARKSDK void InputConstructor ( bool bNeededToCreateExtraWindowForWMRWindow )
 {
 	// setup the input library
 
@@ -118,7 +118,7 @@ DARKSDK void InputConstructor ( )
 	if ( FAILED ( hr = DirectInput8Create ( g_pGlob->hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, ( void** ) &m_lpDI, NULL ) ) )
 	{
 		MessageBox ( NULL, "Unable to create DirectInput interface", "Unable to create DirectInput interface", MB_OK );
-		Error ( "Unable to create DirectInput interface" );
+		Error1 ( "Unable to create DirectInput interface" );
 		return;
 	}
 
@@ -131,7 +131,18 @@ DARKSDK void InputConstructor ( )
 	// Held in Core, used here..
 	g_pCreateDeleteStringFunction = g_pGlob->CreateDeleteString;
 	g_pWindowsEntryString = (DWORD*)&g_pGlob->pWindowsTextEntry;
-	g_phWnd = g_pGlob->hWnd;
+
+	// 090419 - lost keyboard input with new VR window (WMR) g_phWnd = g_pGlob->hWnd;
+	if ( bNeededToCreateExtraWindowForWMRWindow == true )
+	{
+		// when running standalone
+		g_phWnd = g_pGlob->hOriginalhWnd;
+	}
+	else
+	{
+		// when running in map editor mode
+		g_phWnd = g_pGlob->hWnd;
+	}
 	g_iMouseLocalZ = 0;
 
 	// new HWND, so new setups
@@ -219,7 +230,7 @@ DARKSDK void SetupKeyboardEx ( DWORD dwForeOrBackGround )
 	{
 		// if it fails call the destructor and show an error message
 		InputDestructor ( );
-		Error ( "Unable to access keyboard for input library" );
+		Error1 ( "Unable to access keyboard for input library" );
 	}
 	
 	// set the data format
@@ -227,7 +238,7 @@ DARKSDK void SetupKeyboardEx ( DWORD dwForeOrBackGround )
 	{
 		// if it fails call the destructor and show an error message
 		InputDestructor ( );
-		Error ( "Failed to set data format for keyboard in input library" );
+		Error1 ( "Failed to set data format for keyboard in input library" );
 	}
 	
 	// request foregound, non exclusive and disable windows key DISCL_BACKGROUND
@@ -258,7 +269,7 @@ DARKSDK void SetupMouseEx ( DWORD dwForeOrBackGround )
 	// create the device
 	if ( FAILED ( hr = m_lpDI->CreateDevice ( GUID_SysMouse, &m_lpDIMouse, NULL ) ) )
 	{
-		Error("Unable to access mouse for input library");
+		Error1("Unable to access mouse for input library");
 		InputDestructor ( );
 	}
 
@@ -274,7 +285,7 @@ DARKSDK void SetupMouseEx ( DWORD dwForeOrBackGround )
 		if ( FAILED ( hr = m_lpDIMouse->SetDataFormat ( &c_dfDIMouse2 ) ) )
 		{
 			// 091013 - do not kill input device - just silently ignore this attempt Destructor ( );
-			Error ( "Failed to set data format for mouse in input library" );
+			Error1 ( "Failed to set data format for mouse in input library" );
 		}
 	}
 
@@ -560,9 +571,12 @@ DARKSDK BOOL CALLBACK ChecklistAddFFValueFlag(LPDIDEVICEINSTANCE pdinst, LPVOID 
 
 DARKSDK void UpdateKeyboard ( void )
 {
+	// vars
+	HRESULT  hr;
 	bool bInvalid=true;
 
-	HRESULT  hr;
+	// ensure coop level assigned to foreground window (see updatemouse for m_lpDIKeyboard->SetCooperativeLevel)
+
 	if ( FAILED ( hr = m_lpDIKeyboard->GetDeviceState ( sizeof ( m_KeyBuffer ), ( LPVOID ) &m_KeyBuffer ) ) )
 	{
 		// the device has probably been lost if the get device state has failed, attempt to reacquire it
@@ -585,9 +599,20 @@ DARKSDK void UpdateKeyboard ( void )
 
 DARKSDK void UpdateMouse ( void )
 {
+	// vars
+	HRESULT hr;
 	bool bInvalid=true;
 
-	HRESULT  hr;
+	// ensure coop level assigned to foreground window
+	HWND hCurrentHWND = GetForegroundWindow();
+	if ( hCurrentHWND != g_phWnd )
+	{
+		g_phWnd = hCurrentHWND;
+		hr = m_lpDIMouse->SetCooperativeLevel ( g_phWnd, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND );
+		hr = m_lpDIKeyboard->SetCooperativeLevel ( g_phWnd, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND );
+	}
+
+	// get data
     if ( FAILED ( hr = m_lpDIMouse->GetDeviceState ( sizeof ( m_MouseBuffer ), ( LPVOID ) &m_MouseBuffer ) ) )
 	{
 		// the device has probably been lost if the get device state has failed, attempt to reacquire it

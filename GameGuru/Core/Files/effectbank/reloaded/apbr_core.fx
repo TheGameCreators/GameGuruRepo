@@ -324,6 +324,8 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
 
 	float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
 	float3 eyeraw = trueCameraPosition - output.position.xyz;
+	
+//	output.cameraPosition = trueCameraPosition; //PE:
 
 	//	output.cameraPosition = trueCameraPosition; //PE:
 
@@ -1194,7 +1196,6 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    
    // inverse of camera view holds true camera position
    float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
-//   float3 trueCameraPosition = input.cameraPosition; //PE: interpolated not as good , switch back for now.
 
    // put input data into attributes structure
    Attributes attributes;

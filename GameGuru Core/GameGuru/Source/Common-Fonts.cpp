@@ -155,6 +155,7 @@ void pastebitmapfont ( char* text_s, int tx, int ty, int index, int alpha )
 	}
 }
 
+
 void pastebitmapfontcenter ( char* text_s, int tx, int ty, int index, int alpha )
 {
 	int charindex = 0;
@@ -214,7 +215,7 @@ void pastebitmapfontcolor ( char* text_s, int tx, int ty, int index, int alpha, 
 	if (  ImageExist(sid)  ==  0  )  return;
 	float fImageTexOffsetU = 0.5f/ImageWidth(sid);
 	float fImageTexOffsetV = 0.5f/ImageHeight(sid);
-	Sprite ( sid, -10000, -10000, sid );
+	Sprite (  sid,-10000,-10000,g.bitmapfontimagetart+index );
 	for ( n = 1 ; n<=  Len(text_s); n++ )
 	{
 		charindex=Asc(Mid(text_s,n) );
@@ -227,10 +228,13 @@ void pastebitmapfontcolor ( char* text_s, int tx, int ty, int index, int alpha, 
 		SetSpriteTextureCoordinates ( sid, 1, u2_f+fImageTexOffsetU, v1_f+fImageTexOffsetV );
 		SetSpriteTextureCoordinates ( sid, 2, u1_f+fImageTexOffsetU, v2_f+fImageTexOffsetV );
 		SetSpriteTextureCoordinates ( sid, 3, u2_f+fImageTexOffsetU, v2_f+fImageTexOffsetV );
+
 		SetSpriteDiffuse (  sid,r,gg,b );
 		SetSpriteAlpha (  sid,alpha );
 		PasteSprite (  sid,tx,ty );
 		tx += t.bitmapfont[index][charindex].w;
 	}
 	SetSpriteDiffuse (  sid,255,255,255 );
+//endfunction
+
 }

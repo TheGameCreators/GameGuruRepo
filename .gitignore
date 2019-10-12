@@ -85,97 +85,106 @@ sh.exe.stackdump
 GameGuru/Guru-MapEditor.ilk
 GameGuru/Files/mapbank/worklevel.dat
 GameGuru/Files/editors/gridedit/worklevel.fpm
-GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-shm
-GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-wal
+GameGuru/GGWMR.exp
+GameGuru/GGWMR.ilk
+GameGuru/GGWMR.lib
 GameGuru/Files/mapbank/_vrq2.fpm
 GameGuru/Files/mapbank/_vrq2.dat
 GameGuru/Files/mapbank/_vrq.fpm
 GameGuru/Files/mapbank/_vrq.dat
-GameGuru IDE/resVRQ/messages.h
-GameGuru IDE/resVRQ/WorkArt/16x16-Icon.png
-GameGuru IDE/resVRQ/WaypointToolBar.bmp
-GameGuru IDE/resVRQ/TerrainToolbar.bmp
+GameGuru/Files/languagebank/english/artwork/branded/TGCBadge.bmp
+GameGuru/Files/languagebank/english/artwork/branded/Splsh16.bmp
+GameGuru/Files/languagebank/english/artwork/branded/Getting Started Guide.pdf
+GameGuru/Files/languagebank/english/artwork/branded/testgamelayout-vr.png
+GameGuru/Files/languagebank/english/artwork/branded/testgamelayout-noweapons.png
+GameGuru/installcode.dat
+GameGuru IDE/resVRQ/ModeToolbar3.bmp
 GameGuru IDE/resVRQ/Messages_GER.bin
 GameGuru IDE/resVRQ/Messages_ENU.bin
+GameGuru IDE/resVRQ/GameToolbar.bmp
 GameGuru IDE/resVRQ/Game Creator Store Button.bmp
 GameGuru IDE/resVRQ/Editor.rc2
 GameGuru IDE/VRQ.vcxproj
 GameGuru IDE/EditorVRQ.rc
 GameGuru IDE/EditorVRQ.aps
+GameGuru/vrqcontrolmode.ini
 GameGuru IDE/resVRQ/update_l.bmp
 GameGuru IDE/resVRQ/messages.rc
+GameGuru IDE/resVRQ/messages.h
+GameGuru IDE/resVRQ/logo.bmp
+GameGuru IDE/resVRQ/editor.ico
+GameGuru IDE/resVRQ/ZoomToolbar2.bmp
+GameGuru IDE/resVRQ/WorkArt/vrq.ico
+GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-15.png
 GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-10.png
 GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-04.png
 GameGuru IDE/resVRQ/WorkArt/48x48-Icon.png
-GameGuru IDE/resVRQ/StandardToolBar2.bmp
-GameGuru IDE/resVRQ/StandardToolBar2 - Copy.bmp
-GameGuru IDE/resVRQ/GameToolbar.bmp
-GameGuru IDE/resVRQ/ZoomToolbar2.bmp
-GameGuru IDE/resVRQ/WorkArt/vrq.ico
 GameGuru IDE/resVRQ/WorkArt/32x32-Icon.png
 GameGuru IDE/resVRQ/WorkArt/256x256-Icon.png
-GameGuru IDE/resVRQ/ModeToolbar3.bmp
-GameGuru/vrqcontrolmode.ini
-GameGuru IDE/resVRQ/logo.bmp
-GameGuru IDE/resVRQ/editor.ico
 GameGuru IDE/resVRQ/WorkArt/24x24-Icon.png
-GameGuru/GGWMR.ilk
-GameGuru/GGWMR.exp
-GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-15.png
-GameGuru/GGWMR.lib
-GameGuru/Files/languagebank/english/artwork/branded/testgamelayout-vr.png
-GameGuru/Files/languagebank/english/artwork/branded/testgamelayout-noweapons.png
-GameGuru/Files/languagebank/english/artwork/branded/TGCBadge.bmp
-GameGuru/Files/languagebank/english/artwork/branded/Getting Started Guide.docx
-GameGuru/Files/languagebank/english/artwork/branded/aboutsplash.bmp
-GameGuru/Files/languagebank/english/artwork/branded/Splsh16.bmp
-GameGuru/Files/languagebank/english/artwork/branded/Getting Started Guide.pdf
+GameGuru IDE/resVRQ/WorkArt/16x16-Icon.png
+GameGuru IDE/resVRQ/WaypointToolBar.bmp
+GameGuru IDE/resVRQ/TerrainToolbar.bmp
+GameGuru IDE/resVRQ/StandardToolBar2.bmp
+GameGuru IDE/resVRQ/StandardToolBar2 - Copy.bmp
 GameGuru/Files/languagebank/english/textfiles/branded/ide-words.ini
 GameGuru/Files/languagebank/english/artwork/welcome-assets/branded/splash-logo.bmp
+GameGuru/Files/languagebank/english/artwork/branded/aboutsplash.bmp
+GameGuru/Files/languagebank/english/artwork/branded/Getting Started Guide.docx
+GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-wal
+GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-shm
 GameGuru/_CopyForMultiplayerTesting.bat
-GameGuru/installcode.dat
-GameGuru/multiplayeravatar.dat
-GameGuru/teacherviewallmode.dat
-GameGuru IDE/resVRQ/
+GameGuru IDE/resVRQ/GameGuru IDE - Shortcut.lnk
+GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-17.png
+GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-09.png
+GameGuru IDE/resVRQ/WorkArt/Asset 6.png
+GameGuru IDE/resVRQ/StandardToolBar2-oldones.bmp
+GameGuru/Files/__multiplayerlevel__.fpm
+GameGuru/vrqcontrolmode - Copy.ini
+GameGuru/Files/installcode.dat
+GameGuru/Files/entitybank/Characters/Uber Character_D2.dds
+GameGuru/Files/entitybank/Characters/Uber Character.X
 GameGuru/Files/entitybank/Characters/Uber Character.fpe
 GameGuru/Files/entitybank/Characters/Uber Character.dbo
-GameGuru/Files/entitybank/Characters/Uber Character.X
 GameGuru/Files/entitybank/Characters/Uber Character.bmp
-GameGuru/Files/entitybank/Characters/Uber Character_D2.dds
-GameGuru/Files/languagebank/english/artwork/watermark/branded/
-GameGuru/Files/languagebank/english/artwork/welcome/branded/
-GameGuru/Files/languagebank/english/artwork/welcome-assets/branded/
-ReplaceEncryptCode.lnk
-GameGuru/SHOWTEST.dat
-GameGuru/showannouncements.ini
-GameGuru/localimagefile.png
-GameGuru/installstamp.dat
+GameGuru/Files/languagebank/english/artwork/watermark/branded/watermark.jpg
+GameGuru/Files/languagebank/english/artwork/welcome/branded/welcome-page.png
+GameGuru/Files/languagebank/english/artwork/welcome/branded/animated-backdrop.png
+GameGuru/Files/languagebank/english/artwork/welcome-assets/branded/product-logo.png
+GameGuru/Files/savegames/graphics.dat
+GameGuru/Files/mapbank/test5.fpm
+GameGuru/Files/mapbank/test5.dat
+GameGuru/multiplayeravatar.dat
+GameGuru/Files/entitybank/user/charactercreator/Cowboy Lee.fpe
+GameGuru/Files/entitybank/user/charactercreator/Cowboy Lee.bmp
+GameGuru/teacherviewallmode.dat
 GameGuru/DONTSHOWTEST.dat
+ReplaceEncryptCode.lnk
+GameGuru/installstamp.dat
+GameGuru/localimagefile.png
+GameGuru/showannouncements.ini
+GameGuru Core/.vs/GameGuru/v15/Browse.VC.opendb
 see GameGuru Core for EncryptDownloadKeyEtc.txt
-GameGuru IDE/GameGuru IDE.VC.VC.opendb
+GameGuru/SHOWTEST.dat
 GameGuru/Files/languagebank/english/artwork/branded/TGCBadge2.bmp
 GameGuru/Files/languagebank/english/artwork/branded/TGCBadge3.bmp
 GameGuru/Files/mapbank/_test3.dat
 GameGuru/Files/mapbank/_test3.fpm
 GameGuru/Docs/UBER_MASTER_MAX_RIG.zip
+GameGuru/Files/terrainbank/CUSTOM/superpalette.ter
 GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGpre.x
+GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGpost.x
 GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.x
 GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.dbo
 GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.BMP
 GameGuru/Files/entitybank/user/leesmhprocess/brown_eye.png
 GameGuru/Files/entitybank/user/leesmhprocess/bodycolor.png
-GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGpost.x
 GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.fpe
-GameGuru/Files/terrainbank/CUSTOM/superpalette.ter
-GameGuruTrial/
-GameGuru/Files/entitybank/user/onlyONEhandreferenceperHAND.fpe
-GameGuru/Files/entitybank/user/onlyONEhandreferenceperHAND.BMP
-GameGuru/Files/entitybank/user/onlyONEhandreferenceperHAND.dbo
 GameGuru/Files/entitybank/user/survivalist/
 GameGuru/Files/entitybank/user/zombieman/
+GameGuruTrial/
 GameGuru/Files/mapbank/MYTEST.fpm
 GameGuru/Files/mapbank/MYTEST.dat
-GameGuru/Guru-Lightmapper.ilk
 GameGuru/Files/mapbank/level1.dat
 GameGuru/Files/mapbank/level1.fpm
 GameGuru/Files/mapbank/level2.dat

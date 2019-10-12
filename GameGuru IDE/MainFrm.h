@@ -16,7 +16,13 @@
 
 #define CMDIFrameWnd CBCGMDIFrameWnd
 
-
+#ifdef GGBRANDED
+#define IDENAME "VR Quest"
+#define IDENAMEHYPHEN "VR Quest - "
+#else
+#define IDENAME "Game Guru"
+#define IDENAMEHYPHEN "Game Guru - "
+#endif
 
 class CMainFrame : public CMDIFrameWnd
 {
@@ -162,9 +168,12 @@ protected:
 	afx_msg void OnViewWaypoint();
 	afx_msg void OnViewTestGame();
 	afx_msg void OnTestGame();
+	afx_msg void OnTestVRGame();
 	afx_msg void OnMultiplayerGame();
 	afx_msg void OnUpdateTestMap(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateTestGame(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateTestVRGame(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateMultiplayerGame(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewZoomIn(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewZoomOut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewIncreaseShroud(CCmdUI* pCmdUI);

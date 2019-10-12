@@ -1570,13 +1570,16 @@ void lm_showall ( void )
 			if ( (t.tlmobj>0 && t.lmsceneobj[t.e].lmvalid == 3) || (t.tlmobj<0) ) 
 			{
 				t.tobj=t.entityelement[t.e].obj;
-				if (  t.tobj>0 ) 
+				if ( t.tobj>0 ) 
 				{
-					t.tentid=t.entityelement[t.e].bankindex ; t.ttsourceobj=g.entitybankoffset+t.tentid;
-					t.tvalidshadereffect = GetIsValidShader ( t.entityprofile[t.tentid].effect_s.Get() );
-					if (  t.entityelement[t.e].staticflag == 1 && t.entityelement[t.e].eleprof.spawnatstart == 1 && t.entityprofile[t.tentid].ismarker == 0 && t.tvalidshadereffect == 1 ) 
+					if ( ObjectExist ( t.tobj ) == 1 )
 					{
-						SetIgnoreObject (  t.tobj , true );
+						t.tentid=t.entityelement[t.e].bankindex ; t.ttsourceobj=g.entitybankoffset+t.tentid;
+						t.tvalidshadereffect = GetIsValidShader ( t.entityprofile[t.tentid].effect_s.Get() );
+						if (  t.entityelement[t.e].staticflag == 1 && t.entityelement[t.e].eleprof.spawnatstart == 1 && t.entityprofile[t.tentid].ismarker == 0 && t.tvalidshadereffect == 1 ) 
+						{
+							SetIgnoreObject ( t.tobj , true );
+						}
 					}
 				}
 			}

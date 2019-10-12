@@ -55,7 +55,7 @@ DARKSDK void PreventTextureLock				( bool bDoNotLock );
 DARKSDK void UpdateAllAnimation				( void );
 DARKSDK BOOL DB_FreeAnimation				( int AnimIndex );
 
-DARKSDK void LoadAnimation					( LPSTR pFilename, int iIndex, int precacheframes, int videodelayedload );
+DARKSDK void LoadAnimation					( LPSTR pFilename, int iIndex, int precacheframes, int videodelayedload, int iSilentMode );
 DARKSDK int GetAnimationLength				( int animindex );
 DARKSDK void PlayAnimation					( int iIndex );
 DARKSDK void DeleteAnimation				( int animindex );
@@ -70,6 +70,7 @@ DARKSDK void PlayAnimationToImage			( int animindex, int imageindex, int x1, int
 DARKSDK void PlayAnimationToBitmap			( int animindex, int bitmapindex, int x1, int y1, int x2, int y2 );
 DARKSDK void LoopAnimationToBitmap			( int animindex, int bitmapindex, int x1, int y1, int x2, int y2 );
 DARKSDK void PlaceAnimation					( int animindex, int x1, int y1, int x2, int y2);
+DARKSDK void OverrideTextureWithAnimation	( int animindex, int objectnumber );
 
 DARKSDK int  AnimationExist					( int animindex );
 DARKSDK int  AnimationPlaying				( int animindex );

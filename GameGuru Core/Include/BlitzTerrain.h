@@ -54,6 +54,7 @@ void BT_UpdateTerrainLOD(unsigned long TerrainID);
 void BT_UpdateTerrainCull(unsigned long TerrainID);
 void BT_UpdateTerrain(unsigned long TerrainID);
 void BT_RenderTerrain(unsigned long TerrainID);
+void BT_NoRenderTerrain(unsigned long TerrainID);
 void SetTerrainRenderLevel( int size );
 void BT_Intern_Render( void );
 

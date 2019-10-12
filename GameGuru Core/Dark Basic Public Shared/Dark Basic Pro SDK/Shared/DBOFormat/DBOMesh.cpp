@@ -664,8 +664,8 @@ DARKSDK_DLL void ReduceMeshPolygons ( sMesh* pOriginalMesh, int iBlockMode, int 
 
 	// create a work mesh
 	sMesh* pMesh = new sMesh;
-	MakeLocalMeshFromOtherLocalMesh ( false, pMesh, pOriginalMesh );
-	ConvertLocalMeshToVertsOnly ( pMesh );
+	MakeLocalMeshFromOtherLocalMesh ( pMesh, pOriginalMesh );
+	ConvertLocalMeshToVertsOnly ( pMesh, false );
 	DWORD dwNumberOfVertices=pMesh->dwVertexCount;
 
 	// boundary of mesh
@@ -1007,7 +1007,7 @@ DARKSDK_DLL void ReduceMeshPolygons ( sMesh* pOriginalMesh, int iBlockMode, int 
 
 	// create new mesh
 	DWORD dwVertexOffset=0, dwIndexOffset=0;
-	if ( SetupMeshData ( false, pOriginalMesh, dwVertexCount, dwIndexCount ) )
+	if ( SetupMeshData ( pOriginalMesh, dwVertexCount, dwIndexCount, false ) )
 	{
 		// default values
 		DWORD dwColor = GGCOLOR(1,1,1,1);
@@ -1321,11 +1321,11 @@ DARKSDK_DLL bool AddMeshToData ( sMesh* pFinalMesh, sMesh* pMeshToAdd )
 
 	// convert addmesh to standard
 	sMesh* pOriginalMesh = new sMesh;
-	MakeLocalMeshFromOtherLocalMesh ( false, pOriginalMesh, pFinalMesh );
+	MakeLocalMeshFromOtherLocalMesh ( pOriginalMesh, pFinalMesh );
 
 	// convert addmesh to standard
 	sMesh* pStandardMesh = new sMesh;
-	MakeLocalMeshFromOtherLocalMesh ( false, pStandardMesh, pMeshToAdd );
+	MakeLocalMeshFromOtherLocalMesh ( pStandardMesh, pMeshToAdd );
 	ConvertLocalMeshToFVF ( pStandardMesh, pOriginalMesh->dwFVF );
 	
 	// make vertex and index buffers for final
@@ -1333,7 +1333,7 @@ DARKSDK_DLL bool AddMeshToData ( sMesh* pFinalMesh, sMesh* pMeshToAdd )
 	DWORD dwTotalIndices = pOriginalMesh->dwIndexCount + pStandardMesh->dwIndexCount;
 
 	// if creation successful, continue
-	if ( SetupMeshFVFData ( false, pFinalMesh, pOriginalMesh->dwFVF, dwTotalVertices, dwTotalIndices ) )
+	if ( SetupMeshFVFData ( pFinalMesh, pOriginalMesh->dwFVF, dwTotalVertices, dwTotalIndices, false ) )
 	{
 		// copy over original to final
 		memcpy ( pFinalMesh->pVertexData, pOriginalMesh->pVertexData, pOriginalMesh->dwVertexCount * pOriginalMesh->dwFVFSize );
@@ -1678,7 +1678,6 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 					iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
 					if (iImageIndex == 0)
 					{
-
 						// okay, check if texture file alongside model as DDS)
 						Path[strlen(Path) - 4] = 0;
 						strcat(Path, ".dds");
@@ -1715,13 +1714,20 @@ DARKSDK_DLL int LoadOrFindTextureAsImage ( LPSTR pTextureName, LPSTR TexturePath
 											sprintf(Path, "%s%s", TexturePath, pDDSFile);
 											iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
 										}
-
 										if (iImageIndex == 0)
 										{
 											//PE: This can generates doubble loads. so this is the last combi to test.
 											iImageIndex = LoadImageInternalEx(pNoPath, iDivideTextureSize);
-										}
 
+											//LB: also test for DDS of NoPath (multitextured models that use PNG internally)
+											if ( iImageIndex == 0 )
+											{
+												strcpy ( Path, pNoPath );
+												Path[strlen(Path) - 4] = 0;
+												strcat(Path, ".dds");
+												iImageIndex = LoadImageInternalEx(Path, iDivideTextureSize);
+											}
+										}
 									}
 								}
 							}
@@ -2363,6 +2369,13 @@ DARKSDK_DLL void SetBaseTextureStage ( sMesh* pMesh, int iStage, int iImage )
 	g_pGlob->dwInternalFunctionCode=11016;
 }
 
+DARKSDK_DLL void SetBaseTextureStageRef ( sMesh* pMesh, int iStage, LPGGSHADERRESOURCEVIEW pTextureRef )
+{
+	// force a texyture ref override (animation to object texture image ref)
+	pMesh->pTextures [ iStage ].iImageID = -123;
+	pMesh->pTextures [ iStage ].pTexturesRefView = pTextureRef;
+}
+
 DARKSDK_DLL void SetAlphaOverride ( sMesh* pMesh, float fPercentage )
 {
 	if ( fPercentage<100.0f )
@@ -2982,7 +2995,7 @@ void AnimateBoneMeshBONE ( sObject* pObject, sFrame* pFrame, sMesh* pMesh )
 
 			// multiply the vector and the bone matrix with weight
 			GGVECTOR3 newVec = MultiplyVectorAndMatrix ( vec, matrices [ iBone ] ) * fWeight;
-
+			
 			// accumilate vertex for final result
 			*(pDestVertexBase+0) += newVec.x;
 			*(pDestVertexBase+1) += newVec.y;
@@ -3185,7 +3198,7 @@ DARKSDK_DLL bool MakeMeshPlain ( bool bCreateNew, sMesh* pMesh, float fWidth, fl
 	// create memory
 	DWORD dwVertexCount = 6;									// store number of vertices
 	DWORD dwIndexCount  = 0;									// store number of indices
-	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return false;
@@ -3215,7 +3228,7 @@ DARKSDK_DLL bool MakeMeshPlainEx ( bool bCreateNew, sMesh* pMesh, float fWidth, 
 	// create memory
 	DWORD dwVertexCount = 6;									// store number of vertices
 	DWORD dwIndexCount  = 0;									// store number of indices
-	if ( !SetupMeshFVFData ( false, pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount ) )
+	if ( !SetupMeshFVFData ( pMesh, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1, dwVertexCount, dwIndexCount, false ) )
 	{
 		RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 		return false;
@@ -3250,7 +3263,7 @@ DARKSDK_DLL bool MakeMeshBox ( bool bCreateNew, sMesh* pMesh, float fWidth1, flo
 	DWORD dwIndexCount  = 36;
 	if ( bCreateNew )
 	{
-		if ( !SetupMeshFVFData ( false, pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount, false ) )
 		{
 			RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 			return false;
@@ -3314,7 +3327,7 @@ DARKSDK_DLL bool MakeMeshPyramid ( bool bCreateNew, sMesh* pMesh, float fSize, D
 	DWORD dwIndexCount  = 36;
 	if ( bCreateNew )
 	{
-		if ( !SetupMeshFVFData ( false, pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount, false ) )
 		{
 			RunTimeError ( RUNTIMEERROR_B3DMESHLOADFAILED );
 			return false;
@@ -3385,7 +3398,7 @@ DARKSDK_DLL bool MakeMeshSphere ( bool bCreateNew, sMesh* pMesh, GGVECTOR3 vecCe
 	DWORD dwVertexCount		= ( iRings + 1 ) * ( iSegments + 1 );
 	if ( bCreateNew )
 	{
-		if ( !SetupMeshFVFData ( false, pMesh, dwFVF, dwVertexCount, dwIndexCount ) )
+		if ( !SetupMeshFVFData ( pMesh, dwFVF, dwVertexCount, dwIndexCount, false ) )
 		{
 			RunTimeError ( RUNTIMEERROR_B3DMEMORYERROR );
 			return false;
@@ -3452,10 +3465,10 @@ DARKSDK_DLL bool MakeMeshSphere ( bool bCreateNew, sMesh* pMesh, GGVECTOR3 vecCe
 	return true;
 }
 
-DARKSDK_DLL bool MakeMeshFromOtherMesh ( bool bCreateNew, bool bAllow32BitIndices, sMesh* pMesh, sMesh* pOtherMesh, GGMATRIX* pmatWorld, DWORD dwIndexCount, DWORD dwVertexCount )
+DARKSDK_DLL bool MakeMeshFromOtherMesh ( bool bCreateNew, sMesh* pMesh, sMesh* pOtherMesh, GGMATRIX* pmatWorld, DWORD dwIndexCount, DWORD dwVertexCount )
 {
 	// make new mesh from existing other mesh
-	MakeLocalMeshFromOtherLocalMesh ( bAllow32BitIndices, pMesh, pOtherMesh, dwIndexCount, dwVertexCount );
+	MakeLocalMeshFromOtherLocalMesh ( pMesh, pOtherMesh, dwIndexCount, dwVertexCount );
 
 	// get the offset map for the FVF
 	sOffsetMap offsetMap;
@@ -3513,9 +3526,9 @@ DARKSDK_DLL bool MakeMeshFromOtherMesh ( bool bCreateNew, bool bAllow32BitIndice
 	return true;
 }
 
-DARKSDK_DLL bool MakeMeshFromOtherMesh ( bool bCreateNew, bool bConvertToVertIfNeeded, sMesh* pMesh, sMesh* pOtherMesh, GGMATRIX* pmatWorld )
+DARKSDK_DLL bool MakeMeshFromOtherMesh ( bool bCreateNew, sMesh* pMesh, sMesh* pOtherMesh, GGMATRIX* pmatWorld )
 {
 	DWORD dwIndexCount = pOtherMesh->dwIndexCount;
 	DWORD dwVertexCount = pOtherMesh->dwVertexCount;
-	return MakeMeshFromOtherMesh ( bCreateNew, bConvertToVertIfNeeded, pMesh, pOtherMesh, pmatWorld, dwIndexCount, dwVertexCount );
+	return MakeMeshFromOtherMesh ( bCreateNew, pMesh, pOtherMesh, pmatWorld, dwIndexCount, dwVertexCount );
 }

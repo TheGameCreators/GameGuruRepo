@@ -6,10 +6,6 @@
 #include "gameguru.h"
 
 // Externals
-//extern int g_iTriggerReloadOfImportModel;
-//extern int g_iFBXGeometryToggleMode;
-//extern int g_iFBXGeometryCenterMesh;
-//extern bool g_VR920RenderStereoNow;
 extern UINT g_StereoEyeToggle;
 
 // 
@@ -147,7 +143,11 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][8].name_s="Misc";
 	t.slidersmenuvalue[g.slidersmenumax][8].value=0;
 	t.slidersmenuvalue[g.slidersmenumax][8].readmodeindex=5;
-	t.slidersmenuvalue[g.slidersmenumax][9].name_s="Weapons";
+	#ifdef VRQUEST
+	 t.slidersmenuvalue[g.slidersmenumax][9].name_s="HUD";
+	#else
+	 t.slidersmenuvalue[g.slidersmenumax][9].name_s="Weapons";
+	#endif
 	t.slidersmenuvalue[g.slidersmenumax][9].value=0;
 	t.slidersmenuvalue[g.slidersmenumax][9].readmodeindex=5;
 	t.slidersmenuvalue[g.slidersmenumax][10].name_s="Occlusion";
@@ -230,7 +230,11 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][2].value=(((t.visuals.CameraFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
 	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Camera Zoom Percentage";
 	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.CameraFOVZoomed_f*100;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Weapon Horizontal FOV";
+	#ifdef VRQUEST
+	 t.slidersmenuvalue[g.slidersmenumax][4].name_s="HUD Horizontal FOV";
+	#else
+	 t.slidersmenuvalue[g.slidersmenumax][4].name_s="Weapon Horizontal FOV";
+	#endif
 	t.slidersmenuvalue[g.slidersmenumax][4].value=(((t.visuals.WeaponFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
 
 	//  Water panel
@@ -438,10 +442,10 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][2].value=0;
 	t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex=6;
 
-	//  Player status in-game panel
+	// Player status in-game panel
 	++g.slidersmenumax;
 	t.slidersmenunames.player=g.slidersmenumax;
-	if (  t.player[1].health == 99999 || g.vrqcontrolmode != 0 || g.gvrmodeoriginal != 0 ) 
+	if ( t.player[1].health == 99999 || g.vrqcontrolmode != 0 || g.gvrmodeoriginal != 0 ) 
 	{
 		//  hide health panel if no health in start marker
 		t.slidersmenu[g.slidersmenumax].tabpage=-10;
@@ -1321,6 +1325,7 @@ void sliders_draw ( void )
 	// LUA PROMPT IMAGES
 	if (  t.promptimage.show == 1 && t.conkit.editmodeactive == 0 ) 
 	{
+		// image prompt 2D
 		if (  ImageExist(t.promptimage.img) == 1 ) 
 		{
 			if (  t.promptimage.alignment == 0 ) 
@@ -1468,7 +1473,11 @@ void sliders_draw ( void )
 			pastebitmapfontcenter( cstr(cstr("GPU:")+t.hardwareinfoglobals.card_s+"  Resolution:"+Str(GetDisplayWidth())+"x"+Str(GetDisplayHeight())).Get(),GetDisplayWidth()/2,GetDisplayHeight()-65,1,255);
 			t.t1_s="terrain";
 			t.t2_s="water";
-			t.t3_s="gun";
+			#ifdef VRQUEST
+			 t.t3_s="hud";
+			#else
+			 t.t3_s="gun";
+			#endif
 			t.t4_s="lmos";
 			t.t5_s="sky";
 			t.t6_s="physics";

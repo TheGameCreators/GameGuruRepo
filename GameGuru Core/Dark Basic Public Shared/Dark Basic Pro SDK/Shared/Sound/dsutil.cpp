@@ -113,9 +113,25 @@ LPDIRECTSOUNDBUFFER* CSoundManager::LoadOggVorbis ( char* dwFileName, DWORD* pdw
 	desc.dwBufferBytes = ( DWORD ) iSize;	// size of buffer
 
 	// create the new sound buffer
-	if ( FAILED ( m_pDS->CreateSoundBuffer ( &desc, &pDSBuffer [ 0 ], NULL ) ) )
+	HRESULT hr = DS_OK;
+	if ( FAILED ( hr = m_pDS->CreateSoundBuffer ( &desc, &pDSBuffer [ 0 ], NULL ) ) )
 	{
 		//Dave - Free up ogg vorbis before exiting
+		static int iError = 0;
+		if ( hr == DSERR_ALLOCATED ) iError = 1;
+		if ( hr == DSERR_BADFORMAT ) iError = 2;
+		if ( hr == DSERR_BUFFERTOOSMALL ) iError = 3;
+		if ( hr == DSERR_CONTROLUNAVAIL ) iError = 4;
+		if ( hr == DSERR_DS8_REQUIRED ) iError = 5;
+		if ( hr == DSERR_INVALIDCALL ) iError = 6;
+		if ( hr == DSERR_INVALIDPARAM ) iError = 7;
+		if ( hr == DSERR_NOAGGREGATION ) iError = 8;
+		if ( hr == DSERR_OUTOFMEMORY ) iError = 9;
+		if ( hr == DSERR_UNINITIALIZED ) iError = 10;
+		if ( hr == DSERR_UNSUPPORTED ) iError = 11;
+		//char pShow[1024];
+		//sprintf ( pShow, "%d", iError );
+		//MessageBox ( NULL, pShow, pShow, MB_OK );
 		ov_clear(&OggVorbis);
 		return NULL;
 	}
@@ -262,12 +278,13 @@ HRESULT CSoundManager::SetPrimaryBufferFormat( DWORD dwPrimaryChannels,
 	//	if ( FAILED( hr = m_pDS->SetCooperativeLevel (hwndEditorWindow, DSSCL_PRIORITY)) )
 	//	    return hr;//DXTRACE_ERR( TEXT("SetCooperativeLevel"), hr );
 
+	// 230419 - was removed and made no difference as DSSCL_PRIORITY already set earlier
 	// set window of sound buffer to GameGuru Editor
 	//HWND hwndEditorWindow = FindWindow ("Game Guru12345",NULL);
-	HWND hwndEditorWindow = FindWindow (NULL, "Game Guru - [Editor]");
-	if ( hwndEditorWindow )
-		if ( FAILED( hr = m_pDS->SetCooperativeLevel (hwndEditorWindow, DSSCL_PRIORITY)) )
-		    return hr;
+	//HWND hwndEditorWindow = FindWindow (NULL, "Game Guru - [Editor]");
+	//if ( hwndEditorWindow )
+	//	if ( FAILED( hr = m_pDS->SetCooperativeLevel (hwndEditorWindow, DSSCL_PRIORITY)) )
+	//	    return hr;
 	
     WAVEFORMATEX wfx;
     ZeroMemory( &wfx, sizeof(WAVEFORMATEX) ); 

@@ -44,7 +44,9 @@ protected:
 
 		HDC		m_hDCSRC;
 		HANDLE	m_hBMP;
-		HANDLE	m_hBMPLogo;
+		HANDLE	m_hBMPLogo1;
+		HANDLE	m_hBMPLogo2;
+		HANDLE	m_hBMPLogo3;
 		HANDLE	m_hOld;
 public:
 	afx_msg void OnStnClickedAboutLine1();

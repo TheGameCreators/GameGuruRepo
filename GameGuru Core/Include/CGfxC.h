@@ -109,6 +109,8 @@ struct sShaderGlobalsType
 };
 extern sShaderGlobalsType g_sShaders[SHADERSARRAYMAX];
 
+void GetD3DExtraInfo ( int *piAdapterOrdinal, LPSTR pAdapterName, int* piFeatureLevel );
+
 DARKSDK ID3DX11Effect*		SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iShaderIndex );
 #endif
 
@@ -237,6 +239,7 @@ DARKSDK int   				GetBackbufferPitch					( void );
 // lee - 130108 - added for X10 compat.
 DARKSDK void				SetNvPerfHUD						( int iUsePerfHUD );
 DARKSDK void				ForceAdapterOrdinal					( int iForceOrdinal );
+DARKSDK void				ForceAdapterD3D11ONLY				( int iForceD3D11ONLY );
 DARKSDK void				SetCaptureName						( DWORD pFilename );
 DARKSDK void				SetCaptureCodec						( DWORD pFilename );
 DARKSDK void				SetCaptureSettings					( int iCompressed, int iFPS, int iWidth, int iHeight, int iThreaded, int iWait );

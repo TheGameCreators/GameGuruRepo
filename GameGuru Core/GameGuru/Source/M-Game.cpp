@@ -27,8 +27,59 @@ float				g_fOccluderLastCamZ = 0.0f;
 // externals
 //extern bool g_VR920RenderStereoNow;
 
-void game_masterroot ( void )
+void game_scanfornewavatars ( bool bDynamicallyRecreateCharacters )
 {
+	// add any character creator player avatars in
+	if ( t.bTriggerAvatarRescanAndLoad == true )
+	{
+		for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount <= MP_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
+		{
+			// check if there is a custom avatar (and not loaded)
+			if ( t.mp_playerAvatars_s[t.tcustomAvatarCount] != "" && t.mp_playerAvatarLoaded[t.tcustomAvatarCount] == false ) 
+			{
+				// there is so lets built a temp fpe file from it
+				t.ent_s=g.rootdir_s+"entitybank\\user\\charactercreator\\customAvatar_"+Str(t.tcustomAvatarCount)+".fpe";
+				t.avatarFile_s = t.ent_s;
+				t.avatarString_s = t.mp_playerAvatars_s[t.tcustomAvatarCount];
+				characterkit_makeMultiplayerCharacterCreatorAvatar ( );
+				entity_addtoselection_core ( );
+				characterkit_removeMultiplayerCharacterCreatorAvatar ( );
+				t.tubindex[t.tcustomAvatarCount+2]=t.entid;
+				t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].ischaracter=0;
+				t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].collisionmode=12;
+				// No lua script for player chars
+				t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].aimain_s = "";
+				// avatar is now loaded
+				t.mp_playerAvatarLoaded[t.tcustomAvatarCount] = true;
+
+				// additionally, when triggered, replace actual objects with new created ones above (for dynamic loading)
+				if ( bDynamicallyRecreateCharacters == true )
+				{
+					t.e = t.mp_playerEntityID[t.tcustomAvatarCount];
+					if ( t.e > 0 )
+					{
+						// update entity element with new character object (dynamically loaded during game)
+						t.entityelement[t.e].bankindex = t.entid;
+
+						// update entity object itself
+						t.tupdatee = t.e; 
+						entity_updateentityobj ( );
+					}
+				}
+			}
+		}
+		t.bTriggerAvatarRescanAndLoad = false;
+
+		// refreshes object masks of avatar heads
+		t.visuals.refreshshaders = 1;
+	}
+}
+
+void game_masterroot ( int iUseVRTest )
+{
+	// prevent any VR if VRtest is off
+	if ( iUseVRTest == 0 ) g.vrglobals.GGVRUsingVRSystem = 0;
+
 	//  Load all one-off non-graphics assets
 	timestampactivity(0,"_game_oneoff_nongraphics");
 	game_oneoff_nongraphics ( );
@@ -122,24 +173,22 @@ void game_masterroot ( void )
 		// Standaline Multiplayer HOST/JOIN screen
 		if ( t.game.runasmultiplayer == 1 ) 
 		{
-			//  Show screen, use Steam to get friends CREATE LOBBY, wait, ready to begin
-			//  re-use title page system! (see Lee)
-			//  DOWNLOAD the level selected by the HOSTER and put it in levelbank
-			//  called 'multiplayer_level.zip' (has to be a loop for Steam)
-			//  EXTRACT the ZIP into the testmap folder ready for the code below
+			// Multiplayer init
+			mp_fullinit();
 			g.mp.mode = MP_MODE_MAIN_MENU;
 			timestampactivity(0,"_titles_steampage");
 			t.game.cancelmultiplayer=0;
 			SetCameraView (  0,0,1,1 );
 			titles_steampage ( );
-			if (  t.game.cancelmultiplayer == 1 ) 
+			if ( t.game.cancelmultiplayer == 1 ) 
 			{
-				//  user selected BACK (cancel multiplayer)
+				// user selected BACK (cancel multiplayer)
+				mp_fullclose();
 				t.game.levelloop=0;
 			}
 			else
 			{
-				//  proceed into level loop where multiplayer spawn markers are detected and ghosts loaded
+				// proceed into level loop where multiplayer spawn markers are detected and ghosts loaded
 			}
 		}
 
@@ -236,21 +285,21 @@ void game_masterroot ( void )
 				}
 			}
 
-			//reload gunspecs
+			// reload gunspecs
 			if (g.reloadWeaponGunspecs == 1)
 			{
 				gun_scaninall_dataonly();
 			}
 
-			//  we first load extra guns into gun array EARLY (ahead of entity data load which assigns gunids to isweapon hasweapon)
+			// we first load extra guns into gun array EARLY (ahead of entity data load which assigns gunids to isweapon hasweapon)
 			gun_tagmpgunstolist ( );
 
-			//  just load the entity data for now (rest in _game_loadinleveldata)
+			// just load the entity data for now (rest in _game_loadinleveldata)
 			timestampactivity(0,"_game_loadinentitiesdatainlevel");
-			if (  t.game.gameisexe == 1 || t.game.runasmultiplayer == 1 ) 
+			if ( t.game.gameisexe == 1 || t.game.runasmultiplayer == 1 ) 
 			{
 				//  extra precaution, delete any old entities and LM objects
-				if (  t.game.runasmultiplayer == 1 ) 
+				if ( t.game.runasmultiplayer == 1 ) 
 				{
 					entity_delete ( );
 					lm_removeold ( );
@@ -260,12 +309,12 @@ void game_masterroot ( void )
 
 			// Load any extra material sounds associated with new entities (i.e. material(m).usedinlevel=1?)
 			// NOTE: Level can collect materials (and material depth) and apply here to quicken material loader (2s)
-			material_loadsounds ( );
+			material_loadsounds ( 0 );
 
 			// if multiplayer, detect spawn positions and add extra UBER characters
 			if ( t.game.runasmultiplayer == 1 ) 
 			{
-				//  these are the multiplayer start markers
+				// these are the multiplayer start markers
 				t.tnumberofstartmarkers = 0;
 				g.mp.team = 0;
 				g.mp.coop = 0;
@@ -277,38 +326,37 @@ void game_masterroot ( void )
 				t.tfoundAMultiplayerScript = 0;
 				for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 				{
-					//  reset all updates
+					// reset all updates
 					t.entityelement[t.e].mp_updateOn = 0;
-					//  for chars like zombies
 					t.entityelement[t.e].mp_isLuaChar = 0;
 					t.entityelement[t.e].mp_rotateType = 0;
 					t.entid=t.entityelement[t.e].bankindex;
-					if (  t.entid>0 ) 
+					if ( t.entid>0 ) 
 					{
-						if (  t.entityprofile[t.entid].ismarker == 7 && t.plrindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
+						/* No longer activity gtom multiplayer start markers or non characters with AI commands in them (all scripts active)
+						if ( t.entityprofile[t.entid].ismarker == 7 && t.plrindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 						{
-
-							//  to ensure mp game script always runs from any distance
+							// to ensure mp game script always runs from any distance
 							t.entityelement[t.e].eleprof.phyalways = 1;
-							if (  t.entityelement[t.e].eleprof.aimain_s  ==  "" ) 
+							if ( t.entityelement[t.e].eleprof.aimain_s == "" ) 
 							{
 								t.entityelement[t.e].eleprof.aimain_s = "multiplayer_firstto10.lua";
 							}
-							if (  t.entityelement[t.e].eleprof.teamfield  !=  0 ) 
+							if ( t.entityelement[t.e].eleprof.teamfield  !=  0 ) 
 							{
 								g.mp.team = 1;
 							}
 	
 							//  only let one marker end up with a script otherwise we end up running the same script 8 times
-							if (  t.tfoundAMultiplayerScript  ==  0 ) 
+							if ( t.tfoundAMultiplayerScript == 0 ) 
 							{
 								t.tfoundAMultiplayerScript = 1;
-								//  12032015 0XX - Team Multiplayer - check for team mode
-								if (  FileOpen(3)  ==  1  )  CloseFile (  3 );
+								// 12032015 0XX - Team Multiplayer - check for team mode
+								if ( FileOpen(3)  ==  1  )  CloseFile (  3 );
 								t.strwork = "" ; t.strwork = t.strwork + "scriptbank\\"+t.entityelement[t.e].eleprof.aimain_s;
 								OpenToRead (  3, t.strwork.Get() );
 								g.mp.friendlyfireoff = 0;
-								while (  FileEnd(3)  ==  0 ) 
+								while ( FileEnd(3) == 0 ) 
 								{
 									t.tScriptLine_s = ReadString (  3 );
 									t.tScriptLine_s = Lower(t.tScriptLine_s.Get());
@@ -324,7 +372,6 @@ void game_masterroot ( void )
 								t.entityelement[t.e].eleprof.aimain_s = "";
 							}
 							++t.plrindex;
-
 						}
 						else
 						{
@@ -352,26 +399,28 @@ void game_masterroot ( void )
 								}
 							}
 						}
+						*/
 					}
 				}
-				//  Build multiplayer start markers
+
+				// Build multiplayer start markers
 				t.thaveTeamAMarkers = 0;
 				t.thaveTeamBMarkers = 0;
 				t.tmpstartindex = 1;
-				for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+				for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 				{
 					t.entid=t.entityelement[t.e].bankindex;
-					if (  t.entid>0 ) 
+					if ( t.entid>0 ) 
 					{
-						if (  t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
+						if ( t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 						{
-							//  add start markers for free for all or team a
-							if (  t.entityelement[t.e].eleprof.teamfield < 2 ) 
+							// add start markers for free for all or team a
+							if ( t.entityelement[t.e].eleprof.teamfield < 2 ) 
 							{
-								//  a spawn GetPoint (  for the multiplayer )
+								// a spawn GetPoint ( for the multiplayer )
 								t.mpmultiplayerstart[t.tmpstartindex].active=1;
 								t.mpmultiplayerstart[t.tmpstartindex].x=t.entityelement[t.e].x;
-								//  added 10 onto the y otherwise the players fall through the ground
+								// added 10 onto the y otherwise the players fall through the ground
 								t.mpmultiplayerstart[t.tmpstartindex].y=t.entityelement[t.e].y+50;
 								t.mpmultiplayerstart[t.tmpstartindex].z=t.entityelement[t.e].z;
 								t.mpmultiplayerstart[t.tmpstartindex].angle=t.entityelement[t.e].ry;
@@ -382,23 +431,24 @@ void game_masterroot ( void )
 						}
 					}
 				}
-				//  add team b markers if in team mode
-				if (  g.mp.team  ==  1 ) 
+				// add team b markers if in team mode
+				/* no teams for now
+				if ( g.mp.team == 1 ) 
 				{
-					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
-						if (  t.entid>0 ) 
+						if ( t.entid>0 ) 
 						{
-							if (  t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
+							if ( t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 							{
-								//  add start markers for team b
-								if (  t.entityelement[t.e].eleprof.teamfield  ==  2 ) 
+								// add start markers for team b
+								if ( t.entityelement[t.e].eleprof.teamfield == 2 ) 
 								{
-									//  a spawn GetPoint (  for the multiplayer )
+									// a spawn GetPoint (  for the multiplayer )
 									t.mpmultiplayerstart[t.tmpstartindex].active=1;
 									t.mpmultiplayerstart[t.tmpstartindex].x=t.entityelement[t.e].x;
-									//  added 10 onto the y otherwise the players fall through the ground
+									// added 10 onto the y otherwise the players fall through the ground
 									t.mpmultiplayerstart[t.tmpstartindex].y=t.entityelement[t.e].y+50;
 									t.mpmultiplayerstart[t.tmpstartindex].z=t.entityelement[t.e].z;
 									t.mpmultiplayerstart[t.tmpstartindex].angle=t.entityelement[t.e].ry;
@@ -410,45 +460,52 @@ void game_masterroot ( void )
 						}
 					}
 				}
+				*/
 
-				//  check for coop mode
+				// check for coop mode
 				g.mp.coop = 0;
-				if (  g.mp.team  ==  1 ) 
+				/* all coop right now
+				if ( g.mp.team == 1 ) 
 				{
-					if (  (t.thaveTeamAMarkers  ==  1 && t.thaveTeamBMarkers  ==  0) || (t.thaveTeamAMarkers  ==  0 && t.thaveTeamBMarkers  ==  1) || (t.thaveTeamAMarkers  ==  0 && t.thaveTeamBMarkers  ==  0) ) 
+					if ( (t.thaveTeamAMarkers  ==  1 && t.thaveTeamBMarkers  ==  0) || (t.thaveTeamAMarkers  ==  0 && t.thaveTeamBMarkers  ==  1) || (t.thaveTeamAMarkers  ==  0 && t.thaveTeamBMarkers  ==  0) ) 
 					{
 						g.mp.coop = 1;
 						mp_setupCoopTeam ( );
 					}
 				}
+				*/
 
-				//  perhaps it is a solo game with a start maker only
-				if (  g.mp.coop  ==  0 && t.tnumberofstartmarkers  ==  0 ) 
+				// perhaps it is a solo game with a start maker only
+				bool bHaveRegularStartMarker = false;
+				if ( g.mp.coop == 0 && t.tnumberofstartmarkers == 0 ) 
 				{
 					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
-						if (  t.entid>0 ) 
+						if ( t.entid>0 ) 
 						{
-							if (  t.entityprofile[t.entid].ismarker == 1 ) 
+							if ( t.entityprofile[t.entid].ismarker == 1 ) 
 							{
-								//  a spawn GetPoint (  for the multiplayer )
+								// a spawn GetPoint ( for the multiplayer )
+								bHaveRegularStartMarker = true;
 								t.mpmultiplayerstart[1].active=1;
 								t.mpmultiplayerstart[1].x=t.entityelement[t.e].x;
-								//  added 10 onto the y otherwise the players fall through the ground
+								// added 10 onto the y otherwise the players fall through the ground
 								t.mpmultiplayerstart[1].y=t.entityelement[t.e].y+50;
 								t.mpmultiplayerstart[1].z=t.entityelement[t.e].z;
 								t.mpmultiplayerstart[1].angle=t.entityelement[t.e].ry;
 								t.entityelement[t.e].eleprof.phyalways = 1;
-								//  switch it to multiplayer script
+
+								/* duplicated from above and not used any more
+								// switch it to multiplayer script
 								t.entityelement[t.e].eleprof.aimain_s = "multiplayer_firstto10.lua";
 								t.tnumberofstartmarkers = 1;
 								g.mp.coop = 1;
 								g.mp.team = 1;
 								mp_setupCoopTeam ( );
 
-								//  Check for friendly fire off
-								if (  FileOpen(3)  ==  1  )  CloseFile (  3 );
+								// Check for friendly fire off
+								if ( FileOpen(3) == 1 )  CloseFile ( 3 );
 								t.strwork ="" ; t.strwork = t.strwork + "scriptbank\\"+t.entityelement[t.e].eleprof.aimain_s;
 								OpenToRead (  3, t.strwork.Get() );
 								g.mp.friendlyfireoff = 0;
@@ -462,48 +519,54 @@ void game_masterroot ( void )
 									}
 								}
 								CloseFile (  3 );
-
+								*/
 							}
 						}
 					}
 				}
 
 				//  if multiplayer and not coop, disable ai characters
-				if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  0 ) 
-				{
-					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+				#ifdef PHOTONMP
+				 // Photon retains all characters in map
+				#else
+				 if ( t.game.runasmultiplayer == 1 && g.mp.coop == 0 ) 
+				 {
+					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
-						if (  t.entid>0 ) 
+						if ( t.entid>0 ) 
 						{
-							if (  t.entityprofile[t.entid].ischaracter  ==  1 ) 
+							if ( t.entityprofile[t.entid].ischaracter  ==  1 ) 
 							{
 								t.entityelement[t.e].destroyme=1;
 							}
 						}
 					}
-				}
+				 }
+				#endif
 
-				//  if multiplayer and coop, setup ai for switching who control them, depending on gameplay circumstances
-				if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 ) 
+				// if multiplayer and coop, setup ai for switching who control them, depending on gameplay circumstances
+				 /* no coop special mode for now
+				if ( t.game.runasmultiplayer == 1 && g.mp.coop == 1 ) 
 				{
-					for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+					for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 					{
 						t.entid=t.entityelement[t.e].bankindex;
-						if (  t.entid>0 ) 
+						if ( t.entid>0 ) 
 						{
-							if (  t.entityprofile[t.entid].ischaracter  ==  1 || t.entityelement[t.e].mp_isLuaChar ) 
+							if ( t.entityprofile[t.entid].ischaracter  ==  1 || t.entityelement[t.e].mp_isLuaChar ) 
 							{
 								t.entityelement[t.e].mp_coopControlledByPlayer = -1;
 							}
 						}
 					}
 				}
+				*/
 
-				//  if no multiplayer markers, put some at the default height
-				if (  t.tnumberofstartmarkers  ==  0 ) 
+				// if no multiplayer markers, put some at the default height
+				if ( t.tnumberofstartmarkers == 0 && bHaveRegularStartMarker == false ) 
 				{
-					for ( t.tloop = 1 ; t.tloop<=  MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
+					for ( t.tloop = 1; t.tloop <= MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
 					{
 						t.mpmultiplayerstart[t.tloop].active=1;
 						t.mpmultiplayerstart[t.tloop].x=25600;
@@ -513,10 +576,11 @@ void game_masterroot ( void )
 						t.mpmultiplayerstart[t.tloop].angle=0;
 					}
 				}
-				//  if coop and only 1 marker, make some more
-				if (  g.mp.coop  ==  1 && t.tnumberofstartmarkers  ==  1 ) 
+				/* no coop
+				// if coop and only 1 marker, make some more
+				if ( g.mp.coop == 1 && t.tnumberofstartmarkers == 1 ) 
 				{
-					for ( t.tloop = 2 ; t.tloop<=  MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
+					for ( t.tloop = 2 ; t.tloop <= MP_MAX_NUMBER_OF_PLAYERS; t.tloop++ )
 					{
 						t.mpmultiplayerstart[t.tloop].active=1;
 						t.mpmultiplayerstart[t.tloop].x=t.mpmultiplayerstart[1].x;
@@ -526,18 +590,26 @@ void game_masterroot ( void )
 						t.mpmultiplayerstart[t.tloop].angle=t.mpmultiplayerstart[1].angle;
 					}
 				}
-				//  reserve max multiplayer characters (all weapon animations included)
-				Dim (  t.tubindex,2+MP_MAX_NUMBER_OF_PLAYERS  );
-				t.ent_s=g.rootdir_s+"entitybank\\characters\\Uber Soldier.fpe";
+				*/
+
+				// reserve max multiplayer characters (all weapon animations included)
+				Dim ( t.tubindex,2+MP_MAX_NUMBER_OF_PLAYERS  );
+				#ifdef PHOTONMP
+				 t.ent_s=g.rootdir_s+"entitybank\\characters\\Uber Character.fpe";
+				#else
+				 t.ent_s=g.rootdir_s+"entitybank\\characters\\Uber Soldier.fpe";
+				#endif
 				entity_addtoselection_core ( );
 				t.tubindex[0]=t.entid;
 				t.entityprofile[t.tubindex[0]].ischaracter=0;
 				t.entityprofile[t.tubindex[0]].collisionmode=12;
-				// No lua script for player chars
 				t.entityprofile[t.tubindex[0]].aimain_s = "";
 
-				if (  g.mp.team  ==  1 && g.mp.coop  ==  0 ) 
-				{
+				#ifdef PHOTONMP
+				 // No teams - no combat!
+				#else
+				 if ( g.mp.team == 1 && g.mp.coop == 0 ) 
+				 {
 					t.ent_s=g.rootdir_s+"entitybank\\characters\\Uber Soldier Red.fpe";
 					entity_addtoselection_core ( );
 					t.tubindex[1]=t.entid;
@@ -546,35 +618,23 @@ void game_masterroot ( void )
 					// No lua script for player chars
 					t.entityprofile[t.tubindex[1]].aimain_s = "";
 					t.tti = 1;
-				}
+				 }
+				#endif
 
-				//  add any character creator player avatars in
-				for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount<=  MP_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
+				// add any character creator player avatars in
+				for ( t.tcustomAvatarCount = 0 ; t.tcustomAvatarCount <= MP_MAX_NUMBER_OF_PLAYERS-1; t.tcustomAvatarCount++ )
 				{
-					//  check if there is a custom avatar
-					if (  t.mp_playerAvatars_s[t.tcustomAvatarCount]  !=  "" ) 
-					{
-						//  there is so lets built a temp fpe file from it
-						t.ent_s=g.rootdir_s+"entitybank\\user\\charactercreator\\customAvatar_"+Str(t.tcustomAvatarCount)+".fpe";
-						t.avatarFile_s = t.ent_s;
-						t.avatarString_s = t.mp_playerAvatars_s[t.tcustomAvatarCount];
-						characterkit_makeMultiplayerCharacterCreatorAvatar ( );
-						entity_addtoselection_core ( );
-						characterkit_removeMultiplayerCharacterCreatorAvatar ( );
-						t.tubindex[t.tcustomAvatarCount+2]=t.entid;
-						t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].ischaracter=0;
-						t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].collisionmode=12;
-						// No lua script for player chars
-						t.entityprofile[t.tubindex[t.tcustomAvatarCount+2]].aimain_s = "";
-					}
+					t.mp_playerAvatarLoaded[t.tcustomAvatarCount] = false;
 				}
+				t.bTriggerAvatarRescanAndLoad = true;
+				game_scanfornewavatars ( false );
 
-				//  store ttiswitch for tti as multiplayer avatars can upset the 0->1 switching!
+				// store ttiswitch for tti as multiplayer avatars can upset the 0->1 switching!
 				t.ttiswitch = 1;
-				for ( t.plrindex = 1 ; t.plrindex<=  MP_MAX_NUMBER_OF_PLAYERS; t.plrindex++ )
+				for ( t.plrindex = 1 ; t.plrindex <= MP_MAX_NUMBER_OF_PLAYERS; t.plrindex++ )
 				{
-					//  Add the max number of players into the level if there are start markers or not
-					if (  g.mp.team  ==  1 && g.mp.coop  ==  0 ) 
+					// Add the max number of players into the level if there are start markers or not
+					if ( g.mp.team == 1 && g.mp.coop == 0 ) 
 					{
 						t.ttiswitch = 1 - t.ttiswitch;
 					}
@@ -583,8 +643,9 @@ void game_masterroot ( void )
 						t.ttiswitch = 0;
 					}
 					t.tti = t.ttiswitch;
-					//  check if the player has their own avatar
-					if (  t.mp_playerAvatars_s[t.plrindex-1]  !=  "" ) 
+
+					// check if the player has their own avatar
+					if ( t.mp_playerAvatars_s[t.plrindex-1] != "" ) 
 					{
 						t.tti = t.plrindex-1+2;
 					}
@@ -595,7 +656,7 @@ void game_masterroot ( void )
 					t.gridentitystaticmode=0;
 					t.gridentityhasparent=0;
 					t.tfoundone = 0;
-					if (  t.mpmultiplayerstart[t.plrindex].active == 1 ) 
+					if ( t.mpmultiplayerstart[t.plrindex].active == 1 ) 
 					{
 						t.tfoundone = 1;
 						t.gridentityposx_f=t.mpmultiplayerstart[t.plrindex].x;
@@ -605,10 +666,10 @@ void game_masterroot ( void )
 					else
 					{
 						t.tonetotry = t.plrindex/2;
-						if (  t.tonetotry > 0 ) 
+						if ( t.tonetotry > 0 ) 
 						{
 							t.tfoundone = 1;
-							if (  t.mpmultiplayerstart[t.tonetotry].active == 1 ) 
+							if ( t.mpmultiplayerstart[t.tonetotry].active == 1 ) 
 							{
 								t.gridentityposx_f=t.mpmultiplayerstart[t.tonetotry].x;
 								t.gridentityposy_f=t.mpmultiplayerstart[t.tonetotry].y;
@@ -616,9 +677,9 @@ void game_masterroot ( void )
 							}
 						}
 					}
-					if (  t.tfoundone  ==  0 ) 
+					if ( t.tfoundone == 0 ) 
 					{
-						if (  t.mpmultiplayerstart[1].active == 1 ) 
+						if ( t.mpmultiplayerstart[1].active == 1 ) 
 						{
 							t.gridentityposx_f=t.mpmultiplayerstart[1].x;
 							t.gridentityposy_f=t.mpmultiplayerstart[1].y;
@@ -634,19 +695,22 @@ void game_masterroot ( void )
 					entity_fillgrideleproffromprofile ( );
 					entity_addentitytomap_core ( );
 					t.mpmultiplayerstart[t.plrindex].ghostentityindex=t.e;
-					//  Grab the entity number for steam to use
+
+					// Grab the entity number for steam to use
 					t.mp_playerEntityID[t.plrindex-1] = t.e;
 					t.entityprofile[t.ubercharacterindex].ismultiplayercharacter=1;
 					t.entityprofile[t.ubercharacterindex].hasweapon_s="";
 					t.entityprofile[t.ubercharacterindex].hasweapon=0;
 					t.entityprofile[t.ubercharacterindex].aimain_s = "";
 				}
-				UnDim (  t.tubindex );
+
+				//need this later in game for dynamic avatar loading
+				//UnDim ( t.tubindex );
 			}
 
-			//  in standalone, no IDE feeding test level, so load it in
+			// in standalone, no IDE feeding test level, so load it in
 			timestampactivity(0,"_game_loadinleveldata");
-			if (  t.game.gameisexe == 1 || t.game.runasmultiplayer == 1 ) 
+			if ( t.game.gameisexe == 1 || t.game.runasmultiplayer == 1 ) 
 			{
 				game_loadinleveldata ( );
 			}
@@ -656,7 +720,7 @@ void game_masterroot ( void )
 			game_preparelevel_forplayer ( );
 			game_preparelevel_finally ( );
 
-			//  Load any light map objects if available
+			// Load any light map objects if available
 			timestampactivity(0,"load lightmapped objects");
 			lm_loadscene ( );
 			
@@ -1285,22 +1349,591 @@ void game_masterroot ( void )
 				}
 			}
 
-			//  Setup variables for main game loop
+			g.merged_new_objects = 0;
+			if ( t.tlmloadsuccess == 0  ) { //&& !g.disable_drawcall_optimizer
+
+				//###################################################################
+				//#### PE: Very simple but effectively draw call optimizer       ####
+				//#### Could be made more intelligent when time allow :)         ####
+				//#### On a 2000 object level it takes below 2 sec to run.       ####
+				//#### setup.ini "drawcalloptimizer=1" will optimize everything  ####
+				//#### setup.ini "drawcalloptimizer=0" only fpe settings counts. ####
+				//#### .fpe "drawcalloptimizer=1" will optimize this object.     ####
+				//#### .fpe "drawcalloptimizer=0" will NOT optimize object.      ####
+				//#### .fpe "drawcalloptimizeroff=1" will NOT optimize object.   ####
+				//#### (drawcalloptimizeroff is used when you optimize           ####
+				//####  everything but have problems with a object )             ####
+				//#### .fpe "drawcallscaleadjust" adjust scale.                  ####
+				//###################################################################
+
+				#define DC_DISTANCE 1000
+				timestampactivity(0, "draw call optimizer.");
+				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+				{
+					if (t.entityelement[t.e].obj > 0 && t.e < g.entityelementlist )
+					{
+						t.entityelement[t.e].dc_merged = false;
+						if (t.entityelement[t.e].draw_call_obj > 0) {
+
+							if (t.entityelement[t.e].draw_call_obj > 0 && ObjectExist(t.entityelement[t.e].draw_call_obj) == 1) {
+								DeleteObject(t.entityelement[t.e].draw_call_obj);
+								t.entityelement[t.e].draw_call_obj = 0;
+							}
+						}
+					}
+				}
+
+				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+				{
+					t.entid = t.entityelement[t.e].bankindex;
+					t.obj = t.entityelement[t.e].obj;
+					if (t.obj > 0 && t.e < g.entityelementlist && t.entityelement[t.e].dc_merged == false && (g.globals.drawcalloptimizer==1 || t.entityprofile[t.entid].drawcalloptimizer == 1) && t.entityprofile[t.entid].drawcalloptimizeroff == 0 )
+					{
+
+						struct OrderByObjectDistance
+						{
+							bool operator()(int pObjectA, int pObjectB)
+							{
+								
+								if (t.entityelement[pObjectA].dc_distance < t.entityelement[pObjectB].dc_distance)
+									return true;
+
+								if (t.entityelement[pObjectA].dc_distance == t.entityelement[pObjectB].dc_distance)
+									return true;
+								return false;
+							}
+						};
+
+						int nextObjeid = 0;
+						std::vector< int >     vObjList;
+						if (1 == 1) {
+							//PE: Sort a list by object,distance to increase hit rate.
+							
+							if (ObjectExist(t.obj)) {
+								//for (int i = t.e + 1; i <= g.entityelementlist; i++) {
+								for (int i = 1; i <= g.entityelementlist; i++) {
+									int testobj = t.entityelement[i].obj;
+									if (testobj > 0 && i != t.e && ObjectExist(testobj) && t.entityelement[i].dc_merged == false) {
+
+										sObject* pObject = g_ObjectList[t.obj];
+										int instanceonly = 0;
+										if (pObject && pObject->pInstanceOfObject) {
+											pObject = pObject->pInstanceOfObject;
+										}
+
+										sObject* pObjectTest = g_ObjectList[testobj];
+										if (pObjectTest && pObjectTest->pInstanceOfObject) {
+											pObjectTest = pObjectTest->pInstanceOfObject;
+										}
+
+										if (pObject && pObjectTest && pObject == pObjectTest) {
+
+											t.tdx_f = t.entityelement[t.e].x - t.entityelement[i].x;
+											t.tdz_f = t.entityelement[t.e].z - t.entityelement[i].z;
+											t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+
+											t.entityelement[i].dc_distance = t.tdd_f;
+											vObjList.push_back(i);
+										}
+
+									}
+								}
+								//Sort list
+								std::sort(vObjList.begin(), vObjList.end(), OrderByObjectDistance());
+
+							}
+						}
+
+						if (vObjList.size() > 0)
+							nextObjeid = vObjList[0];
+
+						int glueid = t.entityelement[nextObjeid].bankindex;
+						int glueobj = t.entityelement[nextObjeid].obj;
+
+						if (vObjList.size() > 0 && glueobj > 0 && ObjectExist(t.obj) && ObjectExist(glueobj))
+						{
+							bool validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_basic.fx") == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_tree.fx") == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\entity_basic.fx") == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_illum.fx") == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "") == 0)
+								validshader = true;
+							if(t.entityprofile[t.entid].animmax == 0)
+								validshader = true;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\treea_basic.fx") == 0)
+								validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_anim.fx") == 0)
+								validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_treea.fx") == 0)
+								validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_anim8bone.fx") == 0)
+								validshader = false;
+							if (strcmp(Lower(t.entityprofile[t.entid].effect_s.Get()), "effectbank\\reloaded\\apbr_animwithtran.fx") == 0)
+								validshader = false;
+							if (t.entityprofile[t.entid].animmax > 0)
+								validshader = false;
+
+							if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[nextObjeid].staticflag == 1)
+							{
+
+								//Validate if same master object.
+								sObject* pObject = g_ObjectList[t.obj];
+								int instanceonly = 0;
+								if (pObject && pObject->pInstanceOfObject) {
+									pObject = pObject->pInstanceOfObject;
+									instanceonly++;
+								}
+
+								sObject* pObject2 = g_ObjectList[glueobj];
+								if (pObject2 && pObject2->pInstanceOfObject) {
+									pObject2 = pObject2->pInstanceOfObject;
+									instanceonly++;
+								}
+
+								//PE: Later validate this.
+								//int iPolyCount = GetObjectPolygonCount(t.obj);
+
+//								t.tdx_f = t.entityelement[t.e].x - t.entityelement[t.e+1].x;
+//								t.tdz_f = t.entityelement[t.e].z - t.entityelement[t.e+1].z;
+//								t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+
+								//PE: Keep objects distance below 700 for best culling.
+								if (pObject && pObject2 && instanceonly >= 2  && t.entityelement[nextObjeid].dc_distance < DC_DISTANCE && g.merged_new_objects < 4980 ) {
+									
+									if (pObject == pObject2) {
+										//Same master glue it.
+
+										if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
+
+										float gluescalex = ObjectScaleX(glueobj);
+										float gluescaley = ObjectScaleY(glueobj);
+										float gluescalez = ObjectScaleZ(glueobj);
+
+										float src_scalex = ObjectScaleX(t.obj);
+										float src_scaley = ObjectScaleY(t.obj);
+										float src_scalez = ObjectScaleZ(t.obj);
+
+										float scaleadjust = t.entityprofile[t.entid].drawcallscaleadjust;
+										int tmpobj = (g.merged_new_objects+100) + 85000; //PE: TODO change 85000
+										if (g_ObjectList[tmpobj])
+										{
+											if (g_ObjectList[tmpobj]->pFrame)
+											{
+												DeleteObject(tmpobj);
+											}
+										}
+
+										CloneObject(tmpobj, t.obj);
+
+										//PE: Hmm the lod removal could be improved.
+										int bestlod = -1;
+										PerformCheckListForLimbs(tmpobj);
+										for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
+										{
+											t.tname_s = Lower(ChecklistString(t.c));
+											if (t.tname_s == "lod_0" ) bestlod = 0;
+											if (t.tname_s == "lod_1" && (bestlod < 0 || bestlod > 1) )  bestlod = 1;
+											if (t.tname_s == "lod_2" && (bestlod < 0) )  bestlod = 2;
+										}
+										if (bestlod >= 0) {
+											for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
+											{
+												t.tname_s = Lower(ChecklistString(t.c));
+												if (bestlod == 0 && ( t.tname_s == "lod_1" || t.tname_s == "lod_2" || t.tname_s == "lod_3") ) {
+													RemoveLimb(tmpobj, t.c - 1);
+												}
+												if (bestlod == 1 && t.tname_s == "lod_2") {
+													RemoveLimb(tmpobj, t.c - 1);
+												}
+												if (bestlod == 2 && t.tname_s == "lod_3") {
+													RemoveLimb(tmpobj, t.c - 1);
+												}
+											}
+											if(t.c > 0)
+												OffsetLimb(tmpobj, t.c - 1, 0, 0, 0, 0);
+										}
+
+										PositionObject(tmpobj, 0, 0, 0); //PE: Need to be at 0,0,0
+										ScaleObject(tmpobj, 100, 100, 100); //PE: no scale.
+
+										MakeMeshFromObject(g.meshlightmapwork, tmpobj); //PE: mesh from source.
+
+										if (GetMeshExist(g.meshlightmapwork) == 1)
+										{
+											int destobj = g.merged_new_objects + 85000; //PE: TODO change 85000 , perhaps reverse from 90000 ?
+											if (g_ObjectList[destobj])
+											{
+												if (g_ObjectList[destobj]->pFrame)
+												{
+													DeleteObject(destobj);
+												}
+											}
+
+											t.tmasterx_f = ObjectPositionX(t.obj);
+											t.tmastery_f = ObjectPositionY(t.obj);
+											t.tmasterz_f = ObjectPositionZ(t.obj);
+
+											//CloneObject(destobj, tmpobj); //We use the cleaned tmpobj instead of t.obj
+											MakeObject(destobj, g.meshlightmapwork, -1); //Use mesh to prevent any transforms.
+
+											int testypos = 0; //50
+											PositionObject(destobj, 0, 0, 0); //PE: Need to be at 0,0,0
+											ScaleObject(destobj, 100, 100, 100); //PE: no scale.
+
+											float src_angx = ObjectAngleX(t.obj);
+											float src_angy = ObjectAngleY(t.obj);
+											float src_angz = ObjectAngleZ(t.obj);
+
+											PerformCheckListForLimbs(destobj);
+											AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+											t.tox_f = ObjectPositionX(glueobj) - t.tmasterx_f;
+											t.toy_f = ObjectPositionY(glueobj) - t.tmastery_f;
+											t.toz_f = ObjectPositionZ(glueobj) - t.tmasterz_f;
+
+											OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+											//PE: not needed anymore fixed above when we reset scale to 100,100,100
+//											if (t.entityprofile[t.entid].scale != 100 ) {
+//												float scalejust = t.entityprofile[t.entid].scale - 100;
+//												gluescalex -= scalejust;
+//												gluescaley -= scalejust;
+//												gluescalez -= scalejust;
+//											}
+											
+											RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj), ObjectAngleY(glueobj), ObjectAngleZ(glueobj));
+											ScaleLimb(destobj, ChecklistQuantity(), gluescalex + scaleadjust, gluescaley + scaleadjust, gluescalez + scaleadjust);
+											for (int i = ChecklistQuantity()-1; i >= 0; i--) {
+												RotateLimb(destobj, i, src_angx, src_angy, src_angz);
+												ScaleLimb(destobj, i, ObjectScaleX(t.obj) + scaleadjust, ObjectScaleY(t.obj) + scaleadjust, ObjectScaleZ(t.obj) + scaleadjust);
+											}
+
+											//PE: TODO if possible add one more object.
+
+											bool additionaladded2 = false;
+											int glueid2 = 0;
+											int glueobj2 = 0;
+							
+											if (vObjList.size() > 1 ) {
+												nextObjeid = vObjList[1];
+												glueid2 = t.entityelement[nextObjeid].bankindex;
+												glueobj2 = t.entityelement[nextObjeid].obj;
+
+												sObject* pObject3 = g_ObjectList[glueobj2];
+												if (pObject3 && pObject3->pInstanceOfObject) {
+													pObject3 = pObject3->pInstanceOfObject;
+													if (pObject3 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < DC_DISTANCE) {
+															//Object ok add.
+															float gluescalex2 = ObjectScaleX(glueobj2);
+															float gluescaley2 = ObjectScaleY(glueobj2);
+															float gluescalez2 = ObjectScaleZ(glueobj2);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj2) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj2) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj2) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj2), ObjectAngleY(glueobj2), ObjectAngleZ(glueobj2));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex2 + scaleadjust, gluescaley2 + scaleadjust, gluescalez2 + scaleadjust);
+															additionaladded2 = true;
+														}
+													}
+												}
+											}
+
+
+											bool additionaladded3 = false;
+											int glueid3 = 0;
+											int glueobj3 = 0;
+											if (vObjList.size() > 2) {
+												nextObjeid = vObjList[2];
+												glueid3 = t.entityelement[nextObjeid].bankindex;
+												glueobj3 = t.entityelement[nextObjeid].obj;
+
+												sObject* pObject4 = g_ObjectList[glueobj3];
+												if (pObject4 && pObject4->pInstanceOfObject) {
+													pObject4 = pObject4->pInstanceOfObject;
+													if (pObject4 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < DC_DISTANCE) {
+															//Object ok add.
+															float gluescalex3 = ObjectScaleX(glueobj3);
+															float gluescaley3 = ObjectScaleY(glueobj3);
+															float gluescalez3 = ObjectScaleZ(glueobj3);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj3) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj3) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj3) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj3), ObjectAngleY(glueobj3), ObjectAngleZ(glueobj3));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex3 + scaleadjust, gluescaley3 + scaleadjust, gluescalez3 + scaleadjust);
+															additionaladded3 = true;
+														}
+													}
+												}
+											}
+
+											bool additionaladded4 = false;
+											int glueid4 = 0;
+											int glueobj4 = 0;
+											if (vObjList.size() > 3) {
+												nextObjeid = vObjList[3];
+												glueid4 = t.entityelement[nextObjeid].bankindex;
+												glueobj4 = t.entityelement[nextObjeid].obj;
+
+												sObject* pObject5 = g_ObjectList[glueobj4];
+												if (pObject5 && pObject5->pInstanceOfObject) {
+													pObject5 = pObject5->pInstanceOfObject;
+													if (pObject5 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < DC_DISTANCE) {
+															//Object ok add.
+															float gluescalex4 = ObjectScaleX(glueobj4);
+															float gluescaley4 = ObjectScaleY(glueobj4);
+															float gluescalez4 = ObjectScaleZ(glueobj4);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj4) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj4) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj4) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj4), ObjectAngleY(glueobj4), ObjectAngleZ(glueobj4));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex4 + scaleadjust, gluescaley4 + scaleadjust, gluescalez4 + scaleadjust);
+															additionaladded4 = true;
+														}
+													}
+												}
+											}
+
+											bool additionaladded5 = false;
+											int glueid5 = 0;
+											int glueobj5 = 0;
+											if ( vObjList.size() > 4) {
+												nextObjeid = vObjList[4];
+												glueid5 = t.entityelement[nextObjeid].bankindex;
+												glueobj5 = t.entityelement[nextObjeid].obj;
+
+												sObject* pObject6 = g_ObjectList[glueobj5];
+												if (pObject6 && pObject6->pInstanceOfObject) {
+													pObject6 = pObject6->pInstanceOfObject;
+													if (pObject6 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < DC_DISTANCE) {
+															//Object ok add.
+															float gluescalex5 = ObjectScaleX(glueobj5);
+															float gluescaley5 = ObjectScaleY(glueobj5);
+															float gluescalez5 = ObjectScaleZ(glueobj5);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj5) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj5) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj5) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj5), ObjectAngleY(glueobj5), ObjectAngleZ(glueobj5));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex5 + scaleadjust, gluescaley5 + scaleadjust, gluescalez5 + scaleadjust);
+															additionaladded5 = true;
+														}
+													}
+												}
+											}
+
+											bool additionaladded6 = false;
+											int glueid6 = 0;
+											int glueobj6 = 0;
+											if (vObjList.size() > 5) {
+												nextObjeid = vObjList[5];
+												glueid6 = t.entityelement[nextObjeid].bankindex;
+												glueobj6 = t.entityelement[nextObjeid].obj;
+
+												sObject* pObject7 = g_ObjectList[glueobj6];
+												if (pObject7 && pObject7->pInstanceOfObject) {
+													pObject7 = pObject7->pInstanceOfObject;
+													if (pObject7 == pObject2) {
+														t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
+														t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
+														t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+														if (t.tdd_f < DC_DISTANCE) {
+															//Object ok add.
+															float gluescalex6 = ObjectScaleX(glueobj6);
+															float gluescaley6 = ObjectScaleY(glueobj6);
+															float gluescalez6 = ObjectScaleZ(glueobj6);
+															//Its the same master so reuse g.meshlightmapwork
+															PerformCheckListForLimbs(destobj);
+															AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
+
+															t.tox_f = ObjectPositionX(glueobj6) - t.tmasterx_f;
+															t.toy_f = ObjectPositionY(glueobj6) - t.tmastery_f;
+															t.toz_f = ObjectPositionZ(glueobj6) - t.tmasterz_f;
+
+															OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
+
+															RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj6), ObjectAngleY(glueobj6), ObjectAngleZ(glueobj6));
+															ScaleLimb(destobj, ChecklistQuantity(), gluescalex6 + scaleadjust, gluescaley6 + scaleadjust, gluescalez6 + scaleadjust);
+															additionaladded6 = true;
+														}
+													}
+												}
+											}
+
+											//PE: Merge everything into a single mesh.
+											DeleteMesh(g.meshlightmapwork);
+											MakeMeshFromObject(g.meshlightmapwork, destobj);
+											DeleteObject(destobj);
+											MakeObject(destobj, g.meshlightmapwork, -1);
+											PositionObject(destobj, t.tmasterx_f, t.tmastery_f + testypos, t.tmasterz_f);
+
+											//PE: TODO
+											//PE: Objects like plant 08.fpe get VERY large ? , need to be checked why!
+											//float objectsizex = ObjectSizeX(destobj);
+											//if (objectsizex > 1000) {
+											//	SetObjectMask(destobj, 1);
+											//}
+
+											if (t.entityprofile[t.entid].canseethrough == 1)
+											{
+												SetObjectCollisionProperty(destobj, 1);
+											}
+
+											if (t.entityprofile[t.entid].ischaracter == 0)
+											{
+												if (t.entityprofile[t.entid].collisionmode == 11)
+												{
+													SetObjectCollisionProperty(destobj, 1);
+												}
+											}
+											if (t.entityprofile[t.entid].cullmode != 0)
+											{
+												SetObjectCull(destobj, 0);
+											}
+											else
+											{
+												SetObjectCull(destobj, 1);
+											}
+
+											if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
+												
+											CloneObject(destobj, t.obj, 101); //PE: Copy textures only.
+
+											//PE: TODO store t.e and glueobj under pObject->draw_call_obj
+											//PE: So we can access them directly in drawobject.
+											//pObject->draw_call_obj = g_ObjectList[destobj];
+
+											//Disable if any LOD setup from original object.
+											if (bestlod >= 0) {
+												SetObjectLOD(destobj, 1, 50000);
+												SetObjectLOD(destobj, 2, 50000);
+											}
+
+											t.entityelement[t.e].draw_call_obj = destobj;
+											t.entityelement[t.e].dc_obj[0] = glueobj;
+											t.entityelement[t.e].dc_entid[0] = vObjList[0];
+											t.entityelement[vObjList[0]].dc_merged = true;
+											if (additionaladded2) {
+												t.entityelement[t.e].dc_obj[1] = glueobj2;
+												t.entityelement[t.e].dc_entid[1] = vObjList[1];
+												t.entityelement[vObjList[1]].dc_merged = true;
+												HideObject(glueobj2);
+											}
+											if (additionaladded3) {
+												t.entityelement[t.e].dc_obj[2] = glueobj3;
+												t.entityelement[t.e].dc_entid[2] = vObjList[2];
+												t.entityelement[vObjList[2]].dc_merged = true;
+												HideObject(glueobj3);
+											}
+											if (additionaladded4) {
+												t.entityelement[t.e].dc_obj[3] = glueobj4;
+												t.entityelement[t.e].dc_entid[3] = vObjList[3];
+												t.entityelement[vObjList[3]].dc_merged = true;
+												HideObject(glueobj4);
+											}
+											if (additionaladded5) {
+												t.entityelement[t.e].dc_obj[4] = glueobj5;
+												t.entityelement[t.e].dc_entid[4] = vObjList[4];
+												t.entityelement[vObjList[4]].dc_merged = true;
+												HideObject(glueobj5);
+											}
+											if (additionaladded6) {
+												t.entityelement[t.e].dc_obj[5] = glueobj6;
+												t.entityelement[t.e].dc_entid[5] = vObjList[5];
+												t.entityelement[vObjList[5]].dc_merged = true;
+												HideObject(glueobj6);
+											}
+											//Hide org objects.
+											HideObject(t.obj);
+											HideObject(glueobj);
+											ShowObject(t.entityelement[t.e].draw_call_obj);
+
+											g.merged_new_objects++;
+
+// NOTE: Does this mean batched objects will not benefit from these important flags (some models have OpenGL normals and the auto-generated tangents shift about)											
+//											DWORD dwArtFlags = 0;
+//											if (t.entityprofile[t.e].invertnormal == 1) dwArtFlags = 1;
+//											if (t.entityprofile[t.e].preservetangents == 1) dwArtFlags |= 1 << 1;
+//											SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
+										}
+
+										DeleteObject(tmpobj);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Setup variables for main game loop
 			timestampactivity(0,"initialise final game variables");
 			game_init ( );
 
-			//  Helpful prompt for start of test game
-			if (  t.game.gameisexe == 0 && t.game.runasmultiplayer == 0 ) 
+			// Helpful prompt for start of test game
+			if ( t.game.gameisexe == 0 && t.game.runasmultiplayer == 0 ) 
 			{
 				t.visuals.generalpromptstatetimer=Timer()+123;
 				t.visuals.generalprompt_s="TAB for settings, F9 for 3D edit, F10 for snapshot, Esc to quit.";
 			}
 			else
 			{
-				if (  t.game.runasmultiplayer == 1 ) 
+				if ( t.game.runasmultiplayer == 1 ) 
 				{
-					t.visuals.generalpromptstatetimer=Timer()+1000;
-					t.visuals.generalprompt_s="Press RETURN to Chat";
+					#ifdef PHOTONMP
+					 t.visuals.generalpromptstatetimer=Timer()+1000;
+					 t.visuals.generalprompt_s="Welcome to VR Quest(r) Social VR";
+					#else
+					 t.visuals.generalpromptstatetimer=Timer()+1000;
+					 t.visuals.generalprompt_s="Press RETURN to Chat";
+					#endif
 				}
 				else
 				{
@@ -1426,6 +2059,7 @@ void game_masterroot ( void )
 			t.huddamage.immunity=1000;
 			t.game.gameloop=1;
 			g.timeelapsed_f=0;
+			t.luaglobal.scriptprompttype = 0;
 			t.luaglobal.scriptprompt_s="";
 			t.luaglobal.scriptprompttime=0;
 			t.luaglobal.scriptprompttextsize=0;
@@ -1433,33 +2067,48 @@ void game_masterroot ( void )
 			strcpy ( t.luaglobal.scriptprompt3dtext, "" );
 			
 			//  Game cycle loop
-			timestampactivity(0,"main game loop begins");
+			if ( g.gproducelogfiles == 2 )
+				timestampactivity(0,"main game loop begins in deep debug trace mode");
+			else
+				timestampactivity(0,"main game loop begins");
 			while ( t.game.gameloop == 1 ) 
 			{
+				// gameloop winddown (for multiplayer server exit time)
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"winddown mp_closeconnection");
+				if ( t.game.gameloopwinddown == 1 )
+				{
+					if ( mp_closeconnection() == 1 )
+					{
+						t.game.gameloopwinddown = 0;
+						t.game.gameloop = 0;
+					}
+				}
+
 				// detect if standalone is a foreground window
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"obtain plrhasfocus");
 				if ( t.game.gameisexe == 1 )
 				{
-					HWND hForeWnd = GetForegroundWindow();
-					if ( GetWindowHandle() != hForeWnd ) 
-						t.plrhasfocus = 0;
-					else
+					if ( g.gvrmode == 3 )
+					{
 						t.plrhasfocus = 1;
+					}
+					else
+					{
+						HWND hForeWnd = GetForegroundWindow();
+						if ( GetWindowHandle() != hForeWnd ) 
+							t.plrhasfocus = 0;
+						else
+							t.plrhasfocus = 1;
+					}
 				}
 
 				// if controller active, also detect for START button press (same as ESCAPE)
-				/*
-				char pScan[40];
-				strcpy ( pScan, "012345678901234567890123456789012345" );
-				if ( g.gxbox > 0 )
-				{
-					for ( int iA = 0; iA <= 31; iA++ ) pScan[iA] = 48+JoystickFireXL(iA);
-					pScan[iA]=0;
-				}
-				*/
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"controller start button check");
 				bool bControllerEscape = false;
 				if ( g.gxbox > 0 && JoystickFireXL(9) == 1 ) bControllerEscape = true;
 
 				//  trigger options page or exit test level
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"escape button check");
 				if ( EscapeKey() == 1 || bControllerEscape == true ) 
 				{
 					t.tremembertimer=Timer();
@@ -1470,14 +2119,25 @@ void game_masterroot ( void )
 					physics_pausephysics ( );
 					entity_pauseanimations ( );
 					if ( t.currentgunobj > 0 ) { if ( ObjectExist(t.currentgunobj)==1 ) { SetObjectSpeed ( t.currentgunobj,0) ; } }
-					if (  t.playercontrol.jetobjtouse>0 ) 
+					if ( t.playercontrol.jetobjtouse>0 ) 
 					{
-						if (  ObjectExist(t.playercontrol.jetobjtouse) == 1  )  SetObjectSpeed (  t.playercontrol.jetobjtouse,0 );
+						if ( ObjectExist(t.playercontrol.jetobjtouse) == 1  )  SetObjectSpeed (  t.playercontrol.jetobjtouse,0 );
 					}
-					if (  t.game.gameisexe == 0 && t.game.runasmultiplayer == 0 ) 
+					if ( t.game.gameisexe == 0 ) // no menu in multiplayer test mode && t.game.runasmultiplayer == 0 ) 
 					{
-						t.game.gameloop=0 ; t.game.levelloop=0 ; t.game.masterloop=0;
-						if (  t.conkit.editmodeactive == 1 ) 
+						if ( t.game.runasmultiplayer == 1 )
+						{
+							// wait until connection closed, then exit game loop
+							t.game.gameloopwinddown = 1; 
+						}
+						else
+						{
+							// leave right away
+							t.game.gameloop=0; 
+							t.game.levelloop=0; 
+							t.game.masterloop=0;
+						}
+						if ( t.conkit.editmodeactive == 1 ) 
 						{
 							conkitedit_switchoff ( );
 						}
@@ -1502,8 +2162,9 @@ void game_masterroot ( void )
 					t.tMousemove_f = MouseMoveX() + MouseMoveY() + MouseZ(); t.tMousemove_f  = 0;
 				}
 
-				//  Fade in gamescreen (using post process shader)
-				if (  t.postprocessings.fadeinvalue_f<1.0 ) 
+				// Fade in gamescreen (using post process shader)
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"fade game screen logic");
+				if ( t.postprocessings.fadeinvalue_f<1.0 ) 
 				{
 					// Hide Lua Sprites
 					HideOrShowLUASprites ( true );
@@ -1554,6 +2215,9 @@ void game_masterroot ( void )
 					}
 					t.postprocessings.fadeinvalueupdate=1;
 				}
+
+				// handle fading
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handle postprocess fading");
 				if (  t.postprocessings.fadeinvalueupdate == 1 ) 
 				{
 					t.postprocessings.fadeinvalueupdate=0;
@@ -1569,6 +2233,7 @@ void game_masterroot ( void )
 				}
 
 				//  Immunity when respawn
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handle player immunity");
 				if (  t.huddamage.immunity>0 ) 
 				{
 					t.huddamage.immunity=t.huddamage.immunity-(10*g.timeelapsed_f);
@@ -1576,9 +2241,11 @@ void game_masterroot ( void )
 				}
 
 				//  Run all game subroutines
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_main_loop");
 				game_main_loop ( );
 
 				//  Update screen
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_sync");
 				game_sync ( );
 
 			} //  Game cycle loop end
@@ -1653,6 +2320,7 @@ void game_masterroot ( void )
 					}
 				}
 			}
+
 			// must reset LUA here for clean end-game-screens
 			// ensure LUA is completely reset before loading new ones in
 			// the free call is because game options menu init, but not freed back then
@@ -1776,6 +2444,15 @@ void game_masterroot ( void )
 	{
 		t.game.set.endsplash=0;
 	}
+
+	// restore VR activity (vrtest flag has done its job)
+	g.vrglobals.GGVRUsingVRSystem = 1;
+
+	// restore normal rendering activity when finish game run
+	SyncMaskOverride ( 0xFFFFFFFF );
+
+	// cannot rely on postprocess to restore, so do so here when return
+	SetCameraView ( 0, 0, 0, GetDisplayWidth(), GetDisplayHeight() );
 }
 
 void game_setresolution ( void )
@@ -1807,15 +2484,20 @@ void game_oneoff_nongraphics ( void )
 
 void game_loadinentitiesdatainlevel ( void )
 {
-	//  Load player settings
+	// Load player settings
 	timestampactivity(0,"Load player config");
 	mapfile_loadplayerconfig ( );
 
-	//  Load entity bank and elements
-	t.screenprompt_s="LOADING ENTITIES DATA";
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
+	// Load entity bank
+	t.screenprompt_s="LOADING ENTITY BANK";
+	if ( t.game.gameisexe == 0 ) printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	entity_loadbank ( );
+
+	// Load entity elements
+	t.screenprompt_s="LOADING ENTITY ELEMENTS";
+	if ( t.game.gameisexe == 0 ) printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
+	timestampactivity(0,t.screenprompt_s.Get());
 	entity_loadelementsdata ( );
 }
 
@@ -1856,6 +2538,7 @@ void game_loadinleveldata ( void )
 	t.terrain.playerax_f=0.0;
 	t.terrain.playeray_f=0.0;
 	t.terrain.playeraz_f=0.0;
+	t.camangy_f=0;
 
 	//  hide all markers
 	t.screenprompt_s="GAME OBJECT CLEANUP";
@@ -1945,7 +2628,11 @@ void game_preparelevel ( void )
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Load weapon system
-	t.screenprompt_s="LOADING NEW WEAPONS";
+	#ifdef VRQUEST
+	 t.screenprompt_s="LOADING NEW HUD";
+	#else
+	 t.screenprompt_s="LOADING NEW WEAPONS";
+	#endif	
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	//gun_restart ( ); // 020516 - moved out of level loop (as it transcends per level assets)
@@ -2244,12 +2931,12 @@ void game_preparelevel_finally ( void )
 	BT_ForceTerrainTechnique (  0 );
 
 	//  Initiate post process system (or reactivate it)
-	t.screenprompt_s="INITIALISING POSTPROCESS";
+	t.screenprompt_s="INITIALIZING POSTPROCESS";
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	postprocess_init ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	timestampactivity(0,"postprocessing initialised");
+	timestampactivity(0,"postprocessing initialized");
 
 	//  Ensure correct shaders in play
 	visuals_shaderlevels_update ( );
@@ -2260,7 +2947,7 @@ void game_preparelevel_finally ( void )
 	conkit_init ( );
 
 	//  Init physics
-	t.screenprompt_s="INITIALISING PHYSICS";
+	t.screenprompt_s="INITIALIZING PHYSICS";
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 	physics_init ( );
@@ -2426,11 +3113,31 @@ void game_preparelevel_finally ( void )
 	//  Force a shader update to ensure correct shadows are used at start
 	t.visuals.refreshcountdown=5;
 
-	//  Let steam know we have finished loading
-	if (  t.game.runasmultiplayer  ==  1 ) 
+	// Let steam know we have finished loading
+	if ( t.game.runasmultiplayer == 1 ) 
 	{
 		g.mp.finishedLoadingMap = 1;
 	}
+
+	// One final prompt, ask user to wait for key press so can read instructions
+	#ifdef VRQUEST
+	 if ( t.game.gameisexe == 0 )
+	 {
+		 t.screenprompt_s="PRESS SPACEBAR TO START GAME";
+		 printscreenprompt(t.screenprompt_s.Get());
+		 timestampactivity(0,t.screenprompt_s.Get());
+		 while ( SpaceKey() == 0 ) 
+		 { 
+			 mp_refresh();
+			 FastSyncInputOnly();
+		 }
+		 t.screenprompt_s="STARTING GAME";
+		 printscreenprompt(t.screenprompt_s.Get());
+		 timestampactivity(0,t.screenprompt_s.Get());
+	 }
+	#else
+	 // No such wait press for regular GG
+	#endif
 
 	// The start marker may have given the play an initial gun, so lets call physics_player_refreshcount just incase it has
 	physics_player_refreshcount();
@@ -2494,6 +3201,7 @@ void game_freelevel ( void )
 
 	// remove bits created by LUA scripts
 	lua_freeprompt3d();
+	lua_freeallperentity3d();
 
 	//  close down game entities
 	entity_free ( );
@@ -2810,19 +3518,23 @@ extern int NumberOfObjectsShown;
 void game_main_loop ( void )
 {	
 	//  Timer (  based movement )
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_timeelapsed");
 	game_timeelapsed ( );
 
 	//  Music processing
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling music_loop");
 	music_loop ( );
 
 	//  Character sound update
 	//  110315 - 019 - If spawning in, no sound for the player
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling character_sound_update");
 	if (  t.game.runasmultiplayer  ==  0 || g.mp.noplayermovement  ==  0 ) 
 	{
 		character_sound_update ( );
 	}
 
 	//  Trigger soundloops to be snapshot (when start level and at checkpoints)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_main_snapshotsoundloopcheckpoint");
 	if (  t.playercheckpoint.soundloopcheckpointcountdown>0 ) 
 	{
 		--t.playercheckpoint.soundloopcheckpointcountdown;
@@ -2833,6 +3545,7 @@ void game_main_loop ( void )
 	}
 
 	//  Force a shader update to ensure correct shadows are used at start
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling visuals_shaderlevels_update");
 	if (  t.visuals.refreshcountdown>0 ) 
 	{
 		--t.visuals.refreshcountdown;
@@ -2846,11 +3559,13 @@ void game_main_loop ( void )
 
 	// Testgame or Standalone
 	// 250316 - when level ends, suspend all logic (including more calls to JumpTolevel or in-game last minute AI stuff)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking levelendingcycle");
 	if ( t.game.levelendingcycle == 0 )
 	{
 		if ( (t.game.gameisexe == 0 || g.gprofileinstandalone == 1) && t.game.runasmultiplayer == 0 ) 
 		{
 			// Test Game Mode
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking lightmapper handler");
 			// Handle light-mapper key
 			if (  g.globals.ideinputmode == 1 ) 
 			{
@@ -2958,6 +3673,7 @@ void game_main_loop ( void )
 			 }
 
 			//  Tab Mode (only when not mid-fpswarning)
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking tab key handler");
 			if (  t.plrkeySHIFT == 0 && t.plrkeySHIFT2 == 0  )  t.tkeystate15 = KeyState(g.keymap[15]); else t.tkeystate15 = 0;
 			if (  t.game.runasmultiplayer  ==  1  )  g.tabmode  =  0;
 			if (  t.conkit.editmodeactive == 1  )  g.tabmode = 0;
@@ -3026,6 +3742,7 @@ void game_main_loop ( void )
 		t.game.perf.resttosync += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 		//  Control slider menus (based on tab page)
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_loop");
 		sliders_loop ( );
 
 		//  Lighting control
@@ -3034,49 +3751,19 @@ void game_main_loop ( void )
 		//  Flak control
 
 		//  update all projectiles
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling weapon_projectile_loop");
 		weapon_projectile_loop ( );
 
-/*
-		//PE: debug check char and z depth values.
-		for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
-		{
+		//  update all particles and emitters
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ravey_particles_update");
+		ravey_particles_update ( );
 
-			t.entid = t.entityelement[t.tte].bankindex;
-			t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
-			t.tobj = t.entityelement[t.tte].obj;
-			if (t.tobj > 0)
-			{
-				if (ObjectExist(t.tobj) == 1)
-				{
-					if (t.entityprofile[t.entid].ischaracter == 1) {
-
-						if (t.entityprofile[t.entid].zdepth == 0)
-						{
-							timestampactivity(0, "zdepth == 0");
-						}
-						EnableObjectZDepth(t.tobj);
-						sObject* pObject = g_ObjectList[t.tobj];
-						if (pObject) {
-							for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++) {
-								if (pObject->ppMeshList[iMesh] && pObject->ppMeshList[iMesh]->bZWrite == false) {
-									timestampactivity(0, "t.tobj bZWrite now false");
-									pObject->ppMeshList[iMesh]->bZWrite = true;
-								}
-							}
-
-							if (pObject->bNewZLayerObject == true) {
-								//pObject->bNewZLayerObject = false;
-								timestampactivity(0, "t.tobj now true");
-							}
-						}
-					}
-				}
-			}
-		}
-*/
-	
+		//  Decal control
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling decalelement_control");
+		decalelement_control ( );
 
 		//  Prompt
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking prompts");
 		if (  t.sky.currenthour_f<1.0 || t.sky.currenthour_f >= 13.0 ) 
 		{
 			t.pm=int(t.sky.currenthour_f);
@@ -3093,6 +3780,7 @@ void game_main_loop ( void )
 		//  any terrain actions
 		if (  t.hardwareinfoglobals.noterrain == 0 ) 
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_loop");
 			terrain_loop ( );
 		}
 
@@ -3100,9 +3788,11 @@ void game_main_loop ( void )
 		if (  t.hardwareinfoglobals.nophysics == 0 ) 
 		{
 			// Handle physics
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_loop");
 			physics_loop ( );
 
 			// read all slider values for player
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_readall");
 			t.slidersmenuindex=t.slidersmenunames.player; sliders_readall ( );
 
 			//  Do weapon attachments AFTER physics moved objects (and if char killed off)
@@ -3123,16 +3813,19 @@ void game_main_loop ( void )
 				t.e=t.playercontrol.thirdperson.charactere;
 				if (  t.e>0 && t.player[1].health>0 ) 
 				{
+					if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling entity_controlattachments");
 					entity_controlattachments ( );
 				}
 			}
 
 			//  Construction Kit control
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling conkit_loop");
 			conkit_loop ( );
 		}
 		t.game.perf.physics += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 		// In-Game Mode (moved from above so LUA is AFTER physics)
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking in-game edit mode");
 		if ( t.conkit.editmodeactive == 0 ) 
 		{
 			// if third person, trick AI by moving camera to protagonist location
@@ -3195,6 +3888,7 @@ void game_main_loop ( void )
 		//  Gun control
 		if ( t.hardwareinfoglobals.noguns == 0 ) 
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling gun_manager");
 			gun_manager ( );
 			t.slidersmenuindex=t.slidersmenunames.weapon ; sliders_readall ( );
 		}
@@ -3213,10 +3907,18 @@ void game_main_loop ( void )
 	//  Steam call moved here as camera changes need to be BEFORE the shadow update
 	if (  t.game.runasmultiplayer == 1 ) 
 	{
+		// debug tracing
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling mp_gameLoop");
+
+		// run multiplayer logic
 		mp_gameLoop ( );
+
+		// mp logic can trigger a new avatar to be loaded and created dynamically
+		game_scanfornewavatars ( true );
 	}
 
 	//  if we have character creator stuff in, we setup the characters
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling characterkit_updateCharacters");
 	if ( t.characterkitcontrol.gameHasCharacterCreatorIn == 1 ) characterkit_updateCharacters ( );
 
 	// Handle veg engine, terrain shadow, sky and water
@@ -3239,6 +3941,7 @@ void game_main_loop ( void )
 		static bool terrainvegdelay = true;
 		if ( terrainvegdelay = !terrainvegdelay )
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_fastveg_loop");
 			terrain_fastveg_loop ( );
 			t.game.perf.terrain1 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 		}
@@ -3250,6 +3953,7 @@ void game_main_loop ( void )
 		// PE: Its way better to cycle the different cascades so we dont get these "spicks" in FPS. way more smooth. ()
 		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.playercontrol.thirdperson.enabled != 0 || g.globals.speedshadows >= 1)
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
 			terrainshadowdelay = 0;
 			terrain_shadowupdate ( );
 			t.game.perf.terrain2 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
@@ -3263,21 +3967,25 @@ void game_main_loop ( void )
 	{
 		if ( ++terrainshadowdelay >= 3 )
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
 			terrainshadowdelay = 0;
 			terrain_shadowupdate ( );
 		}
 	}
 	if (  t.hardwareinfoglobals.nosky == 0 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_sky_loop");
 		terrain_sky_loop ( );
 	}
 	if (  t.hardwareinfoglobals.nowater == 0 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_water_loop");
 		terrain_water_loop ( );
 	}
 	t.game.perf.terrain3 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 	//  Game Debug Prompts
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"assembling debug prompts");
 	if (  t.aisystem.showprompts == 1 ) 
 	{
 		pastebitmapfont("DEBUG PROMPTS",8,20,1,255) ; t.i=1;
@@ -3303,83 +4011,98 @@ void game_main_loop ( void )
 	// Handle occlusion if active
 	if ( g.globals.occlusionmode == 1 ) 
 	{
-		// detect velocity of XZ motion of player and advance 'virtual camera' ahead of real camera
-		// in order to give occluder time to reveal visible objects in advance of getting there
-		float plrx = CameraPositionX(0);
-		float plrz = CameraPositionZ(0);
-		g_fOccluderCamVelX = plrx - g_fOccluderLastCamX;
-		g_fOccluderCamVelZ = plrz - g_fOccluderLastCamZ;
-		g_fOccluderLastCamX = plrx;
-		g_fOccluderLastCamZ = plrz;
-		if ( fabs(g_fOccluderCamVelX)>0.01f || fabs(g_fOccluderCamVelZ)>0.01f )
+		// VR software cannot use occlusion at the moment
+		if ( g.vrqcontrolmode == 0 ) //g.vrglobals.GGVREnabled == 0 )
 		{
-			float fDDMultiplier = 20.0f / sqrt(fabs(g_fOccluderCamVelX*g_fOccluderCamVelX)+fabs(g_fOccluderCamVelZ*g_fOccluderCamVelZ));
-			g_fOccluderCamVelX *= fDDMultiplier;
-			g_fOccluderCamVelZ *= fDDMultiplier;
-			if ( g_fOccluderCamVelX < -20.0f ) g_fOccluderCamVelX = -20.0f;
-			if ( g_fOccluderCamVelZ < -20.0f ) g_fOccluderCamVelZ = -20.0f;
-			if ( g_fOccluderCamVelX > 20.0f ) g_fOccluderCamVelX = 20.0f;
-			if ( g_fOccluderCamVelZ > 20.0f ) g_fOccluderCamVelZ = 20.0f;
-		}
-		else
-		{
-			g_fOccluderCamVelX = 0.0f;
-			g_fOccluderCamVelZ = 0.0f;
-		}
-		// show me this
-		CPUShiftXZ ( g_fOccluderCamVelX, g_fOccluderCamVelZ );
+			// detect velocity of XZ motion of player and advance 'virtual camera' ahead of real camera
+			// in order to give occluder time to reveal visible objects in advance of getting there
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking occlusionp");
+			float plrx = CameraPositionX(0);
+			float plrz = CameraPositionZ(0);
+			g_fOccluderCamVelX = plrx - g_fOccluderLastCamX;
+			g_fOccluderCamVelZ = plrz - g_fOccluderLastCamZ;
+			g_fOccluderLastCamX = plrx;
+			g_fOccluderLastCamZ = plrz;
+			if ( fabs(g_fOccluderCamVelX)>0.01f || fabs(g_fOccluderCamVelZ)>0.01f )
+			{
+				float fDDMultiplier = 20.0f / sqrt(fabs(g_fOccluderCamVelX*g_fOccluderCamVelX)+fabs(g_fOccluderCamVelZ*g_fOccluderCamVelZ));
+				g_fOccluderCamVelX *= fDDMultiplier;
+				g_fOccluderCamVelZ *= fDDMultiplier;
+				if ( g_fOccluderCamVelX < -20.0f ) g_fOccluderCamVelX = -20.0f;
+				if ( g_fOccluderCamVelZ < -20.0f ) g_fOccluderCamVelZ = -20.0f;
+				if ( g_fOccluderCamVelX > 20.0f ) g_fOccluderCamVelX = 20.0f;
+				if ( g_fOccluderCamVelZ > 20.0f ) g_fOccluderCamVelZ = 20.0f;
+			}
+			else
+			{
+				g_fOccluderCamVelX = 0.0f;
+				g_fOccluderCamVelZ = 0.0f;
+			}
+			// show me this
+			CPUShiftXZ ( g_fOccluderCamVelX, g_fOccluderCamVelZ );
 
-		CPU3DSetCameraFar ( t.visuals.CameraFAR_f );
-		if ( g_pOccluderThread == NULL )
-		{
-			CPU3DOcclude (  );
-			g_hOccluderBegin = CreateEvent ( NULL, FALSE, FALSE, NULL );
-			g_hOccluderEnd   = CreateEvent ( NULL, FALSE, FALSE, NULL );
-			g_pOccluderThread = new cOccluderThread;
-			g_pOccluderThread->Start ( );
+			CPU3DSetCameraFar ( t.visuals.CameraFAR_f );
+			if ( g_pOccluderThread == NULL )
+			{
+				CPU3DOcclude (  );
+				g_hOccluderBegin = CreateEvent ( NULL, FALSE, FALSE, NULL );
+				g_hOccluderEnd   = CreateEvent ( NULL, FALSE, FALSE, NULL );
+				g_pOccluderThread = new cOccluderThread;
+				g_pOccluderThread->Start ( );
+			}
+			g_occluderOn = true;
 		}
-		g_occluderOn = true;
 	}
 	t.game.perf.occlusion += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 	// Final post processing step
 
 	// Render pre-terrain post process cameras (includes lightray rendering)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling postprocess_preterrain");
 	postprocess_preterrain ( );
 
 	// Render terrain if flagged
 	if ( t.hardwareinfoglobals.noterrain == 0 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_update");
 		terrain_update ( );
 	}
 
 	//  explosions and fire
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling draw_particles");
 	draw_debris();
 	draw_particles();
 
 	//  handle fade out for level progression
 	if (  t.game.levelendingcycle > 0 ) 
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_end_of_level_check");
 		game_end_of_level_check ( );
 	}
 
 	//  Post process and visual settings system
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling postprocess_apply");
 	postprocess_apply ( );
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling visuals_loop");
 	visuals_loop ( );
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling lighting_loop");
 	lighting_loop ( );
 	t.game.perf.postprocessing += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 	// Check for player guns switched off
 	if ( g.noPlayerGuns )
 	{
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_no_gun_zoom");
 		physics_no_gun_zoom ( );
 		if ( g.autoloadgun != 0 ) { g.autoloadgun=0 ; gun_change ( ); }
 	}
 
 	//  Update HUD Layer objects (jetpack)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling hud_updatehudlayerobjects");
 	hud_updatehudlayerobjects ( );
 
 	//  Call this at end of game loop to ensure character objects sufficiently overridden
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling darkai_finalsettingofcharacterobjects");
 	darkai_finalsettingofcharacterobjects ( );
 }
 
@@ -3414,30 +4137,21 @@ extern float smallDistanceMulti;
 
 void game_sync ( void )
 {
-	// Some test stuff, can be removed
-	/*SetCursor ( 0 , 0 );
-	Print ( t.guncollectedcount );
-	Print ( smallDistanceMulti );
-	Print ( cstr(cstr("howManyOccluders = ") + cstr(howManyOccluders)).Get() );
-	Print ( cstr(cstr("howManyOccludersDrawn = ") + cstr(howManyOccludersDrawn)).Get() );
-	Print ( cstr(cstr("howManyOccludees = ") + cstr(howManyOccludees)).Get() );
-	Print ( cstr(cstr("howManyOccludeesHidden = ") + cstr(howManyOccludeesHidden)).Get() );
-	Print ( cstr(cstr("Entity Count = ") + cstr(g.entityelementlist)).Get() );
-	Print ( cstr(cstr("Entity Draw vs hidden = ") + cstr((g.entityelementlist - howManyMarkers ) - howManyOccludeesHidden)).Get() );*/
-	//Print ( cstr(cstr("Tracking = ") + cstr(trackingSize)).Get() );
 	//  Work out overall time spent per cycle
 	t.game.perf.overall += PerformanceTimer()-g.gameperfoveralltimestamp ; g.gameperfoveralltimestamp=PerformanceTimer();
 
-	//  Handle VR main camera render swap
-
 	//  HUD Damage Display
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling controlblood");
 	controlblood();
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling controldamagemarker");
 	controldamagemarker();
 
 	//  Slider menus rendered last
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_draw");
 	sliders_draw ( );
 
 	//  Detect if FPS drops (only for single player - never for MP games)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking show hide mouse");
 	if (  t.game.runasmultiplayer == 0 && g.globals.hidelowfpswarning == 0 && g.tabmode == 0 && g.ghardwareinfomode == 0 && t.visuals.generalpromptstatetimer == 0 ) 
 	{
 		if ( t.conkit.cooldown>0 )  
@@ -3473,35 +4187,33 @@ void game_sync ( void )
 
 	//  Only render main and postprocess camera (not paint camera, reflection or lightray cameras)
 	//  for globals.riftmode, left and right eyes are rendered in the _postprocess_preterrain step
-//  `if t.conkit.editmodeactive=1
-
-	//tmastersyncmask=%0000+(1<<terrain.paintcameraindex)
-//  `else
-
-		t.tmastersyncmask=0;
-//  `endif
-
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"applying sync mask");
+	t.tmastersyncmask=0;
 	SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
 
 	//  Update RealSense if any
 	///realsense_loop ( );
 
 	// show the KeyState
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling debug_fulldebugview");
 	if ( g.globals.fulldebugview == 1 ) debug_fulldebugview ( );
 
 	//  Update screen
 	//g.gameperftimestamp=PerformanceTimer();
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sync");
 	Sync (  );
-
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_dynamicRes");
 	game_dynamicRes();
 
 	//Dave Performance - let the occluder thread know it is okay to begin
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling CPU3DOcclude");
 	CPU3DOcclude (  );
 	if ( g_hOccluderBegin ) SetEvent ( g_hOccluderBegin );
 
 	t.game.perf.synctime += (PerformanceTimer()-g.gameperftimestamp) ; g.gameperftimestamp=PerformanceTimer();
 
 	//  collect main Sync (  statistics )
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking statistics");
 	t.mainstatistic1=GetStatistic(1);
 	t.mainstatistic5=GetStatistic(5);
 
@@ -3518,6 +4230,7 @@ void game_sync ( void )
 	}
 
 	//  Screen shot feature (redundant on Steam)
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handling screenshot taking");
 	if (  KeyState(g.keymap[68]) == 0  )  t.game.takingsnapshotpress = 0;
 	if (  KeyState(g.keymap[68]) == 1 && t.game.takingsnapshotpress == 0 ) 
 	{
@@ -3543,6 +4256,7 @@ void game_sync ( void )
 	}
 
 	//  Work out performance metrics
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_readall");
 	t.slidersmenuindex=t.slidersmenunames.performance  ; sliders_readall ( );
 }
 
@@ -3582,7 +4296,11 @@ void game_finish_level_from_lua ( void )
 	}
 	else
 	{
-		t.s_s="Level Complete Triggered"  ; lua_prompt ( );
+		#ifdef VRQUEST
+			t.s_s="Game Completed"  ; lua_prompt ( );
+		#else
+			t.s_s="Level Complete Triggered"  ; lua_prompt ( );
+		#endif
 	}
 }
 

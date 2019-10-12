@@ -647,7 +647,7 @@ void physics_setupobject ( void )
 		if ( ObjectExist(t.tphyobj) == 1 ) 
 		{
 			SetObjectArbitaryValue (  t.tphyobj,t.entityprofile[t.entid].materialindex );
-			if ( t.tstatic == 1 || t.game.runasmultiplayer == 1 ) 
+			if ( t.tstatic == 1 ) // now allow physics entities in multiplayer || t.game.runasmultiplayer == 1 ) 
 			{
 				// if static, need to ensure FIXNEWY pivot is respected
 				if ( t.tstatic == 1 ) 
@@ -886,15 +886,18 @@ void physics_resumephysics ( void )
 void physics_loop ( void )
 {
 	//  Player control
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player");
 	physics_player ( );
 
 	//  Update physics system
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling timeGetSecond");
 	t.tphysicsadvance_f = timeGetSecond() - t.machineindependentphysicsupdate;
 	if (  t.tphysicsadvance_f >= (1.0/120.0) ) 
 	{
 		//  only process physics once we reach the minimum substep constant
 		if ( t.tphysicsadvance_f>0.05f ) t.tphysicsadvance_f = 0.05f;
 		t.machineindependentphysicsupdate = timeGetSecond();
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ODEUpdate");
 		ODEUpdate ( t.tphysicsadvance_f );
 	}
 }
@@ -1110,7 +1113,7 @@ void physics_player_init ( void )
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
-		if (  t.entityprofile[t.entid].ismarker == 1 ) 
+		if ( t.entityprofile[t.entid].ismarker == 1 ) 
 		{
 			//  Player Start Marker Settings
 			t.terrain.playerx_f=t.entityelement[t.e].x;
@@ -1118,6 +1121,7 @@ void physics_player_init ( void )
 			t.terrain.playerz_f=t.entityelement[t.e].z;
 			t.terrain.playerax_f=0;
 			t.terrain.playeray_f=t.entityelement[t.e].ry;
+			t.camangy_f=t.terrain.playeray_f;
 			t.terrain.playeraz_f=0;
 			t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 
@@ -1174,6 +1178,35 @@ void physics_player_init ( void )
 	if ( t.game.levelplrstatsetup == 1 )
 	{
 		if ( t.tnostartmarker == 1 ) physics_inittweakables ( );
+	}
+
+	// if multiplayer mode, change start position to the multiplayer start marker default
+	if ( t.game.runasmultiplayer == 1 ) 
+	{
+		// store good one
+		float fGoodX = t.terrain.playerx_f;
+		float fGoodY = t.terrain.playery_f;
+		float fGoodZ = t.terrain.playerz_f;
+		float fGoodA = t.terrain.playeray_f;
+
+		// chose a multiplayer start position at random
+		int iChoose = 1;
+		if ( t.tmpstartindex > 1 ) iChoose = 1 + (rand() % t.tmpstartindex);
+		t.terrain.playerx_f=t.mpmultiplayerstart[iChoose].x;
+		t.terrain.playery_f=t.mpmultiplayerstart[iChoose].y;
+		t.terrain.playerz_f=t.mpmultiplayerstart[iChoose].z;
+		t.terrain.playeray_f=t.mpmultiplayerstart[iChoose].angle;
+		t.camangy_f=t.terrain.playeray_f;
+		if ( t.terrain.playerx_f < 100 )
+		{
+			// no start position, revert to regular start marker
+			t.terrain.playerx_f = fGoodX;
+			t.terrain.playery_f = fGoodY;
+			t.terrain.playerz_f = fGoodZ;
+			t.terrain.playeray_f = fGoodA;
+			t.camangy_f=t.terrain.playeray_f;
+		}
+		t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 	}
 
 	//  Player start height (marker or no)
@@ -1256,24 +1289,30 @@ return;
 int physics_player_listener_delay = 0;
 void physics_player ( void )
 {
-	if ( t.game.runasmultiplayer ==  0 || g.mp.noplayermovement == 0 ) 
+	if ( t.game.runasmultiplayer == 0 || g.mp.noplayermovement == 0 ) 
 	{
 		if ( t.aisystem.processplayerlogic == 1 ) 
 		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_gatherkeycontrols");
 			physics_player_gatherkeycontrols ( );
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_control");
 			physics_player_control ( );
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling gun_update_hud");
 			gun_update_hud ( );
 			if ( ++physics_player_listener_delay > 3 )
 			{
 				physics_player_listener_delay = 0;
+				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_listener");
 				physics_player_listener ( );
 			}
 		}
 		else
 		{
 			// prevent player physics movement
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ODEControlDynamicCharacterController");
 			ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, 0, 0, 0, 0, t.aisystem.playerducking, 0, 0, 0 );
 		}
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_handledeath");
 		physics_player_handledeath ( );
 	}
 }
@@ -1340,6 +1379,19 @@ void physics_player_gatherkeycontrols ( void )
 	}
 	if ( KeyState(g.keymap[t.plrkeySHIFT]) == 1 && g.runkeys == 1 && t.jumpaction == 0  )  t.plrkeySHIFT = 1; else t.plrkeySHIFT = 0;
 	if ( KeyState(g.keymap[t.plrkeySHIFT2]) == 1 && g.runkeys == 1 && t.jumpaction == 0  )  t.plrkeySHIFT2 = 1; else t.plrkeySHIFT2 = 0;
+
+	// when in vr mode
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	{
+		// lee - 040619 - detect trigger and use as t.plrkeyE
+		if ( GGVR_RightController_Trigger() > 0.5 )
+			t.plrkeyE = 1;
+
+		// lee - 040619 - detect grip button and use as run
+		if ( GGVR_RightController_Grip() == 1 )
+			t.plrkeySHIFT = 1;
+	}
+
 	if ( t.conkit.editmodeactive != 0 ) 
 	{
 		// FPS 3D Editing Mode - keys elsewhere
@@ -1360,6 +1412,7 @@ void physics_player_gatherkeycontrols ( void )
 	}
 
 	// XBOX/Controller Keys
+	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking XBOX/Controller Keys");
 	if ( g.gxbox == 1 ) 
 	{
 		if ( JoystickFireC() == 1 ) 
@@ -1403,6 +1456,60 @@ void physics_player_gatherkeycontrols ( void )
 			if ( JoystickFireXL(4) == 1 && g.runkeys == 1  )  t.plrkeySHIFT = 1;
 			if ( JoystickFireXL(6) == 1 && g.runkeys == 1  )  t.plrkeySHIFT = 1;
 		}
+	}
+
+	// VR Support - take extra input from VR controllers
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	{
+		// Intialize the player to the start position and rotation and setup the GGVR Player Object
+		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking VR controllers");
+		if (g.vrglobals.GGVRInitialized == 0)
+		{
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_SetPlayerPosition");
+			GGVR_SetPlayerPosition(t.tFinalCamX_f, BT_GetGroundHeight(t.terrain.TerrainID, t.tFinalCamX_f, t.tFinalCamZ_f), t.tFinalCamZ_f);
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_SetPlayerRotation");
+
+			// this sets the origin based on the current camera zero (ARG!)
+			// should only set based on player angle (minus HMD influence) as HMD added later at right time for smooth headset viewing!
+			//GGVR_SetPlayerRotation(0, CameraAngleY(t.terrain.gameplaycamera), 0);
+			//GGVR_SetPlayerRotation(0, t.camangy_f, 0); actually not called in main loop (actually in postproces with call to GGVR_SetPlayerAngleY)
+			GGVR_SetPlayerRotation(0, 0, 0);
+
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling GGVR_UpdatePlayer(false,terrainID)");
+			if ( g.gproducelogfiles == 2 ) 
+			{
+				char pWhatIsPath[1024];
+				GetCurrentDirectoryA ( 1024, pWhatIsPath );
+				timestampactivity(0,pWhatIsPath);
+			}
+			try
+			{
+				int iBatchStart = g.batchobjectoffset;
+				int iBatchEnd = g.batchobjectoffset + g.merged_new_objects + 1;
+				GGVR_UpdatePlayer(false,t.terrain.TerrainID,g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,g.entityviewstartobj,g.entityviewendobj, iBatchStart, iBatchEnd);
+			}
+			catch(...)
+			{
+				timestampactivity(0,"try catch failed when calling GGVR_UpdatePlayer");
+			}
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"getting GGVR_GetHMDOffsets");
+			g.vrglobals.GGVR_Old_XposOffset = GGVR_GetHMDOffsetX();
+			g.vrglobals.GGVR_Old_ZposOffset = GGVR_GetHMDOffsetZ();
+			g.vrglobals.GGVR_Old_Yangle = GGVR_GetPlayerAngleY();
+			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"g.vrglobals.GGVRInitialized");
+			g.vrglobals.GGVRInitialized = 1;
+		}
+		if (g.walkonkeys == 1)
+		{
+			if ( GGVR_RightController_JoyY() >  0.5 ) t.plrkeyW = 1;
+			if ( GGVR_RightController_JoyY() < -0.5)  t.plrkeyS = 1;
+		}
+		g.vrglobals.GGVR_XposOffset = GGVR_GetHMDOffsetX();
+		g.vrglobals.GGVR_ZposOffset = GGVR_GetHMDOffsetZ();
+		g.vrglobals.GGVR_XposOffsetChange = g.vrglobals.GGVR_XposOffset - g.vrglobals.GGVR_Old_XposOffset;
+		g.vrglobals.GGVR_ZposOffsetChange = g.vrglobals.GGVR_ZposOffset - g.vrglobals.GGVR_Old_ZposOffset;
+		g.vrglobals.GGVR_Old_XposOffset = g.vrglobals.GGVR_XposOffset;
+		g.vrglobals.GGVR_Old_ZposOffset = g.vrglobals.GGVR_ZposOffset;
 	}
 
 	// Automated actions (script control)
@@ -1480,7 +1587,16 @@ void physics_player_gatherkeycontrols ( void )
 		t.plrhasfocus=1;
 		if ( t.plrfilemapaccess == 1 ) 
 		{
-			t.plrhasfocus=GetFileMapDWORD( 11, 148 );
+			// if VR, disable this as WMR changes the focus window
+			if ( g.vrglobals.GGVREnabled > 0 )
+			{
+				// window focus can be switched to HMD window
+			}
+			else
+			{
+				// normal behavior
+				t.plrhasfocus=GetFileMapDWORD( 11, 148 );
+			}
 		}
 	}
 
@@ -1596,7 +1712,10 @@ void physics_player_control_F9 ( void )
 		}
 		t.tRotationDivider_f=8.0/t.tturnspeedmodifier_f;
 		t.camangx_f=CameraAngleX(t.terrain.gameplaycamera)+(t.cammousemovey_f/t.tRotationDivider_f);
+		//if ( g.vrglobals.GGVREnabled == 0 ) // no VR with F9 mode currently!
+		//{
 		t.camangy_f=t.playercontrol.finalcameraangley_f+(t.cammousemovex_f/t.tRotationDivider_f);
+		//}
 	}
 
 	// Cap look up/down angle so cannot wrap around
@@ -1967,6 +2086,7 @@ void physics_player_control_F9 ( void )
 		t.terrain.playerz_f=ObjectPositionZ(t.aisystem.objectstartindex);
 		t.terrain.playerax_f=0;
 		t.terrain.playeray_f=CameraAngleY(0);
+		t.camangy_f=t.terrain.playeray_f;
 		t.terrain.playeraz_f=0;
 		t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 		physics_setupplayer ( );
@@ -2071,6 +2191,7 @@ void physics_player_control_LUA ( void )
 			t.terrain.playerz_f=ObjectPositionZ(t.aisystem.objectstartindex);
 			t.terrain.playerax_f=0;
 			t.terrain.playeray_f=CameraAngleY(0);
+			t.camangy_f=t.terrain.playeray_f;
 			t.terrain.playeraz_f=0;
 			t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 			physics_disableplayer ( );
@@ -2171,6 +2292,9 @@ void physics_player_takedamage ( void )
 	//  Uses tDrownDamageFlag to avoid blood splats and other non drowning damage effects.
 	//  This is set to 0 after takedamage is called, so doesn't need to be unset elsewhere
 	//  before calling this sub
+
+	// 090419 - special VR mode also disables concepts of being damaged
+	if ( g.vrqcontrolmode != 0 ) return; //g.gvrmode == 3 ) return;
 
 	//  player cannot be damaged when immune!
 	if (  t.huddamage.immunity>0  )  return;
@@ -2337,6 +2461,7 @@ void physics_player_gotolastcheckpoint ( void )
 	t.terrain.playerz_f=t.playercheckpoint.z;
 	t.terrain.playerax_f=0;
 	t.terrain.playeray_f=t.playercheckpoint.a;
+	t.camangy_f=t.terrain.playeray_f;
 	t.terrain.playeraz_f=0;
 	t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 	physics_resetplayer_core ( );

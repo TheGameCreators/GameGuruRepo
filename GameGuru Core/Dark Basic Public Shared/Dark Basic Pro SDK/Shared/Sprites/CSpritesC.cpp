@@ -711,7 +711,7 @@ DARKSDK void GetSpritesDiffuse ( int iID, int* piRed, int* piGreen, int* piBlue 
 {
 	// check all of the pointers are valid
 	if ( !piRed || !piGreen || !piBlue )
-		Error ( "Invalid pointers passed to GetDiffuse" );
+		Error1 ( "Invalid pointers passed to GetDiffuse" );
 
 	// now assign the diffuse values
 	*piRed   = m_ptr->iRed;			// copy red
@@ -724,26 +724,26 @@ DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV )
 	PasteImage ( iImageID, iX, iY, fU, fV, 0 );
 }
 
-DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV, int iTransparent )
+DARKSDK void PasteImageRaw ( LPGGTEXTUREREF	lpTextureView, int iWidth, int iHeight, int iX, int iY, float fU, float fV, int iTransparent )
 {
 	// Setup temp image sprite
-	memset ( &m_ImagePtr, 0, sizeof ( m_ImagePtr ) );				// clear out data
-	m_ImagePtr.fX		   = (float)iX;								// x position
-	m_ImagePtr.fY		   = (float)iY;								// y position
-	m_ImagePtr.iImage	   = iImageID;							// image reference
-	m_ImagePtr.iWidth    = ImageWidth   ( iImageID );		// get image width
-	m_ImagePtr.iHeight   = ImageHeight  ( iImageID );		// get image height
-	m_ImagePtr.lpTexture = GetImagePointerView ( iImageID );		// get image data
-	m_ImagePtr.fClipU    = fU;		// get image
-	m_ImagePtr.fClipV    = fV;		// get image
+	memset ( &m_ImagePtr, 0, sizeof ( m_ImagePtr ) );			// clear out data
+	m_ImagePtr.fX		   = (float)iX;							// x position
+	m_ImagePtr.fY		   = (float)iY;							// y position
+	m_ImagePtr.iImage	   = 0;									// image reference
+	m_ImagePtr.iWidth    = iWidth;								// get image width
+	m_ImagePtr.iHeight   = iHeight;								// get image height
+	m_ImagePtr.lpTexture = lpTextureView;						// get image data
+	m_ImagePtr.fClipU    = fU;									// get image
+	m_ImagePtr.fClipV    = fV;									// get image
 	m_ImagePtr.bVisible  = true;								// default to visible
 	m_ImagePtr.bFlipped  = false;								// turn flipping off
 	m_ImagePtr.bMirrored = false;								// turn mirrored off
-	m_ImagePtr.iAlpha    = 255;								// set alpha to max
-	m_ImagePtr.iRed      = 255;								// set red to max
-	m_ImagePtr.iBlue     = 255;								// set blue to max
-	m_ImagePtr.iGreen    = 255;								// set green to max
-	m_ImagePtr.eAnimType = SEPARATE_IMAGES;					// default to using separate images for sprites
+	m_ImagePtr.iAlpha    = 255;									// set alpha to max
+	m_ImagePtr.iRed      = 255;									// set red to max
+	m_ImagePtr.iBlue     = 255;									// set blue to max
+	m_ImagePtr.iGreen    = 255;									// set green to max
+	m_ImagePtr.eAnimType = SEPARATE_IMAGES;						// default to using separate images for sprites
 	m_ImagePtr.fXScale		= 1.0f;							
 	m_ImagePtr.fYScale		= 1.0f;		
 	m_ImagePtr.iXSize		= 0;
@@ -779,6 +779,11 @@ DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV, int 
 	// Draw TempImageSprite Once
 	SetVertexDataForSprite( iX, iY );
 	m_SpriteManager.DrawImmediate ( m_ptr );
+}
+
+DARKSDK void PasteImage ( int iImageID, int iX, int iY, float fU, float fV, int iTransparent )
+{
+	PasteImageRaw ( GetImagePointerView(iImageID), ImageWidth(iImageID), ImageHeight(iImageID), iX, iY, fU, fV, iTransparent );
 }
 
 // mike - 220604 - addition for text

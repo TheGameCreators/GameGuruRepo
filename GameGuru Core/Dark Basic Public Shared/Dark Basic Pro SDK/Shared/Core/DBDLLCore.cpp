@@ -18,6 +18,7 @@
 #include "DarkLUA.h"
 
 // Multiplayer Systems
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 
 // Internal Includes
@@ -57,9 +58,16 @@
 #include "SoftwareCulling.h"
 #include "DarkLUA.h"
 #include "SimonReloaded.h"
+#include "PhotonCommands.h"
 #include "SteamCommands.h"
 #include "LightMapper.h"
 #include "Enchancements.h"
+
+//Windows Mixed Reality Support
+#include "GGVR.h"
+
+#include <iostream>
+#include <fstream>
 
 DB_ENTER_NS()
 DB_LEAVE_NS()
@@ -355,8 +363,19 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 	if ( iSkipSyncRateCodeAkaFastSync==0 )
 		UpdateAnimationCycle();
 
+	// Special VR rendering camera order (skip zero and copy contents of camera 6 to zero at end) 
+	tagCameraData* pCam6 = NULL;
+	bool bSpecialQuickVRRendering = false;
+	if ( CameraExist ( 6 ) == 1 ) 
+	{
+		pCam6 = (tagCameraData*)GetCameraInternalData ( 6 );
+		if ( pCam6 )
+			if ( pCam6->iCameraToImage == -2 )
+				bSpecialQuickVRRendering = true;
+	}
+
 	// Draw all 3D - all cameras loop
-	StartSceneEx ( iMode );
+	StartSceneEx ( iMode, false );
 	do 
 	{
 		int iThisCamera = 1 + GetRenderCamera();
@@ -371,10 +390,45 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 		if ( iThisCamera > 0 )
 		{
 			// Push all polygons for 3D components
-			ExecuteRenderList();
+			if ( iThisCamera == 1 && bSpecialQuickVRRendering == true )
+			{
+				// simplified camera zero handling, render nout!
+			}
+			else
+			{
+				// regular rendering
+				ExecuteRenderList();	
+			}
 		}
 		// Next camera or finish..
-	} while (FinishSceneEx(false)==0);
+	} while (FinishSceneEx ( false, false )==0);
+
+	// on special VR mode, copy camera 6 to camera 0 (saves rendering it all)
+	if ( bSpecialQuickVRRendering == true && pCam6 )
+	{
+		// copy camera 6 to camera 0
+		if ( g_dwSyncMask & 1 )
+		{
+			// but only if camera zero is being rendered (i.e. SYNC call, not FASTSYNC call)
+			LPGGTEXTUREREF pCam6TextureView = pCam6->pImageDepthResourceView;
+			int iCam6Width = g_pGlob->iScreenWidth;
+			int iCam6Height = g_pGlob->iScreenHeight;
+			// correct for HMD aspect ratio
+			float fCam6FinalWidth = iCam6Height;
+			float fCam6FinalHeight = iCam6Height;
+			// now expand so width is completely filling screen
+			float fDiff = (iCam6Width-fCam6FinalWidth);
+			float fDiffPerc = (fDiff/(float)iCam6Width)*2.0f;
+			fCam6FinalWidth *= (1.0f+fDiffPerc);
+			fCam6FinalHeight *= (1.0f+fDiffPerc);
+			float fDiffX = (iCam6Width-fCam6FinalWidth);
+			float fDiffY = (iCam6Height-fCam6FinalHeight);
+			float fX = fDiffX/2.0f;
+			float fY = fDiffY/2.0f;
+			// and finally draw it
+			PasteImageRaw ( pCam6TextureView, fCam6FinalWidth, fCam6FinalHeight, fX, fY, 1, 1, 0 );
+		}
+	}
 
 	// After 3D operations, direct whether SPRITES/2D/IMAGE
 	// drawing is to take place by default (bitmap or camera zero)
@@ -841,6 +895,7 @@ DARKSDK bool COREDoesFileExist(LPSTR Filename)
 
 DARKSDK void UpdateFilenameFromVirtualTable( DWORD dwStringAddress )
 {
+	/* no longer use embedded virtual media in EXE
 	// String is input with external filename
 	if(dwStringAddress==0)
 		return;
@@ -864,6 +919,7 @@ DARKSDK void UpdateFilenameFromVirtualTable( DWORD dwStringAddress )
 
 	// Free usages
 	delete[] pFilename;
+	*/
 }
 
 DARKSDK LPSTR ReadFileData(LPSTR FilenameString, DWORD* dwDataSize)
@@ -1174,9 +1230,9 @@ DARKSDK void ConstructPostDisplayItems(HINSTANCE hInstance)
 	InfiniteVegetationConstructor();
 }
 
-DARKSDK void ConstructPostDLLItems(HINSTANCE hInstance)
+DARKSDK void ConstructPostDLLItems(HINSTANCE hInstance,bool bNeededToCreateExtraWindowForWMRWindow)
 {
-	InputConstructor();
+	InputConstructor(bNeededToCreateExtraWindowForWMRWindow);
 	SystemConstructor();
 	SoundConstructor();
 	FileConstructor();
@@ -1336,19 +1392,21 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	//PE: Use the exe filenane as the title in the game.
 	//PE: So if you use Test-my-Game_name.exe as the standalone
 	//PE: the windows title will be "Test my Game name".
-
 	char workstring[1024];
 	GetModuleFileName(NULL, workstring, 1024);
-
 	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0 )
 	{
-		strcpy(pAppName, "Game Guru");
+		//strcpy(pAppName, "Game Guru");
+		strcpy(pAppName, "MyGame");
 	}
-	else {
-		strcpy(pAppName, "Game Guru");
+	else 
+	{
+		//strcpy(pAppName, "Game Guru");
+		strcpy(pAppName, "MyGame");
 		TCHAR * out;
 		out = PathFindFileName(workstring);
-		if (out != NULL) {
+		if (out != NULL) 
+		{
 			*(PathFindExtension(out)) = 0;
 			for (int i = strlen(out); i > 0; i--) {
 				if (out[i] == '-') out[i] = ' ';
@@ -1359,6 +1417,17 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		}
 	}
 
+	// Extract path from ModuleFileName so can locate any DLLs in GG Root Folder
+	char pRootPath[1024];
+	strcpy ( pRootPath, workstring );
+	for ( int n = strlen(pRootPath); n > 0; n-- )
+	{
+		if ( pRootPath[n] == '\\' || pRootPath[n] == '/' )
+		{
+			pRootPath[n] = 0;
+			break;
+		}
+	}
 
 	// this ensures no conflict between window class name and application class name
 	strcpy ( pAppNameUnique, pAppName );
@@ -1400,23 +1469,12 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	}
 	else
 	{
-		g_pGlob->hWnd = CreateWindow(	pAppNameUnique,
-									pAppName,
-									dwWindowStyle,
-									g_pGlob->dwWindowX,
-									g_pGlob->dwWindowY,
-									g_pGlob->dwWindowWidth,
-									g_pGlob->dwWindowHeight,
-									NULL,
-									NULL,
-									hInstance,
-									NULL);
+		// hidden window
+		g_pGlob->hWnd = CreateWindow( pAppNameUnique, pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
 	}
 
-	// Init MP API
-	SteamInit();
-
 	// Main Setup init
+	g_pGlob->hOriginalhWnd = g_pGlob->hWnd;
 	bool bDXFailed=false;
 	if ( SETUPConstructor() == true)
 	{
@@ -1426,11 +1484,45 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	else
 		bDXFailed=true;
 
+	// Need window for game so original window can stay hidden until VR activates (used by standalone game exe)
+	bool bNeededToCreateExtraWindowForWMRWindow = false;
+	if ( g_pGlob->hOriginalhWnd == g_pGlob->hWnd )
+	{
+		WNDCLASS wc2;
+		wc2.style = CS_HREDRAW | CS_VREDRAW;
+		wc2.lpfnWndProc = WindowProc;
+		wc2.cbClsExtra = 0;
+		wc2.cbWndExtra = 0;
+		wc2.hInstance = hInstance;
+		wc2.hIcon = g_hUseIcon;
+		wc2.hCursor = NULL;
+		wc2.hbrBackground = NULL;
+		wc2.lpszMenuName = NULL;
+		wc2.lpszClassName = "TheGameWindowClass";
+		RegisterClass( &wc2 );
+		g_pGlob->hWnd = CreateWindow(
+			"TheGameWindowClass", 
+			"TheGameWindow",
+			WS_VISIBLE,
+			CW_USEDEFAULT, 
+			0, 
+			CW_USEDEFAULT, 
+			0, 
+			nullptr, 
+			nullptr, 
+			hInstance, 
+			nullptr);
+		bNeededToCreateExtraWindowForWMRWindow = true;
+	}
+
+	// Show Window
+	ShowWindow(g_pGlob->hWnd, SW_SHOW);
+
 	// Initialise DisplayDLL
 	OverrideHWND(g_pGlob->hWnd);
 
 	// Activate COM
-	CoInitialize(NULL);
+	//CoInitialize(NULL);
 
 	// Create Display (dwAppDisplayModeUsing controls window handler)
 	g_pGlob->dwAppDisplayModeUsing=dwDisplayType;
@@ -1452,7 +1544,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	ConstructPostDisplayItems(hInstance);
 
 	// Prepare Other DLLs
-	ConstructPostDLLItems(hInstance);
+	ConstructPostDLLItems(hInstance,bNeededToCreateExtraWindowForWMRWindow);
 
 	// Visible Window
 	if(bWindowIsDisplayable)
@@ -1472,12 +1564,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	SetDefaultDisplayProperties();
 
 	// Process any messages prior to program start (also for begin scene call)
-	//remove unnecessary delay to start of launch
-	//DWORD dwTimer=timeGetTime();
-	//while(timeGetTime()<dwTimer+100)
-	//{
 	InternalProcessMessages();
-	//}
 
 	// complete
 	return 0;
@@ -1497,7 +1584,7 @@ DARKSDK void ConstructDLLs(void)
 {
 	// Prepare Other DLLs
 	ConstructPostDisplayItems(g_pGlob->hInstance);
-	ConstructPostDLLItems(g_pGlob->hInstance);
+	ConstructPostDLLItems(g_pGlob->hInstance,false);
 }
 
 DARKSDK int GetSecurityCode(void)

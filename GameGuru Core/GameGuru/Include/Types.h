@@ -505,6 +505,7 @@ struct mptype
 	int killedByPlayer;
 	cstr previousMessage_s;
 	int syncedWithServerMode;
+	int onlySendMapToSpecificPlayer;
 	int oldtime;
 	int me;
 	int playedMyDeathAnim;
@@ -516,7 +517,8 @@ struct mptype
 	int meleeOn;
 	int isAnimating;
 	int okayToLoadLevel;
-	int iHaveSaidIAmReady;
+	int iHaveSaidIAmAlmostReady;
+	int iKeepCheckingForGameRunning;
 	int attachmentcount;
 	int gunCount;
 	int gunid;
@@ -722,7 +724,7 @@ struct mptype
 		 gunid = 0;
 		 gunCount = 0;
 		 attachmentcount = 0;
-		 iHaveSaidIAmReady = 0;
+		 iHaveSaidIAmAlmostReady = 0;
 		 okayToLoadLevel = 0;
 		 isAnimating = 0;
 		 meleeOn = 0;
@@ -735,6 +737,7 @@ struct mptype
 		 me = 0;
 		 oldtime = 0;
 		 syncedWithServerMode = 0;
+		 onlySendMapToSpecificPlayer = -1;
 		 previousMessage_s = "";
 		 killedByPlayer = 0;
 		 gameAlreadySpawnedBefore = 0;
@@ -2318,6 +2321,7 @@ struct luaglobaltype
 	int lastvideonumber;
 	cstr scriptprompt_s;
 	DWORD scriptprompttime;
+	DWORD scriptprompttype;
 	int scriptprompttextsize;
 	char scriptprompt3dtext[256];
 	DWORD scriptprompt3dtime;
@@ -2325,11 +2329,14 @@ struct luaglobaltype
 	float scriptprompt3dY;
 	float scriptprompt3dZ;
 	float scriptprompt3dAY;
+	bool scriptprompt3dFaceCamera;
 
 	// Constructor
 	luaglobaltype ( )
 	{
+		 scriptprompt3dFaceCamera = false;
 		 scriptprompttextsize = 0;
+		 scriptprompttype = 0;
 		 scriptprompttime = 0;
 		 scriptprompt_s = "";
 		 lastvideonumber = 0;
@@ -3228,6 +3235,33 @@ struct huddamagetype
 
 };
 
+// VR Globals
+struct vrglobalstype
+{
+	int GGVREnabled;
+	int GGVRUsingVRSystem;
+	float GGVRInitialized;
+	float GGVR_HeadingAngle;
+	float GGVR_XposOffset;
+	float GGVR_YposOffset;
+	float GGVR_ZposOffset;
+	float GGVR_Old_Yangle;
+	float GGVR_Old_XposOffset;
+	float GGVR_Old_YposOffset;
+	float GGVR_Old_ZposOffset;
+	float GGVR_XposOffsetChange;
+	float GGVR_YposOffsetChange;
+	float GGVR_ZposOffsetChange;
+	int GGVRStandingMode;
+	vrglobalstype ( )
+	{
+		GGVREnabled = 0;
+		GGVRUsingVRSystem = 0;
+		GGVRInitialized = 0;
+		GGVRStandingMode = 0;
+	}
+};
+
 //  Main game data structure (to avoid globals, place new game globals here)
 struct globalstype
 {
@@ -3462,6 +3496,7 @@ struct gametype
 	int levelloadprogress;
 	int lostthegame;
 	int gameloop;
+	int gameloopwinddown;
 	float levelendingcycle;
 	int quitflag;
 	int runasmultiplayer;
@@ -3564,6 +3599,7 @@ struct titlesbartype
 	int x2;
 	int y2;
 	int fill;
+	char text[256];
 
 	// Constructor
 	titlesbartype ( )
@@ -3575,6 +3611,7 @@ struct titlesbartype
 		 x1 = 0;
 		 img = 0;
 		 mode = 0;
+		 strcpy ( text, "" );
 	}
 	// End of Constructor
 
@@ -5190,6 +5227,9 @@ struct entityprofiletype
 		 physicsobjectcount = 0;
 		 autoflatten = 0;
 		 ignorecsirefs = 0;
+		 drawcalloptimizeroff = 0;
+		 drawcalloptimizer = 0;
+		 drawcallscaleadjust = 0;
 		 playanimineditor = 0;
 		 startanimingame = 0;
 		 drawcalloptimizeroff = 0;
@@ -5872,6 +5912,12 @@ struct entitytype
 	int editorlock;
 	cstr overprompt_s;
 	DWORD overprompttimer;
+	bool overpromptuse3D;
+	float overprompt3dX;
+	float overprompt3dY;
+	float overprompt3dZ;
+	float overprompt3dAY;
+	bool overprompt3dFaceCamera;
 	int mp_networkkill;
 	int mp_killedby;
 	int mp_coopControlledByPlayer;
@@ -5893,6 +5939,7 @@ struct entitytype
 	int draw_call_obj;
 	bool dc_merged;
 	float dc_distance;
+
 	// Constructor
 	entitytype ( )
 	{
@@ -5912,6 +5959,12 @@ struct entitytype
 		 mp_coopControlledByPlayer = 0;
 		 mp_killedby = 0;
 		 mp_networkkill = 0;
+		 overpromptuse3D = false;
+		 overprompt3dX = 0;
+		 overprompt3dY = 0;
+		 overprompt3dZ = 0;
+		 overprompt3dAY = 0;
+		 overprompt3dFaceCamera = false;
 		 overprompttimer = 0;
 		 overprompt_s = "";
 		 editorlock = 0;
@@ -6105,7 +6158,6 @@ struct entitytype
 		 dc_obj[4] = 0;
 		 dc_obj[5] = 0;
 		 dc_obj[6] = 0;
-
 		 dc_entid[0] = 0;
 		 dc_entid[1] = 0;
 		 dc_entid[2] = 0;
@@ -6113,7 +6165,6 @@ struct entitytype
 		 dc_entid[4] = 0;
 		 dc_entid[5] = 0;
 		 dc_entid[6] = 0;
-
 		 draw_call_obj = 0;
 		 dc_merged = false;
 	}

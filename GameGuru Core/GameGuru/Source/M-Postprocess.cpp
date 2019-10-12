@@ -9,6 +9,16 @@
 //  4-sunlight ray camera
 // 
 
+// Some convenient globals for VR controller shader and textures
+int g_iCShaderID = 0;
+int g_iCTextureID0 = 0;
+int g_iCTextureID1 = 0;
+int g_iCTextureID2 = 0;
+int g_iCTextureID3 = 0;
+int g_iCTextureID4 = 0;
+int g_iCTextureID5 = 0;
+int g_iCTextureID6 = 0;
+
 void postprocess_init ( void )
 {
 	//  postprocesseffectoffset;
@@ -20,6 +30,7 @@ void postprocess_init ( void )
 	g.gpostprocessing=1;
 
 	//  if flagged, use post processing
+	timestampactivity(0,"postprocessing code started");
 	if (  g.gpostprocessing == 0 ) 
 	{
 		//  ensure camera zero set correctly
@@ -28,12 +39,12 @@ void postprocess_init ( void )
 	else
 	{
 		//  Initialise or Activate existing
-		if (  t.gpostprocessmode == 0 ) 
+		if ( t.gpostprocessmode == 0 ) 
 		{
-
-			//  kind of post process (gpostprocessing)
-			//  1 - bloom
-			if (  g.gpostprocessing == 1 ) 
+			// kind of post process (gpostprocessing)
+			// 1 - bloom
+			timestampactivity(0,"postprocessing check");
+			if ( g.gpostprocessing == 1 ) 
 			{
 				//  new camera 3 holds post-process screen quad
 				g.gfinalrendercameraid=3;
@@ -103,6 +114,36 @@ void postprocess_init ( void )
 						float fFinalNearDepth = 2.0f + t.visuals.CameraNEAR_f + ((t.visuals.CameraFAR_f/70000.0f)*8.0f);
 						SetCameraRange ( t.glefteyecameraid, fFinalNearDepth, t.visuals.CameraFAR_f );
 						SetCameraRange ( t.grighteyecameraid, fFinalNearDepth, t.visuals.CameraFAR_f );
+					}
+				}
+
+				// VR Support - create VR cameras
+				char pErrorStr[1024];
+				sprintf ( pErrorStr, "check if VR required with codes %d and %d", g.vrglobals.GGVREnabled, g.vrglobals.GGVRUsingVRSystem );
+				timestampactivity(0,pErrorStr);
+				if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+				{
+					// Set camera IDs and initialise GGVR
+					t.glefteyecameraid = 6;
+					t.grighteyecameraid = 7;
+					g.vrglobals.GGVRInitialized = 0;
+					sprintf ( pErrorStr, "initialise VR System Mode %d", g.vrglobals.GGVREnabled );
+					timestampactivity(0,pErrorStr);
+					if ( g_iCShaderID == 0 ) g_iCShaderID = g.controllerpbreffect;
+					if ( g_iCTextureID0 == 0 ) g_iCTextureID0 = loadinternaltextureex("gamecore\\vrcontroller\\vrcontroller_color.png", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID1 == 0 ) g_iCTextureID1 = loadinternaltextureex("effectbank\\reloaded\\media\\blank_O.dds", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID2 == 0 ) g_iCTextureID2 = loadinternaltextureex("gamecore\\vrcontroller\\vrcontroller_normal.png", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID3 == 0 ) g_iCTextureID3 = loadinternaltextureex("gamecore\\vrcontroller\\vrcontroller_metalness.png", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID4 == 0 ) g_iCTextureID4 = loadinternaltextureex("gamecore\\vrcontroller\\vrcontroller_gloss.png", 1, t.tfullorhalfdivide);
+					if ( g_iCTextureID5 == 0 ) g_iCTextureID5 = g.postprocessimageoffset+5;
+					if ( g_iCTextureID6 == 0 ) g_iCTextureID6 = t.terrain.imagestartindex+31;//loadinternaltextureex("effectbank\\reloaded\\media\\blank_I.dds", 1, t.tfullorhalfdivide);
+					sprintf ( pErrorStr, "controller asset %d %d %d %d %d %d %d %d", g_iCShaderID, g_iCTextureID0, g_iCTextureID1, g_iCTextureID2, g_iCTextureID3, g_iCTextureID4, g_iCTextureID5, g_iCTextureID6 );
+					timestampactivity(0,pErrorStr);
+					int iErrorCode = GGVR_Init ( g.rootdir_s.Get(), g.postprocessimageoffset + 4, g.postprocessimageoffset + 3, t.grighteyecameraid, t.glefteyecameraid, 10000, 10001, 10002, 10003, 10004, 10005, 10099, g.guishadereffectindex, g.editorimagesoffset+14, g_iCShaderID, g_iCTextureID0, g_iCTextureID1, g_iCTextureID2, g_iCTextureID3, g_iCTextureID4, g_iCTextureID5, g_iCTextureID6);
+					if ( iErrorCode > 0 )
+					{
+						sprintf ( pErrorStr, "Error starting VR : Code %d", iErrorCode );
+						timestampactivity(0,pErrorStr);
 					}
 				}
 
@@ -341,52 +382,62 @@ void postprocess_applycheapshadow ( void )
 
 void postprocess_free ( void )
 {
-	//  free post processing objects
-	if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  DeleteObject (  g.postprocessobjectoffset+0 );
-	if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  DeleteObject (  g.postprocessobjectoffset+1 );
-	if (  ObjectExist(g.postprocessobjectoffset+2) == 1  )  DeleteObject (  g.postprocessobjectoffset+2 );
-	if (  ObjectExist(g.postprocessobjectoffset+3) == 1  )  DeleteObject (  g.postprocessobjectoffset+3 );
-	if (  ImageExist(g.postprocessimageoffset+2) == 1  )  DeleteImage (  g.postprocessimageoffset+2 );
-	if (  ImageExist(g.postprocessimageoffset+3) == 1  )  DeleteImage (  g.postprocessimageoffset+3 );
-
-	//  free any resources created by post process technique
-	if (  GetEffectExist(g.postprocesseffectoffset+0) == 1  )  DeleteEffect (  g.postprocesseffectoffset+0 );
-	if (  GetEffectExist(g.postprocesseffectoffset+2) == 1  )  DeleteEffect (  g.postprocesseffectoffset+2 );
-	if (  GetEffectExist(g.postprocesseffectoffset+3) == 1  )  DeleteEffect (  g.postprocesseffectoffset+3 );
-	if (  GetEffectExist(g.postprocesseffectoffset+4) == 1  )  DeleteEffect (  g.postprocesseffectoffset+4 );
-	if (  g.gfinalrendercameraid>0 ) 
+	// only free if enagaged
+	if ( t.gpostprocessmode > 0 )
 	{
-		if (  CameraExist(g.gfinalrendercameraid) == 1 ) 
+		// free GGVR if used
+		if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 		{
-			DestroyCamera (  g.gfinalrendercameraid );
+			GGVR_Shutdown();
 		}
-		g.gfinalrendercameraid=0;
-	}
 
-	//  free lightray shader
-	if (  GetEffectExist(g.postprocesseffectoffset+1) == 1  )  DeleteEffect (  g.postprocesseffectoffset+1 );
-	if (  t.glightraycameraid>0 ) 
-	{
-		if (  CameraExist(t.glightraycameraid) == 1 ) 
+		//  free post processing objects
+		if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  DeleteObject (  g.postprocessobjectoffset+0 );
+		if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  DeleteObject (  g.postprocessobjectoffset+1 );
+		if (  ObjectExist(g.postprocessobjectoffset+2) == 1  )  DeleteObject (  g.postprocessobjectoffset+2 );
+		if (  ObjectExist(g.postprocessobjectoffset+3) == 1  )  DeleteObject (  g.postprocessobjectoffset+3 );
+		if (  ImageExist(g.postprocessimageoffset+2) == 1  )  DeleteImage (  g.postprocessimageoffset+2 );
+		if (  ImageExist(g.postprocessimageoffset+3) == 1  )  DeleteImage (  g.postprocessimageoffset+3 );
+
+		//  free any resources created by post process technique
+		if (  GetEffectExist(g.postprocesseffectoffset+0) == 1  )  DeleteEffect (  g.postprocesseffectoffset+0 );
+		if (  GetEffectExist(g.postprocesseffectoffset+2) == 1  )  DeleteEffect (  g.postprocesseffectoffset+2 );
+		if (  GetEffectExist(g.postprocesseffectoffset+3) == 1  )  DeleteEffect (  g.postprocesseffectoffset+3 );
+		if (  GetEffectExist(g.postprocesseffectoffset+4) == 1  )  DeleteEffect (  g.postprocesseffectoffset+4 );
+		if (  g.gfinalrendercameraid>0 ) 
 		{
-			DestroyCamera (  t.glightraycameraid );
+			if (  CameraExist(g.gfinalrendercameraid) == 1 ) 
+			{
+				DestroyCamera (  g.gfinalrendercameraid );
+			}
+			g.gfinalrendercameraid=0;
 		}
-		t.glightraycameraid=0;
+
+		//  free lightray shader
+		if (  GetEffectExist(g.postprocesseffectoffset+1) == 1  )  DeleteEffect (  g.postprocesseffectoffset+1 );
+		if (  t.glightraycameraid>0 ) 
+		{
+			if (  CameraExist(t.glightraycameraid) == 1 ) 
+			{
+				DestroyCamera (  t.glightraycameraid );
+			}
+			t.glightraycameraid=0;
+		}
+
+		//  Total reset
+		g.gpostprocessingnotransparency=0;
+		t.gpostprocessmode=0;
+
+		//  Restore main camera
+		SetCurrentCamera (  0 );
+		SetCameraView (  0,0,0,GetDesktopWidth(),GetDesktopHeight() );
+		SetCameraToImage (  0,-1,0,0,0 );
 	}
-
-	//  Total reset
-	g.gpostprocessingnotransparency=0;
-	t.gpostprocessmode=0;
-
-	//  Restore main camera
-	SetCurrentCamera (  0 );
-	SetCameraView (  0,0,0,GetDesktopWidth(),GetDesktopHeight() );
-	SetCameraToImage (  0,-1,0,0,0 );
 }
 
 void postprocess_off ( void )
 {
-	if (  t.gpostprocessmode>0 ) 
+	if ( t.gpostprocessmode>0 ) 
 	{
 		if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  HideObject (  g.postprocessobjectoffset+0 );
 		if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  HideObject (  g.postprocessobjectoffset+1 );
@@ -405,17 +456,17 @@ void postprocess_off ( void )
 
 void postprocess_on ( void )
 {
-	if (  t.gpostprocessmode>0 ) 
+	if ( t.gpostprocessmode>0 ) 
 	{
-		if (  ObjectExist(g.postprocessobjectoffset+0) == 1  )  ShowObject (  g.postprocessobjectoffset+0 );
-		if (  ObjectExist(g.postprocessobjectoffset+1) == 1  )  ShowObject (  g.postprocessobjectoffset+1 );
-		if (  ObjectExist(g.postprocessobjectoffset+2) == 1  )  ShowObject (  g.postprocessobjectoffset+2 );
+		if ( ObjectExist(g.postprocessobjectoffset+0) == 1  )  ShowObject (  g.postprocessobjectoffset+0 );
+		if ( ObjectExist(g.postprocessobjectoffset+1) == 1  )  ShowObject (  g.postprocessobjectoffset+1 );
+		if ( ObjectExist(g.postprocessobjectoffset+2) == 1  )  ShowObject (  g.postprocessobjectoffset+2 );
 		SetCameraToImage (  0,g.postprocessimageoffset+0,GetDisplayWidth(),GetDisplayHeight(),2 );
-		if (  g.gfinalrendercameraid>0 ) 
+		if ( g.gfinalrendercameraid>0 ) 
 		{
 			SetCameraView (  g.gfinalrendercameraid,0,0,GetDisplayWidth(),GetDisplayHeight() );
 		}
-		if (  t.glightraycameraid>0 ) 
+		if ( t.glightraycameraid>0 ) 
 		{
 			SetCameraView (  t.glightraycameraid,0,0,GetDisplayWidth(),GetDisplayHeight() );
 		}
@@ -433,9 +484,10 @@ void postprocess_preterrain ( void )
 			if (  GetEffectExist(t.terrain.vegetationshaderindex) == 1  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"blacktextured" );
 		}
 		if (  GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex,"blacktextured" );
-		for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
+		for ( t.t = -6 ; t.t<=  g.effectbankmax; t.t++ )
 		{
-			if ( t.t == -5  )  t.teffectid = g.lightmappbreffectillum;
+			if ( t.t == -6  )  t.teffectid = g.lightmappbreffectillum;
+			if ( t.t == -5  ) t.teffectid = g.controllerpbreffect;
 			if ( t.t == -4  )  t.teffectid = g.lightmappbreffect;
 			if ( t.t == -3  )  t.teffectid = g.thirdpersonentityeffect;
 			if ( t.t == -2  )  t.teffectid = g.thirdpersoncharactereffect;
@@ -564,6 +616,152 @@ void postprocess_preterrain ( void )
 			//  restore camera Sync (  )
 			SyncMask (  0xfffffff9 );
 			BT_SetCurrentCamera (  0 );
+		}
+	}
+
+	// VR Support - render VR cameras
+	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	{
+		// position VR player at location of main camera
+		GGVR_SetPlayerPosition(t.tFinalCamX_f, t.tFinalCamY_f, t.tFinalCamZ_f);
+
+		// this sets the origin based on the current camera zero (ARG!)
+		// should only set based on player angle (minus HMD influence) as HMD added later at right time for smooth headset viewing!
+		GGVR_SetPlayerAngleY(t.camangy_f);
+
+		// update seated/standing flag
+		g.vrglobals.GGVRStandingMode = GGVR_GetTrackingSpace();
+
+		// update HMD position and controller feedback
+		bool bPlayerDucking = false;
+		if ( t.aisystem.playerducking != 0 ) bPlayerDucking = true;
+		int iBatchStart = g.batchobjectoffset;
+		int iBatchEnd = g.batchobjectoffset + g.merged_new_objects + 1;
+		GGVR_UpdatePlayer(bPlayerDucking,t.terrain.TerrainID,g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,g.entityviewstartobj,g.entityviewendobj,iBatchStart,iBatchEnd);
+
+		// handle teleport
+		float fTelePortDestX = 0.0f;
+		float fTelePortDestY = 0.0f;
+		float fTelePortDestZ = 0.0f;
+		float fTelePortDestAngleY = 0.0f;
+		if ( GGVR_HandlePlayerTeleport ( &fTelePortDestX, &fTelePortDestY, &fTelePortDestZ, &fTelePortDestAngleY ) == true )
+		{
+			physics_disableplayer ( );
+			t.terrain.playerx_f=fTelePortDestX;
+			t.terrain.playery_f=fTelePortDestY+30;
+			t.terrain.playerz_f=fTelePortDestZ;
+			t.terrain.playerax_f=0;
+			t.terrain.playeray_f=CameraAngleY(0);
+			t.camangy_f=t.terrain.playeray_f;
+			t.terrain.playeraz_f=0;
+			physics_setupplayer ( );
+		}
+
+		// render VR cameras now
+		if ( 1 ) //t.hardwareinfoglobals.noterrain == 0)
+		{
+			if ( 1 ) //t.terrain.TerrainID > 0)
+			{
+				// for WMR style VR
+				int iDebugMode = 0;
+				if ( g.gproducelogfiles > 0 ) 
+				{
+					static bool bDoThisPreSubmitDebugLineOnce = false;
+					if ( bDoThisPreSubmitDebugLineOnce == false )
+					{
+						timestampactivity(0,"Calling GGVR_PreSubmit VR");
+						bDoThisPreSubmitDebugLineOnce = true;
+					}
+					iDebugMode = 1;
+				}
+				int iErrorCode = GGVR_PreSubmit(iDebugMode);
+				if ( iErrorCode > 0 )
+				{
+					char pErrorStr[1024];
+					sprintf ( pErrorStr, "Error running VR : Code %d", iErrorCode );
+					timestampactivity(0,pErrorStr);
+				}
+				else
+				{
+					// determine if headset missing
+					if ( iErrorCode == -123 )
+					{
+						t.visuals.generalpromptstatetimer = Timer()+1000;
+						t.visuals.generalprompt_s = "No VR headset, exit software and activate headset and controllers for VR";
+					}
+				}
+
+				// render left and right eyes
+				for (t.leftright = 0; t.leftright <= 1; t.leftright++)
+				{
+					//  left and right camera in turn
+					if (t.leftright == 0)  t.tcamindex = t.glefteyecameraid;
+					if (t.leftright == 1)  t.tcamindex = t.grighteyecameraid;
+
+					//  adjust sky objects to center on this camera
+					if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex), CameraPositionZ(t.tcamindex));
+					if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex), CameraPositionZ(t.tcamindex));
+					if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex) + 7000, CameraPositionZ(t.tcamindex));
+
+					// render terrain for this camera
+					BT_SetCurrentCamera(t.tcamindex);
+					BT_UpdateTerrainCull(t.terrain.TerrainID);
+					BT_UpdateTerrainLOD(t.terrain.TerrainID);
+					if ( t.hardwareinfoglobals.noterrain == 0 && t.terrain.TerrainID > 0 )
+						BT_RenderTerrain(t.terrain.TerrainID);
+					else
+						BT_NoRenderTerrain(t.terrain.TerrainID);
+
+					// The camera perspective matrix needs to be overridden directly inside the camera data structure
+					tagCameraData* pCameraPtr = (tagCameraData*)GetCameraInternalData ( t.tcamindex );
+					if ( pCameraPtr ) 
+					{
+						// get the projection matrix for each eye
+						GGMATRIX Projection;
+						if (t.leftright == 0)
+							Projection = GGVR_GetLeftEyeProjectionMatrix();
+						else
+							Projection = GGVR_GetRightEyeProjectionMatrix();
+
+						// transpose so compatible with the way our shadow model 5.0 shaders work
+						GGMATRIX newWorkingProj = Projection;
+						newWorkingProj.m[0][2] = -Projection.m[0][2];
+						newWorkingProj.m[1][2] = -Projection.m[1][2];
+						newWorkingProj.m[2][2] = -Projection.m[2][2];
+						newWorkingProj.m[3][2] = -Projection.m[3][2];
+						GGMatrixTranspose ( &newWorkingProj, &newWorkingProj );
+
+						// finally override the camera projection matrix now
+						pCameraPtr->matProjection = newWorkingProj;
+					}
+
+					// and now render
+					SyncMask((1 << t.tcamindex));
+					FastSync();
+				}
+
+				// for OpenVR style VR
+				GGVR_Submit();
+
+				// restore skies
+				if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
+				if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
+				if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera) + 7000, CameraPositionZ(t.terrain.gameplaycamera));
+
+				// restore camera
+				SetCurrentCamera(0);
+			}
+
+			//  I should use LAST camera pos/angle as the stereo appears in a post process render
+			t.oldoldcamx_f = CameraPositionX(0);
+			t.oldoldcamy_f = CameraPositionY(0);
+			t.oldoldcamz_f = CameraPositionZ(0);
+			t.oldoldcamax_f = CameraAngleX(0);
+			t.oldoldcamay_f = CameraAngleY(0);
+
+			//  restore camera Sync (  )
+			SyncMask(0xfffffff9);
+			BT_SetCurrentCamera(0);
 		}
 	}
 }

@@ -68,7 +68,7 @@ DARKSDK void			ClearData 					( void );
 		void 			RefreshGRAFIXInput 			( int iMode );
 #endif
 
-DARKSDK void 			InputConstructor 				( void );
+DARKSDK void 			InputConstructor 				( bool bNeededToCreateExtraWindowForWMRWindow );
 DARKSDK void 			InputDestructor  				( void );
 DARKSDK void 			InputSetErrorHandler 			( LPVOID pErrorHandlerPtr );
 DARKSDK void 			InputPassCoreData				(  );

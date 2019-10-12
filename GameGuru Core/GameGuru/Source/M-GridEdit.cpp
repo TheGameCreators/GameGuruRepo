@@ -4,6 +4,7 @@
 
 #include "gameguru.h"
 #include "M-WelcomeSystem.h"
+#include "GGVR.h"
 
 // 
 //  GAMEGURU MAP EDITOR EXECUTABLE CODE
@@ -16,22 +17,33 @@ extern bool g_bSkipTerrainRender;
 // extern to global that toggles when load map removed from entities
 extern bool g_bBlackListRemovedSomeEntities;
 extern bool gbWelcomeSystemActive;
-extern int g_trialStampDaysLeft;
 
 //  GOTO LABEL (jump from common_init)
 void mapeditorexecutable ( void )
 {
-	//  Debug report status (must activate with producelogfiles=1)
-	t.tsplashstatusprogress_s="MAIN EDITOR INIT";
-	timestampactivity(0,t.tsplashstatusprogress_s.Get());
-	version_splashtext_statusupdate ( );
-
 	//  Means we are in the editor (1) or in standalone game (0)
 	timestampactivity(0,"ide input mode");
 	g.globals.ideinputmode = 1;
 
-	//  No VR or RIFTMODE in Editor Mode
+	// No VR or RIFTMODE in Editor Mode
 	g.globals.riftmode = 0;
+	g.vrglobals.GGVREnabled = 0; 
+	g.vrglobals.GGVRUsingVRSystem = 1; 
+	if ( g.gvrmode == 2 ) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
+	if ( g.gvrmode == 3 ) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
+	char pVRSystemString[1024];
+	sprintf ( pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled );
+	timestampactivity(0,pVRSystemString);
+	int iErrorCode = GGVR_ChooseVRSystem ( g.vrglobals.GGVREnabled, g.gproducelogfiles, cstr(g.fpscrootdir_s+"\\GGWMR.dll").Get() );
+	if ( iErrorCode > 0 )
+	{
+		// if VR headset is not present, switch VR off to speed up non-VR rendering (especially for debug)
+		char pErrorStr[1024];
+		sprintf ( pErrorStr, "Error Choosing VR System : Code %d", iErrorCode );
+		timestampactivity(0,pErrorStr);
+		timestampactivity(0,"switching VR off, headset not detected");
+		g.vrglobals.GGVREnabled = 0;
+	}
 
 	//  Set device to get multisampling AA active in editor
 	t.multisamplingfactor=0;
@@ -162,21 +174,13 @@ void mapeditorexecutable ( void )
 	game_timeelapsed_init ( );
 	t.tsl_f=Timer();
 
-	// IDE announcement system
-	if ( g.gshowannouncements == 1 )
-	{
-		welcome_init(1);
-		welcome_init(0);
-		welcome_show(WELCOME_ANNOUNCEMENTS);
-	}
-
 	//  only show front dialogs if not resuming from previous session
 	int iCountDownToShowQuickStartDialog = 0;
 	if ( g.grestoreeditorsettings == 0 ) 
 	{
 		// Welcome quick start page
 		g.quickstartmenumode = 0;
-		if ( g.iFreeVersionModeActive != 0 )
+		if ( g.iFreeVersionModeActive == 1 )
 		{
 			editor_showquickstart ( 0 );
 		}
@@ -360,26 +364,18 @@ void mapeditorexecutable ( void )
 						{
 							SetEventAndWait (  3 );
 							//CloseFileMap (  3 );
-							if ( t.idechecks == 1 ) 
+							if (  t.idechecks == 1 ) 
 							{
-								// Save Standalone
+								//  Save Standalone
 								gridedit_intercept_savefirst ( );
 								OpenFileMap (  3, "FPSEXCHANGE" );
-								if ( t.editorcanceltask == 0 ) 
+								if (  t.editorcanceltask == 0 ) 
 								{
 									popup_text(t.strarr_s[82].Get());
 									gridedit_load_map ( ); // 190417 - ensures levelbank contents SAME as level 1 FPM!
-
-									// new dialog to handle save standalone
-									popup_text_close();
-									//mapfile_savestandalone ( );
-									//suggest new init code to load just what the save standalone dialog needs
-									welcome_init(1);
-									welcome_init(2);
-									welcome_init(0);
-									welcome_show(WELCOME_SAVESTANDALONE);
-									welcome_free();
+									mapfile_savestandalone ( );
 									SetFileMapDWORD (  3, t.virtualfileindex, 3 );
+									popup_text_close();
 								}
 								else
 								{
@@ -598,8 +594,19 @@ void editor_detect_invalid_screen ( void )
 	}
 }
 
-void editor_showhelppage ( void )
+void editor_showhelppage ( int iHelpType )
 {
+	// image to use
+	int iEditorHelpImage = 1;
+	int iDivideBy = 1;
+	#ifdef VRQUEST
+	 switch ( iHelpType )
+	 {
+		case 1 : iEditorHelpImage = 1; break;
+		case 2 : iEditorHelpImage = 27; iDivideBy = 2; break;
+		case 3 : iEditorHelpImage = 28; iDivideBy = 2; break;
+	 }
+	#endif
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetEventAndWait (  1 );
 	do
@@ -610,9 +617,9 @@ void editor_showhelppage ( void )
 	t.inputsys.kscancode=0;
 	t.asx_f=1.0;
 	t.asy_f=1.0;
-	t.imgx_f=ImageWidth(g.editorimagesoffset+1)*t.asx_f;
-	t.imgy_f=ImageHeight(g.editorimagesoffset+1)*t.asy_f;
-	Sprite (  123,-10000,-10000,g.editorimagesoffset+1 );
+	t.imgx_f=ImageWidth(g.editorimagesoffset+iEditorHelpImage)/iDivideBy*t.asx_f;
+	t.imgy_f=ImageHeight(g.editorimagesoffset+iEditorHelpImage)/iDivideBy*t.asy_f;
+	Sprite (  123,-10000,-10000,g.editorimagesoffset+iEditorHelpImage );
 	SizeSprite (  123,t.imgx_f,t.imgy_f );
 	t.lastmousex=MouseX() ; t.lastmousey=MouseY();
 	t.tpressf1toleave=0;
@@ -897,28 +904,27 @@ void editor_showquickstart ( int iForceMainOpen )
 	// can stay here forever if quit triggered
 	if ( g.iTriggerSoftwareToQuit != 0 ) 
 	{
-		if ( g.iFreeVersionModeActive == 2 ) 
-			welcome_show(WELCOME_FREETRIALEXITAPP);
-		else
-			welcome_show(WELCOME_EXITAPP);
+		welcome_show(WELCOME_EXITAPP);
 	}
 	else
 	{
-		if ( g.iFreeVersionModeActive == 1 ) welcome_show(WELCOME_FREEINTROAPP);
-		if ( g.iFreeVersionModeActive == 2 ) welcome_show(WELCOME_FREETRIALINTROAPP);
+		if ( g.iFreeVersionModeActive == 1 )
+		{
+			welcome_show(WELCOME_FREEINTROAPP);
+		}
 	}
 
 	// if first time run
 	if ( g.gfirsttimerun == 1 ) welcome_show(WELCOME_WHATYOUGET);
 
 	// if welcome not deactivated
-	if ( g.vrqcontrolmode == 0 )
+	if ( g.gshowonstartup != 0 || iForceMainOpen == 1 )
 	{
-		if ( g.gshowonstartup != 0 || iForceMainOpen == 1 )
-		{
-			// start welcome page
+		// start welcome page
+		if ( g.vrqcontrolmode == 0 )
 			welcome_show(WELCOME_MAIN);
-		}
+		else
+			welcome_show(WELCOME_MAINVR);
 	}
 
 	// close welcome system
@@ -1491,7 +1497,7 @@ void editor_showreviewrequest_check ( void )
 }
 */
 
-void editor_previewmapormultiplayer ( void )
+void editor_previewmapormultiplayer ( int iUseVRTest )
 {
 	//  store if project modified
 	t.storeprojectmodified=g.projectmodified;
@@ -1650,15 +1656,20 @@ void editor_previewmapormultiplayer ( void )
 		terrain_applyshader();
 		terrain_fastveg_applyshader();
 	}
-
+	
 	//  set-up test game screen prompt assets
-	loadscreenpromptassets();
-	if (  t.game.runasmultiplayer == 1 ) 
+	if ( t.game.runasmultiplayer == 1 ) 
 	{
-		printscreenprompt("ENTERING MULTIPLAYER MODE");
+		loadscreenpromptassets(2);
+		#ifdef PHOTONMP
+		 printscreenprompt("ENTERING SOCIAL VR");
+		#else
+		 printscreenprompt("ENTERING MULTIPLAYER MODE");
+		#endif
 	}
 	else
 	{
+		loadscreenpromptassets(iUseVRTest);
 		printscreenprompt("LAUNCHING TEST LEVEL");
 	}
 
@@ -1666,14 +1677,14 @@ void editor_previewmapormultiplayer ( void )
 	timestampactivity(0,"PREVIEWMAP: Save config");
 	editor_savecfg ( );
 
-	//  And save the level to levelbank\testmap before launch preview
-	//  so we can restore to this level if it crashes
+	// And save the level to levelbank\testmap before launch preview
+	// so we can restore to this level if it crashes
 	g.gpretestsavemode=1;
 	gridedit_save_test_map ( );
 	g.gpretestsavemode=0;
 
-	//  Now saves all part-files into temp FPM file (which multiplayer can pick up later)
-	if (  t.game.runasmultiplayer == 1 ) 
+	// Now saves all part-files into temp FPM file (which multiplayer can pick up later)
+	if ( t.game.runasmultiplayer == 1 ) 
 	{
 		//  save temp copy of current level
 		g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"worklevel.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
@@ -1681,15 +1692,15 @@ void editor_previewmapormultiplayer ( void )
 		mapfile_saveproject_fpm ( );
 	}
 
-	//  GCStore could have assed assets since the last 'test game' so refresh internal lists
+	// GCStore could have assed assets since the last 'test game' so refresh internal lists
 	sky_init ( );
 	terrain_initstyles ( );
 
-	//  Re-acquire indices now the lists have changed
-	//  takes visuals.sky$ visuals.terrain$ visuals.vegetation$
+	// Re-acquire indices now the lists have changed
+	// takes visuals.sky$ visuals.terrain$ visuals.vegetation$
 	visuals_updateskyterrainvegindex ( );
 
-	//  Ensure game visuals settings used
+	// Ensure game visuals settings used
 	t.gamevisuals.skyindex=t.visuals.skyindex;
 	t.gamevisuals.sky_s=t.visuals.sky_s;
 	t.gamevisuals.terrainindex=t.visuals.terrainindex;
@@ -1699,35 +1710,13 @@ void editor_previewmapormultiplayer ( void )
 	t.visuals=t.gamevisuals;
 	t.visuals.refreshshaders=1;
 	t.visuals.refreshvegtexture=1;
-	
-	// switch to game PBR mode for terrain/veg
-	//t.terrain.iForceTerrainVegShaderUpdate = 1;
-	//if ( t.visuals.shaderlevels.lighting == 3 )
-	//	t.terrain.iTerrainPBRMode = 1;
-	//else
-	//	t.terrain.iTerrainPBRMode = 0;
 
-	//  Hide camera while prepare test map
+	// Hide camera while prepare test map
 	t.storecx_f=CameraPositionX();
 	t.storecy_f=CameraPositionY();
 	t.storecz_f=CameraPositionZ();
 
-	//  default start position is edit-camera XZ
-	t.terrain.playerx_f=CameraPositionX(0);
-	t.terrain.playerz_f=CameraPositionZ(0);
-	if (  t.terrain.TerrainID>0 ) 
-	{
-		t.terrain.playery_f=BT_GetGroundHeight(t.terrain.TerrainID,t.terrain.playerx_f,t.terrain.playerz_f)+150.0;
-	}
-	else
-	{
-		t.terrain.playery_f=1000.0+150.0;
-	}
-	t.terrain.playerax_f=0.0;
-	t.terrain.playeray_f=0.0;
-	t.terrain.playeraz_f=0.0;
-
-	//  store all editor entity positions and rotations
+	// store all editor entity positions and rotations
 	t.storedentityelementlist=g.entityelementlist;
 	t.storedentityviewcurrentobj=g.entityviewcurrentobj;
 	Dim (  t.storedentityelement,g.entityelementlist );
@@ -1736,8 +1725,8 @@ void editor_previewmapormultiplayer ( void )
 		t.storedentityelement[t.e]=t.entityelement[t.e];
 	}
 
-	//  hide all markers
-	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+	// hide all markers
+	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
 		t.obj=t.entityelement[t.e].obj;
@@ -1759,64 +1748,30 @@ void editor_previewmapormultiplayer ( void )
 		}
 	}
 
-	//  ensure all locked entity transparency resolves
+	// ensure all locked entity transparency resolves
 	for ( t.tte = 1 ; t.tte<=  g.entityelementlist; t.tte++ )
 	{
-		if (  t.entityelement[t.tte].editorlock == 1 || t.entityelement[t.tte].underground == 1 ) 
+		if ( t.entityelement[t.tte].editorlock == 1 || t.entityelement[t.tte].underground == 1 ) 
 		{
 			t.tobj=t.entityelement[t.tte].obj;
-			if (  t.tobj>0 ) 
+			if ( t.tobj>0 ) 
 			{
-				if (  ObjectExist(t.tobj) == 1 ) 
+				if ( ObjectExist(t.tobj) == 1 ) 
 				{
-					if (  t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].isclone = 1;
+					if ( t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].isclone = 1;
 					entity_converttoinstance ( );
 				}
 			}
 		}
 	}
 
-	//PE: start any animations that are not in editor mode.
-	for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
-	{
-		t.entid = t.entityelement[t.tte].bankindex;
-		t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
-		t.tobj = t.entityelement[t.tte].obj;
-		if (t.tobj > 0)
-		{
-			if (ObjectExist(t.tobj) == 1)
-			{
-				//PE: Possible fix for issues:
-				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/206
-				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/273
-				//PE: need testing.
-				if (t.entityprofile[t.entid].ischaracter == 1) {
-					//Char should always have z depth , but somehow its removed somewhere.
-					EnableObjectZDepth(t.tobj);
-				}
-				
-				//FULLBOUNDS
-
-				if (t.entityprofile[t.entid].startanimingame > 0) {
-					if (t.entityprofile[t.entid].animmax > 0 ) {
-						t.q = t.entityprofile[t.entid].startanimingame - 1;
-						SetObjectFrame(t.tttsourceobj, 0);
-						LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
-						SetObjectFrame(t.tobj, 0);
-						LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
-					}
-				}
-			}
-		}
-	}
-
-	//  hide all waypoints and zones
+	// hide all waypoints and zones
 	waypoint_hideall ( );
 
 	// hide editor objects too
 	for ( t.obj = t.editor.objectstartindex+1; t.obj <= t.editor.objectstartindex+1+10 ;  t.obj++ ) //?//t.editor.objectstartindex+10;
 	{
-		if (  ObjectExist(t.obj) == 1 ) 
+		if ( ObjectExist(t.obj) == 1 ) 
 		{
 			HideObject (  t.obj );
 		}
@@ -1839,18 +1794,16 @@ void editor_previewmapormultiplayer ( void )
 		}
 	}
 
-	//  ensure no collision from DBP!
+	// ensure no collision from legacy engine
 	AutomaticCameraCollision (  0,0,0 );
 	SetGlobalCollisionOff (  );
 
-	//  Setup game view camera?
-	SetCameraFOV (  75 );
-	// `set camera range 1,4000 ` set in _editor_overallfunctionality
-
+	// Setup game view camera
+	SetCameraFOV ( 75 );
 	g.grav_f=-5.0;
 
-	//  store original terrain heights
-	if (  t.terrain.TerrainID>0 ) 
+	// store original terrain heights
+	if ( t.terrain.TerrainID>0 ) 
 	{
 		for ( t.z = 0 ; t.z<=  1024; t.z++ )
 		{
@@ -1862,8 +1815,8 @@ void editor_previewmapormultiplayer ( void )
 		}
 	}
 
-	//  Create heightmap from this terrain (for quad reduction)
-	if (  t.terrain.TerrainID>0 ) 
+	// Create heightmap from this terrain (for quad reduction)
+	if ( t.terrain.TerrainID>0 ) 
 	{
 		t.terrain.terrainregionupdate=0;
 		terrain_refreshterrainmatrix ( );
@@ -1871,21 +1824,29 @@ void editor_previewmapormultiplayer ( void )
 		terrain_createheightmapfromheightdata ( );
 	}
 
-	//  full speed
-	SyncRate (  0 );
+	// full speed
+	SyncRate ( 0 );
 
-	//  Work out the amount of memory used for the TEST GAME session
+	// Work out the amount of memory used for the TEST GAME session
 	t.tmemorybeforetestgame=SMEMAvailable(1);
 
-	//  launch game root with IDE 'test at cursor position' settings
+	// in VR, if controller powered down, need to jog it back to life
+	if ( g.vrglobals.GGVREnabled == 2 )
+	{
+		GGVR_ReconnectWithHolographicSpaceControllers();
+	}
+
+	//
+	// launch game root with IDE 'test at cursor position' settings
+	//
 	t.game.gameisexe=0;
 	t.game.set.resolution=0;
 	t.game.set.initialsplashscreen=0;
 	t.game.set.ismapeditormode=0;
-	game_masterroot ( );
+	game_masterroot ( iUseVRTest );
 	t.game.set.ismapeditormode=1;
 
-	//  Restore entities (remove light map objects for return to IDE editor)
+	// Restore entities (remove light map objects for return to IDE editor)
 	lm_restoreall ( );
 
 	// restore any EBE site markers (limb zeros)
@@ -1905,15 +1866,15 @@ void editor_previewmapormultiplayer ( void )
 		}
 	}
 
-	//  Revert mode to only render NEAR technique
+	// Revert mode to only render NEAR technique
 	visuals_restoreterrainshaderforeditor ( );
-	BT_ForceTerrainTechnique (  1 );
+	BT_ForceTerrainTechnique ( 1 );
 
-	//  editor speed max
-	SyncMask (  1 );
-	SyncRate (  0 );
+	// editor speed max
+	SyncMask ( 1 );
+	SyncRate ( 0 );
 
-	//  restore mouse pos and visbility
+	// restore mouse pos and visbility
 	game_showmouse ( );
 
 	// prompt informing user we are saving the level changes
@@ -1928,17 +1889,17 @@ void editor_previewmapormultiplayer ( void )
 	// 101115 - restore all characters to use regular character shader
 	game_setup_character_shader_entities ( false );
 
-	//  if additional entities added, remove and restore orig count
-	if (  g.entityelementlist>t.storedentityelementlist ) 
+	// if additional entities added, remove and restore orig count
+	if ( g.entityelementlist>t.storedentityelementlist ) 
 	{
 		for ( t.e = t.storedentityelementlist+1 ; t.e<= g.entityelementlist ; t.e++ )
 		{
 			t.obj=t.entityelement[t.e].obj;
-			if (  t.obj>0 ) 
+			if ( t.obj>0 ) 
 			{
-				if (  ObjectExist(t.obj) == 1 ) 
+				if ( ObjectExist(t.obj) == 1 ) 
 				{
-					DeleteObject (  t.obj );
+					DeleteObject ( t.obj );
 				}
 			}
 			t.entityelement[t.e].obj=0;
@@ -1948,135 +1909,97 @@ void editor_previewmapormultiplayer ( void )
 		g.entityviewcurrentobj=t.storedentityviewcurrentobj;
 	}
 
-	//  restore all editor entity positions and rotations
+	// restore all editor entity positions and rotations
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.obj=t.entityelement[t.e].obj;
-		if (  t.obj>0 ) 
+		if ( t.obj>0 ) 
 		{
-			if (  ObjectExist(t.obj) == 1 ) 
+			if ( ObjectExist(t.obj) == 1 ) 
 			{
-				//  only if still exists - could have been deleted
+				// only if still exists - could have been deleted
 				t.entityelement[t.e]=t.storedentityelement[t.e];
 			}
 		}
 	}
-	UnDim (  t.storedentityelement );
+	UnDim ( t.storedentityelement );
 
-	//  restore entity positions and rotations
-	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+	// restore entity positions and rotations
+	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
 		t.obj=t.entityelement[t.e].obj;
-		if (  t.obj>0 ) 
+		if ( t.obj>0 ) 
 		{
-			if (  ObjectExist(t.obj) == 1 ) 
+			if ( ObjectExist(t.obj) == 1 ) 
 			{
-				if (  t.entityprofile[t.entid].ismarker == 0 ) 
+				if ( t.entityprofile[t.entid].ismarker == 0 ) 
 				{
 					PositionObject (  t.obj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );
 					RotateObject (  t.obj,t.entityelement[t.e].rx,t.entityelement[t.e].ry,t.entityelement[t.e].rz );
 					ShowObject (  t.obj );
-
-					//PE: Still problems with bNewZLayerObject , this will hide clip objects.
-					//PE: Not sure what changed from DX9 version to DX11 with bNewZLayerObject , you remember Lee ?
-					//PE: Anyway we need pObject->bNewZLayerObject = false;
-
 					EnableObjectZDepth(t.obj);
 				}
-				if (  t.entityprofile[t.entid].addhandlelimb>0 ) 
+				if ( t.entityprofile[t.entid].addhandlelimb>0 ) 
 				{
-					ShowLimb (  t.obj,t.entityprofile[t.entid].addhandlelimb );
+					ShowLimb ( t.obj,t.entityprofile[t.entid].addhandlelimb );
 				}
 			}
 		}
 	}
 
-	//  show all markers
+	// show all markers
 	t.gridentityhidemarkers=0;
 	editor_updatemarkervisibility ( );
 
-	//  ensure all locked entity transparency shown again
+	// ensure all locked entity transparency shown again
 	for ( t.tte = 1 ; t.tte<=  g.entityelementlist; t.tte++ )
 	{
-		if (  t.entityelement[t.tte].editorlock == 1 ) 
+		/* this messes up depth render order, totally, best to leave as solid, just locked
+		if ( t.entityelement[t.tte].editorlock == 1 ) 
 		{
 			t.tobj=t.entityelement[t.tte].obj;
-			if (  t.tobj>0 ) 
+			if ( t.tobj>0 ) 
 			{
-				if (  ObjectExist(t.tobj) == 1 ) 
+				if ( ObjectExist(t.tobj) == 1 ) 
 				{
 					t.entityelement[t.tte].isclone=0;
 					entity_converttoclonetransparent ( );
 				}
 			}
 		}
-		if (  t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].beenmoved = 1;
+		*/
+		if ( t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].beenmoved = 1;
 	}
 
-	//PE: disable any animations that should not be in editor.
-	for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
-	{
-		t.entid = t.entityelement[t.tte].bankindex;
-		t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
-		t.tobj = t.entityelement[t.tte].obj;
-		if (t.tobj > 0)
-		{
-			if (ObjectExist(t.tobj) == 1)
-			{
-				if (t.entityprofile[t.entid].startanimingame > 0) {
-					if (t.entityprofile[t.entid].animmax > 0) {
-						t.q = 0;
-						SetObjectFrame(t.tttsourceobj, 0);
-						StopObject(t.tttsourceobj);
-						SetObjectFrame(t.tobj, 0);
-						StopObject(t.tobj);
-					}
-				}
-			}
-		}
-
-		//PE: pframe is lost on clone objects, recreate.
-		if (t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0)
-		{
-			if (t.entityelement[t.tte].isclone == 1 && t.entityelement[t.tte].underground == 0)
-			{
-				if (t.entityelement[t.tte].editorlock == 0)
-				{
-					//t.tobj = t.tentityobj; t.tte = t.tentitytoselect;
-					entity_converttoinstance();
-				}
-			}
-		}
-
-
-	}
-
-	//  signal that we have finished Test Level, restore mapeditor windows
+	// signal that we have finished Test Level, restore mapeditor windows
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetFileMapDWORD (  1, 970, 1 );
 	SetEventAndWait (  1 );
 
-	//  wait until all mouse activity over and escape key released
-	while ( MouseClick() != 0 ) {}
-	while ( ScanCode() != 0 ) {}
+	// LB101019 - this can cause a freeze due to DirectInput bug when screensaver/hybernate kicks in
+	// as the key pressed when waking up the boot screen remains in the key buffer even though key not pressed
+	// though does get cleared later somehow (replace DX Input at some point to avoid this issue)
+	// wait until all mouse activity over and escape key released
+	//while ( MouseClick() != 0 ) {}
+	//while ( ScanCode() != 0 ) {}
 
-	//  Restore camera
+	// Restore camera
 	editor_restoreeditcamera ( );
 	t.updatezoom=1;
 
-	//  Restore ambience for editor when done
+	// Restore ambience for editor when done
 	SetTextFont (  "Verdana"  ); SetTextToBold (  );
 	Ink (  Rgb(255,255,225),0  ); SetTextSize (  26 );
 
-	//  restore object visibilities
+	// restore object visibilities
 	editor_refresheditmarkers ( );
 
-	//  remember game states for next time
+	// remember game states for next time
 	visuals_save ( );
 	t.gamevisuals=t.visuals;
 
-	//  restore shader constants with editor visuals (and bring back some settings we want to retain)
+	// restore shader constants with editor visuals (and bring back some settings we want to retain)
 	t.visuals=t.editorvisuals;
 	t.visuals.skyindex=t.gamevisuals.skyindex;
 	t.visuals.sky_s=t.gamevisuals.sky_s;
@@ -2085,22 +2008,18 @@ void editor_previewmapormultiplayer ( void )
 	t.visuals.vegetationindex=t.gamevisuals.vegetationindex;
 	t.visuals.vegetation_s=t.gamevisuals.vegetation_s;
 
-	// switch to editor non-PBR mode for terrain/veg
-	//t.terrain.iTerrainPBRMode = 0;
-	//t.terrain.iForceTerrainVegShaderUpdate = 1;
-
-	//  and refresh assets based on restore
+	// and refresh assets based on restore
 	t.visuals.refreshshaders=1;
 	visuals_loop ( );
 	visuals_shaderlevels_update ( );
 
-	//  use infinilights to show dynamic lighting in editor
+	// use infinilights to show dynamic lighting in editor
 	lighting_init ( );
 
-	//  Second call will toggle keyboard/mouse back to FOREGROUND
-	SetWindowModeOn (  );
+	// Second call will toggle keyboard/mouse back to FOREGROUND
+	SetWindowModeOn ( );
 
-	//  Close popup message
+	// Close popup message
 	if ( t.conkit.modified == 1 ) 
 	{
 		SleepNow ( 1000 );
@@ -2108,11 +2027,11 @@ void editor_previewmapormultiplayer ( void )
 		t.conkit.modified=0;
 	}
 
-	//  Ensure no terrain/entity editing carried back
+	// Ensure no terrain/entity editing carried back
 	t.terrain.terrainpainteroneshot=0;
 
-	//  Set editor to use a true 1;1 pixel mapping for Text ( , Steam GUI and other overlay images )
-	SetChildWindowTruePixel (  1 );
+	// Set editor to use a true 1;1 pixel mapping for Text ( , Steam GUI and other overlay images )
+	SetChildWindowTruePixel ( 1 );
 	common_refreshDisplaySize ( );
 
 	// restore if project modified
@@ -2121,7 +2040,7 @@ void editor_previewmapormultiplayer ( void )
 	g.projectmodifiedstatic = tstoreprojectmodifiedstatic; 
 	t.tignoreinvalidateobstacles=0;
 
-	//PE: Something is clipping objects when returning to editor.
+	// Something is clipping objects when returning to editor
 	editor_loadcfg();
 	editor_refreshcamerarange();
 }
@@ -2136,7 +2055,7 @@ void editor_multiplayermode ( void )
 
 	//  Set multiplayer flags here
 	t.game.runasmultiplayer=1;
-	editor_previewmapormultiplayer ( );
+	editor_previewmapormultiplayer ( 1 );
 
 	//  As multiplayer can load OTHER things, restore level to state before we clicked MM button
 	t.tfile_s=g.mysystem.editorsGridedit_s+"cfg.cfg";//"editors\\gridedit\\cfg.cfg";
@@ -2160,13 +2079,13 @@ return;
 
 }
 
-void editor_previewmap ( void )
+void editor_previewmap ( int iUseVRTest )
 {
 	//  check if we are in the importer or character creator, if we are, don't test ma
 	editor_checkIfInSubApp ( );
 	//  Set single player test game flags here
 	t.game.runasmultiplayer=0;
-	editor_previewmapormultiplayer ( );
+	editor_previewmapormultiplayer ( iUseVRTest );
 }
 
 void input_getfilemapcontrols ( void )
@@ -2288,13 +2207,12 @@ void input_getfilemapcontrols ( void )
 		if (  GetFileMapDWORD( 1, 908 ) == 1 ) 
 		{
 			// show outtro message if free version mode
-			if ( g.iFreeVersionModeActive == 1 || ( g.iFreeVersionModeActive == 2 && g_trialStampDaysLeft > 0 ) )
+			if ( g.iFreeVersionModeActive == 1 )
 			{
 				t.inputsys.ignoreeditorintermination = 1;
 				welcome_init(1);
 				welcome_init(0);
-				if ( g.iFreeVersionModeActive == 1 ) welcome_show(WELCOME_FREEINTROAPP);
-				if ( g.iFreeVersionModeActive == 2 ) welcome_show(WELCOME_FREETRIALINTROAPP);
+				welcome_show(WELCOME_FREEINTROAPP);
 				t.inputsys.ignoreeditorintermination = 0;
 			}
 
@@ -2384,30 +2302,52 @@ void input_getfilemapcontrols ( void )
 			}
 			if (  t.toolbarset == 9 ) 
 			{
-				//  rem LAUNCH TEST GAME 
+				//  rem LAUNCH TEST GAME
 				switch (  t.toolbarindex ) 
 				{
 					case 1 :
-						editor_previewmap ( );
+						editor_previewmap ( 0 );
 					break;
 					case 2 :
 						editor_multiplayermode ( );
 					break;
-				}		//~   endif
+					case 3 :
+						if ( g.gvrmode == 0 )
+						{
+							HWND hThisWnd = GetForegroundWindow();
+							MessageBox ( hThisWnd, "You are not in VR mode. You need to exit the software. When you restart, select YES when asked whether you would like VR enabled.", "Not in VR Mode", MB_OK );
+							OpenFileMap (  1, "FPSEXCHANGE" );
+							SetFileMapDWORD (  1, 970, 1 );
+							SetEventAndWait (  1 );
+						}
+						else
+						{
+							editor_previewmap ( 1 );
+						}
+					break;
+				}
 			}
-			if (  t.toolbarset == 21 ) 
+			if ( t.toolbarset == 21 ) 
 			{
-				//  HELP MENU Actions
-				switch (  t.toolbarindex ) 
+				// HELP MENU Actions
+				#if VRQUEST
+				switch ( t.toolbarindex ) 
 				{
+					case 1 : editor_showhelppage ( 1 );  break;
+					case 2 : editor_showhelppage ( 2 );  break;
+					case 3 : editor_showhelppage ( 3 );  break;
+				}
+				#else
+				 switch (  t.toolbarindex ) 
+				 {
 					case 1 :
 						editor_showhelppage ( );
 					break;
 					case 2 :
-						//  trigger interactive tutorial panel
 						if (  t.interactive.active == 0  )  t.interactive.active = 2;
 					break;
-				}		//~   endif
+				 }
+				#endif
 			}
 		}
 
@@ -2940,7 +2880,7 @@ void input_getcontrols ( void )
 		if (  t.inputsys.kscancode == 15 && t.inputsys.keypress == 0 ) { t.inputsys.dosinglelayer = 1  ; t.inputsys.keypress = 1; }
 
 		//  F1 for help page
-		if ( t.inputsys.kscancode == 59 ) editor_showhelppage ( );
+		if ( t.inputsys.kscancode == 59 ) editor_showhelppage ( 1 );
 	}
 	else
 	{
@@ -3317,8 +3257,12 @@ void editor_init ( void )
 {
 	//  Load editor images
 	SetMipmapNum(1); //PE: mipmaps not needed.
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\quick-help.png";
-	LoadImage (  t.strwork.Get() ,g.editorimagesoffset+1 );
+	#if VRQUEST
+	 t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\branded\\quick-help.png";
+	#else
+	 t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\quick-help.png";
+	#endif
+	LoadImage (  t.strwork.Get(), g.editorimagesoffset+1 );
 	LoadImage (  "editors\\gfx\\memorymeter.png",g.editorimagesoffset+2 );
 	LoadImage (  "editors\\gfx\\4.bmp",g.editorimagesoffset+3 );
 	LoadImage (  "editors\\gfx\\5.bmp",g.editorimagesoffset+4 );
@@ -3334,12 +3278,14 @@ void editor_init ( void )
 	LoadImage ( t.strwork.Get(), g.editorimagesoffset+61 );
 
 	// Cursor for entity highlighting
-	LoadImage (  "editors\\gfx\\9.png",g.editorimagesoffset+7 );
-	LoadImage (  "editors\\gfx\\13.bmp",g.editorimagesoffset+13 );
-	LoadImage (  "editors\\gfx\\14.png",g.editorimagesoffset+14 );
-	LoadImage (  "editors\\gfx\\18.png",g.editorimagesoffset+18 );
-	LoadImage (  "editors\\gfx\\26.bmp",g.editorimagesoffset+26 );
-	LoadImage (  "editors\\gfx\\cursor.dds",g.editorimagesoffset+10 );
+	LoadImage ( "editors\\gfx\\9.png",g.editorimagesoffset+7 );
+	LoadImage ( "editors\\gfx\\13.bmp",g.editorimagesoffset+13 );
+	LoadImage ( "editors\\gfx\\14-white.png",g.editorimagesoffset+14 );
+	LoadImage ( "editors\\gfx\\14-red.png",g.editorimagesoffset+16 );
+	LoadImage ( "editors\\gfx\\14-green.png",g.editorimagesoffset+17 );
+	LoadImage ( "editors\\gfx\\18.png",g.editorimagesoffset+18 );	
+	LoadImage ( "editors\\gfx\\26.png",g.editorimagesoffset+26 );//LoadImage (  "editors\\gfx\\26.bmp",g.editorimagesoffset+26 );
+	LoadImage ( "editors\\gfx\\cursor.dds",g.editorimagesoffset+10 );
 
 	//  F9 Edit Mode Graphical Prompts
 	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\f9-help-terrain.png";
@@ -3348,6 +3294,14 @@ void editor_init ( void )
 	LoadImage ( t.strwork.Get() ,g.editorimagesoffset+22 );
 	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\f9-help-conkit.png";
 	LoadImage ( t.strwork.Get() ,g.editorimagesoffset+23 );
+
+	// new images for editor extra help
+	#ifdef VRQUEST
+	 t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\branded\\testgamelayout-noweapons.png";
+ 	 LoadImage (  t.strwork.Get(), g.editorimagesoffset+27 );
+	 t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\branded\\testgamelayout-vr.png";
+ 	 LoadImage (  t.strwork.Get(), g.editorimagesoffset+28 );
+	#endif
 
 	//  Also loaded by interactive mode when active
 	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\interactive\\close-highlight.png",g.interactiveimageoffset+15 );
@@ -3747,53 +3701,69 @@ void editor_clearlibrary ( void )
 	t.tadd=2;
 
 	//  Determine if extra ZONES included
-	t.tstoryzoneincluded=27;
-	//if ( g.vrqcontrolmode != 0 )
-	//{
-	//	// if VRQ, also add extra zones
-	//	t.tstoryzoneincluded=18;
-	//}
+	t.tstoryzoneincluded=25;
+	if ( g.vrqcontrolmode != 0 )
+		t.tstoryzoneincluded=23;
 
 	//  Default markers
 	for ( t.tt = 0 ; t.tt <= t.tstoryzoneincluded; t.tt++ )
 	{
-		if (  t.tt == 0 ) { t.t1_s = t.strarr_s[349]  ; t.t2_s = "files\\entitybank\\_markers\\player start.bmp"; }
-		if (  t.tt == 1 ) { t.t1_s = t.strarr_s[350]  ; t.t2_s = "files\\entitybank\\_markers\\player checkpoint.bmp"; }
-		if (  t.tt == 2 ) { t.t1_s = t.strarr_s[658]  ; t.t2_s = "files\\entitybank\\_markers\\cover zone.bmp"; }
-		if (  t.tt == 3 ) { t.t1_s = t.strarr_s[659]  ; t.t2_s = "files\\entitybank\\_markers\\multiplayer start.bmp"; }
-		if (  t.tt == 4 ) { t.t1_s = t.strarr_s[351]  ; t.t2_s = "files\\entitybank\\_markers\\white light.bmp"; }
-		if (  t.tt == 5 ) { t.t1_s = t.strarr_s[352]  ; t.t2_s = "files\\entitybank\\_markers\\red light.bmp"; }
-		if (  t.tt == 6 ) { t.t1_s = t.strarr_s[353]  ; t.t2_s = "files\\entitybank\\_markers\\green light.bmp"; }
-		if (  t.tt == 7 ) { t.t1_s = t.strarr_s[354]  ; t.t2_s = "files\\entitybank\\_markers\\blue light.bmp"; }
-		if (  t.tt == 8 ) { t.t1_s = t.strarr_s[355]  ; t.t2_s = "files\\entitybank\\_markers\\yellow light.bmp"; }
-		if (  t.tt == 9 ) { t.t1_s = t.strarr_s[356]  ; t.t2_s = "files\\entitybank\\_markers\\purple light.bmp"; }
-		if (  t.tt == 10 ) { t.t1_s = t.strarr_s[357]  ; t.t2_s = "files\\entitybank\\_markers\\cyan light.bmp"; }
-		if (  t.tt == 11 ) { t.t1_s = t.strarr_s[360]  ; t.t2_s = "files\\entitybank\\_markers\\win zone.bmp"; }
-		if (  t.tt == 12 ) { t.t1_s = t.strarr_s[361]  ; t.t2_s = "files\\entitybank\\_markers\\trigger zone.bmp"; }
 		if ( g.vrqcontrolmode != 0 )
 		{
-			if (  t.tt == 13 ) { t.t1_s = "Audio Zone"  ; t.t2_s = "files\\entitybank\\_markers\\audio zone.bmp"; }
-			if (  t.tt == 14 ) { t.t1_s = "Video Zone"  ; t.t2_s = "files\\entitybank\\_markers\\video zone.bmp"; }
+			if (  t.tt == 0 ) { t.t1_s = t.strarr_s[349]  ; t.t2_s = "files\\entitybank\\_markers\\player start.bmp"; }
+			if (  t.tt == 1 ) { t.t1_s = t.strarr_s[659]  ; t.t2_s = "files\\entitybank\\_markers\\multiplayer start.bmp"; }
+			if (  t.tt == 2 ) { t.t1_s = t.strarr_s[351]  ; t.t2_s = "files\\entitybank\\_markers\\white light.bmp"; }
+			if (  t.tt == 3 ) { t.t1_s = t.strarr_s[352]  ; t.t2_s = "files\\entitybank\\_markers\\red light.bmp"; }
+			if (  t.tt == 4 ) { t.t1_s = t.strarr_s[353]  ; t.t2_s = "files\\entitybank\\_markers\\green light.bmp"; }
+			if (  t.tt == 5 ) { t.t1_s = t.strarr_s[354]  ; t.t2_s = "files\\entitybank\\_markers\\blue light.bmp"; }
+			if (  t.tt == 6 ) { t.t1_s = t.strarr_s[355]  ; t.t2_s = "files\\entitybank\\_markers\\yellow light.bmp"; }
+			if (  t.tt == 7 ) { t.t1_s = t.strarr_s[356]  ; t.t2_s = "files\\entitybank\\_markers\\purple light.bmp"; }
+			if (  t.tt == 8 ) { t.t1_s = t.strarr_s[357]  ; t.t2_s = "files\\entitybank\\_markers\\cyan light.bmp"; }
+			if (  t.tt == 9 ) { t.t1_s = t.strarr_s[360]  ; t.t2_s = "files\\entitybank\\_markers\\win zone.bmp"; }
+			if (  t.tt == 10 ) { t.t1_s = t.strarr_s[361]  ; t.t2_s = "files\\entitybank\\_markers\\trigger zone.bmp"; }
+			if (  t.tt == 11 ) { t.t1_s = "Audio Zone"  ; t.t2_s = "files\\entitybank\\_markers\\audio zone.bmp"; }
+			if (  t.tt == 12 ) { t.t1_s = "Video Zone"  ; t.t2_s = "files\\entitybank\\_markers\\video zone.bmp"; }
+			if (  t.tt == 13 ) { t.t1_s = "Floor Zone"; t.t2_s = "files\\entitybank\\_markers\\floor zone.bmp"; }
+			if (  t.tt == 14 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
+			if (  t.tt == 15 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
+			if (  t.tt == 16 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
+			if (  t.tt == 17 ) { t.t1_s = "White Spotlight"; t.t2_s = "files\\entitybank\\_markers\\white light spot.bmp"; }
+			if (  t.tt == 18 ) { t.t1_s = "Red Spotlight"; t.t2_s = "files\\entitybank\\_markers\\red light spot.bmp"; }
+			if (  t.tt == 19 ) { t.t1_s = "Green Spotlight"; t.t2_s = "files\\entitybank\\_markers\\green light spot.bmp"; }
+			if (  t.tt == 20 ) { t.t1_s = "Blue Spotlight"; t.t2_s = "files\\entitybank\\_markers\\blue light spot.bmp"; }
+			if (  t.tt == 21 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
+			if (  t.tt == 22 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
+			if (  t.tt == 23 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
 		}
 		else
 		{
+			if (  t.tt == 0 ) { t.t1_s = t.strarr_s[349]  ; t.t2_s = "files\\entitybank\\_markers\\player start.bmp"; }
+			if (  t.tt == 1 ) { t.t1_s = t.strarr_s[350]  ; t.t2_s = "files\\entitybank\\_markers\\player checkpoint.bmp"; }
+			if (  t.tt == 2 ) { t.t1_s = t.strarr_s[658]  ; t.t2_s = "files\\entitybank\\_markers\\cover zone.bmp"; }
+			if (  t.tt == 3 ) { t.t1_s = t.strarr_s[659]  ; t.t2_s = "files\\entitybank\\_markers\\multiplayer start.bmp"; }
+			if (  t.tt == 4 ) { t.t1_s = t.strarr_s[351]  ; t.t2_s = "files\\entitybank\\_markers\\white light.bmp"; }
+			if (  t.tt == 5 ) { t.t1_s = t.strarr_s[352]  ; t.t2_s = "files\\entitybank\\_markers\\red light.bmp"; }
+			if (  t.tt == 6 ) { t.t1_s = t.strarr_s[353]  ; t.t2_s = "files\\entitybank\\_markers\\green light.bmp"; }
+			if (  t.tt == 7 ) { t.t1_s = t.strarr_s[354]  ; t.t2_s = "files\\entitybank\\_markers\\blue light.bmp"; }
+			if (  t.tt == 8 ) { t.t1_s = t.strarr_s[355]  ; t.t2_s = "files\\entitybank\\_markers\\yellow light.bmp"; }
+			if (  t.tt == 9 ) { t.t1_s = t.strarr_s[356]  ; t.t2_s = "files\\entitybank\\_markers\\purple light.bmp"; }
+			if (  t.tt == 10 ) { t.t1_s = t.strarr_s[357]  ; t.t2_s = "files\\entitybank\\_markers\\cyan light.bmp"; }
+			if (  t.tt == 11 ) { t.t1_s = t.strarr_s[360]  ; t.t2_s = "files\\entitybank\\_markers\\win zone.bmp"; }
+			if (  t.tt == 12 ) { t.t1_s = t.strarr_s[361]  ; t.t2_s = "files\\entitybank\\_markers\\trigger zone.bmp"; }
 			if (  t.tt == 13 ) { t.t1_s = t.strarr_s[362]  ; t.t2_s = "files\\entitybank\\_markers\\sound zone.bmp"; }
 			if (  t.tt == 14 ) { t.t1_s = t.strarr_s[607]  ; t.t2_s = "files\\entitybank\\_markers\\story zone.bmp"; }
+			if (  t.tt == 15 ) { t.t1_s = "Floor Zone"; t.t2_s = "files\\entitybank\\_markers\\floor zone.bmp"; }
+			if (  t.tt == 16 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
+			if (  t.tt == 17 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
+			if (  t.tt == 18 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
+			if (  t.tt == 19 ) { t.t1_s = "White Spotlight"; t.t2_s = "files\\entitybank\\_markers\\white light spot.bmp"; }
+			if (  t.tt == 20 ) { t.t1_s = "Red Spotlight"; t.t2_s = "files\\entitybank\\_markers\\red light spot.bmp"; }
+			if (  t.tt == 21 ) { t.t1_s = "Green Spotlight"; t.t2_s = "files\\entitybank\\_markers\\green light spot.bmp"; }
+			if (  t.tt == 22 ) { t.t1_s = "Blue Spotlight"; t.t2_s = "files\\entitybank\\_markers\\blue light spot.bmp"; }
+			if (  t.tt == 23 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
+			if (  t.tt == 24 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
+			if (  t.tt == 25 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
 		}
-		if (  t.tt == 15 ) { t.t1_s = "Floor Zone"; t.t2_s = "files\\entitybank\\_markers\\floor zone.bmp"; }
-		if (  t.tt == 16 ) { t.t1_s = "Image Zone"; t.t2_s = "files\\entitybank\\_markers\\image zone.bmp"; }
-		if (  t.tt == 17 ) { t.t1_s = "Text Zone"; t.t2_s = "files\\entitybank\\_markers\\text zone.bmp"; }
-		if (  t.tt == 18 ) { t.t1_s = "Ambience Zone"; t.t2_s = "files\\entitybank\\_markers\\ambience zone.bmp"; }
-		if (  t.tt == 19 ) { t.t1_s = "White Spotlight"; t.t2_s = "files\\entitybank\\_markers\\white light spot.bmp"; }
-		if (  t.tt == 20 ) { t.t1_s = "Red Spotlight"; t.t2_s = "files\\entitybank\\_markers\\red light spot.bmp"; }
-		if (  t.tt == 21 ) { t.t1_s = "Green Spotlight"; t.t2_s = "files\\entitybank\\_markers\\green light spot.bmp"; }
-		if (  t.tt == 22 ) { t.t1_s = "Blue Spotlight"; t.t2_s = "files\\entitybank\\_markers\\blue light spot.bmp"; }
-		if (  t.tt == 23 ) { t.t1_s = "Yellow Spotlight"; t.t2_s = "files\\entitybank\\_markers\\yellow light spot.bmp"; }
-		if (  t.tt == 24 ) { t.t1_s = "Purple Spotlight"; t.t2_s = "files\\entitybank\\_markers\\purple light spot.bmp"; }
-		if (  t.tt == 25 ) { t.t1_s = "Cyan Spotlight"; t.t2_s = "files\\entitybank\\_markers\\cyan light spot.bmp"; }
-		if (t.tt == 26) { t.t1_s = t.strarr_s[363]; t.t2_s = "files\\entitybank\\_markers\\Heal zone.bmp"; } // BOTR addition for FPSC 2 GG FPM program
-		if (t.tt == 27) { t.t1_s = t.strarr_s[364]; t.t2_s = "files\\entitybank\\_markers\\Hurt zone.bmp"; } // BOTR addition for FPSC 2 GG FPM program
-
 		SetFileMapDWORD (  1, 508, t.tadd );
 		SetFileMapString (  1, 1000, cstr(g.mysystem.root_s+t.t2_s).Get() );
 		SetFileMapString (  1, 1256, t.t1_s.Get() );
@@ -3807,43 +3777,62 @@ void editor_clearlibrary ( void )
 
 	//  actual entity names of the markers
 	Dim ( t.markerentitybank_s, 30 );
-	t.markerentitybank_s[1]="_markers\\player start.fpe";
-	t.markerentitybank_s[2]="_markers\\player checkpoint.fpe";
-	t.markerentitybank_s[3]="_markers\\cover zone.fpe";
-	t.markerentitybank_s[4]="_markers\\multiplayer start.fpe";
-	t.markerentitybank_s[5]="_markers\\white light.fpe";
-	t.markerentitybank_s[6]="_markers\\red light.fpe";
-	t.markerentitybank_s[7]="_markers\\green light.fpe";
-	t.markerentitybank_s[8]="_markers\\blue light.fpe";
-	t.markerentitybank_s[9]="_markers\\yellow light.fpe";
-	t.markerentitybank_s[10]="_markers\\purple light.fpe";
-	t.markerentitybank_s[11]="_markers\\cyan light.fpe";
-	t.markerentitybank_s[12]="_markers\\win zone.fpe";
-	t.markerentitybank_s[13]="_markers\\trigger zone.fpe";
-	t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
-	t.markerentitybank_s[27] = "_markers\\Heal zone.fpe"; // BOTR addition for FPSC 2 GG FPM program
-	t.markerentitybank_s[28] = "_markers\\Hurt zone.fpe"; // BOTR addition for FPSC 2 GG FPM program
-
 	if ( g.vrqcontrolmode != 0 )
 	{
-		t.markerentitybank_s[14] = "_markers\\audio zone.fpe";
-		t.markerentitybank_s[15] = "_markers\\video zone.fpe";
+		t.markerentitybank_s[1]="_markers\\player start.fpe";
+		t.markerentitybank_s[2]="_markers\\multiplayer start.fpe";
+		t.markerentitybank_s[3]="_markers\\white light.fpe";
+		t.markerentitybank_s[4]="_markers\\red light.fpe";
+		t.markerentitybank_s[5]="_markers\\green light.fpe";
+		t.markerentitybank_s[6]="_markers\\blue light.fpe";
+		t.markerentitybank_s[7]="_markers\\yellow light.fpe";
+		t.markerentitybank_s[8]="_markers\\purple light.fpe";
+		t.markerentitybank_s[9]="_markers\\cyan light.fpe";
+		t.markerentitybank_s[10]="_markers\\win zone.fpe";
+		t.markerentitybank_s[11]="_markers\\trigger zone.fpe";
+		t.markerentitybank_s[12] = "_markers\\audio zone.fpe";
+		t.markerentitybank_s[13] = "_markers\\video zone.fpe";
+		t.markerentitybank_s[14] = "_markers\\floor zone.fpe";
+		t.markerentitybank_s[15] = "_markers\\image zone.fpe";
+		t.markerentitybank_s[16] = "_markers\\text zone.fpe";
+		t.markerentitybank_s[17] = "_markers\\ambience zone.fpe";
+		t.markerentitybank_s[18] = "_markers\\white light spot.fpe";
+		t.markerentitybank_s[19] = "_markers\\red light spot.fpe";
+		t.markerentitybank_s[20] = "_markers\\green light spot.fpe";
+		t.markerentitybank_s[21] = "_markers\\blue light spot.fpe";
+		t.markerentitybank_s[22] = "_markers\\yellow light spot.fpe";
+		t.markerentitybank_s[23] = "_markers\\purple light spot.fpe";
+		t.markerentitybank_s[24] = "_markers\\cyan light spot.fpe";
 	}
 	else
 	{
+		t.markerentitybank_s[1]="_markers\\player start.fpe";
+		t.markerentitybank_s[2]="_markers\\player checkpoint.fpe";
+		t.markerentitybank_s[3]="_markers\\cover zone.fpe";
+		t.markerentitybank_s[4]="_markers\\multiplayer start.fpe";
+		t.markerentitybank_s[5]="_markers\\white light.fpe";
+		t.markerentitybank_s[6]="_markers\\red light.fpe";
+		t.markerentitybank_s[7]="_markers\\green light.fpe";
+		t.markerentitybank_s[8]="_markers\\blue light.fpe";
+		t.markerentitybank_s[9]="_markers\\yellow light.fpe";
+		t.markerentitybank_s[10]="_markers\\purple light.fpe";
+		t.markerentitybank_s[11]="_markers\\cyan light.fpe";
+		t.markerentitybank_s[12]="_markers\\win zone.fpe";
+		t.markerentitybank_s[13]="_markers\\trigger zone.fpe";
 		t.markerentitybank_s[14] = "_markers\\sound zone.fpe";
 		t.markerentitybank_s[15] = "_markers\\story zone.fpe";
+		t.markerentitybank_s[16] = "_markers\\floor zone.fpe";
+		t.markerentitybank_s[17] = "_markers\\image zone.fpe";
+		t.markerentitybank_s[18] = "_markers\\text zone.fpe";
+		t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
+		t.markerentitybank_s[20] = "_markers\\white light spot.fpe";
+		t.markerentitybank_s[21] = "_markers\\red light spot.fpe";
+		t.markerentitybank_s[22] = "_markers\\green light spot.fpe";
+		t.markerentitybank_s[23] = "_markers\\blue light spot.fpe";
+		t.markerentitybank_s[24] = "_markers\\yellow light spot.fpe";
+		t.markerentitybank_s[25] = "_markers\\purple light spot.fpe";
+		t.markerentitybank_s[26] = "_markers\\cyan light spot.fpe";
 	}
-	t.markerentitybank_s[17] = "_markers\\image zone.fpe";
-	t.markerentitybank_s[18] = "_markers\\text zone.fpe";
-	t.markerentitybank_s[19] = "_markers\\ambience zone.fpe";
-	t.markerentitybank_s[20] = "_markers\\white light spot.fpe";
-	t.markerentitybank_s[21] = "_markers\\red light spot.fpe";
-	t.markerentitybank_s[22] = "_markers\\green light spot.fpe";
-	t.markerentitybank_s[23] = "_markers\\blue light spot.fpe";
-	t.markerentitybank_s[24] = "_markers\\yellow light spot.fpe";
-	t.markerentitybank_s[25] = "_markers\\purple light spot.fpe";
-	t.markerentitybank_s[26] = "_markers\\cyan light spot.fpe";
 
 	// only if EBE enabled
 	if ( g.globals.hideebe == 0 )
@@ -4747,7 +4736,7 @@ if ( t.inputsys.dosave == 1 )
 if ( t.inputsys.doopen == 1 ) gridedit_open_map_ask ( );
 if ( t.inputsys.donew == 1 || t.inputsys.donewflat == 1 ) gridedit_new_map_ask ( );
 if ( t.inputsys.dosaveas == 1 ) gridedit_saveas_map ( );
-if ( t. inputsys.dosaveandrun==1 ) { t.inputsys.dosaveandrun = 0 ; editor_previewmap ( ); }
+if ( t. inputsys.dosaveandrun==1 ) { t.inputsys.dosaveandrun = 0 ; editor_previewmap ( 0 ); }
 
 //  Undo \ Redo
 if ( t.inputsys.doundo == 1 ) editor_undo ( );
@@ -6359,8 +6348,8 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 				//if (  t.entityprofile[t.gridentity].ischaracter == 1 && t.entityprofile[t.gridentity].isthirdperson == 1 ) 
 				if (  t.entityprofile[t.gridentity].ischaracter == 1 ) // 220217 - now for all characters
 				{
-					//  third person char+marker detection
-					if (  t.playercontrol.thirdperson.enabled == 0 ) 
+					// third person char+marker detection (will not work in VR edit mode)
+					if ( t.playercontrol.thirdperson.enabled == 0 && g.vrqcontrolmode == 0 ) 
 					{
 						t.tattachtothis=findentitycursorobj(-1);
 						if (  t.tattachtothis>0 ) 
@@ -7866,7 +7855,24 @@ void gridedit_new_map ( void )
 	lm_emptylightmapfolder ( );
 
 	// Empty EBEs from testmap folder
-	cstr pStoreOld = GetDir(); SetDir ( g.mysystem.levelBankTestMap_s.Get() );
+	cstr pStoreOld = GetDir(); 
+	if ( PathExist ( g.mysystem.levelBankTestMap_s.Get() ) == 0 )
+	{
+		// somehow levelbank\testmap folder gone (can be deleted sometimes)
+		SetDir ( cstr(g.fpscrootdir_s + "\\Files\\").Get() );
+		if ( PathExist ( "levelbank" ) == 0 )
+		{
+			MakeDirectory ( "levelbank" );
+			SetDir ( "levelbank" );
+		}
+		if ( PathExist ( "testmap" ) == 0 )
+		{
+			MakeDirectory ( "testmap" );
+			SetDir ( "testmap" );
+		}
+	}
+	else
+		SetDir ( g.mysystem.levelBankTestMap_s.Get() );
 	mapfile_emptyebesfromtestmapfolder(false);
 	SetDir ( pStoreOld.Get() );
 
@@ -7874,7 +7880,9 @@ void gridedit_new_map ( void )
 	SetDir ( g.mysystem.levelBankTestMap_s.Get() );
 	if ( FileExist ( "superpalette.ter" ) == 1 ) DeleteFile ( "superpalette.ter" );
 	if ( FileExist ( "Texture_D.dds" ) == 1 ) DeleteFile ( "Texture_D.dds" );
+	if ( FileExist ( "Texture_D.jpg" ) == 1 ) DeleteFile ( "Texture_D.jpg" );
 	if ( FileExist ( "Texture_N.dds" ) == 1 ) DeleteFile ( "Texture_N.dds" );
+	if ( FileExist ( "Texture_N.jpg" ) == 1 ) DeleteFile ( "Texture_N.jpg" );
 	if ( FileExist ( "globalenvmap.dds" ) == 1 ) DeleteFile ( "globalenvmap.dds" );
 	SetDir ( pStoreOld.Get() );
 
@@ -8263,12 +8271,12 @@ void gridedit_import_ask ( void )
 		{
 			if (  t.tdone  ==  0 ) 
 			{
-				SetFileMapString ( 1 , 1256 , "Choose an X, 3DS or FBX file for a new object or an .fpe file for existing (*.*)" );
+				SetFileMapString ( 1 , 1256 , "Choose an X or FBX file for a new object or an .fpe file for existing (*.*)" );
 				SetFileMapString (  1, 1512, "Import New Entity" );
 			}
 			else
 			{
-				SetFileMapString (  1, 1256, "Please try again ) You must choose either an X, 3DS or FBX file or an .fpe file! (*.*)" );
+				SetFileMapString (  1, 1256, "Please try again ) You must choose either an X or FBX file or an .fpe file! (*.*)" );
 				SetFileMapString (  1, 1512, "Invalid File, Please t.try again" );
 			}
 			SetFileMapDWORD (  1, 424, 1 );
@@ -8280,7 +8288,6 @@ void gridedit_import_ask ( void )
 			t.returnstring_s=GetFileMapString(1, 1000);
 			t.tdone = 1;
 			if (	strcmp ( Lower(Right(t.returnstring_s.Get(),2)) , ".x" ) == 0 
-			||		strcmp ( Lower(Right(t.returnstring_s.Get(),4)) ,".3ds" ) == 0 
 			||		strcmp ( Lower(Right(t.returnstring_s.Get(),4)) ,".fbx" ) == 0 
 			||		strcmp ( Lower(Right(t.returnstring_s.Get(),4)) , ".dbo" ) == 0 
 			||		strcmp ( Lower(Right(t.returnstring_s.Get(),4)) , ".fpe" ) == 0 
@@ -8837,6 +8844,10 @@ void interface_openpropertywindow ( void )
 	//  wait until the entity window is read
 	if (  GetFileMapDWORD( 2, ENTITY_SETUP )  ==  1 ) 
 	{
+		// special VRQ2 mode also hides concepts of lives, health, blood, violence (substitute health for strength)
+		bool bVRQ2ZeroViolenceMode = false;
+		if ( g.vrqcontrolmode != 0 ) bVRQ2ZeroViolenceMode = true;//if ( g.gvrmode == 3 ) bVRQ2ZeroViolenceMode = true;
+
 		//  Setup usage flags
 		t.tsimplecharview=0;
 		t.tflaglives=0 ; t.tflaglight=0 ; t.tflagobjective=0 ; t.tflagtdecal=0 ; t.tflagdecalparticle=0 ; t.tflagspawn=0 ; t.tflagifused=0;
@@ -8966,6 +8977,19 @@ void interface_openpropertywindow ( void )
 			t.tflagammo = 0;
 		}
 
+		// special VR mode can remove even more
+		t.tflagnotionofhealth = 1;
+		t.tflagsimpler = 0;
+		if ( bVRQ2ZeroViolenceMode == true )
+		{
+			t.tflaglives=0; 
+			t.tflaghurtfall=0; 
+			t.tflaghasweapon=0; 
+			t.tflagammoclip=0;
+			t.tflagnotionofhealth=0;
+			t.tflagsimpler = 1;
+		}
+
 		//  set array and counters to track scope of contents of each group
 		Dim (  t.propfield,16  );
 		for ( t.t = 0 ; t.t <= 16 ; t.t++ ) t.propfield[t.t]=0 ; 
@@ -8986,7 +9010,7 @@ void interface_openpropertywindow ( void )
 		{
 			//  Wizard (simplified) property editing
 			t.group=0 ; startgroup("Character Info") ; t.controlindex=0;
-			setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[413].Get(),"Choose a unique name for this character") ; ++t.controlindex;
+			setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[478].Get(),"Choose a unique name for this character") ; ++t.controlindex;
 			setpropertylist2(t.group,t.controlindex,t.grideleprof.aimain_s.Get(),"Behaviour","Select a behaviour for this character",11) ; ++t.controlindex;
 			setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Voiceover","Select t.a WAV or OGG file this character will use during their behaviour","audiobank\\") ; ++t.controlindex;
 			setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),"If Used","Sometimes used to specify the name of an entity to be activated") ; ++t.controlindex;
@@ -8995,7 +9019,23 @@ void interface_openpropertywindow ( void )
 		{
 			//  Name
 			t.group=0 ; startgroup(t.strarr_s[412].Get()) ; t.controlindex=0;
-			setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[413].Get(),t.strarr_s[204].Get()) ; ++t.controlindex;
+			if ( t.entityprofile[t.gridentity].ischaracter > 0 )
+			{
+				setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[478].Get(),t.strarr_s[204].Get());
+			}
+			else
+			{
+				if ( t.entityprofile[t.gridentity].ismarker > 0 )
+				{
+					if ( t.entityprofile[t.gridentity].islightmarker > 0 )
+						setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[483].Get(),t.strarr_s[204].Get());
+					else
+						setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[479].Get(),t.strarr_s[204].Get());
+				}
+				else
+					setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[413].Get(),t.strarr_s[204].Get());
+			}
+			++t.controlindex;
 			if (  t.entityprofile[t.gridentity].ismarker == 0 || t.entityprofile[t.gridentity].islightmarker == 1 ) 
 			{
 				if (  g.gentitytogglingoff == 0 ) 
@@ -9019,8 +9059,11 @@ void interface_openpropertywindow ( void )
 			// 101016 - Additional General Parameters
 			if ( t.tflagchar == 0 && t.tflagvis == 1 ) 
 			{
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocluder),"Occluder","Set to YES makes this entity an occluder",0) ; ++t.controlindex;
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocludee),"Occludee","Set to YES makes this entity an occludee",0) ; ++t.controlindex;
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocluder),"Occluder","Set to YES makes this entity an occluder",0) ; ++t.controlindex;
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocludee),"Occludee","Set to YES makes this entity an occludee",0) ; ++t.controlindex;
+				}
 				
 				// these will be back when EBE needs doors and windows
 				//setpropertystring2(t.group,Str(t.grideleprof.parententityindex),"Parent Index","Selects another entity element to be a parent") ; ++t.controlindex;
@@ -9030,7 +9073,10 @@ void interface_openpropertywindow ( void )
 			// 281116 - added Specular Control per entity
 			if ( t.tflagvis == 1 ) 
 			{
-				setpropertystring2(t.group,Str(t.grideleprof.specularperc),"Specular","Set specular percentage to modulate entity specular effect")  ; ++t.controlindex; 
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertystring2(t.group,Str(t.grideleprof.specularperc),"Specular","Set specular percentage to modulate entity specular effect")  ; ++t.controlindex; 
+				}
 			}
 
 			//  Basic AI
@@ -9054,7 +9100,7 @@ void interface_openpropertywindow ( void )
 				}
 
 				t.propfield[t.group]=t.controlindex;
-				++t.group ; startgroup("AI System") ; t.controlindex=0;
+				++t.group ; startgroup(t.strarr_s[415].Get()) ; t.controlindex=0;
 				setpropertyfile2(t.group,t.grideleprof.aimain_s.Get(),t.strarr_s[417].Get(),t.strarr_s[207].Get(),pAIRoot) ; ++t.controlindex;
 			}
 
@@ -9084,20 +9130,26 @@ void interface_openpropertywindow ( void )
 					setpropertystring2(t.group,Str(t.grideleprof.bounceqty),t.strarr_s[427].Get(),t.strarr_s[217].Get()) ; ++t.controlindex;
 					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodeonhit),t.strarr_s[428].Get(),t.strarr_s[218].Get(),0) ; ++t.controlindex;
 				}
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.usespotlighting),"Spot Lighting","Set whether emits dynamic spot lighting",0) ; ++t.controlindex;
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.usespotlighting),"Spot Lighting","Set whether emits dynamic spot lighting",0) ; ++t.controlindex;
+				}
 			}
 
 			//  Is Character
 			if (  t.tflagchar == 1 ) 
 			{
-				// 020316 - special check to avoid offering can take weapon if no HUD.X
-				t.tfile_s = cstr("gamecore\\guns\\") + t.grideleprof.hasweapon_s + cstr("\\HUD.X");
-				if ( FileExist(t.tfile_s.Get()) == 1 ) 
+				if ( t.tflagsimpler == 0 )
 				{
-					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.cantakeweapon),t.strarr_s[429].Get(),t.strarr_s[219].Get(),0) ; ++t.controlindex;
-					setpropertystring2(t.group,Str(t.grideleprof.quantity),t.strarr_s[430].Get(),t.strarr_s[220].Get()) ; ++t.controlindex;
+					// 020316 - special check to avoid offering can take weapon if no HUD.X
+					t.tfile_s = cstr("gamecore\\guns\\") + t.grideleprof.hasweapon_s + cstr("\\HUD.X");
+					if ( FileExist(t.tfile_s.Get()) == 1 ) 
+					{
+						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.cantakeweapon),t.strarr_s[429].Get(),t.strarr_s[219].Get(),0) ; ++t.controlindex;
+						setpropertystring2(t.group,Str(t.grideleprof.quantity),t.strarr_s[430].Get(),t.strarr_s[220].Get()) ; ++t.controlindex;
+					}
+					setpropertystring2(t.group,Str(t.grideleprof.rateoffire),t.strarr_s[431].Get(),t.strarr_s[221].Get()) ; ++t.controlindex;
 				}
-				setpropertystring2(t.group,Str(t.grideleprof.rateoffire),t.strarr_s[431].Get(),t.strarr_s[221].Get()) ; ++t.controlindex;
 			}
 			if ( t.tflagquantity == 1 && g.quickparentalcontrolmode != 2 ) 
 			{ 
@@ -9110,11 +9162,16 @@ void interface_openpropertywindow ( void )
 				if (  t.tflagchar == 1 ) 
 				{
 					setpropertystring2(t.group,Str(t.grideleprof.coneangle),t.strarr_s[434].Get(),t.strarr_s[224].Get()) ; ++t.controlindex;
-					setpropertystring2(t.group,Str(t.grideleprof.conerange),"View Range","The range within which the AI may see the player. Zero triggers the characters default range.") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.conerange),t.strarr_s[476].Get(),"The range within which the AI may see the player. Zero triggers the characters default range.") ; ++t.controlindex;
 					setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[226].Get()) ; ++t.controlindex;
 					if ( g.quickparentalcontrolmode != 2 )
+					{
 						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isviolent),"Blood Effects","Sets whether blood and screams should be used",0) ; ++t.controlindex;
-					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.colondeath),"End Collision","Set to NO switches off collision when die",0) ; ++t.controlindex;
+					}
+					if ( t.tflagsimpler == 0 )
+					{
+						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.colondeath),"End Collision","Set to NO switches off collision when die",0) ; ++t.controlindex;
+					}
 				}
 				else
 				{
@@ -9123,7 +9180,14 @@ void interface_openpropertywindow ( void )
 						t.propfield[t.group]=t.controlindex;
 						++t.group ; startgroup(t.strarr_s[435].Get()) ; t.controlindex=0;
 						setpropertystring2(t.group,t.grideleprof.usekey_s.Get(),t.strarr_s[436].Get(),t.strarr_s[225].Get()) ; ++t.controlindex;
-						setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[226].Get()) ; ++t.controlindex;
+						if ( t.tflagsimpler != 0 & t.entityprofile[t.gridentity].ismarker == 3 && t.entityprofile[t.gridentity].trigger.stylecolor == 1 )
+						{
+							// only one level - no winzone chain option
+						}
+						else
+						{
+							setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[226].Get()) ; ++t.controlindex;
+						}
 					}
 				}
 			}
@@ -9133,7 +9197,14 @@ void interface_openpropertywindow ( void )
 				{
 					setpropertystring2(t.group,t.grideleprof.usekey_s.Get(),t.strarr_s[436].Get(),t.strarr_s[225].Get()) ; ++t.controlindex;
 				}
-				setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[438].Get(),t.strarr_s[227].Get()) ; ++t.controlindex;
+				if ( t.tflagsimpler != 0 & t.entityprofile[t.gridentity].ismarker == 3 && t.entityprofile[t.gridentity].trigger.stylecolor == 1 )
+				{
+					// only one level - no winzone chain option
+				}
+				else
+				{
+					setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[227].Get()) ; ++t.controlindex;
+				}
 			}
 
 			//  Spawn Settings
@@ -9187,7 +9258,10 @@ void interface_openpropertywindow ( void )
 					}
 					else
 					{
-						setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[454].Get(),t.strarr_s[244].Get()) ; ++t.controlindex;
+						if ( t.tflagnotionofhealth == 1 )
+						{
+							setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[454].Get(),t.strarr_s[244].Get()) ; ++t.controlindex;
+						}
 					}
 					if (  t.tflagplayersettings == 1 ) 
 					{
@@ -9195,23 +9269,23 @@ void interface_openpropertywindow ( void )
 						{
 							setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isviolent),"Blood Effects","Sets whether blood and screams should be used",0) ; ++t.controlindex;
 						}
-						setpropertystring2(t.group,Str(t.playercontrol.regenrate),"Regeneration Rate","Sets the increase value at which the players health will restore")  ; ++t.controlindex;
-						setpropertystring2(t.group,Str(t.playercontrol.regenspeed),"Regeneration Speed","Sets the speed in milliseconds at which the players health will regenerate") ; ++t.controlindex;
-						setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
+						if ( t.tflagnotionofhealth == 1 )
+						{
+							setpropertystring2(t.group,Str(t.playercontrol.regenrate),"Regeneration Rate","Sets the increase value at which the players health will restore")  ; ++t.controlindex;
+							setpropertystring2(t.group,Str(t.playercontrol.regenspeed),"Regeneration Speed","Sets the speed in milliseconds at which the players health will regenerate") ; ++t.controlindex;
+							setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
+						}
 					}
 					setpropertystring2(t.group,Str(t.grideleprof.speed),t.strarr_s[455].Get(),t.strarr_s[245].Get()) ; ++t.controlindex;
-
-					//PE: we cant do this , as t.playercontrol.thirdperson.enabled is a global and will trigger for ALL objects.
-					//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/310
-//					if (  t.playercontrol.thirdperson.enabled == 1 ) 
-//					{
-//						t.tanimspeed_f=t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
-//					}
-//					else
-//					{
+					if (  t.playercontrol.thirdperson.enabled == 1 ) 
+					{
+						t.tanimspeed_f=t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
+					}
+					else
+					{
 						t.tanimspeed_f=t.grideleprof.animspeed;
-//					}
-					setpropertystring2(t.group,Str(t.tanimspeed_f),"Anim Speed","Sets the default speed of any animation associated with this entity"); ++t.controlindex;
+					}
+					setpropertystring2(t.group,Str(t.tanimspeed_f),t.strarr_s[477].Get(),"Sets the default speed of any animation associated with this entity"); ++t.controlindex;
 				}
 				if (  t.tflaghurtfall == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.hurtfall),t.strarr_s[456].Get(),t.strarr_s[246].Get())  ; ++t.controlindex; }
 				if (  t.tflagplayersettings == 1 ) 
@@ -9229,14 +9303,23 @@ void interface_openpropertywindow ( void )
 					setpropertystring2(t.group,Str(t.playercontrol.accel_f*100),"Acceleration","Sets the acceleration curve used when t.moving from t.a stood position") ; ++t.controlindex;
 				}
 				if ( t.tflagmobile == 1 ) { setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isimmobile),t.strarr_s[457].Get(),t.strarr_s[247].Get(),0); ++t.controlindex; }
-				if ( t.tflagmobile == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.lodmodifier),"LOD Modifier","Modify when the LOD transition takes effect. The default value is 0, increase this to a percentage reduce the LOD effect.") ; ++t.controlindex; }
+				if ( t.tflagmobile == 1 ) 
+				{ 
+					if ( t.tflagsimpler == 0 )
+					{
+						setpropertystring2(t.group,Str(t.grideleprof.lodmodifier),"LOD Modifier","Modify when the LOD transition takes effect. The default value is 0, increase this to a percentage reduce the LOD effect.") ; ++t.controlindex; 
+					}
+				}
 			}
 
 			//  Team field
+			#ifdef PHOTONMP
+			#else
 			if (  t.tflagteamfield == 1 ) 
 			{
 				setpropertylist3(t.group,t.controlindex,Str(t.grideleprof.teamfield),"Team","Specifies any team affiliation for multiplayer start marker",0) ; ++t.controlindex;
 			}
+			#endif
 
 			//  Physics Data (non-multiplayer)
 			if (  t.entityprofile[t.gridentity].ismarker == 0 && t.entityprofile[t.gridentity].islightmarker == 0 ) 
@@ -9250,8 +9333,11 @@ void interface_openpropertywindow ( void )
 				setpropertystring2(t.group,Str(t.grideleprof.phyfriction),t.strarr_s[586].Get(),t.strarr_s[587].Get()) ; ++t.controlindex;
 				//     `setpropertystring2(group,Str(grideleprof.phyforcedamage),strarr$(588),strarr$(589)) ; inc controlindex
 				//     `setpropertystring2(group,Str(grideleprof.rotatethrow),strarr$(590),strarr$(591)) ; inc controlindex
-				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodable),t.strarr_s[592].Get(),t.strarr_s[593].Get(),0) ; ++t.controlindex;
-				setpropertystring2(t.group,Str(t.grideleprof.explodedamage),t.strarr_s[594].Get(),t.strarr_s[595].Get()) ; ++t.controlindex;
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodable),t.strarr_s[592].Get(),t.strarr_s[593].Get(),0) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.explodedamage),t.strarr_s[594].Get(),t.strarr_s[595].Get()) ; ++t.controlindex;
+				}
 			}
 
 			//  Ammo data (FPGC - 280809 - filtered fpgcgenre=1 is shooter genre
@@ -9272,9 +9358,10 @@ void interface_openpropertywindow ( void )
 				++t.group ; startgroup(t.strarr_s[461].Get()) ; t.controlindex=0; //PE: 461=Light
 				setpropertystring2(t.group,Str(t.grideleprof.light.range),t.strarr_s[462].Get(),t.strarr_s[250].Get()) ; ++t.controlindex; //PE: 462=Light Range
 				setpropertycolor2(t.group,t.grideleprof.light.color,t.strarr_s[463].Get(),t.strarr_s[251].Get()) ; ++t.controlindex; //PE: 463=Light Color
-				//PE: Add Spot light setting.
-				setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0); ++t.controlindex;
-
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0); ++t.controlindex;
+				}
 			}
 
 			//  Decal data
@@ -9332,23 +9419,23 @@ void interface_openpropertywindow ( void )
 				{
 					if ( g.vrqcontrolmode != 0 )
 					{
-						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Audio",t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
+						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
 					}
 					else
 					{
 						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[467].Get(),t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
 					}
 					if ( t.tflagsoundset == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[255].Get(),"audiobank\\voices\\")  ; ++t.controlindex; }
-					if ( tflagtext == 1 ) { setpropertystring2(t.group,t.grideleprof.soundset_s.Get(),"Text String","Enter text to appear in-game") ; ++t.controlindex; }
+					if ( tflagtext == 1 ) { setpropertystring2(t.group,t.grideleprof.soundset_s.Get(),"Text to Appear","Enter text to appear in-game") ; ++t.controlindex; }
 					if ( tflagimage == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Image File","Select image to appear in-game","scriptbank\\images\\imagesinzone\\") ; ++t.controlindex; }
 					if ( t.tflagnosecond == 0 ) 
 					{
 						if ( t.tflagsound == 1 || t.tflagsoundset == 1 )
 						{ 
 							setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),t.strarr_s[468].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
-							setpropertyfile2(t.group,t.grideleprof.soundset2_s.Get(),"Sound2",t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
-							setpropertyfile2(t.group,t.grideleprof.soundset3_s.Get(),"Sound3",t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
-							setpropertyfile2(t.group,t.grideleprof.soundset4_s.Get(),"Sound4",t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
+							setpropertyfile2(t.group,t.grideleprof.soundset2_s.Get(),t.strarr_s[480].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
+							setpropertyfile2(t.group,t.grideleprof.soundset3_s.Get(),t.strarr_s[481].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
+							setpropertyfile2(t.group,t.grideleprof.soundset4_s.Get(),t.strarr_s[482].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex; 
 						}
 					}
 				}
@@ -9371,8 +9458,8 @@ void interface_openpropertywindow ( void )
 			{
 				t.propfield[t.group]=t.controlindex;
 				++t.group ; startgroup(t.strarr_s[597].Get()) ; t.controlindex=0;
-				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Audio",t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
-				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Video",t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
+				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
+				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Video Slot",t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
 			}
 
 			//  Third person settings
@@ -9424,6 +9511,8 @@ void interface_copydatatoentity ( void )
 			{
 				t.chopthis_s=g.rootdir_s;
 				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[413].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
+				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[478].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
+				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[479].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
 				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[416].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
 				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[561].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
 				if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[417].Get()) ) == 0 )  t.chopthis_s = t.chopthis_s+"scriptbank\\";
@@ -9458,6 +9547,8 @@ void interface_copydatatoentity ( void )
 			//  All YES and NO strings are auto converted if value expected
 			t.tokay=1;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[413].Get()) ) == 0 )  t.tokay = 0;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[478].Get()) ) == 0 )  t.tokay = 0;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[479].Get()) ) == 0 )  t.tokay = 0;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[436].Get()) ) == 0 )  t.tokay = 0;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[437].Get()) ) == 0 )  t.tokay = 0;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[464].Get()) ) == 0 )  t.tokay = 0;
@@ -9483,6 +9574,8 @@ void interface_copydatatoentity ( void )
 
 			//  get field data
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[413].Get()) ) == 0 )  t.grideleprof.name_s = t.tdataclipped_s;
+			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[478].Get()) ) == 0 )  t.grideleprof.name_s = t.tdataclipped_s;
+			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[479].Get()) ) == 0 )  t.grideleprof.name_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[414].Get()) ) == 0 )  t.gridentitystaticmode = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[561].Get()) ) == 0 )  t.grideleprof.aiinit_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[417].Get()) ) == 0 )  t.grideleprof.aimain_s = t.tdataclipped_s;
@@ -9490,7 +9583,7 @@ void interface_copydatatoentity ( void )
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[418].Get()) ) == 0 )  t.grideleprof.aidestroy_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[433].Get()) ) == 0 )  t.grideleprof.aishoot_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[434].Get()) ) == 0 )  t.grideleprof.coneangle = ValF(t.tdata_s.Get());
-			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("View Range") ) == 0 )  t.grideleprof.conerange = ValF(t.tdata_s.Get());
+			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[476].Get()) ) == 0 )  t.grideleprof.conerange = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[419].Get()) ) == 0 )  t.grideleprof.hasweapon_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[436].Get()) ) == 0 )  t.grideleprof.usekey_s = t.tdataclipped_s;
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[437].Get()) ) == 0 )  t.grideleprof.ifused_s = t.tdataclipped_s;
@@ -9558,18 +9651,16 @@ void interface_copydatatoentity ( void )
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[427].Get()) ) == 0 )  t.grideleprof.bounceqty = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[428].Get()) ) == 0 )  t.grideleprof.explodeonhit = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[455].Get()) ) == 0 )  t.grideleprof.speed = ValF(t.tdata_s.Get());
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Anim Speed") ) == 0 ) 
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[477].Get()) ) == 0 ) 
 			{
-				//PE: we cant do this , as t.playercontrol.thirdperson.enabled is a global and will trigger for ALL objects.
-				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/310
-//				if (  t.playercontrol.thirdperson.enabled == 1 ) 
-//				{
-//					t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed=ValF(t.tdata_s.Get());
-//				}
-//				else
-//				{
+				if (  t.playercontrol.thirdperson.enabled == 1 ) 
+				{
+					t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed=ValF(t.tdata_s.Get());
+				}
+				else
+				{
 					t.grideleprof.animspeed=ValF(t.tdata_s.Get());
-//				}
+				}
 			}
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[432].Get()) ) == 0 )  t.grideleprof.quantity = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[460].Get()) ) == 0 )  t.grideleprof.quantity = ValF(t.tdata_s.Get());
@@ -9620,18 +9711,18 @@ void interface_copydatatoentity ( void )
 
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[467].Get()) ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[468].Get()) ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Sound2") ) == 0 )  t.grideleprof.soundset2_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Sound3") ) == 0 )  t.grideleprof.soundset3_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Sound4") ) == 0 )  t.grideleprof.soundset4_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[480].Get()) ) == 0 )  t.grideleprof.soundset2_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[481].Get()) ) == 0 )  t.grideleprof.soundset3_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[482].Get()) ) == 0 )  t.grideleprof.soundset4_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[469].Get()) ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[598].Get()) ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[600].Get()) ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , "voiceover"  ) == 0 ) t.grideleprof.soundset1_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[462].Get()) ) == 0 )  t.grideleprof.light.range = ValF(t.tdata_s.Get());
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Text String") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Text to Appear") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Image File") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Audio") ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Video") ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[469].Get()) ) == 0 )  t.grideleprof.soundset_s = t.tdataclipped_s;
+			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("Video Slot") ) == 0 )  t.grideleprof.soundset1_s = t.tdataclipped_s;
 
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[580].Get()) ) == 0 )  t.grideleprof.physics = ValF(t.tdata_s.Get());
 			if (  t.grideleprof.physics != 1  )  t.grideleprof.physics = 2;

@@ -2119,7 +2119,7 @@ DARKSDK bool XFILE_GetMeshData ( IDirectXFileData* pDataObj, sFrame* pParentFram
 	if ( g_dwVertexCount > 0xFFFF )
 	{
 		// unwraps index data and adds it to make larger vertex data
-		ConvertLocalMeshToVertsOnly ( pParentFrame->pMesh );
+		ConvertLocalMeshToVertsOnly ( pParentFrame->pMesh, false );
 
 		// must also unwrap the bone data which now points to incorrect vertex data
 		// and can use the g_pConversionMap generated from the above conversion function

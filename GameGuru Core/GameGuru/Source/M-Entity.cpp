@@ -583,7 +583,7 @@ void entity_load ( void )
 
 					// 011215 - if specified, we can smooth the model before we use it (concrete pipe in TBE level)
 					float fSmoothingAngleOrFullGenerate = t.entityprofile[t.entid].smoothangle;
-					if ( fSmoothingAngleOrFullGenerate > 0 )
+					if ( fSmoothingAngleOrFullGenerate > 0 && fSmoothingAngleOrFullGenerate <= 200 )
 					{
 						// 090217 - this only works on orig X files (not subsequent DBO) as they change 
 						// the mesh which is then saved out (below)
@@ -592,7 +592,6 @@ void entity_load ( void )
 							// 090216 - a special mode of over 101 will flip normals for the object (when normals are bad)
 							if ( fSmoothingAngleOrFullGenerate >= 101.0f ) 
 							{ 
-								//SetObjectNormalsEx ( t.entobj, 1 ); // will correct objects with flipped normals
 								SetObjectNormalsEx ( t.entobj, 0 ); // will generate new smooth normals for object
 								fSmoothingAngleOrFullGenerate -= 101.0f;
 							}
@@ -602,6 +601,24 @@ void entity_load ( void )
 							{
 								SetObjectSmoothing ( t.entobj, fSmoothingAngleOrFullGenerate );
 							}
+						}
+						else
+						{
+							// some support for direct DBO model smoothing 
+							if ( fSmoothingAngleOrFullGenerate > 0.0f )
+							{
+								SetObjectSmoothing ( t.entobj, fSmoothingAngleOrFullGenerate );
+							}
+						}
+					}
+					else
+					{
+						// smooth any model, not just X files going to DBO files
+						if ( fSmoothingAngleOrFullGenerate >= 201 )
+						{
+							SetObjectNormalsEx ( t.entobj, 0 );
+							fSmoothingAngleOrFullGenerate -= 201.0f;
+							SetObjectSmoothing ( t.entobj, fSmoothingAngleOrFullGenerate );
 						}
 					}
 				}
@@ -934,6 +951,12 @@ void entity_load ( void )
 			}
 		}
 
+		// 300819 - reenable offset X and Z (for when geometry is shifted from center)
+		if ( t.entityprofile[t.entid].defaultstatic == 1 && t.entityprofile[t.entid].isimmobile == 1 )
+		{
+			OffsetLimb ( t.entobj, 0, t.entityprofile[t.entid].offx, t.entityprofile[t.entid].offy, t.entityprofile[t.entid].offz, 1 );
+		}
+
 		// 010917 - hide any firespot limb meshes
 		if ( t.entityprofile[t.entid].firespotlimb > 0 )
 		{
@@ -995,8 +1018,8 @@ void entity_loaddata ( void )
 	if (  FileExist(t.strwork.Get()) == 1 || FileExist(t.tprofile_s.Get()) == 1 ) 
 	{
 
-	// Export entity FPE file if flagged
-	if ( g.gexportassets == 1 ) 
+	//  Export entity FPE file if flagged
+	if (  g.gexportassets == 1 ) 
 	{
 		t.strwork = t.entdir_s+t.ent_s;
 		t.tthumbbmpfile_s = "";	t.tthumbbmpfile_s=t.tthumbbmpfile_s + Left(t.strwork.Get(),(Len(t.entdir_s.Get())+Len(t.ent_s.Get()))-4)+".bmp";
@@ -1116,9 +1139,9 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].rotatethrow=1;
 		t.entityprofile[t.entid].explodedamage=100;
 		t.entityprofile[t.entid].forcesimpleobstacle=0;
-		t.entityprofile[t.entid].forceobstaclepolysize=30.0f;
-		t.entityprofile[t.entid].forceobstaclesliceheight=14.0f;
-		t.entityprofile[t.entid].forceobstaclesliceminsize=5.0f;
+		t.entityprofile[t.entid].forceobstaclepolysize=20.0f;//30.0f; hagia model
+		t.entityprofile[t.entid].forceobstaclesliceheight=20.0f;//14.0f; hagia model
+		t.entityprofile[t.entid].forceobstaclesliceminsize=4.0f;//5.0f; hagia model 
 		t.entityprofile[t.entid].effectprofile=0;
 		t.entityprofile[t.entid].ignorecsirefs=0;
 
@@ -1169,7 +1192,7 @@ void entity_loaddata ( void )
 					t.value2_s=cstr(removeedgespaces(Right(t.value_s.Get(),Len(t.value_s.Get())-t.mid)));
 					if (  Len(t.value2_s.Get())>0  )  t.value2 = ValF(t.value2_s.Get()); else t.value2 = -1;
 
-					// DOCDOC: desc = The internal name of the entity
+					//  entity header
 					if (  t.field_s == "desc"  )  t.entityprofileheader[t.entid].desc_s = t.value_s;
 
 					//  entity AI
@@ -1480,7 +1503,6 @@ void entity_loaddata ( void )
 					t.tryfield_s="zdepth";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].zdepth = t.value1;
 
-					// DOCDOC: cullmode = Set to 1 to switch off model culling clip to render both sides of the polygon, default is 0.
 					t.tryfield_s="cullmode";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].cullmode = t.value1;
 					t.tryfield_s="reducetexture";
@@ -1710,22 +1732,18 @@ void entity_loaddata ( void )
 						}
 					}
 
-					//  entity animation sets
-					t.tryfield_s="ignorecsirefs";
-					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].ignorecsirefs = t.value1;
-					t.tryfield_s="playanimineditor";
-					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].playanimineditor = t.value1;
-					t.tryfield_s = "startanimingame";
-					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].startanimingame = t.value1;
-
 					t.tryfield_s = "drawcalloptimizer";
 					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcalloptimizer = t.value1;
 					t.tryfield_s = "drawcalloptimizeroff";
 					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcalloptimizeroff = t.value1;
 					t.tryfield_s = "drawcallscaleadjust";
 					if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].drawcallscaleadjust = t.value1;
-					
 
+					//  entity animation sets
+					t.tryfield_s="ignorecsirefs";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].ignorecsirefs = t.value1;
+					t.tryfield_s="playanimineditor";
+					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].playanimineditor = t.value1;
 					t.tryfield_s="animstyle";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].animstyle = t.value1;
 					t.tryfield_s="animmax";
@@ -2115,7 +2133,8 @@ void entity_loaddata ( void )
 			pTryMatch = "effectbank\\reloaded\\tree_basic.fx";
 			if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 3;			
 			pTryMatch = "effectbank\\reloaded\\treea_basic.fx";
-			if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 4;			
+			if ( strnicmp ( t.entityprofile[t.entid].effect_s.Get(), pTryMatch, strlen(pTryMatch) ) == NULL ) iReplaceMode = 4;	
+			if ( strlen ( t.entityprofile[t.entid].effect_s.Get() ) == 0 ) iReplaceMode = 1;
 			if ( iReplaceMode > 0 )
 			{
 				if ( iReplaceMode == 1 ) t.entityprofile[t.entid].effect_s = "effectbank\\reloaded\\apbr_basic.fx";
@@ -2326,7 +2345,11 @@ void entity_loadvideoid ( void )
 		t.tvideoid=32;
 		for ( t.tt = 1 ; t.tt<=  32; t.tt++ )
 		{
-			if (  AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
+			if ( AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
+		}
+		if ( LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid, 1 ) == false )
+		{
+			t.tvideoid = -999;
 		}
 		LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid , g.videoprecacheframes , g.videodelayedload );
 	}
@@ -2344,19 +2367,33 @@ void entity_loadactivesoundsandvideo ( void )
 				if (  t.entityelement[t.e].soundset == 0 ) 
 				{
 					t.tvideofile_s=t.entityelement[t.e].eleprof.soundset_s ; entity_loadvideoid ( );
-					if (  t.tvideoid>0 ) 
-						t.entityelement[t.e].soundset=t.tvideoid*-1;
+					if ( t.tvideoid == -999 )
+					{
+						t.entityelement[t.e].soundset = 0;
+					}
 					else
-						t.entityelement[t.e].soundset=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset_s.Get(),1);
+					{
+						if ( t.tvideoid > 0 ) 
+							t.entityelement[t.e].soundset=t.tvideoid*-1;
+						else
+							t.entityelement[t.e].soundset=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset_s.Get(),1);
+					}
 					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 				if (  t.entityelement[t.e].soundset1 == 0 ) 
 				{
 					t.tvideofile_s=t.entityelement[t.e].eleprof.soundset1_s ; entity_loadvideoid ( );
-					if (  t.tvideoid>0 ) 
-						t.entityelement[t.e].soundset1=t.tvideoid*-1;
+					if ( t.tvideoid == -999 )
+					{
+						t.entityelement[t.e].soundset1 = 0;
+					}
 					else
-						t.entityelement[t.e].soundset1=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset1_s.Get(),1);
+					{
+						if (  t.tvideoid>0 ) 
+							t.entityelement[t.e].soundset1=t.tvideoid*-1;
+						else
+							t.entityelement[t.e].soundset1=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset1_s.Get(),1);
+					}
 					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
 				if (  t.entityelement[t.e].soundset2 == 0 ) 
@@ -2927,7 +2964,6 @@ void entity_loadtexturesandeffect ( void )
 				t.entityprofile[t.entid].texiid = t.entityprofiletexiid;
 
 				// Assign AMBIENT OCCLUSION MAP
-				// 110419 - GGEV, please refer to the Issues Tracker # for this AO issue you suspect! (also please note your comments with GGEV, thanks)
 				t.texdirO_s = t.texdirnoext_s+"_o.dds";
 				t.texuseid = loadinternaltextureex(t.texdirO_s.Get(),1,t.tfullorhalfdivide);
 				if ( t.texuseid == 0 ) 
@@ -2976,8 +3012,8 @@ void entity_loadtexturesandeffect ( void )
 
 					// height texture
 					cstr pHeighttex_s = t.texdirnoext_s+"_height.dds";
-					if( g.skipunusedtextures == 0 ) t.texuseid = loadinternaltextureex(pHeighttex_s.Get(),1,t.tfullorhalfdivide);
-					if ( t.texuseid == 0 || g.skipunusedtextures == 1 )
+					t.texuseid = loadinternaltextureex(pHeighttex_s.Get(),1,t.tfullorhalfdivide);
+					if ( t.texuseid == 0 ) 
 					{
 						t.texuseid = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds",1,t.tfullorhalfdivide);
 					}
@@ -3010,8 +3046,8 @@ void entity_loadtexturesandeffect ( void )
 							{
 								// Detail texture
 								cstr pDetailtex_s = t.texdirnoext_s + "_detail.dds";
-								if( g.skipunusedtextures == 0 ) t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
-								if (t.entityprofile[t.entid].texlid == 0 || g.skipunusedtextures == 1)
+								t.entityprofile[t.entid].texlid = loadinternaltextureex(pDetailtex_s.Get(), 1, t.tfullorhalfdivide);
+								if (t.entityprofile[t.entid].texlid == 0)
 								{
 									t.entityprofile[t.entid].texlid = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
 								}
@@ -3722,8 +3758,8 @@ void entity_loadelementsdata ( void )
 		}
 	}
 
-	//  and erase any elements that DO NOT have a valid profile (file moved/deleted)
-	if (  t.failedtoload == 1 ) 
+	// and erase any elements that DO NOT have a valid profile (file moved/deleted)
+	if ( t.failedtoload == 1 ) 
 	{
 		//  FPGC - 270410 - if entity binary from X10 (or just not supported), ensure NO entities!
 		g.entityelementlist=0;
@@ -3731,7 +3767,7 @@ void entity_loadelementsdata ( void )
 	}
 	else
 	{
-		for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+		for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 		{
 			t.entid=t.entityelement[t.e].bankindex;
 			if (  t.entid>0 ) 
@@ -4299,36 +4335,47 @@ void entity_loadbank ( void )
 			}
 		}
 
-		//  260215 - Do a pre-scan to determine if any entities are missing
-		if (  Len(t.editor.replacefilepresent_s.Get())>1 ) 
+		// 260215 - Do a pre-scan to determine if any entities are missing
+		if ( Len(t.editor.replacefilepresent_s.Get())>1 ) 
 		{
-			//  load all replacements in a table
-			Dim2(  t.replacements_s,1000, 1  );
-			t.treplacementmax=0;
-			if (  FileExist(t.editor.replacefilepresent_s.Get()) == 1 ) 
+			// clear replacement output array
+			Dim2( t.replacements_s, 1000, 1 );
+			for ( int n=0; n < 1000; n++ )
 			{
-				LoadArray (  t.editor.replacefilepresent_s.Get(),t.replacements_s );
-				for ( t.l = 0 ; t.l <= ArrayCount2(t.replacements_s); t.l++ )
+				t.replacements_s[n][0]="";
+				t.replacements_s[n][1]="";
+			}
+
+			// load all replacements in a table
+			Dim( t.replacementsinput_s, 1000 );
+			t.treplacementmax=0;
+			if ( FileExist(t.editor.replacefilepresent_s.Get()) == 1 ) 
+			{
+				LoadArray ( t.editor.replacefilepresent_s.Get(), t.replacementsinput_s );
+				for ( t.l = 0 ; t.l <= ArrayCount(t.replacementsinput_s); t.l++ )
 				{
-					t.tline_s=ArrayAt(t.replacements_s , t.l );
-					for ( t.n = 1 ; t.n<=  Len(t.tline_s.Get()); t.n++ )
+					t.tline_s = t.replacementsinput_s[t.l];
+					if ( Len(t.tline_s.Get()) > 0 ) 
 					{
-						if (  cstr(Mid(t.tline_s.Get(),t.n)) == "=" ) 
+						for ( t.n = 1 ; t.n<=  Len(t.tline_s.Get()); t.n++ )
 						{
-							t.told_s=Left(t.tline_s.Get(),t.n-1);
-							t.told2_s="";
-							for ( t.nn = 1 ; t.nn<=  Len(t.told_s.Get()); t.nn++ )
+							if (  cstr(Mid(t.tline_s.Get(),t.n)) == "=" ) 
 							{
-								t.told2_s=t.told2_s+Mid(t.told_s.Get(),t.nn);
-								if ( (cstr(Mid(t.told_s.Get(),t.nn)) == "\\" && cstr(Mid(t.told_s.Get(),t.nn+1)) == "\\") || (cstr(Mid(t.told_s.Get(),t.nn)) == "/" && cstr(Mid(t.told_s.Get(),t.nn+1)) == "/" ) )
+								t.told_s=Left(t.tline_s.Get(),t.n-1);
+								t.told2_s="";
+								for ( t.nn = 1 ; t.nn<=  Len(t.told_s.Get()); t.nn++ )
 								{
-									++t.nn;
+									t.told2_s=t.told2_s+Mid(t.told_s.Get(),t.nn);
+									if ( (cstr(Mid(t.told_s.Get(),t.nn)) == "\\" && cstr(Mid(t.told_s.Get(),t.nn+1)) == "\\") || (cstr(Mid(t.told_s.Get(),t.nn)) == "/" && cstr(Mid(t.told_s.Get(),t.nn+1)) == "/" ) )
+									{
+										++t.nn;
+									}
 								}
+								t.tnew_s=Right(t.tline_s.Get(),Len(t.tline_s.Get())-t.n);
+								++t.treplacementmax;
+								t.replacements_s[t.treplacementmax][0]=Lower(t.told2_s.Get());
+								t.replacements_s[t.treplacementmax][1]=Lower(t.tnew_s.Get());
 							}
-							t.tnew_s=Right(t.tline_s.Get(),Len(t.tline_s.Get())-t.n);
-							++t.treplacementmax;
-							t.replacements_s[t.treplacementmax][0]=Lower(t.told2_s.Get());
-							t.replacements_s[t.treplacementmax][1]=Lower(t.tnew_s.Get());
 						}
 					}
 				}
@@ -4382,11 +4429,12 @@ void entity_loadbank ( void )
 
 void entity_loadentitiesnow ( void )
 {
-	//  Load entities specified by bank
+	// Load entities specified by bank
 	if ( g.entidmaster>0 ) 
 	{
 		for ( t.entid = 1 ; t.entid <= g.entidmaster; t.entid++ )
 		{
+			// set entity name and load it in
 			t.entdir_s = "entitybank\\";
 			t.ent_s = t.entitybank_s[t.entid];
 			t.entpath_s = getpath(t.ent_s.Get());
@@ -4417,6 +4465,9 @@ void entity_loadentitiesnow ( void )
 				//  where entities have been lost, delete from list
 				t.entitybank_s[t.entid]="";
 			}
+
+			// keep multiplayer alive
+			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		}
 	}
 }

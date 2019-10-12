@@ -85,8 +85,8 @@ DARKSDK int		GetFTPProgress			( void );
 DARKSDK int		GetFTPStatus			( void );
 DARKSDK int		GetFTPFailure			( void );
 
-DARKSDK void	HTTPConnect			( DWORD dwUrl );
-DARKSDK DWORD	HTTPRequestData		( DWORD pDestStr, DWORD dwVerb, DWORD dwObjectName, DWORD dwPostData );
+DARKSDK void	HTTPConnect			( LPSTR dwUrl );
+DARKSDK LPSTR	HTTPRequestData		( LPSTR dwVerb, LPSTR dwObjectName, LPSTR dwPostData );
 DARKSDK void	HTTPDisconnect		( void );
 
 #ifdef DARKSDK_COMPILE

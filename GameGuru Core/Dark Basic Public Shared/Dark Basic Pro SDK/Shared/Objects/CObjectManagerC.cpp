@@ -3735,6 +3735,7 @@ inline DWORD FtoDW( FLOAT f ) { return *((DWORD*)&f); }
 //#pragma comment(lib, "dxerr.lib")
 
 
+
 bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sObject* pObject, sFrame* pFrame)
 {
 	// get pointer to drawbuffers
@@ -4074,20 +4075,16 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 				m_pImmediateContext->UpdateSubresource( g_pCBPerMesh, 0, NULL, &cb, 0, 0 );
 				m_pImmediateContext->VSSetConstantBuffers ( 0, 1, &g_pCBPerMesh );
 
-				if (g_pGlob->dwRenderCameraID < 31) { //PE: Not used in PS when depth only.
-
+				if (g_pGlob->dwRenderCameraID < 31) 
+				{ 
+					//PE: Not used in PS when depth only.
+					//PE: not used in PS with normal objects anymore.
 					m_pImmediateContext->PSSetConstantBuffers ( 0, 1, &g_pCBPerMesh );
 
-					//PE: not used in PS with normal objects anymore.
-
 					int iEid = g.guishadereffectindex;
-					if(pMesh && pMesh->pVertexShaderEffect)
-						iEid = pMesh->pVertexShaderEffect->m_iEffectID;
-					
-					//PE: interpolated cameraPosition do not look the same as trueCameraPosition. need fix , switch back for now.
-					//if ( iEid == g.guishadereffectindex || iEid == g.guidiffuseshadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) { //pObject->dwObjectNumber == 70001
-					if( 1 ) {
-
+					if(pMesh && pMesh->pVertexShaderEffect) iEid = pMesh->pVertexShaderEffect->m_iEffectID;
+					if ( iEid == g.guishadereffectindex || iEid == g.guidiffuseshadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) 
+					{
 						CBPerMeshPS cbps;
 						cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r, pMesh->mMaterial.Emissive.g, pMesh->mMaterial.Emissive.b, pMesh->mMaterial.Emissive.a);
 						if (pMesh->bAlphaOverride == true)
@@ -4112,12 +4109,25 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 
 			// apply textures for shader
 			#ifdef DX11
-			for ( int i = 0; i < iTextureCount; i++ )
+			//for ( int i = 0; i < iTextureCount; i++ )
+			//{
+			//	if (i != 5) { //PE: We can always enable 5 again.
+			//		//PE: pMesh->pTextures[i].dwStage not used so stages must be in correct order in the shaders.
+			//		ID3D11ShaderResourceView* lpTexture = GetImagePointerView(pMesh->pTextures[i].iImageID);
+			//		m_pImmediateContext->PSSetShaderResources(i, 1, &lpTexture);
+			//	}
+			//}
+			for ( int i = 0; i < pMesh->dwTextureCount; i++ )
 			{
 				if (i != 5) { //PE: We can always enable 5 again.
 					//PE: pMesh->pTextures[i].dwStage not used so stages must be in correct order in the shaders.
-					ID3D11ShaderResourceView* lpTexture = GetImagePointerView(pMesh->pTextures[i].iImageID);
-					m_pImmediateContext->PSSetShaderResources(i, 1, &lpTexture);
+					//special -123 mode means the textureref was overwritten (for animation to object texture)
+					ID3D11ShaderResourceView* lpTexture = NULL;
+					if ( pMesh->pTextures[i].iImageID == -123 )
+						lpTexture = pMesh->pTextures[i].pTexturesRefView;
+					else
+						lpTexture = GetImagePointerView ( pMesh->pTextures[i].iImageID );
+					m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
 				}
 			}
 
@@ -4341,7 +4351,7 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 						m_pImmediateContext->PSSetShaderResources(i, 1, pSRV);
 					}
 				}
-				
+
 			}
 			#endif
 
@@ -5168,6 +5178,12 @@ float py,pz;
 
 void CObjectManager::UpdateInitOnce ( void )
 {
+	// can skip some operations when in VR (reflection camera and right eye camera)
+	bool bSkipRepeatedWorkloads = false;
+	//if ( g_pGlob->dwRenderCameraID == 3 || g_pGlob->dwRenderCameraID == 7 )
+	if ( g_pGlob->dwRenderCameraID == 7 )
+		bSkipRepeatedWorkloads = true;
+
 	// ensure that the D3D device is valid
 	if ( !m_pD3D )
 		return;
@@ -5179,7 +5195,8 @@ void CObjectManager::UpdateInitOnce ( void )
 	//PE: Start mesh light system.
 	start_mesh_light();
 
-	SortTextureList();
+	// Sort is sort of expensive
+	if ( bSkipRepeatedWorkloads == false ) SortTextureList();
 
     // get camera data into member variable
 	m_pCamera = (tagCameraData*)GetCameraInternalData ( g_pGlob->dwRenderCameraID );
@@ -5210,17 +5227,21 @@ void CObjectManager::UpdateInitOnce ( void )
 	if ( !SetupFrustum ( 0.0f ) )
 		return;
 
-	// setup the visibility list
-	if ( !SortVisibilityList ( ) )
-		return;
+	// only need to do this for camera zero and six really
+	if ( bSkipRepeatedWorkloads == false )
+	{
+		// setup the visibility list (sort of expensive)
+		if ( !SortVisibilityList ( ) )
+			return;
 
-	// update only those that are visible
-	if ( !m_ObjectManager.UpdateOnlyVisible() )
-		return;
+		// update only those that are visible
+		if ( !m_ObjectManager.UpdateOnlyVisible() )
+			return;
 
-	// refresh all data in VB (from any vertex changes in objects)
-	if ( !m_ObjectManager.UpdateAllObjectsInBuffers() )
-		return;
+		// refresh all data in VB (from any vertex changes in objects)
+		if ( !m_ObjectManager.UpdateAllObjectsInBuffers() )
+			return;
+	}
 
 	// can render even earlier in pipeline, so this can be flagged to happen earlier in UpdateOnce
 	g_bScenePrepared = false;
@@ -5348,11 +5369,18 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 			if ( g_pGlob->dwRenderCameraID == 30 ) iPreferredCamera = 30;
 
 			// reset to default camera range for noz and locked objects
-			tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( iPreferredCamera );
-			float fCurrentNearRange = m_Camera_Ptr->fZNear;
-			float fCurrentFarRange = m_Camera_Ptr->fZFar;
-			SetCameraRange ( iPreferredCamera, 1, 70000 );
-
+			float fCurrentNearRange = 0.0f;
+			float fCurrentFarRange = 0.0f;
+			bool bCameraRangeAndProjectionChanged = false;
+			if ( g_pGlob->dwRenderCameraID != 6 && g_pGlob->dwRenderCameraID != 7 )
+			{
+				// except for cameras 6 and 7 which are VR eye cameras and have their own projection matrix (which should not be overwritten by SetCameraRange)
+				tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( iPreferredCamera );
+				fCurrentNearRange = m_Camera_Ptr->fZNear;
+				fCurrentFarRange = m_Camera_Ptr->fZFar;
+				SetCameraRange ( iPreferredCamera, 1, 70000 );
+				bCameraRangeAndProjectionChanged = true;
+			}
 			if ( ! m_vVisibleObjectEarly.empty() )
 			{
 				for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectEarly.size(); ++iIndex )
@@ -5373,7 +5401,11 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				}
 			}
 			// restore camera range
-			SetCameraRange ( iPreferredCamera, fCurrentNearRange, fCurrentFarRange );
+			if ( bCameraRangeAndProjectionChanged == true )
+			{
+				// except for cameras 6 and 7 which are VR eye cameras and have their own projection matrix (which should not be overwritten by SetCameraRange)
+				SetCameraRange ( iPreferredCamera, fCurrentNearRange, fCurrentFarRange );
+			}
 		}
 		break;
 
@@ -5405,7 +5437,6 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 				// call the draw function
 				//if ( !DrawObject ( pObject, false ) )
 				//	return false;
-
 				DrawObject ( pObject, false );
 			}
         }
@@ -5415,7 +5446,6 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 
         if ( ! m_vVisibleObjectTransparent.empty() )
         {
-
 			if (iOnlyOneSortPerSync++ == 0) {
 
 				// leeadd - 021205 - new feature which can divide transparent depth-sorted objects by a water
@@ -5498,9 +5528,9 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 								// u74b8 - use the current camera
 								pObject->position.fCamDistance += m_pCamera->fZFar;
 							}
-							else if (pObject->bRenderBeforeWater) {
-								pObject->position.fCamDistance += m_pCamera->fZFar;
-							}
+							//else if (pObject->bRenderBeforeWater) {
+							//	pObject->position.fCamDistance += m_pCamera->fZFar;
+							//}
 						}
 					}
 
@@ -5543,7 +5573,13 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 			tagCameraData* m_Camera_Ptr = (tagCameraData*)GetCameraInternalData( 0 );
 			float fCurrentNearRange = m_Camera_Ptr->fZNear;
 			float fCurrentFarRange = m_Camera_Ptr->fZFar;
-			SetCameraRange ( 0, 2.5f, 70000.0f ); // forces HUD weapons not to blur/DOF/MOTION/etc
+			bool bCameraRangeAndProjectionChanged = false;
+			if ( g_pGlob->dwRenderCameraID != 6 && g_pGlob->dwRenderCameraID != 7 )
+			{
+				// except for cameras 6 and 7 which are VR eye cameras and have their own projection matrix (which should not be overwritten by SetCameraRange)
+				SetCameraRange ( 0, 2.5f, 70000.0f ); // forces HUD weapons not to blur/DOF/MOTION/etc
+				bCameraRangeAndProjectionChanged = true;
+			}
 
 			// record weapon/jetpack techniques (so can restore after cutout technique)
 			DWORD dwOldWeaponBasicShaderPtr, dwOldWeaponBoneShaderPtr, dwOldJetpackBoneShaderPtr;
@@ -5789,7 +5825,10 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 			}
 
 			// restore saved camera range
-			SetCameraRange ( 0, fCurrentNearRange, fCurrentFarRange );
+			if ( bCameraRangeAndProjectionChanged == false )
+			{
+				SetCameraRange ( 0, fCurrentNearRange, fCurrentFarRange );
+			}
 		}
 		break;
 	}

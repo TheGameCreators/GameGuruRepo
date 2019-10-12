@@ -88,103 +88,113 @@ void material_init ( void )
 
 void material_startup ( void )
 {
-	#ifdef FREETRIALVERSION
-	 // Good impression, reduces load time from 13 seconds to much less!
-	 for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 0;
-	 t.m=0 ; t.material[t.m].usedinlevel=1;
-	 t.m=1 ; t.material[t.m].usedinlevel=1;
-	 t.m=2 ; t.material[t.m].usedinlevel=1;
-	 t.m=3 ; t.material[t.m].usedinlevel=1;
-	 t.m=17 ; t.material[t.m].usedinlevel=1;
-	 t.m=18 ; t.material[t.m].usedinlevel=1;
+	// Speeds up IDE initial loading by 10 seconds
+	#if VRQUEST
+		for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 0;
+		t.m=0 ; t.material[t.m].usedinlevel=1;
+		t.m=1 ; t.material[t.m].usedinlevel=1;
+		t.m=2 ; t.material[t.m].usedinlevel=1;
+		t.m=3 ; t.material[t.m].usedinlevel=1;
+		t.m=17 ; t.material[t.m].usedinlevel=1;
+		t.m=18 ; t.material[t.m].usedinlevel=1;
 	#else
-	 for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 1;
+		for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 1;
 	#endif
 }
 
-void material_loadsounds ( void )
+void material_loadsounds ( int iInitial )
 {
-	//  Load silent sound
-	if (  SoundExist(g.silentsoundoffset) == 0  )  Load3DSound (  "audiobank\\misc\\silence.wav",g.silentsoundoffset );
+	// Load silent sound
+	if ( SoundExist(g.silentsoundoffset) == 0  )  Load3DSound (  "audiobank\\misc\\silence.wav",g.silentsoundoffset );
 
-	//  Load Explosion sound clones
-	if (  SoundExist(g.explodesoundoffset) == 0 ) 
+	// Load Explosion sound clones
+	if ( SoundExist(g.explodesoundoffset) == 0 ) 
 	{
 		Load3DSound (  "audiobank\\misc\\explode.wav",g.explodesoundoffset );
 		for ( t.t = 1 ; t.t <= 4 ; t.t++ ) CloneSound (  g.explodesoundoffset+t.t,g.explodesoundoffset );
 	}
 
 	//  Load material sounds into memory
-	timestampactivity(0, cstr(cstr("_material_loadsounds (")+Str(g.gmaterialmax)+")").Get() );
-	t.tbase=g.materialsoundoffset;
-	for ( t.m = 0 ; t.m<=  g.gmaterialmax; t.m++ )
+	if ( iInitial == 0 )
 	{
-		if (  t.material[t.m].name_s != "" && t.material[t.m].usedinlevel == 1 ) 
+		timestampactivity(0, cstr(cstr("_material_loadsounds (")+Str(g.gmaterialmax)+")").Get() );
+		t.tbase=g.materialsoundoffset;
+		for ( t.m = 0 ; t.m <= g.gmaterialmax; t.m++ )
 		{
-			#ifdef FREETRIALVERSION
-			 // for now, trial does not use scrape, impact or destroy sounds!
-			 int msoundtypescount = 3;
-			#else
-			 int msoundtypescount = 6;
-			#endif
-			for ( t.msoundtypes = 0 ; t.msoundtypes <= msoundtypescount; t.msoundtypes++ )
+			// material sound loading SO slow for some reason!
+			char pPrompt[1024];
+			sprintf( pPrompt, "LOADING MATERIAL SOUND %d", 1+t.m );
+			t.tsplashstatusprogress_s = pPrompt;
+			timestampactivity(0,t.tsplashstatusprogress_s.Get());
+			version_splashtext_statusupdate ( );
+
+			// load material sound
+			if (  t.material[t.m].name_s != "" && t.material[t.m].usedinlevel == 1 ) 
 			{
-				if (  t.msoundtypes == 0  )  t.snd_s = t.material[t.m].tred0_s;
-				if (  t.msoundtypes == 1  )  t.snd_s = t.material[t.m].tred1_s;
-				if (  t.msoundtypes == 2  )  t.snd_s = t.material[t.m].tred2_s;
-				if (  t.msoundtypes == 3  )  t.snd_s = t.material[t.m].tred3_s;
-				if (  t.msoundtypes == 4  )  t.snd_s = t.material[t.m].scrape_s;
-				if (  t.msoundtypes == 5  )  t.snd_s = t.material[t.m].impact_s;
-				if (  t.msoundtypes == 6  )  t.snd_s = t.material[t.m].destroy_s;
-				if (  t.msoundtypes == 0  )  t.msoundassign = t.material[t.m].tred0id;
-				if (  t.msoundtypes == 1  )  t.msoundassign = t.material[t.m].tred1id;
-				if (  t.msoundtypes == 2  )  t.msoundassign = t.material[t.m].tred2id;
-				if (  t.msoundtypes == 3  )  t.msoundassign = t.material[t.m].tred3id;
-				if (  t.msoundtypes == 4  )  t.msoundassign = t.material[t.m].scrapeid;
-				if (  t.msoundtypes == 5  )  t.msoundassign = t.material[t.m].impactid;
-				if (  t.msoundtypes == 6  )  t.msoundassign = t.material[t.m].destroyid;
-				if (  FileExist(t.snd_s.Get()) == 1 && t.msoundassign == 0 ) 
+				// speed up loading and don't need these extra sounds 
+				#ifdef VRQUEST
+				 int iSoundTypesFullSupport = 3;
+				#else
+				 int iSoundTypesFullSupport = 6;
+				#endif
+				for ( t.msoundtypes = 0; t.msoundtypes <= iSoundTypesFullSupport; t.msoundtypes++ )
 				{
-					while (  SoundExist(t.tbase) == 1 && t.tbase<g.materialsoundoffsetend-5 ) 
+					if (  t.msoundtypes == 0  )  t.snd_s = t.material[t.m].tred0_s;
+					if (  t.msoundtypes == 1  )  t.snd_s = t.material[t.m].tred1_s;
+					if (  t.msoundtypes == 2  )  t.snd_s = t.material[t.m].tred2_s;
+					if (  t.msoundtypes == 3  )  t.snd_s = t.material[t.m].tred3_s;
+					if (  t.msoundtypes == 4  )  t.snd_s = t.material[t.m].scrape_s;
+					if (  t.msoundtypes == 5  )  t.snd_s = t.material[t.m].impact_s;
+					if (  t.msoundtypes == 6  )  t.snd_s = t.material[t.m].destroy_s;
+					if (  t.msoundtypes == 0  )  t.msoundassign = t.material[t.m].tred0id;
+					if (  t.msoundtypes == 1  )  t.msoundassign = t.material[t.m].tred1id;
+					if (  t.msoundtypes == 2  )  t.msoundassign = t.material[t.m].tred2id;
+					if (  t.msoundtypes == 3  )  t.msoundassign = t.material[t.m].tred3id;
+					if (  t.msoundtypes == 4  )  t.msoundassign = t.material[t.m].scrapeid;
+					if (  t.msoundtypes == 5  )  t.msoundassign = t.material[t.m].impactid;
+					if (  t.msoundtypes == 6  )  t.msoundassign = t.material[t.m].destroyid;
+					if (  FileExist(t.snd_s.Get()) == 1 && t.msoundassign == 0 ) 
 					{
-						++t.tbase;
-					}
-					if (  t.tbase<g.materialsoundoffsetend-5 ) 
-					{
-						Load3DSound (  t.snd_s.Get(),t.tbase );
-						SetSoundSpeed (  t.tbase,t.material[t.m].freq+g.soundfrequencymodifier );
-						t.msoundassign=t.tbase;
-						for ( t.tclones = 1 ; t.tclones<=  4; t.tclones++ )
+						while (  SoundExist(t.tbase) == 1 && t.tbase<g.materialsoundoffsetend-5 ) 
 						{
-							t.tbaseclone=t.tbase+t.tclones;
-							CloneSound (  t.tbaseclone,t.tbase );
+							++t.tbase;
 						}
-						t.tbase += 5;
+						if (  t.tbase<g.materialsoundoffsetend-5 ) 
+						{
+							Load3DSound (  t.snd_s.Get(),t.tbase );
+							SetSoundSpeed (  t.tbase,t.material[t.m].freq+g.soundfrequencymodifier );
+							t.msoundassign=t.tbase;
+							for ( t.tclones = 1 ; t.tclones<=  4; t.tclones++ )
+							{
+								t.tbaseclone=t.tbase+t.tclones;
+								CloneSound (  t.tbaseclone,t.tbase );
+							}
+							t.tbase += 5;
+						}
 					}
+					if (  t.msoundtypes == 0  )  t.material[t.m].tred0id = t.msoundassign;
+					if (  t.msoundtypes == 1  )  t.material[t.m].tred1id = t.msoundassign;
+					if (  t.msoundtypes == 2  )  t.material[t.m].tred2id = t.msoundassign;
+					if (  t.msoundtypes == 3  )  t.material[t.m].tred3id = t.msoundassign;
+					if (  t.msoundtypes == 4  )  t.material[t.m].scrapeid = t.msoundassign;
+					if (  t.msoundtypes == 5  )  t.material[t.m].impactid = t.msoundassign;
+					if (  t.msoundtypes == 6  )  t.material[t.m].destroyid = t.msoundassign;
 				}
-				if (  t.msoundtypes == 0  )  t.material[t.m].tred0id = t.msoundassign;
-				if (  t.msoundtypes == 1  )  t.material[t.m].tred1id = t.msoundassign;
-				if (  t.msoundtypes == 2  )  t.material[t.m].tred2id = t.msoundassign;
-				if (  t.msoundtypes == 3  )  t.material[t.m].tred3id = t.msoundassign;
-				if (  t.msoundtypes == 4  )  t.material[t.m].scrapeid = t.msoundassign;
-				if (  t.msoundtypes == 5  )  t.material[t.m].impactid = t.msoundassign;
-				if (  t.msoundtypes == 6  )  t.material[t.m].destroyid = t.msoundassign;
 			}
 		}
-	}
-	if (  t.tbase>g.materialsoundoffset ) 
-	{
-		t.tnewmax=(t.tbase-1)-g.materialsoundoffset;
-		if (  t.tnewmax>g.materialsoundmax ) 
+		if (  t.tbase>g.materialsoundoffset ) 
 		{
-			g.materialsoundmax=t.tnewmax;
+			t.tnewmax=(t.tbase-1)-g.materialsoundoffset;
+			if (  t.tnewmax>g.materialsoundmax ) 
+			{
+				g.materialsoundmax=t.tnewmax;
+			}
 		}
 	}
 }
 
 void material_loadplayersounds ( void )
 {
-
 	//  determine if player start marker specified an alternate
 	t.tplayerstyle_s="player";
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
@@ -203,17 +213,53 @@ void material_loadplayersounds ( void )
 		}
 	}
 
-	//  (re)load player sounds
-	if (  SoundExist(t.playercontrol.soundstartindex+1) == 0 || g.gplayerstyle_s != t.tplayerstyle_s ) 
+	// (re)load player sounds
+	if ( SoundExist(t.playercontrol.soundstartindex+1) == 0 || g.gplayerstyle_s != t.tplayerstyle_s ) 
 	{
 		g.gplayerstyle_s=t.tplayerstyle_s;
 		for ( t.s = 1 ; t.s<=  99; t.s++ )
-		{
 			if (  SoundExist(t.playercontrol.soundstartindex+t.s) == 1 ) 
-			{
 				DeleteSound (  t.playercontrol.soundstartindex+t.s );
-			}
-		}
+
+		#if VRQUEST
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+1 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+2 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+3 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+4 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\hardland.wav").Get(),t.playercontrol.soundstartindex+5 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\leap.wav").Get(),t.playercontrol.soundstartindex+6 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\spawn.wav").Get(),t.playercontrol.soundstartindex+7 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+8 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+9 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+10 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+11 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\gaspforair.wav").Get(),t.playercontrol.soundstartindex+12 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\waterin.wav").Get(),t.playercontrol.soundstartindex+13 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\waterout.wav").Get(),t.playercontrol.soundstartindex+14 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\swim.wav").Get(),t.playercontrol.soundstartindex+15 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\heartbeat.wav").Get(),t.playercontrol.soundstartindex+17 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\jetpack.wav").Get(),t.playercontrol.soundstartindex+18 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+19 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathHold.wav").Get(),t.playercontrol.soundstartindex+31 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOut.wav").Get(),t.playercontrol.soundstartindex+32 );
+		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOutFast.wav").Get(),t.playercontrol.soundstartindex+33 );
+		//  reserved 34 to 99 for here!
+		//  load generic collect sound
+		LPSTR pAmmoSnd = cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get();
+		if ( FileExist ( pAmmoSnd ) == 1 ) LoadSound ( pAmmoSnd,t.playercontrol.soundstartindex+16 );
+		//  load generic character sounds
+		LPSTR pDie = cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get();
+		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+21 );
+		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+22 );
+		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+23 );
+		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+24 );
+		//  load bullet whiz sounds
+		LPSTR pFlyBy = cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get();
+		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+25 );
+		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+26 );
+		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+27 );
+		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+28 );
+		#else
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\finalmoan.wav").Get(),t.playercontrol.soundstartindex+1 );
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\hurt1.wav").Get(),t.playercontrol.soundstartindex+2 );
 		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\hurt2.wav").Get(),t.playercontrol.soundstartindex+3 );
@@ -257,6 +303,7 @@ void material_loadplayersounds ( void )
 		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+27 );
 		pFlyBy = "audiobank\\misc\\Bullet_FlyBy_04.wav";
 		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+28 );
+		#endif
 	}
 }
 

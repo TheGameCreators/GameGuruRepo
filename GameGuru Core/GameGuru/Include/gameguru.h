@@ -59,7 +59,6 @@
 #include "MapEditor.h"
 #include "Types.h"
 
-
 //Engine Includes
 #include "BlitzTerrain.h"
 #include "BulletPhysics.H"
@@ -83,7 +82,6 @@
 #include "Common-Input.h"
 #include "Common-Sounds.h"
 #include "Common-Strings.h"
-///#include "Conv3DS.h"
 #include "ConvX.h"
 #include "CParticleC.h"
 #include "CSoundC.h"
@@ -97,9 +95,11 @@
 #include "LightMapper.h"
 #include "SimonReloaded.h"
 #include "SoftwareCulling.h"
-#include "SteamCommands.h"
+#include "PhotonCommands.h"
+//#include "SteamCommands.h"
 #include "..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\Core\DBDLLCore.h"
 #include "CSystemC.h"
+#include "GGVR.h"
 
 #endif
 
@@ -126,6 +126,7 @@ struct mysystemtype
 struct Sglobals
 {
 	globalstype globals;
+	vrglobalstype vrglobals;
 	mysystemtype mysystem;
 	int characterSoundCurrentPlayingNumber;
 	cstr characterSoundCurrentPlayingType_s;
@@ -134,6 +135,7 @@ struct Sglobals
 	int charactercreatorrmodelsbankoffset;
 	int charactercreatoreffectbankoffset;
 	int charactercreatorrmodelsoffsetEnd;
+	int perentitypromptoffset;
 	int explosionandfireeffectbankoffset;
 	int internalocclusiondebugimagestart;
 	int staticshadowlightmapeffectoffset;
@@ -236,6 +238,7 @@ struct Sglobals
 	int thirdpersonentityeffect;
 	int lightmappbreffect;
 	int lightmappbreffectillum;
+	int controllerpbreffect;
 	int camerapickupkeyrelease;
 	int conkitobjectbankoffset;
 	int ebeobjectbankoffset;
@@ -370,6 +373,7 @@ struct Sglobals
 	int savescreenshotimage;
 	int temporarymeshobject;
 	int terraineffectoffset;
+	int video3dobjectoffset;
 	int prompt3dobjectoffset;
 	int terrainobjectoffset;
 	int terrainvectorindex1;
@@ -586,6 +590,7 @@ struct Sglobals
 	int flashlightrange;
 	DWORD g_filemapoffset;
 	int gadapterordinal;
+	int gadapterd3d11only;
 	DWORD gameperfphysics;
 	float gamewarmupcount;
 	int gdisablepeeking;
@@ -1135,6 +1140,7 @@ struct Sglobals
 	int LUAImageoffsetMax;
 	int LUASpriteoffset;
 	int LUASpriteoffsetMax;
+	int perentitypromptimageoffset;
 	int ebeinterfacesprite;
 	int terrainpainterinterfacesprite;
 	int lastTabMode;
@@ -1700,6 +1706,7 @@ struct Sglobals
 		 gamewarmupcount = 0.0f;
 		 gameperfphysics = 0;
 		 gadapterordinal = 0;
+		 gadapterd3d11only = 0;
 		 g_filemapoffset = 0;
 		 flashlightrange = 0;
 		 FactionArrayMax = 0;
@@ -2222,6 +2229,8 @@ struct Stemps
 	std::vector <int> csi_stoodincoverthrowright;
 	std::vector <saveloadgamepositionentitytype> saveloadgamepositionentity;
 	std::vector <cstr> mp_playerAvatars_s;
+	bool bTriggerAvatarRescanAndLoad;
+	std::vector <bool> mp_playerAvatarLoaded;	
 	std::vector <int> mp_playerIsRagdoll;
 	std::vector <mpmultiplayerstarttype> mpmultiplayerstart;
 	float ambientocclusiondistance_f;
@@ -3143,6 +3152,7 @@ struct Stemps
 	std::vector <cstr> missingmedia_s;
 	std::vector <int> objsaveexclude;
 	std::vector <int> phyobjsounding;
+	std::vector <cstr> replacementsinput_s;
 	std::vector <std::vector<cstr>> replacements_s;
 	std::vector <cstr> saveloadslot_s;
 	std::vector <cstr> soundsetlist_s;
@@ -3150,10 +3160,10 @@ struct Stemps
 	std::vector <float> storeheights_f;
 	std::vector <cstr> tallfpefiles_s;
 	std::vector <cstr> tfpmfilelist_s;
+	std::vector <cstr> tfpmfilesizelist_s;
 	std::vector <cstr> tutorialmaps_s;
 	std::vector <cstr> vegstylebank_s;
 	std::vector <int> weaponclipammo;
-	int activatedCount;
 	cstr avatarString_s;
 	int Bip01_Headgear;
 	int cameraviewmode;
@@ -3629,7 +3639,7 @@ struct Stemps
 	int tpanelheight;
 	int tParticleObj;
 	int tpickedthumb;
-	int tPlayerIndex;
+	//int tPlayerIndex;
 	int transporttoe;
 	cstr tSaveThumb_s;
 	float tshiftscrx_f;
@@ -3972,6 +3982,8 @@ struct Stemps
 	int tfillwidth;
 	int tflaglight;
 	int tflaglives;
+	int tflagnotionofhealth;
+	int tflagsimpler;
 	int tflagsound;
 	int tflagspawn;
 	int tflagstats;
@@ -4277,6 +4289,7 @@ struct Stemps
 	float tpointx_f;
 	float tpointz_f;
 	int tProgress;
+	float fLastProgress;
 	int tProjType;
 	cstr tprompt_s;
 	float tPSizeX_f;
@@ -4541,7 +4554,7 @@ struct Stemps
 	int toverone;
 	int tpartObj;
 	int tpersone;
-	int tplaycsi;
+	int tplaycsioranimindex;
 	int tplrfell;
 	int tplrhurt;
 	float tplrx2_f;
@@ -6672,7 +6685,7 @@ struct Stemps
 		 tplrx2_f = 0.0f;
 		 tplrhurt = 0;
 		 tplrfell = 0;
-		 tplaycsi = 0;
+		 tplaycsioranimindex = 0;
 		 tpersone = 0;
 		 tpartObj = 0;
 		 toverone = 0;
@@ -7469,7 +7482,7 @@ struct Stemps
 		 tshiftscrx_f = 0.0f;
 		 tSaveThumb_s = "";
 		 transporttoe = 0;
-		 tPlayerIndex = 0;
+		 //tPlayerIndex = 0;
 		 tpickedthumb = 0;
 		 tParticleObj = 0;
 		 tpanelheight = 0;
@@ -7878,7 +7891,6 @@ struct Stemps
 		 cameraviewmode = 0;
 		 Bip01_Headgear = 0;
 		 avatarString_s = "";
-		 activatedCount = 0;
 		 USING_BODY_MASS = 0;
 		 tVolumechange_f = 0.0f;
 		 tvisualprompt_s = "";

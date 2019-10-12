@@ -19,6 +19,7 @@ UINT OpenURLForDataOrFile ( LPSTR pDataReturned, DWORD* pReturnDataSize, LPSTR p
 void CleanStringOfEscapeSlashes ( char* pText );
 
 // Globals
+extern char g_pCloudKeyErrorString[10240];
 int g_welcomesystemclosedown = 0;
 struct welcomepagetype
 {
@@ -63,7 +64,11 @@ void welcome_waitfornoinput ( void )
 		t.terrain.gameplaycamera=0;
 		terrain_shadowupdate ( );
 		terrain_update ( );
-		PasteImage ( g.editorimagesoffset+12, 0, 0 );
+		//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+		// stretch anim backdrop to size of client window
+		Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+		PasteSprite ( 123, 0, 0 );
 		FastSync (  );
 	} while ( !( t.inputsys.kscancode == 0 && t.inputsys.mclick == 0 ) );
 }
@@ -86,17 +91,32 @@ void welcome_init ( int iLoadingPart )
 	if ( iLoadingPart == 1 )
 	{
 		// only interested in anim backdrop for now
-		welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
-		welcome_loadasset ( welcomePath, "welcome-assets\\splash-logo.bmp", g.editorimagesoffset+41 );
+		if ( g.vrqcontrolmode != 0 )
+		{
+			welcome_loadasset ( welcomePath, "welcome\\branded\\animated-backdrop.png", g.editorimagesoffset+12 );
+			welcome_loadasset ( welcomePath, "welcome-assets\\branded\\splash-logo.bmp", g.editorimagesoffset+41 );
+		}
+		else
+		{
+			welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
+			welcome_loadasset ( welcomePath, "welcome-assets\\splash-logo.bmp", g.editorimagesoffset+41 );
+		}
 	}
 	if ( iLoadingPart == 2 )
 	{
-		// load welcome system assets
-		welcome_loadasset ( welcomePath, "welcome\\welcome-page.png", g.editorimagesoffset+8 );
-
 		// what you get
-		welcome_loadasset ( welcomePath, "welcome-assets\\product-logo.png", g.editorimagesoffset+9 );
-		welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
+		if ( g.vrqcontrolmode != 0 )
+		{
+			welcome_loadasset ( welcomePath, "welcome\\branded\\welcome-page.png", g.editorimagesoffset+8 );
+			welcome_loadasset ( welcomePath, "welcome-assets\\branded\\product-logo.png", g.editorimagesoffset+9 );
+			welcome_loadasset ( welcomePath, "welcome\\branded\\animated-backdrop.png", g.editorimagesoffset+12 );
+		}
+		else
+		{
+			welcome_loadasset ( welcomePath, "welcome\\welcome-page.png", g.editorimagesoffset+8 );
+			welcome_loadasset ( welcomePath, "welcome-assets\\product-logo.png", g.editorimagesoffset+9 );
+			welcome_loadasset ( welcomePath, "welcome\\animated-backdrop.png", g.editorimagesoffset+12 );
+		}
 
 		// load in 3x3 pieces
 		welcome_loadasset ( welcomePath, "welcome\\welcome-line-1.png", g.editorimagesoffset+31 );
@@ -218,6 +238,9 @@ void welcome_animbackdrop ( void )
 	{
 		Cls();
 		SetSpriteAlpha ( 123, iPercCol );
+		//PasteSprite ( 123, 0, 0 );
+		// stretch anim backdrop to size of client window
+		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
 		PasteSprite ( 123, 0, 0 );
 		int iLogoFade = (iPercCol*2)-255; if ( iLogoFade < 0 ) iLogoFade = 0;
 		SetSpriteAlpha ( 124, iLogoFade );
@@ -243,34 +266,40 @@ void welcome_animbackdrop ( void )
 
 void welcome_staticbackdrop ( void )
 {
-	//SetSprite ( 123, 0, 1 );
-	//Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
-	//SizeSprite ( 123, GetDesktopWidth(), GetDesktopHeight() );
 	for ( int iSyncPass = 0; iSyncPass <= 1; iSyncPass++ )
 	{
-		PasteImage ( g.editorimagesoffset+12, 0, 0 );
-		//Cls();
-		//SetSpriteAlpha ( 123, 255 );
-		//PasteSprite ( 123, 0, 0 );
+		//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+		// stretch anim backdrop to size of client window
+		Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+		PasteSprite ( 123, 0, 0 );
 		Sync();
 	}
 }
 
 void welcome_updatebackdrop ( char* pText )
 {
-	if ( SpriteExist(123)==1 ) Sprite ( 123, -10000, -10000, g.editorimagesoffset+12 );
-	if ( SpriteExist(124)==1 ) DeleteSprite(124);
-	for ( int s = 0; s < 2; s++ )
+	if ( ImageExist ( g.editorimagesoffset+41 ) == 1 )
 	{
-		Cls();
-		PasteImage ( g.editorimagesoffset+12, 0, 0 );
-		Sprite ( 123, -10000, -10000, g.editorimagesoffset+41 );
-		int iImgWidth = ImageWidth(g.editorimagesoffset+41);
-		int iImgHeight = ImageHeight(g.editorimagesoffset+41);
-		SizeSprite ( 123, iImgWidth, iImgHeight );
-		PasteSprite ( 123, (GetChildWindowWidth(0)-iImgWidth)/2, (GetChildWindowHeight(0)-iImgHeight)/2 );
-		pastebitmapfontcenter ( pText, GetChildWindowWidth(0)/2, ((GetChildWindowHeight(0)-iImgHeight)/2)+(iImgHeight)-48, 4, 255);
-		Sync();
+		if ( SpriteExist(123)==1 ) Sprite ( 123, -10000, -10000, g.editorimagesoffset+12 );
+		if ( SpriteExist(124)==1 ) DeleteSprite(124);
+		for ( int s = 0; s < 2; s++ )
+		{
+			Cls();
+
+			// stretch anim backdrop to size of client window
+			Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+			SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+			PasteSprite ( 123, 0, 0 );
+
+			Sprite ( 123, -10000, -10000, g.editorimagesoffset+41 );
+			int iImgWidth = ImageWidth(g.editorimagesoffset+41);
+			int iImgHeight = ImageHeight(g.editorimagesoffset+41);
+			SizeSprite ( 123, iImgWidth, iImgHeight );
+			PasteSprite ( 123, (GetChildWindowWidth(0)-iImgWidth)/2, (GetChildWindowHeight(0)-iImgHeight)/2 );
+			pastebitmapfontcenter ( pText, GetChildWindowWidth(0)/2, ((GetChildWindowHeight(0)-iImgHeight)/2)+(iImgHeight)-48, 4, 255);
+			Sync();
+		}
 	}
 }
 
@@ -426,6 +455,8 @@ struct welcomeserialcodetype
 	char pCode[23];
 	int iKeyPressed;
 	int iAfterError;
+	DWORD dwCodeEntryTimeStamp;
+	bool bCodeEntryCursor;
 };
 welcomeserialcodetype g_welcomeserialcode;
 
@@ -440,23 +471,52 @@ void welcome_serialcode_init ( void )
 
 void welcome_serialcode_page ( int iHighlightingButton )
 {
+	// string variants
+	int iCodeDigitsRequiredCount = 0;
+	#ifdef CLOUDKEYSYSTEM
+		LPSTR pCodeTitle = "CLOUD KEY ENTRY\n";
+		LPSTR pCodeEnterText = "Enter the cloud key (XXXXX-XXXXX-XXXXX-XXXXX) to activate";
+		LPSTR pCodeWrong = g_pCloudKeyErrorString;//"Cloud key has been entered incorrectly or has expired.";
+		iCodeDigitsRequiredCount = 23;
+	#else
+		LPSTR pCodeTitle = "SERIAL CODE ENTRY\n";
+		LPSTR pCodeEnterText = "Please enter the 22-digit serial code to activate this software.";
+		LPSTR pCodeWrong = "Serial code has been entered incorrectly or has expired.";
+		iCodeDigitsRequiredCount = 22;
+	#endif
+	welcome_text ( pCodeTitle, 1, 50, 28, 192, true, false );
+
 	// draw page
 	int iID = 0;
 	welcome_drawrotatedimage ( g.editorimagesoffset+9, 50, 5, 0, 0, 0, false );
-	welcome_drawbox ( 0, 10, 23, 90, 81 );
-	welcome_text ( "SERIAL CODE ENTRY\n", 1, 50, 28, 192, true, false );
+	welcome_drawbox ( 0, 10, 23, 90, 81 );		
+	welcome_text ( pCodeTitle, 1, 50, 28, 192, true, false );
 	if ( g_welcomeserialcode.iAfterError > 1 )
 	{
-		welcome_text ( "Serial code has been entered incorrectly or has expired.", 1, 50, 50, 192, true, false );
+		welcome_text ( pCodeWrong, 1, 50, 50, 192, true, false );
 		int iOkayID = 3; welcome_textinbox ( iOkayID, "TRY AGAIN", 1, 50, 70, g_welcomebutton[iOkayID].alpha );
 	}
 	else
 	{
-		welcome_text ( "Please enter the 22-digit serial code to activate this software.", 1, 50, 43, 192, true, false );
+		welcome_text ( pCodeEnterText, 1, 50, 43, 192, true, false );
 		welcome_drawbox ( 0, 30, 50, 70, 60 );
-		welcome_text ( g_welcomeserialcode.pCode, 1, 50, 55, 192, true, false );
+		char pFinalCodeDisplay[1024];
+		strcpy ( pFinalCodeDisplay, g_welcomeserialcode.pCode );
+		if ( Timer() > g_welcomeserialcode.dwCodeEntryTimeStamp )
+		{
+			g_welcomeserialcode.dwCodeEntryTimeStamp = Timer() + 500;
+			if ( g_welcomeserialcode.bCodeEntryCursor == true )
+				g_welcomeserialcode.bCodeEntryCursor = false;
+			else
+				g_welcomeserialcode.bCodeEntryCursor = true;
+		}
+		if ( g_welcomeserialcode.bCodeEntryCursor == true )
+			strcat ( pFinalCodeDisplay, "|" );
+		else
+			strcat ( pFinalCodeDisplay, " " );
+		welcome_text ( pFinalCodeDisplay, 1, 50, 55, 192, true, false );
 		welcome_text ( "You can use CTRL+V to paste contents of clipboard.", 2, 50, 65, 192, true, false );
-		iID = g_welcomeserialcode.iNextButtonID; if ( strlen(g_welcomeserialcode.pCode) < 22 ) iID = 0;
+		iID = g_welcomeserialcode.iNextButtonID; if ( strlen(g_welcomeserialcode.pCode) < iCodeDigitsRequiredCount ) iID = 0;
 		welcome_textinbox ( iID, "CONFIRM", 1, 50, 90, g_welcomebutton[iID].alpha );
 		if ( g_welcomeserialcode.iAfterError == 1 )
 		{
@@ -470,11 +530,10 @@ void welcome_serialcode_page ( int iHighlightingButton )
 	if ( iKeyScanCode > 0 && g_welcomeserialcode.iKeyPressed == 0)
 	{
 		unsigned char c = InKey();
-		//sprintf ( g_welcomeserialcode.pCode, "%d %d", iKeyScanCode, c );
-		if ( (c >= 48 && c <= 57) || (c >= 97 && c <= 122) )
+		if ( (c >= 48 && c <= 57) || (c >= 97 && c <= 122) || c == 45)
 		{
 			g_welcomeserialcode.iKeyPressed = 1;
-			if ( strlen(g_welcomeserialcode.pCode) < 22 )
+			if ( strlen(g_welcomeserialcode.pCode) < iCodeDigitsRequiredCount )
 			{
 				strcat ( g_welcomeserialcode.pCode, Chr(c) );
 				strupr ( g_welcomeserialcode.pCode );
@@ -491,11 +550,21 @@ void welcome_serialcode_page ( int iHighlightingButton )
 		if ( iKeyScanCode == 29 && c == 118 )
 		{
 			g_welcomeserialcode.iKeyPressed = 1;
-			LPSTR pBuffer = new char[strlen((LPSTR)GetClipboard(NULL))+1];
-			strcpy ( pBuffer, (LPSTR)GetClipboard(NULL) );
-			pBuffer[22] = 0;
-			strcpy ( g_welcomeserialcode.pCode, pBuffer );
-			SAFE_DELETE(pBuffer);
+			strcpy ( g_welcomeserialcode.pCode, "invalid data" );
+			LPSTR pClipboardData = (LPSTR)GetClipboard(NULL); 
+			if ( pClipboardData )
+			{
+				DWORD dwClipboardSize = strlen(pClipboardData);
+				if ( dwClipboardSize <= iCodeDigitsRequiredCount )
+				{
+					LPSTR pBuffer = new char[24];//dwClipboardSize+1];
+					memset ( pBuffer, 0, sizeof(pBuffer) );
+					strcpy ( pBuffer, (LPSTR)GetClipboard(NULL) );
+					pBuffer[iCodeDigitsRequiredCount] = 0;
+					strcpy ( g_welcomeserialcode.pCode, pBuffer );
+					SAFE_DELETE(pBuffer);
+				}
+			}
 		}
 	}
 
@@ -648,11 +717,11 @@ void welcome_main_page ( int iHighlightingButton )
 	welcome_text ( "Would you like to learn more about GameGuru, load a sample level to play\nor go directly to the editor and start creating a 3D game?", 1, 50, 72, 192, true, false );
 	iID = 4; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
 	if ( g.gshowonstartup != 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
-	welcome_text ( "Tick to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
+	welcome_text ( "Click to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
 	welcome_drawrotatedimage ( g.editorimagesoffset+56, 22.5f, 22, 0, 0, 0, false );
 	welcome_drawrotatedimage ( g.editorimagesoffset+57, 50.0f, 22, 0, 0, 0, false );
 	welcome_drawrotatedimage ( g.editorimagesoffset+58, 77.5f, 22, 0, 0, 0, false );
-	iID = 1; welcome_textinbox ( iID, "LEARN", 1, 22.5f, 60, g_welcomebutton[iID].alpha );
+	iID = 1; welcome_textinbox ( iID, "USER GUIDE", 1, 22.5f, 60, g_welcomebutton[iID].alpha );
 	iID = 2; welcome_textinbox ( iID, "PLAY", 1, 50, 60, g_welcomebutton[iID].alpha );
 	iID = 3; welcome_textinbox ( iID, "CREATE", 1, 77.5f, 60, g_welcomebutton[iID].alpha );
 
@@ -676,7 +745,69 @@ void welcome_main_page ( int iHighlightingButton )
 			welcome_setuppage ( WELCOME_MAIN );
 			welcome_staticbackdrop();
 			iHighlightingButton = 0;
-			PasteImage ( g.editorimagesoffset+12, 0, 0 );
+			//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+			// stretch anim backdrop to size of client window
+			Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+			SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+			PasteSprite ( 123, 0, 0 );
+		}
+		if ( iHighlightingButton == 3 ) 
+		{
+			// go to editor in create mode
+			t.tclosequick = 1;
+		}
+		if ( iHighlightingButton == 4 ) 
+		{
+			// toggle startup flag
+			t.inputsys.mclick = 0;
+			t.inputsys.mclickreleasestate = 1;
+			g.gshowonstartup = 1 - g.gshowonstartup;
+
+			// save setting
+			t.tfile_s = g.fpscrootdir_s+"\\showonstartup.ini";
+			DeleteAFile ( t.tfile_s.Get() );
+			if ( FileOpen(1) ==  1 ) CloseFile ( 1 );
+			OpenToWrite ( 1, t.tfile_s.Get() );
+			WriteString ( 1, cstr(g.gshowonstartup).Get() );
+			WriteString ( 1, "10" );
+			for ( int n = 0; n < 10; n++ )
+			{
+				WriteString ( 1, "0" );
+			}
+			CloseFile (  1 );
+		}
+	}
+}
+
+void welcome_mainvr_init ( void )
+{
+	memset ( &g_welcomemain, 0, sizeof(g_welcomemain) );
+	g_welcomemain.iTickToHide = 1;
+}
+
+void welcome_mainvr_page ( int iHighlightingButton )
+{
+	// draw page
+	int iID = 0;
+	welcome_text ( "WELCOME TO VR QUEST(r)", 5, 50, 10, 255, false, false );
+	welcome_text ( "Would you like to learn more about VR Quest(r)\nor go directly to the editor and start creating a 3D game?", 1, 50, 72, 192, true, false );
+	iID = 4; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
+	if ( g.gshowonstartup != 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
+	welcome_text ( "Click to skip welcome dialog in future", 1, 13.5f, 91.0f, 255, false, true );
+	welcome_drawrotatedimage ( g.editorimagesoffset+56, 37.5f, 22, 0, 0, 0, false );
+	welcome_drawrotatedimage ( g.editorimagesoffset+58, 62.5f, 22, 0, 0, 0, false );
+	iID = 1; welcome_textinbox ( iID, "USER GUIDE", 1, 37.5f, 60, g_welcomebutton[iID].alpha );
+	iID = 3; welcome_textinbox ( iID, "CREATE", 1, 62.5f, 60, g_welcomebutton[iID].alpha );
+
+	// control page
+	if ( t.inputsys.mclick == 1 && t.inputsys.mclickreleasestate == 0 ) 
+	{
+		if ( iHighlightingButton == 1 ) 
+		{
+			// read the PDF manual
+			cstr pPDFPath = g.fpscrootdir_s + "\\Files\\languagebank\\english\\artwork\\branded\\Getting Started Guide.pdf";
+			ExecuteFile ( pPDFPath.Get(), "" , "", 0 );
+			welcome_waitfornoinput();
 		}
 		if ( iHighlightingButton == 3 ) 
 		{
@@ -766,6 +897,11 @@ void welcome_exitapp_page ( int iHighlightingButton )
 {
 	// draw page
 	welcome_drawbox ( 0, 10, 23, 90, 81 );
+	if ( g.iTriggerSoftwareToQuit == 1 )
+	{
+		welcome_text ( "Software Not Validated", 1, 50, 2+(2*5), 192, true, false );
+		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 15+(15*5), 192, true, false );
+	}
 	if ( g.iTriggerSoftwareToQuit == 2 )
 	{
 		welcome_text ( "Steam not running or free weekend is over", 1, 50, 2+(2*5), 192, true, false );
@@ -785,6 +921,12 @@ void welcome_exitapp_page ( int iHighlightingButton )
 		welcome_text ( "All DirectX 11 Shaders Updated", 1, 50, 28+(2*5), 192, true, false );
 		welcome_text ( "You may change 'forceloadtestgameshaders' back to zero", 1, 50, 28+(3*5), 192, true, false );
 		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 28+(6*5), 192, true, false );
+	}
+	if ( g.iTriggerSoftwareToQuit == 4 )
+	{
+		welcome_text ( "No Internet Connection", 1, 50, 2+(2*5), 192, true, false );
+		welcome_text ( "You need a connection to confirm the software license", 1, 50, 28+(3*5), 192, true, false );
+		welcome_text ( "Use the FILE > Exit function or Close Button to exit app", 1, 50, 15+(15*5), 192, true, false );
 	}
 
 	// control page
@@ -1609,6 +1751,7 @@ bool welcome_setuppage ( int iPageIndex )
 	if ( iPageIndex == WELCOME_WHATYOUGET ) welcome_whatyouget_init();
 	if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_init();
 	if ( iPageIndex == WELCOME_MAIN ) welcome_main_init();
+	if ( iPageIndex == WELCOME_MAINVR ) welcome_mainvr_init();
 	if ( iPageIndex == WELCOME_PLAY ) welcome_play_init();
 	if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_init();
 	if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_init();
@@ -1663,18 +1806,25 @@ void welcome_runloop ( int iPageIndex )
 			{
 				if ( GetFileMapDWORD( 1, 908 ) == 1 )  break;
 			}
-			if ( GetFileMapDWORD( 1, 516 ) > 0 )  break;
-			if ( GetFileMapDWORD( 1, 400 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 408 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 434 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 762 ) != 0 ) { t.interactive.active = 0  ; break; }
+			if ( iPageIndex != WELCOME_EXITAPP )
+			{
+				if ( GetFileMapDWORD( 1, 516 ) > 0 )  break;
+				if ( GetFileMapDWORD( 1, 400 ) == 1 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 408 ) == 1 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 434 ) == 1 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 758 ) != 0 ) { t.interactive.active = 0  ; break; }
+				if ( GetFileMapDWORD( 1, 762 ) != 0 ) { t.interactive.active = 0  ; break; }
+			}
 			t.terrain.gameplaycamera=0;
 			terrain_shadowupdate ( );
 			terrain_update ( );
 
-			// paste backdrop
-			PasteImage ( g.editorimagesoffset+12, 0, 0 );
+			// paste backdrop (scaled to fit client window)
+			//PasteImage ( g.editorimagesoffset+12, 0, 0 );
+			Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
+			SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+1 );
+			PasteSprite ( 123, 0, 0 );
 
 			// paste page panel
 			PasteImage ( g.editorimagesoffset+8, g_welcome.iTopLeftX, g_welcome.iTopLeftY );
@@ -1703,6 +1853,7 @@ void welcome_runloop ( int iPageIndex )
 			if ( iPageIndex == WELCOME_WHATYOUGET ) welcome_whatyouget_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_MAIN ) welcome_main_page ( iHighlightingButton );
+			if ( iPageIndex == WELCOME_MAINVR ) welcome_mainvr_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_PLAY ) g_welcomesystemclosedown = welcome_play_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_page ( iHighlightingButton );
 			if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_page ( iHighlightingButton );

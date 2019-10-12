@@ -50,7 +50,11 @@ for ( t.tdscan = 1 ; t.tdscan<=  9; t.tdscan++ )
 	if (  t.tdscan == 6  )  t.decal_s = "splash_foam";
 	if (  t.tdscan == 7  )  t.decal_s = "dustflume";
 	if (  t.tdscan == 8  )  t.decal_s = "impact";
-	if (  t.tdscan == 9  )  t.decal_s = "bloodsplat";
+	#ifdef VRQUEST
+	 if (  t.tdscan == 9  )  t.decal_s = "splat";
+	#else
+	 if (  t.tdscan == 9  )  t.decal_s = "bloodsplat";
+	#endif
 	decal_find ( );
 	if (  t.decalid>0 ) 
 	{

@@ -317,6 +317,9 @@ end
 function Prompt(str)
  SendMessageS("prompt",str);
 end
+function PromptImage(i)
+ SendMessageI("promptimage",i);
+end
 function PromptDuration(str,v)
  SendMessageS("promptduration",v,str);
 end
@@ -597,6 +600,10 @@ function SetActivated(e,v)
  g_Entity[e]['activated'] = v
  SendMessageI("setactivated",e,v);
 end
+function SetActivatedWithMP(e,v)
+ g_Entity[e]['activated'] = v
+ SendMessageI("setactivatedformp",e,v);
+end
 function ResetLimbHit(e)
  g_Entity[e]['limbhit'] = 0
  SendMessageI("resetlimbhit",e,0);
@@ -793,6 +800,12 @@ function PlayVideo(e,v)
 end
 function PlayVideoNoSkip(e,v)
  SendMessageI("playvideonoskip",e,v);
+end
+function PromptVideo(e,v)
+ SendMessageI("promptvideo",e,v);
+end
+function PromptVideoNoSkip(e,v)
+ SendMessageI("promptvideonoskip",e,v);
 end
 function StopVideo(e,v)
  SendMessageI("stopvideo",e,v);
@@ -1843,6 +1856,13 @@ SetCharAnimControlsMoving: SetCharAnimControlsMoving() -- command used by the de
 GetCharAnimControlsMoving: GetCharAnimControlsMoving() -- command used by the default player control mechanism
 GetEntityAnimStart: GetEntityAnimStart() -- command used by the default player control mechanism
 GetEntityAnimFinish: GetEntityAnimFinish() -- command used by the default player control mechanism
+
+VR:MotionControllers
+--------------------
+GetGamePlayerStateMotionController: GetGamePlayerStateMotionController() -- returns 1 if VR HMD present
+GetGamePlayerStateMotionControllerType: GetGamePlayerStateMotionControllerType() -- returns 2 if WMR present
+MotionControllerThumbnstickX: MotionControllerThumbnstickX() -- returns X axis of thumbstick on motion controller
+MotionControllerThumbnstickY: MotionControllerThumbnstickY() -- returns Y axis of thumbstick on motion controller
 
 Understanding PREEXIT system
 ----------------------------

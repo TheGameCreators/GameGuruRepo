@@ -111,7 +111,9 @@ int cLibraryTree::Start ( cLibraryImage* pImage, int iScroll )
 		CString strparent = this->GetItemText ( g_TreeData [ i ].item );
 		if ( strparent.CompareNoCase ( _T("characters") )==0 
 		||   strparent.CompareNoCase ( _T("buildings") )==0 
-		||   strparent.CompareNoCase ( _T("fixtures") )==0 )
+		||   strparent.CompareNoCase ( _T("objects") )==0 
+		||   strparent.CompareNoCase ( _T("fixtures") )==0 
+		||   strparent.CompareNoCase ( _T("user") )==0 )
 		{
 			this->ExpandItem ( g_TreeData [ i ].item );
 		}

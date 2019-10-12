@@ -333,6 +333,10 @@ DARKSDK_DLL bool ConfirmObjectInstanceEx ( int iID, bool bInstanceReturnFlag )
 
 DARKSDK_DLL bool ConfirmObjectInstance ( int iID )
 {
+	// 190719 - when called from LUA, can silently fail!
+	if ( ObjectExist(iID) == 0 )
+		return false;
+
 	// see above
 	return ConfirmObjectInstanceEx ( iID, true );
 }
@@ -1313,7 +1317,7 @@ DARKSDK_DLL void GetMeshData( int iMeshID, DWORD* pdwFVF, DWORD* pdwFVFSize, DWO
 		MakeMeshFromOtherMesh ( true, false, pActualMesh, pOriginalMesh, &matWorld );
 
 		// eliminate any index data from new mesh
-		ConvertLocalMeshToVertsOnly ( pActualMesh );
+		ConvertLocalMeshToVertsOnly ( pActualMesh, false );
 
 		// mesh data
 		*pdwFVF = pActualMesh->dwFVF;

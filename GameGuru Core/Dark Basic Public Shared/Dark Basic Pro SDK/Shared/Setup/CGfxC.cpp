@@ -92,6 +92,7 @@ DBPRO_GLOBAL int							m_iModBackbufferHeight = 0;
 DBPRO_GLOBAL UINT							m_uAdapterChoice = GGADAPTER_DEFAULT;
 DBPRO_GLOBAL bool							m_bNVPERFHUD = false;
 DBPRO_GLOBAL int							m_iForceAdapterOrdinal = 0;
+DBPRO_GLOBAL int							m_iForceAdapterD3D11ONLY = 0;
 
 DBPRO_GLOBAL GGFORMAT						m_Depth;			// final back bufferformat
 DBPRO_GLOBAL GGFORMAT						m_StencilDepth;		// final stencil buffer format
@@ -155,6 +156,7 @@ extern LPGG									m_pDX;				// interface to D3D
 extern LPGGDEVICE							m_pD3D;				// D3D device
 extern GlobStruct*							g_pGlob;
 extern PTR_FuncCreateStr					g_pCreateDeleteStringFunction;
+DBPRO_GLOBAL D3D_FEATURE_LEVEL				g_featureLevel;
 
 DBPRO_GLOBAL HWND							g_OldHwnd						= NULL;
 DBPRO_GLOBAL bool							g_bWindowOverride				= false;
@@ -186,6 +188,13 @@ namespace DisplayLibrary
 DARKSDK GlobStruct* GetGlobalData ( void )
 {
 	return g_pGlob;
+}
+
+void GetD3DExtraInfo ( int *piAdapterOrdinal, LPSTR pAdapterName, int* piFeatureLevel )
+{
+	*piAdapterOrdinal = m_uAdapterChoice;
+	strcpy ( pAdapterName, m_pAdapterName );
+	*piFeatureLevel = g_featureLevel;
 }
 
 static LONG WINAPI DelayLoadDllExceptionFilter(PEXCEPTION_POINTERS pep, std::string& strError)
@@ -475,18 +484,23 @@ DARKSDK bool SETUPConstructor ( void )
 #ifdef DX11
 DARKSDK HRESULT SwapChainPresent ( int iID )
 {
-	int iSyncInterval = 0;
-	if ( m_bVSync )
+	if ( m_pSwapChain [ iID ] )
 	{
-		// CAP TO MONITOR REFRESH RATE - NO TEARING
-		iSyncInterval = m_iVSyncInterval;
+		int iSyncInterval = 0;
+		if ( m_bVSync )
+		{
+			// CAP TO MONITOR REFRESH RATE - NO TEARING
+			iSyncInterval = m_iVSyncInterval;
+		}
+		else
+		{
+			// FAST AS YOU CAN - HAS HORIZ TEARING
+			iSyncInterval = 0;
+		}
+		return m_pSwapChain [ iID ]->Present( iSyncInterval, 0 );
 	}
 	else
-	{
-		// FAST AS YOU CAN - HAS HORIZ TEARING
-		iSyncInterval = 0;
-	}
-	return m_pSwapChain [ iID ]->Present( iSyncInterval, 0 );
+		return 0;
 }
 #endif
 
@@ -885,8 +899,13 @@ DARKSDK void AttachWindowToChildOfAnother ( LPSTR pAbsoluteAppFilename )
 	strcpy ( g_szChildWindow, "" );
 
 	// read data from settings file
-	GetPrivateProfileString ( "External", "Main Window", "", g_szMainWindow, MAX_PATH, pAppExtFile );
-	GetPrivateProfileString ( "External", "Child Window", "", g_szChildWindow, MAX_PATH, pAppExtFile );
+	//#ifdef VRQUEST
+	 strcpy ( g_szMainWindow, "VR Quest" );
+	 strcpy ( g_szChildWindow, "Editor" );
+	//#else
+	// GetPrivateProfileString ( "External", "Main Window", "", g_szMainWindow, MAX_PATH, pAppExtFile );
+	// GetPrivateProfileString ( "External", "Child Window", "", g_szChildWindow, MAX_PATH, pAppExtFile );
+	//#endif
 
 	// determine if window should be attached to child of another
 	if ( strlen ( g_szMainWindow ) > 1 )
@@ -895,7 +914,8 @@ DARKSDK void AttachWindowToChildOfAnother ( LPSTR pAbsoluteAppFilename )
 	// if not overridden, try again after delay
 	if ( g_bWindowOverride == false )
 	{
-		Sleep(2000);
+		//Sleep(2000); remove this 2s delay to speed up initial IDE loading
+		Sleep(200);
 		if ( strlen ( g_szMainWindow ) > 1 )
 			EnumWindows ( EnumWindowsProc, 0 );
 
@@ -1112,7 +1132,7 @@ DARKSDK void GetWindowSize ( int* piWidth, int* piHeight )
 
 	// check for valid pointers
 	if ( !piWidth || !piHeight )
-		Error ( "Invalid pointers passed to GetWindowSize for setup library" );
+		Error1 ( "Invalid pointers passed to GetWindowSize for setup library" );
 
 	// assign the pointers the saved window size
 	*piWidth  = m_iWindowWidth;
@@ -1123,7 +1143,7 @@ DARKSDK void OverrideHWND ( HWND hWnd )
 {
 	// use an external window instead of the default
 	// check the window handle is valid
-	if ( !hWnd ) Error ( "Invalid window handle passed to OverrideHWND" );
+	if ( !hWnd ) Error1 ( "Invalid window handle passed to OverrideHWND" );
 	m_bOverrideHWND = true;
 	m_hWnd          = hWnd;
 }
@@ -1150,7 +1170,7 @@ DARKSDK void AddSwapChain ( HWND hwnd )
 
 	// check the window handle is valid
 	if ( !hwnd )
-		Error ( "Invalid window handle for AddSwapChain" );
+		Error1 ( "Invalid window handle for AddSwapChain" );
 
 	// clear out structures
 	memset ( &d3dpp, 0, sizeof ( d3dpp ) );
@@ -1254,11 +1274,11 @@ DARKSDK void UpdateSwapChain ( int iID )
 
 	// check the ID is valid
 	if ( iID > MAX_SWAP_CHAINS )
-		Error ( "Specified invalid swap chain - overrun maximum limit" );
+		Error1 ( "Specified invalid swap chain - overrun maximum limit" );
 
 	// check the swap chain is valid
 	if ( !m_pSwapChain [ iID ] )
-		Error ( "Swap chain pointer not setup correctly" );
+		Error1 ( "Swap chain pointer not setup correctly" );
 
 	// update full screen
 	#ifdef DX11
@@ -1272,7 +1292,7 @@ DARKSDK void Begin ( void )
 {
 	// being a typical rendering session
 	g_bValidFPS = true;
-	if ( g_bWindowOverride ) ShowWindow ( g_OldHwnd, SW_HIDE );
+	//if ( g_bWindowOverride ) ShowWindow ( g_OldHwnd, SW_HIDE );
 	if ( !m_pD3D ) return;
 
 	// now begin scene drawing
@@ -1550,7 +1570,7 @@ HRESULT StandardPresent ( void )
 	}
 	#endif
 
-	if ( g_bWindowOverride && g_dwChildWindowTruePixel )
+	if ( g_bWindowOverride && g_dwChildWindowTruePixel && m_pSwapChain[0] )
 	{
 		// no stretch present equivilant in DX11, so resize backbuffer instead
 		// resize swapchain to suit correct child window size
@@ -1968,7 +1988,7 @@ DARKSDK bool SetDisplayMode ( int iWidth, int iHeight, int iDepth, int iMode, in
 	}
 	else
 	{
-		Error ( "Unable to setup 3D device" );
+		Error1 ( "Unable to setup 3D device" );
 	}
 
 	// Runs off the end as unknown direct x, else runtime picked up along the way
@@ -1977,7 +1997,7 @@ DARKSDK bool SetDisplayMode ( int iWidth, int iHeight, int iDepth, int iMode, in
 
 DARKSDK bool SetDisplayDebugMode ( void )
 {
-	Error ( "SetDisplayDebug mode disabled" );
+	Error1 ( "SetDisplayDebug mode disabled" );
 	return true;
 }
 
@@ -2045,7 +2065,7 @@ DARKSDK bool GetBackBufferAndDepthBuffer ( void )
     hr = m_pD3D->CreateRenderTargetView( g_pBackBuffer, NULL, &m_pRenderTargetView );
     if( FAILED( hr ) )
     {
-		Error ( "Failed to CreateRenderTargetView\n" );
+		Error1 ( "Failed to CreateRenderTargetView\n" );
         return false;
 	}
 
@@ -2070,7 +2090,7 @@ DARKSDK bool GetBackBufferAndDepthBuffer ( void )
     hr = m_pD3D->CreateTexture2D( &descDepth, NULL, &m_pDepthStencil );
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to CreateTexture2D\n" );
+		Error1 ( "Failed to CreateTexture2D\n" );
         return false;
 	}
 
@@ -2083,7 +2103,7 @@ DARKSDK bool GetBackBufferAndDepthBuffer ( void )
     hr = m_pD3D->CreateDepthStencilView( m_pDepthStencil, &descDSV, &m_pDepthStencilView );
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to CreateDepthStencilView\n" );
+		Error1 ( "Failed to CreateDepthStencilView\n" );
         return false;
 	}
 
@@ -2111,13 +2131,70 @@ DARKSDK bool SetupDX11 ( void )
 	{
 		m_uAdapterChoice = m_iForceAdapterOrdinal;
 	}
-    IDXGIAdapter* pAdapter = NULL; 
+    IDXGIAdapter* pAdapter = NULL;
 	strcpy ( m_pAdapterName, "Default Adapter" );
 	D3D_DRIVER_TYPE adapterType = D3D_DRIVER_TYPE_HARDWARE;
     std::vector <IDXGIAdapter*> vAdapters; 
     IDXGIFactory* pFactory = NULL; 
-    if(SUCCEEDED(CreateDXGIFactory(__uuidof(IDXGIFactory) ,(void**)&pFactory)))
+    //if(SUCCEEDED(CreateDXGIFactory(__uuidof(IDXGIFactory) ,(void**)&pFactory))) GGVR needs this!
+    if(SUCCEEDED(CreateDXGIFactory1(__uuidof(IDXGIFactory) ,(void**)&pFactory)))
     {
+		// special mode to search for a non-Intel GPU adapter (typically a dedicated higher powered one)
+		if ( m_uAdapterChoice == 99 )
+		{
+			m_uAdapterChoice = 0; // in any event, use default adapter if cannot find a better adapter
+			for ( int iDedicatedThenIntel = 0; iDedicatedThenIntel < 2; iDedicatedThenIntel++ )
+			{
+				bool bFoundAGoodAdapter = false;
+				for ( int iAdapterIndex = 0; iAdapterIndex < 10; iAdapterIndex++ )
+				{
+					if ( pFactory->EnumAdapters(iAdapterIndex, &pAdapter) != DXGI_ERROR_NOT_FOUND )
+					{
+						DXGI_ADAPTER_DESC adapterDesc;
+						pAdapter->GetDesc(&adapterDesc);
+						memset ( m_pAdapterName, 0, sizeof ( m_pAdapterName ) );
+						const int size = ::WideCharToMultiByte( CP_UTF8, 0, adapterDesc.Description, -1, NULL, 0, 0, NULL );
+						::WideCharToMultiByte( CP_UTF8, 0, adapterDesc.Description, -1, m_pAdapterName, size, 0, NULL );
+						strlwr ( m_pAdapterName );
+
+						// in first pass, ignore any INTEL or MICROSOFT hardware, second pass allows INTEL
+						if ( iDedicatedThenIntel == 0 )
+						{
+							if ( strstr ( m_pAdapterName, "intel" ) != NULL || strstr ( m_pAdapterName, "microsoft" ) != NULL )
+							{
+								// ignore this - this adapter is likely integrated and slower than dedicated
+							}
+							else
+							{
+								// a found non-Intel adapter
+								bFoundAGoodAdapter = true;
+							}
+						}
+						if ( iDedicatedThenIntel == 1 )
+						{
+							if ( strstr ( m_pAdapterName, "microsoft" ) != NULL )
+							{
+								// ignore this - this adapter will pick Intel over Microsoft 'reference' hardware
+							}
+							else
+							{
+								bFoundAGoodAdapter = true;
+							}
+						}
+						if ( bFoundAGoodAdapter == true )
+						{
+							m_uAdapterChoice = iAdapterIndex;
+							break;
+						}
+					}
+				}
+				if ( bFoundAGoodAdapter == true )
+				{
+					// no need to go to next pass
+					break;
+				}
+			}
+		}
 		if ( pFactory->EnumAdapters(m_uAdapterChoice, &pAdapter) != DXGI_ERROR_NOT_FOUND )
 		{
 			DXGI_ADAPTER_DESC adapterDesc;
@@ -2140,11 +2217,16 @@ DARKSDK bool SetupDX11 ( void )
 	bool bWindowed = true;
 	int numerator = 0;
 	int denominator = 0;
+	D3D_FEATURE_LEVEL featureLevelsD3D11ONLY[] =
+    {
+        D3D_FEATURE_LEVEL_11_1,
+	};
 	D3D_FEATURE_LEVEL featureLevels[] =
     {
-        D3D_FEATURE_LEVEL_11_0
-    };
-	D3D_FEATURE_LEVEL g_featureLevel = D3D_FEATURE_LEVEL_11_0;
+        D3D_FEATURE_LEVEL_11_1,
+        D3D_FEATURE_LEVEL_11_0,
+	};
+	g_featureLevel = D3D_FEATURE_LEVEL_11_0;
     DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory ( &sd, sizeof( sd ) );
     sd.BufferCount							= 1;
@@ -2172,41 +2254,61 @@ DARKSDK bool SetupDX11 ( void )
 	sd.SampleDesc.Count						= 1;
     sd.SampleDesc.Quality					= 0;
     sd.Windowed								= bWindowed;
-	UINT DebugFlag = 0;
+	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 	#ifdef _DEBUG
-	DebugFlag = D3D11_CREATE_DEVICE_DEBUG;
+	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 	#endif
-	HRESULT hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, DebugFlag, featureLevels, 1,
+	HRESULT hr;
+	m_pSwapChain[0] = NULL;
+	if ( m_iForceAdapterD3D11ONLY == 1 )
+	{
+		hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevelsD3D11ONLY, ARRAYSIZE(featureLevelsD3D11ONLY),
 												D3D11_SDK_VERSION, &sd, &m_pSwapChain[0], &m_pD3D, 
 												&g_featureLevel, &m_pImmediateContext );
+		if( FAILED( hr ) )
+		{
+			// if it fails, revert to more common device feature level (some DX12 PCs don't have D3D_FEATURE_LEVEL_11_1)
+			hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevels, ARRAYSIZE(featureLevels),
+													D3D11_SDK_VERSION, &sd, &m_pSwapChain[0], &m_pD3D, 
+													&g_featureLevel, &m_pImmediateContext );
+		}
+	}
+	else
+	{
+		hr = D3D11CreateDeviceAndSwapChain(	pAdapter, adapterType, NULL, creationFlags, featureLevels, ARRAYSIZE(featureLevels),
+												D3D11_SDK_VERSION, &sd, &m_pSwapChain[0], &m_pD3D, 
+												&g_featureLevel, &m_pImmediateContext );
+	}
     if( FAILED( hr ) )
 	{
-		if ( hr == D3D11_ERROR_FILE_NOT_FOUND ) Error ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_FILE_NOT_FOUND\n" );
-		else if ( hr == D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS ) Error ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS\n" );
-		else if ( hr == D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS ) Error ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS\n" );
-		else if ( hr == D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD ) Error ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD\n" );
-		else if ( hr == D3DERR_WASSTILLDRAWING ) Error ( "D3D11CreateDeviceAndSwapChain = D3DERR_WASSTILLDRAWING\n" );
-		else if ( hr == D3DERR_INVALIDCALL ) Error ( "D3D11CreateDeviceAndSwapChain = D3DERR_INVALIDCALL\n" );
-		else if ( hr == E_FAIL ) Error ( "D3D11CreateDeviceAndSwapChain = E_FAIL\n" );
-		else if ( hr == E_INVALIDARG ) Error ( "D3D11CreateDeviceAndSwapChain = E_INVALIDARG\n" );
-		else if ( hr == E_OUTOFMEMORY ) Error ( "D3D11CreateDeviceAndSwapChain = E_OUTOFMEMORY\n" );
-		else if ( hr == S_FALSE ) Error ( "D3D11CreateDeviceAndSwapChain = S_FALSE\n" );
+		if ( hr == D3D11_ERROR_FILE_NOT_FOUND ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_FILE_NOT_FOUND\n" );
+		else if ( hr == D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS\n" );
+		else if ( hr == D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS\n" );
+		else if ( hr == D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD\n" );
+		else if ( hr == D3DERR_WASSTILLDRAWING ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3DERR_WASSTILLDRAWING\n" );
+		else if ( hr == D3DERR_INVALIDCALL ) Error1 ( "D3D11CreateDeviceAndSwapChain = D3DERR_INVALIDCALL\n" );
+		else if ( hr == E_FAIL ) Error1 ( "D3D11CreateDeviceAndSwapChain = E_FAIL\n" );
+		else if ( hr == E_INVALIDARG ) Error1 ( "D3D11CreateDeviceAndSwapChain = E_INVALIDARG\n" );
+		else if ( hr == E_OUTOFMEMORY ) Error1 ( "D3D11CreateDeviceAndSwapChain = E_OUTOFMEMORY\n" );
+		else if ( hr == S_FALSE ) Error1 ( "D3D11CreateDeviceAndSwapChain = S_FALSE\n" );
 		else
 		{
 			char szOut [ 256 ] = "";
 			sprintf ( szOut, "Cannot initialize DirectX 11" );
-			Error ( szOut );
+			Error1 ( szOut );
 		}
-		Error ( "Failed to D3D11CreateDeviceAndSwapChain\n" );
+		Error1 ( "Failed to D3D11CreateDeviceAndSwapChain\n" );
 		return false;
 	}
 
 	// Set Full screen state (or not)
-	m_pSwapChain[0]->SetFullscreenState ( !bWindowed, NULL );
-
-	// Create back buffer and depth buffer (with views) from swapchain
-	if ( GetBackBufferAndDepthBuffer() == false )
-		return false;
+	if ( m_pSwapChain[0] ) 
+	{
+		m_pSwapChain[0]->SetFullscreenState ( !bWindowed, NULL );
+		// Create back buffer and depth buffer (with views) from swapchain
+		if ( GetBackBufferAndDepthBuffer() == false )
+			return false;
+	}
 
 	// Create the depth stencil STATE for 3D rendering
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -2229,7 +2331,7 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateDepthStencilState(&depthStencilDesc, &m_pDepthStencilState);
 	if( FAILED( hr ) )
 	{
-		Error ( "Failed to CreateDepthStencilState\n" );
+		Error1 ( "Failed to CreateDepthStencilState\n" );
 		return false;
 	}
 
@@ -2251,7 +2353,7 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateDepthStencilState(&depthStencilDesc, &m_pDepthNoWriteStencilState);
 	if( FAILED( hr ) )
 	{
-		Error ( "Failed to CreateDepthStencilState\n" );
+		Error1 ( "Failed to CreateDepthStencilState\n" );
 		return false;
 	}
 
@@ -2289,14 +2391,14 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateRasterizerState(&rasterDesc, &m_pRasterState);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pRasterState\n" );
+		Error1 ( "Failed to m_pRasterState\n" );
         return false;
 	}
 	rasterDesc.CullMode = D3D11_CULL_NONE;
 	hr = m_pD3D->CreateRasterizerState(&rasterDesc, &m_pRasterStateNoCull);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pRasterStateNoCull\n" );
+		Error1 ( "Failed to m_pRasterStateNoCull\n" );
         return false;
 	}	
 	rasterDesc.CullMode = D3D11_CULL_BACK;
@@ -2306,7 +2408,7 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateRasterizerState(&rasterDesc, &m_pRasterStateDepthBias);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pRasterStateDepthBias\n" );
+		Error1 ( "Failed to m_pRasterStateDepthBias\n" );
         return false;
 	}	
 
@@ -2337,14 +2439,14 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateBlendState(&blendDesc, &m_pBlendStateAlpha);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pBlendStateAlpha\n" );
+		Error1 ( "Failed to m_pBlendStateAlpha\n" );
         return false;
 	}
 	blendDesc.RenderTarget[0].BlendEnable = false;
 	hr = m_pD3D->CreateBlendState(&blendDesc, &m_pBlendStateNoAlpha);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pBlendStateNoAlpha\n" );
+		Error1 ( "Failed to m_pBlendStateNoAlpha\n" );
         return false;
 	}
 	blendDesc.RenderTarget[0].BlendEnable = true;
@@ -2353,7 +2455,7 @@ DARKSDK bool SetupDX11 ( void )
 	hr = m_pD3D->CreateBlendState(&blendDesc, &m_pBlendStateShadowBlend);
     if( FAILED( hr ) )
 	{
-		Error ( "Failed to m_pBlendStateShadowBlend\n" );
+		Error1 ( "Failed to m_pBlendStateShadowBlend\n" );
         return false;
 	}
 	
@@ -2852,7 +2954,7 @@ DARKSDK void GetGamma ( int* piR, int* piG, int* piB )
 
 	// check all of the pointers are valid
 	if ( !piR || !piG || !piB )
-		Error ( "Invalid pointers passed to GetGamma" );
+		Error1 ( "Invalid pointers passed to GetGamma" );
 
 	// now assign the gamma values
 	*piR = m_iGammaRed;			// copy red
@@ -4254,6 +4356,11 @@ DARKSDK void				SetNvPerfHUD						( int iUsePerfHUD )
 DARKSDK void				ForceAdapterOrdinal ( int iForceOrdinal )
 {
 	m_iForceAdapterOrdinal = iForceOrdinal;
+}
+
+DARKSDK void				ForceAdapterD3D11ONLY ( int iForceD3D11ONLY )
+{
+	m_iForceAdapterD3D11ONLY = iForceD3D11ONLY;
 }
 
 DARKSDK void				SetCaptureName						( DWORD pFilename )

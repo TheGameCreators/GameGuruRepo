@@ -11,6 +11,7 @@
 #include "CGfxC.h"
 #include "CImageC.h"
 #include "CSpritesC.h"
+#include "CObjectsC.h"
 
 #include <clipffmpeg/clipffmpeg.h>
 #include <theoraplayer/FrameQueue.h>
@@ -348,6 +349,12 @@ DARKSDK BOOL DB_ResizeAnimation(int AnimIndex, int x1, int y1, int x2, int y2)
 	return TRUE;
 }
 
+DARKSDK BOOL DB_OverrideTextureWithAnimation(int AnimIndex, int ObjectNumber)
+{
+	TextureObjectRef ( ObjectNumber, Anim[AnimIndex].pTextureRef, Anim[AnimIndex].ClipU, Anim[AnimIndex].ClipV );
+	return TRUE;
+}
+
 BOOL DB_StopAnimation(int AnimIndex)
 {
 	// If currently not playing this animation, nothing to stop
@@ -675,8 +682,7 @@ DARKSDK void UpdateAllAnimation(void)
 //
 
 extern void timestampactivity(int i, char* desc_s);
-
-DARKSDK void LoadAnimation( LPSTR pFilename, int animindex , int precacheframes , int videodelayedload)
+DARKSDK void LoadAnimation( LPSTR pFilename, int animindex , int precacheframes , int videodelayedload, int iSilentMode )
 {
 	if(animindex>=1 && animindex<ANIMATIONMAX)
 	{
@@ -697,15 +703,20 @@ DARKSDK void LoadAnimation( LPSTR pFilename, int animindex , int precacheframes 
 			animation[animindex].speed=100;
 		}
 		else
-			RunTimeError(RUNTIMEERROR_ANIMLOADFAILED);
-
-		char mdebug[1024];
-		sprintf(mdebug, "LoadAnimation: %s", pFilename);
-		timestampactivity(0, mdebug);
-
+		{
+			char mdebug[1024];
+			sprintf(mdebug, "LoadAnimation: %s", pFilename);
+			timestampactivity(0, mdebug);
+			if ( iSilentMode == 0 ) RunTimeError(RUNTIMEERROR_ANIMLOADFAILED);
+			return false;
+		}
 	}
 	else
-		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+	{
+		if ( iSilentMode == 0 )  RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+		return false;
+	}
+	return true;
 }
 
 DARKSDK void DeleteAnimation( int animindex )
@@ -805,6 +816,16 @@ DARKSDK void PlaceAnimation( int animindex, int x1, int y1, int x2, int y2)
 		}
 		else
 			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+DARKSDK void OverrideTextureWithAnimation( int animindex, int objectnumber )
+{
+	if(animindex>=1 && animindex<ANIMATIONMAX)
+	{
+		DB_OverrideTextureWithAnimation(animindex, objectnumber);
 	}
 	else
 		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);

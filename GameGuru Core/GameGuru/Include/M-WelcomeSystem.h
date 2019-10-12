@@ -17,6 +17,7 @@
 #define WELCOME_SAVESTANDALONE 9
 #define WELCOME_FREETRIALINTROAPP 10
 #define WELCOME_FREETRIALEXITAPP 11
+#define WELCOME_MAINVR 12
 
 // Functions
 void welcome_init ( int iLoadingPart );

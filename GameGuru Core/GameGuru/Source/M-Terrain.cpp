@@ -4,6 +4,7 @@
 #include "gameguru.h"
 #include "..\..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\Objects\ShadowMapping\cShadowMaps.h"
 #include "DirectXTex.h"
+#include "wincodec.h"
 using namespace DirectX;
 
 // shadow mapping
@@ -11,6 +12,10 @@ extern CascadedShadowsManager g_CascadedShadow;
 
 // Terrain Build Globals
 #define TERRAINTEXPANELSPRMAX 6
+
+// Tried switching between texture_D.dds and texture_D.jpg but JPG just as large, lower quality and loses a channel!
+#define TEXTURE_D_NAME "texture_D.dds"
+#define TEXTURE_N_NAME "texture_N.dds"
 
 // Terrain Build Local Structure
 struct terrainbuildtype
@@ -212,6 +217,7 @@ void terrain_setupedit ( void )
 	t.terrain.playerax_f=0;
 	t.terrain.playeray_f=0;
 	t.terrain.playeraz_f=0;
+	t.camangy_f=0;
 }
 
 cstr terrain_getterrainfolder ( void )
@@ -250,7 +256,18 @@ void terrain_paintselector_init ( void )
 		{ 
 			// terrain texture plate
 			cstr sTerrainTextureLocation = terrain_getterrainfolder();
-			terrainbuild.iTexturePanelImg[iTex] = loadinternalimage(cstr(sTerrainTextureLocation+"\\Texture_D.dds").Get());
+			terrainbuild.iTexturePanelImg[iTex] = loadinternalimage(cstr(sTerrainTextureLocation+"\\"+TEXTURE_D_NAME).Get());
+			if ( terrainbuild.iTexturePanelImg[iTex] == 0 )
+			{
+				terrainbuild.iTexturePanelImg[iTex] = loadinternalimage(cstr(sTerrainTextureLocation+"\\texture_D.dds").Get());
+				if ( terrainbuild.iTexturePanelImg[iTex] == 0 )
+				{
+					// means the terrain texture is missing, report this and switch to default to avoid crash
+					terrain_initstyles_reset();
+					sTerrainTextureLocation = terrain_getterrainfolder();
+					terrainbuild.iTexturePanelImg[iTex] = loadinternalimage(cstr(sTerrainTextureLocation+"\\"+TEXTURE_D_NAME).Get());
+				}
+			}
 			terrainbuild.terrainstyle = g.terrainstyle_s;
 		}
 		else
@@ -281,7 +298,11 @@ void terrain_paintselector_init ( void )
 
 	// Help Dialog Shortcut Keys
 	terrainbuild.iTexHelpSpr = g.terrainpainterinterfacesprite + 2;
-	terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\terrainbuild-texturehelp.png");
+	//#ifdef VRQUEST
+ 	// terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\branded\\terrainbuild-texturehelp.png");
+	//#else
+ 	 terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\terrainbuild-texturehelp.png");
+	//#endif
 	Sprite ( terrainbuild.iTexHelpSpr, terrainbuild.iTexturePanelX - 10, terrainbuild.iTexturePanelY - 10 - ImageHeight(terrainbuild.iTexHelpImg), terrainbuild.iTexHelpImg );
 
 	// terrain paint selector inited
@@ -319,17 +340,33 @@ void terrain_paintselector_show ( void )
 	if ( t.conkit.editmodeactive != 0 )  
 		return;
 
+	// if switch from terrain paint to grass paint, hide and reshow (grass does not need texture panel)
+	if ( SpriteExist ( terrainbuild.iTexHelpSpr ) == 1 )
+	{
+		bool bSwitchFromToPaintModes = false;
+		if ( t.terrain.terrainpaintermode == 10 && SpriteVisible(terrainbuild.iTexHelpSpr) == 1 ) bSwitchFromToPaintModes = true;
+		if ( t.terrain.terrainpaintermode != 10 && SpriteVisible(terrainbuild.iTexHelpSpr) == 0 ) bSwitchFromToPaintModes = true;
+		if ( bSwitchFromToPaintModes == true )
+		{
+			// allows show code below to set correct sprites to visible
+			terrain_paintselector_hide();
+		}
+	}
+
 	if ( terrainbuild.active == 0 )
 	{
 		// show UI elements
 		if ( terrainbuild.iTexturePanelSprite[0] > 0 )
 		{
-			if ( SpriteExist ( terrainbuild.iTexHelpSpr ) == 1 ) ShowSprite ( terrainbuild.iTexHelpSpr );
 			if ( SpriteExist ( terrainbuild.iHelpSpr ) == 1 ) ShowSprite ( terrainbuild.iHelpSpr );
-			if ( SpriteExist ( terrainbuild.iTexturePanelHighSprite ) == 1 ) ShowSprite ( terrainbuild.iTexturePanelHighSprite );
-			for ( int iTex = 0; iTex < TERRAINTEXPANELSPRMAX; iTex++ )
+			if ( t.terrain.terrainpaintermode != 10 )
 			{
-				if ( SpriteExist ( terrainbuild.iTexturePanelSprite[iTex] ) == 1 ) ShowSprite ( terrainbuild.iTexturePanelSprite[iTex] );
+				if ( SpriteExist ( terrainbuild.iTexHelpSpr ) == 1 ) ShowSprite ( terrainbuild.iTexHelpSpr );
+				if ( SpriteExist ( terrainbuild.iTexturePanelHighSprite ) == 1 ) ShowSprite ( terrainbuild.iTexturePanelHighSprite );
+				for ( int iTex = 0; iTex < TERRAINTEXPANELSPRMAX; iTex++ )
+				{
+					if ( SpriteExist ( terrainbuild.iTexturePanelSprite[iTex] ) == 1 ) ShowSprite ( terrainbuild.iTexturePanelSprite[iTex] );
+				}
 			}
 		}
 		terrainbuild.active = 1;
@@ -339,7 +376,10 @@ void terrain_paintselector_show ( void )
 		if ( strcmp ( terrainbuild.terrainstyle.Get(), g.terrainstyle_s.Get() ) != NULL )
 		{
 			terrainbuild.terrainstyle = g.terrainstyle_s;
-			LoadImage ( cstr(sTerrainTextureLocation+"\\Texture_D.dds").Get(), terrainbuild.iTexPlateImage );
+			if ( FileExist ( cstr(sTerrainTextureLocation+"\\"+TEXTURE_D_NAME).Get() ) == 1 )
+				LoadImage ( cstr(sTerrainTextureLocation+"\\"+TEXTURE_D_NAME).Get(), terrainbuild.iTexPlateImage );
+			else
+				LoadImage ( cstr(sTerrainTextureLocation+"\\texture_D.dds").Get(), terrainbuild.iTexPlateImage );
 			int iX = terrainbuild.iTexturePanelX;
 			int iY = terrainbuild.iTexturePanelY;
 			Sprite ( terrainbuild.iTexturePanelSprite[5], iX, iY, terrainbuild.iTexturePanelImg[5] );
@@ -389,9 +429,17 @@ void terrain_paintselector_control ( void )
 		if ( g.terrainstyleindex == 1 ) strcpy ( pThisTerrainTexturePath, g.mysystem.levelBankTestMap_s.Get() ); //"levelbank\\testmap" );
 		if ( PathExist( pThisTerrainTexturePath ) == 1 ) 
 		{
+			// NewJPG or DDS
+			bool bUseFirstChoice = true;
+
 			// check if new terrain texture system file available, and create if not
 			char pOldTerrainTextureFile[512];
-			strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\Texture_D.dds")).Get() );
+			strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\")+TEXTURE_D_NAME).Get() );
+			if ( FileExist ( pOldTerrainTextureFile ) == 0 ) 
+			{ 
+				bUseFirstChoice = false; 
+				strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\texture_D.dds")).Get() ); 
+			}
 			if ( FileExist ( pOldTerrainTextureFile ) == 1 )
 			{
 				// switch to using CUSTOM 
@@ -401,18 +449,37 @@ void terrain_paintselector_control ( void )
 					t.visuals.terrain_s = "CUSTOM";
 					g.terrainstyleindex = t.visuals.terrainindex;
 					g.terrainstyle_s = t.visuals.terrain_s;
+
+					// diffuse file
 					char pNewLocationForFile[512];
-					//strcpy ( pNewLocationForFile, "levelbank\\testmap\\Texture_D.dds" );
-					strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+"Texture_D.dds").Get() );
+					if ( bUseFirstChoice == true )
+						strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+TEXTURE_D_NAME).Get() );
+					else
+						strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+"texture_D.dds").Get() );
 					if ( FileExist ( pNewLocationForFile ) == 1 ) DeleteFile ( pNewLocationForFile );
 					CopyFile ( pOldTerrainTextureFile, pNewLocationForFile, FALSE );
-					strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\Texture_N.dds")).Get() );
-					//strcpy ( pNewLocationForFile, "levelbank\\testmap\\Texture_N.dds" );
-					strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+"Texture_N.dds").Get() );
-					if ( FileExist ( pNewLocationForFile ) == 1 ) DeleteFile ( pNewLocationForFile );
-					CopyFile ( pOldTerrainTextureFile, pNewLocationForFile, FALSE );
-					//strcpy ( pOldTerrainTextureFile, "levelbank\\testmap\\Texture_D.dds" );
-					strcpy ( pOldTerrainTextureFile, cstr(g.mysystem.levelBankTestMap_s+"Texture_D.dds").Get() );
+
+					// normal file
+					#ifdef VRQUEST
+					#else
+					 if ( bUseFirstChoice == true )
+					 {
+						strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\")+TEXTURE_N_NAME).Get() );
+						strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+TEXTURE_N_NAME).Get() );
+					 }
+					 else
+					 {
+						strcpy ( pOldTerrainTextureFile, cstr(cstr(pThisTerrainTexturePath)+cstr("\\texture_N.dds")).Get() );
+						strcpy ( pNewLocationForFile, cstr(g.mysystem.levelBankTestMap_s+"texture_N.dds").Get() );
+					 }
+					 if ( FileExist ( pNewLocationForFile ) == 1 ) DeleteFile ( pNewLocationForFile );
+					 CopyFile ( pOldTerrainTextureFile, pNewLocationForFile, FALSE );
+					#endif
+
+					if ( bUseFirstChoice == true )
+						strcpy ( pOldTerrainTextureFile, cstr(g.mysystem.levelBankTestMap_s+TEXTURE_D_NAME).Get() );
+					else
+						strcpy ( pOldTerrainTextureFile, cstr(g.mysystem.levelBankTestMap_s+"texture_D.dds").Get() );
 				}
 
 				// change this texture slot with a new one
@@ -420,6 +487,10 @@ void terrain_paintselector_control ( void )
 				terrainbuild.bCustomiseTexture = false;
 				if ( terrain_loadcustomtexture ( pOldTerrainTextureFile, terrainbuild.iCurrentTexture ) == 1 )
 				{
+					// may have loaded DDS but saved as JPG (new primary choice for VRQ)
+					if ( FileExist ( cstr(g.mysystem.levelBankTestMap_s+TEXTURE_D_NAME).Get() ) == 1 )
+						strcpy ( pOldTerrainTextureFile, cstr(g.mysystem.levelBankTestMap_s+TEXTURE_D_NAME).Get() );
+
 					// successfully changed the texture
 					LoadImage ( pOldTerrainTextureFile, terrainbuild.iTexPlateImage );
 					int iX = terrainbuild.iTexturePanelX;
@@ -465,11 +536,15 @@ void terrain_paintselector_control ( void )
 				terrainbuild_settexturehighlight();
 
 				// and if it was right mouse, customise this texture too
+				//#ifdef VRQUEST
+				// Cannot allow custom terrain textures - bloats FPM making transfer over multiplayer very slow
+				//#else
 				if ( t.inputsys.mclick == 2 )
 				{
 					// replace texture within texture atlas
 					terrainbuild.bCustomiseTexture = true;
 				}
+				//#endif
 
 				// ensure we do not write into texture painter if selecting texture
 				t.inputsys.mclick = 0;
@@ -526,16 +601,20 @@ int terrain_loadcustomtexture ( LPSTR pDestPathAndFile, int iTextureSlot )
 	SetDir(sSavePathFile.Get());
 
 	// replace texture in plate with provided custom one
-	terrain_createnewterraintexture ( "texture_D.dds", iTextureSlot, tLoadFile.Get(), 0, 1 );
-
+	terrain_createnewterraintexture ( TEXTURE_D_NAME, iTextureSlot, tLoadFile.Get(), 0, 1 );
+	
 	// if a normal map exists for it, use that too
-	cstr tLoadNormalFile = tLoadFile;
-	tLoadNormalFile = cstr(Left(tLoadNormalFile.Get(),strlen(tLoadNormalFile.Get())-6)) + "_N.dds";
+	#ifdef VRQUEST
+	#else
+	cstr tOrigLoadNormalFile = tLoadFile;
+	cstr tLoadNormalFile = cstr(Left(tOrigLoadNormalFile.Get(),strlen(tOrigLoadNormalFile.Get())-6)) + "_N.dds";
+	if ( FileExist ( tLoadNormalFile.Get() ) == 0 ) tLoadNormalFile = cstr(Left(tOrigLoadNormalFile.Get(),strlen(tOrigLoadNormalFile.Get())-6)) + "_N.jpg";
 	if ( FileExist ( tLoadNormalFile.Get() ) == 0 )
 	{
 		tLoadNormalFile = g.fpscrootdir_s + "\\Files\\effectbank\\reloaded\\media\\blank_N.dds";
 	}
-	terrain_createnewterraintexture ( "texture_N.dds", iTextureSlot, tLoadNormalFile.Get(), 0, 0 );
+    terrain_createnewterraintexture ( TEXTURE_N_NAME, iTextureSlot, tLoadNormalFile.Get(), 0, 0 );
+	#endif
 
 	// restore current folder
 	SetDir(pOldDir);
@@ -589,9 +668,17 @@ int terrain_createnewterraintexture ( LPSTR pDestTerrainTextureFile, int iWhichT
 		}
 		if ( SUCCEEDED(hr) )
 		{
+			// is current a JPG
+			bool bCurrentIsAJPG = false;
+			if ( strstr ( pPlateFilename.Get(), ".jpg" ) > 0 )
+				bCurrentIsAJPG = true;
+
 			// create/load texture of plate
 			TexMetadata platedata;
-			hr = GetMetadataFromDDSFile( wFilenamePlate, DDS_FLAGS_NONE, platedata );			
+			if ( bCurrentIsAJPG == true )
+				hr = GetMetadataFromWICFile( wFilenamePlate, DDS_FLAGS_NONE, platedata );			
+			else
+				hr = GetMetadataFromDDSFile( wFilenamePlate, DDS_FLAGS_NONE, platedata );			
 			if ( hr != S_OK )
 			{
 				// if plate file not exist, create one and provide dimensions
@@ -606,7 +693,10 @@ int terrain_createnewterraintexture ( LPSTR pDestTerrainTextureFile, int iWhichT
 			else
 			{
 				// existing plate exists, load it in
-				hr = LoadFromDDSFile( wFilenamePlate, DDS_FLAGS_NONE, &platedata, imageTexturePlate );
+				if ( bCurrentIsAJPG == true )
+					hr = LoadFromWICFile( wFilenamePlate, DDS_FLAGS_NONE, &platedata, imageTexturePlate );
+				else
+					hr = LoadFromDDSFile( wFilenamePlate, DDS_FLAGS_NONE, &platedata, imageTexturePlate );
 				if ( FAILED(hr) ) platedata.width = 0;
 			}
 			if ( platedata.width > 0 )
@@ -715,27 +805,43 @@ int terrain_createnewterraintexture ( LPSTR pDestTerrainTextureFile, int iWhichT
 			hr = CaptureTexture( m_pD3D, m_pImmediateContext, pPlateSurface, imageTexturePlate );
 			if ( SUCCEEDED(hr) )
 			{
-				// first create a full mipmap set of images (as only first mipmap layer was affected above)
-				ScratchImage mipChain;
-				hr = GenerateMipMaps( imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), imageTexturePlate.GetMetadata(), TEX_FILTER_SEPARATE_ALPHA, 0, mipChain );
+				// if JPG, can only have one layer
+				bool bIsThisAJPG = false;
+				if ( strstr ( pPlateFilename.Get(), ".jpg" ) > 0 )
+					bIsThisAJPG = true;
 
-				if ( iCompressIt == 0 )
+				// first create a full mipmap set of images (as only first mipmap layer was affected above)
+				if ( bIsThisAJPG == false )
 				{
-					// save new UNCOMPRESSED texture surface out
-					const Image* img = mipChain.GetImages();
-					hr = SaveToDDSFile( img, mipChain.GetImageCount(), mipChain.GetMetadata(), DDS_FLAGS_NONE, wFilenamePlate );
+					// create mipmaps
+					ScratchImage mipChain;
+					hr = GenerateMipMaps( imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), imageTexturePlate.GetMetadata(), TEX_FILTER_SEPARATE_ALPHA, 0, mipChain );
+
+					// compressed or not
+					if ( iCompressIt == 0 )
+					{
+						// save new UNCOMPRESSED texture surface out
+						const Image* img = mipChain.GetImages();
+						hr = SaveToDDSFile( img, mipChain.GetImageCount(), mipChain.GetMetadata(), DDS_FLAGS_NONE, wFilenamePlate );
+					}
+					else
+					{
+						// compress to a DXT5 (BC3) texture
+						//hr = Compress( imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), imageTexturePlate.GetMetadata(), 
+						//	DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, convertedTexturePlate );
+						hr = Compress( mipChain.GetImages(), mipChain.GetImageCount(), mipChain.GetMetadata(), 
+							DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, convertedTexturePlate );
+
+						// save new texture surface out
+						const Image* img = convertedTexturePlate.GetImages();
+						hr = SaveToDDSFile( img, convertedTexturePlate.GetImageCount(), convertedTexturePlate.GetMetadata(), DDS_FLAGS_NONE, wFilenamePlate );
+					}
 				}
 				else
 				{
-					// compress to a DXT5 (BC3) texture
-					//hr = Compress( imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), imageTexturePlate.GetMetadata(), 
-					//	DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, convertedTexturePlate );
-					hr = Compress( mipChain.GetImages(), mipChain.GetImageCount(), mipChain.GetMetadata(), 
-						DXGI_FORMAT_BC3_UNORM, TEX_COMPRESS_DEFAULT, TEX_THRESHOLD_DEFAULT, convertedTexturePlate );
-
-					// save new texture surface out
-					const Image* img = convertedTexturePlate.GetImages();
-					hr = SaveToDDSFile( img, convertedTexturePlate.GetImageCount(), convertedTexturePlate.GetMetadata(), DDS_FLAGS_NONE, wFilenamePlate );
+					// JPG has no mipmaps
+					const Image* img = imageTexturePlate.GetImage(0,0,0);
+					hr = SaveToWICFile( *img, DDS_FLAGS_NONE, GUID_ContainerFormatJpeg, wFilenamePlate, NULL );
 				}
 			}
 		}
@@ -892,9 +998,32 @@ void terrain_loadlatesttexture ( void )
 	else
 	{
 		// new terrain texture technique
-		LoadImage ( cstr(cstr(pLocationOfTerrainTexture)+"\\Texture_D.dds").Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
+		if ( FileExist ( cstr(cstr(pLocationOfTerrainTexture)+"\\"+TEXTURE_D_NAME).Get() ) == 1 )
+			LoadImage ( cstr(cstr(pLocationOfTerrainTexture)+"\\"+TEXTURE_D_NAME).Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
+		else
+			LoadImage ( cstr(cstr(pLocationOfTerrainTexture)+"\\texture_D.dds").Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
 	}
-	LoadImage ( cstr(cstr(pLocationOfTerrainTexture)+"\\Texture_N.dds").Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+
+	// normals for terrain
+	#ifdef VRQUEST
+	 LoadImage ( "effectbank\\reloaded\\media\\blank_N.dds", t.terrain.imagestartindex+21, 0, g.gdividetexturesize );
+	#else
+	 if ( FileExist ( cstr(cstr(pLocationOfTerrainTexture)+"\\"+TEXTURE_N_NAME).Get() ) == 1 )
+	 {
+		LoadImage ( cstr(cstr(pLocationOfTerrainTexture)+"\\"+TEXTURE_N_NAME).Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+	 }
+	 else
+	 {
+		if ( FileExist ( cstr(cstr(pLocationOfTerrainTexture)+"\\texture_N.dds").Get() ) == 1 )
+		{
+			LoadImage (  cstr(cstr(pLocationOfTerrainTexture)+"\\texture_N.dds").Get(), t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+		}
+		else
+		{
+			LoadImage ( "effectbank\\reloaded\\media\\blank_N.dds", t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+		}
+	 }
+	#endif
 	TextureObject ( t.terrain.terrainobjectindex,2,t.terrain.imagestartindex+13 );
 	// stage 3 : rem circle texture for highlighter
 	TextureObject ( t.terrain.terrainobjectindex,4,t.terrain.imagestartindex+21 );
@@ -914,14 +1043,19 @@ void terrain_changestyle ( void )
 			// check if new terrain texture system file available, and create if not
 			if ( g.terrainstyleindex > 1 ) 
 			{
+				bool bUseNewJPG = true;
 				char pNewTerrainTextureFile[512];
-				strcpy ( pNewTerrainTextureFile, cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\Texture_D.dds").Get() );
+				strcpy ( pNewTerrainTextureFile, cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\"+TEXTURE_D_NAME).Get() );
+				if ( FileExist ( pNewTerrainTextureFile ) == 0 ) { bUseNewJPG = false; strcpy ( pNewTerrainTextureFile, cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\texture_D.dds").Get() ); }
 				if ( FileExist ( pNewTerrainTextureFile ) == 0 )
 				{
 					// create diffuse and normal textures that combine old textures into one atlas of 4x4 textures (4096x4096)
 					LPSTR pOldDir = GetDir();
 					SetDir ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\").Get() );
-					strcpy ( pNewTerrainTextureFile, "Texture_D.dds" );
+					if ( bUseNewJPG == true )
+						strcpy ( pNewTerrainTextureFile, TEXTURE_D_NAME );
+					else
+						strcpy ( pNewTerrainTextureFile, "texture_D.dds" );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 0, "Path_D.dds", 0, 1 );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 1, "Path_D.dds", 0, 1 );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 2, "Path_D.dds", 0, 1 );
@@ -940,7 +1074,12 @@ void terrain_changestyle ( void )
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 15, "Rocky_D.dds", 0, 1 );
 				
 					// and now the normals file
-					strcpy ( pNewTerrainTextureFile, "Texture_N.dds" );
+					#ifdef VRQUEST
+					#else
+					if ( bUseNewJPG == true )
+						strcpy ( pNewTerrainTextureFile, TEXTURE_N_NAME );
+					else
+						strcpy ( pNewTerrainTextureFile, "texture_N.dds" );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 0, "Path_N.dds", 0, 0 );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 1, "Path_N.dds", 0, 0 );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 2, "Path_N.dds", 0, 0 );
@@ -957,6 +1096,7 @@ void terrain_changestyle ( void )
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 13, "Rocky_N.dds", 0, 0 );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 14, "Rocky_N.dds", 0, 0 );
 					terrain_createnewterraintexture ( pNewTerrainTextureFile, 15, "Rocky_N.dds", 0, 0 );
+					#endif
 
 					// restore directory after terrain texture file creation
 					SetDir ( pOldDir );
@@ -2354,13 +2494,30 @@ void terrain_make ( void )
 			if (  g.gdividetexturesize == 0 ) 
 			{
 				t.tthistexdir_s="effectbank\\reloaded\\media\\white_D.dds";
-				LoadImage (  t.tthistexdir_s.Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
-				LoadImage (  t.tthistexdir_s.Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+				LoadImage ( t.tthistexdir_s.Get(), t.terrain.imagestartindex+13, 0, g.gdividetexturesize );
+				LoadImage ( t.tthistexdir_s.Get(), t.terrain.imagestartindex+21, 0, g.gdividetexturesize );
 			}
 			else
 			{
-				LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\Texture_D.dds").Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
-				LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\Texture_N.dds").Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+				t.tsplashstatusprogress_s="LOADING TERRAIN DIFFUSE";
+				timestampactivity(0,t.tsplashstatusprogress_s.Get());
+				version_splashtext_statusupdate ( );
+				if ( FileExist ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\"+TEXTURE_D_NAME).Get() ) == 1 )
+					LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\"+TEXTURE_D_NAME).Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
+				else
+					LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\texture_D.dds").Get(),t.terrain.imagestartindex+13,0,g.gdividetexturesize );
+
+				#ifdef VRQUEST
+				 LoadImage ( "effectbank\\reloaded\\media\\blank_N.dds", t.terrain.imagestartindex+21, 0, g.gdividetexturesize );
+				#else
+				 t.tsplashstatusprogress_s="LOADING TERRAIN NORMALS";
+				 timestampactivity(0,t.tsplashstatusprogress_s.Get());
+				 version_splashtext_statusupdate ( );
+				 if ( FileExist ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\"+TEXTURE_N_NAME).Get() ) == 1 )
+					LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\"+TEXTURE_N_NAME).Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+				 else
+					LoadImage ( cstr(cstr("terrainbank\\")+g.terrainstyle_s+"\\texture_N.dds").Get(),t.terrain.imagestartindex+21,0,g.gdividetexturesize );
+				#endif
 			}
 			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
@@ -2427,20 +2584,22 @@ void terrain_save ( void )
 		if ( MemblockExist(1) == 0 ) 
 		{
 			MakeMemblock ( 1,1024*1024*4 );
-			OpenToWrite ( 1, t.tfile_s.Get() );
-			t.mi=0;
-			for ( t.z = 0 ; t.z<=  1023; t.z++ )
+			if ( OpenToWriteEx ( 1, t.tfile_s.Get() ) == true )
 			{
-				for ( t.x = 0 ; t.x<=  1023; t.x++ )
+				t.mi=0;
+				for ( t.z = 0 ; t.z<=  1023; t.z++ )
 				{
-					t.h_f=BT_GetGroundHeight(t.terrain.TerrainID,t.x*50.0,t.z*50.0,1);
-					if (  t.h_f<0.0  )  t.h_f = 0.0;
-					WriteMemblockFloat (  1,t.mi,t.h_f );
-					t.mi += 4;
+					for ( t.x = 0 ; t.x<=  1023; t.x++ )
+					{
+						t.h_f=BT_GetGroundHeight(t.terrain.TerrainID,t.x*50.0,t.z*50.0,1);
+						if (  t.h_f<0.0  )  t.h_f = 0.0;
+						WriteMemblockFloat (  1,t.mi,t.h_f );
+						t.mi += 4;
+					}
 				}
+				WriteMemblock ( 1,1 );
+				CloseFile ( 1 );
 			}
-			WriteMemblock ( 1,1 );
-			CloseFile ( 1 );
 			DeleteMemblock ( 1 );
 		}
 		else
@@ -2574,7 +2733,8 @@ void terrain_loaddata ( void )
 			}
 
 			// Load any custom terrain texture if present
-			if ( FileExist( cstr(t.levelmapptah_s+"Texture_D.dds").Get() ) == 1 ) 
+			if ( FileExist( cstr(t.levelmapptah_s+TEXTURE_D_NAME).Get() ) == 1
+			||   FileExist( cstr(t.levelmapptah_s+"texture_D.dds").Get() ) == 1 ) 
 			{
 				// custom texture in FPM overrides one specified in visual
 				g.terrainstyleindex = 1;
@@ -2687,9 +2847,10 @@ void terrain_shadowupdate ( void )
 			if ( 1 ) 
 			{
 				//  prepare scene shaders to render into the cascade shadow textures
-				for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -6 ; t.t<=  g.effectbankmax; t.t++ )
 				{
-					if ( t.t == -5  )  t.effectid = g.lightmappbreffectillum;
+					if ( t.t == -6  )  t.effectid = g.lightmappbreffectillum;
+					if ( t.t == -5  ) t.effectid = g.controllerpbreffect;
 					if ( t.t == -4  )  t.effectid = g.lightmappbreffect;
 					if ( t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 					if ( t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;
@@ -2777,7 +2938,6 @@ void terrain_shadowupdate ( void )
 						if (g.globals.speedshadows != 0)
 						{
 							if (g.globals.realshadowcascadecount == 4) {
-
 								if (g.globals.speedshadows == 2) {
 									if (speed_shadows_new == 0) {
 										SetEffectShadowMappingMode(1 + 2);
@@ -2806,9 +2966,6 @@ void terrain_shadowupdate ( void )
 							}
 						}
 					}
-
-
-
 				}
 				else
 				{
@@ -2939,9 +3096,10 @@ void terrain_shadowupdate ( void )
 					//  gun - secondary shader simply conveys required shadow constants to shader
 					RenderEffectShadowMapping (  t.gun[t.gunid].effectidused );
 				}
-				for ( t.t = -5 ; t.t<=  g.effectbankmax; t.t++ )
+				for ( t.t = -6 ; t.t<=  g.effectbankmax; t.t++ )
 				{
-					if (  t.t == -5  )  t.effectid = g.lightmappbreffectillum;
+					if (  t.t == -6  )  t.effectid = g.lightmappbreffectillum;
+					if (  t.t == -5  ) t.effectid = g.controllerpbreffect;
 					if (  t.t == -4  )  t.effectid = g.lightmappbreffect;
 					if (  t.t == -3  )  t.effectid = g.thirdpersonentityeffect;
 					if (  t.t == -2  )  t.effectid = g.thirdpersoncharactereffect;
@@ -4738,17 +4896,17 @@ void terrain_water_loop ( void )
 		t.visuals.reflectionmodepixelsrendered = 1;
 	}
 
-	//  Adjust reflective processing based on actual number of water pixels in final scene
+	// Adjust reflective processing based on actual number of water pixels in final scene
 	t.visuals.reflectionmodepixelsrendered=0;
-	if (  t.visuals.reflectionmode>0 ) 
+	if ( t.visuals.reflectionmode>0 ) 
 	{
-		if (  ObjectExist(t.terrain.objectstartindex+5) == 1 ) 
+		if ( ObjectExist(t.terrain.objectstartindex+5) == 1 ) 
 		{
 			// DX11 had the query removed so cannot count pixels rendered (would also fix 'one cycle' no reflection issue)
 			t.visuals.reflectionmodepixelsrendered=1;//GetObjectOcclusionValue(t.terrain.objectstartindex+5);
-			if (  t.visuals.reflectionmodepixelsrendered>0 ) 
+			if ( t.visuals.reflectionmodepixelsrendered>0 ) 
 			{
-				if (  t.visuals.reflectionmodemodified == 0 ) 
+				if ( t.visuals.reflectionmodemodified == 0 ) 
 				{
 					t.visuals.reflectionmodemodified=t.visuals.reflectionmode;
 					visuals_updateobjectmasks ( );
@@ -4756,7 +4914,7 @@ void terrain_water_loop ( void )
 			}
 			else
 			{
-				if (  t.visuals.reflectionmodemodified>0 ) 
+				if ( t.visuals.reflectionmodemodified>0 ) 
 				{
 					t.visuals.reflectionmodemodified=0;
 					visuals_updateobjectmasks ( );
@@ -4765,76 +4923,117 @@ void terrain_water_loop ( void )
 		}
 	}
 
-	//  Update Water plain
-	if (  ObjectExist(t.terrain.objectstartindex+5) == 1 && t.visuals.reflectionmodepixelsrendered>0 ) 
+	// Update Water plain
+	if ( ObjectExist(t.terrain.objectstartindex+5) == 1 && t.visuals.reflectionmodepixelsrendered>0 ) 
 	{
-		PositionObject (  t.terrain.objectstartindex+5,ObjectPositionX(t.terrain.objectstartindex+5),t.terrain.waterliney_f,ObjectPositionZ(t.terrain.objectstartindex+5) );
+		PositionObject ( t.terrain.objectstartindex+5,ObjectPositionX(t.terrain.objectstartindex+5),t.terrain.waterliney_f,ObjectPositionZ(t.terrain.objectstartindex+5) );
 		t.terrain.WaterCamY_f=CameraPositionY()-t.terrain.waterliney_f;
-		//  Refraction camera (looks bad with stuff floating in it)
-		HideObject (  t.terrain.objectstartindex+5 );
-		//  Reflection camera
-		if (  t.visuals.reflectionmode>1 ) 
-		{
-			//  special render technique for terrain reflection
-			SetEffectTechnique ( t.terrain.effectstartindex+1, "UseReflection" );
 
-			//  set sky position to be relative to reflection render
+		// Refraction camera (looks bad with stuff floating in it)
+		HideObject (  t.terrain.objectstartindex+5 );
+		// Reflection camera
+		if ( t.visuals.reflectionmode>1 ) 
+		{
+			// if in VR mode, lef/right eye math messy, so dont change reflected sky angle for clean render
+			if ( g.gvrmode != 0 )//&& CameraExist(6) == 1 ) 
+			{
+				// special render technique for terrain reflection
+				SetEffectTechnique ( t.terrain.effectstartindex+1, "UseReflectionNoSky" );
+			}
+			else
+			{
+				// special render technique for terrain reflection
+				SetEffectTechnique ( t.terrain.effectstartindex+1, "UseReflection" );
+			}
+
+			// set sky position to be relative to reflection render
 			PositionObject (  t.terrain.objectstartindex+4,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
 			if (  ObjectExist(t.terrain.objectstartindex+8) == 1  )  PositionObject (  t.terrain.objectstartindex+8,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
 			PositionCamera (  2,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
 
-			if (g.luacameraoverride == 2 || g.luacameraoverride == 3) {
+			if (g.luacameraoverride == 2 || g.luacameraoverride == 3) 
+			{
 				//PE: Why ohh why is Z negative when using g.luacameraoverride=3 || 2 ???????
 				//PE: ? ? ? a matrix problem somewhere ? ? ?
 				RotateCamera(2, -CameraAngleX(0), CameraAngleY(0), -CameraAngleZ(0));
 			}
-			else {
+			else 
+			{
 				RotateCamera(2, -CameraAngleX(0), CameraAngleY(0), CameraAngleZ(0));
 			}
-			//  only render terrain/objects if mode allows
-			if (  t.visuals.reflectionmode>25 ) 
+			// only render terrain/objects if mode allows
+			if ( t.visuals.reflectionmode>25 ) 
 			{
-				//  full reflection mode renders terrain
-				if (  t.terrain.WaterCamY_f>0 ) 
+				// special render technique for terrain reflection
+				SetEffectTechnique ( t.terrain.effectstartindex+1, "UseReflection" );
+
+				// set sky position to be relative to reflection render
+				PositionObject ( t.terrain.objectstartindex+4,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
+				if ( ObjectExist(t.terrain.objectstartindex+8) == 1 ) PositionObject ( t.terrain.objectstartindex+8,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
+
+				/* how to get true reflection vector from HMD view angle (left/right?) VR!
+				float fAX = ObjectAngleX(t.terrain.objectstartindex+5);
+				float fAY = ObjectAngleY(t.terrain.objectstartindex+5);
+				float fAZ = ObjectAngleZ(t.terrain.objectstartindex+5);
+				SetCurrentCamera ( 6 );
+				SetObjectToCameraOrientation(t.terrain.objectstartindex+5);
+				SetCurrentCamera ( 2 );
+				SetCameraToObjectOrientation(t.terrain.objectstartindex+5);
+				RotateCamera ( 2, -CameraAngleX(2), CameraAngleY(2), CameraAngleZ(2) );
+				PositionCamera ( 2,CameraPositionX(6),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ(6) );
+				RotateObject ( t.terrain.objectstartindex+5, fAX, fAY, fAZ );
+				SetCurrentCamera ( 0 );
+				*/
+
+				PositionCamera ( 2,CameraPositionX(),t.terrain.waterliney_f-t.terrain.WaterCamY_f,CameraPositionZ() );
+				RotateCamera ( 2,-CameraAngleX(),CameraAngleY(),CameraAngleZ() );
+
+				// only render terrain/objects if mode allows
+				if ( t.visuals.reflectionmode>25 ) 
 				{
-					SetCameraClip (  2,1,0,t.terrain.waterliney_f-0.0,0,0,1,0 );
+					// full reflection mode renders terrain
+					if ( t.terrain.WaterCamY_f>0 ) 
+					{
+						SetCameraClip ( 2,1,0,t.terrain.waterliney_f-0.0,0,0,1,0 );
+					}
+					else
+					{
+						SetCameraClip ( 2,1,0,t.terrain.waterliney_f+50.0,0,0,-1,0 );
+					}
+					// if terrain exists, render it
+					if ( t.terrain.TerrainID>0 ) 
+					{
+						BT_SetCurrentCamera ( 2 );
+						BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,700.0 );
+						BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,701.0 );
+						BT_UpdateTerrainLOD ( t.terrain.TerrainID );
+						BT_UpdateTerrainCull ( t.terrain.TerrainID );
+						BT_RenderTerrain ( t.terrain.TerrainID );
+						BT_SetCurrentCamera (  0 );
+						BT_SetTerrainLODDistance ( t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
+						BT_SetTerrainLODDistance ( t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
+					}
 				}
 				else
 				{
-					SetCameraClip (  2,1,0,t.terrain.waterliney_f+50.0,0,0,-1,0 );
+					// no terrain in reflection render
 				}
-				//  if terrain exists, render it
-				if (  t.terrain.TerrainID>0 ) 
+				if (t.visuals.reflectionmode == 1) 
 				{
-					BT_SetCurrentCamera (  2 );
-					BT_SetTerrainLODDistance (  t.terrain.TerrainID,1,700.0 );
-					BT_SetTerrainLODDistance (  t.terrain.TerrainID,2,701.0 );
-					BT_UpdateTerrainLOD (  t.terrain.TerrainID );
-					BT_UpdateTerrainCull (  t.terrain.TerrainID );
-					BT_RenderTerrain (  t.terrain.TerrainID );
-					BT_SetCurrentCamera (  0 );
-					BT_SetTerrainLODDistance (  t.terrain.TerrainID,1,1401.0+t.visuals.TerrainLOD1_f );
-					BT_SetTerrainLODDistance (  t.terrain.TerrainID,2,1401.0+t.visuals.TerrainLOD2_f );
+					//PE: Special mode that only clear the reflection image mainly for underwater.
+					SetCameraClip(2, 1, 0, t.terrain.waterliney_f - 100000.0, 0, 0, -1, 0);
 				}
-			}
-			else
-			{
-				//  no terrain in reflection render
-			}
-			if (t.visuals.reflectionmode == 1) {
-				//PE: Special mode that only clear the reflection image mainly for underwater.
-				SetCameraClip(2, 1, 0, t.terrain.waterliney_f - 100000.0, 0, 0, -1, 0);
-			}
-			SyncMask (  1<<2 );
+				SyncMask ( 1<<2 );
 
-			//  simpler terrain for reflection render
-			if (  GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex,"ReflectedOnly" );
-			FastSync (  );
-			//  restore terrain shader technique
-			if ( GetEffectExist(t.terrain.terrainshaderindex) == 1  ) visuals_shaderlevels_terrain_update ( );
-			//  restore sky position to main camera
-			PositionObject (  t.terrain.objectstartindex+4,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-			if (  ObjectExist(t.terrain.objectstartindex+8) == 1  )  PositionObject (  t.terrain.objectstartindex+8,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
+				// simpler terrain for reflection render
+				if ( GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex, "ReflectedOnly" );
+				FastSync ( );
+				// restore terrain shader technique
+				if ( GetEffectExist(t.terrain.terrainshaderindex) == 1  ) visuals_shaderlevels_terrain_update ( );
+				// restore sky position to main camera
+				PositionObject ( t.terrain.objectstartindex+4,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
+				if ( ObjectExist(t.terrain.objectstartindex+8) == 1  )  PositionObject (  t.terrain.objectstartindex+8,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
+			}
 		}
 		else
 		{
@@ -4842,15 +5041,15 @@ void terrain_water_loop ( void )
 		}
 	}
 
-	//  Restore regular rendering
-	SyncMask (  0xfffffff9 );
+	// Restore regular rendering
+	SyncMask ( 0xfffffff9 );
 
-	//  Show water again for main rendering
-	if (  t.hardwareinfoglobals.nowater == 0 ) 
+	// Show water again for main rendering
+	if ( t.hardwareinfoglobals.nowater == 0 ) 
 	{
-		if (  ObjectExist(t.terrain.objectstartindex+5) == 1 ) 
+		if ( ObjectExist(t.terrain.objectstartindex+5) == 1 ) 
 		{
-			ShowObject (  t.terrain.objectstartindex+5 );
+			ShowObject ( t.terrain.objectstartindex+5 );
 		}
 	}
 }
@@ -5184,15 +5383,17 @@ void terrain_fastveg_loadgrass ( void )
 
 void terrain_fastveg_savegrass ( void )
 {
-	//  regenerate the memblock from the vegmask bitmap for consistency
+	// regenerate the memblock from the vegmask bitmap for consistency
 	t.terrain.grassregionupdate=0;
 	terrain_fastveg_updategrassfrombitmap ( );
 
-	//  save grass memblock to disk
-	if (  FileExist(t.tfileveggrass_s.Get()) == 1  )  DeleteAFile (  t.tfileveggrass_s.Get() );
-	OpenToWrite (  3,t.tfileveggrass_s.Get() );
-	WriteMemblock (  3,t.terrain.grassmemblock );
-	CloseFile (  3 );
+	// save grass memblock to disk
+	if ( FileExist(t.tfileveggrass_s.Get()) == 1 ) DeleteAFile ( t.tfileveggrass_s.Get() );
+	if ( OpenToWriteEx ( 3, t.tfileveggrass_s.Get() ) == true )
+	{
+		WriteMemblock (  3,t.terrain.grassmemblock );
+		CloseFile (  3 );
+	}
 }
 
 void terrain_fastveg_buildblankgrass ( void )
@@ -5228,15 +5429,14 @@ void terrain_fastveg_buildblankgrass_fornew ( void )
 		WriteMemblockDWord (  t.terrain.grassmemblock,8,32 );
 	}
 
-	//  save grass memblock to disk
-	//  151214 - wrong format but VEH module deals with nonraw-image memblocks as ZERO
-	if (  FileExist(t.tfileveggrass_s.Get()) == 1  )  DeleteAFile (  t.tfileveggrass_s.Get() );
-	OpenToWrite (  3,t.tfileveggrass_s.Get() );
-		WriteMemblock (  3,t.terrain.grassmemblock );
-	CloseFile (  3 );
-
-return;
-
+	// save grass memblock to disk
+	// 151214 - wrong format but VEH module deals with nonraw-image memblocks as ZERO
+	if ( FileExist(t.tfileveggrass_s.Get()) == 1 ) DeleteAFile ( t.tfileveggrass_s.Get() );
+	if ( OpenToWriteEx ( 3, t.tfileveggrass_s.Get() ) == true )
+	{
+		WriteMemblock ( 3, t.terrain.grassmemblock );
+		CloseFile ( 3 );
+	}
 }
 
 void terrain_fastveg_free ( void )

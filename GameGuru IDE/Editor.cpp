@@ -89,6 +89,18 @@ BEGIN_MESSAGE_MAP(CEditorApp, CWinApp)
 	//{{AFX_MSG_MAP(CEditorApp)
 	ON_COMMAND(ID_HELP_INTERACTIVETUTORIAL, OnInteractiveTutorial)
 	ON_COMMAND(ID_HELP_EDITORKEYBOARDSHORTCUTS, OnAppEditorKeyboardShortcuts)
+	ON_COMMAND(ID_HELP_GAMEKEYBOARDCONTROLS, OnAppGameKeyboardControlsShortcuts)
+	ON_COMMAND(ID_HELP_GAMEVRCONTROLS, OnAppGameVRControlsShortcuts)
+	ON_COMMAND(ID_TESTGAME_DESKTOPGAMEPLAY, OnAppDesktopPlay)
+	ON_COMMAND(ID_TESTGAME_SOLOVRGAMEPLAY, OnAppSoloVRPlay)
+	ON_COMMAND(ID_TESTGAME_SOCIALVRGAMEPLAY, OnAppSocialVRPlay)
+	/*
+	ON_COMMAND(ID_OBJECTS_ADDNEWENTITY, OnAppObjectsAddNewEntity)
+	ON_COMMAND(ID_OBJECTS_ADDNEWSITE, OnAppObjectsAddNewSite)
+	ON_COMMAND(ID_OBJECTS_PLAYERSTART, OnAppObjectsPlayerStarter)
+	ON_COMMAND(ID_OBJECTS_MULTIPLAYERSTART, OnAppObjectsMultiplayerStart)
+	ON_COMMAND(ID_OBJECTS_CREATENEWWAYPOINT, OnAppObjectsCreateNewWayPoint)
+	*/
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 	ON_COMMAND(ID_HELP_ABOUTTHISSOMETHING, OnAppAboutThisSomething)
 	ON_COMMAND(ID_APP_EXIT, OnAppExit1)
@@ -112,7 +124,7 @@ BEGIN_MESSAGE_MAP(CEditorApp, CWinApp)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateEditRedo)
 	ON_UPDATE_COMMAND_UI(ID_FILE_BUILDGAME, OnUpdateBuildGame) // CRAPY, see MAINFRM.CPP :)
 	ON_UPDATE_COMMAND_UI(ID_FILE_DOWNLOADSTOREITEMS, OnDownloadStoreItems)
-	ON_UPDATE_COMMAND_UI(ID_FILE_IMPORTMODEL, OnImportModel)
+	//ON_UPDATE_COMMAND_UI(ID_FILE_IMPORTMODEL, OnImportModel)
 	ON_UPDATE_COMMAND_UI(ID_FILE_CHARACTERCREATOR33003, OnCharacterCreator)
 	
 	ON_UPDATE_COMMAND_UI(ID_TUTORIALS_EDITORBASICSPART1, OnTutorials)
@@ -825,7 +837,8 @@ void CEditorApp::CheckForDBProApplications ( void )
 		//m_bGameOrBuildInProgress = false;	// state of game
 		
 		// check to see if any of these processes are running
-		bMapEditor = IsProcessRunning ( "Game Guru12345" );//"FPSC Map Editor12345" );
+		//bMapEditor = IsProcessRunning ( "Game Guru12345" );//"FPSC Map Editor12345" );
+		bMapEditor = IsProcessRunning ( "MyGame12345" );//"FPSC Map Editor12345" );
 		if ( bMapEditor==false ) bMapEditor = IsProcessRunning ( "Guru-MapEditor" );
 		//m_bGameOrBuildInProgress = IsProcessRunning ( "FPSC Game12345" );
 		//if ( m_bGameOrBuildInProgress==false ) m_bGameOrBuildInProgress = IsProcessRunning ( "FPSC-Game" );
@@ -1001,9 +1014,8 @@ void CEditorApp::UpdateTermination ( void )
 		while ( 1 )
 		{
 			bool bMapEditor = false;
-
-			bMapEditor = IsProcessRunning ( "Game Guru12345" );//"FPSC Map Editor12345" );
-
+			//bMapEditor = IsProcessRunning ( "Game Guru12345" );//"FPSC Map Editor12345" );
+			bMapEditor = IsProcessRunning ( "MyGame12345" );//"FPSC Map Editor12345" );
 			if ( !bMapEditor )
 				break;
 		}
@@ -1225,10 +1237,13 @@ void CEditorApp::UpdateBuildGame ( void )
 		GetPrivateProfileString ( _T ( "Standalone" ), _T ( "Title" ), _T ( "" ), szString [ 0 ], MAX_PATH, theApp.m_szLanguage );
 		GetPrivateProfileString ( _T ( "Standalone" ), _T ( "Body1" ), _T ( "" ), szString [ 1 ], MAX_PATH, theApp.m_szLanguage );
 		GetPrivateProfileString ( _T ( "Standalone" ), _T ( "Body2" ), _T ( "" ), szString [ 2 ], MAX_PATH, theApp.m_szLanguage );
-		wsprintf ( str, "%s '\\Documents\\Game Guru Files\\My Games' %s.", szString [ 1 ], szString [ 2 ] );
+		#ifdef GGBRANDED
+		 wsprintf ( str, "%s '\\Documents\\VR Quest Files\\My Games' %s.", szString [ 1 ], szString [ 2 ] );
+		#else
+		 wsprintf ( str, "%s '\\Documents\\Game Guru Files\\My Games' %s.", szString [ 1 ], szString [ 2 ] );
+		#endif
 		MessageBox ( NULL, str, szString [ 0 ], MB_OK | MB_APPLMODAL | MB_TOPMOST | MB_SETFOREGROUND );
 
-		
 		// reset trigger
 		DWORD dwClear = 0;
 		pIPC->SendBuffer ( &dwClear, 758, sizeof ( dwClear ) );
@@ -1268,11 +1283,11 @@ void CEditorApp::RestoreIDEEditorView ( void )
 	// restore windows
 	((CMainFrame*)theApp.GetMainWnd())->m_wndMenuBar.ShowWindow(SW_SHOW);
 	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBar.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint.ShowWindow(SW_SHOW);
-	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint.ShowWindow(SW_SHOW);
+	//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame.ShowWindow(SW_SHOW);
 	((CMainFrame*)theApp.GetMainWnd())->m_wndStatusBar.ShowWindow(SW_SHOW);
 	((CMainFrame*)theApp.GetMainWnd())->m_wndOutput.ShowWindow(SW_SHOW);
 	((CMainFrame*)theApp.GetMainWnd())->m_wndWorkSpace.ShowWindow(SW_HIDE);
@@ -1284,11 +1299,11 @@ void CEditorApp::RestoreIDEEditorView ( void )
 	CRect rectA;
 	((CMainFrame*)theApp.GetMainWnd())->m_wndToolBar.GetWindowRect(&rectA);
 	rectA.OffsetRect(1,0);
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
-	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
 	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndOutput,			AFX_IDW_DOCKBAR_LEFT,	&rectA );
 	((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndWorkSpace );
 
@@ -1320,12 +1335,12 @@ void CEditorApp::UpdateTestGame ( void )
 		RestoreIDEEditorView();
 		((CMainFrame*)theApp.GetMainWnd())->m_wndMenuBar.ShowWindow(SW_SHOW);
 		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBar.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame.ShowWindow(SW_SHOW);
-		((CMainFrame*)theApp.GetMainWnd())->m_wndStatusBar.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame.ShowWindow(SW_SHOW);
+		//((CMainFrame*)theApp.GetMainWnd())->m_wndStatusBar.ShowWindow(SW_SHOW);
 		((CMainFrame*)theApp.GetMainWnd())->m_wndOutput.ShowWindow(SW_SHOW);
 		((CMainFrame*)theApp.GetMainWnd())->m_wndWorkSpace.ShowWindow(SW_HIDE);
 
@@ -1336,11 +1351,11 @@ void CEditorApp::UpdateTestGame ( void )
 		CRect rectA;
 		((CMainFrame*)theApp.GetMainWnd())->m_wndToolBar.GetWindowRect(&rectA);
 		rectA.OffsetRect(1,0);
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
-		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
+		//((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
 		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndOutput,			AFX_IDW_DOCKBAR_LEFT,	&rectA );
 		((CMainFrame*)theApp.GetMainWnd())->DockControlBar ( &((CMainFrame*)theApp.GetMainWnd())->m_wndWorkSpace );
 
@@ -2173,13 +2188,13 @@ void CEditorApp::UpdateBrowserWindow ( void )
 		//Hide menubar and toolbars when in library
 		pFrame->m_wndMenuBar.ShowWindow(SW_HIDE);					//Hides Menu Bar
 		pFrame->m_wndToolBar .ShowWindow(SW_HIDE);					//Hides Toolbars...
-		pFrame->m_wndToolBarGame .ShowWindow(SW_HIDE);
-		pFrame->m_wndToolBarDraw .ShowWindow(SW_HIDE);
-		if ( pFrame->m_wndToolBarEntity ) pFrame->m_wndToolBarEntity.ShowWindow (SW_HIDE);
-		if ( pFrame->m_wndToolBarMode ) pFrame->m_wndToolBarMode.ShowWindow (SW_HIDE);
-		pFrame->m_wndToolBarSegment .ShowWindow (SW_HIDE);
-		pFrame->m_wndToolBarView .ShowWindow (SW_HIDE);
-		pFrame->m_wndToolBarWaypoint .ShowWindow (SW_HIDE);
+		//pFrame->m_wndToolBarGame .ShowWindow(SW_HIDE);
+		//pFrame->m_wndToolBarDraw .ShowWindow(SW_HIDE);
+		//if ( pFrame->m_wndToolBarEntity ) pFrame->m_wndToolBarEntity.ShowWindow (SW_HIDE);
+		//if ( pFrame->m_wndToolBarMode ) pFrame->m_wndToolBarMode.ShowWindow (SW_HIDE);
+		//pFrame->m_wndToolBarSegment .ShowWindow (SW_HIDE);
+		//pFrame->m_wndToolBarView .ShowWindow (SW_HIDE);
+		//pFrame->m_wndToolBarWaypoint .ShowWindow (SW_HIDE);
 		pFrame->m_wndStatusBar .ShowWindow (SW_HIDE);
 		pFrame->RecalcLayout(TRUE);									//Recalc layout to use the toolbar space.
 
@@ -2199,13 +2214,13 @@ void CEditorApp::UpdateBrowserWindow ( void )
 		//Show menubar and toolbars when exit library
 		pFrame->m_wndMenuBar. ShowWindow(SW_SHOW);				//Show menubars
 		pFrame->m_wndToolBar .ShowWindow(SW_SHOW);				//Show Toolbars
-		pFrame->m_wndToolBarGame .ShowWindow(SW_SHOW);
-		pFrame->m_wndToolBarDraw .ShowWindow(SW_SHOW);
-		if ( pFrame->m_wndToolBarEntity ) pFrame->m_wndToolBarEntity.ShowWindow (SW_SHOW);
-		if ( pFrame->m_wndToolBarMode ) pFrame->m_wndToolBarMode.ShowWindow (SW_SHOW);
-		if ( pFrame->m_wndToolBarSegment ) pFrame->m_wndToolBarSegment.ShowWindow (SW_SHOW);
-		pFrame->m_wndToolBarView .ShowWindow (SW_SHOW);
-		pFrame->m_wndToolBarWaypoint .ShowWindow (SW_SHOW);
+		//pFrame->m_wndToolBarGame .ShowWindow(SW_SHOW);
+		//pFrame->m_wndToolBarDraw .ShowWindow(SW_SHOW);
+		//if ( pFrame->m_wndToolBarEntity ) pFrame->m_wndToolBarEntity.ShowWindow (SW_SHOW);
+		//if ( pFrame->m_wndToolBarMode ) pFrame->m_wndToolBarMode.ShowWindow (SW_SHOW);
+		//if ( pFrame->m_wndToolBarSegment ) pFrame->m_wndToolBarSegment.ShowWindow (SW_SHOW);
+		//pFrame->m_wndToolBarView .ShowWindow (SW_SHOW);
+		//pFrame->m_wndToolBarWaypoint .ShowWindow (SW_SHOW);
 		pFrame->m_wndStatusBar .ShowWindow (SW_SHOW);			//Show Statusbar
 		pFrame->RecalcLayout(TRUE);								//Recalculates layout to chack correct.
 
@@ -2455,6 +2470,9 @@ void CEditorApp::LoadLanguage ( void )
 	strcat ( szPath, szLanguage );
 	strcpy ( theApp.m_szLanguagePath, szPath );
 	strcat ( szPath, "/textfiles" );
+	#ifdef GGBRANDED
+	strcat ( szPath, "/branded" );
+	#endif
 	strcat ( szPath, "/ide-words.ini" );
 	strcpy ( theApp.m_szLanguage, theApp.m_szDirectory );
 	strcat ( theApp.m_szLanguage, "\\" );
@@ -2465,6 +2483,9 @@ void CEditorApp::LoadLanguage ( void )
 	strcat ( szPath, szLanguage );
 	strcpy ( theApp.m_szLanguagePath, szPath );
 	strcat ( szPath, "/textfiles" );
+	#ifdef GGBRANDED
+	strcat ( szPath, "/branded" );
+	#endif
 	strcat ( szPath, "/ide-words.ini" );
 	strcpy ( theApp.m_szLanguageVariant, theApp.m_szDirectory );
 	strcat ( theApp.m_szLanguageVariant, "\\" );
@@ -2591,11 +2612,14 @@ BOOL CEditorApp::InitInstance ( )
 
 	// V105 - 220107 - Detect DirectX OCTOBER 2006 or later, or else editor does not work
 	// X10 - 031007 - Detect DirectX 10 JUNE 2007 or later, or else software will not work
-	bool bQuitEarly = false;
-	char pWinDir [ _MAX_PATH ];
-	GetWindowsDirectory ( pWinDir, _MAX_PATH );
-	if ( strlen ( pWinDir ) > 0 )
-	{
+	// GGBRANDED uses DirectX 11
+	#ifdef GGBRANDED
+	#else
+	 bool bQuitEarly = false;
+	 char pWinDir [ _MAX_PATH ];
+	 GetWindowsDirectory ( pWinDir, _MAX_PATH );
+	 if ( strlen ( pWinDir ) > 0 )
+	 {
 		strcat ( pWinDir, "\\system32\\d3dx10_34.dll" );
 		OFSTRUCT os;
 		if ( OpenFile ( pWinDir, &os, OF_EXIST )==HFILE_ERROR )
@@ -2603,8 +2627,8 @@ BOOL CEditorApp::InitInstance ( )
 			MessageBoxA ( NULL, "You need to reinstall this product as the required DirectX files are missing", "DirectX Files Not Installed", MB_OK );
 			bQuitEarly = true;
 		}
-	}
-	if ( bQuitEarly==true )
+	 }
+	 if ( bQuitEarly==true )
 		return false;
 
 	// 200807 - Vista Check
@@ -2614,8 +2638,7 @@ BOOL CEditorApp::InitInstance ( )
 		// 181207 - does not look great for a Logo app (just made text bigger)
 		// DisableComposition();
 	}
-
-	// application start up
+	#endif
 
 	// only create if no mutex exists for the GAME GURU INTERFACE
 	m_hOnlyOneEditorMutex = OpenMutex ( MUTEX_ALL_ACCESS, FALSE, "THERECANBEONLYONEGAMEGURU" );
@@ -2808,7 +2831,8 @@ BOOL CEditorApp::InitInstance ( )
 
 	// before we start things up, detect any old FPSC-MapEditor.exe processes/windows
 	// and remove them so we don't get that freeze issue for users who crashed out/etc
-	char* szProcess = "Game Guru12345";//FPSC Map Editor12345";
+	//char* szProcess = "Game Guru12345";//FPSC Map Editor12345";
+	char* szProcess = "MyGame12345";//FPSC Map Editor12345";
 	HWND hWndFind = FindWindow ( szProcess, NULL );
 	if ( hWndFind )
 	{
@@ -3094,7 +3118,8 @@ BOOL CEditorApp::PreTranslateMessage ( MSG* pMsg )
 	// forward messages allowing ENTRY$() to function in DBP App
 	// C++ CONVERSION - now only sends for use in INPUT as Entry() info is passed via filemap
 	// This used to be commented out, but now back in to ensure Inkey works
-	if ( g_hwndRealDBPApp==NULL ) g_hwndRealDBPApp = FindWindow ( "Game Guru12345", NULL );
+	//if ( g_hwndRealDBPApp==NULL ) g_hwndRealDBPApp = FindWindow ( "Game Guru12345", NULL );
+	if ( g_hwndRealDBPApp==NULL ) g_hwndRealDBPApp = FindWindow ( "MyGame12345", NULL );
 	if ( g_hwndRealDBPApp )
 	{
 		// Fix for inkey sticking

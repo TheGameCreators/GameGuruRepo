@@ -14,10 +14,10 @@ extern UINT g_StereoEyeToggle;
 
 void lua_prompt ( void )
 {
-	if ( g.gvrmode > 0 )
+	if ( g.vrqcontrolmode != 0 ) //g.gvrmode > 0 )
 	{
 		// use VR prompt instead
-		lua_prompt3d ( t.s_s.Get(), Timer() );
+		lua_prompt3d ( t.s_s.Get(), Timer(), 0 );
 	}
 	else
 	{
@@ -26,12 +26,21 @@ void lua_prompt ( void )
 	}
 }
 
-void lua_promptduration ( void )
+void lua_promptimage ( void )
 {
-	if ( g.gvrmode > 0 )
+	if ( g.vrqcontrolmode != 0 ) //g.gvrmode > 0 )
 	{
 		// use VR prompt instead
-		lua_prompt3d ( t.s_s.Get(), Timer()+t.v );
+		lua_prompt3d ( "image", Timer(), t.v );
+	}
+}
+
+void lua_promptduration ( void )
+{
+	if ( g.vrqcontrolmode != 0 ) //g.gvrmode > 0 )
+	{
+		// use VR prompt instead
+		lua_prompt3d ( t.s_s.Get(), Timer()+t.v, 0 );
 	}
 	else
 	{
@@ -47,14 +56,16 @@ void lua_prompttextsize ( void )
 
 void lua_promptlocalcore ( int iTrueLocalOrForVR )
 {
-	if ( g.gvrmode > 0 )
+	if ( g.vrqcontrolmode != 0 ) //g.gvrmode > 0 )
 	{
 		// use VR prompt instead
-		lua_prompt3d ( t.s_s.Get(), Timer()+1000 );
+		if ( iTrueLocalOrForVR == 0 ) lua_prompt3d ( t.s_s.Get(), Timer()+1000, 0 );
 		float fObjCtrX = GetObjectCollisionCenterX(t.entityelement[t.e].obj);
 		float fObjCtrZ = GetObjectCollisionCenterZ(t.entityelement[t.e].obj);
 		float fObjHeight = ObjectSizeY(t.entityelement[t.e].obj);
 		float fObjAngle = ObjectAngleY(t.entityelement[t.e].obj);
+		bool bAngleToFaceCameraExactly = false;
+		bool bUseCharacterPositioning = false;
 		if ( iTrueLocalOrForVR > 0 )
 		{
 			// if PromptLocalForVR mode 1 used, always face player
@@ -64,12 +75,19 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 			fObjAngle = fDA;
 
 			// if PromptLocalForVR mode 2 used, also elevate text toi above entity (for characters)
-			if ( iTrueLocalOrForVR == 2 )
-			{
-				fObjHeight = fObjHeight * 1.8f;
-			}
+			if ( iTrueLocalOrForVR == 2 ) bUseCharacterPositioning = true;
+
+			// if PromptLocalForVR mode 3, object may be on floor so need to angle upwards too
+			if ( iTrueLocalOrForVR == 3 ) bAngleToFaceCameraExactly = true;
 		}
-		lua_positionprompt3d ( t.entityelement[t.e].x+fObjCtrX, t.entityelement[t.e].y+(fObjHeight/2.0f), t.entityelement[t.e].z+fObjCtrZ, fObjAngle );
+		// factor in characters as want text over the head
+		float fHeightAdjustment = (fObjHeight/2.0f);
+		if ( t.entityprofile[t.entityelement[t.e].bankindex].ischaracter > 0 ) bUseCharacterPositioning = true;
+		if ( bUseCharacterPositioning == true ) fHeightAdjustment = fObjHeight * 1.2f;
+		if ( iTrueLocalOrForVR == 0 ) 
+			lua_positionprompt3d ( 0, t.entityelement[t.e].x+fObjCtrX, t.entityelement[t.e].y+fHeightAdjustment, t.entityelement[t.e].z+fObjCtrZ, fObjAngle, bAngleToFaceCameraExactly );
+		else
+			lua_positionprompt3d ( t.e, t.entityelement[t.e].x+fObjCtrX, t.entityelement[t.e].y+fHeightAdjustment, t.entityelement[t.e].z+fObjCtrZ, fObjAngle, bAngleToFaceCameraExactly );
 	}
 	else
 	{
@@ -80,6 +98,7 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 		}
 		else
 		{
+			t.entityelement[t.e].overpromptuse3D = false;
 			t.entityelement[t.e].overprompt_s=t.s_s;
 			t.entityelement[t.e].overprompttimer=Timer()+1000;
 		}
@@ -147,7 +166,7 @@ void lua_text ( void )
 
 ///
 
-void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime )
+void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 {
 	// set prompt 3D - only regenerate if text changes
 	t.luaglobal.scriptprompt3dtime = dwPrompt3DTime;
@@ -158,42 +177,78 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime )
 		t.luaglobal.scriptprompt3dY = 0.0f;
 		t.luaglobal.scriptprompt3dZ = 0.0f;
 		t.luaglobal.scriptprompt3dAY = 0.0f;
+		t.luaglobal.scriptprompt3dFaceCamera = false;
 
-		// create 3d object for text
+		// determine if 3D text or 3D image
+		t.luaglobal.scriptprompttype = 1;
+		if ( iImageIndex > 0 ) 
+			t.luaglobal.scriptprompttype = 2;
+
+		// create 3d object for text or image
+		if ( ObjectExist(g.prompt3dobjectoffset)==1 ) DeleteObject ( g.prompt3dobjectoffset );
 		if ( ObjectExist(g.prompt3dobjectoffset)==0 )
 		{
-			MakeObjectPlane ( g.prompt3dobjectoffset, 512/5.0f, 32.0f/5.0f );
+			if ( t.luaglobal.scriptprompttype == 1 )
+				MakeObjectPlane ( g.prompt3dobjectoffset, 512/5.0f, 32.0f/5.0f );
+			else
+				MakeObjectPlane ( g.prompt3dobjectoffset, 256/5.0f, 256.0f/5.0f );
+
 			PositionObject ( g.prompt3dobjectoffset, -100000, -100000, -100000 );
 			SetObjectEffect ( g.prompt3dobjectoffset, g.guishadereffectindex );
 			DisableObjectZDepth ( g.prompt3dobjectoffset );
 			DisableObjectZRead ( g.prompt3dobjectoffset );
-			SetObjectMask ( g.prompt3dobjectoffset, 1 );
 			SetSphereRadius ( g.prompt3dobjectoffset, 0 );
+			// normal or VR
+			if ( g.vrglobals.GGVREnabled > 0 )
+				SetObjectMask ( g.prompt3dobjectoffset, (1<<6) + (1<<7) + 1 );
+			else
+				SetObjectMask ( g.prompt3dobjectoffset, 1 );
 		}
 
-		// render text to texture
-		if ( BitmapExist(2) == 0 ) CreateBitmap ( 2, 1024, 1024 );
-		SetCurrentBitmap ( 2 );
-		CLS ( Rgb(64,64,64) );
-		if ( g.gvrmode > 0 )
-			pastebitmapfontcenter ( pTextToRender, 512, 0, 4, 255);
-		else
+		// text or image
+		if ( t.luaglobal.scriptprompttype == 1 )
+		{
+			// render text to texture
+			if ( BitmapExist(2) == 0 ) CreateBitmap ( 2, 1024, 1024 );
+			SetCurrentBitmap ( 2 );
+			CLS ( Rgb(64,64,64) );
 			pastebitmapfontcenter ( pTextToRender, 256, 0, 4, 255);
-		GrabImage ( g.prompt3dimageoffset, 0, 0, 512, 64, 3 );
-		SetCurrentBitmap ( 0 );
+			GrabImage ( g.prompt3dimageoffset, 0, 0, 512, 64, 3 );
+			SetCurrentBitmap ( 0 );
 
-		// apply to object
-		TextureObject ( g.prompt3dobjectoffset, 0, g.prompt3dimageoffset );
+			// apply to object
+			TextureObject ( g.prompt3dobjectoffset, 0, g.prompt3dimageoffset );
+		}
+		else
+		{
+			// render image instead of text
+			TextureObject ( g.prompt3dobjectoffset, 0, iImageIndex );
+		}
 	}
 }
 
-void lua_positionprompt3d ( float fX, float fY, float fZ, float fAngleY )
+void lua_positionprompt3d ( int e, float fX, float fY, float fZ, float fAngleY, bool bFaceCameraExactly )
 {
-	t.luaglobal.scriptprompt3dX = fX;
-	t.luaglobal.scriptprompt3dY = fY;
-	t.luaglobal.scriptprompt3dZ = fZ;
-	t.luaglobal.scriptprompt3dAY = fAngleY;
-	lua_updateprompt3d();
+	if ( e == 0 )
+	{
+		t.luaglobal.scriptprompt3dX = fX;
+		t.luaglobal.scriptprompt3dY = fY;
+		t.luaglobal.scriptprompt3dZ = fZ;
+		t.luaglobal.scriptprompt3dAY = fAngleY;
+		t.luaglobal.scriptprompt3dFaceCamera = bFaceCameraExactly;
+		lua_updateprompt3d();
+	}
+	else
+	{
+		t.entityelement[e].overpromptuse3D = true; 
+		t.entityelement[e].overprompttimer = Timer()+100;
+		t.entityelement[e].overprompt3dX = fX;
+		t.entityelement[e].overprompt3dY = fY;
+		t.entityelement[e].overprompt3dZ = fZ;
+		t.entityelement[e].overprompt3dAY = fAngleY;
+		t.entityelement[e].overprompt3dFaceCamera = bFaceCameraExactly; 
+		lua_updateperentity3d ( e, t.s_s.Get(), fX, fY, fZ, fAngleY, bFaceCameraExactly );
+	}
 }
 
 void lua_updateprompt3d ( void )
@@ -203,24 +258,46 @@ void lua_updateprompt3d ( void )
 	float fY = t.luaglobal.scriptprompt3dY;
 	float fZ = t.luaglobal.scriptprompt3dZ;
 	float fA = t.luaglobal.scriptprompt3dAY;
+	bool bFaceCamera = t.luaglobal.scriptprompt3dFaceCamera;
 	if ( fX == 0.0f && fY == 0.0f && fZ == 0.0f )
 	{
-		// no coordinates so show in front of user
-		MoveCameraDown ( 0, 18.0f );
-		MoveCamera ( 0, 50.0f );
+		// projects forward from camera pos, finds floor and raises up 50 units, should stay put in all render views
+		float fStCamX = CameraPositionX();
+		float fStCamY = CameraPositionY();
+		float fStCamZ = CameraPositionZ();
+		float fStCamAX = CameraAngleX();
+		float fStCamAY = CameraAngleY();
+		float fStCamAZ = CameraAngleZ();
+		if ( g.vrglobals.GGVREnabled != 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+		{
+			RotateCamera ( 0, CameraAngleX(6), CameraAngleY(6), CameraAngleZ(6) );
+			bFaceCamera = true;
+		}
+		else
+		{
+			RotateCamera ( 0, 0, CameraAngleY(0), 0 );
+		}
+		MoveCamera ( 0, 75.0f );
 		fX = CameraPositionX(0);
-		fY = CameraPositionY(0);
 		fZ = CameraPositionZ(0);
+		fY = BT_GetGroundHeight(t.terrain.TerrainID,fX,fZ) + 50.0f;
 		fA = CameraAngleY(0);
-		MoveCamera ( 0, -50.0f );
-		MoveCameraDown ( 0, -18.0f );
+		PositionCamera ( 0,  fStCamX, fStCamY, fStCamZ );
+		RotateCamera ( 0, fStCamAX, fStCamAY, fStCamAZ );
 	}
 	if ( ObjectExist( g.prompt3dobjectoffset ) == 1 )
 	{
 		PositionObject ( g.prompt3dobjectoffset, fX, fY, fZ );
 		PointObject ( g.prompt3dobjectoffset, ObjectPositionX(t.aisystem.objectstartindex), ObjectPositionY(t.aisystem.objectstartindex)+35.0f, ObjectPositionZ(t.aisystem.objectstartindex) );
 		MoveObject ( g.prompt3dobjectoffset, 15.0f );
-		RotateObject ( g.prompt3dobjectoffset, 0, fA+180.0f, 0 );
+		if ( bFaceCamera == true )
+		{
+			PointObject ( g.prompt3dobjectoffset, CameraPositionX(0), fY, CameraPositionZ(0) );
+		}
+		else
+		{
+			RotateObject ( g.prompt3dobjectoffset, 0, fA+180.0f, 0 );
+		}
 		ShowObject ( g.prompt3dobjectoffset );
 	}
 }
@@ -237,6 +314,80 @@ void lua_freeprompt3d ( void )
 	if ( ObjectExist( g.prompt3dobjectoffset ) == 1 )
 	{
 		DeleteObject ( g.prompt3dobjectoffset );
+	}
+}
+
+void lua_updateperentity3d ( int e, LPSTR pText, float fX, float fY, float fZ, float fA, bool bFaceCamera )
+{
+	// object for text render
+	int iPerEntity3dObjectID = g.perentitypromptoffset + e;
+
+	// set prompt 3D - only regenerate if text changes
+	if ( strcmp ( pText, t.entityelement[e].overprompt_s.Get() ) != NULL && g_StereoEyeToggle == 0 )
+	{
+		// new text to display
+		t.entityelement[e].overprompt_s = pText;
+
+		// create 3d object for text or image
+		if ( ObjectExist(iPerEntity3dObjectID)==1 ) DeleteObject ( iPerEntity3dObjectID );
+		if ( ObjectExist(iPerEntity3dObjectID)==0 )
+		{
+			MakeObjectPlane ( iPerEntity3dObjectID, 512/5.0f, 32.0f/5.0f );
+			PositionObject ( iPerEntity3dObjectID, -100000, -100000, -100000 );
+			SetObjectEffect ( iPerEntity3dObjectID, g.guishadereffectindex );
+			DisableObjectZDepth ( iPerEntity3dObjectID );
+			DisableObjectZRead ( iPerEntity3dObjectID );
+			SetSphereRadius ( iPerEntity3dObjectID, 0 );
+			if ( g.vrglobals.GGVREnabled > 0 )
+				SetObjectMask ( iPerEntity3dObjectID, (1<<6) + (1<<7) + 1 );
+			else
+				SetObjectMask ( iPerEntity3dObjectID, 1 );
+		}
+
+		// render text to texture
+		if ( BitmapExist(2) == 0 ) CreateBitmap ( 2, 1024, 1024 );
+		SetCurrentBitmap ( 2 );
+		CLS ( Rgb(64,64,64) );
+		pastebitmapfontcenter ( pText, 256, 0, 4, 255);
+		int iPerEntityImageID = g.perentitypromptimageoffset + e;
+		GrabImage ( iPerEntityImageID, 0, 0, 512, 64, 3 );
+		SetCurrentBitmap ( 0 );
+
+		// apply to object
+		TextureObject ( iPerEntity3dObjectID, 0, iPerEntityImageID );
+	}
+
+	// position 3d prompt and face camera
+	if ( ObjectExist( iPerEntity3dObjectID ) == 1 )
+	{
+		PositionObject ( iPerEntity3dObjectID, fX, fY, fZ );
+		PointObject ( iPerEntity3dObjectID, ObjectPositionX(t.aisystem.objectstartindex), ObjectPositionY(t.aisystem.objectstartindex)+35.0f, ObjectPositionZ(t.aisystem.objectstartindex) );
+		MoveObject ( iPerEntity3dObjectID, 15.0f );
+		if ( bFaceCamera == true )
+			PointObject ( iPerEntity3dObjectID, CameraPositionX(0), CameraPositionY(0), CameraPositionZ(0) );
+		else
+			RotateObject ( iPerEntity3dObjectID, 0, fA+180.0f, 0 );
+		ShowObject ( iPerEntity3dObjectID );
+	}
+}
+
+void lua_hideperentity3d ( int e )
+{
+	int iPerEntity3dObjectID = g.perentitypromptoffset + e;
+	if ( ObjectExist( iPerEntity3dObjectID ) == 1 ) HideObject ( iPerEntity3dObjectID );
+	t.entityelement[e].overprompttimer = 0;
+}
+
+void lua_freeallperentity3d ( void )
+{
+	for ( int e = 0; e < g.entityelementmax; e++ )
+	{
+		int iPerEntity3dObjectID = g.perentitypromptoffset + e;
+		if ( ObjectExist( iPerEntity3dObjectID ) == 1 ) DeleteObject ( iPerEntity3dObjectID );
+		int iPerEntity3dIImageID = g.perentitypromptimageoffset + e;
+		if ( ImageExist( iPerEntity3dIImageID ) == 1 ) DeleteImage ( iPerEntity3dIImageID );
+		t.entityelement[e].overprompt_s = "";
+		t.entityelement[e].overprompttimer = 0;
 	}
 }
 
@@ -682,6 +833,7 @@ void lua_unfreezeplayer ( void )
 	t.terrain.playerax_f = t.freezeplayerax;
 	t.terrain.playeray_f = t.freezeplayeray;
 	t.terrain.playeraz_f = t.freezeplayeraz;
+	t.camangy_f=t.terrain.playeray_f;
 
 	// Restart character to ensure they don't move
 	physics_disableplayer ( );
@@ -729,6 +881,7 @@ void lua_transporttofreezeposition ( void )
 		t.terrain.playerax_f = t.freezeplayerax;
 		t.terrain.playeray_f = t.freezeplayeray;
 		t.terrain.playeraz_f = t.freezeplayeraz;
+		t.camangy_f=t.terrain.playeray_f;
 	}
 	physics_setupplayer ( );
 	if ( t.freezeplayerposonly==0 )
