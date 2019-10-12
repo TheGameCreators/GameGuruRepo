@@ -33,8 +33,8 @@ GameGuru IDE/Release/GameGuru.tlog/rc.read.1.tlog
 GameGuru IDE/Release/GameGuru.tlog/rc.write.1.tlog
 GameGuru IDE/Release/Editor.res
 GameGuru/GameGuru.map
-GameGuru/Files/levelbank/testmap/
-GameGuru/Files/editors/gridedit/cfg.cfg
+GameGuru/Core/Files/levelbank/testmap/
+GameGuru/Core/Files/editors/gridedit/cfg.cfg
 GameGuru/reviewrequestreminder.ini
 GameGuru/visuals.ini
 GameGuru Core/GameGuru.VC.opendb
@@ -52,23 +52,23 @@ GameGuru/Guru-MapEditor.lib
 GameGuru Core/Lib/
 *.map
 GameGuru Core/Guru-MapEditor/showonstartup.ini
-GameGuru/Files/mapbank/_A_TEST_MAP.fpm
+GameGuru/Core/Files/mapbank/_A_TEST_MAP.fpm
 GameGuru/Media List Builder.iobj
 GameGuru/Media List Builder.ipdb
-GameGuru/Files/mapbank/_A_TEST_MAP.dat
-GameGuru/Files/mapbank/_test.fpm
-GameGuru/Files/mapbank/_test.dat
+GameGuru/Core/Files/mapbank/_A_TEST_MAP.dat
+GameGuru/Core/Files/mapbank/_test.fpm
+GameGuru/Core/Files/mapbank/_test.dat
 GameGuru Core/Guru-Lightmapper/Debug/m-lightmapping.obj.enc
-GameGuru/Files/mapbank/_test2.fpm
-GameGuru/Files/mapbank/_test2.dat
-GameGuru/Files/entitybank/user/charactercreator/Lee.fpe
-GameGuru/Files/entitybank/user/charactercreator/Lee.bmp
+GameGuru/Core/Files/mapbank/_test2.fpm
+GameGuru/Core/Files/mapbank/_test2.dat
+GameGuru/Core/Files/entitybank/user/charactercreator/Lee.fpe
+GameGuru/Core/Files/entitybank/user/charactercreator/Lee.bmp
 GameGuru Core/GameGuru.VC.db
 GameGuru Core/GameGuru.VC.VC.opendb
-GameGuru/Files/mapbank/Issues/ISSUE142-Test-Waypoint.fpm
-GameGuru/Files/mapbank/_A_TEST_MAP2.fpm
-GameGuru/Files/mapbank/_A_TEST_MAP2.dat
-GameGuru/Files/mapbank/Custom Export.dat
+GameGuru/Core/Files/mapbank/Issues/ISSUE142-Test-Waypoint.fpm
+GameGuru/Core/Files/mapbank/_A_TEST_MAP2.fpm
+GameGuru/Core/Files/mapbank/_A_TEST_MAP2.dat
+GameGuru/Core/Files/mapbank/Custom Export.dat
 *.log
 *.pdb
 *.obj
@@ -83,20 +83,20 @@ GameGuru Core/UseENCRYPTION - Shortcut.lnk
 GameGuru Core/UseNONE - Shortcut.lnk
 sh.exe.stackdump
 GameGuru/Guru-MapEditor.ilk
-GameGuru/Files/mapbank/worklevel.dat
-GameGuru/Files/editors/gridedit/worklevel.fpm
+GameGuru/Core/Files/mapbank/worklevel.dat
+GameGuru/Core/Files/editors/gridedit/worklevel.fpm
 GameGuru/GGWMR.exp
 GameGuru/GGWMR.ilk
 GameGuru/GGWMR.lib
-GameGuru/Files/mapbank/_vrq2.fpm
-GameGuru/Files/mapbank/_vrq2.dat
-GameGuru/Files/mapbank/_vrq.fpm
-GameGuru/Files/mapbank/_vrq.dat
-GameGuru/Files/languagebank/english/artwork/branded/TGCBadge.bmp
-GameGuru/Files/languagebank/english/artwork/branded/Splsh16.bmp
-GameGuru/Files/languagebank/english/artwork/branded/Getting Started Guide.pdf
-GameGuru/Files/languagebank/english/artwork/branded/testgamelayout-vr.png
-GameGuru/Files/languagebank/english/artwork/branded/testgamelayout-noweapons.png
+GameGuru/Core/Files/mapbank/_vrq2.fpm
+GameGuru/Core/Files/mapbank/_vrq2.dat
+GameGuru/Core/Files/mapbank/_vrq.fpm
+GameGuru/Core/Files/mapbank/_vrq.dat
+GameGuru/Core/Files/languagebank/english/artwork/branded/TGCBadge.bmp
+GameGuru/Core/Files/languagebank/english/artwork/branded/Splsh16.bmp
+GameGuru/Core/Files/languagebank/english/artwork/branded/Getting Started Guide.pdf
+GameGuru/Core/Files/languagebank/english/artwork/branded/testgamelayout-vr.png
+GameGuru/Core/Files/languagebank/english/artwork/branded/testgamelayout-noweapons.png
 GameGuru/installcode.dat
 GameGuru IDE/resVRQ/ModeToolbar3.bmp
 GameGuru IDE/resVRQ/Messages_GER.bin
@@ -127,10 +127,10 @@ GameGuru IDE/resVRQ/WaypointToolBar.bmp
 GameGuru IDE/resVRQ/TerrainToolbar.bmp
 GameGuru IDE/resVRQ/StandardToolBar2.bmp
 GameGuru IDE/resVRQ/StandardToolBar2 - Copy.bmp
-GameGuru/Files/languagebank/english/textfiles/branded/ide-words.ini
-GameGuru/Files/languagebank/english/artwork/welcome-assets/branded/splash-logo.bmp
-GameGuru/Files/languagebank/english/artwork/branded/aboutsplash.bmp
-GameGuru/Files/languagebank/english/artwork/branded/Getting Started Guide.docx
+GameGuru/Core/Files/languagebank/english/textfiles/branded/ide-words.ini
+GameGuru/Core/Files/languagebank/english/artwork/welcome-assets/branded/splash-logo.bmp
+GameGuru/Core/Files/languagebank/english/artwork/branded/aboutsplash.bmp
+GameGuru/Core/Files/languagebank/english/artwork/branded/Getting Started Guide.docx
 GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-wal
 GameGuru Core/.vs/GameGuru/v15/Solution.VC.db-shm
 GameGuru/_CopyForMultiplayerTesting.bat
@@ -139,24 +139,24 @@ GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-17.png
 GameGuru IDE/resVRQ/WorkArt/VRQuest-AppBranding-2019-09.png
 GameGuru IDE/resVRQ/WorkArt/Asset 6.png
 GameGuru IDE/resVRQ/StandardToolBar2-oldones.bmp
-GameGuru/Files/__multiplayerlevel__.fpm
+GameGuru/Core/Files/__multiplayerlevel__.fpm
 GameGuru/vrqcontrolmode - Copy.ini
-GameGuru/Files/installcode.dat
-GameGuru/Files/entitybank/Characters/Uber Character_D2.dds
-GameGuru/Files/entitybank/Characters/Uber Character.X
-GameGuru/Files/entitybank/Characters/Uber Character.fpe
-GameGuru/Files/entitybank/Characters/Uber Character.dbo
-GameGuru/Files/entitybank/Characters/Uber Character.bmp
-GameGuru/Files/languagebank/english/artwork/watermark/branded/watermark.jpg
-GameGuru/Files/languagebank/english/artwork/welcome/branded/welcome-page.png
-GameGuru/Files/languagebank/english/artwork/welcome/branded/animated-backdrop.png
-GameGuru/Files/languagebank/english/artwork/welcome-assets/branded/product-logo.png
-GameGuru/Files/savegames/graphics.dat
-GameGuru/Files/mapbank/test5.fpm
-GameGuru/Files/mapbank/test5.dat
+GameGuru/Core/Files/installcode.dat
+GameGuru/Core/Files/entitybank/Characters/Uber Character_D2.dds
+GameGuru/Core/Files/entitybank/Characters/Uber Character.X
+GameGuru/Core/Files/entitybank/Characters/Uber Character.fpe
+GameGuru/Core/Files/entitybank/Characters/Uber Character.dbo
+GameGuru/Core/Files/entitybank/Characters/Uber Character.bmp
+GameGuru/Core/Files/languagebank/english/artwork/watermark/branded/watermark.jpg
+GameGuru/Core/Files/languagebank/english/artwork/welcome/branded/welcome-page.png
+GameGuru/Core/Files/languagebank/english/artwork/welcome/branded/animated-backdrop.png
+GameGuru/Core/Files/languagebank/english/artwork/welcome-assets/branded/product-logo.png
+GameGuru/Core/Files/savegames/graphics.dat
+GameGuru/Core/Files/mapbank/test5.fpm
+GameGuru/Core/Files/mapbank/test5.dat
 GameGuru/multiplayeravatar.dat
-GameGuru/Files/entitybank/user/charactercreator/Cowboy Lee.fpe
-GameGuru/Files/entitybank/user/charactercreator/Cowboy Lee.bmp
+GameGuru/Core/Files/entitybank/user/charactercreator/Cowboy Lee.fpe
+GameGuru/Core/Files/entitybank/user/charactercreator/Cowboy Lee.bmp
 GameGuru/teacherviewallmode.dat
 GameGuru/DONTSHOWTEST.dat
 ReplaceEncryptCode.lnk
@@ -166,26 +166,26 @@ GameGuru/showannouncements.ini
 GameGuru Core/.vs/GameGuru/v15/Browse.VC.opendb
 see GameGuru Core for EncryptDownloadKeyEtc.txt
 GameGuru/SHOWTEST.dat
-GameGuru/Files/languagebank/english/artwork/branded/TGCBadge2.bmp
-GameGuru/Files/languagebank/english/artwork/branded/TGCBadge3.bmp
-GameGuru/Files/mapbank/_test3.dat
-GameGuru/Files/mapbank/_test3.fpm
+GameGuru/Core/Files/languagebank/english/artwork/branded/TGCBadge2.bmp
+GameGuru/Core/Files/languagebank/english/artwork/branded/TGCBadge3.bmp
+GameGuru/Core/Files/mapbank/_test3.dat
+GameGuru/Core/Files/mapbank/_test3.fpm
 GameGuru/Docs/UBER_MASTER_MAX_RIG.zip
-GameGuru/Files/terrainbank/CUSTOM/superpalette.ter
-GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGpre.x
-GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGpost.x
-GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.x
-GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.dbo
-GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.BMP
-GameGuru/Files/entitybank/user/leesmhprocess/brown_eye.png
-GameGuru/Files/entitybank/user/leesmhprocess/bodycolor.png
-GameGuru/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.fpe
-GameGuru/Files/entitybank/user/survivalist/
-GameGuru/Files/entitybank/user/zombieman/
+GameGuru/Core/Files/terrainbank/CUSTOM/superpalette.ter
+GameGuru/Core/Files/entitybank/user/leesmhprocess/myXfromFBX2GGpre.x
+GameGuru/Core/Files/entitybank/user/leesmhprocess/myXfromFBX2GGpost.x
+GameGuru/Core/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.x
+GameGuru/Core/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.dbo
+GameGuru/Core/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.BMP
+GameGuru/Core/Files/entitybank/user/leesmhprocess/brown_eye.png
+GameGuru/Core/Files/entitybank/user/leesmhprocess/bodycolor.png
+GameGuru/Core/Files/entitybank/user/leesmhprocess/myXfromFBX2GGanims.fpe
+GameGuru/Core/Files/entitybank/user/survivalist/
+GameGuru/Core/Files/entitybank/user/zombieman/
 GameGuruTrial/
-GameGuru/Files/mapbank/MYTEST.fpm
-GameGuru/Files/mapbank/MYTEST.dat
-GameGuru/Files/mapbank/level1.dat
-GameGuru/Files/mapbank/level1.fpm
-GameGuru/Files/mapbank/level2.dat
-GameGuru/Files/mapbank/level2.fpm
+GameGuru/Core/Files/mapbank/MYTEST.fpm
+GameGuru/Core/Files/mapbank/MYTEST.dat
+GameGuru/Core/Files/mapbank/level1.dat
+GameGuru/Core/Files/mapbank/level1.fpm
+GameGuru/Core/Files/mapbank/level2.dat
+GameGuru/Core/Files/mapbank/level2.fpm
