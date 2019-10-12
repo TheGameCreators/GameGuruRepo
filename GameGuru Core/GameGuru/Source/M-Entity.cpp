@@ -2347,11 +2347,10 @@ void entity_loadvideoid ( void )
 		{
 			if ( AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
 		}
-		if ( LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid, 1 ) == false )
+		if ( LoadAnimation(t.tvideofile_s.Get(), t.tvideoid, g.videoprecacheframes, g.videodelayedload, 1) == false )
 		{
 			t.tvideoid = -999;
 		}
-		LoadAnimation ( t.tvideofile_s.Get(), t.tvideoid , g.videoprecacheframes , g.videodelayedload );
 	}
 }
 

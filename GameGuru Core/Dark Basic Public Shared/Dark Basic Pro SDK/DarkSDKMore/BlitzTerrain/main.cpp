@@ -3417,8 +3417,7 @@ static void BT_Intern_RenderSector(s_BT_Sector* Sector)
 				m_pImmediateContext->VSSetConstantBuffers ( 0, 1, &m_pCBChangePerTerrsainChunk );
 				m_pImmediateContext->PSSetConstantBuffers ( 0, 1, &m_pCBChangePerTerrsainChunk );
 			}
-			//PE: Not used on terrain anymore.
-			if ( 1==2 ) //&& m_pCBChangePerTerrsainChunkPS
+			if ( 1==1 )
 			{
 				CBChangePerTerrsainChunkPS cbps;
 				//cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r,pMesh->mMaterial.Emissive.g,pMesh->mMaterial.Emissive.b,pMesh->mMaterial.Emissive.a);

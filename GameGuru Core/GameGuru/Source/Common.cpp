@@ -533,7 +533,7 @@ void common_init_globals ( void )
 	//  +X = see postprocessimages for assignment
 	g.effectbankoffset = 1000;
 	g.explosionandfireeffectbankoffset = 1100;
-	g.lightmappbreffectillum = 1296;
+	g.lightmappbreffectillum = 1295;
 	g.controllerpbreffect = 1296;
 	g.lightmappbreffect = 1297;
 	g.thirdpersonentityeffect = 1298;
@@ -4607,7 +4607,6 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 		filleffectparamarray(g.lightmappbreffectillum);
 	}
 
-	
 	// load common lightmapper PBR shader
 	if ( GetEffectExist(g.controllerpbreffect) == 0 ) 
 	{

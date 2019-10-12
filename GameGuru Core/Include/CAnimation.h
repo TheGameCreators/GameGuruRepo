@@ -55,7 +55,7 @@ DARKSDK void PreventTextureLock				( bool bDoNotLock );
 DARKSDK void UpdateAllAnimation				( void );
 DARKSDK BOOL DB_FreeAnimation				( int AnimIndex );
 
-DARKSDK void LoadAnimation					( LPSTR pFilename, int iIndex, int precacheframes, int videodelayedload, int iSilentMode );
+DARKSDK bool LoadAnimation					( LPSTR pFilename, int iIndex, int precacheframes, int videodelayedload, int iSilentMode );
 DARKSDK int GetAnimationLength				( int animindex );
 DARKSDK void PlayAnimation					( int iIndex );
 DARKSDK void DeleteAnimation				( int animindex );

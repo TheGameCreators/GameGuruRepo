@@ -174,13 +174,21 @@ void mapeditorexecutable ( void )
 	game_timeelapsed_init ( );
 	t.tsl_f=Timer();
 
+	// IDE announcement system
+	if (g.gshowannouncements == 1)
+	{
+		welcome_init(1);
+		welcome_init(0);
+		welcome_show(WELCOME_ANNOUNCEMENTS);
+	}
+
 	//  only show front dialogs if not resuming from previous session
 	int iCountDownToShowQuickStartDialog = 0;
 	if ( g.grestoreeditorsettings == 0 ) 
 	{
 		// Welcome quick start page
 		g.quickstartmenumode = 0;
-		if ( g.iFreeVersionModeActive == 1 )
+		if ( g.iFreeVersionModeActive != 0 )
 		{
 			editor_showquickstart ( 0 );
 		}
@@ -353,51 +361,59 @@ void mapeditorexecutable ( void )
 					interface_handlepropertywindow ( );
 
 					//  Handle save standalone (cannot wait after 758 as straight into domodal)
-					OpenFileMap (  3, "FPSEXCHANGE" );
-					for ( t.idechecks = 1 ; t.idechecks<=  3; t.idechecks++ )
+					OpenFileMap(3, "FPSEXCHANGE");
+					for (t.idechecks = 1; t.idechecks <= 3; t.idechecks++)
 					{
-						if (  t.idechecks == 1 ) { t.virtualfileindex = 758  ; t.tvaluetocheck = 1; }
-						if (  t.idechecks == 2 ) { t.virtualfileindex = 762  ; t.tvaluetocheck = 1; }
-						if (  t.idechecks == 3 ) { t.virtualfileindex = 762  ; t.tvaluetocheck = 2; }
-						t.tokay=GetFileMapDWORD( 3, t.virtualfileindex );
-						if (  t.tokay == t.tvaluetocheck ) 
+						if (t.idechecks == 1) { t.virtualfileindex = 758; t.tvaluetocheck = 1; }
+						if (t.idechecks == 2) { t.virtualfileindex = 762; t.tvaluetocheck = 1; }
+						if (t.idechecks == 3) { t.virtualfileindex = 762; t.tvaluetocheck = 2; }
+						t.tokay = GetFileMapDWORD(3, t.virtualfileindex);
+						if (t.tokay == t.tvaluetocheck)
 						{
-							SetEventAndWait (  3 );
+							SetEventAndWait(3);
 							//CloseFileMap (  3 );
-							if (  t.idechecks == 1 ) 
+							if (t.idechecks == 1)
 							{
-								//  Save Standalone
-								gridedit_intercept_savefirst ( );
-								OpenFileMap (  3, "FPSEXCHANGE" );
-								if (  t.editorcanceltask == 0 ) 
+								// Save Standalone
+								gridedit_intercept_savefirst();
+								OpenFileMap(3, "FPSEXCHANGE");
+								if (t.editorcanceltask == 0)
 								{
 									popup_text(t.strarr_s[82].Get());
-									gridedit_load_map ( ); // 190417 - ensures levelbank contents SAME as level 1 FPM!
-									mapfile_savestandalone ( );
-									SetFileMapDWORD (  3, t.virtualfileindex, 3 );
+									gridedit_load_map(); // 190417 - ensures levelbank contents SAME as level 1 FPM!
+
+									// new dialog to handle save standalone
 									popup_text_close();
+									//mapfile_savestandalone ( );
+									//suggest new init code to load just what the save standalone dialog needs
+									welcome_init(1);
+									welcome_init(2);
+									welcome_init(0);
+									welcome_show(WELCOME_SAVESTANDALONE);
+									welcome_free();
+									SetFileMapDWORD(3, t.virtualfileindex, 3);
 								}
 								else
 								{
-									SetFileMapDWORD (  3, t.virtualfileindex, 0 );
+									SetFileMapDWORD(3, t.virtualfileindex, 0);
 								}
 							}
-							if (  t.idechecks == 2 ) 
+							if (t.idechecks == 2)
 							{
 								// (dave) Skip terrain rendering - it causes a crash in debug
 								g_bSkipTerrainRender = true;
 
 								//  Import Model
-								gridedit_import_ask ( );
-								SetFileMapDWORD (  3, t.virtualfileindex, 0 );
+								gridedit_import_ask();
+								SetFileMapDWORD(3, t.virtualfileindex, 0);
 							}
-							if (  t.idechecks == 3 ) 
+							if (t.idechecks == 3)
 							{
 								//  Character Creator
-								if (  t.characterkit.loaded == 0  )  t.characterkit.loaded = 1;
-								SetFileMapDWORD (  3, t.virtualfileindex, 0 );
+								if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
+								SetFileMapDWORD(3, t.virtualfileindex, 0);
 							}
-							SetEventAndWait (  3 );
+							SetEventAndWait(3);
 						}
 					}
 
@@ -1716,6 +1732,21 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	t.storecy_f=CameraPositionY();
 	t.storecz_f=CameraPositionZ();
 
+	// default start position is edit-camera XZ
+	t.terrain.playerx_f = CameraPositionX(0);
+	t.terrain.playerz_f = CameraPositionZ(0);
+	if (t.terrain.TerrainID > 0)
+	{
+		t.terrain.playery_f = BT_GetGroundHeight(t.terrain.TerrainID, t.terrain.playerx_f, t.terrain.playerz_f) + 150.0;
+	}
+	else
+	{
+		t.terrain.playery_f = 1000.0 + 150.0;
+	}
+	t.terrain.playerax_f = 0.0;
+	t.terrain.playeray_f = 0.0;
+	t.terrain.playeraz_f = 0.0;
+
 	// store all editor entity positions and rotations
 	t.storedentityelementlist=g.entityelementlist;
 	t.storedentityviewcurrentobj=g.entityviewcurrentobj;
@@ -1760,6 +1791,39 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 				{
 					if ( t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].isclone = 1;
 					entity_converttoinstance ( );
+				}
+			}
+		}
+	}
+
+	//PE: start any animations that are not in editor mode.
+	for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+	{
+		t.entid = t.entityelement[t.tte].bankindex;
+		t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
+		t.tobj = t.entityelement[t.tte].obj;
+		if (t.tobj > 0)
+		{
+			if (ObjectExist(t.tobj) == 1)
+			{
+				//PE: Possible fix for issues:
+				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/206
+				//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/273
+				//PE: need testing.
+				if (t.entityprofile[t.entid].ischaracter == 1) {
+					//Char should always have z depth , but somehow its removed somewhere.
+					EnableObjectZDepth(t.tobj);
+				}
+
+				//FULLBOUNDS
+				if (t.entityprofile[t.entid].startanimingame > 0) {
+					if (t.entityprofile[t.entid].animmax > 0) {
+						t.q = t.entityprofile[t.entid].startanimingame - 1;
+						SetObjectFrame(t.tttsourceobj, 0);
+						LoopObject(t.tttsourceobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+						SetObjectFrame(t.tobj, 0);
+						LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+					}
 				}
 			}
 		}

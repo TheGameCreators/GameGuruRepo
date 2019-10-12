@@ -682,7 +682,8 @@ DARKSDK void UpdateAllAnimation(void)
 //
 
 extern void timestampactivity(int i, char* desc_s);
-DARKSDK void LoadAnimation( LPSTR pFilename, int animindex , int precacheframes , int videodelayedload, int iSilentMode )
+
+DARKSDK bool LoadAnimation( LPSTR pFilename, int animindex , int precacheframes , int videodelayedload, int iSilentMode )
 {
 	if(animindex>=1 && animindex<ANIMATIONMAX)
 	{

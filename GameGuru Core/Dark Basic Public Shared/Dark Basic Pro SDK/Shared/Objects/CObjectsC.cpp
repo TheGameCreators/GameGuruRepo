@@ -740,7 +740,7 @@ DARKSDK_DLL void SaveObject ( LPSTR szFilename, int iID )
 						// make a new mesh from the original mesh, and ensure it's verts only
 						sMesh* pVertOnlyMesh = new sMesh;
 						sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
-						MakeMeshFromOtherMesh       ( true, pVertOnlyMesh, pMesh, NULL );
+						MakeMeshFromOtherMesh ( true, pVertOnlyMesh, pMesh, NULL );
 						ConvertLocalMeshToVertsOnly ( pVertOnlyMesh, false );
 
 						// group name
@@ -7046,7 +7046,7 @@ DARKSDK_DLL int IntersectAll_OLD ( int iPrimaryStart, int iPrimaryEnd, float fX,
 //Dave Performance
 //Previous intersect all is above, incase of issues
 //This version combines the orignal method with the shortlist of boxes checked to provide the best of both versions
-DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo )
+DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly)
 {
 	// special iIgnoreObjNo mode
 	if (iIgnoreObjNo == -123 || iIgnoreObjNo == -124 || iIgnoreObjNo == -125)
@@ -7346,6 +7346,11 @@ DARKSDK_DLL int IntersectAll ( int iPrimaryStart, int iPrimaryEnd, float fX, flo
 
 	// return hit value depending on what was hit
 	return iHitValue;
+}
+
+DARKSDK_DLL int IntersectAll(int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo)
+{
+	return IntersectAllEx(iPrimaryStart, iPrimaryEnd, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, 0);
 }
 
 DARKSDK void SetObjectCollisionProperty ( int iObjectID, int iPropertyValue )

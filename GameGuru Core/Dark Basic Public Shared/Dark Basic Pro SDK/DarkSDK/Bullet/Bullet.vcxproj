@@ -1,16 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug Game|Win32">
-      <Configuration>Debug Game</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseGAME|Win32">
-      <Configuration>ReleaseGAME</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
@@ -30,19 +22,7 @@
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
@@ -55,15 +35,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
@@ -71,39 +43,21 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\..\..\Lib\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">$(ProjectDir)..\..\..\..\Lib\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\..\..\Lib\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">$(ProjectDir)..\..\..\..\Lib\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">false</LinkIncremental>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'" />
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'" />
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(SolutionDir)SDK\BULLET\bullet-2.81-rev2613\lib\;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(SolutionDir)SDK\BULLET\bullet-2.81-rev2613\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI</IncludePath>
-    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(SolutionDir)SDK\BULLET\bullet-2.81-rev2613\lib\;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">
     <IncludePath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI</IncludePath>
     <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(SolutionDir)SDK\BULLET\bullet-2.81-rev2613\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -164,117 +118,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseGAME|Win32'">
-    <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/ODE.tlb</TypeLibraryName>
-      <HeaderFileName>
-      </HeaderFileName>
-    </Midl>
-    <ClCompile>
-      <Optimization>Full</Optimization>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>.\..\..\Shared\Bullet\Ragdoll\DBPro\include;.\..\..\ode\include;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\..\Include\;.\..\..\..\..\SDK\BULLET\bullet-2.81-rev2613\src</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;ODE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>
-      </StringPooling>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>
-      </FunctionLevelLinking>
-      <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
-      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PrecompiledHeaderOutputFile>.\Release/ODE.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DisableSpecificWarnings>4005;4995;4723</DisableSpecificWarnings>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0809</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalDependencies>ode.lib;D3dx9.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)DBProODEDebug.dll</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>.\..\..\ode\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <IgnoreSpecificDefaultLibraries>libc.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <ProgramDatabaseFile>.\Release/DBProODEDebug.pdb</ProgramDatabaseFile>
-      <StackReserveSize>0</StackReserveSize>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <ImportLibrary>.\Release/DBProODEDebug.lib</ImportLibrary>
-      <TargetMachine>MachineX86</TargetMachine>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Lib>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/ODE.tlb</TypeLibraryName>
-      <HeaderFileName>
-      </HeaderFileName>
-    </Midl>
-    <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\..\..\Shared\Bullet\Ragdoll\DBPro\include;.\..\..\ode\include;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\..\Include\;.\..\..\..\..\SDK\BULLET\bullet-2.81-rev2613\src</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;ODE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
-      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PrecompiledHeaderOutputFile>.\Debug/ODE.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
-      <ObjectFileName>.\Debug/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
-      <BrowseInformation>true</BrowseInformation>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4005</DisableSpecificWarnings>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0809</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalDependencies>ode.lib;D3dx9.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)DBPro$(TargetName)Debug.dll</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>.\..\..\ode\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <IgnoreSpecificDefaultLibraries>libc.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/DBProODEDebug.pdb</ProgramDatabaseFile>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <ImportLibrary>.\Debug/DBProODEDebug.lib</ImportLibrary>
-      <TargetMachine>MachineX86</TargetMachine>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-    </Link>
-    <Lib>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Game|Win32'">
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MkTypLibCompatible>true</MkTypLibCompatible>
