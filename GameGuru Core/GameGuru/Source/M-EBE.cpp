@@ -139,11 +139,7 @@ void ebe_init ( int BuildObj, int iEntID )
 
 	// Help Dialog Shortcut Keys
 	ebebuild.iEBETexHelpSpr = g.ebeinterfacesprite + 2;
-	//#ifdef VRQUEST
-	// ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\branded\\ebe-texturehelp.png");
-	//#else
-	 ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\ebe-texturehelp.png");
-	//#endif
+    ebebuild.iEBETexHelpImg = loadinternalimage("languagebank\\english\\artwork\\ebe-texturehelp.png");
 	Sprite ( ebebuild.iEBETexHelpSpr, ebebuild.iTexturePanelX - 10, ebebuild.iTexturePanelY - 10 - ImageHeight(ebebuild.iEBETexHelpImg), ebebuild.iEBETexHelpImg );
 
 	// Load TXP default file
@@ -1082,15 +1078,11 @@ void ebe_loop ( void )
 				ebe_settexturehighlight();
 
 				// and if it was right mouse, customise this texture too
-				//#ifdef VRQUEST
-				// Cannot allow custom EBE textures - bloats FPM making transfer over multiplayer very slow
-				//#else
 				if ( t.inputsys.mclick == 2 )
 				{
 					// replace texture within texture atlas
 					ebebuild.bCustomiseTexture = true;
 				}
-				//#endif
 
 				// ensure we do not write into builder if selecting texture
 				t.inputsys.mclick = 0;

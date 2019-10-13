@@ -3501,7 +3501,7 @@ void FPSC_Setup ( void )
 		g.quickparentalcontrolmode=0;
 	}
 
-	// 050416 - get VRQUEST control flag and serial code
+	// 050416 - get VRQ control flag and serial code
 	g.vrqoreducontrolmode = 0;
 	g.vrqcontrolmode = 0;
 	g.vrqcontrolmodeserialcode = "";
@@ -4741,6 +4741,7 @@ void common_loadcommonassets ( int iShowScreenPrompts )
 
 void common_hide_mouse ( void )
 {
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetEventAndWait (  1 );
 	SetFileMapDWORD (  1, 44, 0 );
@@ -4749,11 +4750,13 @@ void common_hide_mouse ( void )
 	SetFileMapDWORD (  1, 56, GetChildWindowHeight()/2 );
 	SetFileMapDWORD (  1, 704,GetChildWindowWidth() );
 	SetFileMapDWORD (  1, 708,GetChildWindowHeight() );
+	#endif
 }
 
 void common_show_mouse ( void )
 {
 	// This does crazy cool stuff
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetEventAndWait (  1 );
 	SetFileMapDWORD (  1, 44, 1 );
@@ -4762,10 +4765,7 @@ void common_show_mouse ( void )
 	SetFileMapDWORD (  1, 56, GetChildWindowHeight()/2 );
 	SetFileMapDWORD (  1, 704,GetChildWindowWidth() );
 	SetFileMapDWORD (  1, 708,GetChildWindowHeight() );
-	//CloseFileMap (  1 );
-
-return;
-
+	#endif
 }
 
 void common_vectorsinit ( void )
@@ -5047,69 +5047,14 @@ void version_onscreenlogos ( void )
 
 void version_permittestgame ( void )
 {
-
-	//  Map Editor launches test game
-//  `open file map 1,"FPSEXCHANGE"
-
-//  `set file map string$ 1, 1000, "FPSC-Game.exe"
-
-//  `set file map string$ 1, 1256, "-t"
-
-//  `set file map dword 1, 920, 1
-
-//  `wait for file map event 1
-
-//  `close file map 1
-
-
-return;
-
 }
 
 void version_resourcewarning ( void )
 {
-return;
-
 }
 
 void version_universe_saveELEandLGT ( void )
 {
-
-	/*       part of save standalone
-	//  FPGC - 111209 - right after lightmapping build so know if exited that loop
-	debugviewtext(278,"Saving ELE and LGT files..");
-
-	//  Save newer elements list (that includes scene dynamic entities)
-	//  V106 also contains light indexes saved when universe is constructed
-	\universe.ele" : gosub _entity_saveelementsdata
-	entity_saveelementsdata ( );
-
-	//  Save LGT lighting data
-	filename_s="levelbank\\testlevel\\universe.lgt";
-	if (  FileExist(filename_s) == 1  )  DeleteAFile (  filename_s );
-	OpenToWrite (  1,filename_s );
-		tinfinimax=ArrayCount(t.infinilight[]);
-		WriteLong (  1,tinfinimax );
-		for ( t.i = 0 ; t.i<=  tinfinimax; t.i++ )
-		{
-			WriteLong (  1,t.infinilight[t.i].used );
-			WriteLong (  1,t.infinilight[t.i].type );
-			WriteFloat (  1,t.infinilight[t.i].x );
-			WriteFloat (  1,t.infinilight[t.i].y );
-			WriteFloat (  1,t.infinilight[t.i].z );
-			WriteFloat (  1,t.infinilight[t.i].range );
-			WriteLong (  1,t.infinilight[t.i].id );
-			WriteFloat (  1,t.infinilight[t.i].dist );
-			WriteLong (  1,t.infinilight[t.i].colrgb.r );
-			WriteLong (  1,t.infinilight[t.i].colrgb.g );
-			WriteLong (  1,t.infinilight[t.i].colrgb.b );
-			WriteLong (  1,t.infinilight[t.i].islit );
-		}
-	CloseFile (  1 );
-	*/    
-
-return;
-
 }
 
 void version_universe_construct ( void )
@@ -5118,12 +5063,6 @@ void version_universe_construct ( void )
 
 void common_refreshDisplaySize ( void )
 {
-	//  Mode 1 uses GetDisplayWidth (  mostly, or special case child GetWindowWidth (  for some scenarios (res/fontsize) ) )
-	#ifdef DX11
-	// DX11 removed present Client Rect functionality, so needs to remain full view
-	#else
-	SetCameraView (  0,0,GetChildWindowWidth(1), GetChildWindowHeight(1) );
-	#endif
 }
 
 //Functions
@@ -5160,6 +5099,7 @@ void popup_text ( char* statusbar_s )
 	{
 		t.strwork = "" ; t.strwork = t.strwork + "1:popup_text "+statusbar_s;
 		timestampactivity(0, t.strwork.Get() );
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  1,"FPSEXCHANGE" );
 		SetFileMapDWORD (  1, 750, 1 );
 		SetEventAndWait (  1 );
@@ -5181,6 +5121,7 @@ void popup_text ( char* statusbar_s )
 			}
 			Sync (  );
 		}
+		#endif
 		g_PopupControlMode = 1;
 	}
 	else
@@ -5771,11 +5712,11 @@ void debugviewtext ( int progress, char* gamedebugviewtext_s )
 		//  detect if CANCEL early (while building)
 		if (  g.gtestgamemodefromeditorokaypressed == 0 ) 
 		{
+			#ifdef FPSEXCHANGE
 			OpenFileMap (  2, "FPSEXCHANGE" );
 			SetEventAndWait (  2 );
 			if (  GetFileMapDWORD( 2, 994 )  ==  1 ) 
 			{
-
 				//  As can take time, tell user can take time
 				OpenFileMap (  3, "FPSTESTGAMEDIALOG" );
 				SetFileMapDWORD (  3, 12, 1 );
@@ -5810,9 +5751,8 @@ void debugviewtext ( int progress, char* gamedebugviewtext_s )
 				SetFileMapString (  1, 1000, gamedebugviewtext_s );
 				SetFileMapDWORD (  1, 12, 1 );
 				SetEventAndWait (  1 );
-				//CloseFileMap (  1 );
 			}
-			//CloseFileMap (  2 );
+			#endif
 		}
 	}
 	//  Build Executable Game Mode
@@ -5820,10 +5760,10 @@ void debugviewtext ( int progress, char* gamedebugviewtext_s )
 	{
 		//  check if build cancelled
 		tokay=0;
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  2, "FPSEXCHANGE" );
 		SetEventAndWait (  2 );
 		if (  GetFileMapDWORD( 2, 994 )  ==  1  )  tokay = 1;
-		//CloseFileMap (  2 );
 		if (  tokay == 1 ) 
 		{
 			//  terminate build early
@@ -5867,12 +5807,12 @@ void debugviewtext ( int progress, char* gamedebugviewtext_s )
 				SetFileMapString (  1, 1000, gamedebugviewtext_s );
 			}
 			SetEventAndWait (  1 );
-			//CloseFileMap (  1 );
 		}
+		#endif
 	}
 
-	//  debug view Text (  )
-	if (  g.gdebugreportmodestate == 1 && g.gmapeditmode == 0 ) 
+	// debug view Text (  )
+	if ( g.gdebugreportmodestate == 1 && g.gmapeditmode == 0 ) 
 	{
 		thetime=Timer()-gamedebugviewtime;
 		thetime_s=Right(Str(1000000+thetime),6);
@@ -5885,8 +5825,8 @@ void debugviewtext ( int progress, char* gamedebugviewtext_s )
 		gamedebugview_s=thetime_s+themem_s+gamedebugviewtext_s+Chr(13)+Chr(10)+gamedebugview_s;
 		gamedebugviewlastmem=themem;
 
-		//  gamemain_writetexttodebugview;
-		if (  g.gdebugreportmodestate == 1 ) 
+		// gamemain_writetexttodebugview;
+		if ( g.gdebugreportmodestate == 1 ) 
 		{
 			if (  BitmapExist(1) == 1 ) 
 			{
@@ -5955,9 +5895,6 @@ void debugviewtext ( int progress, char* gamedebugviewtext_s )
 			}
 		}
 	}
-
-//endfunction
-
 }
 
 void debugviewupdate ( int doisync )

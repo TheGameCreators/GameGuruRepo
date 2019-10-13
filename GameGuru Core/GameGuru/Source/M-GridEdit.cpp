@@ -122,6 +122,7 @@ void mapeditorexecutable ( void )
 	visuals_shaderlevels_update ( );
 
 	// Load map editior settings
+	t.bTriggerNewMapAtStart = true;
 	t.bIgnoreFirstCallToNewLevel = false;
 	if ( g.grestoreeditorsettings == 1 ) 
 	{
@@ -361,6 +362,7 @@ void mapeditorexecutable ( void )
 					interface_handlepropertywindow ( );
 
 					//  Handle save standalone (cannot wait after 758 as straight into domodal)
+					#ifdef FPSEXCHANGE
 					OpenFileMap(3, "FPSEXCHANGE");
 					for (t.idechecks = 1; t.idechecks <= 3; t.idechecks++)
 					{
@@ -416,8 +418,10 @@ void mapeditorexecutable ( void )
 							SetEventAndWait(3);
 						}
 					}
+					#endif
 
 					// Handle auto trigger stock level loader
+					#ifdef FPSEXCHANGE
 					OpenFileMap (  3, "FPSEXCHANGE" );
 					t.tleveltoautoload=GetFileMapDWORD( 3, 754 );
 					if (  t.tleveltoautoload>0 ) 
@@ -481,9 +485,8 @@ void mapeditorexecutable ( void )
 							}
 						}
 					}
+					#endif
 				}
-
-				// Draw memory remaining
 
 				// 111115 - keep track of memory between sessions with simpler SYSMEM minus STARTMEM calculation
 				g.gamememactuallyused = SMEMAvailable(1) - g.gamememactuallyusedstart;
@@ -548,6 +551,7 @@ void mapeditorexecutable ( void )
 			else
 			{
 				//  check for PAINT message
+				#ifdef FPSEXCHANGE
 				OpenFileMap (  3, "FPSEXCHANGE" );
 				SetEventAndWait (  3 );
 				if (  GetFileMapDWORD( 3, 60 ) == 1 ) 
@@ -555,6 +559,7 @@ void mapeditorexecutable ( void )
 					SetFileMapDWORD (  3,60,0  ); t.syncthreetimes=3;
 					SetEventAndWait (  3 );
 				}
+				#endif
 				SyncRate (  0 );
 				if (  t.syncthreetimes>0 ) {  --t.syncthreetimes; Sync ( ); }
 				SleepNow ( 10 );
@@ -576,7 +581,7 @@ void editor_detect_invalid_screen ( void )
 	{
 		if (  1 ) 
 		{
-			// message Box (  - resolution has been changed - must restart - save changes? )
+			#ifdef FPSEXCHANGE
 			OpenFileMap (  1, "FPSEXCHANGE" );
 			SetFileMapDWORD (  1, 900, 1 );
 			SetFileMapString (  1, 1256, t.strarr_s[622].Get() );
@@ -601,6 +606,7 @@ void editor_detect_invalid_screen ( void )
 			SetFileMapDWORD (  2, 994, 0 );
 			SetFileMapDWORD (  2, 924, 1 );
 			SetEventAndWait (  2 );
+			#endif
 			//  free steam to unload the module in effect
 			mp_free ( );
 			//  end this old mapeditor
@@ -623,8 +629,10 @@ void editor_showhelppage ( int iHelpType )
 		case 3 : iEditorHelpImage = 28; iDivideBy = 2; break;
 	 }
 	#endif
-	OpenFileMap (  1, "FPSEXCHANGE" );
-	SetEventAndWait (  1 );
+	#ifdef FPSEXCHANGE
+	 OpenFileMap (  1, "FPSEXCHANGE" );
+	 SetEventAndWait (  1 );
+	#endif
 	do
 	{
 		t.inputsys.mclick=MouseClick();
@@ -641,7 +649,11 @@ void editor_showhelppage ( int iHelpType )
 	t.tpressf1toleave=0;
 	while (  t.inputsys.kscancode == 0 && EscapeKey() == 0 ) 
 	{
-		t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
+		#ifdef FPSEXCHANGE
+		 t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
+		#else
+		 t.inputsys.kscancode = ScanCode();
+		#endif
 		if (  t.inputsys.kscancode == 0 ) 
 		{
 			if (  t.tpressf1toleave == 1  )  t.tpressf1toleave = 2;
@@ -658,9 +670,11 @@ void editor_showhelppage ( int iHelpType )
 				t.inputsys.kscancode=0;
 			}
 		}
-		if (  GetFileMapDWORD( 1, 908 ) == 1  )  break;
-		if (  GetFileMapDWORD( 1, 20 ) != 0  )  break;
-		if (  GetFileMapDWORD( 1, 516 )>0  )  break;
+		#ifdef FPSEXCHANGE
+		 if (  GetFileMapDWORD( 1, 908 ) == 1  )  break;
+		 if (  GetFileMapDWORD( 1, 20 ) != 0  )  break;
+		 if (  GetFileMapDWORD( 1, 516 )>0  )  break;
+		#endif
 		t.terrain.gameplaycamera=0;
 		terrain_shadowupdate ( );
 		terrain_update ( );
@@ -670,7 +684,11 @@ void editor_showhelppage ( int iHelpType )
 	//  once we are in the help page, can use filemap to detect key (so F1 on/off issue does not occur)
 	do
 	{
-		t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
+		#ifdef FPSEXCHANGE
+		 t.inputsys.kscancode = GetFileMapDWORD(1, 100);
+		#else
+		 t.inputsys.kscancode = ScanCode();
+		#endif
 		FastSync (  );
 	} while ( !(  t.inputsys.kscancode == 0 ) );
 }
@@ -678,8 +696,10 @@ void editor_showhelppage ( int iHelpType )
 void editor_showparentalcontrolpage ( void )
 {
 	// allow parental control to be activated and deactivated
-	OpenFileMap (  1, "FPSEXCHANGE" );
-	SetEventAndWait (  1 );
+	#ifdef FPSEXCHANGE
+	 OpenFileMap (  1, "FPSEXCHANGE" );
+	 SetEventAndWait (  1 );
+	#endif
 	do
 	{
 		t.inputsys.mclick=MouseClick();
@@ -707,9 +727,13 @@ void editor_showparentalcontrolpage ( void )
 	bool bParentalToggleForcesQuit = false;
 	while ( iStayInParentalControlDialog == 1 && t.inputsys.kscancode != 27 ) 
 	{
-		t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
-		if (  GetFileMapDWORD( 1, 908 ) == 1  )  break;
-		if (  GetFileMapDWORD( 1, 516 )>0  )  break;
+		#ifdef FPSEXCHANGE
+		 t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
+		 if (  GetFileMapDWORD( 1, 908 ) == 1  )  break;
+		 if (  GetFileMapDWORD( 1, 516 )>0  )  break;
+		#else
+		 t.inputsys.kscancode = ScanCode();
+		#endif
 		int tnewkeycode = 0; // numpad detection
 		if ( t.inputsys.kscancode == 45 ) tnewkeycode = 48;
 		if ( t.inputsys.kscancode == 35 ) tnewkeycode = 49;
@@ -1388,131 +1412,6 @@ void editor_showquickstart ( int iForceMainOpen )
 	t.inputsys.ymouse=0;
 }
 
-/*
-void editor_showreviewrequest ( void )
-{
-	if ( g.reviewRequestReminder == 1 ) 
-	{
-		OpenFileMap (  1, "FPSEXCHANGE" );
-		SetEventAndWait (  1 );
-		do
-		{
-			t.inputsys.kscancode=ScanCode();
-			t.inputsys.mclick=MouseClick();
-			FastSync (  );
-		} while ( !(  t.inputsys.kscancode == 0 && t.inputsys.mclick == 0 ) );
-		t.imgx_f=ImageWidth(g.editorimagesoffset+11);
-		t.imgy_f=ImageHeight(g.editorimagesoffset+11);
-		Sprite ( 123, -10000, -10000, g.editorimagesoffset+11 );
-		SizeSprite (  123,t.imgx_f,t.imgy_f );
-		t.tclicked=0 ; t.tclosequick=0;
-		t.lastmousex=MouseX() ; t.lastmousey=MouseY();
-		while (  t.inputsys.kscancode == 0 && EscapeKey() == 0 && t.tclosequick == 0 ) 
-		{
-			t.inputsys.kscancode=ScanCode();
-			t.inputsys.mclick=MouseClick();
-			if (  GetFileMapDWORD( 1, 908 ) == 1  )  break;
-			if (  GetFileMapDWORD( 1, 516 )>0  )  break;
-			if (  GetFileMapDWORD( 1, 400 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if (  GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if (  GetFileMapDWORD( 1, 408 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if (  GetFileMapDWORD( 1, 434 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if (  GetFileMapDWORD( 1, 758 ) != 0 ) { t.interactive.active = 0  ; break; }
-			if (  GetFileMapDWORD( 1, 762 ) != 0 ) { t.interactive.active = 0  ; break; }
-			t.terrain.gameplaycamera=0;
-			terrain_shadowupdate ( );
-			terrain_update ( );
-			t.tcenterx=(GetChildWindowWidth(0)-t.imgx_f)/2;
-			t.tcentery=(GetChildWindowHeight(0)-t.imgy_f)/2;
-			PasteSprite ( 123,t.tcenterx,t.tcentery );
-			t.inputsys.xmouse=((GetFileMapDWORD( 1, 0 )+0.0)/800.0)*GetChildWindowWidth(0);
-			t.inputsys.ymouse=((GetFileMapDWORD( 1, 4 )+0.0)/600.0)*GetChildWindowHeight(0);
-			t.tquickhighlight=0;
-			if (  t.inputsys.xmouse>t.tcenterx+29 && t.inputsys.xmouse<t.tcenterx+56 && t.inputsys.ymouse>t.tcentery+521 && t.inputsys.ymouse<t.tcentery+549 ) 
-			{
-				// toggle tick
-				t.tquickhighlight=1;
-			}
-			if (  t.inputsys.xmouse>t.tcenterx+356 && t.inputsys.xmouse<t.tcenterx+565 && t.inputsys.ymouse>t.tcentery+322 && t.inputsys.ymouse<t.tcentery+370 ) 
-			{
-				//  jump to link
-				t.tquickhighlight=2;
-			}
-			if (  t.inputsys.xmouse>t.tcenterx+785 && t.inputsys.xmouse<t.tcenterx+890 && t.inputsys.ymouse>t.tcentery+506 && t.inputsys.ymouse<t.tcentery+561 ) 
-			{
-				//  close
-				t.tquickhighlight=3;
-			}
-			if (  t.inputsys.mclick == 1 ) 
-			{
-				if (  t.tclicked == 0 ) 
-				{
-					if (  t.tquickhighlight == 1 ) 
-					{
-						//  toggle show on startup
-						g.reviewRequestReminder=1-g.reviewRequestReminder; 
-						t.tclicked=1;
-					}
-					if (  t.tquickhighlight == 2 ) 
-					{
-						//  jump to link
-						ExecuteFile ( "http://store.steampowered.com/reviews/","","",0 );
-						//g.reviewRequestReminder = 0; // by order of Rick who wants to hassle users some more..
-						t.tclicked=1;
-					}
-					if (  t.tquickhighlight == 3 ) 
-					{
-						//  close
-						t.tclosequick=1;
-						t.tclicked=1;
-					}
-				}
-			}
-			else
-			{
-				t.tclicked=0;
-			}
-			if ( g.reviewRequestReminder == 0 ) 
-			{
-				PasteImage ( g.editorimagesoffset+9, t.tcenterx+30, t.tcentery+522, 1 );
-			}
-			if ( t.tquickhighlight == 2 ) 
-			{
-				PasteImage ( g.editorimagesoffset+46, t.tcenterx+356, t.tcentery+323, 1 );
-			}
-			if ( t.tquickhighlight == 3 ) 
-			{
-				PasteImage (  g.interactiveimageoffset+15,t.tcenterx+789,t.tcentery+510 );
-			}
-			Sync (  );
-		}
-		do
-		{
-			t.inputsys.kscancode=ScanCode();
-			t.inputsys.mclick=MouseClick();
-		} while ( !(  t.inputsys.kscancode == 0 && t.inputsys.mclick == 0 ) );
-	}
-	//  reset before leave
-	t.inputsys.kscancode=0;
-	t.inputsys.mclick=0;
-	t.inputsys.xmouse=0;
-	t.inputsys.ymouse=0;
-	return;
-}
-
-void editor_showreviewrequest_check ( void )
-{
-	if ( g.reviewRequestMinuteCounter > 6000 )
-	{
-		// attempt a review request
-		editor_showreviewrequest();
-
-		// and also ensure not again for another X hours
-		g.reviewRequestMinuteCounter = 0;
-	}
-}
-*/
-
 void editor_previewmapormultiplayer ( int iUseVRTest )
 {
 	//  store if project modified
@@ -2037,9 +1936,11 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	}
 
 	// signal that we have finished Test Level, restore mapeditor windows
-	OpenFileMap (  1, "FPSEXCHANGE" );
-	SetFileMapDWORD (  1, 970, 1 );
-	SetEventAndWait (  1 );
+	#ifdef FPSEXCHANGE
+	 OpenFileMap (  1, "FPSEXCHANGE" );
+	 SetFileMapDWORD (  1, 970, 1 );
+	 SetEventAndWait (  1 );
+	#endif
 
 	// LB101019 - this can cause a freeze due to DirectInput bug when screensaver/hybernate kicks in
 	// as the key pressed when waking up the boot screen remains in the key buffer even though key not pressed
@@ -2138,9 +2039,6 @@ void editor_multiplayermode ( void )
 	//  restore last edited project
 	g.projectfilename_s=t.storeprojectfilename_s;
 	gridedit_updateprojectname ( );
-
-return;
-
 }
 
 void editor_previewmap ( int iUseVRTest )
@@ -2155,555 +2053,593 @@ void editor_previewmap ( int iUseVRTest )
 void input_getfilemapcontrols ( void )
 {
 	//  Update triggers and issue actions through filemapping system
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetEventAndWait (  1 );
+	#endif
 
-	// If signal recieved of file map change
-	if ( 1 ) 
-	{
-		// only if the IDE has foreground focus
-		DWORD dwForegroundFocusForIDE = GetFileMapDWORD( 1, 596 );
-		if ( dwForegroundFocusForIDE == 10 )
-		{
-			t.inputsys.xmouse=GetFileMapDWORD( 1, 0 );
-			t.inputsys.ymouse=GetFileMapDWORD( 1, 4 );
-			t.inputsys.xmousemove=GetFileMapDWORD( 1, 8 );
-			t.inputsys.ymousemove=GetFileMapDWORD( 1, 12 );
-			SetFileMapDWORD (  1, 8, 0 );
-			SetFileMapDWORD (  1, 12, 0 );
-			t.inputsys.wheelmousemove=GetFileMapDWORD( 1, 16 );
-			t.inputsys.mclick=GetFileMapDWORD( 1, 20 );
-			if (  GetFileMapDWORD( 1, 28 ) == 1  )  t.inputsys.mclick = 2;
-			if (  MouseClick() == 4  )  t.inputsys.mclick = 4;
-			if (  t.interactive.insidepanel == 1  )  t.inputsys.mclick = 0;
-			t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
-			//SetCursor ( 50, 50 );
-			//Print ( t.inputsys.kscancode );
-			//if ( t.inputsys.kscancode == 69 )
-			//{
-			//	int lee=42;
-			//}
-		}
-
-		//  show the KeyState (  if know what to press )
-		if ( g.globals.fulldebugview == 1 ) debug_fulldebugview ( );
-
-		//  extra mappings
-		input_extramappings ( );
-
-		//  Control keys direct from keyboard
-		t.inputsys.keyreturn=GetFileMapDWORD( 1, 108 );
-		t.inputsys.keyshift=GetFileMapDWORD( 1, 112 );
-		t.inputsys.keyup=GetFileMapDWORD( 1, 120 );
-		t.inputsys.keydown=GetFileMapDWORD( 1, 124 );
-		t.inputsys.keyleft=GetFileMapDWORD( 1, 128 );
-		t.inputsys.keyright=GetFileMapDWORD( 1, 132 );
-		t.inputsys.keycontrol=GetFileMapDWORD( 1, 116 );
-		t.inputsys.keyalt=GetFileMapDWORD( 1, 136 );
-		if (  t.inputsys.kscancode == 32  )  t.inputsys.keyspace = 1; else t.inputsys.keyspace = 0;
-
-		// will release keypress flag if no key AND no SHIFT!!
-		if (t.inputsys.kscancode == 0 && t.inputsys.keyshift == 0) t.inputsys.keypressallowshift = 0;
-
-		//  W,A,S,D in editor for scrolling about (easier for user)
-		if (  t.inputsys.kscancode == 87  )  t.inputsys.keyup = 1;
-		if (  t.inputsys.kscancode == 65  )  t.inputsys.keyleft = 1;
-		if (  t.inputsys.kscancode == 83  )  t.inputsys.keydown = 1;
-		if (  t.inputsys.kscancode == 68  )  t.inputsys.keyright = 1;
-
-		//  fake mousemove values for low-response systems (when in zoomed in mode)
-		if (  t.grideditselect == 4 ) 
-		{
-			if (  t.inputsys.keyshift == 1 ) 
-			{
-				if (  t.inputsys.keyleft == 1  )  t.inputsys.xmousemove = -10;
-				if (  t.inputsys.keyright == 1  )  t.inputsys.xmousemove = 10;
-				if (  t.inputsys.keyup == 1  )  t.inputsys.ymousemove = -10;
-				if (  t.inputsys.keydown == 1  )  t.inputsys.ymousemove = 10;
-				t.inputsys.mclick=2;
-				t.inputsys.keyleft=0;
-				t.inputsys.keyright=0;
-				t.inputsys.keyup=0;
-				t.inputsys.keydown=0;
-			}
-		}
-
-		//  special trigger when click LIBRARY TAB, force into respective mode
-		if (  GetFileMapDWORD( 1, 546 ) == 1 ) 
-		{
-			t.ttabindex=GetFileMapDWORD( 1, 520 );
-			if (  t.ttabindex == 0  )  t.inputsys.domodeentity = 1;
-			if (  t.ttabindex == 1  )  t.inputsys.domodeentity = 1;
-			if (  t.ttabindex == 2  )
-			{
-				if ( t.ebe.active == 0 )
-				{
-					// need to select a site (using entity creation and placement first)
-				}
-				else
-				{
-					// reset for tool work
-					ebe_reset();
-				}
-			}
-			else
-			{
-				// When click non-Builder tab, should leave builder mode
-				ebe_hide();
-
-				//PE: If first entity, shader have not yet had constant set , so update shaders.
-				//PE: Prevent new created ebe from disappering when clicking away from "builder".
-				visuals_justshaderupdate();
-			}
-			SetFileMapDWORD (  1, 546, 0 );
-		}
-
-		//  recent file list
-		t.trecentfilechoice=GetFileMapDWORD( 1, 442 );
-		if (  t.trecentfilechoice>0 ) 
-		{
-			//  retain choice for action at end of subroutine
-			t.trecentfilechoice_s=GetFileMapString( 1, 1000 );
-			SetFileMapDWORD (  1, 442, 0 );
-		}
-
-		//  termination trigger
-		if (  GetFileMapDWORD( 1, 908 ) == 1 ) 
-		{
-			// show outtro message if free version mode
-			if ( g.iFreeVersionModeActive == 1 )
-			{
-				t.inputsys.ignoreeditorintermination = 1;
-				welcome_init(1);
-				welcome_init(0);
-				welcome_show(WELCOME_FREEINTROAPP);
-				t.inputsys.ignoreeditorintermination = 0;
-			}
-
-			// Here we ask if changes should be saved, etc
-			gridedit_intercept_savefirst_noreload ( );
-			OpenFileMap (  1,"FPSEXCHANGE" );
-			if (  t.editorcanceltask == 0 ) 
-			{
-				//  go ahead, confirmed, end interface program
-				SetFileMapDWORD (  1, 912, 1 );
-				SetEventAndWait (  1 );
-				//  close down Steam hook
-				mp_free ( );
-				//  end editor program
-				timestampactivity(0,"Terminated because 908=1");
-				common_justbeforeend();
-				ExitProcess ( 0 );
-			}
-			else
-			{
-				//  carry on with interface
-				SetFileMapDWORD (  1, 908, 0 );
-				SetEventAndWait (  1 );
-				//CloseFileMap (  1 );
-			}
-		}
-
-		//  EDIT MENU
-		if (  GetFileMapDWORD( 1, 446 ) == 1 ) {  t.inputsys.doundo = 1  ; SetFileMapDWORD (  1, 446, 0 ); }
-		if (  GetFileMapDWORD( 1, 450 ) == 1 ) { t.inputsys.doredo = 1  ; SetFileMapDWORD (  1, 450, 0 ); }
-		if (  GetFileMapDWORD( 1, 454 ) == 1 ) { t.inputsys.tselcontrol = 1  ; t.inputsys.tselcut = 1 ; t.inputsys.tselcopy = 1 ; SetFileMapDWORD (  1, 454, 0 ); }
-		if (  GetFileMapDWORD( 1, 458 ) == 1 ) { t.inputsys.tselcontrol = 1  ; t.inputsys.tselcopy = 1 ; SetFileMapDWORD (  1, 458, 0 ); }
-
-		//  Get toolbar triggers
-		t.inputsys.doartresize=0;
-		t.toolbarset=GetFileMapDWORD( 1, 200 );
-		t.toolbarindex=GetFileMapDWORD( 1, 204 );
-		if (  t.toolbarindex>0 ) 
-		{
-			if (  t.toolbarset == 2 ) 
-			{
-				//  ZOOM IN and ZOOM OUT
-				switch (  t.toolbarindex ) 
-				{
-				case 1 : t.inputsys.kscancode = 188 ; break ;
-				case 2 : t.inputsys.kscancode = 190 ; break ;
-				}		//~   endif
-			}
-			if (  t.toolbarset == 4 ) 
-			{
-				//  EDIT MODE SELECTOR (entity/terrain)
-				switch (  t.toolbarindex ) 
-				{
-				case 7 : t.inputsys.kscancode = Asc("E") ; break ;
-				case 8 : t.inputsys.kscancode = Asc("M") ; break ;
-				case 9 : t.inputsys.kscancode = Asc("T") ; break ;
-				}		//~   endif
-			}
-			if (  t.toolbarset == 6 ) 
-			{
-				//  TERRAIN TOOLS (sculpt,flatten,paint)
-				t.inputsys.domodeterrain=1;
-				switch (  t.toolbarindex ) 
-				{
-				case 1 : t.inputsys.kscancode = Asc("1") ; break ;
-				case 2 : t.inputsys.kscancode = Asc("2") ; break ;
-				case 3 : t.inputsys.kscancode = Asc("3") ; break ;
-				case 4 : t.inputsys.kscancode = Asc("4") ; break ;
-				case 5 : t.inputsys.kscancode = Asc("5") ; break ;
-				case 6 : t.inputsys.kscancode = Asc("6") ; break ;
-				case 7 : t.inputsys.kscancode = Asc("7") ; break ;
-				case 8 : t.inputsys.kscancode = Asc("8") ; break ;
-				case 9 : t.inputsys.kscancode = Asc("9") ; break ;
-				case 10 : t.inputsys.kscancode = Asc("0") ; break ;
-				}
-			}
-			if (  t.toolbarset == 8 ) 
-			{
-				//  wayppoint
-				t.inputsys.domodewaypoint=1;
-				switch (  t.toolbarindex ) 
-				{
-					case 1 :
-						t.inputsys.domodewaypointcreate=1;
-					break;
-				}		//~   endif
-			}
-			if (  t.toolbarset == 9 ) 
-			{
-				//  rem LAUNCH TEST GAME
-				switch (  t.toolbarindex ) 
-				{
-					case 1 :
-						editor_previewmap ( 0 );
-					break;
-					case 2 :
-						editor_multiplayermode ( );
-					break;
-					case 3 :
-						if ( g.gvrmode == 0 )
-						{
-							HWND hThisWnd = GetForegroundWindow();
-							MessageBox ( hThisWnd, "You are not in VR mode. You need to exit the software. When you restart, select YES when asked whether you would like VR enabled.", "Not in VR Mode", MB_OK );
-							OpenFileMap (  1, "FPSEXCHANGE" );
-							SetFileMapDWORD (  1, 970, 1 );
-							SetEventAndWait (  1 );
-						}
-						else
-						{
-							editor_previewmap ( 1 );
-						}
-					break;
-				}
-			}
-			if ( t.toolbarset == 21 ) 
-			{
-				// HELP MENU Actions
-				#if VRQUEST
-				switch ( t.toolbarindex ) 
-				{
-					case 1 : editor_showhelppage ( 1 );  break;
-					case 2 : editor_showhelppage ( 2 );  break;
-					case 3 : editor_showhelppage ( 3 );  break;
-				}
-				#else
-				 switch (  t.toolbarindex ) 
-				 {
-					case 1 :
-						editor_showhelppage ( );
-					break;
-					case 2 :
-						if (  t.interactive.active == 0  )  t.interactive.active = 2;
-					break;
-				 }
-				#endif
-			}
-		}
-
-		//  Clear toolbar index
-		SetFileMapDWORD (  1, 200, 0 );
-		SetFileMapDWORD (  1, 204, 0 );
-
-		//  Clear deltas
+	#ifdef FPSEXCHANGE
+	 // only if the IDE has foreground focus
+	 DWORD dwForegroundFocusForIDE = GetFileMapDWORD( 1, 596 );
+	 if ( dwForegroundFocusForIDE == 10 )
+	 {
+		t.inputsys.xmouse=GetFileMapDWORD( 1, 0 );
+		t.inputsys.ymouse=GetFileMapDWORD( 1, 4 );
+		t.inputsys.xmousemove=GetFileMapDWORD( 1, 8 );
+		t.inputsys.ymousemove=GetFileMapDWORD( 1, 12 );
 		SetFileMapDWORD (  1, 8, 0 );
 		SetFileMapDWORD (  1, 12, 0 );
-		SetFileMapDWORD (  1, 16, 0 );
+		t.inputsys.wheelmousemove=GetFileMapDWORD( 1, 16 );
+		t.inputsys.mclick=GetFileMapDWORD( 1, 20 );
+		if (  GetFileMapDWORD( 1, 28 ) == 1  )  t.inputsys.mclick = 2;
+		if (  MouseClick() == 4  )  t.inputsys.mclick = 4;
+		if (  t.interactive.insidepanel == 1  )  t.inputsys.mclick = 0;
+		t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
+	 }
+	#else
+	 t.inputsys.xmouse = MouseX();
+	 t.inputsys.ymouse = MouseY();
+	 t.inputsys.xmousemove = MouseMoveX();
+	 t.inputsys.ymousemove = MouseMoveY();
+	 t.inputsys.wheelmousemove = MouseMoveZ();
+	 t.inputsys.mclick = MouseClick();
+	 if (t.interactive.insidepanel == 1) t.inputsys.mclick = 0;
+	 t.inputsys.kscancode = ScanCode();
+	#endif
 
-		//  Deactivate mouse if leave 3d area
-		if (  t.inputsys.xmouse == -1 && t.inputsys.ymouse == -1 ) 
+	//  show the KeyState (  if know what to press )
+	if ( g.globals.fulldebugview == 1 ) debug_fulldebugview ( );
+
+	//  extra mappings
+	input_extramappings ( );
+
+	//  Control keys direct from keyboard
+	#ifdef FPSEXCHANGE
+	 t.inputsys.keyreturn=GetFileMapDWORD( 1, 108 );
+	 t.inputsys.keyshift=GetFileMapDWORD( 1, 112 );
+	 t.inputsys.keyup=GetFileMapDWORD( 1, 120 );
+	 t.inputsys.keydown=GetFileMapDWORD( 1, 124 );
+	 t.inputsys.keyleft=GetFileMapDWORD( 1, 128 );
+	 t.inputsys.keyright=GetFileMapDWORD( 1, 132 );
+	 t.inputsys.keycontrol=GetFileMapDWORD( 1, 116 );
+	 t.inputsys.keyalt=GetFileMapDWORD( 1, 136 );
+	#else
+	t.inputsys.keyreturn = ReturnKey();
+	t.inputsys.keyshift = ShiftKey();
+	t.inputsys.keyup = UpKey();
+	t.inputsys.keydown = DownKey();
+	t.inputsys.keyleft = LeftKey();
+	t.inputsys.keyright = RightKey();
+	t.inputsys.keycontrol = ControlKey();
+	t.inputsys.keyalt = 0;
+	#endif
+	if (  t.inputsys.kscancode == 32  )  t.inputsys.keyspace = 1; else t.inputsys.keyspace = 0;
+
+	// will release keypress flag if no key AND no SHIFT!!
+	if (t.inputsys.kscancode == 0 && t.inputsys.keyshift == 0) t.inputsys.keypressallowshift = 0;
+
+	//  W,A,S,D in editor for scrolling about (easier for user)
+	if (  t.inputsys.kscancode == 87  )  t.inputsys.keyup = 1;
+	if (  t.inputsys.kscancode == 65  )  t.inputsys.keyleft = 1;
+	if (  t.inputsys.kscancode == 83  )  t.inputsys.keydown = 1;
+	if (  t.inputsys.kscancode == 68  )  t.inputsys.keyright = 1;
+
+	//  fake mousemove values for low-response systems (when in zoomed in mode)
+	if (  t.grideditselect == 4 ) 
+	{
+		if (  t.inputsys.keyshift == 1 ) 
 		{
-			//editor_restoreentityhighlightobj ( );
-			t.inputsys.xmouse=500000;
-			t.inputsys.ymouse=0;
-			t.inputsys.xmousemove=0;
-			t.inputsys.ymousemove=0;
-			t.inputsys.activemouse=0;
-			t.inputsys.mclick=0;
-			t.syncthreetimes=2;
-		}
-		else
-		{
-			if (  t.inputsys.activemouse == 0 ) 
-			{
-				//  was out, now back in
-				editor_refresheditmarkers ( );
-			}
-		}
-		t.inputsys.activemouse=1;
-
-		//  Convert FILE MAP COMM VALUES to DX INPUT CODES
-		t.t_s="" ; t.tt=0;
-		switch (  t.inputsys.kscancode ) 
-		{
-			case 9 : t.tt = 15 ; break ;
-			case 32 : t.tt = 57 ; break ;
-			case 33 : t.tt = 201 ; break ;
-			case 34 : t.tt = 209 ; break ;
-			case 37 : t.tt = 203 ; break ;
-			case 38 : t.tt = 200 ; break ;
-			case 39 : t.tt = 205 ; break ;
-			case 40 : t.tt = 208 ; break ;
-			case 42 : t.tt = 16 ; break ;
-			case 46 : t.tt = 211 ; break ;
-			case 54 : t.tt = 16 ; break ;
-			case 112 : t.tt = 59 ; break ;
-			case 113 : t.tt = 60 ; break ;
-			case 114 : t.tt = 61 ; break ;
-			case 115 : t.tt = 62 ; break ;
-			case 123 : t.tt = 88 ; break ;
-			case 187 : t.tt = 13 ; break ;
-			case 188 : t.tt = 51 ; break ;
-			case 189 : t.tt = 12 ; break ;
-			case 190 : t.tt = 52 ; break ;
-			case 192 : t.tt = 40 ; break ;
-			case 219 : t.tt = 26 ; break ;
-			case 220 : t.tt = 86 ; break ;
-			case 221 : t.tt = 27 ; break ;
-			case 222 : t.tt = 43 ; break ;
-			case 1001 : t.tt = 13 ; break ;
-			case 1002 : t.tt = 12 ; break ;
-		}
-		// 031215 - then remap to new scancodes (from keymap)
-		t.tt = g.keymap[t.tt];
-		// and temp back into IDE key values (for last bit)
-		int ttt = 0;
-		switch ( t.tt )
-		{
-			case 15 : ttt = 9 ; break ;
-			case 57 : ttt = 32 ; break ;
-			case 201 : ttt = 33 ; break ;
-			case 209 : ttt = 34 ; break ;
-			case 203 : ttt = 37 ; break ;
-			case 200 : ttt = 38 ; break ;
-			case 205 : ttt = 39 ; break ;
-			case 208 : ttt = 40 ; break ;
-			case 16 : ttt = 42 ; break ;
-			case 211 : ttt = 46 ; break ;
-			case 59 : ttt = 112 ; break ;
-			case 60 : ttt = 113 ; break ;
-			case 61 : ttt = 114 ; break ;
-			case 62 : ttt = 115 ; break ;
-			case 88 : ttt = 123 ; break ;
-			case 13 : ttt = 187 ; break ;
-			case 51 : ttt = 188 ; break ;
-			case 12 : ttt = 189 ; break ;
-			case 52 : ttt = 190 ; break ;
-			case 40 : ttt = 192 ; break ;
-			case 26 : ttt = 219 ; break ;
-			case 86 : ttt = 220 ; break ;
-			case 27 : ttt = 221 ; break ;
-			case 43 : ttt = 222 ; break ;
-		}
-		// then create proper inkey chars from revised (if any) scancodes
-		switch ( ttt )
-		{
-			case 16 : t.t_s = "q"; break;
-			case 57 : t.t_s = " "; break;
-			case 107 : t.t_s = "="; break;
-			case 109 : t.t_s = "-"; break;
-			case 187 : t.t_s = "="; break;
-			case 188 : t.t_s = ","; break;
-			case 189 : t.t_s = "-"; break;
-			case 190 : t.t_s = "."; break;
-			case 192 : t.t_s = "'"; break;
-			case 219 : t.t_s = "["; break;
-			case 220 : t.t_s = "\\"; break;
-			case 221 : t.t_s = "]"; break;
-			case 222 : t.t_s = "#"; break;
-		}
-		if (  t.inputsys.kscancode >= Asc("A") && t.inputsys.kscancode <= Asc("Z")  )  t.t_s = Lower(Chr(t.inputsys.kscancode));
-		if (  t.inputsys.kscancode >= Asc("0") && t.inputsys.kscancode <= Asc("9")  )  t.t_s = Lower(Chr(t.inputsys.kscancode));
-		if (  t.t_s != ""  )  t.tt = 1;
-
-		//  Get menu triggers
-		t.inputsys.dosave=0 ; t.inputsys.doopen=0 ; t.inputsys.donew=0 ; t.inputsys.donewflat=0 ; t.inputsys.dosaveas=0;
-		if (  GetFileMapDWORD( 1, 404 ) == 1 ) { t.inputsys.dosave = 1  ; SetFileMapDWORD (  1, 404, 0 ); }
-		if (  GetFileMapDWORD( 1, 408 ) == 1 ) { t.inputsys.donew = 1  ; SetFileMapDWORD (  1, 408, 0 ); }
-		if (  GetFileMapDWORD( 1, 408 ) == 2 ) 
-		{ 
-			if ( t.bIgnoreFirstCallToNewLevel == true )
-			{
-				// 280317 - editor calls to create new map, but can load in default.fpm at start (when welcome screen active)
-				t.bIgnoreFirstCallToNewLevel = false;
-			}
-			else
-			{
-				t.inputsys.donewflat = 1; 
-			}
-			SetFileMapDWORD (  1, 408, 0 ); 
-		}
-		if (  GetFileMapDWORD( 1, 434 ) == 1 ) { t.inputsys.dosaveas = 1  ; SetFileMapDWORD (  1, 434, 0 ); }
-		if (  GetFileMapDWORD( 1, 400 ) == 1 ) { t.inputsys.doopen = 1  ; t.inputsys.donew = 0 ; t.inputsys.donewflat = 0 ; SetFileMapDWORD (  1, 400, 0 ); }
-
-		//  select items from editing to see values
-		SetEventAndWait (  1 );
-		t.tindex1=GetFileMapDWORD( 1, 712 );
-		if (  t.tindex1>0 ) 
-		{
-			t.tt=1 ; t.t_s="";
-			t.tindex2=GetFileMapDWORD( 1, 716 );
-			if (  t.tindex1 == 2 ) 
-			{
-				t.inputsys.domodeterrain=1;
-				switch (  t.tindex2 ) 
-				{
-					case 1 : t.t_s = "1" ; break ;
-					case 2 : t.t_s = "2" ; break ;
-					case 3 : t.t_s = "3" ; break ;
-					case 4 : t.t_s = "6" ; break ;
-					case 5 : t.t_s = "9" ; break ;
-					case 6 : t.t_s = "0" ; break ;
-				}
-			}
-			if (  t.tindex1 == 1 ) 
-			{
-				switch (  t.tindex2 ) 
-				{
-					case 1 : t.t_s = "t" ; break ;
-					case 2 : t.t_s = "e" ; break ;
-				}
-			}
-			SetFileMapDWORD (  1, 712, 0 );
-			SetFileMapDWORD (  1, 716, 0 );
-			SetEventAndWait (  1 );
-		}
-
-		//  Record final translated key values
-		t.inputsys.k_s=t.t_s ; t.inputsys.kscancode=t.tt;
-
-		//  Determine if Library Selection Made
-		if ( GetFileMapDWORD( 1, 516 ) > 0 ) 
-		{
-			SetFileMapDWORD ( 1, 516, 0 );
-			t.clickedonworkspace = GetFileMapDWORD( 1, 520 );
-			t.clickeditemonworkspace = GetFileMapDWORD( 1, 524 );
-			if ( t.clickeditemonworkspace != -1 ) 
-			{
-				// if in EBE tool, and switch to Entity/Marker tab, reactivate EBE
-				if ( t.clickedonworkspace == 2 ) 
-				{
-					if ( t.ebe.active != 0 )
-					{
-						// switch on EBE tool visuals
-						ebe_reset();
-					}
-					else
-					{
-						// not active, but need to be in entity mode for placement of site
-						t.inputsys.domodeentity = 1; 
-						t.grideditselect = 5; 
-					}
-				}
-				else
-				{
-					ebe_hide();
-				}
-
-				// check if Entity/Marker/Builder tab selected
-				if ( t.clickedonworkspace == 1 || t.clickedonworkspace == 2 ) 
-				{
-					if ( t.clickedonworkspace == 1 || (t.clickedonworkspace == 2 && t.clickeditemonworkspace == 0) )
-					{
-						if ( t.clickedonworkspace == 1 )
-						{
-							// Selected Marker (playerstart,light,trigger,emission)
-							t.addentityfile_s = t.markerentitybank_s[1+t.clickeditemonworkspace];
-						}
-						else
-						{
-							// Or Builder 'Add New Site' which produces an entity we can use
-							t.addentityfile_s = t.ebebank_s[1+t.clickeditemonworkspace];
-							t.inputsys.domodeentity = 1; // ensure can position entity when select site
-						}
-						if ( t.addentityfile_s != "" ) 
-						{
-							entity_adduniqueentity ( false );
-							t.tasset=t.entid;
-							if ( t.talreadyloaded == 0 ) 
-							{
-								editor_filllibrary ( );
-							}
-						}
-						t.inputsys.constructselection = t.tasset;
-					}
-					if ( t.clickedonworkspace == 2 && t.clickeditemonworkspace > 0 )
-					{
-						// selected builder tool icon - load in pattern for cube-insertion
-						LPSTR pPBFEBEFile = t.ebebank_s[1+t.clickeditemonworkspace].Get();
-						// loads painting pattern
-						ebe_loadpattern ( pPBFEBEFile );
-						t.inputsys.constructselection = 0;
-					}
-				}
-				if ( t.clickedonworkspace == 0 ) 
-				{
-					if (  t.clickeditemonworkspace == 0 ) 
-					{
-						t.tnewadd=0;
-						if (  t.clickedonworkspace == 0 ) 
-						{
-							//  [new entity]
-							entity_addtoselection ( );
-							t.tnewadd=t.entnewloaded;
-							t.tasset=t.entid;
-						}
-						//  add asset to library
-						if ( t.tnewadd == 1 ) editor_filllibrary ( );
-						//  use as current asset
-						t.inputsys.constructselection=t.tasset;
-					}
-					else
-					{
-						//  select existing asset
-						if (  t.clickedonworkspace == 0 ) 
-						{
-							//  entity uses array to indicate the real entity index (to exclude markers - see above)
-							if (  t.clickeditemonworkspace >= 0 && t.clickeditemonworkspace <= ArrayCount(t.locallibraryent) ) 
-							{
-								t.inputsys.constructselection=t.locallibraryent[t.clickeditemonworkspace];
-							}
-							else
-							{
-								t.inputsys.constructselection=0;
-							}
-						}
-						else
-						{
-							//  direct relationship between list index and choice
-							t.inputsys.constructselection=t.clickeditemonworkspace;
-						}
-					}
-				}
-
-				//  Workspace index determines editing mode
-				if (  t.clickedonworkspace  == 0 ) { t.inputsys.domodeentity = 1 ; t.grideditselect  =  5; }
-				if (  t.clickedonworkspace  == 1 ) { t.inputsys.domodeentity = 1 ; t.grideditselect  =  5; }
-				editor_refresheditmarkers ( );
-			}
+			if (  t.inputsys.keyleft == 1  )  t.inputsys.xmousemove = -10;
+			if (  t.inputsys.keyright == 1  )  t.inputsys.xmousemove = 10;
+			if (  t.inputsys.keyup == 1  )  t.inputsys.ymousemove = -10;
+			if (  t.inputsys.keydown == 1  )  t.inputsys.ymousemove = 10;
+			t.inputsys.mclick=2;
+			t.inputsys.keyleft=0;
+			t.inputsys.keyright=0;
+			t.inputsys.keyup=0;
+			t.inputsys.keydown=0;
 		}
 	}
 
-	//  Ensure status bar is constantly updated
-	++t.interfacestatusbarupdate;
-	if (  t.interfacestatusbarupdate>30 ) 
+	//  special trigger when click LIBRARY TAB, force into respective mode
+	#ifdef FPSEXCHANGE
+	if (  GetFileMapDWORD( 1, 546 ) == 1 ) 
 	{
-		//  cursor position
-		if (  g.gridlayershowsingle == 1 ) 
+		t.ttabindex=GetFileMapDWORD( 1, 520 );
+		if (  t.ttabindex == 0  )  t.inputsys.domodeentity = 1;
+		if (  t.ttabindex == 1  )  t.inputsys.domodeentity = 1;
+		if (  t.ttabindex == 2  )
+		{
+			if ( t.ebe.active == 0 )
+			{
+				// need to select a site (using entity creation and placement first)
+			}
+			else
+			{
+				// reset for tool work
+				ebe_reset();
+			}
+		}
+		else
+		{
+			// When click non-Builder tab, should leave builder mode
+			ebe_hide();
+
+			//PE: If first entity, shader have not yet had constant set , so update shaders.
+			//PE: Prevent new created ebe from disappering when clicking away from "builder".
+			visuals_justshaderupdate();
+		}
+		SetFileMapDWORD (  1, 546, 0 );
+	}
+	#endif
+
+	//  recent file list
+	#ifdef FPSEXCHANGE
+	t.trecentfilechoice=GetFileMapDWORD( 1, 442 );
+	if (  t.trecentfilechoice>0 ) 
+	{
+		//  retain choice for action at end of subroutine
+		t.trecentfilechoice_s=GetFileMapString( 1, 1000 );
+		SetFileMapDWORD (  1, 442, 0 );
+	}
+	#endif
+
+	//  termination trigger
+	#ifdef FPSEXCHANGE
+	if (  GetFileMapDWORD( 1, 908 ) == 1 ) 
+	{
+		// show outtro message if free version mode
+		if ( g.iFreeVersionModeActive == 1 )
+		{
+			t.inputsys.ignoreeditorintermination = 1;
+			welcome_init(1);
+			welcome_init(0);
+			welcome_show(WELCOME_FREEINTROAPP);
+			t.inputsys.ignoreeditorintermination = 0;
+		}
+
+		// Here we ask if changes should be saved, etc
+		gridedit_intercept_savefirst_noreload ( );
+		OpenFileMap (  1,"FPSEXCHANGE" );
+		if (  t.editorcanceltask == 0 ) 
+		{
+			//  go ahead, confirmed, end interface program
+			SetFileMapDWORD (  1, 912, 1 );
+			SetEventAndWait (  1 );
+			//  close down Steam hook
+			mp_free ( );
+			//  end editor program
+			timestampactivity(0,"Terminated because 908=1");
+			common_justbeforeend();
+			ExitProcess ( 0 );
+		}
+		else
+		{
+			//  carry on with interface
+			SetFileMapDWORD (  1, 908, 0 );
+			SetEventAndWait (  1 );
+			//CloseFileMap (  1 );
+		}
+	}
+	#endif
+
+	//  EDIT MENU
+	#ifdef FPSEXCHANGE
+	if (  GetFileMapDWORD( 1, 446 ) == 1 ) {  t.inputsys.doundo = 1  ; SetFileMapDWORD (  1, 446, 0 ); }
+	if (  GetFileMapDWORD( 1, 450 ) == 1 ) { t.inputsys.doredo = 1  ; SetFileMapDWORD (  1, 450, 0 ); }
+	if (  GetFileMapDWORD( 1, 454 ) == 1 ) { t.inputsys.tselcontrol = 1  ; t.inputsys.tselcut = 1 ; t.inputsys.tselcopy = 1 ; SetFileMapDWORD (  1, 454, 0 ); }
+	if (  GetFileMapDWORD( 1, 458 ) == 1 ) { t.inputsys.tselcontrol = 1  ; t.inputsys.tselcopy = 1 ; SetFileMapDWORD (  1, 458, 0 ); }
+	#endif
+
+	//  Get toolbar triggers
+	#ifdef FPSEXCHANGE
+	t.inputsys.doartresize=0;
+	t.toolbarset=GetFileMapDWORD( 1, 200 );
+	t.toolbarindex=GetFileMapDWORD( 1, 204 );
+	if (  t.toolbarindex>0 ) 
+	{
+		if (  t.toolbarset == 2 ) 
+		{
+			//  ZOOM IN and ZOOM OUT
+			switch (  t.toolbarindex ) 
+			{
+			case 1 : t.inputsys.kscancode = 188 ; break ;
+			case 2 : t.inputsys.kscancode = 190 ; break ;
+			}		//~   endif
+		}
+		if (  t.toolbarset == 4 ) 
+		{
+			//  EDIT MODE SELECTOR (entity/terrain)
+			switch (  t.toolbarindex ) 
+			{
+			case 7 : t.inputsys.kscancode = Asc("E") ; break ;
+			case 8 : t.inputsys.kscancode = Asc("M") ; break ;
+			case 9 : t.inputsys.kscancode = Asc("T") ; break ;
+			}		//~   endif
+		}
+		if (  t.toolbarset == 6 ) 
+		{
+			//  TERRAIN TOOLS (sculpt,flatten,paint)
+			t.inputsys.domodeterrain=1;
+			switch (  t.toolbarindex ) 
+			{
+			case 1 : t.inputsys.kscancode = Asc("1") ; break ;
+			case 2 : t.inputsys.kscancode = Asc("2") ; break ;
+			case 3 : t.inputsys.kscancode = Asc("3") ; break ;
+			case 4 : t.inputsys.kscancode = Asc("4") ; break ;
+			case 5 : t.inputsys.kscancode = Asc("5") ; break ;
+			case 6 : t.inputsys.kscancode = Asc("6") ; break ;
+			case 7 : t.inputsys.kscancode = Asc("7") ; break ;
+			case 8 : t.inputsys.kscancode = Asc("8") ; break ;
+			case 9 : t.inputsys.kscancode = Asc("9") ; break ;
+			case 10 : t.inputsys.kscancode = Asc("0") ; break ;
+			}
+		}
+		if (  t.toolbarset == 8 ) 
+		{
+			//  wayppoint
+			t.inputsys.domodewaypoint=1;
+			switch (  t.toolbarindex ) 
+			{
+				case 1 :
+					t.inputsys.domodewaypointcreate=1;
+				break;
+			}		//~   endif
+		}
+		if (  t.toolbarset == 9 ) 
+		{
+			//  rem LAUNCH TEST GAME
+			switch (  t.toolbarindex ) 
+			{
+				case 1 :
+					editor_previewmap ( 0 );
+				break;
+				case 2 :
+					editor_multiplayermode ( );
+				break;
+				case 3 :
+					if ( g.gvrmode == 0 )
+					{
+						HWND hThisWnd = GetForegroundWindow();
+						MessageBox ( hThisWnd, "You are not in VR mode. You need to exit the software. When you restart, select YES when asked whether you would like VR enabled.", "Not in VR Mode", MB_OK );
+						OpenFileMap (  1, "FPSEXCHANGE" );
+						SetFileMapDWORD (  1, 970, 1 );
+						SetEventAndWait (  1 );
+					}
+					else
+					{
+						editor_previewmap ( 1 );
+					}
+				break;
+			}
+		}
+		if ( t.toolbarset == 21 ) 
+		{
+			// HELP MENU Actions
+			#if VRQUEST
+			switch ( t.toolbarindex ) 
+			{
+				case 1 : editor_showhelppage ( 1 );  break;
+				case 2 : editor_showhelppage ( 2 );  break;
+				case 3 : editor_showhelppage ( 3 );  break;
+			}
+			#else
+				switch (  t.toolbarindex ) 
+				{
+				case 1 :
+					editor_showhelppage ( );
+				break;
+				case 2 :
+					if (  t.interactive.active == 0  )  t.interactive.active = 2;
+				break;
+				}
+			#endif
+		}
+	}
+	#endif
+
+	// Clear toolbar index and deltas
+	#ifdef FPSEXCHANGE
+	SetFileMapDWORD (  1, 200, 0 );
+	SetFileMapDWORD (  1, 204, 0 );
+	SetFileMapDWORD (  1, 8, 0 );
+	SetFileMapDWORD (  1, 12, 0 );
+	SetFileMapDWORD (  1, 16, 0 );
+	#endif
+
+	// Deactivate mouse if leave 3d area
+	if ( t.inputsys.xmouse == -1 && t.inputsys.ymouse == -1 ) 
+	{
+		t.inputsys.xmouse=500000;
+		t.inputsys.ymouse=0;
+		t.inputsys.xmousemove=0;
+		t.inputsys.ymousemove=0;
+		t.inputsys.activemouse=0;
+		t.inputsys.mclick=0;
+		t.syncthreetimes=2;
+	}
+	else
+	{
+		if (  t.inputsys.activemouse == 0 ) 
+		{
+			//  was out, now back in
+			editor_refresheditmarkers ( );
+		}
+	}
+	t.inputsys.activemouse=1;
+
+	// Convert FILE MAP COMM VALUES to DX INPUT CODES
+	t.t_s="" ; t.tt=0;
+	switch ( t.inputsys.kscancode ) 
+	{
+		case 9 : t.tt = 15 ; break ;
+		case 32 : t.tt = 57 ; break ;
+		case 33 : t.tt = 201 ; break ;
+		case 34 : t.tt = 209 ; break ;
+		case 37 : t.tt = 203 ; break ;
+		case 38 : t.tt = 200 ; break ;
+		case 39 : t.tt = 205 ; break ;
+		case 40 : t.tt = 208 ; break ;
+		case 42 : t.tt = 16 ; break ;
+		case 46 : t.tt = 211 ; break ;
+		case 54 : t.tt = 16 ; break ;
+		case 112 : t.tt = 59 ; break ;
+		case 113 : t.tt = 60 ; break ;
+		case 114 : t.tt = 61 ; break ;
+		case 115 : t.tt = 62 ; break ;
+		case 123 : t.tt = 88 ; break ;
+		case 187 : t.tt = 13 ; break ;
+		case 188 : t.tt = 51 ; break ;
+		case 189 : t.tt = 12 ; break ;
+		case 190 : t.tt = 52 ; break ;
+		case 192 : t.tt = 40 ; break ;
+		case 219 : t.tt = 26 ; break ;
+		case 220 : t.tt = 86 ; break ;
+		case 221 : t.tt = 27 ; break ;
+		case 222 : t.tt = 43 ; break ;
+		case 1001 : t.tt = 13 ; break ;
+		case 1002 : t.tt = 12 ; break ;
+	}
+
+	// 031215 - then remap to new scancodes (from keymap)
+	t.tt = g.keymap[t.tt];
+
+	// and temp back into IDE key values (for last bit)
+	int ttt = 0;
+	switch ( t.tt )
+	{
+		case 15 : ttt = 9 ; break ;
+		case 57 : ttt = 32 ; break ;
+		case 201 : ttt = 33 ; break ;
+		case 209 : ttt = 34 ; break ;
+		case 203 : ttt = 37 ; break ;
+		case 200 : ttt = 38 ; break ;
+		case 205 : ttt = 39 ; break ;
+		case 208 : ttt = 40 ; break ;
+		case 16 : ttt = 42 ; break ;
+		case 211 : ttt = 46 ; break ;
+		case 59 : ttt = 112 ; break ;
+		case 60 : ttt = 113 ; break ;
+		case 61 : ttt = 114 ; break ;
+		case 62 : ttt = 115 ; break ;
+		case 88 : ttt = 123 ; break ;
+		case 13 : ttt = 187 ; break ;
+		case 51 : ttt = 188 ; break ;
+		case 12 : ttt = 189 ; break ;
+		case 52 : ttt = 190 ; break ;
+		case 40 : ttt = 192 ; break ;
+		case 26 : ttt = 219 ; break ;
+		case 86 : ttt = 220 ; break ;
+		case 27 : ttt = 221 ; break ;
+		case 43 : ttt = 222 ; break ;
+	}
+	// then create proper inkey chars from revised (if any) scancodes
+	switch ( ttt )
+	{
+		case 16 : t.t_s = "q"; break;
+		case 57 : t.t_s = " "; break;
+		case 107 : t.t_s = "="; break;
+		case 109 : t.t_s = "-"; break;
+		case 187 : t.t_s = "="; break;
+		case 188 : t.t_s = ","; break;
+		case 189 : t.t_s = "-"; break;
+		case 190 : t.t_s = "."; break;
+		case 192 : t.t_s = "'"; break;
+		case 219 : t.t_s = "["; break;
+		case 220 : t.t_s = "\\"; break;
+		case 221 : t.t_s = "]"; break;
+		case 222 : t.t_s = "#"; break;
+	}
+	if (  t.inputsys.kscancode >= Asc("A") && t.inputsys.kscancode <= Asc("Z")  )  t.t_s = Lower(Chr(t.inputsys.kscancode));
+	if (  t.inputsys.kscancode >= Asc("0") && t.inputsys.kscancode <= Asc("9")  )  t.t_s = Lower(Chr(t.inputsys.kscancode));
+	if (  t.t_s != ""  )  t.tt = 1;
+
+	//  Get menu triggers
+	t.inputsys.dosave=0 ; t.inputsys.doopen=0 ; t.inputsys.donew=0 ; t.inputsys.donewflat=0 ; t.inputsys.dosaveas=0;
+	#ifdef FPSEXCHANGE
+	if (  GetFileMapDWORD( 1, 404 ) == 1 ) { t.inputsys.dosave = 1  ; SetFileMapDWORD (  1, 404, 0 ); }
+	if (  GetFileMapDWORD( 1, 408 ) == 1 ) { t.inputsys.donew = 1  ; SetFileMapDWORD (  1, 408, 0 ); }
+	if (  GetFileMapDWORD( 1, 408 ) == 2 ) 
+	{ 
+		if ( t.bIgnoreFirstCallToNewLevel == true )
+		{
+			// 280317 - editor calls to create new map, but can load in default.fpm at start (when welcome screen active)
+			t.bIgnoreFirstCallToNewLevel = false;
+		}
+		else
+		{
+			t.inputsys.donewflat = 1; 
+		}
+		SetFileMapDWORD (  1, 408, 0 ); 
+	}
+	if (  GetFileMapDWORD( 1, 434 ) == 1 ) { t.inputsys.dosaveas = 1  ; SetFileMapDWORD (  1, 434, 0 ); }
+	if (  GetFileMapDWORD( 1, 400 ) == 1 ) { t.inputsys.doopen = 1  ; t.inputsys.donew = 0 ; t.inputsys.donewflat = 0 ; SetFileMapDWORD (  1, 400, 0 ); }
+	#else
+	if (t.bTriggerNewMapAtStart == true)
+	{
+		t.bTriggerNewMapAtStart = false;
+		t.inputsys.donew = 1;
+	}
+	#endif
+
+	// select items from editing to see values
+	#ifdef FPSEXCHANGE
+	SetEventAndWait (  1 );
+	t.tindex1=GetFileMapDWORD( 1, 712 );
+	if (  t.tindex1>0 ) 
+	{
+		t.tt=1 ; t.t_s="";
+		t.tindex2=GetFileMapDWORD( 1, 716 );
+		if (  t.tindex1 == 2 ) 
+		{
+			t.inputsys.domodeterrain=1;
+			switch (  t.tindex2 ) 
+			{
+				case 1 : t.t_s = "1" ; break ;
+				case 2 : t.t_s = "2" ; break ;
+				case 3 : t.t_s = "3" ; break ;
+				case 4 : t.t_s = "6" ; break ;
+				case 5 : t.t_s = "9" ; break ;
+				case 6 : t.t_s = "0" ; break ;
+			}
+		}
+		if (  t.tindex1 == 1 ) 
+		{
+			switch (  t.tindex2 ) 
+			{
+				case 1 : t.t_s = "t" ; break ;
+				case 2 : t.t_s = "e" ; break ;
+			}
+		}
+		SetFileMapDWORD (  1, 712, 0 );
+		SetFileMapDWORD (  1, 716, 0 );
+		SetEventAndWait (  1 );
+	}
+	#endif
+
+	//  Record final translated key values
+	t.inputsys.k_s=t.t_s ; t.inputsys.kscancode=t.tt;
+
+	//  Determine if Library Selection Made
+	#ifdef FPSEXCHANGE
+	if ( GetFileMapDWORD( 1, 516 ) > 0 )
+	{
+		SetFileMapDWORD ( 1, 516, 0 );
+		t.clickedonworkspace = GetFileMapDWORD( 1, 520 );
+		t.clickeditemonworkspace = GetFileMapDWORD( 1, 524 );
+		if ( t.clickeditemonworkspace != -1 ) 
+		{
+			// if in EBE tool, and switch to Entity/Marker tab, reactivate EBE
+			if ( t.clickedonworkspace == 2 ) 
+			{
+				if ( t.ebe.active != 0 )
+				{
+					// switch on EBE tool visuals
+					ebe_reset();
+				}
+				else
+				{
+					// not active, but need to be in entity mode for placement of site
+					t.inputsys.domodeentity = 1; 
+					t.grideditselect = 5; 
+				}
+			}
+			else
+			{
+				ebe_hide();
+			}
+
+			// check if Entity/Marker/Builder tab selected
+			if ( t.clickedonworkspace == 1 || t.clickedonworkspace == 2 ) 
+			{
+				if ( t.clickedonworkspace == 1 || (t.clickedonworkspace == 2 && t.clickeditemonworkspace == 0) )
+				{
+					if ( t.clickedonworkspace == 1 )
+					{
+						// Selected Marker (playerstart,light,trigger,emission)
+						t.addentityfile_s = t.markerentitybank_s[1+t.clickeditemonworkspace];
+					}
+					else
+					{
+						// Or Builder 'Add New Site' which produces an entity we can use
+						t.addentityfile_s = t.ebebank_s[1+t.clickeditemonworkspace];
+						t.inputsys.domodeentity = 1; // ensure can position entity when select site
+					}
+					if ( t.addentityfile_s != "" ) 
+					{
+						entity_adduniqueentity ( false );
+						t.tasset=t.entid;
+						if ( t.talreadyloaded == 0 ) 
+						{
+							editor_filllibrary ( );
+						}
+					}
+					t.inputsys.constructselection = t.tasset;
+				}
+				if ( t.clickedonworkspace == 2 && t.clickeditemonworkspace > 0 )
+				{
+					// selected builder tool icon - load in pattern for cube-insertion
+					LPSTR pPBFEBEFile = t.ebebank_s[1+t.clickeditemonworkspace].Get();
+					// loads painting pattern
+					ebe_loadpattern ( pPBFEBEFile );
+					t.inputsys.constructselection = 0;
+				}
+			}
+			if ( t.clickedonworkspace == 0 ) 
+			{
+				if (  t.clickeditemonworkspace == 0 ) 
+				{
+					t.tnewadd=0;
+					if (  t.clickedonworkspace == 0 ) 
+					{
+						//  [new entity]
+						entity_addtoselection ( );
+						t.tnewadd=t.entnewloaded;
+						t.tasset=t.entid;
+					}
+					//  add asset to library
+					if ( t.tnewadd == 1 ) editor_filllibrary ( );
+					//  use as current asset
+					t.inputsys.constructselection=t.tasset;
+				}
+				else
+				{
+					//  select existing asset
+					if (  t.clickedonworkspace == 0 ) 
+					{
+						//  entity uses array to indicate the real entity index (to exclude markers - see above)
+						if (  t.clickeditemonworkspace >= 0 && t.clickeditemonworkspace <= ArrayCount(t.locallibraryent) ) 
+						{
+							t.inputsys.constructselection=t.locallibraryent[t.clickeditemonworkspace];
+						}
+						else
+						{
+							t.inputsys.constructselection=0;
+						}
+					}
+					else
+					{
+						//  direct relationship between list index and choice
+						t.inputsys.constructselection=t.clickeditemonworkspace;
+					}
+				}
+			}
+
+			//  Workspace index determines editing mode
+			if (  t.clickedonworkspace  == 0 ) { t.inputsys.domodeentity = 1 ; t.grideditselect  =  5; }
+			if (  t.clickedonworkspace  == 1 ) { t.inputsys.domodeentity = 1 ; t.grideditselect  =  5; }
+			editor_refresheditmarkers ( );
+		}
+	}
+	#endif
+
+	// Ensure status bar is constantly updated
+	#ifdef FPSEXCHANGE
+	++t.interfacestatusbarupdate;
+	if ( t.interfacestatusbarupdate>30 ) 
+	{
+		// cursor position
+		if ( g.gridlayershowsingle == 1 ) 
 		{
 			t.t_s = "" ; t.t_s=t.t_s +"CLIP="+Str(int(t.clipheight_f));
 		}
@@ -2749,18 +2685,19 @@ void input_getfilemapcontrols ( void )
 		//  only update infrequently
 		t.interfacestatusbarupdate=0;
 	}
+	#endif
 
 	//  Update status bar out of action subroutines
 	gridedit_updatestatusbar ( );
 
-	//  Action after filemap activity
-	if (  t.trecentfilechoice>0 ) 
+	// Action after filemap activity
+	if ( t.trecentfilechoice>0 ) 
 	{
-		//  save first
+		// save first
 		gridedit_intercept_savefirst ( );
-		if (  t.editorcanceltask == 0 ) 
+		if ( t.editorcanceltask == 0 ) 
 		{
-			//  go ahead, load direct (skip the open dialog)
+			// go ahead, load direct (skip the open dialog)
 			g.projectfilename_s=t.trecentfilechoice_s;
 			gridedit_load_map ( );
 		}
@@ -3304,17 +3241,21 @@ void editor_updatemarkervisibility ( void )
 
 void editor_disableforzoom ( void )
 {
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  2, "FPSEXCHANGE" );
 	SetFileMapDWORD (  2, 850, 1 );
 	SetEventAndWait (  2 );
+	#endif
 }
 
 void editor_enableafterzoom ( void )
 {
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  2, "FPSEXCHANGE" );
 	SetFileMapDWORD (  2, 850, 0 );
 	SetEventAndWait (  2 );
 	editor_cutcopyclearstate ( );
+	#endif
 }
 
 void editor_init ( void )
@@ -4130,7 +4071,9 @@ void editor_leftpanelreset ( void )
 void editor_filemapdefaultinitfornew ( void )
 {
 	//  Open for some Defaults for Editor
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
+	#endif
 
 	//  Marker Defaults
 	g.entidmaster=0;
@@ -4142,13 +4085,14 @@ void editor_filemapdefaultinitfornew ( void )
 
 void editor_filemapinit ( void )
 {
-	//  Open for some Defaults for Editor
+	// Open for some Defaults for Editor
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
-
-	//  Set default mouse position and visibility
+	// Set default mouse position and visibility
 	SetFileMapDWORD (  1, 0, 400 );
 	SetFileMapDWORD (  1, 4, 300 );
 	SetEventAndWait (  1 );
+	#endif
 
 	//  Each selection tab needs a NEW icon
 	editor_clearlibrary ( );
@@ -4438,207 +4382,208 @@ void editor_validatestaticmode ( void )
 
 void editor_overallfunctionality ( void )
 {
-//  Restore current grid view
+	//  Restore current grid view
 	if (  t.inputsys.doautozoomview == 1 ) { t.inputsys.doautozoomview = 0  ; t.inputsys.dozoomview = 1; }
-if (  t.inputsys.dozoomview == 1 ) 
-{
-	if (  t.cameraviewmode == 2 ) 
+	if (  t.inputsys.dozoomview == 1 ) 
 	{
-		//  mouselook mode off
-		OpenFileMap (  1, "FPSEXCHANGE" );
-		SetFileMapDWORD (  1, 48, 0 );
-		SetEventAndWait (  1 );
-		//CloseFileMap (  1 );
-		//  re-enable icons
-		editor_enableafterzoom ( );
-		//  end zoom mode
-		t.grideditselect=t.stgrideditselect  ; editor_refresheditmarkers ( );
-		t.inputsys.dozoomview=0;
-		t.cameraviewmode=0;
+		if (  t.cameraviewmode == 2 ) 
+		{
+			//  mouselook mode off
+			#ifdef FPSEXCHANGE
+			OpenFileMap (  1, "FPSEXCHANGE" );
+			SetFileMapDWORD (  1, 48, 0 );
+			SetEventAndWait (  1 );
+			#endif
+			//  re-enable icons
+			editor_enableafterzoom ( );
+			//  end zoom mode
+			t.grideditselect=t.stgrideditselect  ; editor_refresheditmarkers ( );
+			t.inputsys.dozoomview=0;
+			t.cameraviewmode=0;
+		}
 	}
-}
 
-//  Switch to zoom view
-if (  t.inputsys.dozoomview == 1 ) 
-{
-	if (  t.cameraviewmode == 0 ) 
+	//  Switch to zoom view
+	if (  t.inputsys.dozoomview == 1 ) 
 	{
-		//  Set camera to track with close-up
-		t.stgrideditselect=t.grideditselect;
-		t.cameraviewmode=2;
-		//  Mode - Zoom In View
-		t.grideditselect=4 ; editor_refresheditmarkers ( );
-		t.updatezoom=1;
+		if (  t.cameraviewmode == 0 ) 
+		{
+			//  Set camera to track with close-up
+			t.stgrideditselect=t.grideditselect;
+			t.cameraviewmode=2;
+			//  Mode - Zoom In View
+			t.grideditselect=4 ; editor_refresheditmarkers ( );
+			t.updatezoom=1;
+		}
 	}
-}
 
-//  Get terrain height reading at cursor
-if (  t.terrain.TerrainID>0 ) 
-{
-	t.ttterrheighthere_f=BT_GetGroundHeight(t.terrain.TerrainID,t.cx_f,t.cy_f);
-}
-else
-{
-	t.ttterrheighthere_f=1000.0;
-}
+	//  Get terrain height reading at cursor
+	if (  t.terrain.TerrainID>0 ) 
+	{
+		t.ttterrheighthere_f=BT_GetGroundHeight(t.terrain.TerrainID,t.cx_f,t.cy_f);
+	}
+	else
+	{
+		t.ttterrheighthere_f=1000.0;
+	}
 	
-//  ensure zoom never penetrates terrain
-if (  t.updatezoom == 1 || t.inputsys.mclick != 0 ) 
-{
-	if (  (600.0*t.gridzoom_f)<(t.ttterrheighthere_f+100) ) 
+	//  ensure zoom never penetrates terrain
+	if (  t.updatezoom == 1 || t.inputsys.mclick != 0 ) 
 	{
-		t.gridzoom_f=(t.ttterrheighthere_f+100)/600.0;
-	}
-}
-
-//  Recalculate zoom scale for editing
-if (  t.updatezoom == 1 ) 
-{
-
-	//  grid scale for camera cursor location and zoom
-	t.gridscale_f=((800/2)/8)/t.gridzoom_f;
-	t.inputsys.keypress=1;
-	t.updatezoom=0;
-
-	//  gridlayershowsingle creates an alpha slice in entity shaders
-	t.gridnearcameraclip=-1;
-	if (  t.grideditselect != 4 ) 
-	{
-		if (  g.gridlayershowsingle == 1 ) 
+		if (  (600.0*t.gridzoom_f)<(t.ttterrheighthere_f+100) ) 
 		{
-			t.gridnearcameraclip=t.clipheight_f;
+			t.gridzoom_f=(t.ttterrheighthere_f+100)/600.0;
 		}
 	}
 
-	//  modulate shadow strength based on distance
-	t.tcamrange_f=((600.0*t.gridzoom_f)+1000);
-	t.toldvisualsshadowmode=t.visuals.shadowmode;
-	if (  t.tcamrange_f<4000 ) 
+	//  Recalculate zoom scale for editing
+	if (  t.updatezoom == 1 ) 
 	{
-		t.visuals.shadowmode=100;
-	}
-	else
-	{
-		if (  t.tcamrange_f<6000 ) 
-		{
-			t.visuals.shadowmode=(6000-t.tcamrange_f)/20.0;
-		}
-		else
-		{
-			t.visuals.shadowmode=0;
-		}
-	}
-	if (  t.toldvisualsshadowmode != t.visuals.shadowmode ) 
-	{
-		visuals_justshaderupdate ( );
-	}
 
-	//  adjust clipping range of camera to match
-	editor_refreshcamerarange ( );
+		//  grid scale for camera cursor location and zoom
+		t.gridscale_f=((800/2)/8)/t.gridzoom_f;
+		t.inputsys.keypress=1;
+		t.updatezoom=0;
 
-	//  Ensure the slicing clip does not go
-	if (  t.gridnearcameraclip == -1 ) 
-	{
-		t.gridtrueslicey_f=CameraPositionY(0);
-	}
-	else
-	{
-		t.gridtrueslicey_f=t.gridnearcameraclip;
-	}
-
-	//  feed alpha slicing height into all entity shaders
-	if (  g.effectbankmax>0 ) 
-	{
-		for ( t.t = 1 ; t.t<=  g.effectbankmax; t.t++ )
+		//  gridlayershowsingle creates an alpha slice in entity shaders
+		t.gridnearcameraclip=-1;
+		if (  t.grideditselect != 4 ) 
 		{
-			t.effectid=g.effectbankoffset+t.t;
-			if (  GetEffectExist(t.effectid) == 1 ) 
+			if (  g.gridlayershowsingle == 1 ) 
 			{
-				if (  t.gridnearcameraclip == -1 ) 
-				{
-					SetVector4 ( g.terrainvectorindex, 500000, 1, 0, 0 );
-				}
-				else
-				{
-					SetVector4 ( g.terrainvectorindex, t.gridtrueslicey_f, 1, 0, 0 );
-				}
-				SetEffectConstantV (  t.effectid,"EntityEffectControl",g.terrainvectorindex );
+				t.gridnearcameraclip=t.clipheight_f;
 			}
 		}
-	}
 
-}
-
-//  use intersect test to find ground/wall and drop entity onto it
-if ( t.inputsys.k_s != "l" ) 
-{
-	// but not if holding L key to link entity to a new parent
-	if ( t.gridentitysurfacesnap == 1 )
-	{
-		// no need to find entity, surfacesnap already found best 3D coordinate
-	}
-	else
-	{
-		if (  t.gridentitydroptoground >= 1 && t.gridentitydroptoground <= 2 ) 
+		//  modulate shadow strength based on distance
+		t.tcamrange_f=((600.0*t.gridzoom_f)+1000);
+		t.toldvisualsshadowmode=t.visuals.shadowmode;
+		if (  t.tcamrange_f<4000 ) 
 		{
-			t.thardauto=1  ; editor_findentityground ( );
-			t.gridentitydroptoground=0;
+			t.visuals.shadowmode=100;
 		}
 		else
 		{
-			t.thardauto=0 ; editor_findentityground ( );
-		}
-	}
-}
-
-//  Change layer show mode
-if (  t.inputsys.dosinglelayer == 1 ) 
-{
-	g.gridlayershowsingle=g.gridlayershowsingle+1;
-	if (  g.gridlayershowsingle>1  )  g.gridlayershowsingle = 0;
-	t.updatezoom=1;
-}
-
-//  ensure assigned third person char object stays with start marker
-if (  t.playercontrol.thirdperson.enabled == 1 ) 
-{
-	t.tobj=t.entityelement[t.playercontrol.thirdperson.charactere].obj;
-	if (  t.tobj>0 ) 
-	{
-		if (  ObjectExist(t.tobj) == 1 ) 
-		{
-			if (  t.gridentity>0 && t.entityprofile[t.gridentity].ismarker == 1 ) 
+			if (  t.tcamrange_f<6000 ) 
 			{
-				//  moving start marker
-				t.tstmrkobj=t.gridentityobj;
+				t.visuals.shadowmode=(6000-t.tcamrange_f)/20.0;
 			}
 			else
 			{
-				//  update char on start marker entity
-				t.tstmrke=t.playercontrol.thirdperson.startmarkere;
-				t.tstmrkobj=t.entityelement[t.tstmrke].obj;
+				t.visuals.shadowmode=0;
 			}
-			if (  t.tstmrkobj>0 ) 
+		}
+		if (  t.toldvisualsshadowmode != t.visuals.shadowmode ) 
+		{
+			visuals_justshaderupdate ( );
+		}
+
+		//  adjust clipping range of camera to match
+		editor_refreshcamerarange ( );
+
+		//  Ensure the slicing clip does not go
+		if (  t.gridnearcameraclip == -1 ) 
+		{
+			t.gridtrueslicey_f=CameraPositionY(0);
+		}
+		else
+		{
+			t.gridtrueslicey_f=t.gridnearcameraclip;
+		}
+
+		//  feed alpha slicing height into all entity shaders
+		if (  g.effectbankmax>0 ) 
+		{
+			for ( t.t = 1 ; t.t<=  g.effectbankmax; t.t++ )
 			{
-				if (  ObjectExist(t.tstmrkobj) == 1 ) 
+				t.effectid=g.effectbankoffset+t.t;
+				if (  GetEffectExist(t.effectid) == 1 ) 
 				{
-					PositionObject (  t.tobj,ObjectPositionX(t.tstmrkobj),ObjectPositionY(t.tstmrkobj),ObjectPositionZ(t.tstmrkobj) );
-					RotateObject (  t.tobj,ObjectAngleX(t.tstmrkobj),ObjectAngleY(t.tstmrkobj),ObjectAngleZ(t.tstmrkobj) );
+					if (  t.gridnearcameraclip == -1 ) 
+					{
+						SetVector4 ( g.terrainvectorindex, 500000, 1, 0, 0 );
+					}
+					else
+					{
+						SetVector4 ( g.terrainvectorindex, t.gridtrueslicey_f, 1, 0, 0 );
+					}
+					SetEffectConstantV (  t.effectid,"EntityEffectControl",g.terrainvectorindex );
 				}
 			}
-			MoveObject (  t.tobj,-35 );
-			if (  t.tstmrkobj>0 ) 
+		}
+
+	}
+
+	//  use intersect test to find ground/wall and drop entity onto it
+	if ( t.inputsys.k_s != "l" ) 
+	{
+		// but not if holding L key to link entity to a new parent
+		if ( t.gridentitysurfacesnap == 1 )
+		{
+			// no need to find entity, surfacesnap already found best 3D coordinate
+		}
+		else
+		{
+			if (  t.gridentitydroptoground >= 1 && t.gridentitydroptoground <= 2 ) 
 			{
-				if (  ObjectExist(t.tstmrkobj) == 1 ) 
+				t.thardauto=1  ; editor_findentityground ( );
+				t.gridentitydroptoground=0;
+			}
+			else
+			{
+				t.thardauto=0 ; editor_findentityground ( );
+			}
+		}
+	}
+
+	//  Change layer show mode
+	if (  t.inputsys.dosinglelayer == 1 ) 
+	{
+		g.gridlayershowsingle=g.gridlayershowsingle+1;
+		if (  g.gridlayershowsingle>1  )  g.gridlayershowsingle = 0;
+		t.updatezoom=1;
+	}
+
+	//  ensure assigned third person char object stays with start marker
+	if (  t.playercontrol.thirdperson.enabled == 1 ) 
+	{
+		t.tobj=t.entityelement[t.playercontrol.thirdperson.charactere].obj;
+		if (  t.tobj>0 ) 
+		{
+			if (  ObjectExist(t.tobj) == 1 ) 
+			{
+				if (  t.gridentity>0 && t.entityprofile[t.gridentity].ismarker == 1 ) 
 				{
-					EnableObjectZDepth (  t.tstmrkobj );
-					EnableObjectZWrite (  t.tstmrkobj );
-					EnableObjectZRead (  t.tstmrkobj );
+					//  moving start marker
+					t.tstmrkobj=t.gridentityobj;
+				}
+				else
+				{
+					//  update char on start marker entity
+					t.tstmrke=t.playercontrol.thirdperson.startmarkere;
+					t.tstmrkobj=t.entityelement[t.tstmrke].obj;
+				}
+				if (  t.tstmrkobj>0 ) 
+				{
+					if (  ObjectExist(t.tstmrkobj) == 1 ) 
+					{
+						PositionObject (  t.tobj,ObjectPositionX(t.tstmrkobj),ObjectPositionY(t.tstmrkobj),ObjectPositionZ(t.tstmrkobj) );
+						RotateObject (  t.tobj,ObjectAngleX(t.tstmrkobj),ObjectAngleY(t.tstmrkobj),ObjectAngleZ(t.tstmrkobj) );
+					}
+				}
+				MoveObject (  t.tobj,-35 );
+				if (  t.tstmrkobj>0 ) 
+				{
+					if (  ObjectExist(t.tstmrkobj) == 1 ) 
+					{
+						EnableObjectZDepth (  t.tstmrkobj );
+						EnableObjectZWrite (  t.tstmrkobj );
+						EnableObjectZRead (  t.tstmrkobj );
+					}
 				}
 			}
 		}
 	}
-}
 }
 
 void editor_refreshcamerarange ( void )
@@ -5096,6 +5041,7 @@ void editor_viewfunctionality ( void )
 		}
 
 		//  mouselook mode on/off RMB
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  1, "FPSEXCHANGE" );
 		if (  t.inputsys.mclick == 2 ) 
 		{
@@ -5110,7 +5056,16 @@ void editor_viewfunctionality ( void )
 			SetFileMapDWORD (  1, 48, 0 );
 		}
 		SetEventAndWait (  1 );
-		//CloseFileMap (  1 );
+		#else
+		if (t.inputsys.mclick == 2)
+		{
+			//  center mouse
+			ChangeMouse(0, 0);
+			//  camera position
+			t.zoomviewcameraangle_f += t.inputsys.xmousemove / 2.0;
+			t.zoomviewcameraheight_f -= t.inputsys.ymousemove / 1.5;
+		}
+		#endif
 
 		//  exit zoom view
 		if ( t.inputsys.mclick == 1  )  t.tpressedtoleavezoommode = 1;
@@ -5756,11 +5711,13 @@ void editor_undoredoprojectstate ( void )
 void editor_cutcopyclearstate ( void )
 {
 	//  control enabling of UNDO REDO menu items
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetFileMapDWORD (  1, 474, 0 );
 	SetFileMapDWORD (  1, 478, 0 );
 	SetFileMapDWORD (  1, 482, 0 );
 	SetEventAndWait (  1 );
+	#endif
 }
 
 void editor_undo ( void )
@@ -8037,10 +7994,12 @@ void gridedit_updatestatusbar ( void )
 	mp_checkIfLobbiesAvailable ( );
 	if (  t.statusbar_s+t.steamStatusBar_s != t.laststatusbar_s.Get() ) 
 	{
+		t.strwork = ""; t.strwork = t.strwork + t.statusbar_s + t.steamStatusBar_s;
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  1,"FPSEXCHANGE" );
-		t.strwork = ""; t.strwork = t.strwork + t.statusbar_s+t.steamStatusBar_s;
 		SetFileMapString (  1, 4000, t.strwork.Get() );
 		SetEventAndWait (  1 );
+		#endif
 		t.laststatusbar_s=t.statusbar_s+t.steamStatusBar_s;
 	}
 }
@@ -8073,9 +8032,11 @@ void gridedit_load_map ( void )
 	if (  t.skipfpmloading == 1 ) 
 	{
 		//  replace NEW with RELOAD
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  1,"FPSEXCHANGE" );
 		SetFileMapDWORD (  1, 408, 0 );
 		SetEventAndWait (  1 );
+		#endif
 	}
 	else
 	{
@@ -8134,12 +8095,13 @@ void gridedit_load_map ( void )
 		editor_loadcfg ( );
 
 		//  Load segments/prefab/entities into window
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  1,"FPSEXCHANGE" );
+		#endif
 		editor_filllibrary ( );
 
 		//  Add Latest project To Recent List
 		gridedit_updateprojectname ( );
-
 	}
 	else
 	{
@@ -8257,7 +8219,6 @@ void gridedit_changemodifiedflag ( void )
 
 void gridedit_updateprojectname ( void )
 {
-	OpenFileMap (  1,"FPSEXCHANGE" );
 	//  add to project title
 	if ( strcmp ( Lower(Left(g.projectfilename_s.Get(),Len(g.rootdir_s.Get()))) , Lower(g.rootdir_s.Get()) ) == 0 ) 
 	{
@@ -8284,6 +8245,8 @@ void gridedit_updateprojectname ( void )
 	}
 
 	// send window title text to IDE
+	#ifdef FPSEXCHANGE
+	OpenFileMap(1, "FPSEXCHANGE");
 	SetFileMapString (  1, 1000, t.tprojname_s.Get() );
 	SetFileMapDWORD (  1, 416, 1 );
 	SetEventAndWait (  1 );
@@ -8306,10 +8269,12 @@ void gridedit_updateprojectname ( void )
 			}
 		}
 	}
+	#endif
 }
 
 void gridedit_import_ask ( void )
 {
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetEventAndWait (  1 );
 	do
@@ -8385,6 +8350,7 @@ void gridedit_import_ask ( void )
 			}
 		}
 	}
+	#endif
 }
 
 void gridedit_intercept_savefirst ( void )
@@ -8392,6 +8358,7 @@ void gridedit_intercept_savefirst ( void )
 	t.editorcanceltask=0;
 	if (  g.projectmodified == 1 ) 
 	{
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  1,"FPSEXCHANGE" );
 		SetFileMapString (  1, 1000, t.strarr_s[369].Get() );
 		SetFileMapString (  1, 1256, t.strarr_s[370].Get() );
@@ -8402,7 +8369,8 @@ void gridedit_intercept_savefirst ( void )
 			SetEventAndWait (  1 );
 		}
 		t.tokay=GetFileMapDWORD(1, 904);
-		//CloseFileMap (  1 );
+		#endif
+
 		//  refresh 3d view so dialog Box (  (  not left black Box ) )
 		for ( t.tsync = 1 ; t.tsync <= 5 ; t.tsync++ ) {  Sync (   ); SleepNow (  10  ); }
 
@@ -8440,8 +8408,8 @@ void gridedit_open_map_ask ( void )
 	if (  t.editorcanceltask == 0 ) 
 	{
 		//  OPEN FPM
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  1,"FPSEXCHANGE" );
-		//t.strwork = ""; t.strwork = t.strwork + g.rootdir_s+"mapbank\\";
 		t.strwork = g.mysystem.mapbankAbs_s;		
 		SetFileMapString (  1, 1000, t.strwork.Get() );
 		SetFileMapString (  1, 1256, t.strarr_s[371].Get() );
@@ -8453,7 +8421,8 @@ void gridedit_open_map_ask ( void )
 			SetEventAndWait (  1 );
 		}
 		t.returnstring_s=GetFileMapString(1, 1000);
-		//CloseFileMap (  1 );
+		#endif
+
 		//  refresh 3d view so dialog Box (  (  not left black Box ) )
 		for ( t.tsync = 1 ; t.tsync <=  5 ; t.tsync++ ) { Sync ( ); SleepNow ( 10 ); }
 
@@ -8466,8 +8435,6 @@ void gridedit_open_map_ask ( void )
 			}
 		}
 	}
-return;
-
 }
 
 void gridedit_new_map_ask ( void )
@@ -8510,8 +8477,8 @@ return;
 void gridedit_saveas_map ( void )
 {
 	//  SAVE AS DIALOG
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1,"FPSEXCHANGE" );
-	//t.strwork = ""; t.strwork = t.strwork + g.rootdir_s+"mapbank\\";
 	t.strwork = g.mysystem.mapbankAbs_s;
 	SetFileMapString (  1, 1000, t.strwork.Get() );
 	SetFileMapString (  1, 1256, t.strarr_s[373].Get() );
@@ -8523,6 +8490,7 @@ void gridedit_saveas_map ( void )
 		SetEventAndWait (  1 );
 	}
 	t.returnstring_s=GetFileMapString(1, 1000);
+	#endif
 
 	//  refresh 3d view so dialog Box (  (  not left black Box ) )
 	for ( t.tsync = 1 ; t.tsync <=  5 ; t.tsync++ ) { Sync ( ); SleepNow ( 10 ); }
@@ -8533,9 +8501,6 @@ void gridedit_saveas_map ( void )
 		g.projectfilename_s=t.returnstring_s;
 		gridedit_save_map ( );
 	}
-
-	// we can insert a 'dialog' after a saveas action to see if the user wants to make a Steam Review (After X time)
-	//editor_showreviewrequest_check();
 }
 
 void gridedit_addentitytomap ( void )
@@ -8895,6 +8860,7 @@ void modifyplaneimagestrip ( int objno, int texmax, int texindex )
 void interface_openpropertywindow ( void )
 {
 	//  Open proprty window
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetFileMapDWORD (  1, 978, 1 );
 	SetFileMapDWORD (  1, 458, 0 );
@@ -9556,6 +9522,7 @@ void interface_openpropertywindow ( void )
 
 	//  FPGC - 070510 - close bulk file map
 	SetEventAndWait ( 2 );
+	#endif
 }
 
 void interface_copydatatoentity ( void )
@@ -9823,7 +9790,8 @@ void interface_copydatatoentity ( void )
 void interface_closepropertywindow ( void )
 {
 	//  Close proprty window
-	if (  t.editorinterfaceactive>0 ) 
+	#ifdef FPSEXCHANGE
+	if (  t.editorinterfaceactive>0 )
 	{
 		//  Close dialog
 		OpenFileMap (  1, "FPSEXCHANGE" );
@@ -9832,82 +9800,77 @@ void interface_closepropertywindow ( void )
 		SetEventAndWait (  1 );
 		t.editorinterfaceactive=0;
 	}
+	#endif
 }
 
 void interface_handlepropertywindow ( void )
 {
-
-//  If interface active
-if (  t.editorinterfaceactive>0 ) 
-{
-
-	//  Open for management
-	OpenFileMap (  2, "FPSENTITY" );
-	SetEventAndWait (  2 );
-
-	//  if APPLY clicked, copy data to entity
-	if (  GetFileMapDWORD( 2, 112 ) == 1 ) 
+	#ifdef FPSEXCHANGE
+	//  If interface active
+	if (  t.editorinterfaceactive>0 ) 
 	{
-		interface_copydatatoentity ( );
-		SetFileMapDWORD (  2, 112, 0 );
-		SetEventAndWait (  2 );
-		t.editorinterfaceleave=1;
-		t.interactive.applychangesused=1;
-	}
-
-	//  see if the user clicked on the close button
-	if (  GetFileMapDWORD( 2, 108 )  ==  1 ) 
-	{
-		SetFileMapDWORD (  2, 108, 0 );
-		SetEventAndWait (  2 );
-		t.editorinterfaceleave=1;
-	}
-
-	//  see if the user clicked on the CANCEL button
-	if (  GetFileMapDWORD( 2, 116 )  ==  1 ) 
-	{
-		SetFileMapDWORD (  2, 116, 0 );
-		SetEventAndWait (  2 );
-		t.editorinterfaceleave=1;
-	}
-
-	//CloseFileMap (  2 );
-
-}
-
-return;
-
-}
-
-void interface_live_updates ( void )
-{
-
-	//  constantly open access to properties values
-	//  so can represent the values prior to using APPLY CHANGES
-	if (  Timer()>t.lastliveupdatestimer ) 
-	{
-		t.lastliveupdatestimer=Timer()+200;
+		//  Open for management
 		OpenFileMap (  2, "FPSENTITY" );
 		SetEventAndWait (  2 );
-		t.iGroup=t.livegroupforthirdperson;
-		t.iControl=1 ; t.tfield_s=getpropertyfield(t.iGroup,t.iControl) ; t.tdata_s=getpropertydata(t.iGroup,t.iControl);
-		if (  cstr(Lower(t.tfield_s.Get())) == Lower("Camera Distance")  )  t.playercontrol.thirdperson.livecameradistance = ValF(t.tdata_s.Get());
-		t.iControl=2 ; t.tfield_s=getpropertyfield(t.iGroup,t.iControl) ; t.tdata_s=getpropertydata(t.iGroup,t.iControl);
-		if (  cstr(Lower(t.tfield_s.Get())) == Lower("Camera X Offset")  )  t.playercontrol.thirdperson.livecamerashoulder = ValF(t.tdata_s.Get());
-		t.iControl=3 ; t.tfield_s=getpropertyfield(t.iGroup,t.iControl) ; t.tdata_s=getpropertydata(t.iGroup,t.iControl);
-		if (  cstr(Lower(t.tfield_s.Get())) == Lower("Camera Y Offset")  )  t.playercontrol.thirdperson.livecameraheight = ValF(t.tdata_s.Get());
-		t.iControl=4 ; t.tfield_s=getpropertyfield(t.iGroup,t.iControl) ; t.tdata_s=getpropertydata(t.iGroup,t.iControl);
-		if (  cstr(Lower(t.tfield_s.Get())) == Lower("Camera Focus")  )  t.playercontrol.thirdperson.livecamerafocus = ValF(t.tdata_s.Get());
+
+		//  if APPLY clicked, copy data to entity
+		if (  GetFileMapDWORD( 2, 112 ) == 1 ) 
+		{
+			interface_copydatatoentity ( );
+			SetFileMapDWORD (  2, 112, 0 );
+			SetEventAndWait (  2 );
+			t.editorinterfaceleave=1;
+			t.interactive.applychangesused=1;
+		}
+
+		//  see if the user clicked on the close button
+		if (  GetFileMapDWORD( 2, 108 )  ==  1 ) 
+		{
+			SetFileMapDWORD (  2, 108, 0 );
+			SetEventAndWait (  2 );
+			t.editorinterfaceleave=1;
+		}
+
+		//  see if the user clicked on the CANCEL button
+		if (  GetFileMapDWORD( 2, 116 )  ==  1 ) 
+		{
+			SetFileMapDWORD (  2, 116, 0 );
+			SetEventAndWait (  2 );
+			t.editorinterfaceleave=1;
+		}
+	}
+	#endif
+}
+
+void interface_live_updates(void)
+{
+	#ifdef FPSEXCHANGE
+	//  constantly open access to properties values
+	//  so can represent the values prior to using APPLY CHANGES
+	if (Timer() > t.lastliveupdatestimer)
+	{
+		t.lastliveupdatestimer = Timer() + 200;
+		OpenFileMap(2, "FPSENTITY");
+		SetEventAndWait(2);
+		t.iGroup = t.livegroupforthirdperson;
+		t.iControl = 1; t.tfield_s = getpropertyfield(t.iGroup, t.iControl); t.tdata_s = getpropertydata(t.iGroup, t.iControl);
+		if (cstr(Lower(t.tfield_s.Get())) == Lower("Camera Distance"))  t.playercontrol.thirdperson.livecameradistance = ValF(t.tdata_s.Get());
+		t.iControl = 2; t.tfield_s = getpropertyfield(t.iGroup, t.iControl); t.tdata_s = getpropertydata(t.iGroup, t.iControl);
+		if (cstr(Lower(t.tfield_s.Get())) == Lower("Camera X Offset"))  t.playercontrol.thirdperson.livecamerashoulder = ValF(t.tdata_s.Get());
+		t.iControl = 3; t.tfield_s = getpropertyfield(t.iGroup, t.iControl); t.tdata_s = getpropertydata(t.iGroup, t.iControl);
+		if (cstr(Lower(t.tfield_s.Get())) == Lower("Camera Y Offset"))  t.playercontrol.thirdperson.livecameraheight = ValF(t.tdata_s.Get());
+		t.iControl = 4; t.tfield_s = getpropertyfield(t.iGroup, t.iControl); t.tdata_s = getpropertydata(t.iGroup, t.iControl);
+		if (cstr(Lower(t.tfield_s.Get())) == Lower("Camera Focus"))  t.playercontrol.thirdperson.livecamerafocus = ValF(t.tdata_s.Get());
 		//CloseFileMap (  2 );
 	}
-
-return;
+	#endif
+}
 
 // 
 //  Interface Properties Functions
 // 
 
-}
+#ifdef FPSEXCHANGE
 
 void startgroup ( char* s_s )
 {
@@ -9915,15 +9878,11 @@ void startgroup ( char* s_s )
 	SetFileMapDWORD (  3,g.g_filemapoffset,2  ); g.g_filemapoffset += 4;
 	SetFileMapDWORD (  3,g.g_filemapoffset,Len(s_s)  ); g.g_filemapoffset += 4;
 	SetFileMapString (  3,g.g_filemapoffset,s_s  ); g.g_filemapoffset += ((Len(s_s)+3)/4 )*4;
-//endfunction
-
 }
 
 void endgroup ( void )
 {
 	SetFileMapDWORD (  3,g.g_filemapoffset,0  ); g.g_filemapoffset += 4;
-//endfunction
-
 }
 
 void setpropertystring2 ( int group, char* data_s, char* field_s, char* desc_s )
@@ -9937,8 +9896,6 @@ void setpropertystring2 ( int group, char* data_s, char* field_s, char* desc_s )
 	SetFileMapString (  3,g.g_filemapoffset,data_s  ); g.g_filemapoffset += ((Len(data_s)+3)/4 )*4;
 	SetFileMapDWORD (  3,g.g_filemapoffset,Len(desc_s)  ); g.g_filemapoffset += 4;
 	SetFileMapString (  3,g.g_filemapoffset,desc_s  ); g.g_filemapoffset += ((Len(desc_s)+3)/4 )*4;
-//endfunction
-
 }
 
 void setpropertycolor2 ( int group, int dataval, char* field_s, char* desc_s )
@@ -10131,9 +10088,8 @@ void setpropertyfile ( int group, char* data_s, char* field_s, char* desc_s, cha
 	{
 		SetEventAndWait (  2 );
 	}
-//endfunction
-
 }
+#endif
 
 int fillgloballistwithweapons ( void )
 {
@@ -10782,16 +10738,15 @@ void checkmemoryforgracefulexit ( void )
 			Sync (  );
 		}
 
+		#ifdef FPSEXCHANGE
 		//  close conmunication with editor
 		OpenFileMap (  1, "FPSEXCHANGE" );
 		SetFileMapDWORD (  1,974,2 );
-		//CloseFileMap (  1 );
 
 		//  Before we 'BIN OUT', signal IDE that we wish to return to the IDE editor state
 		OpenFileMap (  1, "FPSEXCHANGE" );
 		SetFileMapDWORD (  1, 970, 1 );
 		SetEventAndWait (  1 );
-		//CloseFileMap (  1 );
 
 		//  message Box (  - resolution has been changed - must restart - save changes? )
 		OpenFileMap (  1, "FPSEXCHANGE" );
@@ -10804,7 +10759,8 @@ void checkmemoryforgracefulexit ( void )
 			SetEventAndWait (  1 );
 		}
 		tokay=GetFileMapDWORD(1, 904);
-		//CloseFileMap (  1 );
+		#endif
+
 		if (  tokay == 1 ) 
 		{
 			//  no references to 3D objects
@@ -10814,23 +10770,20 @@ void checkmemoryforgracefulexit ( void )
 		}
 
 		//  call a new map editor
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  2, "FPSEXCHANGE" );
 		SetFileMapString (  2, 1000, "Guru-MapEditor.exe" );
 		SetFileMapString (  2, 1256, "-r" );
 		SetFileMapDWORD (  2, 994, 0 );
 		SetFileMapDWORD (  2, 924, 1 );
 		SetEventAndWait (  2 );
-		//CloseFileMap (  2 );
+		#endif
 
 		//  Terminate fragmented EXE
 		common_justbeforeend();
 		ExitProcess ( 0 );
-
 	}
 	}
-
-//endfunction
-
 }
 
 int get_cursor_scale_for_obj ( int tObj )
@@ -10838,6 +10791,5 @@ int get_cursor_scale_for_obj ( int tObj )
 	t.tSizeX_f = ObjectSizeX(tObj,1);
 	t.tSizeZ_f = ObjectSizeZ(tObj,1);
 	t.tscale_f= Sqrt(t.tSizeX_f*t.tSizeX_f + t.tSizeZ_f*t.tSizeZ_f)*3.0;
-
 	return t.tscale_f;
 }

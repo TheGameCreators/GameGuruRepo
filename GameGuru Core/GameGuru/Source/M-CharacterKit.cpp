@@ -3520,13 +3520,16 @@ void characterkit_chooseOnlineAvatar ( void )
 
 	do
 	{
-
-		//  handle input
-		OpenFileMap (  1, "FPSEXCHANGE" );
-		SetEventAndWait (  1 );
-		t.inputsys.xmouse=GetFileMapDWORD( 1, 0 );
-		t.inputsys.ymouse=GetFileMapDWORD( 1, 4 );
-		//CloseFileMap (  1 );
+		// handle input
+		#ifdef FPSEXCHANGE
+		 OpenFileMap (  1, "FPSEXCHANGE" );
+		 SetEventAndWait (  1 );
+		 t.inputsys.xmouse=GetFileMapDWORD( 1, 0 );
+		 t.inputsys.ymouse=GetFileMapDWORD( 1, 4 );
+		#else
+		 t.inputsys.xmouse = MouseX();
+		 t.inputsys.ymouse = MouseY();
+		#endif
 
 		t.tadjustedtoccxbase_f=GetChildWindowWidth()/800.0;
 		t.tadjustedtoccybase_f=GetChildWindowHeight()/600.0;
@@ -3553,8 +3556,6 @@ void characterkit_chooseOnlineAvatar ( void )
 	{
 		Sync (  );
 	}
-return;
-
 }
 
 void characterkit_saveAvatarInfo ( void )

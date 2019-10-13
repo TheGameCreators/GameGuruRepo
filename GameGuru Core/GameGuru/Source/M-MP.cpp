@@ -7998,6 +7998,7 @@ void mp_cleanupGame ( void )
 
 void mp_sendSteamIDToEditor ( void )
 {
+	/* no more Steam API
 	if ( g.mp.isRunning == 0 ) 
 	{
 		// was 60*1000, changing to 5 to keep try and connecting
@@ -8034,6 +8035,7 @@ void mp_sendSteamIDToEditor ( void )
 			}
 		}
 	}
+	*/
 }
 
 void mp_checkIfLobbiesAvailable ( void )

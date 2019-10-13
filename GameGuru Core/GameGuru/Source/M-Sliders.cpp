@@ -590,39 +590,47 @@ void sliders_loop ( void )
 		}
 		else
 		{
-			OpenFileMap (  1, "FPSEXCHANGE" );
-			SetEventAndWait (  1 );
-			//  from map editor client window (800x600)
-			t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
-			t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
-			t.tgamemousex_f=t.tgamemousex_f/800.0;
-			t.tgamemousey_f=t.tgamemousey_f/600.0;
-			t.tgamemousex_f=t.tgamemousex_f*(GetDisplayWidth()+0.0);
-			t.tgamemousey_f=t.tgamemousey_f*(GetDisplayHeight()+0.0);
+			// from map editor client window (800x600)
+			#ifdef FPSEXCHANGE
+			 OpenFileMap (  1, "FPSEXCHANGE" );
+			 SetEventAndWait (  1 );
+			 t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
+			 t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
+			#else
+			 t.tgamemousex_f = MouseX();
+			 t.tgamemousey_f = MouseY();
+			#endif
 			t.tmouseclick = MouseClick();
-			//CloseFileMap (  1 );
+			t.tgamemousex_f = t.tgamemousex_f / 800.0;
+			t.tgamemousey_f = t.tgamemousey_f / 600.0;
+			t.tgamemousex_f = t.tgamemousex_f*(GetDisplayWidth() + 0.0);
+			t.tgamemousey_f = t.tgamemousey_f*(GetDisplayHeight() + 0.0);
 		}
 	}
 	else
 	{
-			if (  t.importer.importerActive == 1 || t.characterkit.inUse == 1 ) 
-			{
-				OpenFileMap (  1, "FPSEXCHANGE" );
-				SetEventAndWait (  1 );
-				//  from map editor client window (800x600)
-				t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
-				t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
-				t.tgamemousex_f=t.tgamemousex_f*(GetChildWindowWidth()/800.0);
-				t.tgamemousey_f=t.tgamemousey_f*(GetChildWindowHeight()/600.0);
-				t.tmouseclick = t.inputsys.mclick;
-				//CloseFileMap (  1 );
-			}
-			else
-			{
-				t.tgamemousex_f=MouseX();
-				t.tgamemousey_f=MouseY();
-				t.tmouseclick = MouseClick();
-			}
+		if (  t.importer.importerActive == 1 || t.characterkit.inUse == 1 ) 
+		{
+			// from map editor client window (800x600)
+			#ifdef FPSEXCHANGE
+			 OpenFileMap (  1, "FPSEXCHANGE" );
+			 SetEventAndWait (  1 );
+			 t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
+			 t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
+			#else
+			 t.tgamemousex_f = MouseX();
+			 t.tgamemousey_f = MouseY();
+			#endif
+			t.tgamemousex_f = t.tgamemousex_f*(GetChildWindowWidth() / 800.0);
+			t.tgamemousey_f = t.tgamemousey_f*(GetChildWindowHeight() / 600.0);
+			t.tmouseclick = t.inputsys.mclick;
+		}
+		else
+		{
+			t.tgamemousex_f=MouseX();
+			t.tgamemousey_f=MouseY();
+			t.tmouseclick = MouseClick();
+		}
 	}
 
 	//  control message panel

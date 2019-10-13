@@ -4423,6 +4423,7 @@ struct Stemps
 	importertype importer;
 	inputsystemtype inputsys;
 	bool bIgnoreFirstCallToNewLevel;
+	bool bTriggerNewMapAtStart;
 	int Kernel32;
 	int layermax;
 	float ldirDA_f;

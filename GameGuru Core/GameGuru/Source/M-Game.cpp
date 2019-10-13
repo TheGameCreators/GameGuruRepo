@@ -3399,12 +3399,17 @@ void game_hidemouse ( void )
 		}
 		else
 		{
-			OpenFileMap (  1, "FPSEXCHANGE" );
-			SetEventAndWait (  1 );
-			SetFileMapDWORD (  1,974,1 );
-			SetEventAndWait (  1 );
-			t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
-			t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
+			#ifdef FPSEXCHANGE
+			 OpenFileMap (  1, "FPSEXCHANGE" );
+			 SetEventAndWait (  1 );
+			 SetFileMapDWORD (  1,974,1 );
+			 SetEventAndWait (  1 );
+			 t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
+			 t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
+			#else
+			t.tgamemousex_f = MouseX();
+			t.tgamemousey_f = MouseY();
+			#endif
 			t.tgamemousex_f=t.tgamemousex_f/800.0;
 			t.tgamemousey_f=t.tgamemousey_f/600.0;
 			t.tgamemousex_f=t.tgamemousex_f*(GetDisplayWidth()+0.0);
@@ -3425,14 +3430,16 @@ void game_showmouse ( void )
 		}
 		else
 		{
+			t.tgamemousex_f = t.inputsys.xmouse + 0.0;
+			t.tgamemousey_f = t.inputsys.ymouse + 0.0;
+			#ifdef FPSEXCHANGE
 			OpenFileMap (  1, "FPSEXCHANGE" );
 			SetEventAndWait (  1 );
-			t.tgamemousex_f=t.inputsys.xmouse+0.0;
-			t.tgamemousey_f=t.inputsys.ymouse+0.0;
 			SetFileMapDWORD (  1,982,t.tgamemousex_f );
 			SetFileMapDWORD (  1,986,t.tgamemousey_f );
 			SetFileMapDWORD (  1,974,2 );
 			SetEventAndWait (  1 );
+			#endif
 		}
 		t.null=MouseMoveX()+MouseMoveY();
 	}

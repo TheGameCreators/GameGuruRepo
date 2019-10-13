@@ -1265,24 +1265,20 @@ void physics_player_init ( void )
 	//  OpenFileMap (  for IDE access )
 	if (  t.plrfilemapaccess == 0 && t.game.gameisexe == 0 ) 
 	{
+		#ifdef FPSEXCHANGE
 		OpenFileMap (  11, "FPSEXCHANGE" );
 		SetEventAndWait (  11 );
+		#endif
 		t.plrfilemapaccess=1;
 	}
 }
 
 void physics_player_free ( void )
 {
-
-	//  //CloseFileMap (  at end of game )
 	if (  t.plrfilemapaccess == 1 ) 
 	{
-		//CloseFileMap (  11 );
 		t.plrfilemapaccess=0;
 	}
-
-return;
-
 }
 
 //Dave Performance

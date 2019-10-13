@@ -694,11 +694,12 @@ DARKSDK void ClearEntryBuffer ( void )
 	// Clear Windows String
 	if((LPSTR)*g_pWindowsEntryString) strcpy((LPSTR)*g_pWindowsEntryString,"");
 
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetFileMapDWORD (  1, 6147, 3 );
 	SetEventAndWait (  1 );
 	CloseFileMap (  1 );
-
+	#endif
 }
 
 // Global Input Vars
@@ -712,9 +713,8 @@ char*					g_pWindowsEntryStringFromIDE = NULL;
 
 DARKSDK LPSTR Entry ( int iAutoBackSpaceMode )
 {
-	//C++ CONVERSION - changed to get the string from the IDE since WindowProc is not picking up messages
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
-
 	if ( GetFileMapDWORD ( 1 , 6147 ) == 2 )
 	{
 		SetFileMapDWORD (  1, 6147, 1 );
@@ -754,8 +754,8 @@ DARKSDK LPSTR Entry ( int iAutoBackSpaceMode )
 			g_dwWindowsTextEntryPos++;
 			g_pGlob->pWindowsTextEntry[g_dwWindowsTextEntryPos]=0;
 		}
-
 	}
+	#endif
 
 	// lee - 110206 - prepare alternate string if auto-backspace-mode
 	LPSTR pRefStr = (LPSTR)*g_pWindowsEntryString;

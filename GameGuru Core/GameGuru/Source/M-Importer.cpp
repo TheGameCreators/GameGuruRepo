@@ -1854,9 +1854,13 @@ void importer_loop ( void )
 	t.inputsys.xmousemove = t.inputsys.xmousemove * 2;
 	t.inputsys.ymousemove = t.inputsys.ymousemove * 2;
 
-	OpenFileMap (  1, "FPSEXCHANGE" );
-	SetEventAndWait (  1 );
-	t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
+	#ifdef FPSEXCHANGE
+	 OpenFileMap (  1, "FPSEXCHANGE" );
+	 SetEventAndWait (  1 );
+	 t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
+	#else
+	 t.inputsys.kscancode = ScanCode();
+	#endif
 	
 	//  Multiplier to convert mouse coords to importer coords
 	t.tadjustedtoimporterxbase_f=GetChildWindowWidth()/800.0;
@@ -2251,14 +2255,9 @@ void importer_loop ( void )
 		if (  ControlKey() == 1 || t.importer.cancel == 1 )//|| g_iTriggerReloadOfImportModel == 1 ) 
 		{
 			--t.importer.cancelCount;
-			if ( t.importer.cancelCount <= 0 )//|| g_iTriggerReloadOfImportModel == 1 ) 
+			if ( t.importer.cancelCount <= 0 )
 			{
 				importer_quit ( );
-				//if ( g_iTriggerReloadOfImportModel == 1 ) 
-				//{
-				//	g_iTriggerReloadOfImportModel = 0;
-				//	importer_loadmodel ( );
-				//}
 			}
 		}
 	}

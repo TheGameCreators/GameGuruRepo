@@ -55,8 +55,10 @@ void welcome_loadasset ( cstr welcomePath, LPSTR pImageFilename, int iImageID )
 
 void welcome_waitfornoinput ( void )
 {
+	#ifdef FPSEXCHANGE
 	OpenFileMap (  1, "FPSEXCHANGE" );
 	SetEventAndWait (  1 );
+	#endif
 	do
 	{
 		t.inputsys.kscancode=ScanCode();
@@ -1723,6 +1725,7 @@ void welcome_savestandalone_page ( int iHighlightingButton )
 		if ( iHighlightingButton == 3 ) 
 		{
 			// change location of save standalone game
+			#ifdef FPSEXCHANGE
 			OpenFileMap ( 1,"FPSEXCHANGE" );
 			SetFileMapString ( 1, 1000, g.exedir_s.Get() );
 			SetFileMapDWORD ( 1, 424, 2 );
@@ -1732,6 +1735,7 @@ void welcome_savestandalone_page ( int iHighlightingButton )
 				SetEventAndWait ( 1 );
 			}
 			t.returnstring_s = GetFileMapString(1, 1000);
+			#endif
 			if ( strlen(t.returnstring_s.Get()) > 0 )
 				g.exedir_s = t.returnstring_s;
 		}
@@ -1767,8 +1771,10 @@ bool welcome_setuppage ( int iPageIndex )
 void welcome_runloop ( int iPageIndex )
 {
 	// get actions through filemapping system
+	#ifdef FPSEXCHANGE
 	OpenFileMap ( 1, "FPSEXCHANGE" );
 	SetEventAndWait ( 1 );
+	#endif
 
 	// run loop when in welcome page
 	t.tclicked=0 ; t.tclosequick=0;
@@ -1796,7 +1802,11 @@ void welcome_runloop ( int iPageIndex )
 		}
 
 		// must be in IDE focus to ensure stuff not clicked or run in background
-		DWORD dwForegroundFocusForIDE = GetFileMapDWORD( 1, 596 );
+		#ifdef FPSEXCHANGE
+		 DWORD dwForegroundFocusForIDE = GetFileMapDWORD( 1, 596 );
+		#else
+		 DWORD dwForegroundFocusForIDE = 10;
+		#endif
 		if ( dwForegroundFocusForIDE == 10 )
 		{
 			t.inputsys.kscancode=ScanCode();
@@ -1804,10 +1814,13 @@ void welcome_runloop ( int iPageIndex )
 			if ( t.inputsys.mclick == 0 ) t.inputsys.mclickreleasestate = 0;
 			if ( t.inputsys.ignoreeditorintermination == 0 )
 			{
+				#ifdef FPSEXCHANGE
 				if ( GetFileMapDWORD( 1, 908 ) == 1 )  break;
+				#endif
 			}
 			if ( iPageIndex != WELCOME_EXITAPP )
 			{
+				#ifdef FPSEXCHANGE
 				if ( GetFileMapDWORD( 1, 516 ) > 0 )  break;
 				if ( GetFileMapDWORD( 1, 400 ) == 1 ) { t.interactive.active = 0  ; break; }
 				if ( GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
@@ -1815,6 +1828,7 @@ void welcome_runloop ( int iPageIndex )
 				if ( GetFileMapDWORD( 1, 434 ) == 1 ) { t.interactive.active = 0  ; break; }
 				if ( GetFileMapDWORD( 1, 758 ) != 0 ) { t.interactive.active = 0  ; break; }
 				if ( GetFileMapDWORD( 1, 762 ) != 0 ) { t.interactive.active = 0  ; break; }
+				#endif
 			}
 			t.terrain.gameplaycamera=0;
 			terrain_shadowupdate ( );
@@ -1830,8 +1844,13 @@ void welcome_runloop ( int iPageIndex )
 			PasteImage ( g.editorimagesoffset+8, g_welcome.iTopLeftX, g_welcome.iTopLeftY );
 
 			// get mouse coordinate for control
-			t.inputsys.xmouse = ((GetFileMapDWORD( 1, 0 )+0.0)/800.0)*GetChildWindowWidth(0);
-			t.inputsys.ymouse = ((GetFileMapDWORD( 1, 4 )+0.0)/600.0)*GetChildWindowHeight(0);
+			#ifdef FPSEXCHANGE
+			 t.inputsys.xmouse = ((GetFileMapDWORD( 1, 0 )+0.0)/800.0)*GetChildWindowWidth(0);
+			 t.inputsys.ymouse = ((GetFileMapDWORD( 1, 4 )+0.0)/600.0)*GetChildWindowHeight(0);
+			#else
+			 t.inputsys.xmouse = ((MouseX() + 0.0) / 800.0)*GetChildWindowWidth(0);
+			 t.inputsys.ymouse = ((MouseY() + 0.0) / 600.0)*GetChildWindowHeight(0);
+			#endif
 
 			// highlight hover over a button
 			int iHighlightingButton = -1;
@@ -1879,319 +1898,3 @@ void welcome_show ( int iPageIndex )
 		welcome_runloop ( iPageIndex );
 	}
 }
-
-/*
-// must be in IDE focus to ensure stuff not clicked or run in background
-DWORD dwForegroundFocusForIDE = GetFileMapDWORD( 1, 596 );
-if ( dwForegroundFocusForIDE == 10 )
-{
-	// 161115 - if click outside of dialog, also close!
-	if ( t.inputsys.mclick == 1 )
-	{
-		if ( iScrMouseX < t.tcenterx || iScrMouseX > t.tcenterx+920 )
-		{
-			if ( iScrMouseY < t.tcentery || iScrMouseY > t.tcentery+590 )
-			{
-				t.tclosequick=1;
-				t.tclicked=1;
-			}
-		}
-	}
-
-	// if click, play the animation
-	if ( (t.inputsys.mclick == 1 && iHighlightedIndex > 0) || iAutoTriggerVideo != 0 ) 
-	{
-		// release mouse now
-		while ( MouseClick()!=0 ) { Sync(); }
-
-		// video menu or game menu
-		if ( g.quickstartmenumode==0 )
-		{
-			// auto trigger is good to hit the user with something cool at the very start
-			if ( iAutoTriggerVideo !=0 )
-			{
-				iHighlightedIndex = iAutoTriggerVideo;
-				iAutoTriggerVideo = 0;
-			}
-
-			// go full screen
-			//SetFileMapDWORD (  1, 970, 2 );
-			//SetEventAndWait (  1 );
-
-			// play this animation now
-			#ifndef _DEBUG
-			cStr pAnimfilename = cStr("");
-			pAnimfilename = cStr("languagebank\\")+g.language_s+"\\artwork\\videos\\"+cStr(iHighlightedIndex)+".wmv";
-			LoadAnimation ( pAnimfilename.Get(), 1 );
-			PlayAnimation ( 1, 0, 0, GetChildWindowWidth(0), GetChildWindowHeight(0) );
-			DWORD dwAnimStartedTime = timeGetTime();
-			int iWatchedMarkerInSeconds = GetAnimationLength(1) * 0.8f;
-			bool bExitPlayback = false;
-			while ( AnimationPlaying(1) && bExitPlayback==false )
-			{
-				if ( (timeGetTime()-dwAnimStartedTime)/1000 > (DWORD)iWatchedMarkerInSeconds || iHighlightedIndex == 1 )
-				{
-					// watched this video for more than 80% (except first one)
-					// mark as watched
-					g.videoMenuPlayed[iHighlightedIndex-1] = 1;
-				}
-				if ( (timeGetTime()-dwAnimStartedTime)/1000 > 2 )
-				{
-					// can click out after X seconds
-					if ( MouseClick()!=0 ) bExitPlayback = true;
-				}
-				Sync();
-			}
-			while ( MouseClick()!=0 ) { Sync(); }
-			DeleteAnimation ( 1 );
-			#endif
-
-			// restore editor within IDE
-			//SetFileMapDWORD (  1, 970, 1 );
-			//SetEventAndWait (  1 );
-		}
-		else
-		{
-			// load a game level in
-			t.tlevelautoload_s="";
-			switch ( iHighlightedIndex ) 
-			{
-				case 1 : t.tlevelautoload_s = "The Big Escape.fpm" ; break ;
-				case 2 : t.tlevelautoload_s = "Cartoon Antics.fpm" ; break ;
-				case 3 : t.tlevelautoload_s = "Gem World.fpm" ; break ;
-				case 4 : t.tlevelautoload_s = "The Heirs Revenge.fpm" ; break ;
-				case 5 : t.tlevelautoload_s = "Morning Mountain Stroll.fpm" ; break ;
-				case 6 : t.tlevelautoload_s = "The Asylum.fpm" ; break ;
-				case 7 : t.tlevelautoload_s = "The Warehouse.fpm" ; break ;
-				case 8 : t.tlevelautoload_s = "Bridge Battle (MP).fpm" ; break ;
-				case 9 : t.tlevelautoload_s = "Camp Oasis (MP).fpm" ; break ;
-				case 10 : t.tlevelautoload_s = "Devils Hill (MP).fpm" ; break ;
-			}
-			t.tlevelautoload_s=g.fpscrootdir_s+"\\Files\\mapbank\\"+t.tlevelautoload_s;
-
-			//  ask to save first if modified project open
-			t.editorcanceltask=0;
-			if (  g.projectmodified == 1 ) 
-			{
-				//  If project modified, ask if want to save first
-				gridedit_intercept_savefirst ( );
-			}
-			if (  t.editorcanceltask == 0 ) 
-			{
-				if (  t.tlevelautoload_s != "" ) 
-				{
-					if (  cstr(Lower(Right(t.tlevelautoload_s.Get(),4))) == ".fpm" ) 
-					{
-						g.projectfilename_s=t.tlevelautoload_s;
-						gridedit_load_map ( );
-						g.showtestlevelclickprompt = timeGetTime() + 5000;
-						t.tclosequick=1;
-						t.tclicked=1;
-					}
-				}
-			}
-		}
-	}
-}
-
-t.tquickhighlight=0;
-if (  t.inputsys.xmouse>t.tcenterx+36 && t.inputsys.xmouse<t.tcenterx+68 && t.inputsys.ymouse>t.tcentery+519 && t.inputsys.ymouse<t.tcentery+553 ) 
-{
-	//  toggle show on startup
-	t.tquickhighlight=1;
-}
-if (  t.inputsys.xmouse>t.tcenterx+785 && t.inputsys.xmouse<t.tcenterx+890 && t.inputsys.ymouse>t.tcentery+506 && t.inputsys.ymouse<t.tcentery+561 ) 
-{
-	//  close
-	t.tquickhighlight=3;
-}
-if (  t.inputsys.xmouse>t.tcenterx+860 && t.inputsys.xmouse<t.tcenterx+888 && t.inputsys.ymouse>t.tcentery+39 && t.inputsys.ymouse<t.tcentery+67 ) 
-{
-	//  exit cross
-	t.tquickhighlight=4;
-}
-if ( g.quickstartmenumode==0 && (t.inputsys.xmouse>t.tcenterx+558 && t.inputsys.xmouse<t.tcenterx+779 && t.inputsys.ymouse>t.tcentery+509 && t.inputsys.ymouse<t.tcentery+558) ) 
-{
-	//  play game menu
-	t.tquickhighlight=5;
-}
-if ( g.quickstartmenumode==0 && (t.inputsys.xmouse>t.tcenterx+350 && t.inputsys.xmouse<t.tcenterx+548 && t.inputsys.ymouse>t.tcentery+509 && t.inputsys.ymouse<t.tcentery+558) ) 
-{
-	//  twitch videos
-	t.tquickhighlight=6;
-}
-if ( g.quickstartmenumode==0 && (t.inputsys.xmouse>t.tcenterx+223 && t.inputsys.xmouse<t.tcenterx+340 && t.inputsys.ymouse>t.tcentery+509 && t.inputsys.ymouse<t.tcentery+558) ) 
-{
-	// play PDF
-	t.tquickhighlight=7;
-}
-if ( g.quickstartmenumode==1 && (t.inputsys.xmouse>t.tcenterx+583 && t.inputsys.xmouse<t.tcenterx+759 && t.inputsys.ymouse>t.tcentery+509 && t.inputsys.ymouse<t.tcentery+558) ) 
-{
-	//  play video menu
-	t.tquickhighlight=5;
-}
-if (  t.inputsys.mclick == 1 ) 
-{
-	if (  t.tclicked == 0 ) 
-	{
-		if (  t.tquickhighlight == 1 ) 
-		{
-			//  toggle show on startup
-			g.gshowonstartup=1-g.gshowonstartup ; t.tclicked=1;
-		}
-		if ( t.tquickhighlight == 3 || t.tquickhighlight == 4 ) 
-		{
-			//  close
-			t.tclosequick=1;
-			t.tclicked=1;
-		}
-		if (  t.tquickhighlight == 5 ) 
-		{
-			// jump to game/video menu
-			g.quickstartmenumode = 1 - g.quickstartmenumode;
-
-			// wait for click to be released
-			do { t.inputsys.mclick=MouseClick(); FastSyncInputOnly(); } while ( !( t.inputsys.mclick == 0 ) );
-		}
-		if (  t.tquickhighlight == 6 ) 
-		{
-			// jump to twitch videos
-			ExecuteFile ( "https://www.game-guru.com/live-streams","","",0 );
-			t.tclicked=1;
-		}
-		if (  t.tquickhighlight == 7 ) 
-		{
-			// jump to PDF file
-			// Now hosting it online
-			//ExecuteFile ( "languagebank\\english\\artwork\\GameGuru - Getting Started Guide.pdf","","",0 );
-			ExecuteFile ( "https://www.game-guru.com/downloads/pdfs/GameGuru%20-%20Getting%20Started%20Guide.pdf", "" , "", 0 );
-			t.tclicked=1;
-		}
-	}
-}
-else
-{
-	t.tclicked=0;
-}
-if ( g.gshowonstartup == 1 ) 
-{
-	PasteImage (  g.editorimagesoffset+9,t.tcenterx+30,t.tcentery+522,1 );
-}
-if ( t.tquickhighlight == 3 ) 
-{
-	PasteImage (  g.interactiveimageoffset+15,t.tcenterx+789,t.tcentery+510 );
-}
-if ( t.tquickhighlight == 4 ) 
-{
-	PasteImage (  g.editorimagesoffset+44,t.tcenterx+860,t.tcentery+39 );
-}
-if ( t.tquickhighlight == 5 ) 
-{
-	if ( g.quickstartmenumode==0 )
-		PasteImage (  g.editorimagesoffset+42,t.tcenterx+558,t.tcentery+510 );
-	else
-		PasteImage (  g.editorimagesoffset+43,t.tcenterx+583,t.tcentery+510 );
-}
-if ( t.tquickhighlight == 6 ) 
-{
-	if ( g.quickstartmenumode==0 )
-	{
-		PasteImage (  g.editorimagesoffset+47,t.tcenterx+350,t.tcentery+510 );
-	}
-}
-if ( t.tquickhighlight == 7 ) 
-{
-	if ( g.quickstartmenumode==0 )
-	{
-		PasteImage (  g.editorimagesoffset+48,t.tcenterx+223,t.tcentery+510 );
-	}
-}
-*/
-
-
-/*
-// PERFORMANCE CHECKER PAGE
-
-struct welcomeperformancetype
-{
-	int iRunPerformanceCheck;
-	float fRotateMe;
-	int iNextButtonID;
-	char pStatus[10240];
-};
-welcomeperformancetype g_welcomeperformance;
-
-void welcome_performance_init ( void )
-{
-	memset ( &g_welcomeperformance, 0, sizeof(g_welcomeperformance) );
-	g_welcomeperformance.fRotateMe = 0.0f;
-	strcpy ( g_welcomeperformance.pStatus, "SYSTEM READY." );
-}
-
-void welcome_performance_page ( int iHighlightingButton )
-{
-	// draw page
-	int iID = 0;
-	welcome_text ( "PERFORMANCE CHECKER", 5, 50, 10, 255, false, false );
-	welcome_drawbox ( 0, 10, 20, 40, 65 );
-	welcome_drawbox ( 0, 42, 20, 90, 65 );
-	welcome_text ( "Use the performance checker to help you determine the optimum settings\nfor performance and quality on your system.", 1, 50, 72, 192, true, false );
-	welcome_text ( g_welcomeperformance.pStatus, 1, 45, 26, 192, true, true );
-	welcome_drawimage ( g.editorimagesoffset+50, 15, 25, true );
-	welcome_drawrotatedimage ( g.editorimagesoffset+51, 26, 46, g_welcomeperformance.fRotateMe, 16, 128, false );
-	iID = 1; welcome_textinbox ( iID, "TEST NOW", 1, 25, 55, g_welcomebutton[iID].alpha );
-	iID = g_welcomeperformance.iNextButtonID; welcome_textinbox ( iID, "NEXT", 1, 50, 90, g_welcomebutton[iID].alpha );
-
-	// control page
-	if ( t.inputsys.mclick == 1 ) 
-	{
-		if ( iHighlightingButton == 1 && g_welcomeperformance.iRunPerformanceCheck == 0 )
-		{
-			g_welcomeperformance.iRunPerformanceCheck = 1;
-		}
-		if ( iHighlightingButton == 2 ) t.tclosequick = 1;
-	}
-
-	// control any mechanics and actions
-	if ( g_welcomeperformance.iRunPerformanceCheck > 0 && g_welcomeperformance.iRunPerformanceCheck < 1000 )
-	{
-		// run performance check counter
-		g_welcomeperformance.iRunPerformanceCheck++;
-		if ( g_welcomeperformance.iRunPerformanceCheck >= 1000 )
-		{
-			// finish performance check and activate NEXT button
-			g_welcomeperformance.iRunPerformanceCheck = 1000;
-			g_welcomeperformance.iNextButtonID = 2;
-		}
-
-		// sequence of checks to determine users machine speed
-		if ( g_welcomeperformance.iRunPerformanceCheck == 10 )
-		{
-			strcpy ( g_welcomeperformance.pStatus, "SYSTEM TEST STARTED..\n" );
-		}
-		if ( g_welcomeperformance.iRunPerformanceCheck == 100 )
-		{
-			strcat ( g_welcomeperformance.pStatus, "CHECKING CPU..\n" );
-		}
-		if ( g_welcomeperformance.iRunPerformanceCheck == 200 )
-		{
-			strcat ( g_welcomeperformance.pStatus, "CHECKING GPU..\n" );
-		}
-		if ( g_welcomeperformance.iRunPerformanceCheck == 300 )
-		{
-			strcat ( g_welcomeperformance.pStatus, "CHECKING MEMORY..\n" );
-		}
-		if ( g_welcomeperformance.iRunPerformanceCheck == 400 )
-		{
-			strcat ( g_welcomeperformance.pStatus, "COMPLETE.\n\n" );
-		}
-		if ( g_welcomeperformance.iRunPerformanceCheck == 999 )
-		{
-			strcat ( g_welcomeperformance.pStatus, "CONFIGURING FOR 'LOWEST' MODE\n" );
-		}
-
-		// show performance needle in real-time determination of results
-		g_welcomeperformance.fRotateMe -= 0.04f;
-	}
-}
-*/

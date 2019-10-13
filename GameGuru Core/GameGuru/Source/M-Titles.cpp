@@ -1337,14 +1337,19 @@ void titles_base ( void )
 		}
 		else
 		{
-			OpenFileMap (  1, "FPSEXCHANGE" );
-			SetEventAndWait (  1 );
-			t.mx=GetFileMapDWORD( 1, 0 );
-			t.my=GetFileMapDWORD( 1, 4 );
-			t.mx=((t.mx+0.0)/800.0)*(GetDesktopWidth()+0.0);
-			t.my=((t.my+0.0)/600.0)*(GetDesktopHeight()+0.0);
-			t.mc=GetFileMapDWORD( 1, 20 );
-			//CloseFileMap (  1 );
+			#ifdef FPSEXCHANGE
+			 OpenFileMap (  1, "FPSEXCHANGE" );
+			 SetEventAndWait (  1 );
+			 t.mx=GetFileMapDWORD( 1, 0 );
+			 t.my=GetFileMapDWORD( 1, 4 );
+			 t.mc=GetFileMapDWORD( 1, 20 );
+			#else
+			 t.mx = MouseX();
+			 t.my = MouseY();
+			 t.mc = MouseClick();
+			#endif
+			t.mx = ((t.mx + 0.0) / 800.0)*(GetDesktopWidth() + 0.0);
+			t.my = ((t.my + 0.0) / 600.0)*(GetDesktopHeight() + 0.0);
 		}
 
 		// Display

@@ -298,11 +298,7 @@ void terrain_paintselector_init ( void )
 
 	// Help Dialog Shortcut Keys
 	terrainbuild.iTexHelpSpr = g.terrainpainterinterfacesprite + 2;
-	//#ifdef VRQUEST
- 	// terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\branded\\terrainbuild-texturehelp.png");
-	//#else
- 	 terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\terrainbuild-texturehelp.png");
-	//#endif
+ 	terrainbuild.iTexHelpImg = loadinternalimage("languagebank\\english\\artwork\\terrainbuild-texturehelp.png");
 	Sprite ( terrainbuild.iTexHelpSpr, terrainbuild.iTexturePanelX - 10, terrainbuild.iTexturePanelY - 10 - ImageHeight(terrainbuild.iTexHelpImg), terrainbuild.iTexHelpImg );
 
 	// terrain paint selector inited

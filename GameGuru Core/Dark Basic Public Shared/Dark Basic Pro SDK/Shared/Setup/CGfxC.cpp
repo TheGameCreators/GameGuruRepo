@@ -899,13 +899,8 @@ DARKSDK void AttachWindowToChildOfAnother ( LPSTR pAbsoluteAppFilename )
 	strcpy ( g_szChildWindow, "" );
 
 	// read data from settings file
-	//#ifdef VRQUEST
-	 strcpy ( g_szMainWindow, "VR Quest" );
-	 strcpy ( g_szChildWindow, "Editor" );
-	//#else
-	// GetPrivateProfileString ( "External", "Main Window", "", g_szMainWindow, MAX_PATH, pAppExtFile );
-	// GetPrivateProfileString ( "External", "Child Window", "", g_szChildWindow, MAX_PATH, pAppExtFile );
-	//#endif
+	strcpy ( g_szMainWindow, "VR Quest" );
+	strcpy ( g_szChildWindow, "Editor" );
 
 	// determine if window should be attached to child of another
 	if ( strlen ( g_szMainWindow ) > 1 )
