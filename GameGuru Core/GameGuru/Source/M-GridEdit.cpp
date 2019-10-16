@@ -3,6 +3,7 @@
 //----------------------------------------------------
 
 #include "gameguru.h"
+#include "M-CharacterCreatorPlus.h"
 #include "M-WelcomeSystem.h"
 #include "GGVR.h"
 
@@ -17,6 +18,7 @@ extern bool g_bSkipTerrainRender;
 // extern to global that toggles when load map removed from entities
 extern bool g_bBlackListRemovedSomeEntities;
 extern bool gbWelcomeSystemActive;
+extern bool g_bCharacterCreatorPlusActivated;
 
 //  GOTO LABEL (jump from common_init)
 void mapeditorexecutable ( void )
@@ -258,7 +260,14 @@ void mapeditorexecutable ( void )
 		input_getcontrols ( );
 		input_calculatelocalcursor ( );
 
-		//  Importer, Character Creator or Main Editor
+		// Character Creator Plus
+		if ( g_bCharacterCreatorPlusActivated == true )
+		{
+			// character creator plus character edited in situ
+			charactercreatorplus_loop();
+		}
+
+		//  Importer or Main Editor
 		if ( t.importer.loaded != 0 || (t.interactive.active == 1 && (t.interactive.pageindex<21 || t.interactive.pageindex>90)) )
 		{
 			//  Importer control or Interactive Mode
@@ -271,10 +280,11 @@ void mapeditorexecutable ( void )
 		else
 		{
 			//  Character Kit Active
-			if (  t.characterkit.loaded !=  0 ) 
+			if ( 0 ) // t.characterkit.loaded !=  0 ) 
 			{
-				characterkit_loop ( );
-				characterkit_draw ( );
+				// bye bye character creator, welcome plus!
+				//characterkit_loop ( );
+				//characterkit_draw ( );
 			}
 			else
 			{
@@ -411,8 +421,8 @@ void mapeditorexecutable ( void )
 							}
 							if (t.idechecks == 3)
 							{
-								//  Character Creator
-								if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
+								// Character Creator Plus
+								g_bCharacterCreatorPlusActivated = true; //if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
 								SetFileMapDWORD(3, t.virtualfileindex, 0);
 							}
 							SetEventAndWait(3);
@@ -5789,7 +5799,7 @@ void editor_checkIfInSubApp ( void )
 {
 	t.result = 0;
 	if ( t.importer.loaded == 1 ) importer_free ( );
-	if ( t.characterkit.loaded == 1 ) characterkit_free ( );
+	if ( g_bCharacterCreatorPlusActivated == true ) charactercreatorplus_free(); //if ( t.characterkit.loaded == 1 ) characterkit_free ( );
 }
 
 int findentitycursorobj ( int currentlyover )

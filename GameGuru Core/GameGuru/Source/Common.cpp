@@ -540,7 +540,6 @@ void common_init_globals ( void )
 	g.thirdpersoncharactereffect = 1299;
 	g.charactercreatoreffectbankoffset = 1300;
 
-
 	//  Sound Resources
 	g.soundbankoffset = 1;
 	g.soundbankoffsetfinish = 8799;

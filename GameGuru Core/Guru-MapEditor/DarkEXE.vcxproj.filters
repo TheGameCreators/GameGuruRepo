@@ -204,6 +204,9 @@
     <ClCompile Include="..\GameGuru\Source\M-MP.cpp">
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterCreatorPlus.cpp">
+      <Filter>GameGuruEngine\MapEditor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DarkEXE.h">
@@ -390,6 +393,9 @@
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClInclude>
     <ClInclude Include="..\GameGuru\Include\Common-Keys.h">
+      <Filter>GameGuruEngine\MapEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterCreatorPlus.h">
       <Filter>GameGuruEngine\MapEditor</Filter>
     </ClInclude>
   </ItemGroup>

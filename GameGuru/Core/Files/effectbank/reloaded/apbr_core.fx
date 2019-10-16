@@ -1330,7 +1330,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      }                                                          
     #endif
    #endif
-   
+      
    // get normal for pixel
    float3 originalNormal = attributes.normal;
    #ifdef PBRVEGETATION
@@ -1448,7 +1448,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
 	 #endif
     #endif
    #endif
-   
+      
    float4 originalrawdiffusemap = rawdiffusemap;
    #ifdef LIGHTMAPPED
     // get lightmap image

@@ -404,7 +404,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <PreprocessorDefinitions>VRQUEST;PHOTONMP;CLOUDKEYSYSTEM;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FPSEXCHANGE;VRQUEST;PHOTONMP;CLOUDKEYSYSTEM;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -535,6 +535,7 @@
     <ClCompile Include="..\GameGuru\Source\G-Gun.cpp" />
     <ClCompile Include="..\GameGuru\Source\G-Lighting.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-AudioVolume.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-CharacterCreatorPlus.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-CharacterKit.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-CharacterSound.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-ConstructionKit.cpp" />
@@ -633,6 +634,7 @@
     <ClInclude Include="..\GameGuru\Include\G-Lighting.h" />
     <ClInclude Include="..\GameGuru\Include\gameguru.h" />
     <ClInclude Include="..\GameGuru\Include\M-AudioVolume.h" />
+    <ClInclude Include="..\GameGuru\Include\M-CharacterCreatorPlus.h" />
     <ClInclude Include="..\GameGuru\Include\M-CharacterKit.h" />
     <ClInclude Include="..\GameGuru\Include\M-CharacterSound.h" />
     <ClInclude Include="..\GameGuru\Include\M-ConstructionKit.h" />

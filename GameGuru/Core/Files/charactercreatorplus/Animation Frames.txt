@@ -1,0 +1,21 @@
+0 : reference pose
+1 : phenome A
+2 : phenome E
+3 : phenome F
+4 : phenome C
+5 : phenome L
+6 : phenome M
+7 : phenome O
+8 : phenome U
+9 : phenome W
+10 : phenome R
+11 : blink
+
+15-55 : idle
+65-85 : turn right
+90-110 : turn left
+120-146 : walk
+250-291 : point right
+300-341 : point left
+350-391 : point forward
+400-483 : conversation

@@ -332,6 +332,7 @@ DARKSDK void  SaveMesh					( LPSTR pFilename, int iMeshID );
 DARKSDK void  ChangeMesh				( int iObjectID, int iLimbID, int iMeshID );
 DARKSDK void  MakeMeshFromObject		( int iID, int iObjectID );
 DARKSDK void  MakeMeshFromObject		( int iID, int iObjectID, int iIgnoreMode );
+DARKSDK void  StealMeshesFromObject		( int iMasterObjectID, int iDonerObjectID );
 DARKSDK void  MakeMeshFromLimb			( int iMeshID, int iObjectID, int iLimbNumber );
 DARKSDK void  ConvertMeshToVertexData	( int iMeshID );
 DARKSDK void  ReduceMesh				( int iMeshID, int iBlockMode, int iNearMode, int iGX, int iGY, int iGZ );

@@ -8187,6 +8187,60 @@ DARKSDK_DLL void MakeMeshFromObject ( int iMeshID, int iObjectID )
 	MakeMeshFromObject ( iMeshID, iObjectID, 0 );
 }
 
+DARKSDK_DLL void StealMeshesFromObject ( int iMasterObjectID, int iDonerObjectID )
+{
+	// this will transfer the meshes from one object to another, and erase references to those meshes
+	// so the doner object can be safely deleted (ideal for merging two objects that share frames/anims into one)
+	if ( !ConfirmObject ( iMasterObjectID ) && !ConfirmObject ( iDonerObjectID ) )
+		return;
+
+	// master object ptr
+	sObject* pMasterObject = GetObjectData ( iMasterObjectID );
+
+	// find last sibling to connect to
+	sFrame* pFrameLinkage = pMasterObject->pFrame;
+	while ( pFrameLinkage->pSibling ) pFrameLinkage = pFrameLinkage->pSibling;
+
+	// go through all doner meshes
+	sObject* pDonerObject = GetObjectData ( iDonerObjectID );
+	for ( int iDonerFrameIndex = 0; iDonerFrameIndex < pDonerObject->iFrameCount; iDonerFrameIndex++ )
+	{
+		sFrame* pDonerFrame = pDonerObject->ppFrameList[iDonerFrameIndex];
+		if ( pDonerFrame )
+		{
+			sMesh* pDonerMesh = pDonerFrame->pMesh;
+			if ( pDonerMesh )
+			{
+				// add a new frame to root as sybling
+				sFrame* pNewMasterFrame = new sFrame;
+				pFrameLinkage->pSibling = pNewMasterFrame;
+				strcpy ( pNewMasterFrame->szName, pDonerFrame->szName );
+				pNewMasterFrame->pMesh = pDonerMesh;
+
+				// erase reference from parent doner object
+				pDonerFrame->pMesh = NULL;
+
+				// and from list
+				for ( int iMesh = 0; iMesh < pDonerObject->iMeshCount; iMesh++ )
+				{
+					sMesh* pMesh = pDonerObject->ppMeshList[iMesh];
+					if ( pMesh == pDonerMesh ) pDonerObject->ppMeshList[iMesh] = NULL;
+				}
+			}
+		}
+	}
+
+	// create frames and mesh lists from frame hierarchy modified above
+	CreateFrameAndMeshList ( pMasterObject );
+
+	// go through new meshes and associate with the frames of the master object
+	if ( pMasterObject->ppMeshList )
+	{
+		InitFramesToBones ( pMasterObject->ppMeshList, pMasterObject->iMeshCount );
+		MapFramesToBones ( pMasterObject->ppMeshList, pMasterObject->pFrame, pMasterObject->iMeshCount );
+	}
+}
+
 DARKSDK_DLL void ReduceMesh ( int iMeshID, int iBlockMode, int iNearMode, int iGX, int iGY, int iGZ )
 {
 	//	reduce mesh 1,blockmode,nearmode,gx,gy,gz
