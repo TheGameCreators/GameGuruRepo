@@ -5190,10 +5190,14 @@ struct entityprofiletype
 	int meleedamagest;
 	int meleedamagefn;
 	ebeType ebe;
+	int iThumbnailSmall;
+	int iThumbnailLarge;
 
 	// Constructor
 	entityprofiletype ( )
 	{
+		 iThumbnailSmall = 0;
+		 iThumbnailLarge = 0;
 		 ebe.dwTexRefCount = 0;
 		 ebe.pTexRef = NULL;
 		 ebe.dwMatRefCount = 0;

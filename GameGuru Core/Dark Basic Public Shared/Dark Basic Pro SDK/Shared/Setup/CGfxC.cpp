@@ -61,6 +61,11 @@ float						g_fDriverCompensationYaw = 0;
 float						g_fDriverCompensationRoll = 0;
 #endif
 
+#include "..\GameGuru\Imgui\imgui.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
+
 DBPRO_GLOBAL tagInfo*						m_pInfo;			// gfx card information
 DBPRO_GLOBAL int							m_iAdapterCount;	// number of graphic cars
 DBPRO_GLOBAL int							m_iAdapterUsed;		// graphics card being used by number
@@ -1569,26 +1574,48 @@ HRESULT StandardPresent ( void )
 	{
 		// no stretch present equivilant in DX11, so resize backbuffer instead
 		// resize swapchain to suit correct child window size
+
+		//PE: Cant do this.
+//#if defined(ENABLEIMGUI) && defined(USERENDERTARGET)
+//		//PE: IMGUI support resize here.
+//		extern ImVec2 OldrenderTargetSize;
+//		extern ImVec2 OldrenderTargetPos;
+//		extern bool bImGuiInTestGame;
+//		RECT src = { 0, 0, 0, 0 };
+//		if (!bImGuiInTestGame && OldrenderTargetSize.x > 0 && OldrenderTargetSize.y > 0 )
+//		{
+//			src = { 0, 0, (long) OldrenderTargetSize.x , (long) OldrenderTargetSize.y };
+//		}
+//		else
+//		{
+//			GetClientRect(g_pGlob->hWnd, &src);
+//		}
+//#else
 		RECT src = { 0, 0, 0, 0 };
 		GetClientRect ( g_pGlob->hWnd, &src );
+//#endif
+
 		if ( src.right != g_pGlob->dwClientRegionWidth || src.bottom != g_pGlob->dwClientRegionHeight )
 		{
 			m_pImmediateContext->ClearState();
-			SAFE_RELEASE ( m_pRenderTargetView );
-			SAFE_RELEASE ( g_pBackBuffer );
-			SAFE_RELEASE ( m_pDepthStencilView );
-			SAFE_RELEASE ( m_pDepthStencilResourceView );
-			SAFE_RELEASE ( m_pDepthStencil );
-			HRESULT hRes = m_pSwapChain[0]->ResizeBuffers ( 0, src.right, src.bottom, DXGI_FORMAT_UNKNOWN, 0 );
+			SAFE_RELEASE(m_pRenderTargetView);
+			SAFE_RELEASE(g_pBackBuffer);
+			SAFE_RELEASE(m_pDepthStencilView);
+			SAFE_RELEASE(m_pDepthStencilResourceView);
+			SAFE_RELEASE(m_pDepthStencil);
+			HRESULT hRes = m_pSwapChain[0]->ResizeBuffers(0, src.right, src.bottom, DXGI_FORMAT_UNKNOWN, 0);
+
 			GetBackBufferAndDepthBuffer();
 			GetBackBufferPointers();
-			if ( hRes == S_OK )
+
+			if (hRes == S_OK)
 			{
 				g_pGlob->dwClientRegionWidth = src.right;
 				g_pGlob->dwClientRegionHeight = src.bottom;
 				g_iTriggerResize = 0;
 			}
 		}
+
 	}
 	#else
 	if ( g_bWindowOverride && g_dwChildWindowTruePixel )
@@ -4012,6 +4039,7 @@ bool g_bDetachFromPreviousWindow = false;
 
 DARKSDK void SetWindowModeOn(void)
 {
+	//PE: IMGUI we need support here , called before editor , called after test game.
 	if ( g_bWindowOverride==false )
 	{
 		// Switch to window
@@ -4082,7 +4110,7 @@ DARKSDK void SetWindowModeOff(void)
 DARKSDK void SetWindowSettings( int iStyle, int iCaption, int iIcon )
 {
 	gWindowStyle=0;
-	if(iStyle==1)
+	if(iStyle==1 || iStyle == 5)
 	{
 		gWindowExtraX=gWindowExtraXForOverlap;
 		gWindowExtraY=gWindowExtraYForOverlap;
@@ -4099,6 +4127,9 @@ DARKSDK void SetWindowSettings( int iStyle, int iCaption, int iIcon )
 	if ( iStyle==2 ) gWindowStyle |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX;
 	if ( iStyle==3 ) gWindowStyle |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 	if ( iStyle==4 ) gWindowStyle |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX;
+
+	//PE: added for imgui.
+	if (iStyle == 5) gWindowStyle |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
 	if(iCaption==1)
 	{
@@ -4560,6 +4591,40 @@ DARKSDK int GetChildWindowY()
 
 DARKSDK int GetChildWindowWidth(int iDPIAware)
 {
+#ifdef ENABLEIMGUI
+#ifndef USEOLDGUI
+#ifdef USERENDERTARGET
+	extern bool bImGuiInTestGame;
+	extern bool bImGuiInitDone;
+	if (bImGuiInitDone && !bImGuiInTestGame) {
+
+		if (iDPIAware == -1) {
+			RECT src;
+			GetClientRect(m_hWnd, &src);
+			return (int)src.right;
+		}
+
+		//PE: Calculate the postion on our zoomed render target.
+		extern ImVec2 OldrenderTargetSize;
+
+		float fPreviewWidth = (int) OldrenderTargetSize.x; // -iBorderSize;
+		float fPreviewHeight = (int)OldrenderTargetSize.y; // -iBorderSize;
+
+		int iImgW = GetDisplayWidth();
+		int iImgH = GetDisplayHeight();
+		float fRatio;
+
+		fRatio = fPreviewHeight / iImgH;
+		if (iImgW*fRatio < fPreviewWidth)
+			fRatio = fPreviewWidth / iImgW;
+
+		//PE: Take our ratio and invert it for zoom factor.
+		return fPreviewWidth * (1.0f/ fRatio);
+	}
+#endif
+#endif
+#endif
+
 	RECT src;
 	GetClientRect ( m_hWnd , &src );
 	int iWidth=(int)src.right;
@@ -4588,6 +4653,43 @@ DARKSDK int GetChildWindowWidth(int iDPIAware)
 
 DARKSDK int GetChildWindowHeight(int iDPIAware)
 {
+#ifdef ENABLEIMGUI
+#ifndef USEOLDGUI
+#ifdef USERENDERTARGET
+	extern bool bImGuiInTestGame;
+	extern bool bImGuiInitDone;
+	if (bImGuiInitDone && !bImGuiInTestGame) {
+		if (iDPIAware == -1) {
+			RECT src;
+			GetClientRect(m_hWnd, &src);
+			return (int)src.bottom;
+		}
+
+		//PE: Calculate the postion on our zoomed render target.
+		extern ImVec2 OldrenderTargetSize;
+
+		float fPreviewWidth = OldrenderTargetSize.x; // -iBorderSize;
+		float fPreviewHeight = OldrenderTargetSize.y; // -iBorderSize;
+
+		int iImgW = GetDisplayWidth();
+		int iImgH = GetDisplayHeight();
+		
+		float fRatio;
+		fRatio = fPreviewHeight / (float) iImgH;
+		if ((float)iImgW*fRatio < fPreviewWidth)
+			fRatio = fPreviewWidth / (float) iImgW;
+
+		//float fCenterY = (fPreviewHeight - iImgH*fRatio) * 0.5;
+
+		extern int ImGuiStatusBar_Size;
+		//PE: Take our ratio and invert it for zoom factor.
+		return (fPreviewHeight * (1.0f / fRatio) - (ImGuiStatusBar_Size * (1.0f / fRatio) ));
+
+	}
+#endif
+#endif
+#endif
+
 	RECT src;
 	GetClientRect ( m_hWnd , &src );
 	int iHeight=(int)src.bottom;
@@ -4688,7 +4790,9 @@ DARKSDK ID3DX11Effect* SETUPLoadShader ( LPSTR szFile, LPSTR szBlobFile, int iSh
 		ID3DBlob* pFXBlob = g_sShaders[iShaderIndex].pBlob;
 		if ( pFXBlob )
 		{
+			//szFile only for debug.
 			D3DX11CreateEffectFromMemory(pFXBlob->GetBufferPointer(), pFXBlob->GetBufferSize(), 0, m_pD3D, &g_sShaders[iShaderIndex].pEffect);
+//			D3DX11CreateEffectFromMemory(pFXBlob->GetBufferPointer(), pFXBlob->GetBufferSize(), 0, m_pD3D, &g_sShaders[iShaderIndex].pEffect, szFile );
 		}
 		else
 		{

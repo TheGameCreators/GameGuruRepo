@@ -5,6 +5,16 @@
 #include "..\..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\Objects\ShadowMapping\cShadowMaps.h"
 #include "DirectXTex.h"
 #include "wincodec.h"
+
+//PE: GameGuru IMGUI.
+#include "..\GameGuru\Imgui\imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "..\GameGuru\Imgui\imgui_internal.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 using namespace DirectX;
 
 // shadow mapping
@@ -409,6 +419,38 @@ void terrain_paintselector_control ( void )
 		}
 		terrain_paintselector_init();
 	}
+
+#ifdef ENABLEIMGUI
+#ifndef USEOLDGUI
+#ifdef USERENDERTARGET
+	//PE: Reposition everything
+	terrainbuild.iTexturePanelX = GetChildWindowWidth() - 210;
+	terrainbuild.iTexturePanelY = GetChildWindowHeight() - 200;
+	terrainbuild.iTexturePanelWidth = 200;
+	terrainbuild.iTexturePanelHeight = 200;
+	for (int iTex = 0; iTex < TERRAINTEXPANELSPRMAX; iTex++)
+	{
+		LPSTR pTexImg = "";
+		int iX = terrainbuild.iTexturePanelX;
+		int iY = terrainbuild.iTexturePanelY;
+		int iWidth = terrainbuild.iTexturePanelWidth;
+		int iHeight = terrainbuild.iTexturePanelHeight;
+		if (iTex == 0) { iX -= 10; iY -= 10; iWidth += 20; iHeight += 20; }
+		if (iTex == 1) { iX -= 10; iY -= 10; iWidth += 20; iHeight = 1; }
+		if (iTex == 2) { iX -= 10; iY += 209; iWidth += 20; iHeight = 1; }
+		if (iTex == 3) { iX -= 10; iY -= 10; iWidth = 1; iHeight += 20; }
+		if (iTex == 4) { iX += 209; iY -= 10; iWidth = 1; iHeight += 20; }
+		Sprite(terrainbuild.iTexturePanelSprite[iTex], iX, iY, terrainbuild.iTexturePanelImg[iTex]);
+	}
+	Sprite(terrainbuild.iTexturePanelHighSprite, terrainbuild.iTexturePanelX, terrainbuild.iTexturePanelY, terrainbuild.iTexturePanelHighImg);
+	SizeSprite(terrainbuild.iTexturePanelHighSprite, terrainbuild.iTexturePanelWidth / 4, terrainbuild.iTexturePanelHeight / 4);
+	Sprite(terrainbuild.iHelpSpr, terrainbuild.iTexturePanelX - ImageWidth(terrainbuild.iHelpImg) - 10, terrainbuild.iTexturePanelY + 210 - ImageHeight(terrainbuild.iHelpImg), terrainbuild.iHelpImg);
+	Sprite(terrainbuild.iTexHelpSpr, terrainbuild.iTexturePanelX - 10, terrainbuild.iTexturePanelY - 10 - ImageHeight(terrainbuild.iTexHelpImg), terrainbuild.iTexHelpImg);
+	terrainbuild_settexturehighlight();
+#endif
+#endif
+#endif
+
 	terrain_paintselector_show();
 
 	// Only when release mouse continue
@@ -513,9 +555,17 @@ void terrain_paintselector_control ( void )
 		}
 	}
 
+	//PE: imgui need support here.
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+	int iRealSprMouseX = ((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth()) * t.inputsys.xmouse;
+	int iRealSprMouseY = ((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight()) * t.inputsys.ymouse;
+#else
 	// Select texture if in Texture Panel or Customise one
 	int iRealSprMouseX = (GetChildWindowWidth()/800.0f) * t.inputsys.xmouse;
 	int iRealSprMouseY = (GetChildWindowHeight()/600.0f) * t.inputsys.ymouse;
+#endif
+
+	// Select texture if in Texture Panel or Customise one
 	if ( t.inputsys.mclick > 0 )
 	{
 		if ( iRealSprMouseX > terrainbuild.iTexturePanelX && iRealSprMouseX < terrainbuild.iTexturePanelX + terrainbuild.iTexturePanelWidth )

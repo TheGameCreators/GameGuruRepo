@@ -4,6 +4,10 @@
 
 #include "gameguru.h"
 
+#include "..\GameGuru\Imgui\imgui.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 // Globals for blacklist string array
 LPSTR* g_pBlackList = NULL;
 int g_iBlackListMax = 0;
@@ -435,6 +439,15 @@ void entity_load ( void )
 	//  Only if profile data exists
 	if (  t.desc_s != "" ) 
 	{
+
+		//Load the thumbnail.
+		t.strwork = t.entdir_s + t.ent_s;
+		t.tthumbbmpfile_s = "";	t.tthumbbmpfile_s = t.tthumbbmpfile_s + Left(t.strwork.Get(), (Len(t.entdir_s.Get()) + Len(t.ent_s.Get())) - 4) + ".bmp";
+
+		LoadImage(t.tthumbbmpfile_s.Get(), UIV3IMAGES + 100 + t.entid);
+		t.entityprofile[t.entid].iThumbnailSmall = UIV3IMAGES + 100 + t.entid;
+//		iThumbnailLarge = 0;
+
 		//  Load the model
 		if (  t.entityprofile[t.entid].ischaractercreator  ==  0 ) 
 		{

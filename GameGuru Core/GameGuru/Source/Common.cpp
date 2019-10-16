@@ -12,6 +12,15 @@
 #include "Common-Keys.h"
 #include "CFtpC.h"
 
+//PE: GameGuru IMGUI.
+#include "..\GameGuru\Imgui\imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "..\GameGuru\Imgui\imgui_internal.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 // Used for Free Weekend Promotion Build 
 //#define STEAMOWNERSHIPCHECKFREEWEEKEND
 
@@ -477,6 +486,8 @@ void common_init_globals ( void )
 	// reserve 200 particles 1400-1599
 	g.ebeimageoffset = 1900;
 	g.texturebankoffset = 2000;
+	//PE: 3000+ reserved for UIV3.
+	//PE: 4000+ reserved for UIV3 preview images.
 	//PE: 50000+ to be used for internal images inside dbo's.
 	g.internalshadowdynamicterrain = 59950;
 	g.internalshadowdebugimagestart = 59951;
@@ -3407,12 +3418,15 @@ UINT GetURLData ( LPSTR pDataReturned, DWORD* pReturnDataSize, LPSTR urlWhere )
 
 void FPSC_Setup ( void )
 {
+	//MessageBox(NULL, "FPSC_Setup", "debug", 0);
 	// prepare all default values 
 	FPSC_SetDefaults();
 
 	// Determine if GAME or MAPEDITOR here, so can set display mode accordingly
 	g.trueappname_s = "Guru-Game";
-	if (strcmp(Lower(Right(Appname(), 18)), "guru-mapeditor.exe") == 0)
+	//if (strcmp(Lower(Right(Appname(), 18)), "guru-mapeditor.exe") == 0 || strcmp(Lower(Right(Appname(), 13)), "game-guru.exe") == 0)
+	// still called guru-mapeditor.exe for now
+	if (strcmp(Lower(Right(Appname(), 18)), "guru-mapeditor.exe") == 0 )
 	{
 		g.trueappname_s = "Guru-MapEditor";
 	}
@@ -3827,6 +3841,7 @@ void FPSC_Setup ( void )
 			{
 				SetDisplayModeMODBACKBUFFER (  GetDesktopWidth(),GetDesktopHeight(),GetDisplayDepth(),g.gvsync,0,0,t.bkwidth,t.bkheight );
 			}
+			//PE: Res changed here. set to our window size again.
 
 			// allow _e_ usage override
 			SetCanUse_e_(1);
@@ -3912,6 +3927,47 @@ void FPSC_Setup ( void )
 			g.realaspect_f=t.aspect_f;
 		}
 	}
+
+#ifdef ENABLEIMGUI
+	//PE: IMGUI init.
+	if (t.game.set.ismapeditormode == 1) {
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+																	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+		//io.ConfigViewportsNoAutoMerge = true;
+		//io.ConfigViewportsNoTaskBarIcon = true;
+		//io.ConfigViewportsNoDefaultParent = true;
+		//io.ConfigDockingAlwaysTabBar = true;
+		//io.ConfigDockingTransparentPayload = true;
+
+		// Setup Dear ImGui style
+		ImGui::StyleColorsDark();
+		myDarkStyle(NULL); //for bordersize,padding ...
+		myStyle2(NULL); //additional settings before change.
+
+		//ImGui::StyleColorsClassic();
+
+		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+		ImGuiStyle& style = ImGui::GetStyle();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		}
+
+		// Setup Platform/Renderer bindings
+		ImGui_ImplWin32_Init(g_pGlob->hWnd);
+		ImGui_ImplDX11_Init(m_pD3D, m_pImmediateContext);
+	}
+
+	extern bool bImGuiInTestGame;
+	if(t.game.gameisexe == 1)
+		bImGuiInTestGame = true;
+#endif
+
 	t.newwidth=g.gdisplaywidth ; t.newheight=g.gdisplayheight ; t.newdepth=g.gdisplaydepth;
 	g.gratiox_f = g.gdisplaywidth;
 	g.gratioy_f = g.gdisplayheight;
@@ -4509,6 +4565,11 @@ void FPSC_Setup ( void )
 
 void common_justbeforeend ( void )
 {
+//	if (g.memgeneratedump == 1) {
+//		timestampactivity(0, "DumpImageList QUIT.");
+//		DumpImageList(); // PE: Dump image usage after level.
+//	}
+
 	// clear TXP caches before exit
 	if ( g.gdeletetxpcachesonexit == 1 )
 	{
@@ -5068,6 +5129,10 @@ void common_refreshDisplaySize ( void )
 
 void popup_text_close ( void )
 {
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+	return;
+#endif
+
 	OpenFileMap (  2, "FPSPOPUP" );
 	SetFileMapDWORD (  2, 8, 1 );
 	SetEventAndWait (  2 );
@@ -5077,6 +5142,12 @@ void popup_text_close ( void )
 
 void popup_text_change ( char* statusbar_s )
 {
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+	//PE: Update prompt.
+	popup_text(statusbar_s);
+	return;
+#endif
+
 	OpenFileMap (  2, "FPSPOPUP" );
 	SetEventAndWait (  2 );
 	if (  GetFileMapDWORD( 2, 0 )  ==  1 ) 
@@ -5094,6 +5165,62 @@ void popup_text_change ( char* statusbar_s )
 
 void popup_text ( char* statusbar_s )
 {
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) && defined(USERENDERTARGET)
+	//PE: Update status bar.
+	//statusbar_s
+	extern bool bImGuiFrameState;
+	extern bool bImGuiReadyToRender;
+
+	if (!bImGuiFrameState) {
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+		bImGuiFrameState = true;
+
+		//######################################################################
+		//#### Default dockspace setup, how is our windows split on screen. ####
+		//######################################################################
+
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking; //ImGuiWindowFlags_MenuBar
+		ImGuiViewport* viewport;
+		viewport = ImGui::GetMainViewport();
+		extern int toolbar_size;
+		extern int ImGuiStatusBar_Size;
+		ImGui::SetNextWindowPos(viewport->Pos + ImVec2(0, toolbar_size));
+		ImGui::SetNextWindowSize(viewport->Size - ImVec2(0, toolbar_size + ImGuiStatusBar_Size));
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		bool dockingopen = true;
+		ImGui::Begin("DockSpaceAGK", &dockingopen, window_flags);
+		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(2);
+		static ImGuiID dock_id_bottom;
+
+		if (ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) != NULL) {
+			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+		}
+		ImGui::End();
+
+		ImGui::Begin("Entities##LeftPanel");
+		ImGui::End();
+	}
+
+	if (bImGuiFrameState && bImGuiReadyToRender) {
+		pastebitmapfontcenter(statusbar_s, GetChildWindowWidth(0) / 2, ((GetChildWindowHeight(0) - 30) / 2), 4, 255);
+		Sync();
+	}
+
+//	pastebitmapfontcenter(statusbar_s, GetChildWindowWidth(0) / 2, 200 , 3, 255);
+//	Sync();
+	return;
+#endif
+
 	if ( g_PopupControlMode == 0 )
 	{
 		t.strwork = "" ; t.strwork = t.strwork + "1:popup_text "+statusbar_s;

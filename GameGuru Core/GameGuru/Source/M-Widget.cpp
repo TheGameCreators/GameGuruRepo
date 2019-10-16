@@ -4,6 +4,11 @@
 
 #include "gameguru.h"
 
+//PE: GameGuru IMGUI.
+#include "..\GameGuru\Imgui\imgui.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 // Prototypes
 void gridedit_clearentityrubberbandlist ( void );
 
@@ -271,12 +276,19 @@ void widget_loop ( void )
 		// only update if mouse within 3D view
 		if ( t.inputsys.xmouse != 500000 )
 		{
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+			//PE: imgui Need testing.
+			t.widgetinputsysxmouse_f = ((float)t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
+			t.widgetinputsysymouse_f = ((float)t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
+#else
 			//  work out visible part of full backbuffer (i.e. 1212 of 1360)
 			t.widgetinputsysxmouse_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
 			t.widgetinputsysymouse_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
 			//  scale full mouse to fit in visible area
 			t.widgetinputsysxmouse_f=((t.inputsys.xmouse+0.0)/800.0)/t.widgetinputsysxmouse_f;
 			t.widgetinputsysymouse_f=((t.inputsys.ymouse+0.0)/600.0)/t.widgetinputsysymouse_f;
+#endif
+
 			//  then provide in a format for the pick-from-screen command
 			#ifdef DX11
 			t.widgetinputsysxmouse_f=t.widgetinputsysxmouse_f*(GetDisplayWidth()+0.0);

@@ -8,6 +8,11 @@
 #include "DarkLUA.h"
 #include <algorithm>
 
+//PE: GameGuru IMGUI.
+#include "..\GameGuru\Imgui\imgui.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 extern bool g_occluderOn;
 extern bool	g_occluderf9Mode;
 // When in the editor we need an extra vis sort rather then restore prev vis to avoid shadows flickering when adding an entity
@@ -2241,6 +2246,9 @@ void game_masterroot ( int iUseVRTest )
 				}
 
 				//  Run all game subroutines
+
+				//PE: TODO: Need keyboard and mouse when using imgui ?
+
 				if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_main_loop");
 				game_main_loop ( );
 
@@ -3388,6 +3396,16 @@ void game_freegame ( void )
 
 void game_hidemouse ( void )
 {
+#ifdef ENABLEIMGUI
+#ifndef USEOLDIDE
+	if (g.mouseishidden == 0) {
+		g.mouseishidden = 1;
+		HideMouse();
+		t.null = MouseMoveX() + MouseMoveY();
+		return;
+	}
+#endif
+#endif
 	if (  g.mouseishidden == 0 ) 
 	{
 		g.mouseishidden=1;
@@ -3421,6 +3439,17 @@ void game_hidemouse ( void )
 
 void game_showmouse ( void )
 {
+#ifdef ENABLEIMGUI
+#ifndef USEOLDIDE
+	if (g.mouseishidden == 1) {
+		g.mouseishidden = 0;
+		ShowMouse();
+		//Tab Tab bug ?
+		t.null = MouseMoveX() + MouseMoveY();
+		return;
+	}
+#endif
+#endif
 	if (  g.mouseishidden == 1 ) 
 	{
 		g.mouseishidden=0;

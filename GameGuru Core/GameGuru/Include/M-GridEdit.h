@@ -14,6 +14,7 @@ void editor_multiplayermode ( void );
 void editor_previewmap ( int iUseVRTest );
 void input_getfilemapcontrols ( void );
 void input_getcontrols ( void );
+void imgui_input_getcontrols(void);
 void input_calculatelocalcursor ( void );
 void editor_updatemarkervisibility ( void );
 void editor_disableforzoom ( void );
@@ -136,3 +137,5 @@ void popup_text ( char*  statusbar_s );
 void popup_text_change ( char*  statusbar_s );
 void checkmemoryforgracefulexit ( void );
 int get_cursor_scale_for_obj ( int tObj );
+
+int AskSaveBeforeNewAction(void);

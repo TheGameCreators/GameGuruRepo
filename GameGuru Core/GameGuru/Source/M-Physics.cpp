@@ -4,6 +4,10 @@
 
 #include "gameguru.h"
 
+#include "..\GameGuru\Imgui\imgui.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 // 
 //  Physics Subroutines and Functions
 // 
@@ -1591,7 +1595,10 @@ void physics_player_gatherkeycontrols ( void )
 			else
 			{
 				// normal behavior
+				t.plrhasfocus=1;
+#if !defined(ENABLEIMGUI) || defined(USEOLDIDE)
 				t.plrhasfocus=GetFileMapDWORD( 11, 148 );
+#endif
 			}
 		}
 	}

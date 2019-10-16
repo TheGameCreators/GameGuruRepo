@@ -5,6 +5,10 @@
 // Globals
 #include "gameguru.h"
 
+#include "..\GameGuru\Imgui\imgui.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 // Externals
 extern UINT g_StereoEyeToggle;
 
@@ -590,40 +594,54 @@ void sliders_loop ( void )
 		}
 		else
 		{
-			// from map editor client window (800x600)
-			#ifdef FPSEXCHANGE
-			 OpenFileMap (  1, "FPSEXCHANGE" );
-			 SetEventAndWait (  1 );
-			 t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
-			 t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
-			#else
-			 t.tgamemousex_f = MouseX();
-			 t.tgamemousey_f = MouseY();
-			#endif
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+			//t.inputsys.xmouse is always at 960 in testgame.
+
+			t.tgamemousex_f = MouseX(); //t.inputsys.xmouse; //((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth()) * t.inputsys.xmouse;
+			t.tgamemousey_f = MouseY(); //t.inputsys.ymouse; //((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight()) * t.inputsys.ymouse;
+			t.tmouseclick = MouseClick(); //t.inputsys.mclick;
+			if (t.tmouseclick == 1) {
+				printf("test");
+			}
+#else
+			OpenFileMap (  1, "FPSEXCHANGE" );
+			SetEventAndWait (  1 );
+			//  from map editor client window (800x600)
+			t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
+			t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
+			t.tgamemousex_f=t.tgamemousex_f/800.0;
+			t.tgamemousey_f=t.tgamemousey_f/600.0;
+			t.tgamemousex_f=t.tgamemousex_f*(GetDisplayWidth()+0.0);
+			t.tgamemousey_f=t.tgamemousey_f*(GetDisplayHeight()+0.0);
 			t.tmouseclick = MouseClick();
-			t.tgamemousex_f = t.tgamemousex_f / 800.0;
-			t.tgamemousey_f = t.tgamemousey_f / 600.0;
-			t.tgamemousex_f = t.tgamemousex_f*(GetDisplayWidth() + 0.0);
-			t.tgamemousey_f = t.tgamemousey_f*(GetDisplayHeight() + 0.0);
+			//CloseFileMap (  1 );
+#endif
 		}
 	}
 	else
 	{
 		if (  t.importer.importerActive == 1 || t.characterkit.inUse == 1 ) 
 		{
-			// from map editor client window (800x600)
-			#ifdef FPSEXCHANGE
-			 OpenFileMap (  1, "FPSEXCHANGE" );
-			 SetEventAndWait (  1 );
-			 t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
-			 t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
-			#else
-			 t.tgamemousex_f = MouseX();
-			 t.tgamemousey_f = MouseY();
-			#endif
-			t.tgamemousex_f = t.tgamemousex_f*(GetChildWindowWidth() / 800.0);
-			t.tgamemousey_f = t.tgamemousey_f*(GetChildWindowHeight() / 600.0);
-			t.tmouseclick = t.inputsys.mclick;
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+//				t.tgamemousex_f = t.inputsys.xmouse; //((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth()) * t.inputsys.xmouse;
+//				t.tgamemousey_f = t.inputsys.ymouse; //((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight()) * t.inputsys.ymouse;
+//				t.tmouseclick = t.inputsys.mclick;
+
+				t.tgamemousex_f = MouseX(); //t.inputsys.xmouse; //((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth()) * t.inputsys.xmouse;
+				t.tgamemousey_f = MouseY(); //t.inputsys.ymouse; //((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight()) * t.inputsys.ymouse;
+				t.tmouseclick = MouseClick(); //t.inputsys.mclick;
+
+#else
+				OpenFileMap (  1, "FPSEXCHANGE" );
+				SetEventAndWait (  1 );
+				//  from map editor client window (800x600)
+				t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
+				t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
+				t.tgamemousex_f=t.tgamemousex_f*(GetChildWindowWidth()/800.0);
+				t.tgamemousey_f=t.tgamemousey_f*(GetChildWindowHeight()/600.0);
+				t.tmouseclick = t.inputsys.mclick;
+				//CloseFileMap (  1 );
+#endif
 		}
 		else
 		{

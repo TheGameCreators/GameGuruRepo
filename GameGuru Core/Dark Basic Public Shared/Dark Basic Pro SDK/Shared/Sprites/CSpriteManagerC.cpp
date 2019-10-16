@@ -6,6 +6,15 @@
 #include ".\..\..\Shared\Objects\CommonC.h"
 #include ".\..\..\Shared\camera\ccameradatac.h"
 
+//PE: GameGuru IMGUI.
+#include "..\GameGuru\Imgui\imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "..\GameGuru\Imgui\imgui_internal.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 #undef DARKSDK
 #define DARKSDK
 
@@ -789,6 +798,16 @@ void CSpriteManager::GetDisplaySize()
 
     // Build display size from the viewport rather than the resolution...
 	#ifdef DX11
+
+#ifdef ENABLEIMGUI
+#ifndef USEOLDIDE
+	//PE: Sprites get clipped, as the backbuffer can be smaller when we use a render target.
+	vecDisplayMin = GGVECTOR3((float)0, (float)0, 0);
+	vecDisplayMax = GGVECTOR3((float)GetDisplayWidth() , (float)GetDisplayHeight(), 1);
+	return;
+#endif
+#endif
+
 	D3D11_TEXTURE2D_DESC ddsd;
 	//PE: Got a g_pBackBuffer=NULL here and "D3D11: Removing Device." caused by decals. Nothing we can do if g_pBackBuffer=0.
 	//PE: Seams like g_pBackBuffer=0 if "D3D11: Removing Device.", so if a future device restore is attempted this could be checked.

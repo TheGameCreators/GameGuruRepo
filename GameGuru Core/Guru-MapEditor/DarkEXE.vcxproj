@@ -404,7 +404,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <PreprocessorDefinitions>FPSEXCHANGE;VRQUEST;PHOTONMP;CLOUDKEYSYSTEM;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLEIMGUI;USERENDERTARGET;VRQUEST;PHOTONMP;CLOUDKEYSYSTEM;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -522,6 +522,11 @@
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\GameGuru\Imgui\imgui.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imgui_gg_dx11.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\GameGuru\Include\gameguru.cpp" />
     <ClCompile Include="..\GameGuru\Source\Common-File.cpp" />
     <ClCompile Include="..\GameGuru\Source\Common-Fonts.cpp" />

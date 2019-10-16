@@ -4346,12 +4346,9 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 				// release input resources
 				for ( int i = 0; i < iClearExtraPSResSlotsForPostProcessRTs; i++ )
 				{
-					if (i != 5) {
-						ID3D11ShaderResourceView *const pSRV[1] = { NULL };
-						m_pImmediateContext->PSSetShaderResources(i, 1, pSRV);
-					}
+					ID3D11ShaderResourceView *const pSRV[1] = { NULL };
+					m_pImmediateContext->PSSetShaderResources(i, 1, pSRV);
 				}
-
 			}
 			#endif
 

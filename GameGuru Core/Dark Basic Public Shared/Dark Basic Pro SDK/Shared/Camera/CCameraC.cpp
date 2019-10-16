@@ -2344,7 +2344,8 @@ DARKSDK void SetCameraView ( int iID, int iLeft, int iTop, int iRight, int iBott
 	m_ptr->viewPort3D.MaxZ   = 1.0;		// default as 1.0
 	
 	// if viewport larger than 2D (adjust 2D to match) - double wide buffers
-	if ( m_ptr->viewPort3D.Width > m_ptr->viewPort2D.Width ) m_ptr->viewPort2D.Width = m_ptr->viewPort3D.Width;
+	if ( m_ptr->viewPort3D.Width > m_ptr->viewPort2D.Width )
+		m_ptr->viewPort2D.Width = m_ptr->viewPort3D.Width;
 }
 
 DARKSDK void ClearCameraView ( int iID, int iRed, int iGreen, int iBlue )

@@ -5,6 +5,10 @@
 // Includes
 #include "gameguru.h"
 
+#include "..\GameGuru\Imgui\imgui.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 // Globals
 std::vector<cstr> g_sDefaultAssetFiles;
 
@@ -2166,7 +2170,13 @@ void mapfile_savestandalone_stage4 ( void )
 	//  Copy game engine and rename it
 	t.dest_s=t.exepath_s+t.exename_s+"\\"+t.exename_s+".exe";
 	if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
+#ifdef ENABLEIMGUI
+	// still called guru-mapeditor.exe for now
+	//CopyAFile("Game-Guru.exe", t.dest_s.Get());
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
+#else
+	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
+#endif
 
 	// Copy critical DLLs
 	#ifdef PHOTONMP

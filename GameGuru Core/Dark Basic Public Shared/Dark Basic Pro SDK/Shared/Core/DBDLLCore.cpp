@@ -69,6 +69,27 @@
 #include <iostream>
 #include <fstream>
 
+//PE: GameGuru IMGUI.
+#include "..\GameGuru\Imgui\imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "..\GameGuru\Imgui\imgui_internal.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
+#ifdef ENABLEIMGUI
+//PE: ImGui render if we have a imgui frame.
+extern bool bImGuiFrameState;
+extern bool bImGuiRenderTargetFocus;
+extern bool bImGuiReadyToRender;
+extern ImVec2 OldrenderTargetSize;
+extern ImVec2 OldrenderTargetPos;
+extern ImVec2 renderTargetAreaPos;
+extern ImVec2 renderTargetAreaSize;
+extern ImVec2 vStartResolution;
+#endif
+
 DB_ENTER_NS()
 DB_LEAVE_NS()
 
@@ -225,6 +246,8 @@ DARKSDK DWORD ProcessMessagesOnly(void)
 	if(g_bCascadeQuitFlag==true)
 		return 1;
 
+	//PE: Imgui , We can get our input here.
+
 	// Message Pump
 	while(TRUE)
 	{
@@ -259,6 +282,185 @@ DARKSDK void ConstantNonDisplayUpdate(void)
 	// Update All NonVisuals (this gets called about six times because of processmessage calls..)
 	UpdateSound();
 	UpdateAllAnimation();
+}
+
+void ImGui_RenderLast(void)
+{
+#ifdef ENABLEIMGUI
+
+#ifdef USERENDERTARGET
+	//PE: There are many single Sync FastSync that do not follow normal render, so:
+	extern bool bImGuiInTestGame;
+	extern bool bImGuiInitDone;
+
+	if (bImGuiInitDone && !bImGuiFrameState && !bImGuiInTestGame ) {
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+		bImGuiFrameState = true;
+
+		//######################################################################
+		//#### Default dockspace setup, how is our windows split on screen. ####
+		//######################################################################
+
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking; //ImGuiWindowFlags_MenuBar
+		ImGuiViewport* viewport;
+		viewport = ImGui::GetMainViewport();
+		extern int toolbar_size;
+		extern int ImGuiStatusBar_Size;
+		ImGui::SetNextWindowPos(viewport->Pos + ImVec2(0, toolbar_size));
+		ImGui::SetNextWindowSize(viewport->Size - ImVec2(0, toolbar_size + ImGuiStatusBar_Size));
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		bool dockingopen = true;
+		ImGui::Begin("DockSpaceAGK", &dockingopen, window_flags);
+		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(2);
+		static ImGuiID dock_id_bottom;
+
+		if (ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) != NULL) {
+			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+		}
+		ImGui::End();
+
+		ImGui::Begin("Entities##LeftPanel");
+		ImGui::End();
+		bImGuiReadyToRender = true;
+	}
+#endif
+
+	//PE: ImGui render if we have a imgui frame.
+	if (bImGuiFrameState && bImGuiReadyToRender) {
+
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		bImGuiRenderTargetFocus = false;
+
+#ifdef USERENDERTARGET
+		//PE: This must be last , as we need it to include everything.
+
+		//FramePadding
+		ImVec2 iOldWindowPadding = ImGui::GetStyle().WindowPadding;
+		ImGui::GetStyle().WindowPadding = { 0.0f,0.0f };
+
+		bool bVisible = true;
+		ImGui::Begin("Editor##GGRenderarget", NULL, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse); //ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar
+
+		ImGui::BeginChild("GGFinalRenderTarget", ImGui::GetWindowSize(), false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavInputs); //ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar
+
+		//ImGui::Begin("Test Render Target", &bVisible, ImGuiWindowFlags_NoMove);
+
+		//PE: TEST CODE
+		//extern GlobStruct* g_pGlob; //g_pGlob->pCurrentBitmapSurfaceView;
+		int iId = 21; //g.postprocessimageoffset;
+		ID3D11ShaderResourceView* lpTexture = GetImagePointerView(iId);
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		//const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(400, 300));
+
+//		ImVec2 renderTargetSize = ImGui::GetWindowSize();
+		ImVec2 renderTargetSize = ImGui::GetContentRegionAvail();
+		ImVec2 renderTargetPos = ImGui::GetWindowPos();
+		
+
+
+
+		if (OldrenderTargetSize.x != renderTargetSize.x || OldrenderTargetSize.y != renderTargetSize.y ||
+			OldrenderTargetPos.x != renderTargetPos.x || OldrenderTargetPos.y != renderTargetPos.y)
+		{
+			OldrenderTargetSize = renderTargetSize;
+			OldrenderTargetPos = renderTargetPos;
+			//SetCameraToImage(0, 21, renderTargetSize.x, renderTargetSize.y, 2);
+		}
+
+		if (lpTexture) {
+			ImVec4 drawCol_normal = ImColor(255, 255, 255, 255);
+
+			int iBorderSize = 15;
+			float fPreviewWidth = (int)renderTargetSize.x; // -iBorderSize;
+			float fPreviewHeight = (int)renderTargetSize.y; // -iBorderSize;
+			int iImgW = GetDisplayWidth();
+			int iImgH = GetDisplayHeight();
+			float fRatio;
+
+			//if ((fPreviewWidth / iImgW) < (fPreviewHeight / iImgH))
+			//fRatio = fPreviewWidth / iImgW;
+			//else
+			fRatio = fPreviewHeight / iImgH;
+			if (iImgW*fRatio < fPreviewWidth)
+				fRatio = fPreviewWidth / iImgW;
+
+			float fCenterX = (fPreviewWidth - iImgW*fRatio) * 0.5;
+			float fCenterY = (fPreviewHeight - iImgH*fRatio) * 0.5;
+			if (fCenterY < 0.0)
+				fCenterY = 0.0;
+
+			fCenterX = 0.0;
+			fCenterY = 0.0;
+
+			renderTargetAreaPos = renderTargetPos + ImVec2(fCenterX, fCenterY);
+			renderTargetAreaSize = ImVec2(iImgW*fRatio, iImgH*fRatio);
+
+			window->DrawList->AddImage((ImTextureID)lpTexture, renderTargetAreaPos, renderTargetPos + renderTargetAreaSize + ImVec2(fCenterX, fCenterY), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(drawCol_normal));
+			//			window->DrawList->AddImage((ImTextureID)lpTexture, renderTargetPos , renderTargetPos + renderTargetSize, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(drawCol_normal));
+		}
+
+		if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered()) //ImGui::IsWindowFocused()
+			bImGuiRenderTargetFocus = true;
+
+		ImGui::EndChild();
+
+		if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered()) //ImGui::IsWindowFocused()
+			bImGuiRenderTargetFocus = true;
+
+		ImGui::End();
+
+		ImGui::GetStyle().WindowPadding = iOldWindowPadding;
+
+
+		//When using render target always draw everything to camera
+		//DrawToCamera();
+		//g_bDrawEntirelyToCamera = true;
+#endif
+		RunCode(0); //Draw imgui to backbuffer.
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+		// Update and Render additional Platform Windows
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+
+			//PE: We need to restore the rendertarget as we have been outside the main window.
+			//			ID3D11RenderTargetView* pTmpCurrentRenderTarget;
+			//			ID3D11DepthStencilView* pTmpCurrentDepthTarget;
+			//			pTmpCurrentRenderTarget = g_pGlob->pCurrentRenderView;
+			//			pTmpCurrentDepthTarget = g_pGlob->pCurrentDepthView;
+			//			//PE: Restore rendertarget.
+			//			m_pImmediateContext->OMSetRenderTargets(1, &pTmpCurrentRenderTarget, pTmpCurrentDepthTarget);
+
+
+//			DBPRO_GLOBAL tagCameraData* m_ptrCam;
+//			extern CCameraManager m_CameraManager;
+//			m_ptrCam = m_CameraManager.GetData(0);
+//			if (m_ptrCam) {
+//				if (m_ptrCam->iCameraToImage > 0) {
+//					SetRenderAndDepthTarget(m_ptrCam->pCameraToImageSurfaceView, m_ptrCam->pImageDepthSurfaceView);
+//				}
+//			}
+			//UpdateSprites();
+			//CameraToImage();
+			//StartSceneEx(1);
+		}
+		RunCode(1); // switch back to render to camera.
+		bImGuiFrameState = false;
+	}
+#endif
 }
 
 DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
@@ -318,6 +520,10 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 		// flag the suspension of regular screen zero activity
 		bSuspendScreenOperations = true;
 	}
+	
+	//PE: Sprite need to go to camera 0 ?
+
+
 	if ( bSuspendScreenOperations==false )
 	{
 		// If BSP used, compute responses
@@ -327,8 +533,10 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 		SaveSpritesBack();
 
 		// Draw Phase : Draw Sprites Last
-		if(g_bDrawSpritesFirst==false)
+		if (g_bDrawSpritesFirst == false) 
+		{
 			UpdateSprites();
+		}
 			
 		// Ensures AutoStuff is first to be rendered
 		if(g_bDrawAutoStuffFirst==true)
@@ -336,8 +544,11 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 			if(g_bSceneStarted)
 			{
 				End();
-				if ( g_bCanRenderNow )
+				if (g_bCanRenderNow) 
+				{
+					ImGui_RenderLast();
 					Render();
+				}
 			}
 			g_bSceneStarted=true;
 			Begin();
@@ -347,8 +558,10 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 		}
 
 		// Draw Phase : Draw Sprites First
-		if(g_bDrawSpritesFirst==true)
+		if (g_bDrawSpritesFirst == true) 
+		{
 			UpdateSprites();
+		}
 	}
 
 	// Draw Phase : Draw 3D Gempoetry
@@ -434,6 +647,13 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 	// drawing is to take place by default (bitmap or camera zero)
 	if ( g_bDrawEntirelyToCamera==true ) RunCode ( 1 );
 
+#ifdef USERENDERTARGET
+	extern bool bImGuiInTestGame;
+	if(!bImGuiInTestGame && !g_bDrawEntirelyToCamera)
+		RunCode(1);
+#endif
+
+
 	// not suspended
 	if ( bSuspendScreenOperations==false )
 	{
@@ -443,8 +663,11 @@ DARKSDK void ExternalDisplaySync ( int iSkipSyncRateCodeAkaFastSync )
 			if(g_bSceneStarted)
 			{
 				End();
-				if ( g_bCanRenderNow )
+				if (g_bCanRenderNow) 
+				{
+					ImGui_RenderLast();
 					Render();
+				}
 			}
 			g_bSceneStarted=true;
 			Begin();
@@ -466,6 +689,253 @@ DARKSDK void ExternalDisplayUpdate(void)
 
 LRESULT CALLBACK EmptyWindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
+	// Default Action
+	return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+LRESULT CALLBACK ImguiWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	extern bool bImGuiInTestGame;
+//	if (bImGuiInTestGame) {
+//		return DefWindowProc(hWnd, message, wParam, lParam);
+//	}
+
+	//PE: IMGUI handle messages.
+	extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	if (!bImGuiInTestGame) {
+		if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) {
+			//		//return true;
+		}
+	}
+
+	switch (message)
+	{
+	case WM_SETTEXT:
+	{
+	}
+
+	case WM_ACTIVATE:
+	{
+		// 20/7/11 - Win7 - ensure we register for TOUCH over GESTURE (also allows LBUTTONDOWN to happen instantly!)
+		HWND hwndPrevious = (HWND)lParam;
+		if (bDetectAndActivateWindows7TouchSystem == false)
+		{
+			bDetectAndActivateWindows7TouchSystem = true;
+			OSVERSIONINFO osvi;
+			BOOL bIsWindows7orLater;
+			ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+			osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+			GetVersionEx(&osvi);
+			bIsWindows7orLater = ((osvi.dwMajorVersion > 6) || ((osvi.dwMajorVersion == 6) && (osvi.dwMinorVersion >= 1)));
+			if (bIsWindows7orLater == TRUE)
+			{
+				// must dynamically find the user32.dll function and call it IF Windows 7 (allows Windows XP to run)
+				typedef UINT(CALLBACK* sRegisterTouchWindowFnc)(HWND, ULONG);
+				HMODULE hWinUserDLL = LoadLibrary("user32.dll");
+				if (hWinUserDLL)
+				{
+					sRegisterTouchWindowFnc pRegTouchWin = (sRegisterTouchWindowFnc)GetProcAddress(hWinUserDLL, "RegisterTouchWindow");
+					if (pRegTouchWin) BOOL bRes = pRegTouchWin(g_pGlob->hWnd, 0);
+					FreeLibrary(hWinUserDLL);
+				}
+			}
+		}
+
+		break;
+	}
+
+	case WM_CLOSE:
+	{
+#ifdef DARKSDK_COMPILE
+		g_iDarkGameSDKQuit = 1;
+#endif
+		PostQuitMessage(0);
+		return TRUE;
+	}
+
+	case WM_DESTROY:
+	case WM_NCDESTROY:
+	{
+		PostQuitMessage(0);
+		break;
+	}
+
+	case WM_ERASEBKGND:
+	{
+		// Clear Device
+		PAINTSTRUCT ps;
+		RECT rc;
+		HDC hdcClient = BeginPaint(hWnd, &ps);
+		if (hdcClient) {
+			GetClientRect(hWnd, &rc);
+			HBRUSH bGrey = GetSysColorBrush(COLOR_3DFACE);
+			HBRUSH bOld = (HBRUSH)SelectObject(hdcClient, bGrey);
+			Rectangle(hdcClient, -5, -5, rc.right + 5, rc.bottom + 5);
+			SelectObject(hdcClient, bOld);
+			EndPaint(hWnd, &ps);
+		}
+	}
+	return TRUE;
+
+	case WM_SIZE:
+	case WM_SIZING:
+	case WM_MOVE:
+	case WM_MOVING:
+	case WM_PAINT:
+	{
+		// 180214 - record new size in glob struct
+		RECT rc;
+
+		// GDI Paint
+		PAINTSTRUCT ps;
+		HDC hdcClient = BeginPaint(hWnd, &ps);
+		if (hdcClient)
+		{
+			if (g_hdcDisplay)
+			{
+				GetClientRect(hWnd, &rc);
+				HGDIOBJ hdcOld = SelectObject(g_hdcDisplay, g_hDisplayBitmap);
+				BitBlt(hdcClient, rc.left, rc.top, rc.right, rc.bottom, g_hdcDisplay, 0, 0, SRCCOPY);
+				SelectObject(g_hdcDisplay, hdcOld);
+			}
+			else
+			{
+				// 210203 - if array of protected boxes setup (from controls requiring primary surface)
+				if (g_pGlob->dwSafeRectMax>0)
+				{
+					// Clear Device
+					GetClientRect(hWnd, &rc);
+					HBRUSH bGrey = GetSysColorBrush(COLOR_3DFACE);
+					HBRUSH bOld = (HBRUSH)SelectObject(hdcClient, bGrey);
+					Rectangle(hdcClient, -5, -5, rc.right + 5, rc.bottom + 5);
+					SelectObject(hdcClient, bOld);
+				}
+			}
+			EndPaint(hWnd, &ps);
+		}
+
+		// Ensures rendered areas are retained (when moving window or menu refreshing)
+		if (g_pGlob->dwAppDisplayModeUsing == 1)
+		{
+			// only dwDisplayMode=1 (window) should do this (otherwise render several times!!)
+			// ensure refresh is not done in middle of draw-phase
+			End(); Render(); Begin();
+		}
+	}
+	return TRUE;
+
+	case WM_MOUSEMOVE:
+	{
+		// Get Client Raw Mouse Position
+		g_pGlob->iWindowsMouseX = LOWORD(lParam);  // horizontal position of cursor 
+		g_pGlob->iWindowsMouseY = HIWORD(lParam);  // vertical position of cursor 
+
+												   // Special Scale for When Windows Stretch Beyond Physical Size of Backbuffer
+		RECT rc;
+		GetClientRect(hWnd, &rc);
+		float xRatio = (float)g_pGlob->dwWindowWidth / (float)rc.right;
+		float yRatio = (float)g_pGlob->dwWindowHeight / (float)rc.bottom;
+		g_pGlob->iWindowsMouseX = (int)((float)g_pGlob->iWindowsMouseX * xRatio);
+		g_pGlob->iWindowsMouseY = (int)((float)g_pGlob->iWindowsMouseY * yRatio);
+
+		// Restore cursor when move mouse
+		//if (g_ActiveCursor != NULL) SetCursor(g_ActiveCursor);
+
+	}
+	break;
+
+	case WM_LBUTTONDOWN:
+		g_pGlob->iWindowsMouseClick |= 1;
+		g_pGlob->dwWindowsMouseLeftTouchPersist = timeGetTime() + 250; // U76 - many cycles
+		if (GetFocus() != hWnd)
+		{
+			SetFocus(hWnd);
+		}
+		break;
+
+	case WM_RBUTTONDOWN:
+		g_pGlob->iWindowsMouseClick |= 2;
+		if (GetFocus() != hWnd) SetFocus(hWnd);
+		break;
+
+		// aaron - 20120811 - Potential issues when using xor depending on obscure and rare window interaction
+	case WM_LBUTTONUP:
+		g_pGlob->iWindowsMouseClick &= ~1UL;
+		break;
+
+	case WM_RBUTTONUP:
+		g_pGlob->iWindowsMouseClick &= ~2UL;
+		break;
+
+	case WM_SYSKEYDOWN:
+		g_wWinKey = wParam;
+		break;
+
+	case WM_KEYDOWN:
+		g_wWinKey = wParam;
+		//PE: Not in imgui.
+//		if ((int)wParam == VK_ESCAPE)
+//		{
+//			if (g_EscapeValue) *(DWORD*)g_EscapeValue = 1;
+//			if (g_pGlob->bEscapeKeyEnabled)
+//			{
+//				PostQuitMessage(0);
+//			}
+//		}
+		return TRUE;
+
+	case WM_SYSKEYUP:
+		g_wWinKey = 0;
+		return TRUE;
+
+	case WM_KEYUP:
+		g_cInkeyCodeKey = 0;
+		g_wWinKey = 0;
+		return TRUE;
+
+	case WM_CHAR:
+
+		// If win string cleared externally (InputDLL)
+		if (g_pGlob->pWindowsTextEntry)
+			if (g_pGlob->pWindowsTextEntry[0] == 0)
+				g_dwWindowsTextEntryPos = 0;
+
+		// Key that was pressed
+		g_cKeyPressed = (unsigned char)wParam;
+		g_cInkeyCodeKey = g_cKeyPressed;
+		return TRUE;
+
+		// windows text entry is handled in Entry() now as it gets the info from IDE
+		// Ensure string is always big enough
+		if (g_pGlob->pWindowsTextEntry == NULL)
+		{
+			g_dwWindowsTextEntrySize = 32;
+			g_pGlob->pWindowsTextEntry = new char[g_dwWindowsTextEntrySize];
+			g_dwWindowsTextEntryPos = 0;
+		}
+		if (g_dwWindowsTextEntryPos>g_dwWindowsTextEntrySize - 4)
+		{
+			g_dwWindowsTextEntrySize = g_dwWindowsTextEntrySize * 2;
+			LPSTR pNewString = new char[g_dwWindowsTextEntrySize];
+			strcpy(pNewString, g_pGlob->pWindowsTextEntry);
+			delete[] g_pGlob->pWindowsTextEntry;
+			g_pGlob->pWindowsTextEntry = pNewString;
+		}
+
+		// Add character to entry string
+		g_pGlob->pWindowsTextEntry[g_dwWindowsTextEntryPos] = g_cKeyPressed;
+		g_dwWindowsTextEntryPos++;
+		g_pGlob->pWindowsTextEntry[g_dwWindowsTextEntryPos] = 0;
+
+		return TRUE;
+
+	case WM_USER + 1: // Show/Hide Cursor
+		if (wParam == 0) ShowCursor(FALSE);
+		if (wParam == 1) ShowCursor(TRUE);
+		return TRUE;
+	}
+
 	// Default Action
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }

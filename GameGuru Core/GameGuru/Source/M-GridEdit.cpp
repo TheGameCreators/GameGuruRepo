@@ -7,6 +7,18 @@
 #include "M-WelcomeSystem.h"
 #include "GGVR.h"
 
+//PE: GameGuru IMGUI.
+#include "..\GameGuru\Imgui\imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "..\GameGuru\Imgui\imgui_internal.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+#include <algorithm>
+#include <string>
+#include <time.h>
+
 // 
 //  GAMEGURU MAP EDITOR EXECUTABLE CODE
 // 
@@ -19,6 +31,80 @@ extern bool g_bSkipTerrainRender;
 extern bool g_bBlackListRemovedSomeEntities;
 extern bool gbWelcomeSystemActive;
 extern bool g_bCharacterCreatorPlusActivated;
+
+char cImGuiDebug[2048] = "\0";
+bool bForceKey = false;
+cstr csForceKey = "";
+bool bForceKey2 = false;
+cstr csForceKey2 = "";
+int iLaunchAfterSync = 0;
+int iSkibFramesBeforeLaunch = 0;
+DWORD gWindowSizeXOld = 0;
+DWORD gWindowSizeYOld = 0;
+DWORD gWindowSizeAddY = 0;
+DWORD gWindowSizeAddX = 0;
+DWORD gWindowVisibleOld = 0;
+DWORD gWindowPosXOld = 0;
+DWORD gWindowPosYOld = 0;
+int xmouseold = 0, ymouseold = 0;
+#ifdef ENABLEIMGUI
+extern bool bImGuiInTestGame;
+extern bool bImGuiFrameState;
+extern bool bImGuiReadyToRender;
+extern bool bImGuiInitDone;
+extern ImVec2 OldrenderTargetSize;
+extern ImVec2 OldrenderTargetPos;
+extern ImVec2 renderTargetAreaPos;
+extern ImVec2 renderTargetAreaSize;
+extern bool bImGuiRenderTargetFocus;
+extern bool bImGuiGotFocus;
+extern bool g_bCascadeQuitFlag;
+extern int ImGuiStatusBar_Size;
+
+int refresh_gui_docking = 0;
+ImGuiID dock_main_tabs;
+ImGuiViewport* viewport;
+int toolbar_size;
+
+class cFolderItem
+{
+public:
+	struct sFolderFiles {
+		sFolderFiles * m_dropptr; //Need to be the first entry for drag/drop.
+		cStr m_sName;
+		cStr m_sDropTarget;
+		cStr m_sPath;
+		cStr m_sFolder;
+		UINT iFlags;
+		int iPreview; //Preview image.
+		int iBigPreview; //Preview image.
+		int id;
+		int iAnimationFrom = 0;
+		bool bPreviewProcessed;
+		long last_used;
+		sFolderFiles * m_pNext;
+	};
+	cStr m_sFolder;
+	cStr m_sFolderFullPath;
+	cFolderItem *m_pNext;
+	cFolderItem *m_pSubFolder;
+	sFolderFiles * m_pFirstFile;
+	bool m_bFilesRead;
+	bool visible;
+	bool alwaysvisible;
+	bool deletethisentry;
+	bool bIsCustomFolder;
+	char cfolder[256]; //PE: Only for faster sorting.
+	time_t m_tFolderModify;
+	float m_fLastTimeUpdate;
+	UINT iFlags;
+	int count;
+	cFolderItem() { m_pNext = 0; iFlags = 0; m_bFilesRead = false; m_pFirstFile = NULL; m_pNext = NULL; m_pSubFolder = NULL; m_fLastTimeUpdate = 0; }
+	~cFolderItem() { }
+};
+
+extern cFolderItem MainEntityList;
+#endif
 
 //  GOTO LABEL (jump from common_init)
 void mapeditorexecutable ( void )
@@ -177,6 +263,8 @@ void mapeditorexecutable ( void )
 	game_timeelapsed_init ( );
 	t.tsl_f=Timer();
 
+	g.gshowannouncements = 0; //PE: dev fast load.
+
 	// IDE announcement system
 	if (g.gshowannouncements == 1)
 	{
@@ -213,8 +301,1553 @@ void mapeditorexecutable ( void )
 	timestampactivity(0,"Guru Map Editor Loop Starts");
 
 	// main loop
+#ifdef ENABLEIMGUI
+
+	//Load needed images.
+
+	#define TOOL_SHAPE UIV3IMAGES+1
+	#define TOOL_LEVELMODE UIV3IMAGES+2
+	#define TOOL_STOREDLEVEL UIV3IMAGES+3
+	#define TOOL_BLENDMODE UIV3IMAGES+4
+	#define TOOL_RAMPMODE UIV3IMAGES+5
+	#define TOOL_PAINTTEXTURE UIV3IMAGES+6
+	#define TOOL_PAINTGRASS UIV3IMAGES+7
+	#define TOOL_ENTITY UIV3IMAGES+8
+	#define TOOL_MARKERS UIV3IMAGES+9
+	#define TOOL_WAYPOINTS UIV3IMAGES+10
+	#define TOOL_NEWWAYPOINTS UIV3IMAGES+11
+	#define TOOL_TESTGAME UIV3IMAGES+12
+	#define TOOL_VRMODE UIV3IMAGES+13
+	#define TOOL_SOCIALVR UIV3IMAGES+14
+
+	#define TOOL_HEADER UIV3IMAGES+15
+
+	#define TOOL_NEWLEVEL UIV3IMAGES+16
+	#define TOOL_LOADLEVEL UIV3IMAGES+17
+	#define TOOL_SAVELEVEL UIV3IMAGES+18
+
+	SetMipmapNum(1); //PE: mipmaps not needed.
+
+	LoadImage("editors\\uiv3\\shape.png", TOOL_SHAPE);
+	LoadImage("editors\\uiv3\\level.png", TOOL_LEVELMODE);
+	LoadImage("editors\\uiv3\\storedlevel.png", TOOL_STOREDLEVEL);
+	LoadImage("editors\\uiv3\\blendmode.png", TOOL_BLENDMODE);
+	LoadImage("editors\\uiv3\\rampmode.png", TOOL_RAMPMODE);
+
+	LoadImage("editors\\uiv3\\painttexture.png", TOOL_PAINTTEXTURE);
+	LoadImage("editors\\uiv3\\paintgrass.png", TOOL_PAINTGRASS);
+	LoadImage("editors\\uiv3\\entity.png", TOOL_ENTITY);
+	LoadImage("editors\\uiv3\\markers.png", TOOL_MARKERS);
+	LoadImage("editors\\uiv3\\waypoints.png", TOOL_WAYPOINTS);
+
+	LoadImage("editors\\uiv3\\newwaypoints.png", TOOL_NEWWAYPOINTS);
+
+	LoadImage("editors\\uiv3\\testgame.png", TOOL_TESTGAME);
+	LoadImage("editors\\uiv3\\vrmode.png", TOOL_VRMODE);
+	LoadImage("editors\\uiv3\\socialvr.png", TOOL_SOCIALVR);
+
+
+	LoadImage("editors\\uiv3\\newlevel.png", TOOL_NEWLEVEL);
+	LoadImage("editors\\uiv3\\loadlevel.png", TOOL_LOADLEVEL);
+	LoadImage("editors\\uiv3\\savelevel.png", TOOL_SAVELEVEL);
+
+#ifdef USETOOLBARHEADER
+	LoadImage("editors\\uiv3\\theader.png", TOOL_HEADER);
+#endif
+
+
+	SetMipmapNum(-1);
+
+	ChangeGGFont("editors\\uiv3\\Roboto-Medium.ttf",15);
+	
+
+	/*
+path.png
+	*/
+		
+
+#ifdef USERENDERTARGET
+	//PE: redirect all to image.
+	SetCameraToImage(0, g.postprocessimageoffset, GetDisplayWidth(), GetDisplayHeight(), 2);
+	
+#endif
+
+	t.inputsys.donewflat = 1;
+	t.inputsys.donew == 1;
+	gridedit_new_map();
+	t.inputsys.donewflat = 0;
+	t.inputsys.donew = 0;
+
+	while (!g_bCascadeQuitFlag)
+#else
 	while ( 1 )
+#endif
 	{
+#ifdef ENABLEIMGUI
+
+		//PE: Some function requere we have a empty imgui , so launch here.
+		switch(iLaunchAfterSync)
+		{
+			case 1: //Test Game
+				bImGuiInTestGame = true;
+				RunCode(0); //switch to backbuffer
+				editor_previewmap(0);
+				SetCameraToImage(0, g.postprocessimageoffset, GetDisplayWidth(), GetDisplayHeight(), 2); //switch back to render target.
+				iLaunchAfterSync = 0;
+				bImGuiInTestGame = false;
+				break;
+
+			default:
+				break;
+		}
+
+		//PE: Imgui start.
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		ImVec4 style_back = ImGui::GetStyle().Colors[ImGuiCol_Text];
+		ImVec4 style_winback = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+		
+	
+		style_back = style_back * ImVec4(1.2, 1.2, 1.2, 1.2);
+		ImVec4 drawCol_back = ImColor(255, 255, 255, 128)*style_back; // Not really used as we have transparent icons.
+		ImVec4 drawCol_normal = ImColor(220, 220, 220, 220)*style_back;
+		ImVec4 drawCol_hover = ImColor(255, 255, 255, 255)*style_back;
+		ImVec4 drawCol_Down = ImColor(180, 180, 160, 255)*style_back;
+		ImVec4 drawCol_active = ImColor(120, 220, 120, 220)*style_back;
+		ImVec4 drawCol_tmp = ImColor(220, 220, 220, 220)*style_back;
+		ImVec4 drawCol_header = ImColor(255, 255, 255, 255)*style_back;
+
+#ifdef USETOOLBARHEADER
+		ImVec4 drawCol_back_gg = style_winback * ImVec4(1.0, 1.0, 1.0, 0.85);
+		ImVec4 drawCol_back_terrain = style_winback * ImVec4(1.0, 1.0, 1.0, 0.75);
+		ImVec4 drawCol_back_entities = style_winback * ImVec4(1.0, 1.0, 1.0, 0.85);
+		ImVec4 drawCol_back_waypoint = style_winback * ImVec4(1.0, 1.0, 1.0, 0.75);
+		ImVec4 drawCol_back_test = style_winback * ImVec4(1.0, 1.0, 1.0, 0.85);
+#else
+		int adder = 7;
+		ImVec4 drawCol_back_test = ImColor(255, 255, 255, adder)*style_back; adder += 7;
+		ImVec4 drawCol_back_waypoint = ImColor(255, 255, 255, adder)*style_back; adder += 7;
+		ImVec4 drawCol_back_entities = ImColor(255, 255, 255, adder)*style_back; adder += 7;
+		ImVec4 drawCol_back_terrain = ImColor(255, 255, 255, adder)*style_back; adder += 7;
+		ImVec4 drawCol_back_gg = ImColor(255, 255, 255, adder)*style_back; adder += 7;
+#endif
+//		ImVec4 drawCol_back_active = ImGui::GetStyle().Colors[ImGuiCol_FrameBgHovered] * ImVec4(1.0, 1.0, 1.0, 0.85);//*style_back;
+		ImVec4 drawCol_back_active = ImColor(255, 255, 255, 70); //*style_back;
+
+//		ImVec4 drawCol_back_test = ImColor(255, 255, 255, 10)*style_back;
+
+
+		bImGuiGotFocus = false; //PE: Set this if any of the imgui windows got focus.
+		bImGuiReadyToRender = false;
+
+		// Start the Dear ImGui frame
+		if (!bImGuiFrameState) {
+			ImGui_ImplDX11_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+			bImGuiFrameState = true;
+		}
+
+		//PE: Additional resets, not done in direct input.
+		t.inputsys.doartresize = 0;
+		t.inputsys.dosave = 0; t.inputsys.doopen = 0; t.inputsys.donew = 0; t.inputsys.donewflat = 0; t.inputsys.dosaveas = 0;
+		if (bImGuiFrameState) {
+
+			int icon_size = 60;
+			ImVec2 iToolbarIconSize = { (float)icon_size, (float)icon_size };
+			static bool dockingopen = true;
+			float fsy = ImGui::CalcTextSize("#").y;
+			toolbar_size = icon_size + (fsy*2.0) + 2;
+			ImVec2 viewPortPos = ImGui::GetMainViewport()->Pos;
+			ImVec2 viewPortSize = ImGui::GetMainViewport()->Size;
+			ImGuiStatusBar_Size = fsy*2.0;
+
+			//PE: Render toolbar.
+
+			int iOldRounding = ImGui::GetStyle().WindowRounding;
+			ImGui::GetStyle().WindowRounding = 0.0f;
+
+//			if (refresh_gui_docking == 0) ImGui::SetNextWindowPos(ImVec2(0, 0) + viewPortPos, ImGuiCond_Once);
+			
+
+			//#################
+			//#### Toolbar ####
+			//#################
+
+			static float toolbar_offset_center = 0;
+			int current_mode = 0;
+			if (t.grideditselect == 6) {
+				current_mode = TOOL_WAYPOINTS;
+			}
+			else if (t.grideditselect == 5) {
+				if (t.gridentitymarkersmodeonly == 0)
+					current_mode = TOOL_ENTITY;
+				else
+					current_mode = TOOL_MARKERS;
+			}
+			else {
+				if (t.terrain.terrainpaintermode >= 1 && t.terrain.terrainpaintermode <= 5)
+				{
+					if (t.terrain.terrainpaintermode == 1)  current_mode = TOOL_SHAPE;
+					if (t.terrain.terrainpaintermode == 2)  current_mode = TOOL_LEVELMODE;
+					if (t.terrain.terrainpaintermode == 3)  current_mode = TOOL_STOREDLEVEL;
+					if (t.terrain.terrainpaintermode == 4)  current_mode = TOOL_BLENDMODE;
+					if (t.terrain.terrainpaintermode == 5)  current_mode = TOOL_RAMPMODE;
+				}
+				else
+				{
+					if (t.terrain.terrainpaintermode == 6)  current_mode = TOOL_PAINTTEXTURE;
+					if (t.terrain.terrainpaintermode == 7)  current_mode = TOOL_PAINTTEXTURE;
+					if (t.terrain.terrainpaintermode == 8)  current_mode = TOOL_PAINTTEXTURE;
+					if (t.terrain.terrainpaintermode == 9)  current_mode = TOOL_PAINTTEXTURE;
+					if (t.terrain.terrainpaintermode == 10) current_mode = TOOL_PAINTGRASS;
+				}
+			}
+
+			//PE: Make sure we dont place the toolbar in its own viewport.
+			ImGui::SetNextWindowPos(ImVec2(0, 0) + viewPortPos, ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->Size.x, toolbar_size));
+			//ImGuiWindowFlags_NoBackground
+			ImGui::Begin("Toolbar", NULL , ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+			ImGui::GetStyle().WindowRounding = iOldRounding;
+			//ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 10, ImGui::GetCursorPos().y));
+
+#ifdef USETOOLBARHEADER
+			ID3D11ShaderResourceView* lpTexture = GetImagePointerView(TOOL_HEADER);
+			if (lpTexture) {
+				ImGuiWindow* window = ImGui::GetCurrentWindow();
+				window->DrawList->AddImage((ImTextureID)lpTexture, viewPortPos, viewPortPos + ImVec2(1920, 200), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(drawCol_header));
+			}
+#endif
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+#ifdef CENTERETOOLBAR		
+			if(toolbar_offset_center > 0 && toolbar_offset_center < ImGui::GetWindowSize().x)
+				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + ( (ImGui::GetWindowSize().x * 0.5) - (toolbar_offset_center*0.5) ) , ImGui::GetCursorPos().y));
+#endif
+
+			float cursorpos = ImGui::GetCursorPos().x;
+
+#ifdef ADDGGTOOLBAR
+//			if (ImGui::ImgBtn(TOOL_NEWLEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal, drawCol_hover, drawCol_Down, 0)) {
+//				int iRet = AskSaveBeforeNewAction();
+//				if (iRet != 2)
+//				{
+//					t.inputsys.donewflat = 0;
+//					t.inputsys.donew == 1;
+//					gridedit_new_map();
+//					t.inputsys.donewflat = 0;
+//					t.inputsys.donew = 0;
+//				}
+//			}
+//			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "New Level");
+//			ImGui::SameLine();
+
+			if (ImGui::ImgBtn(TOOL_LOADLEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal, drawCol_hover, drawCol_Down, 0)) {
+				iLaunchAfterSync = 2; //Load
+				iSkibFramesBeforeLaunch = 2;
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Load Level");
+			ImGui::SameLine();
+			if (ImGui::ImgBtn(TOOL_SAVELEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal, drawCol_hover, drawCol_Down, 0)) {
+				iLaunchAfterSync = 3; //Save
+				iSkibFramesBeforeLaunch = 2;
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Save Level");
+			ImGui::SameLine();
+
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
+#endif
+
+
+
+			if (current_mode == TOOL_SHAPE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_SHAPE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "t";
+				bForceKey2 = true;
+				csForceKey2 = "1";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Shape Mode");
+			ImGui::SameLine();
+
+			if (current_mode == TOOL_LEVELMODE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_LEVELMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "t";
+				bForceKey2 = true;
+				csForceKey2 = "2";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Level Mode");
+			ImGui::SameLine();
+
+			if (current_mode == TOOL_STOREDLEVEL) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_STOREDLEVEL, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "t";
+				bForceKey2 = true;
+				csForceKey2 = "3";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Stored Level Mode");
+			ImGui::SameLine();
+
+			if (current_mode == TOOL_BLENDMODE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_BLENDMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "t";
+				bForceKey2 = true;
+				csForceKey2 = "4";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Blend Mode");
+			ImGui::SameLine();
+
+			if (current_mode == TOOL_RAMPMODE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_RAMPMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "t";
+				bForceKey2 = true;
+				csForceKey2 = "5";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Ramp Mode");
+			ImGui::SameLine();
+
+			if (current_mode == TOOL_PAINTTEXTURE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_PAINTTEXTURE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "t";
+				bForceKey2 = true;
+				csForceKey2 = "6";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Paint Texture");
+			ImGui::SameLine();
+
+			if (current_mode == TOOL_PAINTGRASS) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_PAINTGRASS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "t";
+				bForceKey2 = true;
+				csForceKey2 = "0";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Paint Grass");
+			ImGui::SameLine();
+
+
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y ));
+
+
+			if (current_mode == TOOL_ENTITY) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_entities;
+			if (ImGui::ImgBtn(TOOL_ENTITY, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "e";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Entity Mode (E)");
+			ImGui::SameLine();
+
+
+			if (current_mode == TOOL_MARKERS) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_entities;
+			if (ImGui::ImgBtn(TOOL_MARKERS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "m";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Markers Mode (M)");
+			ImGui::SameLine();
+			
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
+
+			if (current_mode == TOOL_WAYPOINTS) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_waypoint;
+			if (ImGui::ImgBtn(TOOL_WAYPOINTS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "p";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Waypoint Editing Mode (P)");
+			ImGui::SameLine();
+
+			if (ImGui::ImgBtn(TOOL_NEWWAYPOINTS, iToolbarIconSize, drawCol_back_waypoint, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				bForceKey = true;
+				csForceKey = "p";
+				t.inputsys.domodewaypointcreate = 1;
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Create New Waypoint");
+			ImGui::SameLine();
+
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
+
+			if (ImGui::ImgBtn(TOOL_TESTGAME, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+				iLaunchAfterSync = 1;
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Test Game");
+			ImGui::SameLine();
+
+			if (ImGui::ImgBtn(TOOL_VRMODE, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "VR Mode");
+			ImGui::SameLine();
+
+			if (ImGui::ImgBtn(TOOL_SOCIALVR, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+				//Code
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Social VR Mode");
+			ImGui::SameLine();
+
+			toolbar_offset_center = ImGui::GetCursorPos().x - cursorpos;
+
+			ImGui::PopStyleVar();
+			ImGui::PopStyleVar();
+
+
+			if (ImGui::BeginMenuBar())
+			{
+
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::MenuItem("New Random Level")) {
+						iLaunchAfterSync = 6;
+						iSkibFramesBeforeLaunch = 2;
+					}
+					if (ImGui::MenuItem("New Flat Level")) {
+						iLaunchAfterSync = 5;
+						iSkibFramesBeforeLaunch = 2;
+					}
+
+					if (ImGui::MenuItem("Open") ) {
+						iLaunchAfterSync = 2;
+						iSkibFramesBeforeLaunch = 2;
+					}
+
+					if (ImGui::MenuItem("Save")) {
+						iLaunchAfterSync = 3; //Save
+						iSkibFramesBeforeLaunch = 2;
+					}
+					if (ImGui::MenuItem("Save As...")) {
+						iLaunchAfterSync = 4; //Save As
+						iSkibFramesBeforeLaunch = 2;
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("Save Standalone")) {
+						//Code
+					}
+					if (ImGui::MenuItem("Download Store Items")) {
+						//Code
+					}
+					if (ImGui::MenuItem("Character Creator...")) {
+						//Code
+					}
+					if (ImGui::MenuItem("Import Model")) {
+						//Code
+					}
+
+					ImGui::Separator();
+
+					if (ImGui::MenuItem("list last 5 load/save here...")) {
+						//Code
+					}
+
+					ImGui::Separator();
+
+					if (ImGui::MenuItem("Exit")) {
+						int iRet = AskSaveBeforeNewAction();
+						if (iRet != 2)
+						{
+							g_bCascadeQuitFlag = true;
+						}
+					}
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Edit"))
+				{
+					if (ImGui::MenuItem("Undo")) {
+						t.inputsys.doundo = 1;
+						t.inputsys.undokeypress = 1;
+					}
+					if (ImGui::MenuItem("Redo")) {
+						t.inputsys.doredo = 1;
+						t.inputsys.undokeypress = 1;
+					}
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Terrain"))
+				{
+					if (ImGui::MenuItem("Shape Mode")) {
+						bForceKey = true;
+						csForceKey = "t";
+						bForceKey2 = true;
+						csForceKey2 = "1";
+					}
+					if (ImGui::MenuItem("Level Mode")) {
+						bForceKey = true;
+						csForceKey = "t";
+						bForceKey2 = true;
+						csForceKey2 = "2";
+					}
+					if (ImGui::MenuItem("Stored Level Mode")) {
+						bForceKey = true;
+						csForceKey = "t";
+						bForceKey2 = true;
+						csForceKey2 = "3";
+					}
+					if (ImGui::MenuItem("Blend Mode")) {
+						bForceKey = true;
+						csForceKey = "t";
+						bForceKey2 = true;
+						csForceKey2 = "4";
+					}
+					if (ImGui::MenuItem("Ramp Mode")) {
+						bForceKey = true;
+						csForceKey = "t";
+						bForceKey2 = true;
+						csForceKey2 = "5";
+					}
+					if (ImGui::MenuItem("Paint Texture")) {
+						bForceKey = true;
+						csForceKey = "t";
+						bForceKey2 = true;
+						csForceKey2 = "6";
+					}
+					if (ImGui::MenuItem("Paint Grass")) {
+						bForceKey = true;
+						csForceKey = "t";
+						bForceKey2 = true;
+						csForceKey2 = "0";
+					}
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Getting Started"))
+				{
+					if (ImGui::MenuItem("Welcome Screen")) {
+						//Code
+					}
+					if (ImGui::MenuItem("Development Broadcasts")) {
+						//Code
+					}
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Help"))
+				{
+					if (ImGui::MenuItem("Editor Keyboard Shortcuts")) {
+						//Code
+					}
+					if (ImGui::MenuItem("About")) {
+						//Code
+					}
+					if (ImGui::MenuItem("Credits")) {
+						//Code
+					}
+					if (ImGui::MenuItem("The Game Crerators Game Guru Forums")) {
+						//Code
+					}
+					if (ImGui::MenuItem("LUA Scripting")) {
+						//Code
+					}
+					if (ImGui::MenuItem("Toggle Restricted Content")) {
+						//Code
+					}
+					if (ImGui::MenuItem("Read User Manual")) {
+						//Code
+					}
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndMenuBar();
+			}
+			ImGui::End();
+
+			//####################
+			//#### Status bar ####
+			//####################
+			//FramePadding
+			int iOldWindowBorderSize = ImGui::GetStyle().WindowBorderSize;
+			ImGui::GetStyle().WindowRounding = 0.0f;
+			ImGui::GetStyle().WindowBorderSize = 1.0f;
+			//+		WindowPadding	{x=4.00000000 y=4.00000000 }	ImVec2
+			float paddingy = ImGui::GetStyle().WindowPadding.y;
+
+			//PE: using default font.
+			//float startposy = viewPortSize.y - ImGuiStatusBar_Size - paddingy - 2.0; //(ImGui::GetStyle().WindowBorderSize*2.0)
+
+			float startposy = viewPortSize.y - ImGuiStatusBar_Size - 2.0; //(ImGui::GetStyle().WindowBorderSize*2.0)
+			ImGui::SetNextWindowPos(viewPortPos + ImVec2(0.0f, startposy), ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->Size.x, ImGuiStatusBar_Size));
+			//ImGuiWindowFlags_NoDocking,ImGuiWindowFlags_MenuBar
+			ImGui::Begin("Statusbar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 10.0f, ImGui::GetCursorPos().y + (fsy*0.5)));
+//			ImGui::Text("(%.1f) %s", ImGui::GetIO().Framerate,t.laststatusbar_s.Get());
+			ImGui::Text("%s", t.laststatusbar_s.Get());
+			ImGui::SameLine();
+			//Align right.
+			float fTextSize = ImGui::CalcTextSize(t.statusbar_s.Get()).x * 1.05;
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x - fTextSize, ImGui::GetCursorPos().y ));
+			ImGui::Text(t.statusbar_s.Get());
+
+			ImGui::End();
+			ImGui::GetStyle().WindowRounding = iOldRounding;
+			ImGui::GetStyle().WindowBorderSize = iOldWindowBorderSize;
+
+
+			//######################################################################
+			//#### Default dockspace setup, how is our windows split on screen. ####
+			//######################################################################
+
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking; //ImGuiWindowFlags_MenuBar
+			viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->Pos + ImVec2(0, toolbar_size));
+			ImGui::SetNextWindowSize(viewport->Size - ImVec2(0, toolbar_size + ImGuiStatusBar_Size));
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			ImGui::Begin("DockSpaceAGK", &dockingopen, window_flags);
+			ImGui::PopStyleVar();
+			ImGui::PopStyleVar(2);
+			static ImGuiID dock_id_bottom;
+			//We cant make all windows dock if all windows is NOT undocked first (.ini setup problem ), so refresh_gui_docking == 2
+			if (ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) == NULL || refresh_gui_docking == 2)
+			{
+				//Default docking setup.
+				ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+				ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
+				//int ImGuiDockNodeFlags_Dockspace = 1 << 10;
+				ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
+				ImGui::DockBuilderSetNodePos(dockspace_id, viewport->Pos + ImVec2(0, toolbar_size));
+				ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size - ImVec2(0, toolbar_size+ ImGuiStatusBar_Size));
+
+				ImGuiID dock_main_id = dockspace_id;
+				ImGuiID dock_id_top = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Up, 0.12f, NULL, &dock_main_id); //Toolbar
+				//dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.05f, NULL, &dock_main_id);
+				
+				//ImGui::DockBuilderSetNodeSize(dock_id_bottom, ImVec2(viewport->Size.x, statusbar_size));
+
+//				ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.10f, NULL, &dock_main_id);
+//				ImGuiID dock_id_rightDown = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.28f, NULL, &dock_id_right);
+				ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.125f, NULL, &dock_main_id);
+//				ImGuiID dock_id_leftDown = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Down, 0.28f, NULL, &dock_id_left);
+//				ImGuiID dock_id_leftMiddle = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Down, 0.60f, NULL, &dock_id_left);
+
+				// Disable tab bar for custom toolbar and statusbar
+				ImGuiDockNode* node = ImGui::DockBuilderGetNode(dock_id_top);
+				node->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
+
+				//node = ImGui::DockBuilderGetNode(dock_id_bottom);
+				//node->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;
+
+				//ImGui::DockBuilderDockWindow("level1.scene", dock_main_id);
+
+				ImGui::DockBuilderDockWindow("Editor##GGRenderarget", dock_main_id);
+				ImGui::DockBuilderDockWindow("Entities##LeftPanel", dock_id_left);
+
+				//ImGui::DockBuilderDockWindow("Hello,GameGuru!", dock_id_left);
+				//ImGui::DockBuilderDockWindow("Statusbar", dock_id_bottom);
+
+				//ImGuiDockNodeFlags_AutoHideTabBar
+				dock_main_tabs = dock_main_id;
+				ImGui::DockBuilderFinish(dockspace_id);
+			}
+
+			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+			ImGui::End();
+
+			if (dock_main_tabs == 0)
+				dock_main_tabs = dockspace_id;
+
+			//###########################
+			//#### External Entities ####
+			//###########################
+
+			static bool bExternal_Entities_Window = false;
+			static bool bExternal_Entities_Init = false;
+			static std::map<std::string, std::int32_t> entity_folders;
+
+			ImGui::SetNextWindowPos(viewPortPos + ImVec2(160, 140), ImGuiCond_Once); //ImGuiCond_FirstUseEver
+			ImGui::SetNextWindowSize(ImVec2(53 * ImGui::GetFontSize(), 33 * ImGui::GetFontSize()), ImGuiCond_Once); //ImGuiCond_FirstUseEver
+			ImGuiWindowFlags ex_window_flags = 0;
+
+			if (bExternal_Entities_Window) {
+
+				static int uniqueId = 4000; //PE: Also used for imageID for previews.
+				static int loaded_images = 0; //PE: Also used for imageID for previews.
+				int olduniqueId = uniqueId;
+				bool bReleaseIconsDynamic = false;
+				uniqueId = 4000;
+#ifdef DYNAMICLOADUNLOAD
+				static int max_load_persync = 200; //First time only , changed later to 15
+				bReleaseIconsDynamic = true;
+#else
+				int max_load_persync = 2000;
+#endif
+
+				int preview_count = 0;
+				int media_icon_size = 64;
+				int iColumnsWidth = 110;
+
+				time_t tCurrentTimeSec;
+				time(&tCurrentTimeSec);
+
+				ImGui::Begin("Entity Library##ExternalWindow", &bExternal_Entities_Window, ex_window_flags);
+
+				bool bIsWeDocked = ImGui::IsWindowDocked();
+				if (ImGui::BeginTabBar("entlibtabbar"))
+				{
+					static int current_tab = -1;
+					static int iCurrentFilter = 0;
+
+					for (int i = 0; i < 2; i++) {
+
+						cStr sTabHeader;
+						if (i == 0) sTabHeader = " Entities ";
+						if (i == 1) sTabHeader = " Markers! ";
+
+						if (ImGui::BeginTabItem(sTabHeader.Get()))
+						{
+							if (current_tab != i) {
+								//Tab changed.
+								//timestampactivity(0, "Entity Library Tab change");
+								current_tab = i;
+								iCurrentFilter = 0;
+							}
+							static char cAllFilters[10][MAX_PATH];
+							char cFilter[MAX_PATH], cHeader[MAX_PATH];
+							int splitsections = 1;
+
+							if (i == 1) {
+								splitsections = 5;
+							}
+
+							int control_wrap_width = 70;
+							strcpy(cFilter, "");
+							strcpy(cHeader, "");
+							//PE: Debug dynamic icon load unload.
+							//ImGui::Text("Entities: %ld , in memory: %ld", olduniqueId-4000, loaded_images);
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() , ImGui::GetCursorPosY() + 3.0 ));
+							ImGui::Text("Filter: ");
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3.0));
+							if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+								ImGui::Text(""); //NewLine
+							bool rb_change = false;
+							ImGui::RadioButton("All ", &iCurrentFilter, 0);
+							ImGui::SameLine();
+							if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+								ImGui::Text(""); //NewLine
+
+							if (i == 0) {
+								ImGui::RadioButton("Characters ", &iCurrentFilter, 1);
+								ImGui::SameLine();
+								if(ImGui::GetCursorPosX()+ control_wrap_width > ImGui::GetWindowSize().x)
+									ImGui::Text(""); //NewLine
+								ImGui::RadioButton("Buildings", &iCurrentFilter, 2);
+								ImGui::SameLine();
+//								if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+//									ImGui::Text(""); //NewLine
+//								ImGui::RadioButton("Foliage", &iCurrentFilter, 3);
+//								ImGui::SameLine();
+//								if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+//									ImGui::Text(""); //NewLine
+//								ImGui::RadioButton("Cartoon", &iCurrentFilter, 4);
+//								ImGui::SameLine();
+//								if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+//									ImGui::Text(""); //NewLine
+//								ImGui::RadioButton("Fixtures", &iCurrentFilter, 5);
+//								ImGui::SameLine();
+								if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+									ImGui::Text(""); //NewLine
+								ImGui::RadioButton("Objects", &iCurrentFilter, 6);
+
+								if (iCurrentFilter == 1) strcpy(cFilter, "Characters");
+								if (iCurrentFilter == 2) strcpy(cFilter, "Buildings");
+//								if (iCurrentFilter == 3) strcpy(cFilter, "Foliage");
+//								if (iCurrentFilter == 4) strcpy(cFilter, "Cartoon");
+//								if (iCurrentFilter == 5) strcpy(cFilter, "Fixtures");
+								if (iCurrentFilter == 6) strcpy(cFilter, "*");
+
+								strcpy(cAllFilters[0], "Characters");
+								strcpy(cAllFilters[1], "Buildings");
+//								strcpy(cAllFilters[2], "Foliage");
+//								strcpy(cAllFilters[3], "Cartoon");
+//								strcpy(cAllFilters[4], "Fixtures");
+
+							}
+							if (i == 1) {
+								ImGui::RadioButton("Players ", &iCurrentFilter, 1);
+								ImGui::SameLine();
+								if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+									ImGui::Text(""); //NewLine
+								ImGui::RadioButton("Zones", &iCurrentFilter, 2);
+								ImGui::SameLine();
+								if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+									ImGui::Text(""); //NewLine
+								ImGui::RadioButton("Lights", &iCurrentFilter, 3);
+								ImGui::SameLine();
+								if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+									ImGui::Text(""); //NewLine
+								ImGui::RadioButton("Spot Lights", &iCurrentFilter, 4);
+
+
+								if (iCurrentFilter == 1) { strcpy(cFilter, "player"); strcpy(cHeader, "Player Positions"); }
+								if (iCurrentFilter == 2) { strcpy(cFilter, "zone.fpe"); strcpy(cHeader, "Zones"); }
+								if (iCurrentFilter == 3) { strcpy(cFilter, " light.fpe"); strcpy(cHeader, "Lights"); }
+								if (iCurrentFilter == 4) { strcpy(cFilter, "spot.fpe"); strcpy(cHeader, "Spot Lights"); }
+								if (iCurrentFilter > 0) splitsections = 1;
+							}
+
+							static char cSearchAllEntities[3][MAX_PATH] = { "\0","\0","\0" };
+
+							ImGui::SameLine();
+							if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
+								ImGui::Text(""); //NewLine
+							ImGui::PushItemWidth(-1);
+							ImGui::Text(" Search: ");
+							ImGui::SameLine();
+							ImGui::InputText("##cSearchAllEntities", &cSearchAllEntities[i][0], MAX_PATH, ImGuiInputTextFlags_EnterReturnsTrue);
+							ImGui::PopItemWidth();
+							ImGui::Separator();
+
+							if (strlen(cSearchAllEntities[i]) > 0 && i == 1 ) {
+								iCurrentFilter = 0;
+								splitsections = 1;
+							}
+
+							ImGui::BeginChild("##cSearchAllEntitiesBegin", ImVec2(0, 0));
+
+							int iIconVisiblePosY = ImGui::GetWindowSize().y + ImGui::GetScrollY() + media_icon_size;
+
+							for (int splitloop = 0; splitloop < splitsections; splitloop++) {
+
+								if (iCurrentFilter == 0) {
+									if (i == 1) strcpy(cFilter, "");
+									if (i == 1) strcpy(cHeader, "");
+									if (i == 1 && splitloop == 0) { strcpy(cFilter, "player"); strcpy(cHeader, "Player Positions"); }
+									if (i == 1 && splitloop == 1) { strcpy(cFilter, "zone.fpe"); strcpy(cHeader, "Zones"); }
+									if (i == 1 && splitloop == 2) { strcpy(cFilter, " light.fpe"); strcpy(cHeader, "Lights"); }
+									if (i == 1 && splitloop == 3) { strcpy(cFilter, "spot.fpe"); strcpy(cHeader, "Spot Lights"); }
+									if (i == 1 && splitloop == 4) { strcpy(cFilter, "*"); strcpy(cHeader, "Others"); }
+									if (i == 1) strcpy(cAllFilters[splitloop], cFilter);
+									if (strlen(cSearchAllEntities[i]) > 0 && i == 1) {
+										strcpy(cHeader, "");
+									}
+								}
+								cFolderItem *pNewFolder = &MainEntityList;
+								pNewFolder = pNewFolder->m_pNext;
+								if (pNewFolder) {
+									//We start at the "entitybank" entry that we use to parce the others.
+									cStr path_remove = pNewFolder->m_sFolderFullPath.Get();
+									int ipath_remove_len = path_remove.Len();
+
+									pNewFolder = pNewFolder->m_pNext;
+									while (pNewFolder) {
+
+										bool isMarkers = false;
+										bool bDisplayEverythingHere = false;
+										bool bHideEverythingHere = false;
+										if (i == 0 && cFilter[0] == '*') {
+											if (pestrcasestr(pNewFolder->m_sFolderFullPath.Get(), cAllFilters[0]))
+												bHideEverythingHere = true;
+											if (pestrcasestr(pNewFolder->m_sFolderFullPath.Get(), cAllFilters[1]))
+												bHideEverythingHere = true;
+//											if (pestrcasestr(pNewFolder->m_sFolderFullPath.Get(), cAllFilters[2]))
+//												bHideEverythingHere = true;
+//											if (pestrcasestr(pNewFolder->m_sFolderFullPath.Get(), cAllFilters[3]))
+//												bHideEverythingHere = true;
+//											if (pestrcasestr(pNewFolder->m_sFolderFullPath.Get(), cAllFilters[4]))
+//												bHideEverythingHere = true;
+										} else if (strlen(cFilter) > 0) {
+											if (pestrcasestr(pNewFolder->m_sFolderFullPath.Get(), cFilter))
+												bDisplayEverythingHere = true;
+										}
+
+										if (strlen(cSearchAllEntities[i]) > 0)
+										{
+											//When search disable fixed tags search.
+											bDisplayEverythingHere = false;
+											bHideEverythingHere = false;
+										}
+
+										cStr path = pNewFolder->m_sFolderFullPath.Get();
+										char *final_name = path.Get();
+										final_name += ipath_remove_len;
+										if (*final_name == '\\')
+											final_name++;
+
+										std::string path_for_filename = final_name;
+										std::string dir_name = final_name;
+										replaceAll(dir_name, "\\", " - ");
+
+										if (pestrcasestr(dir_name.c_str(), "_markers"))
+											isMarkers = true;
+
+										if (!isMarkers && i == 0 && !bDisplayEverythingHere && !bHideEverythingHere && strlen(cSearchAllEntities[i]) > 0) {
+											if (pestrcasestr(pNewFolder->m_sFolderFullPath.Get(), cSearchAllEntities[i]))
+												bDisplayEverythingHere = true;
+										}
+
+
+										if (pNewFolder->m_pFirstFile) {
+
+											bool bHeaderDisplayed = false;
+
+											bool bDisplayText = true;
+
+											float fWinWidth = ImGui::GetWindowSize().x - 10.0; // Flicker - ImGui::GetCurrentWindow()->ScrollbarSizes.x;
+											if (iColumnsWidth >= fWinWidth && fWinWidth > media_icon_size) {
+												iColumnsWidth = fWinWidth;
+											}
+											int iColumns = (int)(ImGui::GetWindowSize().x / (iColumnsWidth));
+											if (iColumns <= 1)
+												iColumns = 1;
+
+											cFolderItem::sFolderFiles * myfiles = pNewFolder->m_pFirstFile->m_pNext;
+											while (myfiles) {
+
+												std::string sFinal = Left(myfiles->m_sName.Get(), Len(myfiles->m_sName.Get()) - 4);
+
+												bool bIsVisible = true;
+												if (i == 0 && isMarkers) bIsVisible = false;
+												if (i == 1 && !isMarkers) bIsVisible = false;
+
+												if (bIsVisible && strlen(cSearchAllEntities[i]) > 0) {
+													if (!pestrcasestr(myfiles->m_sName.Get(), cSearchAllEntities[i]))
+														bIsVisible = false;
+												}
+												else if (i == 1 && cFilter[0] == '*') {
+													//Others not already displayed.
+													for (int fl = 0; fl < splitloop; fl++) {
+														if (pestrcasestr(myfiles->m_sName.Get(), cAllFilters[fl]))
+															bIsVisible = false;
+													}
+												}
+												else if (strlen(cFilter) > 0 && cFilter[0] != '*') {
+													if (!pestrcasestr(myfiles->m_sName.Get(), cFilter))
+														bIsVisible = false;
+												}
+
+
+												if (bDisplayEverythingHere)
+													bIsVisible = true;
+												if (bHideEverythingHere)
+													bIsVisible = false;
+
+												ImGui::PushID(uniqueId+preview_count);
+												if (splitloop == 0)
+													uniqueId++;
+
+												int textureId = 0;
+												if (myfiles->iPreview <= 0) {
+
+													//Only Visible.
+													int gcpy = ImGui::GetCursorPosY();
+													if ( !bReleaseIconsDynamic || (splitloop == 0 && (bIsVisible || isMarkers ) && (gcpy < iIconVisiblePosY && gcpy >= ImGui::GetScrollY()- media_icon_size || isMarkers)) ) {
+
+														myfiles->last_used = (long)tCurrentTimeSec;
+														if (max_load_persync-- >= 0) {
+															//Load preview.
+															std::string sImgName = myfiles->m_sPath.Get();
+															sImgName = sImgName + "\\" + Left(myfiles->m_sName.Get(), Len(myfiles->m_sName.Get()) - 4);
+															sImgName += ".bmp";
+															myfiles->iPreview = uniqueId; //TOOL_ENTITY; //Just for testing.
+															SetMipmapNum(1); //PE: mipmaps not needed.
+															LoadImage((char *)sImgName.c_str(), myfiles->iPreview);
+															SetMipmapNum(-1);
+															if (!GetImageExistEx(myfiles->iPreview)) {
+																myfiles->iPreview = TOOL_ENTITY;
+																textureId = TOOL_ENTITY;
+															}
+															else {
+																loaded_images++;
+																textureId = myfiles->iPreview;
+															}
+														}
+														else
+															textureId = TOOL_ENTITY;
+													}
+													else {
+														textureId = TOOL_ENTITY;
+													}
+												}
+												else {
+
+													//PE: Only delete in first run. so we dont delete a image that has already been sent to rendering.
+													if ( splitloop == 0 && bReleaseIconsDynamic ) {
+														//Only NOT Visible with a preview image..
+														int gcpy = ImGui::GetCursorPosY();
+														if (!isMarkers && (!(gcpy < iIconVisiblePosY && gcpy >= ImGui::GetScrollY() - media_icon_size) || !bIsVisible) ) {
+
+															if ((long)tCurrentTimeSec - myfiles->last_used > 20) {
+																//Delete Image not visible for 20 sec.
+																if (GetImageExistEx(myfiles->iPreview) && myfiles->iPreview >= 4000) {
+																	DeleteImage(myfiles->iPreview);
+																	myfiles->iPreview = 0;
+																	loaded_images--;
+																}
+																textureId = TOOL_ENTITY;
+															}
+															else
+																textureId = myfiles->iPreview;
+														}
+														else {
+															//Still visible update time.
+															if (bIsVisible || isMarkers)
+																myfiles->last_used = (long)tCurrentTimeSec;
+															textureId = myfiles->iPreview;
+														}
+													}
+													else
+														textureId = myfiles->iPreview;
+												}
+
+
+
+												if (bIsVisible) {
+
+													if (!GetImageExistEx(textureId)) {
+														printf("tmp");
+													}
+													if(myfiles->iPreview > 0 && !GetImageExistEx(myfiles->iPreview)) {
+														myfiles->iPreview = 0;
+														textureId = TOOL_ENTITY;
+													}
+
+													if (!bHeaderDisplayed) {
+
+														if (!isMarkers && i == 0 ) {
+															ImGui::SetWindowFontScale(1.25);
+															ImGui::Text("%s", dir_name.c_str());
+															ImGui::Spacing();
+														}
+														else if (strlen(cHeader) > 0) {
+															ImGui::SetWindowFontScale(1.25);
+															ImGui::Text("%s", cHeader);
+															ImGui::Spacing();
+														}
+
+														ImGui::Columns(iColumns, "filescolumns4entities", false);  //false no border
+														bHeaderDisplayed = true;
+													}
+													ImGui::SetWindowFontScale(0.80);
+
+													float fFramePadding = (iColumnsWidth - media_icon_size)*0.5;
+													float fCenterX = iColumnsWidth*0.5;
+
+													ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fFramePadding, 2.0f));
+
+													if (ImGui::ImgBtn(textureId, ImVec2(media_icon_size, media_icon_size), drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down)) {
+
+														std::string sFpeName = path_for_filename.c_str();
+														sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
+
+														t.addentityfile_s = sFpeName.c_str();
+														if (t.addentityfile_s != "")
+														{
+															entity_adduniqueentity(false);
+															t.tasset = t.entid;
+															if (t.talreadyloaded == 0)
+															{
+																editor_filllibrary();
+															}
+														}
+														t.inputsys.constructselection = t.tasset;
+
+														t.gridentity = t.entid;
+														t.inputsys.constructselection = t.entid;
+														t.inputsys.domodeentity = 1;
+														t.grideditselect = 5;
+														editor_refresheditmarkers();
+														//PE: Close window for now.
+
+														if (!bIsWeDocked) {
+															//If we are over the rendertarget hide window.
+															float itmpmousex = ImGui::GetWindowPos().x;
+															float itmpmousey = ImGui::GetWindowPos().y;
+															int iSecureZone = 4;
+															if (bImGuiRenderTargetFocus && itmpmousex >= (renderTargetAreaPos.x + iSecureZone) && itmpmousey >= (renderTargetAreaPos.y + iSecureZone) &&
+																itmpmousex <= renderTargetAreaPos.x + (renderTargetAreaSize.x - iSecureZone) && itmpmousey <= renderTargetAreaPos.y + (renderTargetAreaSize.y - ImGuiStatusBar_Size - iSecureZone))
+															{
+																bExternal_Entities_Window = false;
+															}
+															itmpmousex = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x;
+															itmpmousey = ImGui::GetWindowPos().y + ImGui::GetWindowSize().y;
+															if (bExternal_Entities_Window && bImGuiRenderTargetFocus && itmpmousex >= (renderTargetAreaPos.x + iSecureZone) && itmpmousey >= (renderTargetAreaPos.y + iSecureZone) &&
+																itmpmousex <= renderTargetAreaPos.x + (renderTargetAreaSize.x - iSecureZone) && itmpmousey <= renderTargetAreaPos.y + (renderTargetAreaSize.y - ImGuiStatusBar_Size - iSecureZone))
+															{
+																bExternal_Entities_Window = false;
+															}
+															itmpmousex = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x;
+															itmpmousey = ImGui::GetWindowPos().y;
+															if (bExternal_Entities_Window && bImGuiRenderTargetFocus && itmpmousex >= (renderTargetAreaPos.x + iSecureZone) && itmpmousey >= (renderTargetAreaPos.y + iSecureZone) &&
+																itmpmousex <= renderTargetAreaPos.x + (renderTargetAreaSize.x - iSecureZone) && itmpmousey <= renderTargetAreaPos.y + (renderTargetAreaSize.y - ImGuiStatusBar_Size - iSecureZone))
+															{
+																bExternal_Entities_Window = false;
+															}
+															itmpmousex = ImGui::GetWindowPos().x;
+															itmpmousey = ImGui::GetWindowPos().y + ImGui::GetWindowSize().y;
+															if (bExternal_Entities_Window && bImGuiRenderTargetFocus && itmpmousex >= (renderTargetAreaPos.x + iSecureZone) && itmpmousey >= (renderTargetAreaPos.y + iSecureZone) &&
+																itmpmousex <= renderTargetAreaPos.x + (renderTargetAreaSize.x - iSecureZone) && itmpmousey <= renderTargetAreaPos.y + (renderTargetAreaSize.y - ImGuiStatusBar_Size - iSecureZone))
+															{
+																bExternal_Entities_Window = false;
+															}
+														}
+													}
+
+													ImGui::PopStyleVar();
+
+													if (bDisplayText) {
+														int iTextWidth = ImGui::CalcTextSize(sFinal.c_str()).x;
+														if (iTextWidth < iColumnsWidth)
+															ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + (fCenterX - (iTextWidth*0.5)), ImGui::GetCursorPosY()));
+														ImGui::TextWrapped("%s", sFinal.c_str());
+													}
+
+													ImGui::NextColumn();
+												}
+												ImGui::PopID();
+												preview_count++;
+
+												myfiles = myfiles->m_pNext;
+											}
+
+											ImGui::Columns(1);
+
+											ImGui::SetWindowFontScale(1.0);
+										}
+
+										pNewFolder = pNewFolder->m_pNext;
+									}
+								}
+							}
+							ImGui::SetWindowFontScale(1.0);
+
+							ImRect bbwin(ImGui::GetWindowPos(), ImGui::GetWindowPos() + ImGui::GetWindowSize());
+							if (ImGui::IsMouseHoveringRect(bbwin.Min, bbwin.Max))
+							{
+								bImGuiGotFocus = true;
+							}
+							if (ImGui::IsAnyItemFocused()) {
+								bImGuiGotFocus = true;
+							}
+
+							ImGui::EndChild();
+
+							ImGui::EndTabItem();
+						}
+
+
+						ImRect bbwin(ImGui::GetWindowPos(), ImGui::GetWindowPos() + ImGui::GetWindowSize());
+						if (ImGui::IsMouseHoveringRect(bbwin.Min, bbwin.Max))
+						{
+							bImGuiGotFocus = true;
+						}
+						if (ImGui::IsAnyItemFocused()) {
+							bImGuiGotFocus = true;
+						}
+
+					}
+				}
+
+#ifdef DYNAMICLOADUNLOAD
+				max_load_persync = 15;
+#endif
+
+				ImGui::EndTabBar();
+
+				ImGui::End();
+			}
+
+			if (!bExternal_Entities_Init) {
+
+				GetMainEntityList("entitybank", "",NULL);
+				bExternal_Entities_Init = true;
+			}
+
+			//########################
+			//#### Level Entities ####
+			//########################
+
+			//Markers:
+//			t.ebebank_s[1]="..\\ebebank\\_builder\\New Site.fpe";
+
+
+			ImGui::Begin("Entities##LeftPanel");
+				
+				static char cSearchEntities[1024] = "\0";
+
+				ImGui::BeginChild("##ChirlEntitiesLeftPanel", ImVec2(ImGui::GetWindowSize().x-2.0f,fsy*4.0), false, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavInputs); //ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar
+					ImGui::PushItemWidth(-1);
+					if (ImGui::Button("+", ImVec2(ImGui::GetWindowSize().x - 2.0f, fsy*1.5))) {
+						//Open Add item page.
+						bExternal_Entities_Window = true;
+					}
+					ImGui::PopItemWidth();
+					ImGui::PushItemWidth(-1);
+					ImGui::InputText( "##cSearchEntities", &cSearchEntities[0], MAX_PATH, ImGuiInputTextFlags_EnterReturnsTrue);
+					ImGui::PopItemWidth();
+					if (strlen(cSearchEntities) > 0) {
+					}
+				ImGui::EndChild();
+
+
+				ImGui::BeginChild("##MainEntitiesLeftPanel", ImVec2(0, 0)); //, false, ImGuiWindowFlags_HorizontalScrollbar);
+
+				static std::map<std::string,std::int32_t> sorted_files;
+				static int last_entidmaster = 0;
+				if (last_entidmaster != g.entidmaster) {
+					//Sort new list.
+					sorted_files.clear();
+					if (g.entidmaster >= 1) {
+						//Sort list.
+						for (t.entid = 1; t.entid <= g.entidmaster; t.entid++)
+						{
+//							std::string stmp = t.entityprofile[t.entid].model_s.Get();
+							std::string stmp = t.entityprofileheader[t.entid].desc_s.Get();
+							stmp += "###"; //We need it to be unique so add this.
+							stmp += t.entityprofile[t.entid].model_s.Get();
+							stmp += "###";
+							stmp += t.entid;
+							int32_t itmp = t.entid;
+							sorted_files.insert(std::make_pair(stmp, itmp) );
+						}
+					}
+					last_entidmaster = g.entidmaster;
+				}
+
+				int uniqueId = 15000;
+				if (!sorted_files.empty()) {
+					
+					int preview_count = 0;
+					int media_icon_size = 64;
+					int iColumnsWidth = 110;
+
+					bool bDisplayText = true;
+					ImGui::SetWindowFontScale(0.80);
+					float fWinWidth = ImGui::GetWindowSize().x - 10.0; // Flicker - ImGui::GetCurrentWindow()->ScrollbarSizes.x;
+					if (iColumnsWidth >= fWinWidth && fWinWidth > media_icon_size) {
+						iColumnsWidth = fWinWidth;
+						ImGui::SetWindowFontScale(0.70);
+					}
+					if (fWinWidth <= media_icon_size+10) {
+						iColumnsWidth = media_icon_size;
+						ImGui::SetWindowFontScale(0.70);
+					}
+					if (fWinWidth <= 58) {
+						media_icon_size = 48;
+						iColumnsWidth = media_icon_size + 16;
+						ImGui::SetWindowFontScale(0.50);
+					}
+					if (fWinWidth <= 42) {
+						media_icon_size = 32;
+						iColumnsWidth = media_icon_size+16;
+						bDisplayText = false;
+					}
+
+					int iColumns = (int) (ImGui::GetWindowSize().x / (iColumnsWidth));
+					if (iColumns <= 1)
+						iColumns = 1;
+
+					ImGui::Columns(iColumns, "mycolumns4entities", false);  //false no border
+					
+//					for (std::map<std::string, std::int32_t>::reverse_iterator  it = sorted_files.rbegin(); it != sorted_files.rend(); ++it) {
+					for (std::map<std::string, std::int32_t>::iterator it = sorted_files.begin(); it != sorted_files.end(); ++it) {
+
+						if ( it->second > 0 ) {
+							bool DisplayEntry = true;
+							char cName[512];
+							strcpy(cName, it->first.c_str());
+
+							if (strlen(cSearchEntities) > 0) {
+								//PE: This will search the desc. and the object name.
+								if (!pestrcasestr(cName , cSearchEntities) )
+									DisplayEntry = false;
+							}
+							if (DisplayEntry && t.entityprofile[it->second].iThumbnailSmall > 0) {
+
+								ImGui::PushID(uniqueId++);
+								float fFramePadding = (iColumnsWidth- media_icon_size)*0.5;
+								float fCenterX = iColumnsWidth*0.5;
+
+								ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fFramePadding, 2.0f));
+
+								if (ImGui::ImgBtn(t.entityprofile[it->second].iThumbnailSmall, ImVec2(media_icon_size, media_icon_size) , drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down)) {
+									t.gridentity = it->second;
+									t.inputsys.constructselection = it->second;
+									t.inputsys.domodeentity = 1;
+									t.grideditselect = 5;
+									editor_refresheditmarkers();
+								}
+
+								ImGui::PopStyleVar();
+
+								if (bDisplayText) {
+									char *cFind = strstr(cName, "###");
+									if (cFind)
+										cFind[0] = '\0';
+
+									int iTextWidth = ImGui::CalcTextSize(cName).x;
+									if (iTextWidth < iColumnsWidth)
+										ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + (fCenterX - (iTextWidth*0.5)), ImGui::GetCursorPosY()));
+									ImGui::TextWrapped("%s", cName);
+								}
+								ImGui::PopID();
+								preview_count++;
+								ImGui::NextColumn();
+							}
+
+
+						}
+					}
+
+					ImGui::SetWindowFontScale(1.00);
+					ImGui::Columns(1);
+
+				}
+
+				if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered()) //ImGui::IsWindowFocused()
+					bImGuiGotFocus = true;
+
+//				ImGui::Text("");
+//				ImGui::Text("");
+//				ImGui::TextWrapped(cImGuiDebug);
+				ImGui::Text("bImGuiGotFocus: %d", bImGuiGotFocus);
+				ImGui::EndChild();
+
+			ImGui::End();
+
+/*
+			//PE: TEST
+			ImGui::Begin("Hello,GameGuru!");
+			ImGui::Text("Testing GG IMGUI.");
+			static float f = 0.0f;
+			static int imguicounter = 0;
+			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+			if (ImGui::Button("Button"))
+				imguicounter++;
+			ImGui::SameLine();
+			ImGui::Text("counter = %d", imguicounter);
+			ImGui::TextWrapped("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			ImGui::Text("mouse = %d,%d", t.inputsys.xmouse, t.inputsys.ymouse);
+			ImGui::Text("click = %d", t.inputsys.mclick);
+			ImGui::Text("mousemove = %d,%d", t.inputsys.xmousemove, t.inputsys.ymousemove);
+
+			if (ImGui::Button("Entity")) {
+				bForceKey = true;
+				csForceKey = "e";
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Terrain")) {
+				bForceKey = true;
+				csForceKey = "t";
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Waypoint")) {
+				bForceKey = true;
+				csForceKey = "p";
+			}
+
+			if (ImGui::Button("Test Game")) {
+				//editor_previewmap();
+				iLaunchAfterSync = 1;
+			}
+
+			if (ImGui::Button("Open")) {
+				iLaunchAfterSync = 2; //Open
+			}
+
+			if (ImGui::ImgBtn(g.editorimagesoffset + 1, iToolbarIconSize, drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down)) {
+				//Clicked.
+				ImGui::Text("img click");
+			}
+
+			if (ImGui::IsWindowHovered())
+				ImGui::Text("GOTHOVER");
+			if (ImGui::IsWindowFocused())
+				ImGui::Text("GOTFOCUS");
+
+
+			ImGui::TextWrapped(cImGuiDebug);
+
+			if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered()) //ImGui::IsWindowFocused()
+				bImGuiGotFocus = true;
+
+			ImGui::End();
+*/
+
+			bImGuiReadyToRender = true;
+
+			if (refresh_gui_docking < 4) {
+				refresh_gui_docking++;
+			}
+			else {
+				bImGuiInitDone = true;
+			}
+
+			//Some need launch after we have bImGuiReadyToRender , so prompt will work.
+			if (iSkibFramesBeforeLaunch == 0) {
+				switch (iLaunchAfterSync)
+				{
+					case 2: //Open
+						iLaunchAfterSync = 0;
+						int iRet;
+						iRet = AskSaveBeforeNewAction();
+						if (iRet != 2)
+						{
+							//t.returnstring_s must have full path to .fpm.
+
+							//PE: filedialogs change dir so.
+							cStr tOldDir = GetDir();
+							char * cFileSelected;
+							cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", NULL, NULL);
+							SetDir(tOldDir.Get());
+
+							if (cFileSelected && strlen(cFileSelected) > 0) {
+
+								t.returnstring_s = cFileSelected;
+								if (t.returnstring_s != "")
+								{
+									if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".fpm")
+									{
+										t.gridentity = 0;
+										t.inputsys.constructselection = 0;
+										t.inputsys.domodeentity = 1;
+										t.grideditselect = 5;
+										editor_refresheditmarkers();
+
+										g.projectfilename_s = t.returnstring_s;
+										gridedit_load_map();
+									}
+								}
+							}
+						}
+						break;
+
+					case 3: //Save
+						iLaunchAfterSync = 0;
+						if (g.projectmodified == 1)
+						{
+							//  yes save first
+							if (g.projectfilename_s == "")
+							{
+								t.returnstring_s = "";
+								cStr tOldDir = GetDir();
+								char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL);
+								SetDir(tOldDir.Get());
+								if (cFileSelected && strlen(cFileSelected) > 0) {
+									t.returnstring_s = cFileSelected;
+								}
+								if (t.returnstring_s != "")
+								{
+									if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) != ".fpm")  t.returnstring_s = t.returnstring_s + ".fpm";
+									g.projectfilename_s = t.returnstring_s;
+									bool oksave = true;
+									if (FileExist(g.projectfilename_s.Get())) {
+										oksave = overWriteFileBox(g.projectfilename_s.Get());
+									}
+									if (oksave) {
+										gridedit_save_map();
+									}
+
+								}
+							}
+							else
+							{
+								gridedit_save_map();
+							}
+
+							g.projectmodified = 0; gridedit_changemodifiedflag();
+							g.projectmodifiedstatic = 0;
+						}
+						break;
+
+					case 4: //Save As
+					{
+						iLaunchAfterSync = 0;
+						t.returnstring_s = "";
+						cStr tOldDir = GetDir();
+						char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL);
+						SetDir(tOldDir.Get());
+						if (cFileSelected && strlen(cFileSelected) > 0) {
+							t.returnstring_s = cFileSelected;
+						}
+						if (t.returnstring_s != "")
+						{
+							if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) != ".fpm")  t.returnstring_s = t.returnstring_s + ".fpm";
+							g.projectfilename_s = t.returnstring_s;
+
+							bool oksave = true;
+							if (FileExist(g.projectfilename_s.Get())) {
+								oksave = overWriteFileBox(g.projectfilename_s.Get());
+							}
+							if (oksave) {
+								gridedit_save_map();
+							}
+						}
+
+						g.projectmodified = 0; gridedit_changemodifiedflag();
+						g.projectmodifiedstatic = 0;
+
+						break;
+					}
+
+					case 5: //New flatten level
+					{
+						iLaunchAfterSync = 0;
+						int iRet = AskSaveBeforeNewAction();
+						if (iRet != 2)
+						{
+							t.inputsys.donewflat = 1;
+							t.inputsys.donew == 1;
+							gridedit_new_map();
+							t.inputsys.donewflat = 0;
+							t.inputsys.donew = 0;
+						}
+						break;
+					}
+
+					case 6: //New  level
+					{
+						iLaunchAfterSync = 0;
+						int iRet = AskSaveBeforeNewAction();
+						if (iRet != 2)
+						{
+							t.inputsys.donewflat = 0;
+							t.inputsys.donew == 1;
+							gridedit_new_map();
+							t.inputsys.donewflat = 0;
+							t.inputsys.donew = 0;
+						}
+
+						break;
+					}
+					default:
+						break;
+				}
+			}
+			else
+			{
+				iSkibFramesBeforeLaunch--;
+			}
+
+		}
+#endif
+
 		// 191015 - Trigger quick start dialog when editor flowing
 		if ( iCountDownToShowQuickStartDialog > 0 )
 		{
@@ -257,7 +1890,39 @@ void mapeditorexecutable ( void )
 		mp_sendSteamIDToEditor ( );
 
 		//  User input calls
-		input_getcontrols ( );
+#ifdef ENABLEIMGUI
+		static bool imgui_onetime_init = false;
+
+		if (g.globals.ideinputmode == 1) {
+
+#ifndef USEOLDIDE
+			imgui_input_getcontrols();
+
+#else
+			input_getcontrols();
+#endif
+
+		}
+		else {
+			input_getcontrols();
+		}
+
+		if (!imgui_onetime_init) {
+			imgui_onetime_init = true;
+//			t.inputsys.donew == 1;
+//			t.inputsys.donewflat = 1;
+//			gridedit_new_map_ask();
+		}
+
+		//PE: We can set doopen,dosavew .. here must be before editor_mainfunctionality ( ); and after input_getcontrols
+
+#else
+
+		//  User input calls
+		input_getcontrols();
+
+#endif
+
 		input_calculatelocalcursor ( );
 
 		// Character Creator Plus
@@ -583,6 +2248,53 @@ void mapeditorexecutable ( void )
 	//  End map editor program
 	common_justbeforeend();
 	ExitProcess ( 0 );
+}
+
+int AskSaveBeforeNewAction(void)
+{
+	
+	int iAction = 0;
+	if (g.projectmodified == 1)
+	{
+
+		iAction = askBoxCancel("Do you wish to save first?", "Confirmation"); //1==Yes 2=Cancel 0=No
+
+		if (iAction == 1)
+		{
+			//  yes save first
+			if (g.projectfilename_s == "")
+			{
+				t.returnstring_s = "";
+				cStr tOldDir = GetDir();
+				char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL);
+				SetDir(tOldDir.Get());
+				if (cFileSelected && strlen(cFileSelected) > 0) {
+					t.returnstring_s = cFileSelected;
+				}
+				if (t.returnstring_s != "")
+				{
+					if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) != ".fpm")  t.returnstring_s = t.returnstring_s + ".fpm";
+					g.projectfilename_s = t.returnstring_s;
+					bool oksave = true;
+					if (FileExist(g.projectfilename_s.Get())) {
+						oksave = overWriteFileBox(g.projectfilename_s.Get());
+					}
+					if (oksave) {
+						gridedit_save_map();
+					}
+				}
+			}
+			else
+			{
+				gridedit_save_map();
+			}
+
+			g.projectmodified = 0; gridedit_changemodifiedflag();
+			g.projectmodifiedstatic = 0;
+		}
+	}
+	return iAction;
+
 }
 
 void editor_detect_invalid_screen ( void )
@@ -1424,6 +3136,9 @@ void editor_showquickstart ( int iForceMainOpen )
 
 void editor_previewmapormultiplayer ( int iUseVRTest )
 {
+	
+	//PE: Imgui need support here.
+
 	//  store if project modified
 	t.storeprojectmodified=g.projectmodified;
 	int tstoreprojectmodifiedstatic = g.projectmodifiedstatic; 
@@ -1434,8 +3149,45 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 	//  Before launch test game, check if enough contiguous
 	checkmemoryforgracefulexit();
 
+#ifdef ENABLEIMGUI
+#ifndef USEOLDIDE
+	//PE: Test game mode.
+//	extern DWORD gWindowSizeX;
+//	extern DWORD gWindowSizeY;
+	extern DWORD gWindowVisible;
+
+	gWindowSizeXOld = GetChildWindowWidth(-1);
+	gWindowSizeYOld = GetChildWindowHeight(-1);
+
+	RECT rect = { NULL };
+	GetWindowRect(g_pGlob->hWnd, &rect);
+
+	gWindowPosXOld = rect.left;
+	gWindowPosYOld = rect.top;
+
+	gWindowVisibleOld = gWindowVisible; //SW_MAXIMIZE
+#endif
+#endif
+
 	//  First call will toggle keyboard/mouse back to BACKGROUND (to capture all direct data)
 	SetWindowModeOn (  );
+
+#ifdef ENABLEIMGUI
+#ifndef USEOLDIDE
+	//PE: Test game mode.
+	SetWindowSettings(0, 0, 0);
+	SetWindowPos(g_pGlob->hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	SetForegroundWindow(g_pGlob->hWnd);
+	SetWindowSize(GetDesktopWidth(), GetDesktopHeight());
+	ShowWindow(); MaximiseWindow();
+
+	//Hide any windows outside main viewport.
+	ImGui::HideAllViewPortWindows();
+	LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	//SetWindowLong(g_pGlob->hWnd, GWL_WNDPROC, (LONG)WindowProc);
+
+#endif
+#endif
 
 	//  center mouse pointer in editor (and hide it)
 	game_hidemouse ( );
@@ -1993,6 +3745,31 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 
 	// Second call will toggle keyboard/mouse back to FOREGROUND
 	SetWindowModeOn ( );
+
+#ifdef ENABLEIMGUI
+#ifndef USEOLDIDE
+	//PE: TODO: Need to restore original settings.
+
+	//PE: Setup the window here. pos size. Docking ?
+	SetWindowSettings(5, 1, 1);
+	SetForegroundWindow(g_pGlob->hWnd);
+	SetWindowSize(gWindowSizeXOld+ gWindowSizeAddX, gWindowSizeYOld+ gWindowSizeAddY); //PE: test
+	SetWindowPosition(gWindowPosXOld, gWindowPosYOld);
+	ShowWindow();
+	if( gWindowVisibleOld != SW_MAXIMIZE)
+		RestoreWindow();
+	//PE: enable outside windows again.
+	ImGui::ShowAllViewPortWindows();
+	LRESULT CALLBACK ImguiWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	//SetWindowLong(g_pGlob->hWnd, GWL_WNDPROC, (LONG)ImguiWindowProc);
+
+#ifdef USERENDERTARGET
+	//PE: keep it at current resolution for now.
+	//SetCameraToImage(0, 21, OldrenderTargetSize.x, OldrenderTargetSize.y, 2);
+
+#endif
+#endif
+#endif
 
 	// Close popup message
 	if ( t.conkit.modified == 1 ) 
@@ -2756,6 +4533,644 @@ void editor_handlepguppgdn ( void )
 	}
 }
 
+void imgui_input_getcontrols(void)
+{
+	//  Some actions are directly triggered by input subroutine
+	t.inputsys.doload = 0;
+	t.inputsys.domodeterrain = 0;
+	t.inputsys.domodeentity = 0;
+	t.inputsys.domodemarker = 0;
+	t.inputsys.domodewaypoint = 0;
+	t.inputsys.doundo = 0;
+	t.inputsys.doredo = 0;
+	t.inputsys.tselcontrol = 0;
+	t.inputsys.tselcut = 0;
+	t.inputsys.tselcopy = 0;
+	t.inputsys.tseldelete = 0;
+
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+#ifdef USERENDERTARGET
+	//PE: Take everything from imgui.
+
+	//			RECT rc;
+	//			GetClientRect(hWnd, &rc);
+	//			float xRatio = (float)g_pGlob->dwWindowWidth / (float)rc.right;
+	//			float yRatio = (float)g_pGlob->dwWindowHeight / (float)rc.bottom;
+	//			g_pGlob->iWindowsMouseX = (int)((float)g_pGlob->iWindowsMouseX * xRatio);
+	//			g_pGlob->iWindowsMouseY = (int)((float)g_pGlob->iWindowsMouseY * yRatio);
+
+	//extern ImVec2 renderTargetAreaPos;
+	//extern ImVec2 renderTargetAreaSize;
+
+	float itmpmousex = ImGui::GetMousePos().x;
+	float itmpmousey = ImGui::GetMousePos().y;
+	int iSecureZone = 4;
+	if (bImGuiRenderTargetFocus && itmpmousex >= (renderTargetAreaPos.x+iSecureZone) && itmpmousey >= (renderTargetAreaPos.y + iSecureZone) &&
+		itmpmousex <= renderTargetAreaPos.x + (renderTargetAreaSize.x - iSecureZone) && itmpmousey <= renderTargetAreaPos.y + (renderTargetAreaSize.y- ImGuiStatusBar_Size - iSecureZone ))
+	{
+		//Figure out mouse scale values.
+		itmpmousex -= renderTargetAreaPos.x;
+		itmpmousey -= renderTargetAreaPos.y;
+
+		float RatioX = ((float) GetDisplayWidth() / (float) renderTargetAreaSize.x) * ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1) );
+		float RatioY = ((float) GetDisplayHeight() / (float) renderTargetAreaSize.y) * ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1) );
+
+		itmpmousex *= RatioX;
+		itmpmousey *= RatioY;
+
+		t.inputsys.activemouse = 1;
+		t.inputsys.xmouse = (int) itmpmousex;
+		t.inputsys.ymouse = (int)itmpmousey;
+		t.inputsys.zmouse = io.MouseWheel; // MouseZ();
+		t.inputsys.xmousemove = t.inputsys.xmouse - xmouseold; //MouseMoveX();
+		t.inputsys.ymousemove = t.inputsys.ymouse - ymouseold; //MouseMoveY();
+
+		xmouseold = t.inputsys.xmouse;
+		ymouseold = t.inputsys.ymouse;
+
+		t.inputsys.wheelmousemove = io.MouseWheel; //MouseMoveZ();
+		t.inputsys.mclick = io.MouseDown[0] + (io.MouseDown[1] * 2.0) + (io.MouseDown[2] * 3.0) + (io.MouseDown[3] * 4.0); //  MouseClick();
+
+		t.inputsys.k_s = Lower(Inkey());
+		//t.inputsys.kscancode = ScanCode();
+
+		//  Control keys direct from keyboard
+		t.inputsys.keyreturn = io.KeysDown[13]; // ReturnKey();
+		t.inputsys.keyshift = io.KeyShift;
+		t.inputsys.keyleft = io.KeysDown[37]; // LeftKey();
+		t.inputsys.keyright = io.KeysDown[39]; //RightKey();
+		t.inputsys.keyup = io.KeysDown[38]; //UpKey();
+		t.inputsys.keydown = io.KeysDown[40]; // DownKey();
+		t.inputsys.keycontrol = io.KeyCtrl; //ControlKey();
+		t.inputsys.keyspace = io.KeysDown[32]; //SpaceKey();
+
+		//PE: We need raw scancodes. just take it from imgui.
+		t.inputsys.kscancode = 0;
+		for (int iTemp = 0; iTemp < 256; iTemp++)
+		{
+			if (iTemp != 16 && iTemp != 17) { //shift,control
+				if (io.KeysDown[iTemp] > 0)
+				{
+					t.inputsys.kscancode = iTemp;
+					break;
+				}
+			}
+		}
+
+	}
+	else {
+		//No input to DX11.
+		t.inputsys.activemouse = 1;
+//		t.inputsys.xmouse = ImGui::GetMousePos().x;
+//		t.inputsys.ymouse = ImGui::GetMousePos().y;
+		t.inputsys.zmouse = 0;
+		t.inputsys.xmousemove = 0;
+		t.inputsys.ymousemove = 0;
+
+		xmouseold = t.inputsys.xmouse;
+		ymouseold = t.inputsys.ymouse;
+
+		t.inputsys.wheelmousemove = 0;
+
+		t.inputsys.mclick = 0;
+
+		t.inputsys.k_s = "";
+		//t.inputsys.kscancode = ScanCode();
+
+		//  Control keys direct from keyboard
+		t.inputsys.keyreturn = 0;
+		t.inputsys.keyshift = 0;
+		t.inputsys.keyleft = 0;
+		t.inputsys.keyright = 0;
+		t.inputsys.keyup = 0;
+		t.inputsys.keydown = 0;
+		t.inputsys.keycontrol = 0;
+		t.inputsys.keyspace = 0;
+		t.inputsys.kscancode = 0;
+	}
+
+	int mcursor = ImGui::GetMouseCursor();
+
+	if (bImGuiGotFocus || mcursor > 0) {
+		//No GG input when using imgui.
+		t.inputsys.xmouse = 500000;
+		t.inputsys.ymouse = 0;
+		t.inputsys.xmousemove = 0;
+		t.inputsys.ymousemove = 0;
+		t.inputsys.mclick = 0;
+		t.inputsys.zmouse = 0;
+		t.inputsys.wheelmousemove = 0;
+		t.inputsys.activemouse = 0;
+		t.syncthreetimes = 1;
+		t.inputsys.k_s = "";
+		//  Control keys direct from keyboard
+		t.inputsys.keyreturn = 0;
+		t.inputsys.keyshift = 0;
+		t.inputsys.keyleft = 0;
+		t.inputsys.keyright = 0;
+		t.inputsys.keyup = 0;
+		t.inputsys.keydown = 0;
+		t.inputsys.keycontrol = 0;
+		t.inputsys.keyspace = 0;
+		t.inputsys.kscancode = 0;
+	}
+
+#else
+	input_getdirectcontrols();
+#endif
+
+	input_extramappings();
+	t.inputsys.keyshift = io.KeyShift;
+
+	//  Flag reset
+	t.inputsys.dorotation = 0;
+	t.inputsys.domirror = 0;
+	t.inputsys.doflip = 0;
+	t.inputsys.doentityrotate = 0;
+	t.inputsys.dozoomin = 0;
+	t.inputsys.dozoomout = 0;
+	t.inputsys.doscrollleft = 0;
+	t.inputsys.doscrollright = 0;
+	t.inputsys.doscrollup = 0;
+	t.inputsys.doscrolldown = 0;
+	t.inputsys.domapresize = 0;
+	t.inputsys.dogroundmode = -1;
+	t.inputsys.dozoomview = 0;
+	t.inputsys.dozoomviewmovex = 0;
+	t.inputsys.dozoomviewmovey = 0;
+	t.inputsys.dozoomviewmovez = 0;
+	t.inputsys.dozoomviewrotatex = 0;
+	t.inputsys.dozoomviewrotatey = 0;
+	t.inputsys.dozoomviewrotatez = 0;
+	t.inputsys.dosinglelayer = 0;
+	t.inputsys.tselfloor = 0;
+	t.inputsys.tselpaste = 0;
+	t.inputsys.tselwipe = 0;
+	t.inputsys.dosaveandrun = 0;
+
+
+
+	//PE: Map additional keys.
+	if (t.inputsys.kscancode == 32)  t.inputsys.keyspace = 1; else t.inputsys.keyspace = 0;
+	if (t.inputsys.kscancode == 0 && t.inputsys.keyshift == 0) t.inputsys.keypressallowshift = 0;
+	//  W,A,S,D in editor for scrolling about (easier for user)
+	sprintf(cImGuiDebug, "t.inputsys.kscancode: %d, t.inputsys.keyup: %d\n", t.inputsys.kscancode, t.inputsys.keyup);
+
+	if (t.inputsys.kscancode == 87)  t.inputsys.keyup = 1;
+	if (t.inputsys.kscancode == 65)  t.inputsys.keyleft = 1;
+	if (t.inputsys.kscancode == 83)  t.inputsys.keydown = 1;
+	if (t.inputsys.kscancode == 68)  t.inputsys.keyright = 1;
+
+	if (t.inputsys.keycontrol == 1)
+	{
+		if (t.inputsys.k_s == "")  t.inputsys.undokeypress = 0;
+		if (t.inputsys.k_s == "z" && t.inputsys.undokeypress == 0) {
+			t.inputsys.doundo = 1; t.inputsys.undokeypress = 1;
+		}
+		if (t.inputsys.k_s == "y" && t.inputsys.undokeypress == 0) {
+			t.inputsys.doredo = 1; t.inputsys.undokeypress = 1;
+		}
+	}
+
+
+	//  Convert to DX INPUT CODES
+//###
+	t.t_s = ""; t.tt = 0;
+	switch (t.inputsys.kscancode)
+	{
+	case 9: t.tt = 15; break;
+	case 32: t.tt = 57; break;
+	case 33: t.tt = 201; break;
+	case 34: t.tt = 209; break;
+	case 37: t.tt = 203; break;
+	case 38: t.tt = 200; break;
+	case 39: t.tt = 205; break;
+	case 40: t.tt = 208; break;
+	case 42: t.tt = 16; break;
+	case 46: t.tt = 211; break;
+	case 54: t.tt = 16; break;
+	case 112: t.tt = 59; break;
+	case 113: t.tt = 60; break;
+	case 114: t.tt = 61; break;
+	case 115: t.tt = 62; break;
+	case 123: t.tt = 88; break;
+	case 187: t.tt = 13; break;
+	case 188: t.tt = 51; break;
+	case 189: t.tt = 12; break;
+	case 190: t.tt = 52; break;
+	case 192: t.tt = 40; break;
+	case 219: t.tt = 26; break;
+	case 220: t.tt = 86; break;
+	case 221: t.tt = 27; break;
+	case 222: t.tt = 43; break;
+	case 1001: t.tt = 13; break;
+	case 1002: t.tt = 12; break;
+	}
+	// 031215 - then remap to new scancodes (from keymap)
+	t.tt = g.keymap[t.tt];
+	// and temp back into IDE key values (for last bit)
+	int ttt = 0;
+	switch (t.tt)
+	{
+	case 15: ttt = 9; break;
+	case 57: ttt = 32; break;
+	case 201: ttt = 33; break;
+	case 209: ttt = 34; break;
+	case 203: ttt = 37; break;
+	case 200: ttt = 38; break;
+	case 205: ttt = 39; break;
+	case 208: ttt = 40; break;
+	case 16: ttt = 42; break;
+	case 211: ttt = 46; break;
+	case 59: ttt = 112; break;
+	case 60: ttt = 113; break;
+	case 61: ttt = 114; break;
+	case 62: ttt = 115; break;
+	case 88: ttt = 123; break;
+	case 13: ttt = 187; break;
+	case 51: ttt = 188; break;
+	case 12: ttt = 189; break;
+	case 52: ttt = 190; break;
+	case 40: ttt = 192; break;
+	case 26: ttt = 219; break;
+	case 86: ttt = 220; break;
+	case 27: ttt = 221; break;
+	case 43: ttt = 222; break;
+	}
+	// then create proper inkey chars from revised (if any) scancodes
+	switch (ttt)
+	{
+	case 16: t.t_s = "q"; break;
+	case 57: t.t_s = " "; break;
+	case 107: t.t_s = "="; break;
+	case 109: t.t_s = "-"; break;
+	case 187: t.t_s = "="; break;
+	case 188: t.t_s = ","; break;
+	case 189: t.t_s = "-"; break;
+	case 190: t.t_s = "."; break;
+	case 192: t.t_s = "'"; break;
+	case 219: t.t_s = "["; break;
+	case 220: t.t_s = "\\"; break;
+	case 221: t.t_s = "]"; break;
+	case 222: t.t_s = "#"; break;
+	}
+
+	if (t.inputsys.kscancode >= Asc("A") && t.inputsys.kscancode <= Asc("Z"))  t.t_s = Lower(Chr(t.inputsys.kscancode));
+	if (t.inputsys.kscancode >= Asc("0") && t.inputsys.kscancode <= Asc("9"))  t.t_s = Lower(Chr(t.inputsys.kscancode));
+	if (t.t_s != "")  t.tt = 1;
+
+	t.inputsys.k_s = t.t_s; t.inputsys.kscancode = t.tt;
+//####
+
+//  Input conditional flags
+	if (t.inputsys.kscancode == 0) {
+		t.inputsys.keypress = 0;
+		if (bForceKey) {
+			bForceKey = false;
+			t.inputsys.k_s = csForceKey;
+			t.inputsys.keycontrol = 0;
+			t.inputsys.keyshift = 0;
+			t.inputsys.kscancode = Asc(csForceKey.Get());
+		}
+		else if (bForceKey2) {
+			bForceKey2 = false;
+			t.inputsys.k_s = csForceKey2;
+			t.inputsys.keycontrol = 0;
+			t.inputsys.keyshift = 0;
+			t.inputsys.kscancode = Asc(csForceKey2.Get());
+		}
+
+	}
+
+	//  Construction Keys
+	if (t.inputsys.keycontrol == 0)
+	{
+		// can get marker mode from anywhere
+		if ((t.inputsys.kscancode == Asc("M") || t.inputsys.k_s == "m") && t.inputsys.keypress == 0)
+		{
+			t.inputsys.domodemarker = 1;
+			t.inputsys.keypress = 1;
+		}
+
+		if ((t.grideditselect == 4 && t.gridentityinzoomview>0) || t.grideditselect == 5)
+		{
+			if (t.inputsys.k_s == "b" && t.inputsys.keypress == 0)
+			{
+				t.inputsys.keypress = 1; t.gridentitygridlock = t.gridentitygridlock + 1;
+				if (t.gridentitygridlock>2)  t.gridentitygridlock = 0;
+			}
+			if (t.inputsys.k_s == "y" && t.inputsys.keypress == 0 && g.gentitytogglingoff == 0)
+			{
+				// only if not EBE
+				if (t.entityprofile[t.gridentity].isebe == 0)
+				{
+					t.ttrygridentitystaticmode = 1 - t.gridentitystaticmode;
+					t.ttrygridentity = t.gridentity; editor_validatestaticmode();
+				}
+				t.inputsys.keypress = 1;
+			}
+			if (t.inputsys.k_s == "u" && t.inputsys.keypress == 0)
+			{
+				//  control auto-flatten
+				t.inputsys.keypress = 1;
+				t.gridedit.autoflatten = 1 - t.gridedit.autoflatten;
+			}
+			if (t.inputsys.k_s == "i" && t.inputsys.keypress == 0)
+			{
+				//  control entity spray mode
+				t.inputsys.keypress = 1;
+				t.gridedit.entityspraymode = 1 - t.gridedit.entityspraymode;
+			}
+			// except when in EBE mode which handles - and + keys for material changing
+			if (t.ebe.on == 0)
+			{
+				if (t.inputsys.k_s == "-" && t.inputsys.keypress == 0) { t.gridentitymodifyelement = 1; t.inputsys.keypress = 1; }
+				if (t.inputsys.k_s == "=" && t.inputsys.keypress == 0) { t.gridentitymodifyelement = 2; t.inputsys.keypress = 1; }
+			}
+		}
+
+		//  editing mode
+		if (t.inputsys.k_s == "t") { t.inputsys.domodeterrain = 1; t.inputsys.dowaypointview = 0; }
+		if (t.inputsys.k_s == "e") {
+			t.inputsys.domodeentity = 1; t.inputsys.dowaypointview = 0; }
+		if (t.inputsys.k_s == "p") { t.inputsys.domodewaypoint = 1; t.inputsys.dowaypointview = 0; }
+		if (t.inputsys.keyspace == 1 && t.inputsys.keypress == 0) { t.inputsys.dowaypointview = 1 - t.inputsys.dowaypointview; t.inputsys.keypress = 1; t.lastgrideditselect = -1; editor_refresheditmarkers(); }
+
+		//  NUM-ROTATE CONTROLS
+		if (t.inputsys.k_s == "r" && t.inputsys.keypress == 0) { t.inputsys.dorotation = 1; t.inputsys.keypress = 1; }
+		if (t.grideditselect != 4 && t.grideditselect != 0)
+		{
+			if (t.inputsys.k_s == "1" && t.inputsys.keypress == 0) { t.inputsys.doentityrotate = 1; t.inputsys.keypress = 1; }
+			if (t.inputsys.k_s == "2" && t.inputsys.keypress == 0) { t.inputsys.doentityrotate = 2; t.inputsys.keypress = 1; }
+			if (t.inputsys.k_s == "3" && t.inputsys.keypress == 0) { t.inputsys.doentityrotate = 3; t.inputsys.keypress = 1; }
+			if (t.inputsys.k_s == "4" && t.inputsys.keypress == 0) { t.inputsys.doentityrotate = 4; t.inputsys.keypress = 1; }
+			if (t.inputsys.k_s == "5" && t.inputsys.keypress == 0) { t.inputsys.doentityrotate = 5; t.inputsys.keypress = 1; }
+			if (t.inputsys.k_s == "6" && t.inputsys.keypress == 0) { t.inputsys.doentityrotate = 6; t.inputsys.keypress = 1; }
+			if (t.inputsys.keyshift == 0)
+			{
+				if (t.inputsys.k_s == "0" && t.inputsys.keypress == 0) { t.inputsys.doentityrotate = 98; t.inputsys.keypress = 1; }
+			}
+			else
+			{
+				if (t.inputsys.k_s == "0" && t.inputsys.keypress == 0) { t.inputsys.doentityrotate = 99; t.inputsys.keypress = 1; }
+			}
+		}
+
+		//  Editing of Map
+		if (t.inputsys.k_s == ",")  t.inputsys.dozoomin = 1;
+		if (t.inputsys.k_s == ".")  t.inputsys.dozoomout = 1;
+
+		//  TAB Key causes layer edit view control
+		if (t.inputsys.kscancode == 15 && t.inputsys.keypress == 0) { t.inputsys.dosinglelayer = 1; t.inputsys.keypress = 1; }
+
+		//  F1 for help page
+		if (t.inputsys.kscancode == 59) editor_showhelppage(0);
+	}
+	else
+	{
+		if (t.inputsys.k_s == "r")  t.inputsys.dorotation = 1;
+	}
+
+	//  Key Map Scroll and Resize
+	if (t.inputsys.keyshift == 0)
+	{
+		if (t.inputsys.keyleft == 1)  t.inputsys.doscrollleft = 3;
+		if (t.inputsys.keyright == 1)  t.inputsys.doscrollright = 3;
+		if (t.inputsys.keyup == 1) 
+			t.inputsys.doscrollup = 3;
+		if (t.inputsys.keydown == 1)  t.inputsys.doscrolldown = 3;
+	}
+	else
+	{
+		if (t.inputsys.keyleft == 1)  t.inputsys.doscrollleft = 20;
+		if (t.inputsys.keyright == 1)  t.inputsys.doscrollright = 20;
+		if (t.inputsys.keyup == 1)  t.inputsys.doscrollup = 20;
+		if (t.inputsys.keydown == 1)  t.inputsys.doscrolldown = 20;
+	}
+
+	//  Mouse Wheel control (170616 - but not when in EBE mode as its used for grid layer control)
+	if (t.ebe.on == 0)
+	{
+		if (t.grideditselect == 4)
+		{
+			//  Zoomed in View
+			t.zoomviewcamerarange_f -= (t.inputsys.wheelmousemove / 10.0);
+		}
+		else
+		{
+			//  Non-Zoomed in View
+			if (t.inputsys.keycontrol == 0)
+			{
+				if (t.inputsys.wheelmousemove<0)  t.inputsys.dozoomout = 1;
+				if (t.inputsys.wheelmousemove>0)  t.inputsys.dozoomin = 1;
+			}
+		}
+	}
+
+	//  UndoRedo Keys
+	if (t.inputsys.keycontrol == 1)
+	{
+		if (t.inputsys.k_s == "")  t.inputsys.undokeypress = 0;
+		if (t.inputsys.k_s == "z" && t.inputsys.undokeypress == 0) { t.inputsys.doundo = 1; t.inputsys.undokeypress = 1; }
+		if (t.inputsys.k_s == "y" && t.inputsys.undokeypress == 0) { t.inputsys.doredo = 1; t.inputsys.undokeypress = 1; }
+	}
+
+	//  Controls only when in zoomview
+	if (t.grideditselect == 4)
+	{
+		//  orient arrowkey movement to camera angle
+		t.tca_f = WrapValue(CameraAngleY());
+		if (t.tca_f >= 360 - 45 || t.tca_f <= 45)
+		{
+			t.txa = 1; t.txb = 2; t.txc = 0; t.txd = 0;
+			t.tza = 0; t.tzb = 0; t.tzc = 2; t.tzd = 1;
+		}
+		else
+		{
+			if (t.tca_f >= 180 - 45 && t.tca_f <= 180 + 45)
+			{
+				t.txa = 2; t.txb = 1; t.txc = 0; t.txd = 0;
+				t.tza = 0; t.tzb = 0; t.tzc = 1; t.tzd = 2;
+			}
+			else
+			{
+				if (t.tca_f <= 180)
+				{
+					t.txa = 0; t.txb = 0; t.txc = 2; t.txd = 1;
+					t.tza = 2; t.tzb = 1; t.tzc = 0; t.tzd = 0;
+				}
+				else
+				{
+					t.txa = 0; t.txb = 0; t.txc = 1; t.txd = 2;
+					t.tza = 1; t.tzb = 2; t.tzc = 0; t.tzd = 0;
+				}
+			}
+		}
+		t.inputsys.dozoomviewmovex = 0; t.inputsys.dozoomviewmovez = 0;
+		if (t.inputsys.keyleft == 1) { t.inputsys.dozoomviewmovex += t.txa; t.inputsys.dozoomviewmovez += t.tza; }
+		if (t.inputsys.keyright == 1) { t.inputsys.dozoomviewmovex += t.txb; t.inputsys.dozoomviewmovez += t.tzb; }
+		if (t.inputsys.keyup == 1) { t.inputsys.dozoomviewmovex += t.txc; t.inputsys.dozoomviewmovez += t.tzc; }
+		if (t.inputsys.keydown == 1) { t.inputsys.dozoomviewmovex += t.txd; t.inputsys.dozoomviewmovez += t.tzd; }
+		//  control rotation
+		if (t.inputsys.k_s == "1" && t.inputsys.keypress == 0) { t.inputsys.dozoomviewrotatex = 1; t.inputsys.keypress = 1; }
+		if (t.inputsys.k_s == "2" && t.inputsys.keypress == 0) { t.inputsys.dozoomviewrotatex = 2; t.inputsys.keypress = 1; }
+		if (t.inputsys.k_s == "3" && t.inputsys.keypress == 0) { t.inputsys.dozoomviewrotatey = 1; t.inputsys.keypress = 1; }
+		if (t.inputsys.k_s == "4" && t.inputsys.keypress == 0) { t.inputsys.dozoomviewrotatey = 2; t.inputsys.keypress = 1; }
+		if (t.inputsys.k_s == "5" && t.inputsys.keypress == 0) { t.inputsys.dozoomviewrotatez = 1; t.inputsys.keypress = 1; }
+		if (t.inputsys.k_s == "6" && t.inputsys.keypress == 0) { t.inputsys.dozoomviewrotatez = 2; t.inputsys.keypress = 1; }
+		if (t.inputsys.keyshift == 0)
+		{
+			if (t.inputsys.k_s == "0" && t.inputsys.keypress == 0) { t.inputsys.dozoomviewrotatex = 98; t.inputsys.keypress = 1; }
+		}
+		else
+		{
+			if (t.inputsys.k_s == "0" && t.inputsys.keypress == 0) { t.inputsys.dozoomviewrotatex = 99; t.inputsys.keypress = 1; }
+		}
+	}
+	if (t.grideditselect == 4 || t.grideditselect == 5)
+	{
+		//  control finder (toggled using gridentityautofind value)
+		if (t.inputsys.keyreturn == 1)
+		{
+			if (t.gridentityautofind == 0) { t.gridentityautofind = 3; }
+			if (t.gridentityautofind == 1) { t.gridentityautofind = 2; }
+		}
+		else
+		{
+			if (t.gridentityautofind == 3) { t.gridentityautofind = 1; t.gridentityusingsoftauto = 0; t.gridentitysurfacesnap = 0; }
+			if (t.gridentityautofind == 2) { t.gridentityautofind = 0; t.gridentityposoffground = 0; t.gridentityusingsoftauto = 1; t.gridentitysurfacesnap = 0; }
+		}
+		if (t.gridentityautofind == 1 && t.gridentity>0)
+		{
+			t.gridentitydroptoground = 1 + t.entityprofile[t.gridentity].forwardfacing;
+		}
+		else
+		{
+			t.gridentitydroptoground = 0;
+		}
+		//  control height
+		if (t.grideditselect == 4)
+		{
+			//  move entity through zoomview system
+			if (t.inputsys.kscancode == 201) { t.inputsys.dozoomviewmovey = 2; t.gridentityposoffground = 1; t.gridentityautofind = 0; t.gridentityusingsoftauto = 0; }
+			if (t.inputsys.kscancode == 209) { t.inputsys.dozoomviewmovey = 1; t.gridentityposoffground = 1; t.gridentityautofind = 0; t.gridentityusingsoftauto = 0; }
+		}
+		else
+		{
+			//  directly move entity (and detatch from terrain) PGUP and PGDN
+			if (t.inputsys.kscancode == 201 || t.inputsys.kscancode == 209)
+			{
+				if (t.widget.activeObject == 0)
+				{
+					editor_handlepguppgdn();
+					t.gridentityposoffground = 1; t.gridentityautofind = 0; t.gridentityusingsoftauto = 0; t.gridentitysurfacesnap = 0;
+				}
+			}
+		}
+	}
+
+	//  Create a waypoint when instructed to
+	if (t.inputsys.domodewaypointcreate == 1 && t.inputsys.keypress == 0)
+	{
+		t.inputsys.domodewaypointcreate = 0;
+		t.inputsys.keypress = 1; t.inputsys.domodewaypoint = 1; t.grideditselect = 6;
+		if (t.terrain.TerrainID>0)
+		{
+			g.waypointeditheight_f = BT_GetGroundHeight(t.terrain.TerrainID, t.cx_f, t.cy_f);
+		}
+		else
+		{
+			g.waypointeditheight_f = 1000.0;
+		}
+		t.waypointeditstyle = 1; t.waypointeditstylecolor = 0; t.waypointeditentity = 0;
+		t.mx_f = t.cx_f; t.mz_f = t.cy_f; waypoint_createnew();
+	}
+
+
+	
+	//  fake mousemove values for low-response systems (when in zoomed in mode)
+	if (t.grideditselect == 4)
+	{
+		if (t.inputsys.keyshift == 1)
+		{
+			if (t.inputsys.keyleft == 1)  t.inputsys.xmousemove = -10;
+			if (t.inputsys.keyright == 1)  t.inputsys.xmousemove = 10;
+			if (t.inputsys.keyup == 1)  t.inputsys.ymousemove = -10;
+			if (t.inputsys.keydown == 1)  t.inputsys.ymousemove = 10;
+			t.inputsys.mclick = 2;
+			t.inputsys.keyleft = 0;
+			t.inputsys.keyright = 0;
+			t.inputsys.keyup = 0;
+			t.inputsys.keydown = 0;
+		}
+	}
+
+
+	//Update statusbar
+	//Update statusbar
+	++t.interfacestatusbarupdate;
+	if (t.interfacestatusbarupdate>30)
+	{
+		//  cursor position
+		if (g.gridlayershowsingle == 1)
+		{
+			t.statusbar_s = ""; t.statusbar_s = t.statusbar_s + "CLIP=" + Str(int(t.clipheight_f));
+		}
+		else
+		{
+			t.statusbar_s = "CLIP OFF";//"ALL" ; t.t_s=t.strarr_s[80]+":"+t.t_s;
+		}
+
+		t.statusbar_s = t.statusbar_s + " | ";
+		t.strwork = ""; t.statusbar_s = t.statusbar_s + "X:" + Str(t.inputsys.mmx) + " " + "Z:" + Str(t.inputsys.mmy);
+
+		t.statusbar_s = t.statusbar_s + " | ";
+
+		if (t.gridentitygridlock == 0)  t.statusbar_s = t.statusbar_s + "NORMAL";
+		if (t.gridentitygridlock == 1)  t.statusbar_s = t.statusbar_s + "SNAP";
+		if (t.gridentitygridlock == 2)  t.statusbar_s = t.statusbar_s + "GRID";
+
+		//  editing mode
+		//t.statusbar_s
+		if (t.grideditselect == 0)
+		{
+			t.laststatusbar_s = t.strarr_s[332];
+			terrain_getpaintmode();
+			t.laststatusbar_s = t.laststatusbar_s + " " + t.mode_s;
+		}
+		if (t.grideditselect == 1)  t.laststatusbar_s = t.strarr_s[336];
+		if (t.grideditselect == 2)
+		{
+			//  art tools not used any more
+		}
+		if (t.grideditselect == 3)
+		{
+			//  map view mode not used any more
+		}
+		if (t.grideditselect == 4)  t.laststatusbar_s = t.strarr_s[343];
+		if (t.grideditselect == 5)
+		{
+			t.laststatusbar_s = t.strarr_s[344];
+			t.laststatusbar_s = t.laststatusbar_s + " Entity: " + t.relaytostatusbar_s;
+		}
+		if (t.grideditselect == 6)
+		{
+			//  add waypoint status
+			t.laststatusbar_s = "Waypoint Mode (LMB=Drag Point  SHIFT+LMB=Clone Point  SHIFT+RMB=Remove Point)";
+		}
+		//  only update infrequently
+		t.interfacestatusbarupdate = 0;
+
+		//t.laststatusbar_s = t.statusbar_s;
+	}
+
+	//  Update status bar out of action subroutines
+	//gridedit_updatestatusbar();
+
+
+}
+
+
 void input_getcontrols ( void )
 {
 	//  Some actions are directly triggered by input subroutine
@@ -3077,6 +5492,20 @@ void input_calculatelocalcursor ( void )
 		GetViewMatrix (  g.m4_view );
 		t.blank=InverseMatrix(g.m4_projection,g.m4_projection);
 		t.blank=InverseMatrix(g.m4_view,g.m4_view);
+
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+		//PE: Do not use (800.0x600.0) Just convert , we need any resolution to work.
+		t.tadjustedtoareax_f = ((float) t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
+		t.tadjustedtoareay_f = ((float) t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
+#else
+		//  work out visible part of full backbuffer (i.e. 1212 of 1360)
+		t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
+		t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
+		//  scale full mouse to fit in visible area
+		t.tadjustedtoareax_f = ((t.inputsys.xmouse + 0.0) / 800.0) / t.tadjustedtoareax_f;
+		t.tadjustedtoareay_f = ((t.inputsys.ymouse + 0.0) / 600.0) / t.tadjustedtoareay_f;
+#endif
+
 		//  work out visible part of full backbuffer (i.e. 1212 of 1360)
 		t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
 		t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
@@ -5051,31 +7480,75 @@ void editor_viewfunctionality ( void )
 		}
 
 		//  mouselook mode on/off RMB
-		#ifdef FPSEXCHANGE
 		OpenFileMap (  1, "FPSEXCHANGE" );
 		if (  t.inputsys.mclick == 2 ) 
 		{
 			//  center mouse
+#if !defined(ENABLEIMGUI) || defined(USEOLDIDE)
 			SetFileMapDWORD (  1, 48, 1 );
+#else
+			if (g.mouseishidden == 0) {
+				g.mouseishidden = 1;
+				t.tgamemousex_f = t.inputsys.xmouse; //MouseX();
+				t.tgamemousey_f = t.inputsys.ymouse; //MouseY();
+				HideMouse();
+#ifdef USERENDERTARGET
+
+				POINT tmp;
+				GetCursorPos(&tmp);
+				t.editorfreeflight.storemousex = tmp.x;
+				t.editorfreeflight.storemousey = tmp.y;
+
+				ImVec2 setPos = { (OldrenderTargetSize.x*0.5f) + OldrenderTargetPos.x , (OldrenderTargetSize.y*0.5f) + OldrenderTargetPos.y };
+				setPos.x = (int)setPos.x;
+				setPos.y = (int)setPos.y;
+				SetCursorPos(setPos.x, setPos.y);
+
+				float RatioX = ((float)GetDisplayWidth() / (float)renderTargetAreaSize.x) * ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
+				float RatioY = ((float)GetDisplayHeight() / (float)renderTargetAreaSize.y) * ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
+				xmouseold = (setPos.x - renderTargetAreaPos.x) * RatioX;
+				ymouseold = (setPos.y - renderTargetAreaPos.y) * RatioY;
+				t.inputsys.xmousemove = 0;
+				t.inputsys.ymousemove = 0;
+#else
+				RECT rect;
+				GetWindowRect(g_pGlob->hWnd, &rect);
+				SetCursorPos(rect.left + (GetChildWindowWidth() / 2), rect.top + (GetChildWindowHeight() / 2));
+				xmouseold = rect.left + (GetChildWindowWidth() / 2); //t.inputsys.xmouse;
+				ymouseold = rect.top + (GetChildWindowHeight() / 2); //t.inputsys.xmouse;
+#endif
+			}
+			else {
+				//Center mouse here.
+				//PE: imgui this need to be center on imgui window.
+#ifdef USERENDERTARGET
+				extern ImVec2 OldrenderTargetSize;
+				extern ImVec2 OldrenderTargetPos;
+				ImVec2 setPos = { (OldrenderTargetSize.x*0.5f) + OldrenderTargetPos.x , (OldrenderTargetSize.y*0.5f) + OldrenderTargetPos.y };
+				SetCursorPos(setPos.x, setPos.y);
+#else
+				RECT rect;
+				GetWindowRect(g_pGlob->hWnd, &rect);
+				SetCursorPos(rect.left + (GetChildWindowWidth() / 2), rect.top + (GetChildWindowHeight() / 2));
+#endif
+			}
+#endif			
 			//  camera position
-			t.zoomviewcameraangle_f += t.inputsys.xmousemove/2.0;
-			t.zoomviewcameraheight_f -= t.inputsys.ymousemove/1.5;
+			t.zoomviewcameraangle_f += (float) t.inputsys.xmousemove/2.0f;
+			t.zoomviewcameraheight_f -= (float) t.inputsys.ymousemove/1.5f;
 		}
 		else
 		{
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+			if (g.mouseishidden == 1) {
+				g.mouseishidden = 0;
+				ShowMouse();
+			}
+#else
 			SetFileMapDWORD (  1, 48, 0 );
+#endif
 		}
 		SetEventAndWait (  1 );
-		#else
-		if (t.inputsys.mclick == 2)
-		{
-			//  center mouse
-			ChangeMouse(0, 0);
-			//  camera position
-			t.zoomviewcameraangle_f += t.inputsys.xmousemove / 2.0;
-			t.zoomviewcameraheight_f -= t.inputsys.ymousemove / 1.5;
-		}
-		#endif
 
 		//  exit zoom view
 		if ( t.inputsys.mclick == 1  )  t.tpressedtoleavezoommode = 1;
@@ -5422,12 +7895,46 @@ switch (  t.cameraviewmode )
 	case 0:
 
 		//  Control free flight camera viewing angle (mouselook)
-		if (  g.gminvert == 1  )  t.ttmousemovey = MouseMoveY()*-1; else t.ttmousemovey = MouseMoveY();
-		t.cammousemovex_f=MouseMoveX();
+
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+		//PE: Delta already reset , so use t.inputsys.xmousemove,y
+		if (g.gminvert == 1)  t.ttmousemovey = t.inputsys.xmousemove*-1; else t.ttmousemovey = t.inputsys.ymousemove;
+		t.cammousemovex_f = t.inputsys.xmousemove;
+#else
+		if (g.gminvert == 1)  t.ttmousemovey = MouseMoveY()*-1; else t.ttmousemovey = MouseMoveY();
+		t.cammousemovex_f = MouseMoveX();
+#endif
+
 		t.cammousemovey_f=t.ttmousemovey;
 		if (  t.inputsys.mclick == 0  )  t.inputsys.mclickreleasestate = 0;
 		t.trmb=0;
-		if (  t.inputsys.mclick == 2 && t.inputsys.mclickreleasestate == 0  )  t.trmb = 1;
+		if (t.inputsys.mclick == 2 && t.inputsys.mclickreleasestate == 0) {
+
+#if defined(ENABLEIMGUI) && !defined(USEOLDGUI)
+#ifdef USERENDERTARGET
+			if (g.mouseishidden == 1)
+			{
+				ImVec2 setPos = { (OldrenderTargetSize.x*0.5f) + OldrenderTargetPos.x , (OldrenderTargetSize.y*0.5f) + OldrenderTargetPos.y };
+				setPos.x = (int)setPos.x;
+				setPos.y = (int)setPos.y;
+				SetCursorPos(setPos.x, setPos.y);
+
+				float RatioX = ((float)GetDisplayWidth() / (float)renderTargetAreaSize.x) * ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
+				float RatioY = ((float)GetDisplayHeight() / (float)renderTargetAreaSize.y) * ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
+				xmouseold = (setPos.x - renderTargetAreaPos.x) * RatioX;
+				ymouseold = (setPos.y - renderTargetAreaPos.y) * RatioY;
+			}
+#else
+			//PE: imgui this need to be center on imgui window.
+			RECT rect;
+			GetWindowRect(g_pGlob->hWnd, &rect);
+			SetCursorPos(rect.left + (GetChildWindowWidth() / 2), rect.top + (GetChildWindowHeight() / 2));
+			xmouseold = rect.left + (GetChildWindowWidth() / 2); //t.inputsys.xmouse;
+			ymouseold = rect.top + (GetChildWindowHeight() / 2); //t.inputsys.xmouse;
+#endif
+#endif
+			t.trmb = 1;
+		}
 		if (  t.inputsys.mclick == 4 && t.inputsys.mclickreleasestate == 0  )  t.trmb = 2;
 		if (  t.trmblock == 0 ) 
 		{
@@ -5442,14 +7949,27 @@ switch (  t.cameraviewmode )
 		//if ( (t.inputsys.mclick & 1) == 1 )  t.trmb = 0; // 170616 - if left button down, disable right mouse free flight (for EBE editing)
 		if (  t.trmb != 0 ) 
 		{
-			if (  g.mouseishidden == 0 ) 
+			if (  g.mouseishidden == 0 )
 			{
+				//OutputDebugStringA("g.mouseishidden==0\n");
+
 				game_hidemouse ( );
+
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+				POINT tmp;
+				GetCursorPos(&tmp);
+				t.editorfreeflight.storemousex = tmp.x;
+				t.editorfreeflight.storemousey = tmp.y;
+#else
 				t.editorfreeflight.storemousex=t.inputsys.xmouse;
 				t.editorfreeflight.storemousey=t.inputsys.ymouse;
+#endif
 			}
 			if (  t.editorfreeflight.mode == 0 ) 
 			{
+
+				//OutputDebugStringA("t.editorfreeflight.mode == 0\n");
+
 				t.editorfreeflight.mode=1 ; t.updatezoom=1;
 				t.editorfreeflight.c.x_f=t.cx_f;
 				t.editorfreeflight.c.y_f=(600.0*t.gridzoom_f);
@@ -5462,23 +7982,46 @@ switch (  t.cameraviewmode )
 				if (  t.trmb == 1 ) 
 				{
 					//  rotate with RMB
+
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+					//PE: a bit more smooth.
+					t.tRotationDivider_f = 6.0;
+#else
 					t.tRotationDivider_f = 5.0;
+#endif
 					t.editorfreeflight.c.angx_f=CameraAngleX()+(t.cammousemovey_f/t.tRotationDivider_f);
 					t.editorfreeflight.c.angy_f=CameraAngleY()+(t.cammousemovex_f/t.tRotationDivider_f);
 					if (  t.editorfreeflight.c.angx_f>180.0f  )  t.editorfreeflight.c.angx_f = t.editorfreeflight.c.angx_f-360.0f;
 					if (  t.editorfreeflight.c.angx_f<-89.999f  )  t.editorfreeflight.c.angx_f = -89.999f;
 					if (  t.editorfreeflight.c.angx_f>89.999f  )  t.editorfreeflight.c.angx_f = 89.999f;
+
 				}
 			}
 		}
 		else
 		{
-			if (  g.mouseishidden == 1 ) 
+			if (g.mouseishidden == 1)
 			{
-				t.tideframestartx=70 ; t.tideframestarty=15;
-				t.inputsys.xmouse=((t.tideframestartx+t.editorfreeflight.storemousex+0.0)/800.0)*(GetDisplayWidth()+0.0);
-				t.inputsys.ymouse=((t.tideframestarty+t.editorfreeflight.storemousey+0.0)/600.0)*(GetDisplayHeight()+0.0);
-				game_showmouse ( );
+				t.tideframestartx = 70; t.tideframestarty = 15;
+
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+				//PE: Restore mouse pos.
+				SetCursorPos(t.editorfreeflight.storemousex, t.editorfreeflight.storemousey);
+				float RatioX = ((float)GetDisplayWidth() / (float)renderTargetAreaSize.x) * ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
+				float RatioY = ((float)GetDisplayHeight() / (float)renderTargetAreaSize.y) * ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
+				xmouseold = (t.editorfreeflight.storemousex - renderTargetAreaPos.x) * RatioX;
+				ymouseold = (t.editorfreeflight.storemousey - renderTargetAreaPos.y) * RatioY;
+				t.inputsys.xmouse = xmouseold;
+				t.inputsys.xmouse = ymouseold;
+				ShowMouse();
+				g.mouseishidden = 0;
+
+#else
+				t.inputsys.xmouse = ((t.tideframestartx + t.editorfreeflight.storemousex + 0.0) / 800.0)*(GetDisplayWidth() + 0.0);
+				t.inputsys.ymouse = ((t.tideframestarty + t.editorfreeflight.storemousey + 0.0) / 600.0)*(GetDisplayHeight() + 0.0);
+				game_showmouse();
+#endif
+
 				t.terrain.X_f=999999 ; t.terrain.Y_f=999999;
 			}
 		}
@@ -5897,12 +8440,19 @@ int findentitycursorobj ( int currentlyover )
 								//  SPACE key can bypass the lock system
 								if ( t.entityelement[e].editorlock == 1 ) 
 								{
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+									//PE: imgui Need testing.
+									tadjustedtoareax_f = ((float)t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
+									tadjustedtoareay_f = ((float)t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
+#else
+
 									//  work out visible part of full backbuffer (i.e. 1212 of 1360)
 									tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
 									tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
 									//  scale full mouse to fit in visible area
 									tadjustedtoareax_f=((t.inputsys.xmouse+0.0)/800.0)/tadjustedtoareax_f;
 									tadjustedtoareay_f=((t.inputsys.ymouse+0.0)/600.0)/tadjustedtoareay_f;
+#endif
 									//  then provide in a format for the pick-from-screen command
 									#ifdef DX11
 									tadjustedtoareax_f=tadjustedtoareax_f*(GetDisplayWidth()+0.0);
@@ -5919,12 +8469,21 @@ int findentitycursorobj ( int currentlyover )
 						}
 						if (  tokay == 1 ) 
 						{
+
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+							//PE: imgui Need testing.
+							tadjustedtoareax_f = ((float)t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
+							tadjustedtoareay_f = ((float)t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
+#else
+
 							//  work out visible part of full backbuffer (i.e. 1212 of 1360)
 							tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
 							tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
 							//  scale full mouse to fit in visible area
 							tadjustedtoareax_f=((t.inputsys.xmouse+0.0)/800.0)/tadjustedtoareax_f;
 							tadjustedtoareay_f=((t.inputsys.ymouse+0.0)/600.0)/tadjustedtoareay_f;
+#endif
+
 							//  then provide in a format for the pick-from-screen command
 							#ifdef DX11
 							tadjustedtoareax_f=tadjustedtoareax_f*(GetDisplayWidth()+0.0);
@@ -6217,9 +8776,16 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 					}
 					else
 					{
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+						//PE: imgui Need testing.
+						// draw and detect
+						float fMX = (GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth(); //GetChildWindowWidth(1)
+						float fMY = (GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight(); //GetChildWindowHeight(-1)
+#else
 						// draw and detect
 						float fMX = (GetChildWindowWidth(1)+0.0) / 800.0f;
 						float fMY = (GetChildWindowHeight(1)+0.0) / 600.0f;
+#endif
 						
 						// reverse bound box if inside out
 						float fCurrentRubberBandX1 = t.inputsys.rubberbandx;
@@ -7275,7 +9841,11 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 						t.inputsys.xmouse=t.tadjustedtoareax_f;
 						t.inputsys.ymouse=t.tadjustedtoareay_f;
 						t.tideframestartx=148 ; t.tideframestarty=96;
-						PositionMouse (  (t.tideframestartx+t.inputsys.xmouse)*-1,(t.tideframestarty+t.inputsys.ymouse)*-1 );
+
+						//PE: Why do we need this ? everything should already match.
+						//PE: IMGUI need fix.
+						//PositionMouse (  (t.tideframestartx+t.inputsys.xmouse)*-1,(t.tideframestarty+t.inputsys.ymouse)*-1 );
+
 						editor_refreshcamerarange ( );
 					}
 

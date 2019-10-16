@@ -4,6 +4,10 @@
 #include <vector>
 #include "ipc.h"
 
+#include "..\GameGuru\Imgui\imgui.h"
+#include "..\GameGuru\Imgui\imgui_impl_win32.h"
+#include "..\GameGuru\Imgui\imgui_gg_dx11.h"
+
 struct sFileMap
 {
 	cIPC*  pIPC;
@@ -102,6 +106,12 @@ void CreateFileMap ( int iID, LPSTR dwName, DWORD dwSize )
 
 void OpenFileMap ( int iID, LPSTR dwName )
 {
+#ifdef ENABLEIMGUI
+	//FileMapping crash if the ide is not running.
+#ifndef USEOLDIDE	
+	return;
+#endif
+#endif
 	if ( !CheckFileMapID ( iID ) )
 		return;
 
@@ -172,6 +182,56 @@ void DestroyFileMap ( int iID )
 
 DWORD GetFileMapDWORD ( int iID, DWORD dwOffset )
 {
+#ifdef ENABLEIMGUI
+#ifndef USEOLDIDE
+
+	//PE: Support basic GetFileMapDWORD , so we dont have to rewrite code.
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	switch (dwOffset) {
+
+		case 100: //scancode.
+			for (int iTemp = 0; iTemp < 256; iTemp++)
+			{
+				if (iTemp != 16 && iTemp != 17) { //shift,control
+					if (io.KeysDown[iTemp] > 0)
+					{
+						if (iTemp == 123) {
+							//PE: We will hang in VS (break) so reset after use.
+							io.KeysDown[iTemp] = 0;
+						}
+						return(iTemp);
+					}
+				}
+			}
+			break;
+		case 0:
+			return(ImGui::GetMousePos().x);
+		case 4:
+			return(ImGui::GetMousePos().y);
+		case 20:
+			return(io.MouseDown[0] + (io.MouseDown[1] * 2.0) + (io.MouseDown[2] * 3.0) + (io.MouseDown[3] * 4.0));
+//		case 16:
+//			return(io.MouseWheel);
+
+		default:
+			break;
+	}
+/*
+	t.inputsys.xmouse=GetFileMapDWORD( 1, 0 );
+	t.inputsys.ymouse=GetFileMapDWORD( 1, 4 );
+
+	t.inputsys.xmousemove=GetFileMapDWORD( 1, 8 );
+	t.inputsys.ymousemove=GetFileMapDWORD( 1, 12 );
+	SetFileMapDWORD (  1, 8, 0 );
+	SetFileMapDWORD (  1, 12, 0 );
+	t.inputsys.wheelmousemove=GetFileMapDWORD( 1, 16 );
+	t.inputsys.mclick=GetFileMapDWORD( 1, 20 );
+	t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
+*/
+	return 0;
+#endif
+#endif
+
 	if ( !g_FileMap [ iID ].pIPC )
 		return 0;
 
@@ -201,8 +261,18 @@ DWORD GetFileMapDWORD ( int iID, DWORD dwOffset )
 	*/
 }
 
+char lpsEmpty[80];
+
 LPSTR GetFileMapString ( int iID, DWORD dwOffset )
 {
+#ifdef ENABLEIMGUI
+	//FileMapping crash if the ide is not running.
+#ifndef USEOLDIDE
+	lpsEmpty[0] = 0;
+	return &lpsEmpty[0];
+#endif
+#endif
+
 	if ( !g_FileMap [ iID ].pIPC )
 		return 0;
 

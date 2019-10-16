@@ -15,7 +15,15 @@ void input_getdirectcontrols ( void )
 	t.inputsys.xmouse=MouseX();
 	t.inputsys.ymouse=MouseY();
 	t.inputsys.zmouse=MouseZ();
+
+	//Try breakpoint in MouseMoveX();
 	t.inputsys.xmousemove=MouseMoveX();
+//	if (t.inputsys.xmousemove > 2)
+//	{
+//		//Works in F9 ?
+//		printf("test");
+//	}
+
 	t.inputsys.ymousemove=MouseMoveY();
 	t.inputsys.wheelmousemove=MouseMoveZ();
 	t.inputsys.mclick=MouseClick();
