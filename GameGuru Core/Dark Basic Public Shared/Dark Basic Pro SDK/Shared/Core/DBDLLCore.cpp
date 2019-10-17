@@ -79,6 +79,10 @@
 #include "..\GameGuru\Imgui\imgui_gg_dx11.h"
 
 #ifdef ENABLEIMGUI
+
+#include "CGfxC.h"
+
+
 //PE: ImGui render if we have a imgui frame.
 extern bool bImGuiFrameState;
 extern bool bImGuiRenderTargetFocus;
@@ -1864,7 +1868,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	//PE: the windows title will be "Test my Game name".
 	char workstring[1024];
 	GetModuleFileName(NULL, workstring, 1024);
-	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0 )
+	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0 || strcmp(Lower(Right(workstring, 13)), "game-guru.exe") == 0 )
 	{
 		//strcpy(pAppName, "Game Guru");
 		strcpy(pAppName, "MyGame");
@@ -1943,6 +1947,57 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		g_pGlob->hWnd = CreateWindow( pAppNameUnique, pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
 	}
 
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+	//Keep current windows and use for imgui interface.
+	//PE: Imgui register ImguiWindowProc so it can be used for IMGUI input in editor.
+
+	g_pGlob->hOriginalhWnd = g_pGlob->hWnd;
+
+	SETUPConstructor();
+	SetWindowLong(g_pGlob->hWnd, GWL_WNDPROC, (LONG)ImguiWindowProc);
+
+	// Initialise DisplayDLL
+	OverrideHWND(g_pGlob->hWnd);
+
+	// Need window for game so original window can stay hidden until VR activates (used by standalone game exe)
+	bool bNeededToCreateExtraWindowForWMRWindow = false;
+	if ( g_pGlob->hOriginalhWnd == g_pGlob->hWnd )
+	{
+		//PE: The current window can be used with Preset or as rendertarget, so do not know why this is needed ?
+		//PE: Like current "test game" do.
+/*
+		WNDCLASS wc2;
+		wc2.style = CS_HREDRAW | CS_VREDRAW;
+		wc2.lpfnWndProc = WindowProc;
+		wc2.cbClsExtra = 0;
+		wc2.cbWndExtra = 0;
+		wc2.hInstance = hInstance;
+		wc2.hIcon = g_hUseIcon;
+		wc2.hCursor = NULL;
+		wc2.hbrBackground = NULL;
+		wc2.lpszMenuName = NULL;
+		wc2.lpszClassName = "TheGameWindowClass";
+		RegisterClass( &wc2 );
+		g_pGlob->hWnd = CreateWindow(
+			"TheGameWindowClass", 
+			"TheGameWindow",
+			WS_VISIBLE,
+			CW_USEDEFAULT, 
+			0, 
+			CW_USEDEFAULT, 
+			0, 
+			nullptr, 
+			nullptr, 
+			hInstance, 
+			nullptr);
+		bNeededToCreateExtraWindowForWMRWindow = true;
+*/
+	}
+
+	// Show Window
+	//ShowWindow(g_pGlob->hWnd, SW_SHOW); // ? how can this work ?
+
+#else
 	// Main Setup init
 	g_pGlob->hOriginalhWnd = g_pGlob->hWnd;
 	bool bDXFailed=false;
@@ -1990,6 +2045,40 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 
 	// Initialise DisplayDLL
 	OverrideHWND(g_pGlob->hWnd);
+
+#endif
+#ifdef ENABLEIMGUI
+#ifndef USEOLDIDE
+	//PE: Setup the window here. pos size. Docking ?
+	SetWindowSettings(5, 1, 1);
+	SetForegroundWindow(g_pGlob->hWnd);
+
+	SetWindowSize(vStartResolution.x, vStartResolution.y); //PE: test
+
+	float centerx = (GetDesktopWidth()*0.5) - (vStartResolution.x*0.5);
+	float centery = ((float) (GetDesktopHeight()*0.5) - (float) (vStartResolution.y*0.5)) * 0.5f;
+	if (centerx < 0)
+		centerx = 0;
+	if (centery < 0)
+		centery = 0;
+	SetWindowPosition(centerx, centery);
+	ShowWindow();
+	RestoreWindow();
+	//MaximiseWindow();
+
+
+	extern DWORD gWindowSizeAddY;
+	extern DWORD gWindowSizeAddX;
+	RECT clientrc;
+	GetClientRect(g_pGlob->hWnd, &clientrc);
+	gWindowSizeAddY = vStartResolution.y - clientrc.bottom;
+	gWindowSizeAddX = vStartResolution.x - clientrc.right;
+
+	//We need something like g_bWindowOverride = true;
+	extern bool g_bWindowOverride;
+	g_bWindowOverride = true;
+#endif
+#endif
 
 	// Activate COM
 	//CoInitialize(NULL);
@@ -4384,6 +4473,14 @@ DARKSDK void Sync(void)
 DARKSDK void Sync(int iProcessMessages)
 {
 	ExternalDisplaySync(0);
+#ifdef ENABLEIMGUI
+#ifndef USEOLDGUI
+	//PE: we need input for fake GetFileMapDWORD
+	if (iProcessMessages == 0)
+		ProcessMessagesOnly();
+#endif
+#endif
+
 	if ( iProcessMessages==1 ) ProcessMessagesOnly();
 	ConstantNonDisplayUpdate();
 	g_bCanRenderNow = true;
@@ -4391,6 +4488,16 @@ DARKSDK void Sync(int iProcessMessages)
 
 DARKSDK void FastSync(void)
 {
+#ifdef ENABLEIMGUI
+#ifndef USEOLDGUI
+	//PE: we need input for fake GetFileMapDWORD
+	ProcessMessagesOnly();
+
+	//FastSync dont work if we do not have a imgui frame so:
+
+
+#endif
+#endif
 	ExternalDisplaySync(1);
 	g_bCanRenderNow = true;
 }
@@ -4402,6 +4509,12 @@ DARKSDK void FastSyncInputOnly(void)
 
 DARKSDK void FastSync ( int iNonDisplayUpdates )
 {
+#ifdef ENABLEIMGUI
+#ifndef USEOLDGUI
+	//PE: we need input for fake GetFileMapDWORD
+	ProcessMessagesOnly();
+#endif
+#endif
 	ExternalDisplaySync(1);
 	if ( iNonDisplayUpdates==1 )
 	{

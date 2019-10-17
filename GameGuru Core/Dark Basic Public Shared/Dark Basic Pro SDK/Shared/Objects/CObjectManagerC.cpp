@@ -4083,7 +4083,9 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 
 					int iEid = g.guishadereffectindex;
 					if(pMesh && pMesh->pVertexShaderEffect) iEid = pMesh->pVertexShaderEffect->m_iEffectID;
-					if ( iEid == g.guishadereffectindex || iEid == g.guidiffuseshadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) 
+					//PE: interpolated cameraPosition do not look the same as trueCameraPosition. need fix , switch back for now.
+					//if ( iEid == g.guishadereffectindex || iEid == g.guidiffuseshadereffectindex || (iEid >= g.postprocesseffectoffset && iEid < g.postprocesseffectoffset+100) ) 
+					if( 1 ) 
 					{
 						CBPerMeshPS cbps;
 						cbps.vMaterialEmissive = GGCOLOR(pMesh->mMaterial.Emissive.r, pMesh->mMaterial.Emissive.g, pMesh->mMaterial.Emissive.b, pMesh->mMaterial.Emissive.a);
@@ -4129,6 +4131,9 @@ bool CObjectManager::DrawMesh ( sMesh* pMesh, bool bIgnoreOwnMeshVisibility, sOb
 						lpTexture = GetImagePointerView ( pMesh->pTextures[i].iImageID );
 					m_pImmediateContext->PSSetShaderResources ( i, 1, &lpTexture );
 				}
+				//PE: Only single texture on shadow maps.
+				if (g_pGlob->dwRenderCameraID >= 31)
+					break;
 			}
 
 			//PE: Debug.

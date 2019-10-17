@@ -31,7 +31,7 @@ bool bImGuiInTestGame = false;
 bool bImGuiInitDone = false;
 int ImGuiStatusBar_Size = 0;
 
-ImVec2 vStartResolution = { 1024,768 };
+ImVec2 vStartResolution = { 1280,800 };
 ImVec2 OldrenderTargetSize = { 0,0 };
 ImVec2 OldrenderTargetPos = { 0,0 };
 ImVec2 renderTargetAreaPos = { 0,0 };

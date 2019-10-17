@@ -85,6 +85,7 @@ void gridedit_displayentitycursor ( void );
 void gridedit_deletelevelobjects ( void );
 void modifyplaneimagestrip ( int objno, int texmax, int texindex );
 void interface_openpropertywindow ( void );
+void imgui_set_openproperty_flags(void);
 void interface_copydatatoentity ( void );
 void interface_closepropertywindow ( void );
 void interface_handlepropertywindow ( void );

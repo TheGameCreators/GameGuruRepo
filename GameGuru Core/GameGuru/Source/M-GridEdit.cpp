@@ -104,6 +104,18 @@ public:
 };
 
 extern cFolderItem MainEntityList;
+
+bool bExternal_Entities_Window = false;
+bool bExternal_Entities_Init = false;
+bool bEntity_Properties_Window = false;
+
+#define MAXTEXTINPUT 1024
+char cTmpInput[MAXTEXTINPUT + 1];
+
+char * imgui_setpropertystring2(int group, char* data_s, char* field_s, char* desc_s);
+int imgui_setpropertylist2(int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype);
+char * imgui_setpropertylist2c(int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype);
+
 #endif
 
 //  GOTO LABEL (jump from common_init)
@@ -939,7 +951,7 @@ path.png
 				
 				//ImGui::DockBuilderSetNodeSize(dock_id_bottom, ImVec2(viewport->Size.x, statusbar_size));
 
-//				ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.10f, NULL, &dock_main_id);
+				ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.20f, NULL, &dock_main_id);
 //				ImGuiID dock_id_rightDown = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.28f, NULL, &dock_id_right);
 				ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.125f, NULL, &dock_main_id);
 //				ImGuiID dock_id_leftDown = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Down, 0.28f, NULL, &dock_id_left);
@@ -956,6 +968,7 @@ path.png
 
 				ImGui::DockBuilderDockWindow("Editor##GGRenderarget", dock_main_id);
 				ImGui::DockBuilderDockWindow("Entities##LeftPanel", dock_id_left);
+				ImGui::DockBuilderDockWindow("Entity Properties##PropertiesWindow", dock_id_right);
 
 				//ImGui::DockBuilderDockWindow("Hello,GameGuru!", dock_id_left);
 				//ImGui::DockBuilderDockWindow("Statusbar", dock_id_bottom);
@@ -972,6 +985,975 @@ path.png
 			if (dock_main_tabs == 0)
 				dock_main_tabs = dockspace_id;
 
+
+			//###########################
+			//#### Entity Properties ####
+			//###########################
+
+			//Perhaps we should dock this by default.
+
+			ImGui::SetNextWindowPos(viewPortPos + ImVec2(400, 140), ImGuiCond_Once); //ImGuiCond_FirstUseEver
+			ImGui::SetNextWindowSize(ImVec2(30 * ImGui::GetFontSize(), 40 * ImGui::GetFontSize()), ImGuiCond_Once); //ImGuiCond_FirstUseEver
+
+			if (refresh_gui_docking == 0) {
+				//Need to be here while first time docking.
+				ImGui::Begin("Entity Properties##PropertiesWindow", &bEntity_Properties_Window, 0);
+				ImGui::End();
+			}
+			if (bEntity_Properties_Window) {
+				static int iOldPickedEntityIndex = -1;
+				static entityeleproftype backup_grideleprof;
+				if (t.widget.pickedEntityIndex > 0 && t.cameraviewmode == 2) {
+					//We are in properties mode.
+
+					//t.grideleprof=t.entityelement[t.e].eleprof; has already been set.
+					//If t.entid==0 then we are in extract or properties.
+					//if t.cameraviewmode == 2 we are in properties mode.
+					//if (t.widget.pickedEntityIndex == t.e) {
+					//t.ttrygridentity only used in Extract,ProperTies,EBE
+
+
+					int iParentEntid = t.ttrygridentity;
+					
+					if (iOldPickedEntityIndex != t.widget.pickedEntityIndex) {
+						//New item , backup grideleprof , for cancel function.
+						//PE: NOTE this do not backup position ...
+						backup_grideleprof = t.grideleprof;
+						iOldPickedEntityIndex = t.widget.pickedEntityIndex;
+					}
+
+					ImGui::Begin("Entity Properties##PropertiesWindow", &bEntity_Properties_Window, 0);
+					int media_icon_size = 64;
+					if (t.entityprofile[iParentEntid].iThumbnailSmall > 0) {
+						//TODO Right align.
+						//int i = ImGui::GetCurrentWindow()->ContentSize.x;
+						int i = ImGui::GetWindowContentRegionWidth();
+						ImGui::Spacing();
+						ImGui::SameLine(i - (media_icon_size+4.0f));
+						ImGui::ImgBtn(t.entityprofile[iParentEntid].iThumbnailSmall, ImVec2(media_icon_size, media_icon_size), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal);
+					}
+
+
+					imgui_set_openproperty_flags();
+					t.gridentity = t.widget.pickedEntityIndex;
+
+
+					if (t.tsimplecharview == 1)
+					{
+						//  Wizard (simplified) property editing
+						t.group = 0;
+						if (ImGui::CollapsingHeader("Character Info", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+							t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), t.strarr_s[413].Get(), "Choose a unique name for this character");
+							t.grideleprof.aimain_s = imgui_setpropertylist2(t.group, t.controlindex, t.grideleprof.aimain_s.Get(), "Behaviour", "Select a behaviour for this character", 11);
+							//t.grideleprof.soundset1_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset1_s.Get(), "Voiceover", "Select t.a WAV or OGG file this character will use during their behaviour", "audiobank\\");
+							t.grideleprof.ifused_s = imgui_setpropertystring2(t.group, t.grideleprof.ifused_s.Get(), "If Used", "Sometimes used to specify the name of an entity to be activated");
+						}
+					}
+					else
+					{
+						//  Name
+						//t.group = 0; startgroup(t.strarr_s[412].Get()); t.controlindex = 0;
+						
+						//ImGui::BeginGroup();
+						//strcpy(cTmpInput, t.grideleprof.name_s.Get());
+						//ImGui::InputText(t.strarr_s[413].Get(), &cTmpInput[0], MAXTEXTINPUT);
+						//t.grideleprof.name_s = cTmpInput;
+						//if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.strarr_s[204].Get());
+
+
+						t.group = 0;
+						if (ImGui::CollapsingHeader(t.strarr_s[412].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+
+							if (t.entityprofile[t.gridentity].ischaracter > 0)
+							{
+//								t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), t.strarr_s[478].Get(), t.strarr_s[204].Get());
+								t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), "Name", t.strarr_s[204].Get());
+							}
+							else
+							{
+								if (t.entityprofile[t.gridentity].ismarker > 0)
+								{
+									if (t.entityprofile[t.gridentity].islightmarker > 0) {
+//										t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), t.strarr_s[483].Get(), t.strarr_s[204].Get());
+										t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), "Name", t.strarr_s[204].Get());
+									}
+									else {
+//										t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), t.strarr_s[479].Get(), t.strarr_s[204].Get());
+										t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), "Name", t.strarr_s[204].Get());
+									}
+								}
+								else {
+//									t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), t.strarr_s[413].Get(), t.strarr_s[204].Get());
+									t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), "Name", t.strarr_s[204].Get());
+								}
+							}
+
+
+							if (t.entityprofile[t.gridentity].ismarker == 0 || t.entityprofile[t.gridentity].islightmarker == 1)
+							{
+								if (g.gentitytogglingoff == 0)
+								{
+									t.tokay = 1;
+									if (ObjectExist(g.entitybankoffset + t.gridentity) == 1)
+									{
+										if (GetNumberOfFrames(g.entitybankoffset + t.gridentity)>0)
+										{
+											t.tokay = 0;
+										}
+									}
+									if (t.tokay == 1)
+									{
+										//PE: 414=Static Mode
+										t.gridentitystaticmode = imgui_setpropertylist2(t.group, t.controlindex, Str(t.gridentitystaticmode), t.strarr_s[414].Get(), t.strarr_s[205].Get(), 0);
+									}
+								}
+							}
+
+							// 101016 - Additional General Parameters
+							if (t.tflagchar == 0 && t.tflagvis == 1)
+							{
+								if (t.tflagsimpler == 0)
+								{
+									t.grideleprof.isocluder = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isocluder), "Occluder", "Set to YES makes this entity an occluder", 0); ++t.controlindex;
+									t.grideleprof.isocludee = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isocludee), "Occludee", "Set to YES makes this entity an occludee", 0); ++t.controlindex;
+								}
+								// these will be back when EBE needs doors and windows
+								//setpropertystring2(t.group,Str(t.grideleprof.parententityindex),"Parent Index","Selects another entity element to be a parent") ; ++t.controlindex;
+								//setpropertystring2(t.group,Str(t.grideleprof.parentlimbindex),"Parent Limb","Specifies the limb index of the parent to connect with") ; ++t.controlindex;
+							}
+
+							// 281116 - added Specular Control per entity
+							if (t.tflagvis == 1)
+							{
+								if (t.tflagsimpler == 0)
+								{
+									t.grideleprof.specularperc = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.specularperc), "Specular", "Set specular percentage to modulate entity specular effect"));
+								}
+							}
+
+							if (ImGui::IsAnyItemFocused()) {
+								bImGuiGotFocus = true;
+							}
+
+
+						}
+
+
+						t.group = 1;
+						if (ImGui::CollapsingHeader(t.strarr_s[415].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+							//  Basic AI
+							if (t.tflagai == 1)
+							{
+								// can redirect to better folders if in g.quickparentalcontrolmode
+								LPSTR pAIRoot = "scriptbank\\";
+								if (g.quickparentalcontrolmode == 2)
+								{
+									if (t.entityprofile[t.gridentity].ismarker == 0)
+									{
+										if (t.tflagchar == 1)
+											pAIRoot = "scriptbank\\people\\";
+										else
+											pAIRoot = "scriptbank\\objects\\";
+									}
+									else
+									{
+										pAIRoot = "scriptbank\\markers\\";
+									}
+								}
+								//setpropertyfile2(t.group, t.grideleprof.aimain_s.Get(), t.strarr_s[417].Get(), t.strarr_s[207].Get(), pAIRoot); ++t.controlindex;
+							}
+
+
+							//  Has Weapon
+							if (t.tflaghasweapon == 1 && t.playercontrol.thirdperson.enabled == 0 && g.quickparentalcontrolmode != 2)
+							{
+//								t.grideleprof.hasweapon_s = imgui_setpropertylist2(t.group, t.controlindex, t.grideleprof.hasweapon_s.Get(), t.strarr_s[419].Get(), t.strarr_s[209].Get(), 1);
+								t.grideleprof.hasweapon_s = imgui_setpropertylist2c(t.group, t.controlindex, t.grideleprof.hasweapon_s.Get(), t.strarr_s[419].Get(), t.strarr_s[209].Get(), 1);
+							}
+
+							//  Is Weapon (FPGC - 280809 - filtered fpgcgenre=1 is shooter genre)
+							if (t.tflagweap == 1 && g.fpgcgenre == 1)
+							{
+								t.grideleprof.damage = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.damage), t.strarr_s[420].Get(), t.strarr_s[210].Get()));
+								t.grideleprof.accuracy = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.accuracy), t.strarr_s[421].Get(), "Increases the inaccuracy of conical distribution by 1/100th of t.a degree"));
+								if (t.grideleprof.weaponisammo == 0)
+								{
+									t.grideleprof.reloadqty = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.reloadqty), t.strarr_s[422].Get(), t.strarr_s[212].Get()));
+									t.grideleprof.fireiterations = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.fireiterations), t.strarr_s[423].Get(), t.strarr_s[213].Get()));
+									t.grideleprof.range = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.range), "Range", "Maximum range of bullet travel"));
+									t.grideleprof.dropoff = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.dropoff), "Dropoff", "Amount in inches of vertical dropoff per 100 feet of bullet travel"));
+								}
+								else
+								{
+									t.grideleprof.lifespan = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.lifespan), t.strarr_s[424].Get(), t.strarr_s[214].Get()));
+									t.grideleprof.throwspeed = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.throwspeed), t.strarr_s[425].Get(), t.strarr_s[215].Get()));
+									t.grideleprof.throwangle = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.throwangle), t.strarr_s[426].Get(), t.strarr_s[216].Get()));
+									t.grideleprof.bounceqty = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.bounceqty), t.strarr_s[427].Get(), t.strarr_s[217].Get()));
+									t.grideleprof.explodeonhit = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.explodeonhit), t.strarr_s[428].Get(), t.strarr_s[218].Get(), 0);
+								}
+								if (t.tflagsimpler == 0)
+								{
+									t.grideleprof.usespotlighting = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Set whether emits dynamic spot lighting", 0);
+								}
+							}
+
+							//  Is Character
+							if (t.tflagchar == 1)
+							{
+								if (t.tflagsimpler == 0)
+								{
+
+									// 020316 - special check to avoid offering can take weapon if no HUD.X
+									t.tfile_s = cstr("gamecore\\guns\\") + t.grideleprof.hasweapon_s + cstr("\\HUD.X");
+									if (FileExist(t.tfile_s.Get()) == 1)
+									{
+										t.grideleprof.cantakeweapon = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.cantakeweapon), t.strarr_s[429].Get(), t.strarr_s[219].Get(), 0);
+										t.grideleprof.quantity = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.quantity), t.strarr_s[430].Get(), t.strarr_s[220].Get()));
+									}
+									t.grideleprof.rateoffire = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.rateoffire), t.strarr_s[431].Get(), t.strarr_s[221].Get()));
+								}
+							}
+							if (t.tflagquantity == 1 && g.quickparentalcontrolmode != 2)
+							{
+								t.grideleprof.quantity = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.quantity), t.strarr_s[432].Get(), t.strarr_s[222].Get()));
+							}
+
+							//  AI Extra
+							if (t.tflagvis == 1 && t.tflagai == 1)
+							{
+								if (t.tflagchar == 1)
+								{
+									t.grideleprof.coneangle = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.coneangle), t.strarr_s[434].Get(), t.strarr_s[224].Get()));
+									t.grideleprof.conerange = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.conerange), "View Range", "The range within which the AI may see the player. Zero triggers the characters default range."));
+									t.grideleprof.ifused_s = imgui_setpropertystring2(t.group, t.grideleprof.ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get());
+									if (g.quickparentalcontrolmode != 2)
+										t.grideleprof.isviolent = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0);
+									if (t.tflagsimpler == 0)
+									{
+										t.grideleprof.colondeath = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.colondeath), "End Collision", "Set to NO switches off collision when die", 0);
+									}
+								}
+								else
+								{
+									if (t.tflagweap == 0 && t.tflagammo == 0)
+									{
+										//t.propfield[t.group] = t.controlindex;
+										//++t.group; startgroup(t.strarr_s[435].Get()); t.controlindex = 0;
+										t.grideleprof.usekey_s = imgui_setpropertystring2(t.group, t.grideleprof.usekey_s.Get(), t.strarr_s[436].Get(), t.strarr_s[225].Get());
+										if (t.tflagsimpler != 0 & t.entityprofile[t.gridentity].ismarker == 3 && t.entityprofile[t.gridentity].trigger.stylecolor == 1)
+										{
+											// only one level - no winzone chain option
+										}
+										else
+										{
+											t.grideleprof.ifused_s = imgui_setpropertystring2(t.group, t.grideleprof.ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get());
+										}
+									}
+								}
+							}
+							if (t.tflagifused == 1)
+							{
+								if (t.tflagusekey == 1)
+								{
+									t.grideleprof.usekey_s = imgui_setpropertystring2(t.group, t.grideleprof.usekey_s.Get(), t.strarr_s[436].Get(), t.strarr_s[225].Get());
+								}
+								if (t.tflagsimpler != 0 & t.entityprofile[t.gridentity].ismarker == 3 && t.entityprofile[t.gridentity].trigger.stylecolor == 1)
+								{
+									// only one level - no winzone chain option
+								}
+								else
+								{
+									t.grideleprof.ifused_s = imgui_setpropertystring2(t.group, t.grideleprof.ifused_s.Get(), t.strarr_s[438].Get(), t.strarr_s[227].Get());
+								}
+							}
+
+						}
+
+						if (t.tflagspawn == 1)
+						{
+							t.group = 1;
+							if (ImGui::CollapsingHeader(t.strarr_s[439].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+
+								//t.propfield[t.group] = t.controlindex;
+								//++t.group; startgroup(t.strarr_s[439].Get()); t.controlindex = 0;
+								t.grideleprof.spawnatstart = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.spawnatstart), t.strarr_s[562].Get(), t.strarr_s[563].Get(), 0);
+								//     `setpropertystring2(group,Str(grideleprof.spawnmax),strarr$(440),strarr$(231)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawnupto),strarr$(441),strarr$(232)) ; inc controlindex
+								//     `setpropertylist2(group,controlindex,Str(grideleprof.spawnafterdelay),strarr$(442),strarr$(233),0) ; inc controlindex
+								//     `setpropertylist2(group,controlindex,Str(grideleprof.spawnwhendead),strarr$(443),strarr$(234),0) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawndelay),strarr$(444),strarr$(235)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawndelayrandom),strarr$(564),strarr$(565)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawnqty),strarr$(445),strarr$(236)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawnqtyrandom),strarr$(566),strarr$(567)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawnvel),strarr$(568),strarr$(569)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawnvelrandom),strarr$(570),strarr$(571)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawnangle),strarr$(572),strarr$(573)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawnanglerandom),strarr$(574),strarr$(575)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.spawnlife),strarr$(576),strarr$(577)) ; inc controlindex
+
+
+							}
+						}
+
+
+						//  Statistics
+						if ((t.tflagvis == 1 || t.tflagobjective == 1 || t.tflaglives == 1 || t.tflagstats == 1) && t.tflagweap == 0 && t.tflagammo == 0)
+						{
+							t.group = 1;
+							if (ImGui::CollapsingHeader(t.strarr_s[451].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+
+								//t.propfield[t.group] = t.controlindex;
+								//++t.group; startgroup(t.strarr_s[451].Get()); t.controlindex = 0;
+								if (t.tflaglives == 1)
+								{ 
+									t.grideleprof.lives = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.lives), t.strarr_s[452].Get(), t.strarr_s[242].Get()));
+								}
+								if (t.tflagvis == 1 || t.tflagstats == 1)
+								{
+									if (t.tflaglives == 1)
+									{
+										t.grideleprof.strength = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.strength), t.strarr_s[453].Get(), t.strarr_s[243].Get()));
+									}
+									else
+									{
+										if (t.tflagnotionofhealth == 1)
+										{
+											t.grideleprof.strength = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.strength), t.strarr_s[454].Get(), t.strarr_s[244].Get()));
+										}
+									}
+									if (t.tflagplayersettings == 1)
+									{
+										if (g.quickparentalcontrolmode != 2)
+										{
+											t.grideleprof.isviolent = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0);
+										}
+										if (t.tflagnotionofhealth == 1)
+										{
+											t.playercontrol.regenrate = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.regenrate), "Regeneration Rate", "Sets the increase value at which the players health will restore"));
+											t.playercontrol.regenspeed = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.regenspeed), "Regeneration Speed", "Sets the speed in milliseconds at which the players health will regenerate"));
+											t.playercontrol.regendelay = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.regendelay), "Regeneration Delay", "Sets the delay in milliseconds after last damage hit before health starts regenerating"));
+										}
+									}
+									t.grideleprof.speed = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.speed), t.strarr_s[455].Get(), t.strarr_s[245].Get()));
+									if (t.playercontrol.thirdperson.enabled == 1)
+									{
+										t.tanimspeed_f = t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
+									}
+									else
+									{
+										t.tanimspeed_f = t.grideleprof.animspeed;
+									}
+//									t.tanimspeed_f = atof(imgui_setpropertystring2(t.group, Str(t.tanimspeed_f), t.strarr_s[477].Get(), "Sets the default speed of any animation associated with this entity"));
+									//477 missing.
+									t.tanimspeed_f = atof(imgui_setpropertystring2(t.group, Str(t.tanimspeed_f), "Anim Speed", "Sets the default speed of any animation associated with this entity"));
+								}
+								if (t.tflaghurtfall == 1) {
+									t.grideleprof.hurtfall = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.hurtfall), t.strarr_s[456].Get(), t.strarr_s[246].Get()));
+								}
+								if (t.tflagplayersettings == 1)
+								{
+									t.playercontrol.jumpmax_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.jumpmax_f), "Jump Speed", "Sets the jump speed of the t.player which controls overall jump height"));
+									t.playercontrol.gravity_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.gravity_f), "Gravity", "Sets the modified force percentage of the players own gravity"));
+									t.playercontrol.fallspeed_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.fallspeed_f), "Fall Speed", "Sets the maximum speed percentage at which the t.player will fall"));
+									t.playercontrol.climbangle_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.climbangle_f), "Climb Angle", "Sets the maximum angle permitted for the player to ascend a slope"));
+									if (t.playercontrol.thirdperson.enabled == 0)
+									{
+										t.playercontrol.wobblespeed_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.wobblespeed_f), "Wobble Speed", "Sets the rate of motion applied to the camera when moving"));
+										t.playercontrol.wobbleheight_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.wobbleheight_f * 100), "Wobble Height", "Sets the degree of motion applied to the camera when moving")) / 100.0f;
+										t.playercontrol.footfallpace_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.footfallpace_f * 100), "Footfall Pace", "Sets the rate at which the footfall sound is played when moving")) / 100.0f;
+									}
+									t.playercontrol.accel_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.accel_f * 100), "Acceleration", "Sets the acceleration curve used when t.moving from t.a stood position")) / 100.0f;
+								}
+								if (t.tflagmobile == 1) {
+									t.grideleprof.isimmobile = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isimmobile), t.strarr_s[457].Get(), t.strarr_s[247].Get(), 0);
+								}
+								if (t.tflagmobile == 1)
+								{
+									if (t.tflagsimpler == 0)
+									{
+										t.grideleprof.lodmodifier = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.lodmodifier), "LOD Modifier", "Modify when the LOD transition takes effect. The default value is 0, increase this to a percentage reduce the LOD effect."));
+									}
+								}
+							}
+						}
+
+						//  Team field
+#ifdef PHOTONMP
+#else
+						if (t.tflagteamfield == 1)
+						{
+//							setpropertylist3(t.group, t.controlindex, Str(t.grideleprof.teamfield), "Team", "Specifies any team affiliation for multiplayer start marker", 0); ++t.controlindex;
+						}
+#endif
+
+					}
+/*
+
+
+//		setpropertybase(ENTITY_WINDOW_TITLE, t.strarr_s[411].Get());
+		if (  t.tsimplecharview == 1 )
+		{
+			//  Wizard (simplified) property editing
+			t.group=0 ; startgroup("Character Info") ; t.controlindex=0;
+			setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[478].Get(),"Choose a unique name for this character") ; ++t.controlindex;
+			setpropertylist2(t.group,t.controlindex,t.grideleprof.aimain_s.Get(),"Behaviour","Select a behaviour for this character",11) ; ++t.controlindex;
+			setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Voiceover","Select t.a WAV or OGG file this character will use during their behaviour","audiobank\\") ; ++t.controlindex;
+			setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),"If Used","Sometimes used to specify the name of an entity to be activated") ; ++t.controlindex;
+		}
+		else
+		{
+			//  Name
+			t.group=0 ; startgroup(t.strarr_s[412].Get()) ; t.controlindex=0;
+			if ( t.entityprofile[t.gridentity].ischaracter > 0 )
+			{
+				setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[478].Get(),t.strarr_s[204].Get());
+			}
+			else
+			{
+				if ( t.entityprofile[t.gridentity].ismarker > 0 )
+				{
+					if ( t.entityprofile[t.gridentity].islightmarker > 0 )
+						setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[483].Get(),t.strarr_s[204].Get());
+					else
+						setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[479].Get(),t.strarr_s[204].Get());
+				}
+				else
+					setpropertystring2(t.group,t.grideleprof.name_s.Get(),t.strarr_s[413].Get(),t.strarr_s[204].Get());
+			}
+			++t.controlindex;
+			if (  t.entityprofile[t.gridentity].ismarker == 0 || t.entityprofile[t.gridentity].islightmarker == 1 )
+			{
+				if (  g.gentitytogglingoff == 0 )
+				{
+					t.tokay=1;
+					if (  ObjectExist(g.entitybankoffset+t.gridentity) == 1 )
+					{
+						if (  GetNumberOfFrames(g.entitybankoffset+t.gridentity)>0 )
+						{
+							t.tokay=0;
+						}
+					}
+					if (  t.tokay == 1 )
+					{
+						//PE: 414=Static Mode
+						setpropertylist2(t.group,t.controlindex,Str(t.gridentitystaticmode),t.strarr_s[414].Get(),t.strarr_s[205].Get(),0) ; ++t.controlindex;
+					}
+				}
+			}
+
+			// 101016 - Additional General Parameters
+			if ( t.tflagchar == 0 && t.tflagvis == 1 )
+			{
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocluder),"Occluder","Set to YES makes this entity an occluder",0) ; ++t.controlindex;
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isocludee),"Occludee","Set to YES makes this entity an occludee",0) ; ++t.controlindex;
+				}
+
+				// these will be back when EBE needs doors and windows
+				//setpropertystring2(t.group,Str(t.grideleprof.parententityindex),"Parent Index","Selects another entity element to be a parent") ; ++t.controlindex;
+				//setpropertystring2(t.group,Str(t.grideleprof.parentlimbindex),"Parent Limb","Specifies the limb index of the parent to connect with") ; ++t.controlindex;
+			}
+
+			// 281116 - added Specular Control per entity
+			if ( t.tflagvis == 1 )
+			{
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertystring2(t.group,Str(t.grideleprof.specularperc),"Specular","Set specular percentage to modulate entity specular effect")  ; ++t.controlindex;
+				}
+			}
+
+			//  Basic AI
+			if (  t.tflagai == 1 )
+			{
+				// can redirect to better folders if in g.quickparentalcontrolmode
+				LPSTR pAIRoot = "scriptbank\\";
+				if ( g.quickparentalcontrolmode == 2 )
+				{
+					if ( t.entityprofile[t.gridentity].ismarker == 0 )
+					{
+						if ( t.tflagchar == 1 )
+							pAIRoot = "scriptbank\\people\\";
+						else
+							pAIRoot = "scriptbank\\objects\\";
+					}
+					else
+					{
+						pAIRoot = "scriptbank\\markers\\";
+					}
+				}
+
+				t.propfield[t.group]=t.controlindex;
+				++t.group ; startgroup(t.strarr_s[415].Get()) ; t.controlindex=0;
+				setpropertyfile2(t.group,t.grideleprof.aimain_s.Get(),t.strarr_s[417].Get(),t.strarr_s[207].Get(),pAIRoot) ; ++t.controlindex;
+			}
+
+			//  Has Weapon
+			if (  t.tflaghasweapon == 1 && t.playercontrol.thirdperson.enabled == 0 && g.quickparentalcontrolmode != 2 )
+			{
+				setpropertylist2(t.group,t.controlindex,t.grideleprof.hasweapon_s.Get(),t.strarr_s[419].Get(),t.strarr_s[209].Get(),1) ; ++t.controlindex;
+			}
+
+			//  Is Weapon (FPGC - 280809 - filtered fpgcgenre=1 is shooter genre)
+			if (  t.tflagweap == 1 && g.fpgcgenre == 1 )
+			{
+				setpropertystring2(t.group,Str(t.grideleprof.damage),t.strarr_s[420].Get(),t.strarr_s[210].Get()) ; ++t.controlindex;
+				setpropertystring2(t.group,Str(t.grideleprof.accuracy),t.strarr_s[421].Get(),"Increases the inaccuracy of conical distribution by 1/100th of t.a degree") ; ++t.controlindex;
+				if (  t.grideleprof.weaponisammo == 0 )
+				{
+					setpropertystring2(t.group,Str(t.grideleprof.reloadqty),t.strarr_s[422].Get(),t.strarr_s[212].Get()) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.fireiterations),t.strarr_s[423].Get(),t.strarr_s[213].Get()) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.range),"Range","Maximum range of bullet travel") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.dropoff),"Dropoff","Amount in inches of vertical dropoff per 100 feet of bullet travel") ; ++t.controlindex;
+				}
+				else
+				{
+					setpropertystring2(t.group,Str(t.grideleprof.lifespan),t.strarr_s[424].Get(),t.strarr_s[214].Get()) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.throwspeed),t.strarr_s[425].Get(),t.strarr_s[215].Get()) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.throwangle),t.strarr_s[426].Get(),t.strarr_s[216].Get()) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.bounceqty),t.strarr_s[427].Get(),t.strarr_s[217].Get()) ; ++t.controlindex;
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodeonhit),t.strarr_s[428].Get(),t.strarr_s[218].Get(),0) ; ++t.controlindex;
+				}
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.usespotlighting),"Spot Lighting","Set whether emits dynamic spot lighting",0) ; ++t.controlindex;
+				}
+			}
+
+			//  Is Character
+			if (  t.tflagchar == 1 )
+			{
+				if ( t.tflagsimpler == 0 )
+				{
+					// 020316 - special check to avoid offering can take weapon if no HUD.X
+					t.tfile_s = cstr("gamecore\\guns\\") + t.grideleprof.hasweapon_s + cstr("\\HUD.X");
+					if ( FileExist(t.tfile_s.Get()) == 1 )
+					{
+						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.cantakeweapon),t.strarr_s[429].Get(),t.strarr_s[219].Get(),0) ; ++t.controlindex;
+						setpropertystring2(t.group,Str(t.grideleprof.quantity),t.strarr_s[430].Get(),t.strarr_s[220].Get()) ; ++t.controlindex;
+					}
+					setpropertystring2(t.group,Str(t.grideleprof.rateoffire),t.strarr_s[431].Get(),t.strarr_s[221].Get()) ; ++t.controlindex;
+				}
+			}
+			if ( t.tflagquantity == 1 && g.quickparentalcontrolmode != 2 )
+			{
+				setpropertystring2(t.group,Str(t.grideleprof.quantity),t.strarr_s[432].Get(),t.strarr_s[222].Get())  ; ++t.controlindex;
+			}
+
+			//  AI Extra
+			if (  t.tflagvis == 1 && t.tflagai == 1 )
+			{
+				if (  t.tflagchar == 1 )
+				{
+					setpropertystring2(t.group,Str(t.grideleprof.coneangle),t.strarr_s[434].Get(),t.strarr_s[224].Get()) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.conerange),t.strarr_s[476].Get(),"The range within which the AI may see the player. Zero triggers the characters default range.") ; ++t.controlindex;
+					setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[226].Get()) ; ++t.controlindex;
+					if ( g.quickparentalcontrolmode != 2 )
+					{
+						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isviolent),"Blood Effects","Sets whether blood and screams should be used",0) ; ++t.controlindex;
+					}
+					if ( t.tflagsimpler == 0 )
+					{
+						setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.colondeath),"End Collision","Set to NO switches off collision when die",0) ; ++t.controlindex;
+					}
+				}
+				else
+				{
+					if (  t.tflagweap == 0 && t.tflagammo == 0 )
+					{
+						t.propfield[t.group]=t.controlindex;
+						++t.group ; startgroup(t.strarr_s[435].Get()) ; t.controlindex=0;
+						setpropertystring2(t.group,t.grideleprof.usekey_s.Get(),t.strarr_s[436].Get(),t.strarr_s[225].Get()) ; ++t.controlindex;
+						if ( t.tflagsimpler != 0 & t.entityprofile[t.gridentity].ismarker == 3 && t.entityprofile[t.gridentity].trigger.stylecolor == 1 )
+						{
+							// only one level - no winzone chain option
+						}
+						else
+						{
+							setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[226].Get()) ; ++t.controlindex;
+						}
+					}
+				}
+			}
+			if (  t.tflagifused == 1 )
+			{
+				if (  t.tflagusekey == 1 )
+				{
+					setpropertystring2(t.group,t.grideleprof.usekey_s.Get(),t.strarr_s[436].Get(),t.strarr_s[225].Get()) ; ++t.controlindex;
+				}
+				if ( t.tflagsimpler != 0 & t.entityprofile[t.gridentity].ismarker == 3 && t.entityprofile[t.gridentity].trigger.stylecolor == 1 )
+				{
+					// only one level - no winzone chain option
+				}
+				else
+				{
+					setpropertystring2(t.group,t.grideleprof.ifused_s.Get(),t.strarr_s[437].Get(),t.strarr_s[227].Get()) ; ++t.controlindex;
+				}
+			}
+
+			//  Spawn Settings
+			if (  t.tflagspawn == 1 )
+			{
+				t.propfield[t.group]=t.controlindex;
+				++t.group ; startgroup(t.strarr_s[439].Get()) ; t.controlindex=0;
+				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.spawnatstart),t.strarr_s[562].Get(),t.strarr_s[563].Get(),0) ; ++t.controlindex;
+				//     `setpropertystring2(group,Str(grideleprof.spawnmax),strarr$(440),strarr$(231)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawnupto),strarr$(441),strarr$(232)) ; inc controlindex
+				//     `setpropertylist2(group,controlindex,Str(grideleprof.spawnafterdelay),strarr$(442),strarr$(233),0) ; inc controlindex
+				//     `setpropertylist2(group,controlindex,Str(grideleprof.spawnwhendead),strarr$(443),strarr$(234),0) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawndelay),strarr$(444),strarr$(235)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawndelayrandom),strarr$(564),strarr$(565)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawnqty),strarr$(445),strarr$(236)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawnqtyrandom),strarr$(566),strarr$(567)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawnvel),strarr$(568),strarr$(569)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawnvelrandom),strarr$(570),strarr$(571)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawnangle),strarr$(572),strarr$(573)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawnanglerandom),strarr$(574),strarr$(575)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.spawnlife),strarr$(576),strarr$(577)) ; inc controlindex
+			}
+
+			//  Visual
+			//    `if tflagvis=1
+			//     `propfield(group)=controlindex
+			//     `inc group ; startgroup(strarr$(446)) ; controlindex=0
+			//     `setpropertyfile2(group,grideleprof.texd$,strarr$(447),strarr$(237),"") ; inc controlindex
+			//     `setpropertyfile2(group,grideleprof.texaltd$,strarr$(448),strarr$(238),"") ; inc controlindex
+			//     `setpropertyfile2(group,grideleprof.effect$,strarr$(578),strarr$(579),"effectbank\\") ; inc controlindex
+			//     `setpropertystring2(group,Str(grideleprof.transparency),strarr$(449),strarr$(240)) ; inc controlindex
+			//     `setpropertystring2(group,Str(grideleprof.reducetexture),strarr$(450),strarr$(241)) ; inc controlindex
+			//    `endif
+			//if ( t.tflagvis == 1 ) // more engine needs improving to allow on the spot changes to shader!
+			//{
+			//	setpropertyfile2(t.group,t.grideleprof.effect_s.Get(),t.strarr_s[578].Get(),t.strarr_s[579].Get(),"effectbank\\"); ++t.controlindex;
+			//	setpropertystring2(t.group,Str(t.grideleprof.transparency),t.strarr_s[449].Get(),t.strarr_s[240].Get()); ++t.controlindex;
+			//}
+
+			//  Statistics
+			if (  (t.tflagvis == 1 || t.tflagobjective == 1 || t.tflaglives == 1 || t.tflagstats == 1) && t.tflagweap == 0 && t.tflagammo == 0 )
+			{
+				t.propfield[t.group]=t.controlindex;
+				++t.group ; startgroup(t.strarr_s[451].Get()) ; t.controlindex=0;
+				if (  t.tflaglives == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.lives),t.strarr_s[452].Get(),t.strarr_s[242].Get())  ; ++t.controlindex; }
+				if (  t.tflagvis == 1 || t.tflagstats == 1 )
+				{
+					if (  t.tflaglives == 1 )
+					{
+						setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[453].Get(),t.strarr_s[243].Get()) ; ++t.controlindex;
+					}
+					else
+					{
+						if ( t.tflagnotionofhealth == 1 )
+						{
+							setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[454].Get(),t.strarr_s[244].Get()) ; ++t.controlindex;
+						}
+					}
+					if (  t.tflagplayersettings == 1 )
+					{
+						if ( g.quickparentalcontrolmode != 2 )
+						{
+							setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isviolent),"Blood Effects","Sets whether blood and screams should be used",0) ; ++t.controlindex;
+						}
+						if ( t.tflagnotionofhealth == 1 )
+						{
+							setpropertystring2(t.group,Str(t.playercontrol.regenrate),"Regeneration Rate","Sets the increase value at which the players health will restore")  ; ++t.controlindex;
+							setpropertystring2(t.group,Str(t.playercontrol.regenspeed),"Regeneration Speed","Sets the speed in milliseconds at which the players health will regenerate") ; ++t.controlindex;
+							setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
+						}
+					}
+					setpropertystring2(t.group,Str(t.grideleprof.speed),t.strarr_s[455].Get(),t.strarr_s[245].Get()) ; ++t.controlindex;
+					if (  t.playercontrol.thirdperson.enabled == 1 )
+					{
+						t.tanimspeed_f=t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
+					}
+					else
+					{
+						t.tanimspeed_f=t.grideleprof.animspeed;
+					}
+					setpropertystring2(t.group,Str(t.tanimspeed_f),t.strarr_s[477].Get(),"Sets the default speed of any animation associated with this entity"); ++t.controlindex;
+				}
+				if (  t.tflaghurtfall == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.hurtfall),t.strarr_s[456].Get(),t.strarr_s[246].Get())  ; ++t.controlindex; }
+				if (  t.tflagplayersettings == 1 )
+				{
+					setpropertystring2(t.group,Str(t.playercontrol.jumpmax_f),"Jump Speed","Sets the jump speed of the t.player which controls overall jump height") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.playercontrol.gravity_f),"Gravity","Sets the modified force percentage of the players own gravity") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.playercontrol.fallspeed_f),"Fall Speed","Sets the maximum speed percentage at which the t.player will fall") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.playercontrol.climbangle_f),"Climb Angle","Sets the maximum angle permitted for the player to ascend a slope") ; ++t.controlindex;
+					if (  t.playercontrol.thirdperson.enabled == 0 )
+					{
+						setpropertystring2(t.group,Str(t.playercontrol.wobblespeed_f),"Wobble Speed","Sets the rate of motion applied to the camera when moving") ; ++t.controlindex;
+						setpropertystring2(t.group,Str(t.playercontrol.wobbleheight_f*100),"Wobble Height","Sets the degree of motion applied to the camera when moving") ; ++t.controlindex;
+						setpropertystring2(t.group,Str(t.playercontrol.footfallpace_f*100),"Footfall Pace","Sets the rate at which the footfall sound is played when moving") ; ++t.controlindex;
+					}
+					setpropertystring2(t.group,Str(t.playercontrol.accel_f*100),"Acceleration","Sets the acceleration curve used when t.moving from t.a stood position") ; ++t.controlindex;
+				}
+				if ( t.tflagmobile == 1 ) { setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isimmobile),t.strarr_s[457].Get(),t.strarr_s[247].Get(),0); ++t.controlindex; }
+				if ( t.tflagmobile == 1 )
+				{
+					if ( t.tflagsimpler == 0 )
+					{
+						setpropertystring2(t.group,Str(t.grideleprof.lodmodifier),"LOD Modifier","Modify when the LOD transition takes effect. The default value is 0, increase this to a percentage reduce the LOD effect.") ; ++t.controlindex;
+					}
+				}
+			}
+
+			//  Team field
+			#ifdef PHOTONMP
+			#else
+			if (  t.tflagteamfield == 1 )
+			{
+				setpropertylist3(t.group,t.controlindex,Str(t.grideleprof.teamfield),"Team","Specifies any team affiliation for multiplayer start marker",0) ; ++t.controlindex;
+			}
+			#endif
+
+			//  Physics Data (non-multiplayer)
+			if (  t.entityprofile[t.gridentity].ismarker == 0 && t.entityprofile[t.gridentity].islightmarker == 0 )
+			{
+				t.propfield[t.group]=t.controlindex;
+				++t.group ; startgroup(t.strarr_s[596].Get()) ; t.controlindex=0;
+				if (  t.grideleprof.physics != 1  )  t.grideleprof.physics = 0;
+				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.physics),t.strarr_s[580].Get(),t.strarr_s[581].Get(),0) ; ++t.controlindex;
+				setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.phyalways),t.strarr_s[582].Get(),t.strarr_s[583].Get(),0) ; ++t.controlindex;
+				setpropertystring2(t.group,Str(t.grideleprof.phyweight),t.strarr_s[584].Get(),t.strarr_s[585].Get()) ; ++t.controlindex;
+				setpropertystring2(t.group,Str(t.grideleprof.phyfriction),t.strarr_s[586].Get(),t.strarr_s[587].Get()) ; ++t.controlindex;
+				//     `setpropertystring2(group,Str(grideleprof.phyforcedamage),strarr$(588),strarr$(589)) ; inc controlindex
+				//     `setpropertystring2(group,Str(grideleprof.rotatethrow),strarr$(590),strarr$(591)) ; inc controlindex
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.explodable),t.strarr_s[592].Get(),t.strarr_s[593].Get(),0) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.explodedamage),t.strarr_s[594].Get(),t.strarr_s[595].Get()) ; ++t.controlindex;
+				}
+			}
+
+			//  Ammo data (FPGC - 280809 - filtered fpgcgenre=1 is shooter genre
+			if (  g.fpgcgenre == 1 )
+			{
+				if (  t.tflagammo == 1 || t.tflagammoclip == 1 )
+				{
+					t.propfield[t.group]=t.controlindex;
+					++t.group ; startgroup(t.strarr_s[459].Get()) ; t.controlindex=0;
+					setpropertystring2(t.group,Str(t.grideleprof.quantity),t.strarr_s[460].Get(),t.strarr_s[249].Get()) ; ++t.controlindex;
+				}
+			}
+
+			//  Light data
+			if (  t.tflaglight == 1 )
+			{
+				t.propfield[t.group]=t.controlindex;
+				++t.group ; startgroup(t.strarr_s[461].Get()) ; t.controlindex=0; //PE: 461=Light
+				setpropertystring2(t.group,Str(t.grideleprof.light.range),t.strarr_s[462].Get(),t.strarr_s[250].Get()) ; ++t.controlindex; //PE: 462=Light Range
+				setpropertycolor2(t.group,t.grideleprof.light.color,t.strarr_s[463].Get(),t.strarr_s[251].Get()) ; ++t.controlindex; //PE: 463=Light Color
+				if ( t.tflagsimpler == 0 )
+				{
+					setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0); ++t.controlindex;
+				}
+			}
+
+			//  Decal data
+			if (  t.tflagtdecal == 1 )
+			{
+				t.propfield[t.group]=t.controlindex;
+
+				//  FPGC - 300710 - could never change base decal, so comment out this property (entity denotes decal choice)
+				//     `inc group ; startgroup(strarr$(464)) ; controlindex=0
+				//     `setpropertyfile2(group,grideleprof.basedecal$,strarr$(465),strarr$(252),"gamecore\\decals\\") ; inc controlindex
+
+				//  Decal Particle data
+				if (  t.tflagdecalparticle == 1 )
+				{
+					++t.group ; startgroup("Decal Particle") ; t.controlindex=0;
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.particleoverride),"Custom Settings","Whether you wish to override default settings",0) ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.offsety),"OffsetY","Vertical adjustment of start position") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.scale),"Scale","A value from 0 to 100, denoting size of particle") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.randomstartx),"Random Start X","Random start area") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.randomstarty),"Random Start Y","Random start area") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.randomstartz),"Random Start Z","Random start area") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.linearmotionx),"Linear Motion X","Constant motion direction") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.linearmotiony),"Linear Motion Y","Constant motion direction") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.linearmotionz),"Linear Motion Z","Constant motion direction") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.randommotionx),"Random Motion X","Random motion direction") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.randommotiony),"Random Motion Y","Random motion direction") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.randommotionz),"Random Motion Z","Random motion direction") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.mirrormode),"Mirror Mode","Set to one to reverse the particle") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.camerazshift),"Camera Z Shift","Shift t.particle towards camera") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.scaleonlyx),"Scale Only X","Percentage X over Y scale") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.lifeincrement),"Life Increment","Control lifespan of particle") ; ++t.controlindex;
+					setpropertystring2(t.group,Str(t.grideleprof.particle.alphaintensity),"Alpha Intensity","Control alpha percentage of particle") ; ++t.controlindex;
+					//  V118 - 060810 - knxrb - Decal animation setting (Added animation choice setting).
+					setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.particle.animated),"Animated Text (  ( ure","Sets whether the t.particle t.decal Texture is animated or static.", 0)  ; ++t.controlindex;
+				}
+			}
+
+			// Sound
+			if ( t.tflagsound == 1 || t.tflagsoundset == 1 || tflagtext == 1 || tflagimage == 1 )
+			{
+				t.propfield[t.group]=t.controlindex;
+				++t.group ;
+				if ( tflagtext == 1 || tflagimage == 1 )
+				{
+					 if ( tflagtext == 1 ) startgroup("Text");
+					 if ( tflagimage == 1 ) startgroup("Image");
+				}
+				else
+				{
+					//startgroup(t.strarr_s[466].Get());
+					startgroup("Media");
+				}
+				t.controlindex=0;
+				if ( g.fpgcgenre == 1 )
+				{
+					if ( g.vrqcontrolmode != 0 )
+					{
+						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
+					}
+					else
+					{
+						if ( t.tflagsound == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[467].Get(),t.strarr_s[253].Get(),"audiobank\\")  ; ++t.controlindex; }
+					}
+					if ( t.tflagsoundset == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[255].Get(),"audiobank\\voices\\")  ; ++t.controlindex; }
+					if ( tflagtext == 1 ) { setpropertystring2(t.group,t.grideleprof.soundset_s.Get(),"Text to Appear","Enter text to appear in-game") ; ++t.controlindex; }
+					if ( tflagimage == 1 ) { setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Image File","Select image to appear in-game","scriptbank\\images\\imagesinzone\\") ; ++t.controlindex; }
+					if ( t.tflagnosecond == 0 )
+					{
+						if ( t.tflagsound == 1 || t.tflagsoundset == 1 )
+						{
+							setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),t.strarr_s[468].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex;
+							setpropertyfile2(t.group,t.grideleprof.soundset2_s.Get(),t.strarr_s[480].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex;
+							setpropertyfile2(t.group,t.grideleprof.soundset3_s.Get(),t.strarr_s[481].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex;
+							setpropertyfile2(t.group,t.grideleprof.soundset4_s.Get(),t.strarr_s[482].Get(),t.strarr_s[254].Get(),"audiobank\\")  ; ++t.controlindex;
+						}
+					}
+				}
+				else
+				{
+					if ( t.tflagsoundset == 1 )
+					{
+						setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[255].Get(),"audiobank\\voices\\") ; ++t.controlindex;
+					}
+					else
+					{
+						setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[467].Get(),t.strarr_s[253].Get(),"audiobank\\") ; ++t.controlindex;
+					}
+					setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),t.strarr_s[468].Get(),t.strarr_s[254].Get(),"audiobank\\") ; ++t.controlindex;
+				}
+			}
+
+			// Video
+			if ( t.tflagvideo == 1 )
+			{
+				t.propfield[t.group]=t.controlindex;
+				++t.group ; startgroup(t.strarr_s[597].Get()) ; t.controlindex=0;
+				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
+				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Video Slot",t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
+			}
+
+			//  Third person settings
+			if (  t.tflagplayersettings == 1 && t.playercontrol.thirdperson.enabled == 1 )
+			{
+				t.propfield[t.group]=t.controlindex;
+				++t.group ; startgroup("Third Person") ; t.controlindex=0;
+				t.livegroupforthirdperson=t.group;
+				setpropertylist2(t.group,t.controlindex,Str(t.playercontrol.thirdperson.cameralocked),"Camera Locked","Fixes camera height and angle for third person view",0) ; ++t.controlindex;
+				setpropertystring2(t.group,Str(t.playercontrol.thirdperson.cameradistance),"Camera Distance","Sets the distance of the third person camera") ; ++t.controlindex;
+				setpropertystring2(t.group,Str(t.playercontrol.thirdperson.camerashoulder),"Camera X Offset","Sets the distance to shift the camera over shoulder") ; ++t.controlindex;
+				setpropertystring2(t.group,Str(t.playercontrol.thirdperson.cameraheight),"Camera Y Offset","Sets the vertical height of the third person camera. If more than twice the camera distance, camera collision disables") ; ++t.controlindex;
+				setpropertystring2(t.group,Str(t.playercontrol.thirdperson.camerafocus),"Camera Focus","Sets the camera X angle offset to align focus of the third person camera") ; ++t.controlindex;
+				setpropertystring2(t.group,Str(t.playercontrol.thirdperson.cameraspeed),"Camera Speed","Sets the retraction speed percentage of the third person camera") ; ++t.controlindex;
+				setpropertylist2(t.group,t.controlindex,Str(t.playercontrol.thirdperson.camerafollow),"Run Mode","If set to yes, protagonist uses WASD t.movement mode",0) ; ++t.controlindex;
+				setpropertylist2(t.group,t.controlindex,Str(t.playercontrol.thirdperson.camerareticle),"Show Reticle","Show the third person 'crosshair' reticle Dot ( ",0)  ; ++t.controlindex;
+			}
+
+		}
+
+
+*/
+
+
+					if (ImGui::Button(" Apply ")) {
+
+						t.editorinterfaceactive = 0;
+						t.inputsys.doautozoomview = 1;
+						t.tpressedtoleavezoommode = 0;
+						t.editorinterfaceleave = 0;
+						t.updatezoom = 1;
+						bEntity_Properties_Window = false;
+
+						//  Add entity back into map
+						gridedit_addentitytomap();
+						t.gridentityinzoomview = 0;
+
+						//  Hide widget to make clean return to editor
+						t.widget.pickedObject = 0; widget_updatewidgetobject();
+
+						//  Reset cursor object settings
+						t.refreshgrideditcursor = 1;
+						t.gridentity = 0;
+						t.gridedit.autoflatten = 0;
+						t.gridedit.entityspraymode = 0;
+						t.gridentityposoffground = 0;
+						t.gridentityusingsoftauto = 1;
+						t.gridentitysurfacesnap = 1 - g.gdisablesurfacesnap;
+						t.gridentityautofind = 1;
+						t.inputsys.dragoffsetx_f = 0;
+						t.inputsys.dragoffsety_f = 0;
+						editor_refreshentitycursor();
+
+					}
+					ImGui::SameLine(); ImGui::Spacing(); ImGui::SameLine();
+					if (ImGui::Button(" Cancel ")) {
+						t.editorinterfaceactive = 0;
+						t.inputsys.doautozoomview = 1;
+						t.tpressedtoleavezoommode = 0;
+						t.editorinterfaceleave = 0;
+						t.updatezoom = 1;
+						bEntity_Properties_Window = false;
+
+						//Use backup settings before cancel.
+						t.grideleprof = backup_grideleprof;
+
+						//  Add entity back into map
+						gridedit_addentitytomap();
+						t.gridentityinzoomview = 0;
+
+						//  Hide widget to make clean return to editor
+						t.widget.pickedObject = 0; widget_updatewidgetobject();
+
+						//  Reset cursor object settings
+						t.refreshgrideditcursor = 1;
+						t.gridentity = 0;
+						t.gridedit.autoflatten = 0;
+						t.gridedit.entityspraymode = 0;
+						t.gridentityposoffground = 0;
+						t.gridentityusingsoftauto = 1;
+						t.gridentitysurfacesnap = 1 - g.gdisablesurfacesnap;
+						t.gridentityautofind = 1;
+						t.inputsys.dragoffsetx_f = 0;
+						t.inputsys.dragoffsety_f = 0;
+						editor_refreshentitycursor();
+
+					}
+
+
+					ImRect bbwin(ImGui::GetWindowPos(), ImGui::GetWindowPos() + ImGui::GetWindowSize());
+					if (ImGui::IsMouseHoveringRect(bbwin.Min, bbwin.Max))
+					{
+						bImGuiGotFocus = true;
+					}
+					if (ImGui::IsAnyItemFocused()) {
+						bImGuiGotFocus = true;
+					}
+
+//					ImGui::Text("iParentEntid: %ld pEIndex: %ld", iParentEntid, t.widget.pickedEntityIndex );
+					ImGui::End();
+
+					if(!bEntity_Properties_Window) //Window closed.
+						iOldPickedEntityIndex = -1;
+				}
+				else {
+					iOldPickedEntityIndex = -1;
+				}
+			}
 			//###########################
 			//#### External Entities ####
 			//###########################
@@ -1522,7 +2504,7 @@ path.png
 							stmp += "###"; //We need it to be unique so add this.
 							stmp += t.entityprofile[t.entid].model_s.Get();
 							stmp += "###";
-							stmp += t.entid;
+							stmp += std::to_string(t.entid);
 							int32_t itmp = t.entid;
 							sorted_files.insert(std::make_pair(stmp, itmp) );
 						}
@@ -1618,6 +2600,40 @@ path.png
 					ImGui::SetWindowFontScale(1.00);
 					ImGui::Columns(1);
 
+					/*
+					// For debug.
+					for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+					{
+						t.entid = t.entityelement[t.e].bankindex;
+						t.obj = t.entityelement[t.e].obj;
+
+						std::string stmp = t.entityprofile[t.entid].model_s.Get();
+						stmp += " t.e: ";
+						stmp += std::to_string(t.e);
+						stmp += " entid: ";
+						stmp += std::to_string(t.entid);
+						stmp += " obj: ";
+						stmp += std::to_string(t.obj);
+
+						//t.gridentity = t.entid;
+						//t.widget.pickedEntityIndex
+						//t.widget.pickedObject
+
+						//If t.entid==0 then we are in extract or properties.
+						//if t.cameraviewmode == 2 we are in properties mode.
+						if (t.widget.pickedEntityIndex == t.e) {
+							ImGui::SetWindowFontScale(1.1);
+							ImGui::Text(stmp.c_str());
+							ImGui::SetWindowFontScale(1.00);
+						}
+						else {
+							ImGui::Text(stmp.c_str());
+						}
+					}
+					*/
+				
+					//t.gridentity
+				
 				}
 
 				if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered()) //ImGui::IsWindowFocused()
@@ -1626,7 +2642,7 @@ path.png
 //				ImGui::Text("");
 //				ImGui::Text("");
 //				ImGui::TextWrapped(cImGuiDebug);
-				ImGui::Text("bImGuiGotFocus: %d", bImGuiGotFocus);
+//				ImGui::Text("bImGuiGotFocus: %d", bImGuiGotFocus);
 				ImGui::EndChild();
 
 			ImGui::End();
@@ -2243,6 +3259,15 @@ path.png
 			//  Detect if resolution changed (windows)
 			editor_detect_invalid_screen ( );
 		}
+
+		if (g_bCascadeQuitFlag) {
+			int iRet = AskSaveBeforeNewAction();
+			if (iRet == 2)
+			{
+				g_bCascadeQuitFlag = false;
+			}
+		}
+
 	}
 
 	//  End map editor program
@@ -2413,6 +3438,13 @@ void editor_showhelppage ( int iHelpType )
 		#endif
 		FastSync (  );
 	} while ( !(  t.inputsys.kscancode == 0 ) );
+	//PE: Make sure we dont sent mouse input to whatever is below page.
+	do
+	{
+		t.inputsys.mclick = MouseClick();
+		FastSync();
+	} while (!(t.inputsys.mclick == 0));
+
 }
 
 void editor_showparentalcontrolpage ( void )
@@ -2567,6 +3599,12 @@ void editor_showparentalcontrolpage ( void )
 		FastSync (  );
 	} 
 	while ( !(  t.inputsys.kscancode == 0 ) );
+	//PE: Make sure we dont sent mouse input to whatever is below page.
+	do
+	{
+		t.inputsys.mclick = MouseClick();
+		FastSync();
+	} while (!(t.inputsys.mclick == 0));
 
 	// only a mode of 2 carries the digit code for activated
 	if ( g.quickparentalcontrolmode != 2 )
@@ -3697,6 +4735,44 @@ void editor_previewmapormultiplayer ( int iUseVRTest )
 		if ( t.entityelement[t.tte].underground == 1  )  t.entityelement[t.tte].beenmoved = 1;
 	}
 
+	//PE: disable any animations that should not be in editor.
+	for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+	{
+		t.entid = t.entityelement[t.tte].bankindex;
+		t.tttsourceobj = g.entitybankoffset + t.entityelement[t.tte].bankindex;
+		t.tobj = t.entityelement[t.tte].obj;
+		if (t.tobj > 0)
+		{
+			if (ObjectExist(t.tobj) == 1)
+			{
+				if (t.entityprofile[t.entid].startanimingame > 0) {
+					if (t.entityprofile[t.entid].animmax > 0) {
+						t.q = 0;
+						SetObjectFrame(t.tttsourceobj, 0);
+						StopObject(t.tttsourceobj);
+						SetObjectFrame(t.tobj, 0);
+						StopObject(t.tobj);
+					}
+				}
+			}
+		}
+
+		//PE: pframe is lost on clone objects, recreate.
+		if (t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0)
+		{
+			if (t.entityelement[t.tte].isclone == 1 && t.entityelement[t.tte].underground == 0)
+			{
+				if (t.entityelement[t.tte].editorlock == 0)
+				{
+					//t.tobj = t.tentityobj; t.tte = t.tentitytoselect;
+					entity_converttoinstance();
+				}
+			}
+		}
+
+
+	}
+
 	// signal that we have finished Test Level, restore mapeditor windows
 	#ifdef FPSEXCHANGE
 	 OpenFileMap (  1, "FPSEXCHANGE" );
@@ -4680,7 +5756,11 @@ void imgui_input_getcontrols(void)
 #endif
 
 	input_extramappings();
-	t.inputsys.keyshift = io.KeyShift;
+
+//	t.inputsys.keyshift = io.KeyShift;
+//	if (bImGuiGotFocus || mcursor > 0) {
+//		t.inputsys.keyshift = 0;
+//	}
 
 	//  Flag reset
 	t.inputsys.dorotation = 0;
@@ -5223,7 +6303,14 @@ void input_getcontrols ( void )
 	t.inputsys.dosaveandrun=0;
 
 	//  Input conditional flags
-	if (  t.inputsys.kscancode == 0  )  t.inputsys.keypress = 0;
+	if (t.inputsys.kscancode == 0) {
+		t.inputsys.keypress = 0;
+		if (bForceKey) {
+			bForceKey = false;
+			t.inputsys.k_s = csForceKey;
+		}
+
+	}
 
 	//  Construction Keys
 	if (  t.inputsys.keycontrol == 0 ) 
@@ -5506,12 +6593,6 @@ void input_calculatelocalcursor ( void )
 		t.tadjustedtoareay_f = ((t.inputsys.ymouse + 0.0) / 600.0) / t.tadjustedtoareay_f;
 #endif
 
-		//  work out visible part of full backbuffer (i.e. 1212 of 1360)
-		t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
-		t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
-		//  scale full mouse to fit in visible area
-		t.tadjustedtoareax_f=((t.inputsys.xmouse+0.0)/800.0)/t.tadjustedtoareax_f;
-		t.tadjustedtoareay_f=((t.inputsys.ymouse+0.0)/600.0)/t.tadjustedtoareay_f;
 		//  stretch scaled-mouse to projected -1 to +1
 		SetVector4 (  g.v4_far,(t.tadjustedtoareax_f*2)-1,-((t.tadjustedtoareay_f*2)-1),0,1 );
 		t.tx_f=GetXVector4(g.v4_far);
@@ -5725,6 +6806,12 @@ void editor_init ( void )
 	LoadImage ( "editors\\gfx\\9.png",g.editorimagesoffset+7 );
 	LoadImage ( "editors\\gfx\\13.bmp",g.editorimagesoffset+13 );
 	LoadImage ( "editors\\gfx\\14-white.png",g.editorimagesoffset+14 );
+	
+	//PE: I could not get the rubberband to work, before i noticed g.editorimagesoffset + 14 do NOT exists anymore.
+	//PE: @Lee not sure what the 14-red/green is used for, but please upload all used media :)
+	if (!GetImageExistEx(g.editorimagesoffset + 14))
+		LoadImage("editors\\gfx\\14.png", g.editorimagesoffset + 14);
+
 	LoadImage ( "editors\\gfx\\14-red.png",g.editorimagesoffset+16 );
 	LoadImage ( "editors\\gfx\\14-green.png",g.editorimagesoffset+17 );
 	LoadImage ( "editors\\gfx\\18.png",g.editorimagesoffset+18 );	
@@ -7568,6 +8655,7 @@ void editor_viewfunctionality ( void )
 			//  310315 - Ensure clipping is restored when return
 			t.updatezoom=1;
 
+#ifdef PEDISABLEFORNOW
 			//  place entity on the map
 			if ( t.gridentityinzoomview>0 ) 
 			{
@@ -7613,6 +8701,7 @@ void editor_viewfunctionality ( void )
 				t.inputsys.dragoffsety_f=0;
 				editor_refreshentitycursor ( );
 			}
+#endif
 		}
 	}
 }
@@ -8882,6 +9971,10 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 						}
 						else
 						{
+//							extern bool bImGuiInTestGame;
+//							if (!bImGuiInTestGame)
+//								RunCode(1);
+
 							Sprite ( 123, -10000, -10000, g.editorimagesoffset+14 );
 							float fX1 = t.inputsys.rubberbandx*fMX;
 							float fX2 = t.inputsys.xmouse*fMX;
@@ -10035,7 +11128,12 @@ if (  t.inputsys.mmx >= 0 && t.inputsys.mmy >= 0 && t.inputsys.mmx<t.maxx && t.i
 						editor_disableforzoom ( );
 
 						//  prepare entity property handler
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
+						//PE: Just open the window..
+						bEntity_Properties_Window = true;
+#else
 						interface_openpropertywindow ( );
+#endif
 
 						//  End widget control of this object
 						t.widget.pickedObject=0;
@@ -11433,6 +12531,174 @@ void modifyplaneimagestrip ( int objno, int texmax, int texindex )
 //  BUILD GAME and PREFERENCES code removed on 180215
 // 
 
+void imgui_set_openproperty_flags(void)
+{
+	//  Open proprty window
+
+	t.editorinterfaceactive = t.e;
+
+
+	{
+
+
+
+
+
+
+
+
+
+
+
+
+
+		//  Setup usage flags
+		t.tsimplecharview = 0;
+		t.tflaglives = 0; t.tflaglight = 0; t.tflagobjective = 0; t.tflagtdecal = 0; t.tflagdecalparticle = 0; t.tflagspawn = 0; t.tflagifused = 0;
+		t.tflagvis = 0; t.tflagchar = 0; t.tflagweap = 0; t.tflagammo = 0; t.tflagai = 1; t.tflagsound = 0; t.tflagsoundset = 0; t.tflagnosecond = 0;
+		t.tflagmobile = 0; t.tflaghurtfall = 0; t.tflaghasweapon = 0; t.tflagammoclip = 0; t.tflagstats = 0; t.tflagquantity = 0;
+		t.tflagvideo = 0;
+		t.tflagplayersettings = 0;
+		t.tflagusekey = 0;
+		t.tflagteamfield = 0;
+		int tflagtext = 0;
+		int tflagimage = 0;
+
+		//  If its static and arena mode, only do optional visuals, ignore rest
+		t.tstatic = 0;
+
+		// 070510 - simplified character properties
+		if (g.gsimplifiedcharacterediting == 1 && t.entityprofile[t.gridentity].ischaracter == 1)
+		{
+			//  flag the simple character properties layout (FPGC)
+			t.tsimplecharview = 1;
+		}
+		else
+		{
+			//  FPGC - 260310 - new entitylight indicated with new flag
+			if (t.entityprofile[t.gridentity].islightmarker == 1)
+			{
+				t.tflaglight = 1;
+			}
+			else
+			{
+				if (t.entityprofile[t.gridentity].ismarker == 0)
+				{
+					t.tflagvis = 1; t.tflagmobile = 1; t.tflagobjective = 1; t.tflagsound = 1; t.tflagstats = 1; t.tflagspawn = 1;
+					// 070115 - removed until UBER character (multiweapon) is ready for action
+					// t.entityprofile[t.gridentity].ischaracter>0 then t.tflagchar = 1  ) ; t.tflaghasweapon = 1 ; t.tflagsoundset = 1 ; t.tflagsound = 0
+					if (t.entityprofile[t.gridentity].ischaracter > 0) { t.tflagchar = 1; t.tflagsoundset = 1; t.tflagsound = 0; }
+					if (Len(t.entityprofile[t.gridentity].isweapon_s.Get()) > 2) { t.tflagweap = 1; t.tflagammoclip = 1; t.tflagsound = 0; }
+					if (t.entityprofile[t.gridentity].isammo > 0) { t.tflagammo = 1; t.tflagobjective = 0; t.tflagsound = 0; }
+					t.tflagusekey = 1;
+				}
+				else
+				{
+					if (t.entityprofile[t.gridentity].ismarker == 1)
+					{
+						t.tflagai = 0;
+						//  FPGC - 160909 - filtered fpgcgenre=1 is shooter genre
+						if (g.fpgcgenre == 1)
+						{
+							//  Shooter legacy properties for player start
+							if (t.entityprofile[t.gridentity].lives > 0)
+							{
+								t.tflagstats = 1; t.tflaglives = 1; t.tflagsoundset = 1; t.tflaghurtfall = 1; t.tflaghasweapon = 1; t.tflagquantity = 1;
+								t.tflagplayersettings = 1;
+								t.tflagnosecond = 1;
+							}
+							else
+							{
+								t.tflagsound = 1; t.tflagnosecond = 1;
+							}
+						}
+						else
+						{
+							//  Other genre's have no ammo quantity and weapon is renamed as equipment
+							if (t.entityprofile[t.gridentity].lives == -1)
+							{
+								//  checkpint marker is type 1
+								t.tflagsound = 1; t.tflagnosecond = 1;
+							}
+							else
+							{
+								t.tflagstats = 1; t.tflaglives = 1; t.tflagsoundset = 1; t.tflaghurtfall = 1; t.tflaghasweapon = 1;
+							}
+						}
+					}
+					if (t.entityprofile[t.gridentity].ismarker == 3 || t.entityprofile[t.gridentity].ismarker == 6 || t.entityprofile[t.gridentity].ismarker == 8)
+					{
+						t.tflagnosecond = 1; t.tflagifused = 1;
+					}
+					if (t.entityprofile[t.gridentity].ismarker == 4) { t.tflagtdecal = 1; t.tflagdecalparticle = 1; }
+					if (t.entityprofile[t.gridentity].ismarker == 3)
+					{
+						if (t.entityprofile[t.gridentity].markerindex <= 1)
+						{
+							if (t.entityprofile[t.gridentity].markerindex == 1)
+							{
+								// video
+								t.tflagvideo = 1;
+							}
+							else
+							{
+								// sound
+								t.tflagsound = 1;
+							}
+						}
+						else
+						{
+							if (t.entityprofile[t.gridentity].markerindex == 2) tflagtext = 1;
+							if (t.entityprofile[t.gridentity].markerindex == 3) tflagimage = 1;
+						}
+					}
+					if (t.entityprofile[t.gridentity].ismarker == 7)
+					{
+						//  multiplayer start marker
+						t.tflagstats = 1;
+						t.tflaghurtfall = 1;
+						t.tflagplayersettings = 1;
+						t.tflagteamfield = 1;
+					}
+					if (t.entityprofile[t.gridentity].ismarker == 8)
+					{
+						// floor zone marker
+						t.tflagsound = 0;
+					}
+					if (t.entityprofile[t.gridentity].ismarker == 9)
+					{
+						// cover zone marker
+						t.tflagifused = 1;
+					}
+				}
+			}
+		}
+
+		// parental control removes weapons and violence properties
+		if (g.quickparentalcontrolmode == 2)
+		{
+			t.tflagweap = 0;
+			t.tflagammo = 0;
+		}
+
+//PE: New flaqs check.
+
+		// special VR mode can remove even more
+		t.tflagnotionofhealth = 1;
+		t.tflagsimpler = 0;
+//		if ( bVRQ2ZeroViolenceMode == true )
+//		{
+//			t.tflaglives=0; 
+//			t.tflaghurtfall=0; 
+//			t.tflaghasweapon=0; 
+//			t.tflagammoclip=0;
+//			t.tflagnotionofhealth=0;
+//			t.tflagsimpler = 1;
+//		}
+
+	}
+}
+
 // 
 //  PROPERTIES
 // 
@@ -12449,6 +13715,150 @@ void interface_live_updates(void)
 // 
 //  Interface Properties Functions
 // 
+
+
+char * imgui_setpropertystring2(int group, char* data_s, char* field_s, char* desc_s)
+{
+	char *cRet;
+	cstr ldata_s = data_s, ldesc_s = desc_s , lfields_s = field_s;
+
+	if (cstr(data_s) == "" || !data_s)  ldata_s = "";
+	if (cstr(desc_s) == "" || !desc_s)  ldesc_s = "";
+	if (cstr(field_s) == "" || !field_s)  lfields_s = "";
+
+	strcpy(cTmpInput, ldata_s.Get());
+	ImGui::InputText(lfields_s.Get(), &cTmpInput[0], MAXTEXTINPUT);
+	if (ImGui::IsItemHovered() && ldesc_s != "" ) ImGui::SetTooltip("%s", ldesc_s.Get());
+	return &cTmpInput[0];
+}
+
+char * imgui_setpropertylist2c(int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype)
+{
+	cstr ldata_s = data_s, ldesc_s = desc_s, lfields_s = field_s;
+
+	if (cstr(data_s) == "" || !data_s)  ldata_s = "";
+	if (cstr(desc_s) == "" || !desc_s)  ldesc_s = "";
+	if (cstr(field_s) == "" || !field_s)  lfields_s = "";
+
+	int current_selection = atoi(ldata_s.Get());
+
+
+	int listmax = 0;
+	listmax = 0;
+	if (listtype == 0)
+	{
+		listmax = 1;
+		t.list_s[0] = t.strarr_s[471];
+		t.list_s[1] = t.strarr_s[470];
+	}
+	if (listtype == 1)
+	{
+		listmax = fillgloballistwithweapons();
+		for (int n = 0; n <= listmax; n++)
+		{
+			if (ldata_s == t.list_s[n]) {
+				current_selection = n;
+				break;
+			}
+		}
+	}
+	if (listtype == 11)
+	{
+		listmax = fillgloballistwithbehaviours();
+		for (int n = 0; n <= listmax; n++)
+		{
+			if (ldata_s == t.list_s[n]) {
+				current_selection = n;
+				break;
+			}
+		}
+	}
+
+	const char* current_item = t.list_s[current_selection].Get();
+
+	if (ImGui::BeginCombo(field_s, current_item)) // The second parameter is the label previewed before opening the combo.
+	{
+		for (int n = 0; n <= listmax; n++)
+		{
+			bool is_selected = (current_item == t.list_s[n].Get()); // You can store your selection however you want, outside or inside your objects
+			if (ImGui::Selectable(t.list_s[n].Get(), is_selected)) {
+				current_selection = n;
+				current_item = t.list_s[n].Get();
+			}
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+		}
+		ImGui::EndCombo();
+	}
+
+	return t.list_s[current_selection].Get();
+}
+
+int imgui_setpropertylist2(int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype)
+{
+	cstr ldata_s = data_s, ldesc_s = desc_s, lfields_s = field_s;
+
+	if (cstr(data_s) == "" || !data_s)  ldata_s = "";
+	if (cstr(desc_s) == "" || !desc_s)  ldesc_s = "";
+	if (cstr(field_s) == "" || !field_s)  lfields_s = "";
+
+	int current_selection = atoi(ldata_s.Get());
+
+
+	int listmax = 0;
+
+	/*
+	if (listtype == 0)
+	{
+		//  yesno
+		if (strcmp(data_s, "0") == 0)  strcpy(data_s, t.strarr_s[471].Get());
+		if (strcmp(data_s, "1") == 0)  strcpy(data_s, t.strarr_s[470].Get());
+	}
+	if (listtype == 11)
+	{
+		//  behaviours (trim scriptbank behaviours and .fpi)
+		strcpy(data_s, Right(data_s, Len(data_s) - Len("behavioursx")));
+		strcpy(data_s, Left(data_s, Len(data_s) - 4));
+		t.strwork = ""; t.strwork = t.strwork + Upper(Left(data_s, 1)) + Lower(Right(data_s, Len(data_s) - 1));
+		strcpy(data_s, t.strwork.Get());
+	}
+	*/
+
+	listmax = 0;
+	if (listtype == 0)
+	{
+		listmax = 1;
+		t.list_s[0] = t.strarr_s[471];
+		t.list_s[1] = t.strarr_s[470];
+	}
+	if (listtype == 1)
+	{
+		listmax = fillgloballistwithweapons();
+	}
+	if (listtype == 11)
+	{
+		listmax = fillgloballistwithbehaviours();
+	}
+
+	const char* current_item = t.list_s[current_selection].Get();
+	
+	if (ImGui::BeginCombo(field_s , current_item)) // The second parameter is the label previewed before opening the combo.
+	{
+		for (int n = 0; n <= listmax; n++)
+		{
+			bool is_selected = (current_item == t.list_s[n].Get() ); // You can store your selection however you want, outside or inside your objects
+			if (ImGui::Selectable(t.list_s[n].Get(), is_selected)) {
+				current_selection = n;
+				current_item = t.list_s[n].Get();
+			}
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+		}
+		ImGui::EndCombo();
+	}
+
+	return current_selection;
+}
 
 #ifdef FPSEXCHANGE
 
