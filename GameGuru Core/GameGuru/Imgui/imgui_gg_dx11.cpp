@@ -50,6 +50,10 @@ static ID3D11InputLayout*       g_pInputLayout = NULL;
 static ID3D11Buffer*            g_pVertexConstantBuffer = NULL;
 static ID3D10Blob*              g_pPixelShaderBlob = NULL;
 static ID3D11PixelShader*       g_pPixelShader = NULL;
+
+static ID3D10Blob*              g_pPixelShaderNoWhiteBlob = NULL;
+static ID3D11PixelShader*       g_pPixelShaderNoWhite = NULL;
+
 static ID3D11SamplerState*      g_pFontSampler = NULL;
 static ID3D11ShaderResourceView*g_pFontTextureView = NULL;
 static ID3D11RasterizerState*   g_pRasterizerState = NULL;
@@ -66,7 +70,7 @@ struct VERTEX_CONSTANT_BUFFER
 static void ImGui_ImplDX11_InitPlatformInterface();
 static void ImGui_ImplDX11_ShutdownPlatformInterface();
 
-static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceContext* ctx)
+static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceContext* ctx, bool nowhite = false )
 {
     // Setup viewport
     D3D11_VIEWPORT vp;
@@ -87,7 +91,11 @@ static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceC
     ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     ctx->VSSetShader(g_pVertexShader, NULL, 0);
     ctx->VSSetConstantBuffers(0, 1, &g_pVertexConstantBuffer);
-    ctx->PSSetShader(g_pPixelShader, NULL, 0);
+	if(nowhite)
+		ctx->PSSetShader(g_pPixelShaderNoWhite, NULL, 0);
+	else
+		ctx->PSSetShader(g_pPixelShader, NULL, 0);
+	
     ctx->PSSetSamplers(0, 1, &g_pFontSampler);
     ctx->GSSetShader(NULL, NULL, 0);
     ctx->HSSetShader(NULL, NULL, 0); // In theory we should backup and restore this as well.. very infrequently used..
@@ -240,7 +248,16 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-            if (pcmd->UserCallback != NULL)
+			if (pcmd->UserCallback == (ImDrawCallback) 1)
+			{
+				//PE: Change shaders.
+				ctx->PSSetShader(g_pPixelShaderNoWhite, NULL, 0);
+			}
+			else if (pcmd->UserCallback == (ImDrawCallback)2)
+			{
+				ctx->PSSetShader(g_pPixelShader, NULL, 0);
+			}
+			else if (pcmd->UserCallback != NULL)
             {
                 // User callback, registered via ImDrawList::AddCallback()
                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
@@ -434,12 +451,47 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             float4 out_col = input.col * texture0.Sample(sampler0, input.uv); \
             return out_col; \
             }";
+		static const char* pixelShaderNoWhite =
+			"struct PS_INPUT\
+            {\
+            float4 pos : SV_POSITION;\
+            float4 col : COLOR0;\
+            float2 uv  : TEXCOORD0;\
+            };\
+            sampler sampler0;\
+            Texture2D texture0;\
+            \
+            float4 main(PS_INPUT input) : SV_Target\
+            {\
+            float4 img_col = texture0.Sample(sampler0, input.uv); \
+            float4 out_col = input.col * img_col; \
+			if( img_col.r >= 0.9 && img_col.g >= 0.9 && img_col.b >= 0.9) { \
+				out_col.a = 0.0; \
+			} \
+			else if( img_col.r >= 0.8 && img_col.g >= 0.8 && img_col.b >= 0.8) { \
+				out_col.a = 0.1; \
+			} \
+			else if( img_col.r >= 0.75 && img_col.g >= 0.75 && img_col.b >= 0.75) { \
+				out_col.a = 0.2; \
+			} \
+			else if( img_col.r >= 0.7 && img_col.g >= 0.7 && img_col.b >= 0.7) { \
+				out_col.a = 0.3; \
+			} \
+			return out_col; \
+            }";
 
         D3DCompile(pixelShader, strlen(pixelShader), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, NULL);
         if (g_pPixelShaderBlob == NULL)  // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
             return false;
         if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlob->GetBufferPointer(), g_pPixelShaderBlob->GetBufferSize(), NULL, &g_pPixelShader) != S_OK)
             return false;
+
+		D3DCompile(pixelShaderNoWhite, strlen(pixelShaderNoWhite), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderNoWhiteBlob, NULL);
+		if (g_pPixelShaderNoWhiteBlob == NULL)
+			return false;
+		if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderNoWhiteBlob->GetBufferPointer(), g_pPixelShaderNoWhiteBlob->GetBufferSize(), NULL, &g_pPixelShaderNoWhite) != S_OK)
+			return false;
+
     }
 
     // Create the blending setup
@@ -1333,7 +1385,7 @@ namespace ImGui {
 	bool ImgBtn(int iImageID, const ImVec2& btn_size, const ImVec4& bg_col,
 		const ImVec4& drawCol_normal,
 		const ImVec4& drawCol_hover,
-		const ImVec4& drawCol_Down, int frame_padding, int atlasindex, int atlasrows, int atlascolumns)
+		const ImVec4& drawCol_Down, int frame_padding, int atlasindex, int atlasrows, int atlascolumns , bool nowhite , bool gratiant )
 	{
 
 		ID3D11ShaderResourceView* lpTexture = GetImagePointerView(iImageID);
@@ -1398,11 +1450,29 @@ namespace ImGui {
 		bool pressed = ButtonBehavior(bb, id, &hovered, &held);
 
 		//PE: Add the background color. not really needed as most buttons are transparent.
-		if (bg_col.w > 0.0f)
-			window->DrawList->AddRectFilled(image_bb.Min, image_bb.Max, GetColorU32(bg_col));
+		if (bg_col.w > 0.0f && !nowhite) {
 
+			if (gratiant) {
+				ImVec4 bg_fade = bg_col;
+				for (int i = image_bb.Min.y; i <= image_bb.Max.y; i ++ ) {
+					window->DrawList->AddRectFilled( ImVec2(image_bb.Min.x, i), ImVec2(image_bb.Max.x, i+1), GetColorU32(bg_fade));
+					bg_fade = bg_fade + ImVec4(0.0055, 0.0055, 0.0055, 0.0055);
+//					bg_fade.w -= 0.0035;
+				}
+			} else
+				window->DrawList->AddRectFilled(image_bb.Min, image_bb.Max, GetColorU32(bg_col));
+		}
+
+		if(nowhite)
+			window->DrawList->AddCallback( (ImDrawCallback) 1 , NULL );
+		
 		window->DrawList->AddImage((ImTextureID)lpTexture, image_bb.Min, image_bb.Max, uv0, uv1, GetColorU32(
 			(hovered && held) ? drawCol_Down : hovered ? drawCol_hover : drawCol_normal));
+
+		if (nowhite)
+			window->DrawList->AddCallback((ImDrawCallback)2, NULL);
+
+		
 
 		if (pressed) {
 			return(true);
