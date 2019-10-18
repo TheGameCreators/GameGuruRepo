@@ -111,6 +111,8 @@ bool bEntity_Properties_Window = false;
 
 #define MAXTEXTINPUT 1024
 char cTmpInput[MAXTEXTINPUT + 1];
+int grideleprof_uniqui_id = 35000;
+entityeleproftype backup_grideleprof;
 
 char * imgui_setpropertystring2(int group, char* data_s, char* field_s, char* desc_s);
 int imgui_setpropertylist2(int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype);
@@ -428,6 +430,18 @@ path.png
 		ImVec4 drawCol_tmp = ImColor(220, 220, 220, 220)*style_back;
 		ImVec4 drawCol_header = ImColor(255, 255, 255, 255)*style_back;
 
+		bool toolbar_gradiant = false;
+#ifdef USETOOLBARGRADIENT
+		toolbar_gradiant = true;
+#endif
+
+#ifdef USETOOLBARCOLORS
+		ImVec4 drawCol_back_gg = ImVec4(147/255.0, 196 / 255.0, 125 / 255.0, 1.0);
+		ImVec4 drawCol_back_terrain = ImVec4(244 / 255.0, 163 / 255.0, 29 / 255.0, 1.0);
+		ImVec4 drawCol_back_entities = ImVec4(138 / 255.0, 142 / 255.0, 200 / 255.0, 1.0);
+		ImVec4 drawCol_back_waypoint = ImVec4(164 / 255.0, 84 / 255.0, 40 / 255.0, 1.0);
+		ImVec4 drawCol_back_test = ImVec4(245 / 255.0, 228 / 255.0, 64 / 255.0, 1.0);
+#else
 #ifdef USETOOLBARHEADER
 		ImVec4 drawCol_back_gg = style_winback * ImVec4(1.0, 1.0, 1.0, 0.85);
 		ImVec4 drawCol_back_terrain = style_winback * ImVec4(1.0, 1.0, 1.0, 0.75);
@@ -442,8 +456,12 @@ path.png
 		ImVec4 drawCol_back_terrain = ImColor(255, 255, 255, adder)*style_back; adder += 7;
 		ImVec4 drawCol_back_gg = ImColor(255, 255, 255, adder)*style_back; adder += 7;
 #endif
+#endif
+
+
+
 //		ImVec4 drawCol_back_active = ImGui::GetStyle().Colors[ImGuiCol_FrameBgHovered] * ImVec4(1.0, 1.0, 1.0, 0.85);//*style_back;
-		ImVec4 drawCol_back_active = ImColor(255, 255, 255, 70); //*style_back;
+		ImVec4 drawCol_back_active = ImColor(255, 255, 255, 160); //*style_back;
 
 //		ImVec4 drawCol_back_test = ImColor(255, 255, 255, 10)*style_back;
 
@@ -556,13 +574,13 @@ path.png
 //			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "New Level");
 //			ImGui::SameLine();
 
-			if (ImGui::ImgBtn(TOOL_LOADLEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal, drawCol_hover, drawCol_Down, 0)) {
+			if (ImGui::ImgBtn(TOOL_LOADLEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant)) {
 				iLaunchAfterSync = 2; //Load
 				iSkibFramesBeforeLaunch = 2;
 			}
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Load Level");
 			ImGui::SameLine();
-			if (ImGui::ImgBtn(TOOL_SAVELEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal, drawCol_hover, drawCol_Down, 0)) {
+			if (ImGui::ImgBtn(TOOL_SAVELEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant)) {
 				iLaunchAfterSync = 3; //Save
 				iSkibFramesBeforeLaunch = 2;
 			}
@@ -574,8 +592,8 @@ path.png
 
 
 
-			if (current_mode == TOOL_SHAPE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
-			if (ImGui::ImgBtn(TOOL_SHAPE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_SHAPE) drawCol_tmp = drawCol_back_terrain*drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_SHAPE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0,0,0,0,false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "t";
@@ -585,8 +603,8 @@ path.png
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Shape Mode");
 			ImGui::SameLine();
 
-			if (current_mode == TOOL_LEVELMODE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
-			if (ImGui::ImgBtn(TOOL_LEVELMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_LEVELMODE) drawCol_tmp = drawCol_back_terrain*drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_LEVELMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "t";
@@ -596,8 +614,8 @@ path.png
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Level Mode");
 			ImGui::SameLine();
 
-			if (current_mode == TOOL_STOREDLEVEL) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
-			if (ImGui::ImgBtn(TOOL_STOREDLEVEL, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_STOREDLEVEL) drawCol_tmp = drawCol_back_terrain * drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_STOREDLEVEL, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "t";
@@ -607,8 +625,8 @@ path.png
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Stored Level Mode");
 			ImGui::SameLine();
 
-			if (current_mode == TOOL_BLENDMODE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
-			if (ImGui::ImgBtn(TOOL_BLENDMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_BLENDMODE) drawCol_tmp = drawCol_back_terrain * drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_BLENDMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "t";
@@ -618,8 +636,8 @@ path.png
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Blend Mode");
 			ImGui::SameLine();
 
-			if (current_mode == TOOL_RAMPMODE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
-			if (ImGui::ImgBtn(TOOL_RAMPMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_RAMPMODE) drawCol_tmp = drawCol_back_terrain * drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_RAMPMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "t";
@@ -629,8 +647,8 @@ path.png
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Ramp Mode");
 			ImGui::SameLine();
 
-			if (current_mode == TOOL_PAINTTEXTURE) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
-			if (ImGui::ImgBtn(TOOL_PAINTTEXTURE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_PAINTTEXTURE) drawCol_tmp = drawCol_back_terrain * drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_PAINTTEXTURE, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "t";
@@ -640,8 +658,8 @@ path.png
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Paint Texture");
 			ImGui::SameLine();
 
-			if (current_mode == TOOL_PAINTGRASS) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
-			if (ImGui::ImgBtn(TOOL_PAINTGRASS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_PAINTGRASS) drawCol_tmp = drawCol_back_terrain * drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
+			if (ImGui::ImgBtn(TOOL_PAINTGRASS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "t";
@@ -655,8 +673,8 @@ path.png
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y ));
 
 
-			if (current_mode == TOOL_ENTITY) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_entities;
-			if (ImGui::ImgBtn(TOOL_ENTITY, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_ENTITY) drawCol_tmp = drawCol_back_entities * drawCol_back_active; else drawCol_tmp = drawCol_back_entities;
+			if (ImGui::ImgBtn(TOOL_ENTITY, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "e";
@@ -665,8 +683,8 @@ path.png
 			ImGui::SameLine();
 
 
-			if (current_mode == TOOL_MARKERS) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_entities;
-			if (ImGui::ImgBtn(TOOL_MARKERS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_MARKERS) drawCol_tmp = drawCol_back_entities * drawCol_back_active; else drawCol_tmp = drawCol_back_entities;
+			if (ImGui::ImgBtn(TOOL_MARKERS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "m";
@@ -676,8 +694,8 @@ path.png
 			
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
 
-			if (current_mode == TOOL_WAYPOINTS) drawCol_tmp = drawCol_back_active; else drawCol_tmp = drawCol_back_waypoint;
-			if (ImGui::ImgBtn(TOOL_WAYPOINTS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (current_mode == TOOL_WAYPOINTS) drawCol_tmp = drawCol_back_waypoint * drawCol_back_active; else drawCol_tmp = drawCol_back_waypoint;
+			if (ImGui::ImgBtn(TOOL_WAYPOINTS, iToolbarIconSize, drawCol_tmp, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "p";
@@ -685,7 +703,7 @@ path.png
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Waypoint Editing Mode (P)");
 			ImGui::SameLine();
 
-			if (ImGui::ImgBtn(TOOL_NEWWAYPOINTS, iToolbarIconSize, drawCol_back_waypoint, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (ImGui::ImgBtn(TOOL_NEWWAYPOINTS, iToolbarIconSize, drawCol_back_waypoint, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				bForceKey = true;
 				csForceKey = "p";
@@ -696,20 +714,20 @@ path.png
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
 
-			if (ImGui::ImgBtn(TOOL_TESTGAME, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (ImGui::ImgBtn(TOOL_TESTGAME, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 				iLaunchAfterSync = 1;
 			}
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Test Game");
 			ImGui::SameLine();
 
-			if (ImGui::ImgBtn(TOOL_VRMODE, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (ImGui::ImgBtn(TOOL_VRMODE, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 			}
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "VR Mode");
 			ImGui::SameLine();
 
-			if (ImGui::ImgBtn(TOOL_SOCIALVR, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0)) {
+			if (ImGui::ImgBtn(TOOL_SOCIALVR, iToolbarIconSize, drawCol_back_test, drawCol_normal, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 				//Code
 			}
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Social VR Mode");
@@ -1002,7 +1020,7 @@ path.png
 			}
 			if (bEntity_Properties_Window) {
 				static int iOldPickedEntityIndex = -1;
-				static entityeleproftype backup_grideleprof;
+
 				if (t.widget.pickedEntityIndex > 0 && t.cameraviewmode == 2) {
 					//We are in properties mode.
 
@@ -1012,6 +1030,8 @@ path.png
 					//if (t.widget.pickedEntityIndex == t.e) {
 					//t.ttrygridentity only used in Extract,ProperTies,EBE
 
+
+					grideleprof_uniqui_id = 35000;
 
 					int iParentEntid = t.ttrygridentity;
 					
@@ -1023,18 +1043,33 @@ path.png
 					}
 
 					ImGui::Begin("Entity Properties##PropertiesWindow", &bEntity_Properties_Window, 0);
+					ImGui::SetWindowFontScale(0.90);
+					ImGui::PushItemWidth(ImGui::GetFontSize()*10.0);
 					int media_icon_size = 64;
+
+
 					if (t.entityprofile[iParentEntid].iThumbnailSmall > 0) {
 						//TODO Right align.
 						//int i = ImGui::GetCurrentWindow()->ContentSize.x;
 						int i = ImGui::GetWindowContentRegionWidth();
 						ImGui::Spacing();
 						ImGui::SameLine(i - (media_icon_size+4.0f));
-						ImGui::ImgBtn(t.entityprofile[iParentEntid].iThumbnailSmall, ImVec2(media_icon_size, media_icon_size), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal);
+
+						ImGui::ImgBtn(t.entityprofile[iParentEntid].iThumbnailSmall, ImVec2(media_icon_size, media_icon_size), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal,-1,0,0,0,true);
 					}
 
 
 					imgui_set_openproperty_flags();
+					int tflagtext, tflagimage;
+					if (t.entityprofile[t.gridentity].ismarker == 3)
+					{
+						if (!t.entityprofile[t.gridentity].markerindex <= 1)
+						{
+							if (t.entityprofile[t.gridentity].markerindex == 2) tflagtext = 1;
+							if (t.entityprofile[t.gridentity].markerindex == 3) tflagimage = 1;
+						}
+					}
+
 					t.gridentity = t.widget.pickedEntityIndex;
 
 
@@ -1386,6 +1421,195 @@ path.png
 //							setpropertylist3(t.group, t.controlindex, Str(t.grideleprof.teamfield), "Team", "Specifies any team affiliation for multiplayer start marker", 0); ++t.controlindex;
 						}
 #endif
+
+
+
+						//  Physics Data (non-multiplayer)
+						if (t.entityprofile[t.gridentity].ismarker == 0 && t.entityprofile[t.gridentity].islightmarker == 0)
+						{
+							//t.propfield[t.group] = t.controlindex;
+							//++t.group; startgroup(t.strarr_s[596].Get()); t.controlindex = 0;
+							t.group = 1;
+							if (ImGui::CollapsingHeader(t.strarr_s[596].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+
+								if (t.grideleprof.physics != 1)  t.grideleprof.physics = 0;
+								t.grideleprof.physics = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.physics), t.strarr_s[580].Get(), t.strarr_s[581].Get(), 0);
+								t.grideleprof.phyalways = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.phyalways), t.strarr_s[582].Get(), t.strarr_s[583].Get(), 0);
+								t.grideleprof.phyweight = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.phyweight), t.strarr_s[584].Get(), t.strarr_s[585].Get()));
+								t.grideleprof.phyfriction = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.phyfriction), t.strarr_s[586].Get(), t.strarr_s[587].Get()));
+								//     `setpropertystring2(group,Str(grideleprof.phyforcedamage),strarr$(588),strarr$(589)) ; inc controlindex
+								//     `setpropertystring2(group,Str(grideleprof.rotatethrow),strarr$(590),strarr$(591)) ; inc controlindex
+								if (t.tflagsimpler == 0)
+								{
+									t.grideleprof.explodable = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.explodable), t.strarr_s[592].Get(), t.strarr_s[593].Get(), 0);
+									t.grideleprof.explodedamage = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.explodedamage), t.strarr_s[594].Get(), t.strarr_s[595].Get()));
+								}
+							}
+						}
+
+						//  Ammo data (FPGC - 280809 - filtered fpgcgenre=1 is shooter genre
+						if (g.fpgcgenre == 1)
+						{
+							if (t.tflagammo == 1 || t.tflagammoclip == 1)
+							{
+//								t.propfield[t.group] = t.controlindex;
+//								++t.group; startgroup(t.strarr_s[459].Get()); t.controlindex = 0;
+								if (ImGui::CollapsingHeader(t.strarr_s[459].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+									t.grideleprof.quantity = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.quantity), t.strarr_s[460].Get(), t.strarr_s[249].Get()));
+								}
+
+							}
+						}
+
+						//  Light data
+						if (t.tflaglight == 1)
+						{
+							//t.propfield[t.group] = t.controlindex;
+							//++t.group; startgroup(t.strarr_s[461].Get()); t.controlindex = 0; //PE: 461=Light
+							if (ImGui::CollapsingHeader(t.strarr_s[461].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+								t.grideleprof.light.range = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.light.range), t.strarr_s[462].Get(), t.strarr_s[250].Get())); //PE: 462=Light Range
+								//setpropertycolor2(t.group, t.grideleprof.light.color, t.strarr_s[463].Get(), t.strarr_s[251].Get()); ++t.controlindex; //PE: 463=Light Color
+								if (t.tflagsimpler == 0)
+								{
+									t.grideleprof.usespotlighting = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0);
+								}
+							}
+						}
+
+						//  Decal data
+						if (t.tflagtdecal == 1)
+						{
+							t.propfield[t.group] = t.controlindex;
+
+							//  FPGC - 300710 - could never change base decal, so comment out this property (entity denotes decal choice)
+							//     `inc group ; startgroup(strarr$(464)) ; controlindex=0
+							//     `setpropertyfile2(group,grideleprof.basedecal$,strarr$(465),strarr$(252),"gamecore\\decals\\") ; inc controlindex
+
+							//  Decal Particle data
+							if (t.tflagdecalparticle == 1)
+							{
+								//++t.group; startgroup("Decal Particle"); t.controlindex = 0;
+								if (ImGui::CollapsingHeader("Decal Particle", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+									t.grideleprof.particleoverride = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.particleoverride), "Custom Settings", "Whether you wish to override default settings", 0);
+									t.grideleprof.particle.offsety = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.offsety), "OffsetY", "Vertical adjustment of start position"));
+									t.grideleprof.particle.scale = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.scale), "Scale", "A value from 0 to 100, denoting size of particle"));
+									t.grideleprof.particle.randomstartx = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.randomstartx), "Random Start X", "Random start area"));
+									t.grideleprof.particle.randomstarty = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.randomstarty), "Random Start Y", "Random start area"));
+									t.grideleprof.particle.randomstartz = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.randomstartz), "Random Start Z", "Random start area"));
+									t.grideleprof.particle.linearmotionx = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.linearmotionx), "Linear Motion X", "Constant motion direction"));
+									t.grideleprof.particle.linearmotiony = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.linearmotiony), "Linear Motion Y", "Constant motion direction"));
+									t.grideleprof.particle.linearmotionz = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.linearmotionz), "Linear Motion Z", "Constant motion direction"));
+									t.grideleprof.particle.randommotionx = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.randommotionx), "Random Motion X", "Random motion direction"));
+									t.grideleprof.particle.randommotiony = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.randommotiony), "Random Motion Y", "Random motion direction"));
+									t.grideleprof.particle.randommotionz = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.randommotionz), "Random Motion Z", "Random motion direction"));
+									t.grideleprof.particle.mirrormode = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.mirrormode), "Mirror Mode", "Set to one to reverse the particle"));
+									t.grideleprof.particle.camerazshift = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.camerazshift), "Camera Z Shift", "Shift t.particle towards camera"));
+									t.grideleprof.particle.scaleonlyx = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.scaleonlyx), "Scale Only X", "Percentage X over Y scale"));
+									t.grideleprof.particle.lifeincrement = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.lifeincrement), "Life Increment", "Control lifespan of particle"));
+									t.grideleprof.particle.alphaintensity = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.particle.alphaintensity), "Alpha Intensity", "Control alpha percentage of particle"));
+									//  V118 - 060810 - knxrb - Decal animation setting (Added animation choice setting).
+									t.grideleprof.particle.animated = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.particle.animated), "Animated Particle", "Sets whether the t.particle t.decal Texture is animated or static.", 0);
+								}
+							}
+						}
+
+						// Sound
+						if (t.tflagsound == 1 || t.tflagsoundset == 1 || tflagtext == 1 || tflagimage == 1)
+						{
+							cstr group_text;
+							if (tflagtext == 1 || tflagimage == 1)
+							{
+								if (tflagtext == 1) group_text = "Text";
+								if (tflagimage == 1) group_text = "Image";
+							}
+							else
+							{
+								group_text = "Media";
+							}
+
+							if (ImGui::CollapsingHeader(group_text.Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+
+
+								if (g.fpgcgenre == 1)
+								{
+									if (g.vrqcontrolmode != 0)
+									{
+										if (t.tflagsound == 1) {
+											//setpropertyfile2(t.group, t.grideleprof.soundset_s.Get(), t.strarr_s[469].Get(), t.strarr_s[253].Get(), "audiobank\\"); ++t.controlindex;
+										}
+									}
+									else
+									{
+										if (t.tflagsound == 1) {
+											//setpropertyfile2(t.group, t.grideleprof.soundset_s.Get(), t.strarr_s[467].Get(), t.strarr_s[253].Get(), "audiobank\\"); ++t.controlindex;
+										}
+									}
+									if (t.tflagsoundset == 1) {
+										//setpropertyfile2(t.group, t.grideleprof.soundset_s.Get(), t.strarr_s[469].Get(), t.strarr_s[255].Get(), "audiobank\\voices\\"); ++t.controlindex;
+									}
+									if (tflagtext == 1) {
+										t.grideleprof.soundset_s = imgui_setpropertystring2(t.group, t.grideleprof.soundset_s.Get(), "Text to Appear", "Enter text to appear in-game");
+									}
+									if (tflagimage == 1) {
+										//setpropertyfile2(t.group, t.grideleprof.soundset_s.Get(), "Image File", "Select image to appear in-game", "scriptbank\\images\\imagesinzone\\"); ++t.controlindex;
+									}
+									if (t.tflagnosecond == 0)
+									{
+										if (t.tflagsound == 1 || t.tflagsoundset == 1)
+										{
+											//setpropertyfile2(t.group, t.grideleprof.soundset1_s.Get(), t.strarr_s[468].Get(), t.strarr_s[254].Get(), "audiobank\\"); ++t.controlindex;
+											//setpropertyfile2(t.group, t.grideleprof.soundset2_s.Get(), t.strarr_s[480].Get(), t.strarr_s[254].Get(), "audiobank\\"); ++t.controlindex;
+											//setpropertyfile2(t.group, t.grideleprof.soundset3_s.Get(), t.strarr_s[481].Get(), t.strarr_s[254].Get(), "audiobank\\"); ++t.controlindex;
+											//setpropertyfile2(t.group, t.grideleprof.soundset4_s.Get(), t.strarr_s[482].Get(), t.strarr_s[254].Get(), "audiobank\\"); ++t.controlindex;
+										}
+									}
+								}
+								else
+								{
+									if (t.tflagsoundset == 1)
+									{
+										//setpropertyfile2(t.group, t.grideleprof.soundset_s.Get(), t.strarr_s[469].Get(), t.strarr_s[255].Get(), "audiobank\\voices\\"); ++t.controlindex;
+									}
+									else
+									{
+										//setpropertyfile2(t.group, t.grideleprof.soundset_s.Get(), t.strarr_s[467].Get(), t.strarr_s[253].Get(), "audiobank\\"); ++t.controlindex;
+									}
+									//setpropertyfile2(t.group, t.grideleprof.soundset1_s.Get(), t.strarr_s[468].Get(), t.strarr_s[254].Get(), "audiobank\\"); ++t.controlindex;
+								}
+							}
+						}
+
+						// Video
+						if (t.tflagvideo == 1)
+						{
+							//t.propfield[t.group] = t.controlindex;
+							//++t.group; startgroup(t.strarr_s[597].Get()); t.controlindex = 0;
+							if (ImGui::CollapsingHeader(t.strarr_s[597].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
+
+								//setpropertyfile2(t.group, t.grideleprof.soundset_s.Get(), t.strarr_s[469].Get(), t.strarr_s[599].Get(), "audiobank\\"); ++t.controlindex;
+								//setpropertyfile2(t.group, t.grideleprof.soundset1_s.Get(), "Video Slot", t.strarr_s[601].Get(), "videobank\\"); ++t.controlindex;
+							}
+						}
+
+						//  Third person settings
+						if (t.tflagplayersettings == 1 && t.playercontrol.thirdperson.enabled == 1)
+						{
+							//t.propfield[t.group] = t.controlindex;
+							//++t.group; startgroup("Third Person"); t.controlindex = 0;
+							if (ImGui::CollapsingHeader("Third Person", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+								t.livegroupforthirdperson = t.group;
+								t.playercontrol.thirdperson.cameralocked = imgui_setpropertylist2(t.group, t.controlindex, Str(t.playercontrol.thirdperson.cameralocked), "Camera Locked", "Fixes camera height and angle for third person view", 0);
+								t.playercontrol.thirdperson.cameradistance = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.thirdperson.cameradistance), "Camera Distance", "Sets the distance of the third person camera"));
+								t.playercontrol.thirdperson.camerashoulder = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.thirdperson.camerashoulder), "Camera X Offset", "Sets the distance to shift the camera over shoulder"));
+								t.playercontrol.thirdperson.cameraheight = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.thirdperson.cameraheight), "Camera Y Offset", "Sets the vertical height of the third person camera. If more than twice the camera distance, camera collision disables"));
+								t.playercontrol.thirdperson.camerafocus = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.thirdperson.camerafocus), "Camera Focus", "Sets the camera X angle offset to align focus of the third person camera"));
+								t.playercontrol.thirdperson.cameraspeed = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.thirdperson.cameraspeed), "Camera Speed", "Sets the retraction speed percentage of the third person camera"));
+								t.playercontrol.thirdperson.camerafollow = imgui_setpropertylist2(t.group, t.controlindex, Str(t.playercontrol.thirdperson.camerafollow), "Run Mode", "If set to yes, protagonist uses WASD t.movement mode", 0);
+								t.playercontrol.thirdperson.camerareticle = imgui_setpropertylist2(t.group, t.controlindex, Str(t.playercontrol.thirdperson.camerareticle), "Show Reticle", "Show the third person 'crosshair' reticle Dot ( ", 0);
+							}
+						}
 
 					}
 /*
@@ -1945,6 +2169,8 @@ path.png
 					}
 
 //					ImGui::Text("iParentEntid: %ld pEIndex: %ld", iParentEntid, t.widget.pickedEntityIndex );
+					ImGui::PopItemWidth();
+					ImGui::SetWindowFontScale(1.0);
 					ImGui::End();
 
 					if(!bEntity_Properties_Window) //Window closed.
@@ -2333,7 +2559,7 @@ path.png
 
 													ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fFramePadding, 2.0f));
 
-													if (ImGui::ImgBtn(textureId, ImVec2(media_icon_size, media_icon_size), drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down)) {
+													if (ImGui::ImgBtn(textureId, ImVec2(media_icon_size, media_icon_size), drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down,-1,0,0,0,true)) {
 
 														std::string sFpeName = path_for_filename.c_str();
 														sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
@@ -2568,7 +2794,7 @@ path.png
 
 								ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fFramePadding, 2.0f));
 
-								if (ImGui::ImgBtn(t.entityprofile[it->second].iThumbnailSmall, ImVec2(media_icon_size, media_icon_size) , drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down)) {
+								if (ImGui::ImgBtn(t.entityprofile[it->second].iThumbnailSmall, ImVec2(media_icon_size, media_icon_size) , drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down,-1,0,0,0,true)) {
 									t.gridentity = it->second;
 									t.inputsys.constructselection = it->second;
 									t.inputsys.domodeentity = 1;
@@ -8638,10 +8864,21 @@ void editor_viewfunctionality ( void )
 		SetEventAndWait (  1 );
 
 		//  exit zoom view
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+		if (!bImGuiGotFocus && bImGuiRenderTargetFocus && t.inputsys.mclick == 1)  t.tpressedtoleavezoommode = 1;
+		if (!bImGuiGotFocus && bImGuiRenderTargetFocus && t.inputsys.mclick == 0 && t.tpressedtoleavezoommode == 1)  t.tpressedtoleavezoommode = 2;
+
+		//When properties window open , they should click "apply","cancel".
+		if (bEntity_Properties_Window)
+			t.tpressedtoleavezoommode = 0;
+
+#else
 		if ( t.inputsys.mclick == 1  )  t.tpressedtoleavezoommode = 1;
 		if ( t.inputsys.mclick == 0 && t.tpressedtoleavezoommode == 1 )  t.tpressedtoleavezoommode = 2;
+#endif
 		if ( (t.tpressedtoleavezoommode == 2 || t.inputsys.kscancode == 211) || t.editorinterfaceleave == 1 ) 
 		{
+
 			//  leave zoomview
 			t.inputsys.doautozoomview=1;
 
@@ -8654,8 +8891,12 @@ void editor_viewfunctionality ( void )
 
 			//  310315 - Ensure clipping is restored when return
 			t.updatezoom=1;
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+			//Use backup settings before cancel.
+			t.grideleprof = backup_grideleprof;
 
-#ifdef PEDISABLEFORNOW
+#endif
+
 			//  place entity on the map
 			if ( t.gridentityinzoomview>0 ) 
 			{
@@ -8701,7 +8942,7 @@ void editor_viewfunctionality ( void )
 				t.inputsys.dragoffsety_f=0;
 				editor_refreshentitycursor ( );
 			}
-#endif
+
 		}
 	}
 }
@@ -13726,8 +13967,12 @@ char * imgui_setpropertystring2(int group, char* data_s, char* field_s, char* de
 	if (cstr(desc_s) == "" || !desc_s)  ldesc_s = "";
 	if (cstr(field_s) == "" || !field_s)  lfields_s = "";
 
+	std::string uniquiField = lfields_s.Get();
+	uniquiField = uniquiField + "##";
+	uniquiField  = uniquiField+ std::to_string(grideleprof_uniqui_id++);
+
 	strcpy(cTmpInput, ldata_s.Get());
-	ImGui::InputText(lfields_s.Get(), &cTmpInput[0], MAXTEXTINPUT);
+	ImGui::InputText( uniquiField.c_str() , &cTmpInput[0], MAXTEXTINPUT);
 	if (ImGui::IsItemHovered() && ldesc_s != "" ) ImGui::SetTooltip("%s", ldesc_s.Get());
 	return &cTmpInput[0];
 }
@@ -13776,7 +14021,11 @@ char * imgui_setpropertylist2c(int group, int controlindex, char* data_s, char* 
 
 	const char* current_item = t.list_s[current_selection].Get();
 
-	if (ImGui::BeginCombo(field_s, current_item)) // The second parameter is the label previewed before opening the combo.
+	std::string uniquiField = lfields_s.Get();
+	uniquiField = uniquiField + "##";
+	uniquiField = uniquiField + std::to_string(grideleprof_uniqui_id++);
+
+	if (ImGui::BeginCombo(uniquiField.c_str() , current_item)) // The second parameter is the label previewed before opening the combo.
 	{
 		for (int n = 0; n <= listmax; n++)
 		{
@@ -13842,7 +14091,11 @@ int imgui_setpropertylist2(int group, int controlindex, char* data_s, char* fiel
 
 	const char* current_item = t.list_s[current_selection].Get();
 	
-	if (ImGui::BeginCombo(field_s , current_item)) // The second parameter is the label previewed before opening the combo.
+	std::string uniquiField = lfields_s.Get();
+	uniquiField = uniquiField + "##";
+	uniquiField = uniquiField + std::to_string(grideleprof_uniqui_id++);
+
+	if (ImGui::BeginCombo(uniquiField.c_str() , current_item)) // The second parameter is the label previewed before opening the combo.
 	{
 		for (int n = 0; n <= listmax; n++)
 		{
