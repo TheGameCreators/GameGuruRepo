@@ -12,6 +12,8 @@
 
 //#define USETOOLBARHEADER
 //#define CENTERETOOLBAR
+#define USETOOLBARCOLORS
+#define USETOOLBARGRADIENT
 #define ADDGGTOOLBAR
 
 //PE: icons use tons of memory i have 12000 so...
@@ -64,7 +66,7 @@ namespace ImGui {
 	bool ImgBtn(int iImageID, const ImVec2& btn_size = ImVec2(0, 0), const ImVec4& bg_col = ImColor(255, 255, 255, 0),
 		const ImVec4& drawCol_normal = ImColor(220, 220, 220, 220),
 		const ImVec4& drawCol_hover = ImColor(255, 255, 255, 255),
-		const ImVec4& drawCol_Down = ImColor(180, 180, 160, 255), int frame_padding = -1, int atlasindex = 0, int atlasrows = 0, int atlascolumns = 0);
+		const ImVec4& drawCol_Down = ImColor(180, 180, 160, 255), int frame_padding = -1, int atlasindex = 0, int atlasrows = 0, int atlascolumns = 0, bool nowhite = false , bool gratiant = false );
 
 	bool ImgBtnBack(int iImageID, const ImVec2& btn_size = ImVec2(0, 0), const ImVec4& bg_col = ImColor(255, 255, 255, 0),
 		const ImVec4& drawCol_normal = ImColor(220, 220, 220, 220),
