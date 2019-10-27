@@ -1597,15 +1597,18 @@ void sliders_draw ( void )
 						else
 						{
 							//  show entities
+							//PE: Need to support draw call optimizer.
 							for ( t.te = 1 ; t.te<=  g.entityelementlist; t.te++ )
 							{
 								t.tentid=t.entityelement[t.te].bankindex;
-								if (  t.entityprofile[t.tentid].ismarker == 0 ) 
+								if (t.entityprofile[t.tentid].ismarker == 0)
 								{
-									t.tobj=t.entityelement[t.te].obj;
-									if (  t.tobj>0 ) 
-									{
-										if (  ObjectExist(t.tobj) == 1  )  ShowObject (  t.tobj );
+									if (t.entityelement[t.e].draw_call_obj != 0) {
+										t.tobj = t.entityelement[t.te].obj;
+										if (t.tobj > 0)
+										{
+											if (ObjectExist(t.tobj) == 1)  ShowObject(t.tobj);
+										}
 									}
 								}
 							}
