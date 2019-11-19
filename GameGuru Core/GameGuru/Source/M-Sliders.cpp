@@ -1603,7 +1603,7 @@ void sliders_draw ( void )
 								t.tentid=t.entityelement[t.te].bankindex;
 								if (t.entityprofile[t.tentid].ismarker == 0)
 								{
-									if (t.entityelement[t.e].draw_call_obj != 0) {
+									if (t.entityelement[t.te].dc_merged == false) {
 										t.tobj = t.entityelement[t.te].obj;
 										if (t.tobj > 0)
 										{
