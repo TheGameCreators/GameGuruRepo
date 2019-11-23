@@ -709,19 +709,19 @@ function gameplayercontrol.lookmove()
 			end
 			SetGamePlayerControlMaxspeed(GetGamePlayerControlTopspeed()*GetGamePlayerControlBasespeed())
 			SetGamePlayerControlMovement(0)
-			if ( g_PlrKeyA == 1 ) then 
+			if ( g_PlrKeyA == 1 and g_PlrKeyD == 0 ) then 
 				SetGamePlayerControlMovement(1)
 				SetGamePlayerControlMovey(GetGamePlayerControlCy()-90)
 				if ( g_PlrKeyW == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()-45)
 				elseif ( g_PlrKeyS == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()-45-90) end
 			else
-				if ( g_PlrKeyD == 1 ) then 
+				if ( g_PlrKeyD == 1 and g_PlrKeyA == 0 ) then 
 					SetGamePlayerControlMovement(1)
 					SetGamePlayerControlMovey(GetGamePlayerControlCy()+90)
 					if ( g_PlrKeyW == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()+45)
 					elseif ( g_PlrKeyS == 1 ) then SetGamePlayerControlMovey(GetGamePlayerControlCy()+45+90) end
 				else
-					if ( g_PlrKeyW == 1 and g_PlrKeyS==0 ) then 
+					if ( g_PlrKeyW == 1 and g_PlrKeyS == 0 ) then 
 						SetGamePlayerControlMovement(1)  
 						SetGamePlayerControlMovey(GetGamePlayerControlCy())
 					elseif ( g_PlrKeyS == 1 and g_PlrKeyW == 0 ) then 
@@ -1278,7 +1278,7 @@ function gameplayercontrol.control()
 			RotateObject (  ttpersonobj,0,GetCameraAngleY(0),0 )
 		end
 		if ( ttokay == 2 and (g_PlrKeyW == 1 or g_PlrKeyA == 1 or g_PlrKeyS == 1 or g_PlrKeyD == 1) ) then 
-			if ( g_PlrKeyW == 1 ) then 
+			if ( g_PlrKeyW == 1 and g_PlrKeyS == 0 ) then 
 				if ( g_PlrKeyA == 1 ) then 
 					ttadjusta=-45.0
 				else
@@ -1289,7 +1289,7 @@ function gameplayercontrol.control()
 					end
 				end
 			else
-				if ( g_PlrKeyS == 1 ) then 
+				if ( g_PlrKeyS == 1 and g_PlrKeyW == 0 ) then 
 					if ( g_PlrKeyA == 1 ) then 
 						ttadjusta=225.0
 					else
@@ -1300,8 +1300,8 @@ function gameplayercontrol.control()
 						end
 					end
 				else
-					if ( g_PlrKeyA == 1 ) then ttadjusta = -90.0 end
-					if ( g_PlrKeyD == 1 ) then ttadjusta = 90.0 end
+					if ( g_PlrKeyA == 1 and g_PlrKeyD == 0 ) then ttadjusta = -90.0 end
+					if ( g_PlrKeyD == 1 and g_PlrKeyA == 0 ) then ttadjusta = 90.0 end
 				end
 			end
 			ttfinalrotspeed=2.0/GetTimeElapsed()
