@@ -2340,6 +2340,7 @@ void sliders_write ( void )
 		t.visuals.Specular_f=t.slidersmenuvalue[t.slidersmenuindex][16].value/100.0;
 		t.visuals.PostBrightness_f=(t.slidersmenuvalue[t.slidersmenuindex][17].value/100.0)-0.5;
 		t.visuals.PostContrast_f=t.slidersmenuvalue[t.slidersmenuindex][18].value/30.0;
+		t.storeprojectmodified = 1;
 		t.visuals.refreshshaders=1;
 	}
 	if ( t.slidersmenuindex == t.slidersmenunames.water ) 
@@ -2358,6 +2359,7 @@ void sliders_write ( void )
 		t.visuals.WaterDistortionWaves = t.slidersmenuvalue[t.slidersmenuindex][11].value / 1000.0;
 		t.visuals.WaterSpeed1 = (t.slidersmenuvalue[t.slidersmenuindex][12].value - 100)*-1;
 		t.visuals.WaterFlowSpeed = t.slidersmenuvalue[t.slidersmenuindex][13].value / 10.0;
+		t.storeprojectmodified = 1;
 		t.visuals.refreshshaders = 1;
 		//set the waterheight (fix for lua water height command to cover stuff in map editor)
 		t.terrain.waterliney_f = g.gdefaultwaterheight;
@@ -2373,6 +2375,7 @@ void sliders_write ( void )
 		t.visuals.CameraFOV_f=(20+((t.slidersmenuvalue[t.slidersmenuindex][2].value+0.0)/100.0)*90.0)/t.visuals.CameraASPECT_f;
 		t.visuals.CameraFOVZoomed_f=t.slidersmenuvalue[t.slidersmenuindex][3].value/100.0;
 		t.visuals.WeaponFOV_f=(20+((t.slidersmenuvalue[t.slidersmenuindex][4].value+0.0)/100.0)*90.0)/t.visuals.CameraASPECT_f;
+		t.storeprojectmodified = 1;
 		t.visuals.refreshshaders=1;
 	}
 	if (  t.slidersmenuindex == t.slidersmenunames.posteffects ) 
@@ -2391,6 +2394,7 @@ void sliders_write ( void )
 		t.visuals.SAORadius_f=t.slidersmenuvalue[t.slidersmenuindex][11].value/100.0;
 		t.visuals.SAOIntensity_f=t.slidersmenuvalue[t.slidersmenuindex][12].value/100.0;
 		t.visuals.LensFlare_f=t.slidersmenuvalue[t.slidersmenuindex][13].value/100.0;
+		t.storeprojectmodified = 1;
 		t.visuals.refreshshaders=1;
 	}
 //  `if slidersmenuindex=slidersmenunames.sky
@@ -2425,6 +2429,7 @@ void sliders_write ( void )
 		t.visuals.VegQuantity_f=t.slidersmenuvalue[t.slidersmenuindex][5].value;
 		t.visuals.VegWidth_f=t.slidersmenuvalue[t.slidersmenuindex][6].value;
 		t.visuals.VegHeight_f=t.slidersmenuvalue[t.slidersmenuindex][7].value;
+		t.storeprojectmodified = 1;
 		t.visuals.refreshshaders=1;
 	}
 	if (  t.slidersmenuindex == t.slidersmenunames.worldpanel ) 
@@ -2461,17 +2466,16 @@ void sliders_write ( void )
 		t.visuals.lightraymode=t.slidersmenuvalue[t.slidersmenuindex][3].value;
 		if (  t.visuals.vegetationmode != t.slidersmenuvalue[t.slidersmenuindex][4].value ) 
 		{
-			t.storeprojectmodified = 1;
 			t.visuals.refreshvegetation=1;
 		}
 		t.visuals.vegetationmode = t.slidersmenuvalue[t.slidersmenuindex][4].value;
 		if (  t.visuals.occlusionvalue != t.slidersmenuvalue[t.slidersmenuindex][5].value ) 
 		{
-			t.storeprojectmodified = 1;
 			t.visuals.occlusionvalue = t.slidersmenuvalue[t.slidersmenuindex][5].value;
 			CPU3DSetPolyCount ( t.visuals.occlusionvalue );
 		}
 		t.visuals.debugvisualsmode=t.slidersmenuvalue[t.slidersmenuindex][6].value;
+		t.storeprojectmodified = 1;
 		t.visuals.refreshshaders=1;
 	}
 	if (  t.slidersmenuindex == t.slidersmenunames.shaderoptions ) 
