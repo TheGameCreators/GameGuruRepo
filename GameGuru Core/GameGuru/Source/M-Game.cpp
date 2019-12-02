@@ -1275,10 +1275,10 @@ void game_masterroot ( void )
 
 											g.merged_new_objects++;
 
-//											DWORD dwArtFlags = 0;
-//											if (t.entityprofile[t.e].invertnormal == 1) dwArtFlags = 1;
-//											if (t.entityprofile[t.e].preservetangents == 1) dwArtFlags |= 1 << 1;
-//											SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
+											DWORD dwArtFlags = 0;
+											if (t.entityprofile[t.entid].invertnormal == 1) dwArtFlags = 1;
+											if (t.entityprofile[t.entid].preservetangents == 1) dwArtFlags |= 1 << 1;
+											SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
 
 										}
 
