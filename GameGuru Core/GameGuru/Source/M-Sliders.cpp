@@ -2434,18 +2434,21 @@ void sliders_write ( void )
 		if (  t.slidersmenuvalue[t.slidersmenuindex][3].value<1  )  t.slidersmenuvalue[t.slidersmenuindex][3].value = 1;
 		if (  t.visuals.skyindex != t.slidersmenuvalue[t.slidersmenuindex][1].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.skyindex=t.slidersmenuvalue[t.slidersmenuindex][1].value;
 			t.visuals.refreshskysettings=1;
 			t.visuals.refreshshaders=1;
 		}
 		if (  t.visuals.terrainindex != t.slidersmenuvalue[t.slidersmenuindex][2].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.terrainindex=t.slidersmenuvalue[t.slidersmenuindex][2].value;
 			t.visuals.refreshterraintexture=1;
 			t.visuals.refreshshaders=1;
 		}
 		if (  t.visuals.vegetationindex != t.slidersmenuvalue[t.slidersmenuindex][3].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.vegetationindex=t.slidersmenuvalue[t.slidersmenuindex][3].value;
 			t.visuals.refreshvegtexture=1;
 		}
@@ -2458,11 +2461,13 @@ void sliders_write ( void )
 		t.visuals.lightraymode=t.slidersmenuvalue[t.slidersmenuindex][3].value;
 		if (  t.visuals.vegetationmode != t.slidersmenuvalue[t.slidersmenuindex][4].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.refreshvegetation=1;
 		}
 		t.visuals.vegetationmode = t.slidersmenuvalue[t.slidersmenuindex][4].value;
 		if (  t.visuals.occlusionvalue != t.slidersmenuvalue[t.slidersmenuindex][5].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.occlusionvalue = t.slidersmenuvalue[t.slidersmenuindex][5].value;
 			CPU3DSetPolyCount ( t.visuals.occlusionvalue );
 		}
@@ -2473,24 +2478,28 @@ void sliders_write ( void )
 	{
 		if (  t.visuals.shaderlevels.terrain != t.slidersmenuvalue[t.slidersmenuindex][1].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.shaderlevels.terrain=t.slidersmenuvalue[t.slidersmenuindex][1].value;
 			visuals_shaderlevels_terrain_update ( );
 			t.visuals.refreshshaders=1;
 		}
 		if (  t.visuals.shaderlevels.entities != t.slidersmenuvalue[t.slidersmenuindex][2].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.shaderlevels.entities=t.slidersmenuvalue[t.slidersmenuindex][2].value;
 			visuals_shaderlevels_entities_update ( );
 			t.visuals.refreshshaders=1;
 		}
 		if (  t.visuals.shaderlevels.vegetation != t.slidersmenuvalue[t.slidersmenuindex][3].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.shaderlevels.vegetation=t.slidersmenuvalue[t.slidersmenuindex][3].value;
 			visuals_shaderlevels_vegetation_update ( );
 			t.visuals.refreshshaders=1;
 		}
 		if (  t.visuals.shaderlevels.lighting != t.slidersmenuvalue[t.slidersmenuindex][4].value ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.shaderlevels.lighting=t.slidersmenuvalue[t.slidersmenuindex][4].value;
 			visuals_shaderlevels_lighting_update ( );
 			//  the above subroutine can change lighting back to REALTIME
@@ -2509,6 +2518,7 @@ void sliders_write ( void )
 		}
 		if (  (t.visuals.DistanceTransitionStart_f != t.slidersmenuvalue[t.slidersmenuindex][5].value*100.0) || (t.visuals.DistanceTransitionRange_f != t.slidersmenuvalue[t.slidersmenuindex][6].value*10.0) ) 
 		{
+			t.storeprojectmodified = 1;
 			t.visuals.DistanceTransitionStart_f=t.slidersmenuvalue[t.slidersmenuindex][5].value*100.0;
 			t.visuals.DistanceTransitionRange_f=t.slidersmenuvalue[t.slidersmenuindex][6].value*10.0;
 			t.visuals.refreshshaders=1;
