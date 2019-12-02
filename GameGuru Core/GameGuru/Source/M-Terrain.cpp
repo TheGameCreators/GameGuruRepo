@@ -2574,7 +2574,8 @@ void terrain_loaddata ( void )
 			}
 
 			// Load any custom terrain texture if present
-			if ( FileExist( cstr(t.levelmapptah_s+"Texture_D.dds").Get() ) == 1 ) 
+			//PE: Only if CUSTOM is selected in tab tab. https://github.com/TheGameCreators/GameGuruRepo/issues/641
+			if (g.terrainstyleindex == 1 && FileExist( cstr(t.levelmapptah_s+"Texture_D.dds").Get() ) == 1 )
 			{
 				// custom texture in FPM overrides one specified in visual
 				g.terrainstyleindex = 1;
