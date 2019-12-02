@@ -2983,18 +2983,82 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 	cstr tlinethis_s =  "";
 	int lookforlen = 0;
 	cstr lookfor_s =  "";
+	int lookforlen2 = 0;
+	cstr lookfor2_s = "";
 	cstr tline_s =  "";
 	int l = 0;
 	int c = 0;
 	int tt = 0;
-	Dim (  t.scriptpage_s,10000  );
+	std::vector <cstr> scriptpage_s; //Allow us to run recursively
+	Dim (  scriptpage_s,10000  );
 	if (  FileExist(tfile_s) == 1 ) 
 	{
-		LoadArray (  tfile_s,t.scriptpage_s );
+		LoadArray (  tfile_s,scriptpage_s );
+
 		lookfor_s=Lower("Include(") ; lookforlen=Len(lookfor_s.Get());
-		for ( l = 0 ; l < t.scriptpage_s.size() ; l++ )
+		lookfor2_s = Lower("require \""); lookforlen2 = Len(lookfor2_s.Get());
+
+		for ( l = 0 ; l < scriptpage_s.size() ; l++ )
 		{
-			tline_s=Lower(t.scriptpage_s[l].Get());
+			tline_s=Lower(scriptpage_s[l].Get());
+
+			for (c = 0; c <= Len(tline_s.Get()) - lookforlen2 - 1; c++)
+			{
+				tlinethis_s = Right(tline_s.Get(), Len(tline_s.Get()) - c);
+
+				// ignore commented out lines
+				if (cstr(Left(tlinethis_s.Get(), 2)) == "--") break;
+
+				if (cstr(Left(tlinethis_s.Get(), lookforlen2)) == lookfor2_s.Get())
+				{
+					//  found script has included ANOTHER script
+					// skip spaces and quotes 
+					int i = lookforlen2 + 1;
+
+					while (i < Len(tlinethis_s.Get()) &&
+						(cstr(Mid(tlinethis_s.Get(), i)) == " " ||
+							cstr(Mid(tlinethis_s.Get(), i)) == "\""))
+					{
+						i++;
+					};
+
+					// if couldn't find the script name skip this line
+					if (i == Len(tlinethis_s.Get())) break;
+
+					tscriptname_s = Right(tline_s.Get(), Len(tline_s.Get()) - c - i + 1);
+
+					for (int il = Len(tscriptname_s.Get()); il > 0; il--) {
+						if (cstr(Mid(tscriptname_s.Get(), il)) == "\"") {
+							tscriptname_s = Left(tscriptname_s.Get(), il-1);
+							break;
+						}
+					}
+
+					for (int il = Len(tscriptname_s.Get()); il > 0; il--) {
+						if (cstr(Mid(tscriptname_s.Get(), il )) == "\\") {
+							tscriptname_s = Right(tscriptname_s.Get(), Len(tscriptname_s.Get()) - il);
+							break;
+						}
+					}
+					//scriptbank\\utillib"
+					if( !pestrcasestr(tscriptname_s.Get(),".lua"))
+						tscriptname_s += ".lua";
+
+					for (tt = Len(tscriptname_s.Get()); tt >= 4; tt += -1)
+					{
+						if (cstr(Mid(tscriptname_s.Get(), tt - 0)) == "a" && cstr(Mid(tscriptname_s.Get(), tt - 1)) == "u" && cstr(Mid(tscriptname_s.Get(), tt - 2)) == "l" && cstr(Mid(tscriptname_s.Get(), tt - 3)) == ".")
+						{
+							break;
+						}
+					}
+					tscriptname_s = Left(tscriptname_s.Get(), tt);
+
+					if (addtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get()) == true) {
+						//Newly added , also scan this entry.
+						scanscriptfileandaddtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get());
+					}
+				}
+			}
 
 			for ( c = 0 ; c<=  Len(tline_s.Get())-lookforlen-1; c++ )
 			{
@@ -3003,7 +3067,7 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 				// ignore commented out lines
 				if ( cstr( Left( tlinethis_s.Get(), 2 )) == "--" ) break;
 
-				if (  cstr( Left( tlinethis_s.Get(), lookforlen )) == lookfor_s.Get() ) 
+				if (  cstr( Left( tlinethis_s.Get(), lookforlen )) == lookfor_s.Get() )
 				{
 					//  found script has included ANOTHER script
 					// skip spaces and quotes 
@@ -3020,24 +3084,27 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 					if (i == Len(tlinethis_s.Get())) break;
 
 					tscriptname_s=Right(tline_s.Get(),Len(tline_s.Get())-c-i+1);
-				
-					for ( tt = Len(tscriptname_s.Get()) ; tt>= 4 ; tt+= -1 )
+					for (tt = Len(tscriptname_s.Get()); tt >= 4; tt += -1)
 					{
-						if (  cstr(Mid(tscriptname_s.Get(),tt-0)) == "a" && cstr(Mid(tscriptname_s.Get(),tt-1)) == "u" && cstr(Mid(tscriptname_s.Get(),tt-2)) == "l" && cstr(Mid(tscriptname_s.Get(),tt-3)) == "." ) 
+						if (cstr(Mid(tscriptname_s.Get(), tt - 0)) == "a" && cstr(Mid(tscriptname_s.Get(), tt - 1)) == "u" && cstr(Mid(tscriptname_s.Get(), tt - 2)) == "l" && cstr(Mid(tscriptname_s.Get(), tt - 3)) == ".")
 						{
 							break;
 						}
 					}
-					tscriptname_s=Left(tscriptname_s.Get(),tt);
-					addtocollection( cstr(cstr("scriptbank\\")+tscriptname_s).Get() );
+					tscriptname_s = Left(tscriptname_s.Get(), tt);
+
+					if (addtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get()) == true) {
+						//Newly added , also scan this entry.
+						scanscriptfileandaddtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get());
+					}
 				}
 			}
 		}
 	}
-	UnDim (  t.scriptpage_s );
+	UnDim (  scriptpage_s );
 }
 
-void addtocollection ( char* file_s )
+bool addtocollection ( char* file_s )
 {
 	int tarrsize = 0;
 	int tfound = 0;
@@ -3059,7 +3126,9 @@ void addtocollection ( char* file_s )
 			Dim (  t.filecollection_s,tarrsize+50  );
 		}
 		t.filecollection_s[g.filecollectionmax]=file_s;
+		return true;
 	}
+	return false;
 }
 
 void removefromcollection ( char* file_s )
