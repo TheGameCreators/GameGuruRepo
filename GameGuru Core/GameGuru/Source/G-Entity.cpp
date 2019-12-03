@@ -726,20 +726,58 @@ void entity_loop ( void )
 	}
 }
 
+//PE: No speed difference with normal usage.
+//#define SPEEDTESTOLDSYSTEM 
+//PE: All animations (master objects) will now animate independent of fps.
+//PE: Now allow "static" with animation to use AnimSpeed per object.
 void entity_loopanim ( void )
 {
 	// In game or editor, must control entity animation speed (machine indie)#
+	static int currentsynccount = 0;
+	currentsynccount++;
+
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
-		// 011016 - scenes with LARGE number of static entities hitting perf hard
-		if ( t.entityelement[t.e].staticflag == 1 && t.entityelement[t.e].eleprof.phyalways == 0 ) continue;
-		// NOTE: Determine essential tasks static needs (i.e. plrdist??)
+		t.entid = t.entityelement[t.e].bankindex;
 
+		if (t.entid <= 0)
+			continue;
+
+		t.tparentobj = g.entitybankoffset + t.entid;
+
+		// 011016 - scenes with LARGE number of static entities hitting perf hard
+		//PE: @Lee if the same master object is used without any per object animspeed changes , it will be like normal.
+		//PE: Only if animspeed is changed (per object) it will create a new clone , so should not bring down fps that bad.
+#ifdef SPEEDTESTOLDSYSTEM
+		if (t.entityelement[t.e].staticflag == 1 && t.entityelement[t.e].eleprof.phyalways == 0)
+			continue;
+#else
+		if (t.entityelement[t.e].staticflag == 1 && t.entityelement[t.e].eleprof.phyalways == 0)
+		{
+			//Quickly skip entry, but still allow custom anim on static objects.
+			if ( t.entityelement[t.e].eleprof.animspeed == t.entityprofile[t.entid].animspeed) {
+
+				//PE: We still need to set speed on master object. once each sync.
+				if ( t.entityprofile[t.entid].synccount != currentsynccount && t.entityprofile[t.entid].ischaracter == 0 && t.entityelement[t.e].isclone == 0 && ObjectExist(t.tparentobj) == 1) {
+
+					t.entityprofile[t.entid].synccount = currentsynccount; //Only update one time per sync.
+					if (GetNumberOfFrames(t.tparentobj) > 0)
+					{
+						t.tanimspeed_f = t.entityprofile[t.entid].animspeed;
+						if (ObjectExist(t.tparentobj) == 1) {
+							SetObjectSpeed(t.tparentobj, g.timeelapsed_f*t.tanimspeed_f);
+						}
+					}
+				}
+				continue;
+			}
+		}
+#endif
+		// NOTE: Determine essential tasks static needs (i.e. plrdist??)
 		// only handle DYNAMIC entities 
-		t.entid=t.entityelement[t.e].bankindex;
 		if ( t.entid>0 ) 
 		{
-			t.tparentobj=g.entitybankoffset+t.entid;
+			//t.tparentobj=g.entitybankoffset+t.entid;
 			if ( t.entityprofile[t.entid].ischaracter == 0 ) 
 			{
 				// but not for characters which have their own speed control
@@ -760,6 +798,28 @@ void entity_loopanim ( void )
 								{
 									// Entity must be unique to allow different speed from parent
 									t.tte = t.e ; entity_converttoclone ( );
+									//Start animation.
+
+									t.tobj = t.entityelement[t.e].obj;
+									if (GetNumberOfFrames(t.tobj) > 0)
+									{
+										//  allow first animation
+										if ((t.game.set.ismapeditormode == 0 || t.game.gameisexe == 1) && t.entityprofile[t.entid].startanimingame > 0 && t.entityprofile[t.entid].animmax > 0) { //PE:
+
+											t.q = t.entityprofile[t.entid].startanimingame - 1;
+											if (t.q >= 0)
+												LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+										}
+										else if (t.entityprofile[t.tentid].animmax > 0 && t.entityprofile[t.tentid].playanimineditor > 0)
+										{
+											SetObjectFrame(t.tobj, 0); LoopObject(t.tobj); StopObject(t.tobj);
+											t.q = t.entityprofile[t.entid].playanimineditor - 1;
+											if (t.q >= 0)
+												LoopObject(t.tobj, t.entityanim[t.entid][t.q].start, t.entityanim[t.entid][t.q].finish);
+										}
+
+									}
+
 								}
 							}
 							if ( t.entityelement[t.e].isclone == 1 ) 
@@ -770,9 +830,11 @@ void entity_loopanim ( void )
 							}
 							else
 							{
+								//PE: This is never called, (continue; above).
 								//  Control animation speed of parent object associated with instance
 								t.tanimspeed_f = t.entityprofile[t.entid].animspeed;
-								if (  ObjectExist(t.tparentobj) == 1  ) SetObjectSpeed ( t.tparentobj,g.timeelapsed_f*t.tanimspeed_f );
+								if (  ObjectExist(t.tparentobj) == 1  )
+									SetObjectSpeed ( t.tparentobj,g.timeelapsed_f*t.tanimspeed_f );
 							}
 							//  if animation in progress (handle any transitioning)
 							if ( t.entityelement[t.e].lua.animating == 1 ) 

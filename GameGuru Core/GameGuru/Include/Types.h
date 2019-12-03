@@ -5151,6 +5151,7 @@ struct entityprofiletype
 	int meleedamagest;
 	int meleedamagefn;
 	ebeType ebe;
+	int synccount;
 
 	// Constructor
 	entityprofiletype ( )
@@ -5172,6 +5173,7 @@ struct entityprofiletype
 		 meleestrikefn = 0;
 		 meleedamagest = 0;
 		 meleedamagefn = 0;
+		 synccount = 0;
 		 charactercreator_s = "";
 		 ischaractercreator = 0;
 		 addhandlelimb = 0;
@@ -5891,6 +5893,7 @@ struct entitytype
 	int draw_call_obj;
 	bool dc_merged;
 	float dc_distance;
+
 	// Constructor
 	entitytype ( )
 	{
