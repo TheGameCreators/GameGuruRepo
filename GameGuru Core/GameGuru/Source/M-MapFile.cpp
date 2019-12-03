@@ -1210,6 +1210,15 @@ int mapfile_savestandalone_stage2c ( void )
 
 			//  shader file
 			t.tfile_s=t.entityelement[t.e].eleprof.effect_s ; addtocollection(t.tfile_s.Get());
+			//Try to take the .blob.
+			if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
+				t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
+				t.tfile_s = t.tfile_s + ".blob";
+				if (FileExist(t.tfile_s.Get()) == 1)
+				{
+					addtocollection(t.tfile_s.Get());
+				}
+			}
 			//  script files
 			t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aimain_s ; addtocollection(t.tfile_s.Get());
 			//  for the script associated, scan it and include any references to other scripts
@@ -2423,6 +2432,15 @@ void mapfile_savestandalone ( void )
 
 			//  shader file
 			t.tfile_s=t.entityelement[t.e].eleprof.effect_s ; addtocollection(t.tfile_s.Get());
+			//Try to take the .blob.
+			if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
+				t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
+				t.tfile_s = t.tfile_s + ".blob";
+				if (FileExist(t.tfile_s.Get()) == 1)
+				{
+					addtocollection(t.tfile_s.Get());
+				}
+			}
 			//  script files
 			t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aimain_s ; addtocollection(t.tfile_s.Get());
 			//  for the script associated, scan it and include any references to other scripts
