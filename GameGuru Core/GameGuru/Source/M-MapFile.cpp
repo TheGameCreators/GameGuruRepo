@@ -3003,6 +3003,7 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 	cstr lookfor_s =  "";
 	int lookforlen2 = 0;
 	cstr lookfor2_s = "";
+	cstr lookfor3_s = "";
 	cstr tline_s =  "";
 	int l = 0;
 	int c = 0;
@@ -3015,6 +3016,7 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 
 		lookfor_s=Lower("Include(") ; lookforlen=Len(lookfor_s.Get());
 		lookfor2_s = Lower("require \""); lookforlen2 = Len(lookfor2_s.Get());
+		lookfor3_s = Lower("Include (");
 
 		for ( l = 0 ; l < scriptpage_s.size() ; l++ )
 		{
@@ -3027,7 +3029,7 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 				// ignore commented out lines
 				if (cstr(Left(tlinethis_s.Get(), 2)) == "--") break;
 
-				if (cstr(Left(tlinethis_s.Get(), lookforlen2)) == lookfor2_s.Get())
+				if (cstr(Left(tlinethis_s.Get(), lookforlen2)) == lookfor2_s.Get() || cstr(Left(tlinethis_s.Get(), lookforlen2)) == lookfor3_s.Get())
 				{
 					//  found script has included ANOTHER script
 					// skip spaces and quotes 
