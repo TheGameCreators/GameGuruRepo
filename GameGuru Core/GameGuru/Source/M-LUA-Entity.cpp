@@ -665,6 +665,9 @@ void entity_lua_playsound ( void )
 	if ( t.v == 4 ) t.tsnd=t.entityelement[t.e].soundset4;
 	if ( t.tsnd>0 ) 
 	{
+		//If we start in a zone, volume might not be set yet, so: (https://github.com/TheGameCreators/GameGuruRepo/issues/251)
+		if(t.audioVolume.soundFloat == 0.0f)
+			t.audioVolume.soundFloat = 1.0f;
 		playinternal3dsound(t.tsnd,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z);
 	}
 	t.luaglobal.lastsoundnumber=t.tsnd;
@@ -687,6 +690,9 @@ void entity_lua_playsoundifsilent ( void )
 		{
 			if ( SoundPlaying(t.tsnd) == 0 ) 
 			{
+				if (t.audioVolume.soundFloat == 0.0f) //Make sure we have volume.
+					t.audioVolume.soundFloat = 1.0f;
+
 				playinternal3dsound(t.tsnd,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z);
 				t.luaglobal.lastsoundnumber=t.tsnd;
 			}
