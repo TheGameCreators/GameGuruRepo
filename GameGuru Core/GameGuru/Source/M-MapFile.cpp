@@ -1224,6 +1224,11 @@ int mapfile_savestandalone_stage2c ( void )
 			//  for the script associated, scan it and include any references to other scripts
 			scanscriptfileandaddtocollection(t.tfile_s.Get());
 			//  sound files
+			//PE: Make sure voiceset from player start marker is added.
+			if (t.entityprofile[t.entid].ismarker == 1 && t.entityelement[t.e].eleprof.soundset_s.Len() > 0 ) {
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s;
+				addfoldertocollection( cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get() );
+			}
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
@@ -2446,6 +2451,11 @@ void mapfile_savestandalone ( void )
 			//  for the script associated, scan it and include any references to other scripts
 			scanscriptfileandaddtocollection(t.tfile_s.Get());
 			//  sound files
+			//PE: Make sure voiceset from player start marker is added.
+			if (t.entityprofile[t.entid].ismarker == 1 && t.entityelement[t.e].eleprof.soundset_s.Len() > 0) {
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s;
+				addfoldertocollection(cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get());
+			}
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
