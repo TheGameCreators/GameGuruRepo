@@ -3054,13 +3054,11 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 						}
 					}
 
-					for (int il = Len(tscriptname_s.Get()); il > 0; il--) {
-						if (cstr(Mid(tscriptname_s.Get(), il )) == "\\") {
-							tscriptname_s = Right(tscriptname_s.Get(), Len(tscriptname_s.Get()) - il);
-							break;
-						}
-					}
-					//scriptbank\\utillib"
+					std::string script_name = tscriptname_s.Get();
+					replaceAll(script_name, "\\\\", "\\");
+					replaceAll(script_name, "scriptbank\\", "");
+					tscriptname_s = script_name.c_str();
+
 					if( !pestrcasestr(tscriptname_s.Get(),".lua"))
 						tscriptname_s += ".lua";
 
