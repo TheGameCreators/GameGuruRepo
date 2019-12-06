@@ -3418,25 +3418,73 @@ void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s 
 						if ( strnicmp ( texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 3 , "_ao", 3 ) == NULL ) { texfilenoext_s = Left(texfilenoext_s.Get(),strlen(texfilenoext_s.Get())-3); bDetectedPBRTextureSetName = true; }
 						if ( bDetectedPBRTextureSetName == true )
 						{
+							//PE: Need to check filename only and current object folder.
+							bool tex_found = false;
+							int pos = 0;
+							for (pos = texfilenoext_s.Len(); pos > 0; pos--) {
+								if (cstr(Mid(texfilenoext_s.Get(), pos)) == "\\" || cstr(Mid(texfilenoext_s.Get(), pos)) == "/")
+									break;
+							}
+							if (pos > 0) {
+								cstr directfile = Right(texfilenoext_s.Get(), texfilenoext_s.Len() - pos);
+
+								cstr tmp = cstr(cstr(folder_s) + directfile + "_color.dds").Get();
+								if (FileExist(tmp.Get())) {
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_normal.dds").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_metalness.dds").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_gloss.dds").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_ao.dds").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_illumination.dds").Get();
+									addtocollection(tmp.Get());
+									tex_found = true;
+								}
+								tmp = cstr(cstr(folder_s) + directfile + "_color.png").Get();
+								if (FileExist(tmp.Get())) {
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_normal.png").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_metalness.png").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_gloss.png").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_ao.png").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_illumination.png").Get();
+									addtocollection(tmp.Get());
+									tex_found = true;
+								}
+
+							}
+
+							//PE: We get some strange folder created in the standalone from here.
 							// add other PBR textures just in case not detected in model data
-							cstr texfileColor_s = texfilenoext_s + "_color.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileColor_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileColor_s).Get() );
-							cstr texfileNormal_s = texfilenoext_s + "_normal.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileNormal_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileNormal_s).Get() );
-							cstr texfileMetalness_s = texfilenoext_s + "_metalness.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileMetalness_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileMetalness_s).Get() );
-							cstr texfileGloss_s = texfilenoext_s + "_gloss.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileGloss_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileGloss_s).Get() );
-							cstr texfileAO_s = texfilenoext_s + "_ao.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileAO_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileAO_s).Get() );
-							cstr texfileIllumination_s = texfilenoext_s + "_illumination.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileIllumination_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileIllumination_s).Get() );
+							if (!tex_found)
+							{
+								cstr texfileColor_s = texfilenoext_s + "_color.dds";
+								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileColor_s).Get());
+								addtocollection(cstr(cstr(folder_s) + texfileColor_s).Get());
+								cstr texfileNormal_s = texfilenoext_s + "_normal.dds";
+								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileNormal_s).Get());
+								addtocollection(cstr(cstr(folder_s) + texfileNormal_s).Get());
+								cstr texfileMetalness_s = texfilenoext_s + "_metalness.dds";
+								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileMetalness_s).Get());
+								addtocollection(cstr(cstr(folder_s) + texfileMetalness_s).Get());
+								cstr texfileGloss_s = texfilenoext_s + "_gloss.dds";
+								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileGloss_s).Get());
+								addtocollection(cstr(cstr(folder_s) + texfileGloss_s).Get());
+								cstr texfileAO_s = texfilenoext_s + "_ao.dds";
+								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileAO_s).Get());
+								addtocollection(cstr(cstr(folder_s) + texfileAO_s).Get());
+								cstr texfileIllumination_s = texfilenoext_s + "_illumination.dds";
+								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileIllumination_s).Get());
+								addtocollection(cstr(cstr(folder_s) + texfileIllumination_s).Get());
+							}
+
 						}
 						addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
 						addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
