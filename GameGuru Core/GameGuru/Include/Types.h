@@ -1414,10 +1414,13 @@ struct weaponProjectileBaseType
 	weaponParticleEmitterBaseType particle2;
 
 	int overridespotlighting;
-
+	int cacheProjectile;
+	bool cacheLoaded;
 	// Constructor
 	weaponProjectileBaseType ( )
 	{
+		 cacheLoaded = false;
+		 cacheProjectile = 0;
 		 overridespotlighting = 0;
 		 thrustDelay = 0;
 		 thrustTime = 0;
