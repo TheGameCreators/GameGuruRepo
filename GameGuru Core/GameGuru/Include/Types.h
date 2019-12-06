@@ -3628,6 +3628,7 @@ struct visualstype
 	int refreshmaincameras;
 	int refreshvegetation;
 	int refreshskysettings;
+	bool refreshskysettingsfromlua;
 	int refreshterraintexture;
 	int refreshvegtexture;
 	int refreshterrainsupertexture;
@@ -3785,6 +3786,7 @@ struct visualstype
 		 refreshvegtexture = 0;
 		 refreshterraintexture = 0;
 		 refreshskysettings = 0;
+		 refreshskysettingsfromlua = false;
 		 refreshvegetation = 0;
 		 refreshshaders = 0;
 		 showpromptssavestate = 0;

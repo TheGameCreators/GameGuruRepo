@@ -1204,6 +1204,7 @@ void lua_set_sky(void)
 	if (index != -1) 
 	{
 		t.visuals.skyindex = index;
+		t.visuals.refreshskysettingsfromlua = true;
 		t.visuals.refreshskysettings = 1;
 		t.visuals.refreshshaders = 1;
 	}
