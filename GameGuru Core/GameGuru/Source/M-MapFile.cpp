@@ -3477,35 +3477,45 @@ void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s 
 							if (!tex_found)
 							{
 								cstr texfileColor_s = texfilenoext_s + "_color.dds";
-								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileColor_s).Get());
-								addtocollection(cstr(cstr(folder_s) + texfileColor_s).Get());
-								cstr texfileNormal_s = texfilenoext_s + "_normal.dds";
-								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileNormal_s).Get());
-								addtocollection(cstr(cstr(folder_s) + texfileNormal_s).Get());
-								cstr texfileMetalness_s = texfilenoext_s + "_metalness.dds";
-								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileMetalness_s).Get());
-								addtocollection(cstr(cstr(folder_s) + texfileMetalness_s).Get());
-								cstr texfileGloss_s = texfilenoext_s + "_gloss.dds";
-								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileGloss_s).Get());
-								addtocollection(cstr(cstr(folder_s) + texfileGloss_s).Get());
-								cstr texfileAO_s = texfilenoext_s + "_ao.dds";
-								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileAO_s).Get());
-								addtocollection(cstr(cstr(folder_s) + texfileAO_s).Get());
-								cstr texfileIllumination_s = texfilenoext_s + "_illumination.dds";
-								addtocollection(cstr(cstr(folder_s) + texpath_s + texfileIllumination_s).Get());
-								addtocollection(cstr(cstr(folder_s) + texfileIllumination_s).Get());
-							}
+								//Only if the src is exists.
+								if (FileExist(cstr(cstr(folder_s) + texpath_s + texfileColor_s).Get()) || FileExist(cstr(cstr(folder_s) + texfileColor_s).Get())) {
 
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileColor_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileColor_s).Get());
+									cstr texfileNormal_s = texfilenoext_s + "_normal.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileNormal_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileNormal_s).Get());
+									cstr texfileMetalness_s = texfilenoext_s + "_metalness.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileMetalness_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileMetalness_s).Get());
+									cstr texfileGloss_s = texfilenoext_s + "_gloss.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileGloss_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileGloss_s).Get());
+									cstr texfileAO_s = texfilenoext_s + "_ao.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileAO_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileAO_s).Get());
+									cstr texfileIllumination_s = texfilenoext_s + "_illumination.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileIllumination_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileIllumination_s).Get());
+								}
+							}
 						}
-						addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
-						addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
+
+						if (FileExist(cstr(cstr(folder_s) + texpath_s + texfile_s).Get()))
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
+						if (FileExist(cstr(cstr(folder_s) + texfile_s).Get()))
+							addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
+
 						if (  cstr(Right(texfile_s.Get(),4)) != ".dds" ) 
 						{
 							//  also convert to DDS and add those too
-							addtocollection( cstr(cstr(folder_s)+texfile_s+".png").Get() );
+							if (FileExist(cstr(cstr(folder_s) + texfile_s + ".png").Get()))
+								addtocollection( cstr(cstr(folder_s)+texfile_s+".png").Get() );
 							texfile_s=cstr(Left(texfile_s.Get(),Len(texfile_s.Get())-4))+".dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
+							if (FileExist(cstr(cstr(folder_s) + texpath_s + texfile_s).Get()))
+								addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
+							if (FileExist(cstr(cstr(folder_s) + texfile_s).Get()))
+								addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
 						}
 					}
 					b += 4;
