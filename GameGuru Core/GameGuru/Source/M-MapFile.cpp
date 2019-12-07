@@ -3380,7 +3380,18 @@ void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s 
 						}
 					}
 				}
-				if (  tfoundpiccy == 1 ) 
+				//PE: mainly from the building pack they are recorded as psd.
+				if (ReadMemblockByte(mbi, b + 1) == Asc("P") || ReadMemblockByte(mbi, b + 1) == Asc("p"))
+				{
+					if (ReadMemblockByte(mbi, b + 2) == Asc("S") || ReadMemblockByte(mbi, b + 2) == Asc("s"))
+					{
+						if (ReadMemblockByte(mbi, b + 3) == Asc("D") || ReadMemblockByte(mbi, b + 3) == Asc("d"))
+						{
+							tfoundpiccy = 1;
+						}
+					}
+				}
+				if (  tfoundpiccy == 1 )
 				{
 					//  track back
 					for ( c = b ; c >= b-255 ; c+= -1 )
