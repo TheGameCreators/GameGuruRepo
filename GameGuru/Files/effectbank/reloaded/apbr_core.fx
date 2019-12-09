@@ -819,6 +819,11 @@ float3 ComputeLight(Material mat, DirectionalLight L, float3 normal, float3 toEy
 	#ifdef PBRVEGETATION
 	 float3 vegFinalSun = clamp(dot(-L.Direction, normal) * thisSunColor, 0.10, 1.0);
 	 vegFinalSun = lerp(0.65, vegFinalSun, SurfaceSunFactor); //PE: SurfaceSunFactor even out directional light on vegetation.
+
+#ifdef COMPRESSLIGHTRANGE
+	 vegFinalSun = (float3(1.0, 1.0, 1.0) - exp(-(vegFinalSun + 0.10))); //move lightrange from darkside , display more detail in dark areas.
+#endif
+
 	 return  vegFinalSun * ((albedo)*0.85);
 	#endif
 	float3 albedoAdd = lerp( max(albedo.rgb, dot(-L.Direction,normal)*0.15) , albedo.rgb , RealisticVsCool ); // Give light side a bit more spec.
@@ -831,6 +836,12 @@ float3 ComputeLight(Material mat, DirectionalLight L, float3 normal, float3 toEy
      float3 thisFinalSunColor = clamp(dot(-L.Direction,normal) * thisSunColor,0.10,1.0);
 	 thisFinalSunColor = lerp(0.65, thisFinalSunColor, SurfaceSunFactor); //PE: SurfaceSunFactor is used to even out directional light :)
 	#endif
+
+#ifdef COMPRESSLIGHTRANGE
+	thisFinalSunColor = (float3(1.0,1.0,1.0) - exp(-(thisFinalSunColor+0.10) )); //move lightrange from darkside , display more detail in dark areas.
+	specular = (float3(1.0, 1.0, 1.0) - exp(-(specular) * 0.75 )); //move lightrange from lightside to darkside.
+#endif
+
 	return thisFinalSunColor * ((albedoAdd * (1.0-specular))*0.85) + (specular*thisSunColor);
 #else
    float3 resultLight = float3(0.0f, 0.0f, 0.0f);
