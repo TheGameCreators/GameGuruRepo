@@ -235,6 +235,15 @@ void weapon_getprojectileid ( void )
 		t.tProjType = t.WeaponProjectile[t.tProj].baseType;
 		if ( cstr(Lower(t.WeaponProjectileBase[t.tProjType].name_s.Get())) == t.tProjectileType_s ) 
 		{
+			//We need this projectile , setup cache.
+			if (t.WeaponProjectileBase[t.tProjType].cacheLoaded == false) {
+				t.tNewProjBase = t.tProjType;
+				for (t.tP = 1; t.tP <= t.WeaponProjectileBase[t.tNewProjBase].cacheProjectile - 1; t.tP++) //-1 already added one.
+				{
+					weapon_projectile_setup();
+				}
+				t.WeaponProjectileBase[t.tProjType].cacheLoaded = true;
+			}
 			t.tProjectileType=t.tProjType;
 		}
 	}
@@ -975,10 +984,15 @@ void weapon_projectile_load ( void )
 
 	//  create a number of projectiles now for the pool
 	t.tInField_s = "cacheNumber" ; weapon_readfield( ); t.tcount = t.value1_f;
-	for ( t.tP = 1 ; t.tP <= t.tcount; t.tP++ )
-	{
-		weapon_projectile_setup ( );
-	}
+
+	t.WeaponProjectileBase[t.tNewProjBase].cacheProjectile = t.tcount;
+	t.WeaponProjectileBase[t.tNewProjBase].cacheLoaded = false;
+	weapon_projectile_setup(); // load one to get basetype mapping.
+
+//	for (t.tP = 1; t.tP <= t.tcount; t.tP++)
+//	{
+//		weapon_projectile_setup();
+//	}
 
 	UnDim (  t.fileData_s );
 
@@ -991,8 +1005,14 @@ void weapon_projectile_setup ( void )
 	//  sets up an inactive projectile ready for use
 	//  takes tNewProjBase, returns tResult (0 failed, or ID of projectileBase)
 	//  find an empty slot to setup this projectile in
+
 	for ( t.tNew = 1 ; t.tNew<=  g.weaponSystem.numProjectiles; t.tNew++ )
 	{
+		//PE: Expand array when needed.
+		if (t.tNew >= g.weaponSystem.numProjectiles - 1) {
+			g.weaponSystem.numProjectiles += 10;
+			Dim(t.WeaponProjectile, g.weaponSystem.numProjectiles);
+		}
 		if (  t.WeaponProjectile[t.tNew].baseType  ==  0 ) 
 		{
 			t.WeaponProjectile[t.tNew].baseType = t.tNewProjBase;

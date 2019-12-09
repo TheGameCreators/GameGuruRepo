@@ -1220,11 +1220,25 @@ int mapfile_savestandalone_stage2c ( void )
 
 			//  shader file
 			t.tfile_s=t.entityelement[t.e].eleprof.effect_s ; addtocollection(t.tfile_s.Get());
+			//Try to take the .blob.
+			if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
+				t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
+				t.tfile_s = t.tfile_s + ".blob";
+				if (FileExist(t.tfile_s.Get()) == 1)
+				{
+					addtocollection(t.tfile_s.Get());
+				}
+			}
 			//  script files
 			t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aimain_s ; addtocollection(t.tfile_s.Get());
 			//  for the script associated, scan it and include any references to other scripts
 			scanscriptfileandaddtocollection(t.tfile_s.Get());
 			//  sound files
+			//PE: Make sure voiceset from player start marker is added.
+			if (t.entityprofile[t.entid].ismarker == 1 && t.entityelement[t.e].eleprof.soundset_s.Len() > 0 ) {
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s;
+				addfoldertocollection( cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get() );
+			}
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
@@ -2436,11 +2450,25 @@ void mapfile_savestandalone ( void )
 
 			//  shader file
 			t.tfile_s=t.entityelement[t.e].eleprof.effect_s ; addtocollection(t.tfile_s.Get());
+			//Try to take the .blob.
+			if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
+				t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
+				t.tfile_s = t.tfile_s + ".blob";
+				if (FileExist(t.tfile_s.Get()) == 1)
+				{
+					addtocollection(t.tfile_s.Get());
+				}
+			}
 			//  script files
 			t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aimain_s ; addtocollection(t.tfile_s.Get());
 			//  for the script associated, scan it and include any references to other scripts
 			scanscriptfileandaddtocollection(t.tfile_s.Get());
 			//  sound files
+			//PE: Make sure voiceset from player start marker is added.
+			if (t.entityprofile[t.entid].ismarker == 1 && t.entityelement[t.e].eleprof.soundset_s.Len() > 0) {
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s;
+				addfoldertocollection(cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get());
+			}
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s=t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
@@ -2996,18 +3024,82 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 	cstr tlinethis_s =  "";
 	int lookforlen = 0;
 	cstr lookfor_s =  "";
+	int lookforlen2 = 0;
+	cstr lookfor2_s = "";
+	cstr lookfor3_s = "";
 	cstr tline_s =  "";
 	int l = 0;
 	int c = 0;
 	int tt = 0;
-	Dim (  t.scriptpage_s,10000  );
+	std::vector <cstr> scriptpage_s; //Allow us to run recursively
+	Dim (  scriptpage_s,10000  );
 	if (  FileExist(tfile_s) == 1 ) 
 	{
-		LoadArray (  tfile_s,t.scriptpage_s );
+		LoadArray (  tfile_s,scriptpage_s );
+
 		lookfor_s=Lower("Include(") ; lookforlen=Len(lookfor_s.Get());
-		for ( l = 0 ; l < t.scriptpage_s.size() ; l++ )
+		lookfor2_s = Lower("require \""); lookforlen2 = Len(lookfor2_s.Get());
+		lookfor3_s = Lower("Include (");
+
+		for ( l = 0 ; l < scriptpage_s.size() ; l++ )
 		{
-			tline_s=Lower(t.scriptpage_s[l].Get());
+			tline_s=Lower(scriptpage_s[l].Get());
+
+			for (c = 0; c <= Len(tline_s.Get()) - lookforlen2 - 1; c++)
+			{
+				tlinethis_s = Right(tline_s.Get(), Len(tline_s.Get()) - c);
+
+				// ignore commented out lines
+				if (cstr(Left(tlinethis_s.Get(), 2)) == "--") break;
+
+				if (cstr(Left(tlinethis_s.Get(), lookforlen2)) == lookfor2_s.Get() || cstr(Left(tlinethis_s.Get(), lookforlen2)) == lookfor3_s.Get())
+				{
+					//  found script has included ANOTHER script
+					// skip spaces and quotes 
+					int i = lookforlen2 + 1;
+
+					while (i < Len(tlinethis_s.Get()) &&
+						(cstr(Mid(tlinethis_s.Get(), i)) == " " ||
+							cstr(Mid(tlinethis_s.Get(), i)) == "\""))
+					{
+						i++;
+					};
+
+					// if couldn't find the script name skip this line
+					if (i == Len(tlinethis_s.Get())) break;
+
+					tscriptname_s = Right(tline_s.Get(), Len(tline_s.Get()) - c - i + 1);
+
+					for (int il = Len(tscriptname_s.Get()); il > 0; il--) {
+						if (cstr(Mid(tscriptname_s.Get(), il)) == "\"") {
+							tscriptname_s = Left(tscriptname_s.Get(), il-1);
+							break;
+						}
+					}
+
+					std::string script_name = tscriptname_s.Get();
+					replaceAll(script_name, "\\\\", "\\");
+					replaceAll(script_name, "scriptbank\\", "");
+					tscriptname_s = script_name.c_str();
+
+					if( !pestrcasestr(tscriptname_s.Get(),".lua"))
+						tscriptname_s += ".lua";
+
+					for (tt = Len(tscriptname_s.Get()); tt >= 4; tt += -1)
+					{
+						if (cstr(Mid(tscriptname_s.Get(), tt - 0)) == "a" && cstr(Mid(tscriptname_s.Get(), tt - 1)) == "u" && cstr(Mid(tscriptname_s.Get(), tt - 2)) == "l" && cstr(Mid(tscriptname_s.Get(), tt - 3)) == ".")
+						{
+							break;
+						}
+					}
+					tscriptname_s = Left(tscriptname_s.Get(), tt);
+
+					if (addtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get()) == true) {
+						//Newly added , also scan this entry.
+						scanscriptfileandaddtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get());
+					}
+				}
+			}
 
 			for ( c = 0 ; c<=  Len(tline_s.Get())-lookforlen-1; c++ )
 			{
@@ -3016,7 +3108,7 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 				// ignore commented out lines
 				if ( cstr( Left( tlinethis_s.Get(), 2 )) == "--" ) break;
 
-				if (  cstr( Left( tlinethis_s.Get(), lookforlen )) == lookfor_s.Get() ) 
+				if (  cstr( Left( tlinethis_s.Get(), lookforlen )) == lookfor_s.Get() )
 				{
 					//  found script has included ANOTHER script
 					// skip spaces and quotes 
@@ -3033,24 +3125,27 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 					if (i == Len(tlinethis_s.Get())) break;
 
 					tscriptname_s=Right(tline_s.Get(),Len(tline_s.Get())-c-i+1);
-				
-					for ( tt = Len(tscriptname_s.Get()) ; tt>= 4 ; tt+= -1 )
+					for (tt = Len(tscriptname_s.Get()); tt >= 4; tt += -1)
 					{
-						if (  cstr(Mid(tscriptname_s.Get(),tt-0)) == "a" && cstr(Mid(tscriptname_s.Get(),tt-1)) == "u" && cstr(Mid(tscriptname_s.Get(),tt-2)) == "l" && cstr(Mid(tscriptname_s.Get(),tt-3)) == "." ) 
+						if (cstr(Mid(tscriptname_s.Get(), tt - 0)) == "a" && cstr(Mid(tscriptname_s.Get(), tt - 1)) == "u" && cstr(Mid(tscriptname_s.Get(), tt - 2)) == "l" && cstr(Mid(tscriptname_s.Get(), tt - 3)) == ".")
 						{
 							break;
 						}
 					}
-					tscriptname_s=Left(tscriptname_s.Get(),tt);
-					addtocollection( cstr(cstr("scriptbank\\")+tscriptname_s).Get() );
+					tscriptname_s = Left(tscriptname_s.Get(), tt);
+
+					if (addtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get()) == true) {
+						//Newly added , also scan this entry.
+						scanscriptfileandaddtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get());
+					}
 				}
 			}
 		}
 	}
-	UnDim (  t.scriptpage_s );
+	UnDim (  scriptpage_s );
 }
 
-void addtocollection ( char* file_s )
+bool addtocollection ( char* file_s )
 {
 	int tarrsize = 0;
 	int tfound = 0;
@@ -3072,7 +3167,9 @@ void addtocollection ( char* file_s )
 			Dim (  t.filecollection_s,tarrsize+50  );
 		}
 		t.filecollection_s[g.filecollectionmax]=file_s;
+		return true;
 	}
+	return false;
 }
 
 void removefromcollection ( char* file_s )
@@ -3296,7 +3393,18 @@ void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s 
 						}
 					}
 				}
-				if (  tfoundpiccy == 1 ) 
+				//PE: mainly from the building pack they are recorded as psd.
+				if (ReadMemblockByte(mbi, b + 1) == Asc("P") || ReadMemblockByte(mbi, b + 1) == Asc("p"))
+				{
+					if (ReadMemblockByte(mbi, b + 2) == Asc("S") || ReadMemblockByte(mbi, b + 2) == Asc("s"))
+					{
+						if (ReadMemblockByte(mbi, b + 3) == Asc("D") || ReadMemblockByte(mbi, b + 3) == Asc("d"))
+						{
+							tfoundpiccy = 1;
+						}
+					}
+				}
+				if (  tfoundpiccy == 1 )
 				{
 					//  track back
 					for ( c = b ; c >= b-255 ; c+= -1 )
@@ -3334,35 +3442,93 @@ void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s 
 						if ( strnicmp ( texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 3 , "_ao", 3 ) == NULL ) { texfilenoext_s = Left(texfilenoext_s.Get(),strlen(texfilenoext_s.Get())-3); bDetectedPBRTextureSetName = true; }
 						if ( bDetectedPBRTextureSetName == true )
 						{
+							//PE: Need to check filename only and current object folder.
+							bool tex_found = false;
+							int pos = 0;
+							for (pos = texfilenoext_s.Len(); pos > 0; pos--) {
+								if (cstr(Mid(texfilenoext_s.Get(), pos)) == "\\" || cstr(Mid(texfilenoext_s.Get(), pos)) == "/")
+									break;
+							}
+							if (pos > 0) {
+								cstr directfile = Right(texfilenoext_s.Get(), texfilenoext_s.Len() - pos);
+
+								cstr tmp = cstr(cstr(folder_s) + directfile + "_color.dds").Get();
+								if (FileExist(tmp.Get())) {
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_normal.dds").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_metalness.dds").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_gloss.dds").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_ao.dds").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_illumination.dds").Get();
+									addtocollection(tmp.Get());
+									tex_found = true;
+								}
+								tmp = cstr(cstr(folder_s) + directfile + "_color.png").Get();
+								if (FileExist(tmp.Get())) {
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_normal.png").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_metalness.png").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_gloss.png").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_ao.png").Get();
+									addtocollection(tmp.Get());
+									tmp = cstr(cstr(folder_s) + directfile + "_illumination.png").Get();
+									addtocollection(tmp.Get());
+									tex_found = true;
+								}
+
+							}
+
+							//PE: We get some strange folder created in the standalone from here.
 							// add other PBR textures just in case not detected in model data
-							cstr texfileColor_s = texfilenoext_s + "_color.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileColor_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileColor_s).Get() );
-							cstr texfileNormal_s = texfilenoext_s + "_normal.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileNormal_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileNormal_s).Get() );
-							cstr texfileMetalness_s = texfilenoext_s + "_metalness.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileMetalness_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileMetalness_s).Get() );
-							cstr texfileGloss_s = texfilenoext_s + "_gloss.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileGloss_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileGloss_s).Get() );
-							cstr texfileAO_s = texfilenoext_s + "_ao.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileAO_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileAO_s).Get() );
-							cstr texfileIllumination_s = texfilenoext_s + "_illumination.dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfileIllumination_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfileIllumination_s).Get() );
+							if (!tex_found)
+							{
+								cstr texfileColor_s = texfilenoext_s + "_color.dds";
+								//Only if the src is exists.
+								if (FileExist(cstr(cstr(folder_s) + texpath_s + texfileColor_s).Get()) || FileExist(cstr(cstr(folder_s) + texfileColor_s).Get())) {
+
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileColor_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileColor_s).Get());
+									cstr texfileNormal_s = texfilenoext_s + "_normal.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileNormal_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileNormal_s).Get());
+									cstr texfileMetalness_s = texfilenoext_s + "_metalness.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileMetalness_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileMetalness_s).Get());
+									cstr texfileGloss_s = texfilenoext_s + "_gloss.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileGloss_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileGloss_s).Get());
+									cstr texfileAO_s = texfilenoext_s + "_ao.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileAO_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileAO_s).Get());
+									cstr texfileIllumination_s = texfilenoext_s + "_illumination.dds";
+									addtocollection(cstr(cstr(folder_s) + texpath_s + texfileIllumination_s).Get());
+									addtocollection(cstr(cstr(folder_s) + texfileIllumination_s).Get());
+								}
+							}
 						}
-						addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
-						addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
+
+						if (FileExist(cstr(cstr(folder_s) + texpath_s + texfile_s).Get()))
+							addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
+						if (FileExist(cstr(cstr(folder_s) + texfile_s).Get()))
+							addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
+
 						if (  cstr(Right(texfile_s.Get(),4)) != ".dds" ) 
 						{
 							//  also convert to DDS and add those too
-							addtocollection( cstr(cstr(folder_s)+texfile_s+".png").Get() );
+							if (FileExist(cstr(cstr(folder_s) + texfile_s + ".png").Get()))
+								addtocollection( cstr(cstr(folder_s)+texfile_s+".png").Get() );
 							texfile_s=cstr(Left(texfile_s.Get(),Len(texfile_s.Get())-4))+".dds";
-							addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
-							addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
+							if (FileExist(cstr(cstr(folder_s) + texpath_s + texfile_s).Get()))
+								addtocollection( cstr(cstr(folder_s)+texpath_s+texfile_s).Get() );
+							if (FileExist(cstr(cstr(folder_s) + texfile_s).Get()))
+								addtocollection( cstr(cstr(folder_s)+texfile_s).Get() );
 						}
 					}
 					b += 4;

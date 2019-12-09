@@ -8,6 +8,7 @@
 
 //#define LAPTOP // Make everything faster for laptops, will also remove DOF,MB,SAO. Lower shadow, remove grass normals, distance improvements.
 
+#define COMPRESSLIGHTRANGE // For better PBR light, compress lightrange to remove very dark PBR light areas on objects.
 #define DYNAMICPBRLIGHT //PE: Enable this for real dynamic PBR light with cook torrance specular reflections.
 
 //#define USEPBRTERRAIN // USE PBR terrain even if you have pbroverride=0 ( medium, only work with one cascade (3) using pbroverride=0 ).

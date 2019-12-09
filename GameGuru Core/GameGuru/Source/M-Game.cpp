@@ -1269,10 +1269,10 @@ void game_masterroot ( void )
 
 											g.merged_new_objects++;
 
-//											DWORD dwArtFlags = 0;
-//											if (t.entityprofile[t.e].invertnormal == 1) dwArtFlags = 1;
-//											if (t.entityprofile[t.e].preservetangents == 1) dwArtFlags |= 1 << 1;
-//											SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
+											DWORD dwArtFlags = 0;
+											if (t.entityprofile[t.entid].invertnormal == 1) dwArtFlags = 1;
+											if (t.entityprofile[t.entid].preservetangents == 1) dwArtFlags |= 1 << 1;
+											SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
 
 										}
 
@@ -1599,12 +1599,11 @@ void game_masterroot ( void )
 			// Rest any internal game variables
 			game_main_stop ( );
 
-			//  Free any level resources
-			game_freelevel ( );
-
 			//PE: Draw call optimizer
-//			if (!g.disable_drawcall_optimizer)
+			//if (!g.disable_drawcall_optimizer)
 			{
+				timestampactivity(0, "remove draw call optimizer.");
+
 				//PE: restore all states. delete all batched objects.
 				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 				{
@@ -1653,6 +1652,11 @@ void game_masterroot ( void )
 					}
 				}
 			}
+
+			//PE: Moved here as standalone will delete all objects, so we could not free DCO objects.
+			//  Free any level resources
+			game_freelevel();
+
 			// must reset LUA here for clean end-game-screens
 			// ensure LUA is completely reset before loading new ones in
 			// the free call is because game options menu init, but not freed back then

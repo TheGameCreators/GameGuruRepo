@@ -826,7 +826,11 @@ void cubemap_generateglobalenvmap ( void )
 		float fSampleAtZ = 2000;
 		float fSampleAtY = BT_GetGroundHeight ( t.terrain.TerrainID, fSampleAtX, fSampleAtZ ) + 100.0f;
 		cstr cubemaptexture_s = g.mysystem.levelBankTestMap_s + "globalenvmap.dds";
-		cubemap_generateimage ( t.terrain.imagestartindex+31, fSampleAtX, fSampleAtY, fSampleAtZ, cubemaptexture_s.Get() );
+		if (t.visuals.refreshskysettingsfromlua)
+			cubemap_generateimage(t.terrain.imagestartindex + 31, fSampleAtX, fSampleAtY, fSampleAtZ, NULL);
+		else
+			cubemap_generateimage ( t.terrain.imagestartindex+31, fSampleAtX, fSampleAtY, fSampleAtZ, cubemaptexture_s.Get() );
+		t.visuals.refreshskysettingsfromlua = false;
 	}
 }
 

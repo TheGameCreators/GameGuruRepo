@@ -1414,10 +1414,13 @@ struct weaponProjectileBaseType
 	weaponParticleEmitterBaseType particle2;
 
 	int overridespotlighting;
-
+	int cacheProjectile;
+	bool cacheLoaded;
 	// Constructor
 	weaponProjectileBaseType ( )
 	{
+		 cacheLoaded = false;
+		 cacheProjectile = 0;
 		 overridespotlighting = 0;
 		 thrustDelay = 0;
 		 thrustTime = 0;
@@ -3630,6 +3633,7 @@ struct visualstype
 	int refreshmaincameras;
 	int refreshvegetation;
 	int refreshskysettings;
+	bool refreshskysettingsfromlua;
 	int refreshterraintexture;
 	int refreshvegtexture;
 	int refreshterrainsupertexture;
@@ -3787,6 +3791,7 @@ struct visualstype
 		 refreshvegtexture = 0;
 		 refreshterraintexture = 0;
 		 refreshskysettings = 0;
+		 refreshskysettingsfromlua = false;
 		 refreshvegetation = 0;
 		 refreshshaders = 0;
 		 showpromptssavestate = 0;
@@ -5153,6 +5158,7 @@ struct entityprofiletype
 	int meleedamagest;
 	int meleedamagefn;
 	ebeType ebe;
+	int synccount;
 
 	// Constructor
 	entityprofiletype ( )
@@ -5174,6 +5180,7 @@ struct entityprofiletype
 		 meleestrikefn = 0;
 		 meleedamagest = 0;
 		 meleedamagefn = 0;
+		 synccount = 0;
 		 charactercreator_s = "";
 		 ischaractercreator = 0;
 		 addhandlelimb = 0;
@@ -5893,6 +5900,7 @@ struct entitytype
 	int draw_call_obj;
 	bool dc_merged;
 	float dc_distance;
+
 	// Constructor
 	entitytype ( )
 	{

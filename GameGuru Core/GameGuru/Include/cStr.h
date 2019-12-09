@@ -118,5 +118,6 @@ void LoadArray ( char* fileName , std::vector<std::vector<cstr>>& array );
 void SaveArray ( char* fileName , std::vector<std::vector<cstr>> array );
 
 float atan2deg( float fA , float fB );
+void replaceAll(std::string& str, const std::string& from, const std::string& to);
 
 #endif

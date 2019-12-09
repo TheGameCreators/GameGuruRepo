@@ -1273,6 +1273,14 @@ void physics_player ( void )
 		{
 			// prevent player physics movement
 			ODEControlDynamicCharacterController ( t.aisystem.objectstartindex, 0, 0, 0, 0, t.aisystem.playerducking, 0, 0, 0 );
+
+			//PE: Make sure to rotate set camera to make shadows work in freezemode.
+			if (t.freezeplayerposonly == 0) RotateObject(t.aisystem.objectstartindex, t.terrain.playerax_f, t.terrain.playeray_f, t.terrain.playeraz_f);
+			if (g.luacameraoverride != 2 && g.luacameraoverride != 3)
+			{
+				if (t.freezeplayerposonly == 0) RotateCamera(0, t.terrain.playerax_f, t.terrain.playeray_f, t.terrain.playeraz_f);
+			}
+
 		}
 		physics_player_handledeath ( );
 	}
