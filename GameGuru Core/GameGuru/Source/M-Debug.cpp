@@ -99,6 +99,8 @@ void timestampactivity ( int i, char* desc_s )
 #ifdef USEAPPENDLOG
 	if (g.gproducelogfiles == 1)
 	{
+		Dim(t.timestampactivity_s, 1);
+
 		file_s = g.fpscrootdir_s + "\\" + g.trueappname_s + ".log";
 
 		if (debugfilenetries == 0) {

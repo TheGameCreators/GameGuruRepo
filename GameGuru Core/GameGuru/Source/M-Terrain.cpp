@@ -2627,6 +2627,17 @@ void terrain_shadowupdate ( void )
 	//  Shadow Mapping ; Activate cascade shadow mapping for terrain
 	if (  t.visuals.shadowmode>0 ) 
 	{
+		//PE: Still Z negative when using g.luacameraoverride=3 || 2
+		float oldcamrx, oldcamry, oldcamrz;
+		if (t.aisystem.processplayerlogic != 1 && (g.luacameraoverride == 2 || g.luacameraoverride == 3) ) {
+			if (t.freezeplayerposonly == 0) {
+				oldcamrx = CameraAngleX(0);
+				oldcamry = CameraAngleY(0);
+				oldcamrz = CameraAngleZ(0);
+				RotateCamera(0, CameraAngleX(0), CameraAngleY(0), -CameraAngleZ(0));
+			}
+		}
+
 		if ( 1 ) 
 		{
 			//  place shadowlight
@@ -3015,6 +3026,13 @@ void terrain_shadowupdate ( void )
 				}
 			}
 		}
+
+		if (t.aisystem.processplayerlogic != 1 && (g.luacameraoverride == 2 || g.luacameraoverride == 3)) {
+			if (t.freezeplayerposonly == 0) {
+				RotateCamera(0, oldcamrx, oldcamry, oldcamrz);
+			}
+		}
+
 	}
 
 	//  occlusion debug when required (put near shadow debug so can find easier)
