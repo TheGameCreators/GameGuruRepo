@@ -4,8 +4,47 @@
 
 #include "gameguru.h"
 
+
+
+//PE: All selections has been changed from multiply system (PickScreenObject,PickScreen2D23D) to only use PickScreen2D23D.
+//PE: This makes sure that a start selection using PickScreenObject, dont get changed to a PickScreen2D23D and make huge jumps/moves.
+//PE: The PickScreenObject system has been kept if needed.
+//PE: MAXMOVEPERSYNC set how far you max can move per sync.
+
+float MAXMOVEPERSYNC = 20.0f; //When position objects, max move per sync.
+
 // Prototypes
 void gridedit_clearentityrubberbandlist ( void );
+
+
+void SlowPositionObject(int iID, float fX, float fY, float fZ)
+{
+
+	if (t.inputsys.keyshift)
+		MAXMOVEPERSYNC = 0.1f; //Fine adjust when holding SHIFT
+	else
+		MAXMOVEPERSYNC = 20.0f;
+
+
+	float fCurX = ObjectPositionX(iID);
+	float fCurY = ObjectPositionY(iID);
+	float fCurZ = ObjectPositionZ(iID);
+	float fNewX= fX, fNewY= fY, fNewZ = fZ;
+
+	if (fNewX > fCurX + MAXMOVEPERSYNC) fNewX = fCurX + MAXMOVEPERSYNC;
+	else if (fNewX < fCurX - MAXMOVEPERSYNC) fNewX = fCurX - MAXMOVEPERSYNC;
+	else fNewX = fX;
+
+	if (fNewY > fCurY + MAXMOVEPERSYNC) fNewY = fCurY + MAXMOVEPERSYNC;
+	else if (fNewY < fCurY - MAXMOVEPERSYNC) fNewY = fCurY - MAXMOVEPERSYNC;
+	else fNewY = fY;
+
+	if (fNewZ > fCurZ + MAXMOVEPERSYNC) fNewZ = fCurZ + MAXMOVEPERSYNC;
+	else if (fNewZ < fCurZ - MAXMOVEPERSYNC) fNewZ = fCurZ - MAXMOVEPERSYNC;
+	else fNewZ = fZ;
+
+	PositionObject(iID, fNewX, fNewY, fNewZ);
+}
 
 void widget_init ( void )
 {
@@ -418,7 +457,16 @@ void widget_loop ( void )
 					ShowObject (  t.widget.widgetPlaneObj );
 					PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 					RotateObject (  t.widget.widgetPlaneObj,-90,0,0 );
-					t.a=PickScreenObject (t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.widget.widgetPlaneObj, t.widget.widgetPlaneObj);
+					//t.a=PickScreenObject (t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.widget.widgetPlaneObj, t.widget.widgetPlaneObj);
+					if (1) //(t.a == 0)
+					{
+						t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+						t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+						t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+						t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+						PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+					}
+
 					t.toriginalClickX_f = CameraPositionX() + GetPickVectorX();
 					t.toriginalClickY_f = CameraPositionY() + GetPickVectorY();
 					t.toriginalClickZ_f = CameraPositionZ() + GetPickVectorZ();
@@ -434,7 +482,15 @@ void widget_loop ( void )
 					if (  t.widget.pickedSection  ==  t.widget.widgetYScaleObj ) 
 					{
 						RotateObject (  t.widget.widgetPlaneObj,0,0,0 );
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.widget.widgetPlaneObj, t.widget.widgetPlaneObj);
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.widget.widgetPlaneObj, t.widget.widgetPlaneObj);
+						if (1) //(t.a == 0) //PE: Fixed
+						{
+							t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+							t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+							t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+							t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+							PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+						}
 						t.toriginalClick2X_f = CameraPositionX() + GetPickVectorX();
 						t.toriginalClick2Y_f = CameraPositionY() + GetPickVectorY();
 						t.toriginalClick2Z_f = CameraPositionZ() + GetPickVectorZ();
@@ -482,7 +538,15 @@ void widget_loop ( void )
 					}
 
 					RotateObject (  t.widget.widgetPlaneObj,0,0,0 );
-					t.a=PickScreenObject (t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.widget.widgetPlaneObj, t.widget.widgetPlaneObj) ;
+					//t.a=PickScreenObject (t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.widget.widgetPlaneObj, t.widget.widgetPlaneObj) ;
+					if (1) //(t.a == 0) //PE: Had wrong pick vectors if not found.
+					{
+						t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+						t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+						t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+						t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+						PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+					}
 					t.toriginalClickX_f = CameraPositionX() + GetPickVectorX();
 					t.toriginalClickY_f = CameraPositionY() + GetPickVectorY();
 					t.toriginalClickZ_f = CameraPositionZ() + GetPickVectorZ();
@@ -493,7 +557,15 @@ void widget_loop ( void )
 
 					//  for the YZ position modifier
 					RotateObject (  t.widget.widgetPlaneObj,0,90,0 );
-					t.a=PickScreenObject (t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.widget.widgetPlaneObj, t.widget.widgetPlaneObj);
+					//t.a=PickScreenObject (t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.widget.widgetPlaneObj, t.widget.widgetPlaneObj);
+					if (1) //(t.a == 0) //PE: Had wrong pick vectors if not found.
+					{
+						t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+						t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+						t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+						t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+						PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+					}
 					t.toriginalTranslateClickYonZ_f = CameraPositionY() + GetPickVectorY() - ObjectPositionY(t.widget.activeObject);
 
 					//  record entity RY for ragdoll/character rotation code lower down
@@ -502,16 +574,41 @@ void widget_loop ( void )
 					ShowObject (  t.widget.widgetPlaneObj );
 					PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 					RotateObject (  t.widget.widgetPlaneObj, -90,0,0 );
-					t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+					//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+					if (1) //(t.a == 0) //PE: Tested OK.
+					{
+						//PE: We get some huge jumpes/moves if we get here. it will use PicVector from prev call.
+						t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+						t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+						t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+						t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+						PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+					}
 					t.toriginalTranslateClickX_f = CameraPositionX() + GetPickVectorX() - ObjectPositionX(t.widget.activeObject);
 					t.toriginalTranslateClickZ_f = CameraPositionZ() + GetPickVectorZ() - ObjectPositionZ(t.widget.activeObject);
 
 					//  310315 - XZ startclick for XY and ZY modding
 					RotateObject (  t.widget.widgetPlaneObj,0,0,0 );
-					t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+					//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+					if (1) //(t.a == 0) //PE: Had wrong pick vectors if not found.
+					{
+						t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+						t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+						t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+						t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+						PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+					}
 					t.toriginalTranslateClickX1_f = CameraPositionX() + GetPickVectorX() - ObjectPositionX(t.widget.activeObject);
 					RotateObject (  t.widget.widgetPlaneObj,0,90,0 );
-					t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+					//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+					if (1) //(t.a == 0) //PE: Had wrong pick vectors if not found.
+					{
+						t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+						t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+						t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+						t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+						PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+					}
 					t.toriginalTranslateClickZ2_f = CameraPositionZ() + GetPickVectorZ() - ObjectPositionZ(t.widget.activeObject);
 
 					HideObject (  t.widget.widgetPlaneObj );
@@ -603,6 +700,7 @@ void widget_loop ( void )
 									t.entityelement[e].editorlock = 1 - t.entityelement[e].editorlock;
 
 									//  also recreate entity as a clone and set as semi-transparent
+									/* this messes up depth render order, totally, best to leave as solid, just locked
 									if (  t.entityelement[e].editorlock == 1 ) 
 									{
 										t.tte=e; t.tobj=t.entityelement[t.tte].obj;
@@ -614,6 +712,7 @@ void widget_loop ( void )
 											}
 										}
 									}
+									*/
 								}
 								gridedit_clearentityrubberbandlist();
 							}
@@ -674,11 +773,12 @@ void widget_loop ( void )
 				{
 					if (  t.widget.pickedSection  ==  t.widget.widgetXObj ) 
 					{
+						//PE: Fixed
 						PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 						RotateObject (  t.widget.widgetPlaneObj, -90,0,0 );
 						ShowObject (  t.widget.widgetPlaneObj );
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
-						if (  t.a == 0 ) 
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+						if (1) //(  t.a == 0 ) 
 						{
 							t.ttdx_f=CameraPositionX()-ObjectPositionX(t.widget.activeObject);
 							t.ttdy_f=CameraPositionY()-ObjectPositionY(t.widget.activeObject);
@@ -686,17 +786,20 @@ void widget_loop ( void )
 							t.ttdist_f=Sqrt(abs(t.ttdx_f*t.ttdx_f)+abs(t.ttdy_f*t.ttdy_f)+abs(t.ttdz_f*t.ttdz_f));
 							PickScreen2D23D (  t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.ttdist_f );
 						}
+					
 						HideObject (  t.widget.widgetPlaneObj );
-						t.tx_f = CameraPositionX() + GetPickVectorX();
-						PositionObject (  t.widget.activeObject,t.tx_f - t.toriginalTranslateClickX_f,ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
+						float fMaxMoveSpeed = GetPickVectorX();
+						t.tx_f = CameraPositionX() + fMaxMoveSpeed;
+						SlowPositionObject (  t.widget.activeObject,t.tx_f - t.toriginalTranslateClickX_f,ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 					}
 					if (  t.widget.pickedSection  ==  t.widget.widgetYObj ) 
 					{
+						//PE: Fixed
 						PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 						RotateObject (  t.widget.widgetPlaneObj,0,0,0 );
 						ShowObject (  t.widget.widgetPlaneObj );
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
-						if (  t.a == 0 ) 
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+						if (1) //(  t.a == 0 ) 
 						{
 							t.ttdx_f=CameraPositionX()-ObjectPositionX(t.widget.activeObject);
 							t.ttdy_f=CameraPositionY()-ObjectPositionY(t.widget.activeObject);
@@ -706,15 +809,16 @@ void widget_loop ( void )
 						}
 						HideObject (  t.widget.widgetPlaneObj );
 						t.ty_f = CameraPositionY() + GetPickVectorY();
-						PositionObject (  t.widget.activeObject,ObjectPositionX(t.widget.activeObject),t.ty_f - t.toriginalTranslateClickY_f,ObjectPositionZ(t.widget.activeObject) );
+						SlowPositionObject (  t.widget.activeObject,ObjectPositionX(t.widget.activeObject),t.ty_f - t.toriginalTranslateClickY_f,ObjectPositionZ(t.widget.activeObject) );
 					}
 					if (  t.widget.pickedSection  ==  t.widget.widgetZObj ) 
 					{
+						//PE: Fixed
 						PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 						RotateObject (  t.widget.widgetPlaneObj,-90,0,0 );
 						ShowObject (  t.widget.widgetPlaneObj );
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
-						if (  t.a == 0 ) 
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+						if (1) //(  t.a == 0 ) 
 						{
 							t.ttdx_f=CameraPositionX()-ObjectPositionX(t.widget.activeObject);
 							t.ttdy_f=CameraPositionY()-ObjectPositionY(t.widget.activeObject);
@@ -724,15 +828,16 @@ void widget_loop ( void )
 						}
 						HideObject (  t.widget.widgetPlaneObj );
 						t.tz_f = CameraPositionZ() + GetPickVectorZ();
-						PositionObject (  t.widget.activeObject,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),t.tz_f - t.toriginalTranslateClickZ_f );
+						SlowPositionObject(  t.widget.activeObject,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),t.tz_f - t.toriginalTranslateClickZ_f );
 					}
 					if (  t.widget.pickedSection  ==  t.widget.widgetXYObj ) 
 					{
+						//PE: Fixed
 						PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 						RotateObject (  t.widget.widgetPlaneObj,0,0,0 );
 						ShowObject (  t.widget.widgetPlaneObj );
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
-						if (  t.a == 0 ) 
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+						if (1) //(  t.a == 0 ) 
 						{
 							t.ttdx_f=CameraPositionX()-ObjectPositionX(t.widget.activeObject);
 							t.ttdy_f=CameraPositionY()-ObjectPositionY(t.widget.activeObject);
@@ -741,8 +846,8 @@ void widget_loop ( void )
 							PickScreen2D23D (  t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.ttdist_f );
 						}
 						t.tx_f = CameraPositionX() + GetPickVectorX();
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
-						if (  t.a == 0 ) 
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+						if (1) //(  t.a == 0 ) 
 						{
 							t.ttdx_f=CameraPositionX()-ObjectPositionX(t.widget.activeObject);
 							t.ttdy_f=CameraPositionY()-ObjectPositionY(t.widget.activeObject);
@@ -752,16 +857,18 @@ void widget_loop ( void )
 						}
 						HideObject (  t.widget.widgetPlaneObj );
 						t.ty_f = CameraPositionY() + GetPickVectorY();
-						PositionObject (  t.widget.activeObject,t.tx_f - t.toriginalTranslateClickX1_f,t.ty_f - t.toriginalTranslateClickY_f,ObjectPositionZ(t.widget.activeObject) );
+						SlowPositionObject(  t.widget.activeObject,t.tx_f - t.toriginalTranslateClickX1_f,t.ty_f - t.toriginalTranslateClickY_f,ObjectPositionZ(t.widget.activeObject) );
 					}
 					if (  t.widget.pickedSection  ==  t.widget.widgetXZObj ) 
 					{
+						//PE: Fixed
 						PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 						RotateObject (  t.widget.widgetPlaneObj,-90,0,0 );
 						ShowObject (  t.widget.widgetPlaneObj );
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
-						if (  t.a == 0 ) 
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+						if (1) //(  t.a == 0 ) 
 						{
+							//PE: This did not match with toriginalTranslateClickX_f so gives huge jumps/moves.
 							t.ttdx_f=CameraPositionX()-ObjectPositionX(t.widget.activeObject);
 							t.ttdy_f=CameraPositionY()-ObjectPositionY(t.widget.activeObject);
 							t.ttdz_f=CameraPositionZ()-ObjectPositionZ(t.widget.activeObject);
@@ -769,17 +876,20 @@ void widget_loop ( void )
 							PickScreen2D23D (  t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.ttdist_f );
 						}
 						HideObject (  t.widget.widgetPlaneObj );
-						t.tx_f = CameraPositionX() + GetPickVectorX();
-						t.tz_f = CameraPositionZ() + GetPickVectorZ();
-						PositionObject (  t.widget.activeObject,t.tx_f - t.toriginalTranslateClickX_f,ObjectPositionY(t.widget.activeObject),t.tz_f - t.toriginalTranslateClickZ_f );
+						float fMaxMoveSpeedX = GetPickVectorX();
+						float fMaxMoveSpeedZ = GetPickVectorZ();
+						t.tx_f = CameraPositionX() + fMaxMoveSpeedX;
+						t.tz_f = CameraPositionZ() + fMaxMoveSpeedZ;
+						SlowPositionObject(t.widget.activeObject, t.tx_f - t.toriginalTranslateClickX_f, ObjectPositionY(t.widget.activeObject), t.tz_f - t.toriginalTranslateClickZ_f);
 					}
 					if (  t.widget.pickedSection  ==  t.widget.widgetYZObj ) 
 					{
+						//PE: Fixed
 						PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 						RotateObject (  t.widget.widgetPlaneObj,0,90,0 );
 						ShowObject (  t.widget.widgetPlaneObj );
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
-						if (  t.a == 0 ) 
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+						if (1) //(  t.a == 0 ) 
 						{
 							t.ttdx_f=CameraPositionX()-ObjectPositionX(t.widget.activeObject);
 							t.ttdy_f=CameraPositionY()-ObjectPositionY(t.widget.activeObject);
@@ -788,8 +898,8 @@ void widget_loop ( void )
 							PickScreen2D23D (  t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.ttdist_f );
 						}
 						t.tz_f = CameraPositionZ() + GetPickVectorZ();
-						t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
-						if (  t.a == 0 ) 
+						//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+						if (1) //(  t.a == 0 ) 
 						{
 							t.ttdx_f=CameraPositionX()-ObjectPositionX(t.widget.activeObject);
 							t.ttdy_f=CameraPositionY()-ObjectPositionY(t.widget.activeObject);
@@ -799,7 +909,7 @@ void widget_loop ( void )
 						}
 						HideObject (  t.widget.widgetPlaneObj );
 						t.ty_f = CameraPositionY() + GetPickVectorY();
-						PositionObject (  t.widget.activeObject,ObjectPositionX(t.widget.activeObject),t.ty_f - t.toriginalTranslateClickYonZ_f,t.tz_f - t.toriginalTranslateClickZ2_f );
+						SlowPositionObject(  t.widget.activeObject,ObjectPositionX(t.widget.activeObject),t.ty_f - t.toriginalTranslateClickYonZ_f,t.tz_f - t.toriginalTranslateClickZ2_f );
 					}
 					t.te=t.widget.pickedEntityIndex;
 					t.entityelement[t.te].x=ObjectPositionX(t.widget.activeObject);
@@ -833,7 +943,7 @@ void widget_loop ( void )
 								if ( tobj != t.widget.activeObject )
 								{
 									// reposition this entity
-									PositionObject ( tobj, ObjectPositionX(tobj)+fMovedActiveObjectX, ObjectPositionY(tobj)+fMovedActiveObjectY, ObjectPositionZ(tobj)+fMovedActiveObjectZ );
+									SlowPositionObject( tobj, ObjectPositionX(tobj)+fMovedActiveObjectX, ObjectPositionY(tobj)+fMovedActiveObjectY, ObjectPositionZ(tobj)+fMovedActiveObjectZ );
 									t.entityelement[e].x = ObjectPositionX(tobj);
 									t.entityelement[e].y = ObjectPositionY(tobj);
 									t.entityelement[e].z = ObjectPositionZ(tobj);
@@ -882,6 +992,12 @@ void widget_loop ( void )
 							t.p1y_f=ObjectPositionY(t.twidgetRotStartObject+11);
 							t.p1z_f=ObjectPositionZ(t.twidgetRotStartObject+11);
 
+							//PE: At some angles InterSectObject fails, so make sure we have valid values before processing.
+							//PE: This prevent suttenly jumps where first click values is not valid.
+							//PE: This could be improved more, so we never had invalid data. but fine for now.
+
+							bool bValidRotation = false;
+
 							//  handle rotation modes
 							if (  t.widget.pickedSection  ==  t.widget.widgetXRotObj && (t.thaveyrot == 0 || t.entityelement[t.te].eleprof.usespotlighting ) )
 							{
@@ -892,9 +1008,10 @@ void widget_loop ( void )
 								RotateObject (  t.twidgetRotStartObject+14,ObjectAngleX(t.widget.activeObject),ObjectAngleY(t.widget.activeObject),ObjectAngleZ(t.widget.activeObject) );
 								if (  IntersectObject(t.twidgetRotStartObject+14,t.p0x_f,t.p0y_f,t.p0z_f,t.p1x_f,t.p1y_f,t.p1z_f) != 0 ) 
 								{
-									t.pinterx_f=ChecklistFValueA(6);
+									t.pinterx_f=ChecklistFValueA(6); //PE: MegaCollisionFeedback.vecHitPoint.x
 									t.pintery_f=ChecklistFValueB(6);
 									t.pinterz_f=ChecklistFValueC(6);
+									bValidRotation = true;
 								}
 								PositionObject (  t.twidgetRotStartObject+13,t.pinterx_f,t.pintery_f,t.pinterz_f );
 							}
@@ -910,6 +1027,8 @@ void widget_loop ( void )
 									t.pinterx_f=ChecklistFValueA(6);
 									t.pintery_f=ChecklistFValueB(6);
 									t.pinterz_f=ChecklistFValueC(6);
+									bValidRotation = true;
+
 								}
 								PositionObject (  t.twidgetRotStartObject+13,t.pinterx_f,t.pintery_f,t.pinterz_f );
 							}
@@ -925,12 +1044,13 @@ void widget_loop ( void )
 									t.pinterx_f=ChecklistFValueA(6);
 									t.pintery_f=ChecklistFValueB(6);
 									t.pinterz_f=ChecklistFValueC(6);
-								}
+									bValidRotation = true;
+
+							}
 								PositionObject (  t.twidgetRotStartObject+13,t.pinterx_f,t.pintery_f,t.pinterz_f );
 							}
-
 							//  control rotations
-							if (  t.widget.grabbed == 0 ) 
+							if (bValidRotation && t.widget.grabbed == 0 )
 							{
 								//  start drag
 								t.gmx=t.widgetinputsysxmouse_f;
@@ -941,7 +1061,7 @@ void widget_loop ( void )
 								t.fAngleStoreZ = ObjectAngleZ ( t.widget.activeObject );
 								t.widget.grabbed=1;
 							}
-							if (  t.widget.grabbed == 1 ) 
+							if (bValidRotation && t.widget.grabbed == 1 )
 							{
 								SetIdentityMatrix (  g.widgetStartMatrix+3 );
 								RotateXMatrix (  g.widgetStartMatrix+4,ObjectAngleX(t.widget.activeObject)*0.017444 );
@@ -952,7 +1072,7 @@ void widget_loop ( void )
 								MultiplyMatrix (  g.widgetStartMatrix+3,g.widgetStartMatrix+3,g.widgetStartMatrix+4 );
 								t.widget.grabbed=2;
 							}
-							if (  t.widget.grabbed == 2 || g.fForceYRotationOfRubberBandFromKeyPress > 0.0f ) 
+							if ( (bValidRotation && t.widget.grabbed == 2) || g.fForceYRotationOfRubberBandFromKeyPress > 0.0f )
 							{
 								if ( g.fForceYRotationOfRubberBandFromKeyPress > 0.0f )
 								{
@@ -1141,7 +1261,15 @@ void widget_loop ( void )
 									ShowObject (  t.widget.widgetPlaneObj );
 									PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 									RotateObject (  t.widget.widgetPlaneObj,-90,0,0 );
-									t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+									//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+									if (1) //(t.a == 0) //PE: Fixed
+									{
+										t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+										t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+										t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+										t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+										PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+									}
 									HideObject (  t.widget.widgetPlaneObj );
 									t.tNewClickX_f = CameraPositionX() + GetPickVectorX();
 									t.tNewClickY_f = CameraPositionY() + GetPickVectorY();
@@ -1168,7 +1296,15 @@ void widget_loop ( void )
 									ShowObject (  t.widget.widgetPlaneObj );
 									PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 									RotateObject (  t.widget.widgetPlaneObj,0,0,0 );
-									t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+									//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+									if (1) //(t.a == 0) //PE: Fixed
+									{
+										t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+										t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+										t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+										t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+										PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+									}
 									HideObject (  t.widget.widgetPlaneObj );
 									t.tNewClickX_f = CameraPositionX() + GetPickVectorX();
 									t.tNewClickY_f = CameraPositionY() + GetPickVectorY();
@@ -1195,7 +1331,15 @@ void widget_loop ( void )
 									ShowObject (  t.widget.widgetPlaneObj );
 									PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 									RotateObject (  t.widget.widgetPlaneObj,-90,0,0 );
-									t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+									//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj) ;
+									if (1) //(t.a == 0) //PE: Fixed
+									{
+										t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+										t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+										t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+										t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+										PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+									}
 									HideObject (  t.widget.widgetPlaneObj );
 									t.tNewClickX_f = CameraPositionX() + GetPickVectorX();
 									t.tNewClickY_f = CameraPositionY() + GetPickVectorY();
@@ -1221,10 +1365,19 @@ void widget_loop ( void )
 								// scale on XYZ together
 								if (  t.widget.pickedSection  ==  t.widget.widgetXYZScaleObj ) 
 								{
+									//PE: Fixed.
 									ShowObject (  t.widget.widgetPlaneObj );
 									PositionObject (  t.widget.widgetPlaneObj,ObjectPositionX(t.widget.activeObject),ObjectPositionY(t.widget.activeObject),ObjectPositionZ(t.widget.activeObject) );
 									RotateObject (  t.widget.widgetPlaneObj,-90,0,0 );
-									t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj);
+									//t.a=PickScreenObject (t.widgetinputsysxmouse_f,t.widgetinputsysymouse_f,t.widget.widgetPlaneObj,t.widget.widgetPlaneObj);
+									if (1) //(t.a == 0)
+									{
+										t.ttdx_f = CameraPositionX() - ObjectPositionX(t.widget.activeObject);
+										t.ttdy_f = CameraPositionY() - ObjectPositionY(t.widget.activeObject);
+										t.ttdz_f = CameraPositionZ() - ObjectPositionZ(t.widget.activeObject);
+										t.ttdist_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
+										PickScreen2D23D(t.widgetinputsysxmouse_f, t.widgetinputsysymouse_f, t.ttdist_f);
+									}
 									HideObject (  t.widget.widgetPlaneObj );
 									t.tNewClickX_f = CameraPositionX() + GetPickVectorX();
 									t.tNewClickY_f = CameraPositionY() + GetPickVectorY();
@@ -1343,7 +1496,6 @@ void widget_loop ( void )
 
 void widget_correctwidgetpanel ( void )
 {
-
 	//  reverse widget when facing away from user
 	if (  WrapValue(CameraAngleY())>180 || WrapValue(CameraAngleY())<1  )  t.txflip = 0; else t.txflip = 1;
 	if (  t.txflip == 1 ) 
@@ -1360,13 +1512,9 @@ void widget_correctwidgetpanel ( void )
 	{
 		YRotateObject (  t.widget.widgetZObj,180 );
 		if (  t.txflip == 1 ) 
-		{
 			YRotateObject (  t.widget.widgetXZObj,90 );
-		}
 		else
-		{
 			YRotateObject (  t.widget.widgetXZObj,0 );
-		}
 		YRotateObject (  t.widget.widgetYZObj,0 );
 	}
 	else
@@ -1444,16 +1592,13 @@ void widget_correctwidgetpanel ( void )
 	}
 
 	// if camera BELOW vertical of widget, HIDE the XZ gadget as it messes up badly
-	if (  t.widget.mode  ==  0 ) 
-	{
-		if ( CameraPositionY(0) < ObjectPositionY(t.widget.widgetXZObj) )
-			HideObject ( t.widget.widgetXZObj );
-		else
-			ShowObject ( t.widget.widgetXZObj );
-	}
-
-return;
-
+	//if (  t.widget.mode  ==  0 ) 
+	//{
+	//	if ( CameraPositionY(0) < ObjectPositionY(t.widget.widgetXZObj) )
+	//		HideObject ( t.widget.widgetXZObj );
+	//	else
+	//		ShowObject ( t.widget.widgetXZObj );
+	//}
 }
 
 void widget_updatewidgetobject ( void )
