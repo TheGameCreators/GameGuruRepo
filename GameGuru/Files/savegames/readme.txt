@@ -1,1 +1,0 @@
-Standalone game progress and settings stored here

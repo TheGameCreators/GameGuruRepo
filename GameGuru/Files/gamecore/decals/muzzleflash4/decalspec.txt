@@ -1,7 +1,0 @@
-;decal spec
-
-;DECAL
-across         = 1
-down           = 1
-offsety        = 0
-scale          = 50
