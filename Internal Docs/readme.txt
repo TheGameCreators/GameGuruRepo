@@ -1,1 +1,0 @@
-These documents are not included in the main Steam GameGuru product, but assist as notes during development
