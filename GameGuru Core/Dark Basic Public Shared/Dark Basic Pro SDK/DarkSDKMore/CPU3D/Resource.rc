@@ -1,0 +1,83 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define _USING_V110_SDK71_
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United Kingdom) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_STRING106           "CPU3D Add Occluder%L%?AddOccluder@@YAXH@Z%ObjectID"
+    IDS_STRING107           "CPU3D Add Occludee%L%?AddOccludee@@YAXH@Z%ObjectID"
+    IDS_STRING108           "CPU3D Set Camera Index%L%?SetCameraIndex@@YAXH@Z%ObjectID"
+    IDS_STRING109           "CPU3D Clear%0%?Clear@@YAXXZ%Index"
+    IDS_STRING110           "CPU3D Occlude%0%?Occlude@@YAXXZ%Index"
+    IDS_STRING111           "CPU3D SetPolyCount%L%?SetPolyCount@@YAXH@Z%Polycount"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING112           "CPU3D Show ZBuffer%L%?Show@@YAXH@Z%int Show"
+END
+
+#endif    // English (United Kingdom) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

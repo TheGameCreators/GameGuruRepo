@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Data">
+      <UniqueIdentifier>{440cbf6b-50a6-4ff1-9eb4-ec5e8b03fe21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera Core">
+      <UniqueIdentifier>{299a77aa-1471-4d10-b469-89baf550db14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera Graphics">
+      <UniqueIdentifier>{2378e2f9-c579-482b-b983-288af161d301}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Shared\Camera\CCameraC.cpp">
+      <Filter>Camera Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Camera\CCameraDataC.cpp">
+      <Filter>Camera Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Camera\CCameraManagerC.cpp">
+      <Filter>Camera Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Data\CDataC.cpp">
+      <Filter>Data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Camera\DBCameraGraphics.cpp">
+      <Filter>Camera Graphics</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Shared\Camera\CCameraManagerC.h">
+      <Filter>Camera Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Data\CDataC.h">
+      <Filter>Data</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="..\..\Shared\Camera\CCameraDataC.h">
+      <Filter>Camera Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Include\ccamerac.h">
+      <Filter>Camera Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Camera.rc" />
+  </ItemGroup>
+</Project>

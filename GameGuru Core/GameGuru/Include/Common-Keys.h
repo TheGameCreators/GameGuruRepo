@@ -1,0 +1,5 @@
+#define DISCOUNTKEY "sc=[discountcodekey]"
+#define FPMHOSTUPLOADKEY "sc=[hostuploadkey]"
+#define DOWNLOADSTOREKEY "sc=[none]"
+#define NEWSTOREKEY "[none]"
+#define NEWSTOREPASSWORD "[none]"

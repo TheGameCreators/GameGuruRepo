@@ -45,10 +45,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\GameGuru\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\DEV\BUILDS\GameGuru Classic Build Area\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\GameGuru\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\DEV\BUILDS\GameGuru Classic Build Area\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(SolutionDir)OLDUI\ControlBar;$(SolutionDir)..\GameGuru Core\SDK\OGG\include;$(IncludePath)</IncludePath>
@@ -105,7 +105,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>User32.lib;zlib.lib;winmm.lib;wininet.lib;Strmiids.lib;xmllite.lib;dsound.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(TargetPath)</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -171,7 +171,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>User32.lib;zlib.lib;winmm.lib;wininet.lib;Strmiids.lib;xmllite.lib;dsound.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(TargetPath)</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>

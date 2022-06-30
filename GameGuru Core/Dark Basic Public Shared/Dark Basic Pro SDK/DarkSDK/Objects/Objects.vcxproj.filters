@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Objects">
+      <UniqueIdentifier>{98bbe6e3-e37c-4bbc-b388-94f66d806ddb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Position">
+      <UniqueIdentifier>{5a302cd8-800c-455b-80c9-36ec9cea61a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Error">
+      <UniqueIdentifier>{8783633a-51d8-4b10-899a-d4dd8a3d3dd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CollisionSystem">
+      <UniqueIdentifier>{ae289875-2d62-4469-9759-a12a53c93e44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CollisionSystem\Mechanics">
+      <UniqueIdentifier>{49af7e6c-76b1-40ea-b231-ca2c9e1db9d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DBO">
+      <UniqueIdentifier>{a09d0118-502d-4351-9220-cd9258e7319e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DBO\Extras">
+      <UniqueIdentifier>{f16ab922-2203-474b-a470-6a4ebb5bd6c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameFXCalls">
+      <UniqueIdentifier>{6e7c458b-e5d3-47d1-ad27-eacd51b7bdba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ShadowMapping">
+      <UniqueIdentifier>{58f833d6-db03-473a-be2b-854d098fb400}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Occlusion">
+      <UniqueIdentifier>{9c6030e9-f084-4b52-afa5-3e38566a3218}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Shared\Objects\CObjectDataC.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\CommonC.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\CPositionC.h">
+      <Filter>Position</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Error\CError.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Error\CRuntimeErrors.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\BoxCollision\3DCol.h">
+      <Filter>CollisionSystem\Mechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\BoxCollision\cBoxCol.h">
+      <Filter>CollisionSystem\Mechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\BoxCollision\CCollision.h">
+      <Filter>CollisionSystem\Mechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\BoxCollision\PolyPool.h">
+      <Filter>CollisionSystem\Mechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBOBlock.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\SHARED\DBOFORMAT\DBOData.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBOEffects.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBOExternals.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBOFile.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBOFormat.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBOFrame.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBOMesh.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBORawMesh.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\Extras\NVMeshMender.h">
+      <Filter>DBO\Extras</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Camera\CCameraDataC.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="..\..\Shared\Objects\ShadowMapping\DepthTexture.h">
+      <Filter>ShadowMapping</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\ShadowMapping\cShadowMaps.h">
+      <Filter>ShadowMapping</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\Occlusion\cOcclusion.h">
+      <Filter>Occlusion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Include\CObjectsC.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\Objects\CObjectManagerC.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Shared\DBOFormat\DBOAssImp.h">
+      <Filter>DBO</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Shared\Objects\CObjectsC.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\CommonC.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\CPositionC.cpp">
+      <Filter>Position</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Error\CError.cpp">
+      <Filter>Error</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\BoxCollision\3DCol.cpp">
+      <Filter>CollisionSystem\Mechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\BoxCollision\cBoxCol.cpp">
+      <Filter>CollisionSystem\Mechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\BoxCollision\CCollision.cpp">
+      <Filter>CollisionSystem\Mechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\BoxCollision\PolyPool.cpp">
+      <Filter>CollisionSystem\Mechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBOBlock.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SHARED\DBOFORMAT\DBOData.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBOEffects.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBOExternals.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBOFile.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBOFormat.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBOFrame.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBOMesh.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBORawMesh.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\Extras\NVMeshMenderD3DX.cpp">
+      <Filter>DBO\Extras</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\GameFXCalls.cpp">
+      <Filter>GameFXCalls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Core\globstruct.cpp" />
+    <ClCompile Include="..\..\Shared\Objects\ShadowMapping\DepthTexture.cpp">
+      <Filter>ShadowMapping</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\ShadowMapping\cShadowMaps.cpp">
+      <Filter>ShadowMapping</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\Occlusion\cOcclusion.cpp">
+      <Filter>Occlusion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Core\SteamCheckForWorkshop.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBO2X.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\Objects\CObjectManagerC.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Shared\DBOFormat\DBOAssImp.cpp">
+      <Filter>DBO</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="icon.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ObjectsPlus.rc" />
+  </ItemGroup>
+</Project>

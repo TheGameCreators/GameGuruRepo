@@ -274,6 +274,18 @@ class CEditorApp : public CWinApp, public CBCGWorkspace, cBaseMessage
 		//{{AFX_MSG(CEditorApp)
 
 	afx_msg void OnAppEditorKeyboardShortcuts();
+	afx_msg void OnAppGameKeyboardControlsShortcuts();
+	afx_msg void OnAppGameVRControlsShortcuts();
+	afx_msg void OnAppDesktopPlay();
+	afx_msg void OnAppSoloVRPlay();
+	afx_msg void OnAppSocialVRPlay();
+	/*
+	afx_msg void OnAppObjectsAddNewEntity();
+	afx_msg void OnAppObjectsAddNewSite();
+	afx_msg void OnAppObjectsPlayerStarter();
+	afx_msg void OnAppObjectsMultiplayerStart();
+	afx_msg void OnAppObjectsCreateNewWayPoint();
+	*/
 	afx_msg void OnInteractiveTutorial();
 	afx_msg void OnAppAbout();
 	afx_msg void OnAppAboutThisSomething();

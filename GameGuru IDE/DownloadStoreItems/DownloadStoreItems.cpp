@@ -12,6 +12,7 @@
 #include "DownloadStoreItemsFile.h"
 #include "..\SerialCode\md5.h"
 #include "cleanupFolders.h"
+#include "..\..\GameGuru Core\GameGuru\Include\Common-Keys.h"
 
 #define DOWNLOADSTOREITEMS_TIMEOUT 30000
 
@@ -218,7 +219,7 @@ bool CDownloadStoreItems::UpdateList()
 	}
 
 	char listURL[256];         
-	sprintf ( listURL , "userPurchasedV2.php?sc=[downloadkeygoesere]&uid=%s" , m_szUserID );
+	sprintf ( listURL , "userPurchasedV2.php?%s&uid=%s", DOWNLOADSTOREKEY, m_szUserID );
 
 	 m_hInternet = InternetOpen( TEXT("FPSCDownload"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL,0 );
 		if ( m_hInternet != NULL )

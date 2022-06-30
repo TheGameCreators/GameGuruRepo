@@ -101,9 +101,12 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_COMMAND(ID_VIEW_WAYPOINT, OnViewWaypoint)
 	ON_COMMAND(ID_VIEW_TEST_GAME, OnViewTestGame)
 	ON_COMMAND(ID_TEST_GAME, OnTestGame)
+	ON_COMMAND(ID_TESTVR_GAME, OnTestVRGame)
 	ON_COMMAND(ID_MULTIPLAYER_GAME, OnMultiplayerGame)
 	ON_UPDATE_COMMAND_UI(ID_TEST_MAP, OnUpdateTestMap)
 	ON_UPDATE_COMMAND_UI(ID_TEST_GAME, OnUpdateTestGame)
+	ON_UPDATE_COMMAND_UI(ID_TESTVR_GAME, OnUpdateTestVRGame)
+	ON_UPDATE_COMMAND_UI(ID_MULTIPLAYER_GAME, OnUpdateMultiplayerGame)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ZOOMIN, OnUpdateViewZoomIn)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ZOOMOUT, OnUpdateViewZoomOut)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_INCREASE_SHROUD, OnUpdateViewIncreaseShroud)
@@ -279,7 +282,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_MESSAGE( WM_CLOSE_LEVEL_WINDOW, OnCloseLevelWindow )
 	//ON_COMMAND(ID_HELP_HELPWIZARD, &CMainFrame::OnHelpwizard)
 	//ON_COMMAND(ID_HELP_CHECKFORUPDATES, &CMainFrame::OnHelpCheckForUpdates)
-	ON_COMMAND(ID_HELP_ABOUTBETA, &CMainFrame::OnAboutBETA)
+	ON_COMMAND(ID_HELP_COMMUNITYGUIDE, &CMainFrame::OnCommunityGuide)
 	ON_COMMAND(ID_HELP_TGCFORUMS, &CMainFrame::OnTGCForums)
 	ON_COMMAND(ID_HELP_STEAMFORUMS, &CMainFrame::OnSteamForums)
 	ON_COMMAND(ID_HELP_TGCSTORE, &CMainFrame::OnTgcStoreHelpClicked)
@@ -438,22 +441,69 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Create toolbar for main window
 	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
-		| CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
-		!m_wndToolBar.LoadToolBar(IDR_MAINFRAME, IDB_TOOLBARCOLD256, 0, TRUE, 0, 0, uiToolbarHotID))
+		| CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
+		//!m_wndToolBar.LoadToolBar(IDR_MAINFRAME, IDB_TOOLBARCOLD256, 0, TRUE, 0, 0, uiToolbarHotID))
+		!m_wndToolBar.LoadToolBar(IDR_COMBINEDTOOLBAR, IDB_TOOLBARCOLD256, 0, TRUE, 0, 0, uiToolbarHotID))
 	{
 		TRACE0("Failed to create toolbar\n");
 		return -1;
 	}
-
+	
 	// Set tool bar tooltips from external text file
-	m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "A" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "B" ) );
-	m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "C" ) );
+	if (1)
+	{
+		// GameGuru Classic IDE
+		m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "1" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "2" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "3" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 3,  GetLanguageData ( "Tooltips", "9" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "10" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 5,  GetLanguageData ( "Tooltips", "18" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 6,  GetLanguageData ( "Tooltips", "20" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 7,  GetLanguageData ( "Tooltips", "19" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 8,  GetLanguageData ( "Tooltips", "26" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 9,  GetLanguageData ( "Tooltips", "27" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 10, GetLanguageData ( "Tooltips", "28" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 11, GetLanguageData ( "Tooltips", "29" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 12, GetLanguageData ( "Tooltips", "30" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 13, GetLanguageData ( "Tooltips", "31" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 14, GetLanguageData ( "Tooltips", "35" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 15, GetLanguageData ( "Tooltips", "32" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 16, GetLanguageData ( "Tooltips", "33" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 17, GetLanguageData ( "Tooltips", "34" ) );
+		m_wndToolBar.SetToolBarBtnTooltip ( 18, GetLanguageData ( "Tooltips", "36" ) );
+		//m_wndToolBar.SetToolBarBtnTooltip ( 19, GetLanguageData ( "Tooltips", "39" ) ); // [19] no such slot in GGClassic - crash in debug!
+	}
+	else
+	{
+		// VRQuest?
+		//m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "1" ) );
+		//m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "2" ) );
+		//m_wndToolBar.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "3" ) );
+		//m_wndToolBar.SetToolBarBtnTooltip ( 3,  GetLanguageData ( "Tooltips", "9" ) );
+		//m_wndToolBar.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "10" ) );
+		m_wndToolBar.SetToolBarBtnTooltip(0, GetLanguageData("Tooltips", "19"));
+		m_wndToolBar.SetToolBarBtnTooltip(1, GetLanguageData("Tooltips", "26"));
+		m_wndToolBar.SetToolBarBtnTooltip(2, GetLanguageData("Tooltips", "27"));
+		m_wndToolBar.SetToolBarBtnTooltip(3, GetLanguageData("Tooltips", "28"));
+		m_wndToolBar.SetToolBarBtnTooltip(4, GetLanguageData("Tooltips", "29"));
+		m_wndToolBar.SetToolBarBtnTooltip(5, GetLanguageData("Tooltips", "30"));
+		m_wndToolBar.SetToolBarBtnTooltip(6, GetLanguageData("Tooltips", "31"));
+		m_wndToolBar.SetToolBarBtnTooltip(7, GetLanguageData("Tooltips", "35"));
+		m_wndToolBar.SetToolBarBtnTooltip(8, GetLanguageData("Tooltips", "18"));
+		m_wndToolBar.SetToolBarBtnTooltip(9, GetLanguageData("Tooltips", "20"));
+		m_wndToolBar.SetToolBarBtnTooltip(10, GetLanguageData("Tooltips", "33"));
+		m_wndToolBar.SetToolBarBtnTooltip(11, GetLanguageData("Tooltips", "32"));
+		m_wndToolBar.SetToolBarBtnTooltip(12, GetLanguageData("Tooltips", "34"));
+		m_wndToolBar.SetToolBarBtnTooltip(13, GetLanguageData("Tooltips", "36"));
+		m_wndToolBar.SetToolBarBtnTooltip(14, GetLanguageData("Tooltips", "39"));
+	}
 
+	/* replaced separate tooltips with one master bar - prevents docking fracture
 	// Build individual toolbar
 	if (!m_wndToolBarView.Create(this,
 		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-		CBRS_GRIPPER | CBRS_BORDER_3D,
+		CBRS_BORDER_3D,
 		IDR_VIEW) || !m_wndToolBarView.LoadToolBar(IDR_VIEW, IDB_BITMAP1, 0, TRUE, 0, 0, IDB_BITMAP1))
 	{
 		TRACE0("Failed to create build toolbar\n");
@@ -463,7 +513,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// Build individual toolbar
 	if (!m_wndToolBarDraw.Create(this,
 		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-		CBRS_GRIPPER | CBRS_BORDER_3D,
+		CBRS_BORDER_3D,
 		IDR_VIEW) || !m_wndToolBarDraw.LoadToolBar(IDR_DRAW, IDB_BITMAP3, 0, TRUE, 0, 0, IDB_BITMAP3))
 		
 	{
@@ -474,7 +524,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// Build individual toolbar
 	if (!m_wndToolBarSegment.Create(this,
 		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-		CBRS_GRIPPER | CBRS_BORDER_3D,
+		CBRS_BORDER_3D,
 		IDR_VIEW) || !m_wndToolBarSegment.LoadToolBar(IDR_SEGMENT, IDB_BITMAP5, 0, TRUE, 0, 0, IDB_BITMAP5))
 	{
 		TRACE0("Failed to create build toolbar\n");
@@ -483,7 +533,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Build individual toolbar
 	if (!m_wndToolBarWaypoint.Create(this,
-		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC| CBRS_GRIPPER | CBRS_BORDER_3D,
+		WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC | CBRS_BORDER_3D,
 		IDR_VIEW) || !m_wndToolBarWaypoint.LoadToolBar(IDR_WAYPOINT, IDB_BITMAP7, 0, TRUE, 0, 0, IDB_BITMAP7))
 	{
 		TRACE0("Failed to create build toolbar\n");
@@ -495,7 +545,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	{
 		if (!m_wndToolBarGame.Create(this,
 			WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-			CBRS_GRIPPER | CBRS_BORDER_3D,
+			CBRS_BORDER_3D,
 			IDR_VIEW) || !m_wndToolBarGame.LoadToolBar(IDR_GAME2, IDB_BITMAP8, 0, TRUE, 0, 0, IDB_BITMAP8))
 		{
 			TRACE0("Failed to create build toolbar\n");
@@ -506,13 +556,14 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	{
 		if (!m_wndToolBarGame.Create(this,
 			WS_CHILD|WS_VISIBLE|CBRS_TOP|CBRS_TOOLTIPS|CBRS_FLYBY|CBRS_HIDE_INPLACE|CBRS_SIZE_DYNAMIC|
-			CBRS_GRIPPER | CBRS_BORDER_3D,
+			CBRS_BORDER_3D,
 			IDR_VIEW) || !m_wndToolBarGame.LoadToolBar(IDR_GAME1, IDB_BITMAP8, 0, TRUE, 0, 0, IDB_BITMAP8))
 		{
 			TRACE0("Failed to create build toolbar\n");
 			return FALSE;
 		}
 	}
+	*/
 
 	//Set the menu bar to a sensible size											//ADDED 05.09.13
 	m_wndMenuBar.SetSizes (CSize(20,25),CSize(16,18));								//ADDED 05.09.13
@@ -520,11 +571,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//Remove toolbar and menubar grippers (Locks Position)
 	m_wndMenuBar .SetBarStyle (m_wndMenuBar .GetBarStyle () & ~(CBRS_GRIPPER ));
 	m_wndToolBar .SetBarStyle (m_wndToolBar .GetBarStyle () & ~(CBRS_GRIPPER));
-	m_wndToolBarView .SetBarStyle (m_wndToolBarView .GetBarStyle () & ~(CBRS_GRIPPER ));
-	m_wndToolBarDraw.SetBarStyle (m_wndToolBarDraw .GetBarStyle () & ~(CBRS_GRIPPER ));
-	m_wndToolBarSegment.SetBarStyle (m_wndToolBarSegment .GetBarStyle () & ~(CBRS_GRIPPER ));
-	m_wndToolBarWaypoint .SetBarStyle (m_wndToolBarWaypoint .GetBarStyle () & ~(CBRS_GRIPPER ));
-	m_wndToolBarGame.SetBarStyle (m_wndToolBarGame .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarView .SetBarStyle (m_wndToolBarView .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarDraw.SetBarStyle (m_wndToolBarDraw .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarSegment.SetBarStyle (m_wndToolBarSegment .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarWaypoint .SetBarStyle (m_wndToolBarWaypoint .GetBarStyle () & ~(CBRS_GRIPPER ));
+	//m_wndToolBarGame.SetBarStyle (m_wndToolBarGame .GetBarStyle () & ~(CBRS_GRIPPER ));
 
 	// Create status bar
 	DWORD dwStyle = RBBS_GRIPPERALWAYS | RBBS_FIXEDBMP | RBBS_BREAK;
@@ -534,8 +585,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 	}
 	m_wndStatusBar.SetPaneWidth(0,40);
-	m_wndStatusBar.SetPaneWidth(1,80);
-	m_wndStatusBar.SetPaneWidth(2,65);
+	m_wndStatusBar.SetPaneWidth(1,60);
+	m_wndStatusBar.SetPaneWidth(2,75);
 	m_wndStatusBar.SetPaneWidth(3,70);
 
 	// Create entity properties window
@@ -559,17 +610,17 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndOutput.EnableDocking				( CBRS_ALIGN_ANY );
 
 	// Individual toolbars can only be docked at the top (on the main toolbar strip)
-	m_wndMenuBar.EnableDocking				( CBRS_ALIGN_TOP );
-	m_wndToolBar.EnableDocking				( CBRS_ALIGN_TOP );
-	m_wndToolBarView.EnableDocking			( CBRS_ALIGN_TOP );
-	m_wndToolBarDraw.EnableDocking			( CBRS_ALIGN_TOP );
-	m_wndToolBarSegment.EnableDocking		( CBRS_ALIGN_TOP );
-	m_wndToolBarWaypoint.EnableDocking		( CBRS_ALIGN_TOP );
-	m_wndToolBarGame.EnableDocking			( CBRS_ALIGN_TOP );
+	//m_wndMenuBar.EnableDocking				( CBRS_ALIGN_TOP );
+	//m_wndToolBar.EnableDocking				( CBRS_ALIGN_TOP );
+	//m_wndToolBarView.EnableDocking			( CBRS_ALIGN_TOP );
+	//m_wndToolBarDraw.EnableDocking			( CBRS_ALIGN_TOP );
+	//m_wndToolBarSegment.EnableDocking		( CBRS_ALIGN_TOP );
+	//m_wndToolBarWaypoint.EnableDocking		( CBRS_ALIGN_TOP );
+	//m_wndToolBarGame.EnableDocking			( CBRS_ALIGN_TOP );
 	
 	// Default docking of menubar and toolbar
-	DockControlBar ( &m_wndMenuBar );
-	DockControlBar ( &m_wndToolBar );
+	//DockControlBar ( &m_wndMenuBar );
+	//DockControlBar ( &m_wndToolBar );
 	
 	// Based on above, allow default dockings now
 	RecalcLayout(TRUE);
@@ -578,17 +629,17 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CRect rectA;
 	m_wndToolBar.GetWindowRect(&rectA);
 	rectA.OffsetRect(1,0);
-	DockControlBar ( &m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
-	DockControlBar ( &m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
-	DockControlBar ( &m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
-	DockControlBar ( &m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
-	DockControlBar ( &m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//DockControlBar ( &m_wndToolBarGame,		AFX_IDW_DOCKBAR_TOP,	&rectA);
+	//DockControlBar ( &m_wndToolBarWaypoint,	AFX_IDW_DOCKBAR_TOP,	&rectA);
+	//DockControlBar ( &m_wndToolBarSegment,	AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//DockControlBar ( &m_wndToolBarDraw,		AFX_IDW_DOCKBAR_TOP,	&rectA );
+	//DockControlBar ( &m_wndToolBarView,     AFX_IDW_DOCKBAR_TOP,	&rectA );
 	DockControlBar ( &m_wndOutput,			AFX_IDW_DOCKBAR_LEFT,	&rectA );
 	DockControlBar ( &m_wndWorkSpace );
 
 	// Rename the View toolbar
 	CString strMainToolbarTitle;
-	m_wndToolBarView.SetWindowText (_T("View"));
+	//m_wndToolBarView.SetWindowText (_T("View"));
 	
 	// FREE VERSION - serial code read from USERDETAILS.INI (else free version)
 	//TCHAR szStringA [ MAX_PATH ];
@@ -600,8 +651,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//SetWindowText ( szStringA );
 
 	// Main Title
-	SetTitle ( "Game Guru" );
-	SetWindowText ( "Game Guru" );
+	SetTitle ( IDENAME );
+	SetWindowText ( IDENAME );
 
 	// Enable windows manager
 	EnableWindowsDialog (ID_WINDOW_MANAGER, IDS_WINDOWS_MANAGER, TRUE);
@@ -711,6 +762,7 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 			// array of buttons
 			CBCGToolbarMenuButton* pButtons [ 20 ];
 
+			/* no localization, using real menu names from binary
 			// get menu list from language file
 			TCHAR szMenu  [ 11 ] [ MAX_PATH ];
 			GetPrivateProfileString ( _T ( "Menu" ), _T ( "A" ), _T ( "" ), szMenu [ 0 ], MAX_PATH, theApp.m_szLanguage );	// file
@@ -842,6 +894,7 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 						pMenuPopup->RemoveItem(4);
 						pMenuPopup->RemoveItem(3);
 						pMenuPopup->RemoveItem(3);
+						pMenuPopup->RemoveItem(2);
 					}
 					else
 					{
@@ -915,6 +968,7 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 					pMenuPopup->RemoveItem(1);
 				}
 			}
+			*/
 		}
 	}
 	
@@ -964,7 +1018,6 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 		pButtons [ 6 ]            = pMenuPopup->GetMenuItem ( 6 );				// tile
 
 		pButtons [ 0 ]->m_strText = szPopup [ 0 ];
-				
 		pButtons [ 1 ]->m_strText = szPopup [ 1 ];
 		pButtons [ 2 ]->m_strText = szPopup [ 2 ];
 		pButtons [ 3 ]->m_strText = szPopup [ 3 ];
@@ -1035,9 +1088,9 @@ void CMainFrame::OnViewOutput()
 
 void CMainFrame::OnViewView() 
 {
-	ShowControlBar (&m_wndToolBarView,
-					!(m_wndToolBarView.GetStyle () & WS_VISIBLE),
-					FALSE);
+	//ShowControlBar (&m_wndToolBarView,
+	//				!(m_wndToolBarView.GetStyle () & WS_VISIBLE),
+	//				FALSE);
 	RecalcLayout ();
 }
 
@@ -1050,7 +1103,7 @@ void CMainFrame::OnUpdateViewOutput(CCmdUI* pCmdUI)
 void CMainFrame::OnUpdateViewView(CCmdUI* pCmdUI) 
 {
 	pCmdUI->Enable ( theApp.m_bDisable );
-	pCmdUI->SetCheck (m_wndToolBarView.GetStyle () & WS_VISIBLE);
+	//pCmdUI->SetCheck (m_wndToolBarView.GetStyle () & WS_VISIBLE);
 }
 
 void CMainFrame::OnWindowManager() 
@@ -1062,6 +1115,7 @@ void CMainFrame::OnPaint()
 {
 	CPaintDC dc(this); // device context for painting
 
+	/* strange this was done here, should only be done once just after creation (see "Create toolbar for main window")
 	// STANDARD
 	m_wndToolBar.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "1" ) );
 	m_wndToolBar.SetToolBarBtnTooltip ( 1,  GetLanguageData ( "Tooltips", "2" ) );
@@ -1084,9 +1138,6 @@ void CMainFrame::OnPaint()
 	m_wndToolBarSegment.SetToolBarBtnTooltip ( 4,  GetLanguageData ( "Tooltips", "30" ) );
 	m_wndToolBarSegment.SetToolBarBtnTooltip ( 5,  GetLanguageData ( "Tooltips", "31" ) );
 	m_wndToolBarSegment.SetToolBarBtnTooltip ( 6,  GetLanguageData ( "Tooltips", "35" ) );
-	//m_wndToolBarSegment.SetToolBarBtnTooltip ( 7,  GetLanguageData ( "Tooltips", "36" ) );
-	//m_wndToolBarSegment.SetToolBarBtnTooltip ( 8,  GetLanguageData ( "Tooltips", "37" ) );
-	//m_wndToolBarSegment.SetToolBarBtnTooltip ( 9,  GetLanguageData ( "Tooltips", "38" ) );
 
 	// WAYPOINT
 	m_wndToolBarWaypoint.SetToolBarBtnTooltip ( 0,  GetLanguageData ( "Tooltips", "32" ) );
@@ -1098,6 +1149,7 @@ void CMainFrame::OnPaint()
 	{
 		m_wndToolBarGame.SetToolBarBtnTooltip ( 2,  GetLanguageData ( "Tooltips", "39" ) );
 	}
+	*/
 }
 
 void CMainFrame::OnSize( UINT nType, int cx, int cy )
@@ -1110,22 +1162,23 @@ void CMainFrame::OnSize( UINT nType, int cx, int cy )
     m_wndToolBar.GetWindowRect(&rectA);
     rectA.right = size.cx; rectA.left = 0;
     
-    DockControlBar ( &m_wndToolBar, AFX_IDW_DOCKBAR_TOP, &rectA );
-    rectA.OffsetRect( m_wndToolBar.CalcFixedLayout( FALSE, TRUE ).cx,0 );
-    
-    DockControlBar ( &m_wndToolBarView, AFX_IDW_DOCKBAR_TOP, &rectA );
-    rectA.OffsetRect( m_wndToolBarView.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+    //DockControlBar ( &m_wndToolBar, AFX_IDW_DOCKBAR_TOP, &rectA );
+    //rectA.OffsetRect( m_wndToolBar.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+	
+	//m_wndToolBarView.SetWindowPos ( NULL, 50, 50, 80, 80, SWP_NOSIZE );
+    //DockControlBar ( &m_wndToolBarView, AFX_IDW_DOCKBAR_TOP, &rectA );
+    //rectA.OffsetRect( m_wndToolBarView.CalcFixedLayout( FALSE, TRUE ).cx,0 );
 
-    DockControlBar ( &m_wndToolBarSegment, AFX_IDW_DOCKBAR_TOP,  &rectA );
-    rectA.OffsetRect( m_wndToolBarSegment.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+    //DockControlBar ( &m_wndToolBarSegment, AFX_IDW_DOCKBAR_TOP,  &rectA );
+    //rectA.OffsetRect( m_wndToolBarSegment.CalcFixedLayout( FALSE, TRUE ).cx,0 );
 
-    DockControlBar ( &m_wndToolBarDraw, AFX_IDW_DOCKBAR_TOP,  &rectA );
-    rectA.OffsetRect( m_wndToolBarDraw.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+    //DockControlBar ( &m_wndToolBarDraw, AFX_IDW_DOCKBAR_TOP,  &rectA );
+    //rectA.OffsetRect( m_wndToolBarDraw.CalcFixedLayout( FALSE, TRUE ).cx,0 );
 
-    DockControlBar (&m_wndToolBarWaypoint,AFX_IDW_DOCKBAR_TOP,&rectA);
-    rectA.OffsetRect( m_wndToolBarWaypoint.CalcFixedLayout( FALSE, TRUE ).cx,0 );
+    //DockControlBar (&m_wndToolBarWaypoint,AFX_IDW_DOCKBAR_TOP,&rectA);
+    //rectA.OffsetRect( m_wndToolBarWaypoint.CalcFixedLayout( FALSE, TRUE ).cx,0 );
 
-    DockControlBar (&m_wndToolBarGame,AFX_IDW_DOCKBAR_TOP,&rectA );
+    //DockControlBar (&m_wndToolBarGame,AFX_IDW_DOCKBAR_TOP,&rectA );
 
     CMDIFrameWnd::OnSize( nType, cx,cy );
 }
@@ -1545,8 +1598,6 @@ void CMainFrame::OnEntityRotateZ()
 void CMainFrame::OnWaypointCreate() 
 {
 	theApp.SetFileMapData ( 60, 1 );
-
-	// TODO: Add your command handler code here
 	theApp.SetFileMapData ( 200, 8 );
 	theApp.SetFileMapData ( 204, 1 );
 }
@@ -1562,6 +1613,68 @@ void CEditorApp::OnAppEditorKeyboardShortcuts ( )
 	theApp.SetFileMapData ( 200, 21 );
 	theApp.SetFileMapData ( 204, 1 );
 }
+
+void CEditorApp::OnAppGameKeyboardControlsShortcuts ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 2 );
+}
+
+void CEditorApp::OnAppGameVRControlsShortcuts ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+
+void CEditorApp::OnAppDesktopPlay ( )
+{
+	((CMainFrame*)theApp.GetMainWnd())->TestOrMultiplayerGame(0);
+}
+
+void CEditorApp::OnAppSoloVRPlay ( )
+{
+	((CMainFrame*)theApp.GetMainWnd())->TestOrMultiplayerGame(2);
+}
+
+void CEditorApp::OnAppSocialVRPlay ( )
+{
+	((CMainFrame*)theApp.GetMainWnd())->TestOrMultiplayerGame(1);
+}
+
+/* technical reasons why this is not practical for now
+void CEditorApp::OnAppObjectsAddNewEntity ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+void CEditorApp::OnAppObjectsAddNewSite ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+void CEditorApp::OnAppObjectsPlayerStarter ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+void CEditorApp::OnAppObjectsMultiplayerStart ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 21 );
+	theApp.SetFileMapData ( 204, 3 );
+}
+void CEditorApp::OnAppObjectsCreateNewWayPoint ( )
+{
+	theApp.SetFileMapData ( 60, 1 );
+	theApp.SetFileMapData ( 200, 8 );
+	theApp.SetFileMapData ( 204, 1 );
+}
+*/
 
 void CEditorApp::OnInteractiveTutorial ( )
 {
@@ -1709,11 +1822,15 @@ void gShowHideTaskBar(BOOL bHide /*=FALSE*/)
 	}
 }
 
-void CMainFrame::TestOrMultiplayerGame ( int iMultiplayerMode ) 
+void CMainFrame::TestOrMultiplayerGame ( int iSingleMultiplayerVRMode ) 
 {
+	// 0 - test game
+	// 1 - multiplayer game
+	// 2 - VR test game
+
 	// set the file map to instruct the mapeditor to launch TEST LEVEL
 	theApp.SetFileMapData ( 200, 9 );
-	theApp.SetFileMapData ( 204, 1+iMultiplayerMode );
+	theApp.SetFileMapData ( 204, 1+iSingleMultiplayerVRMode );
 
 	// make child window full screen view for Test Level mode
 	HMONITOR hmon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
@@ -1723,11 +1840,11 @@ void CMainFrame::TestOrMultiplayerGame ( int iMultiplayerMode )
 		// hide all the BCG sub-windows so only the main frame remains
 		m_wndMenuBar.ShowWindow(SW_HIDE);
 		m_wndToolBar.ShowWindow(SW_HIDE);
-		m_wndToolBarView.ShowWindow(SW_HIDE);
-		m_wndToolBarDraw.ShowWindow(SW_HIDE);
-		m_wndToolBarSegment.ShowWindow(SW_HIDE);
-		m_wndToolBarWaypoint.ShowWindow(SW_HIDE);
-		m_wndToolBarGame.ShowWindow(SW_HIDE);		
+		//m_wndToolBarView.ShowWindow(SW_HIDE);
+		//m_wndToolBarDraw.ShowWindow(SW_HIDE);
+		//m_wndToolBarSegment.ShowWindow(SW_HIDE);
+		//m_wndToolBarWaypoint.ShowWindow(SW_HIDE);
+		//m_wndToolBarGame.ShowWindow(SW_HIDE);		
 		m_wndWorkSpace.ShowWindow(SW_HIDE);
 		m_wndStatusBar.ShowWindow(SW_HIDE);
 		m_wndOutput.ShowWindow(SW_HIDE);
@@ -1752,6 +1869,11 @@ void CMainFrame::OnTestGame()
 	TestOrMultiplayerGame(0);
 }
 
+void CMainFrame::OnTestVRGame() 
+{
+	TestOrMultiplayerGame(2);
+}
+
 void CMainFrame::OnMultiplayerGame() 
 {
 	//PE: 12-05-19 issue: https://github.com/TheGameCreators/GameGuruRepo/issues/505
@@ -1768,6 +1890,16 @@ void CMainFrame::OnUpdateTestGame ( CCmdUI* pCmdUI )
 	//SetToolbarButtonState ( 9, 1, 1 );
 
 	//pCmdUI->Enable ( m_bTest [ 9 ] [ 0 ] );
+	pCmdUI->Enable ( theApp.m_bDisable );
+}
+
+void CMainFrame::OnUpdateTestVRGame ( CCmdUI* pCmdUI )
+{
+	pCmdUI->Enable ( theApp.m_bDisable );
+}
+
+void CMainFrame::OnUpdateMultiplayerGame ( CCmdUI* pCmdUI )
+{
 	pCmdUI->Enable ( theApp.m_bDisable );
 }
 
@@ -2592,7 +2724,7 @@ BOOL CALLBACK EnumWindowsProc1(HWND hwnd,LPARAM lParam )
 		return FALSE;
 
 	_strlwr ( szBuffer );
-	if ( strcmp ( szBuffer, _T ( "Game Guru" ) ) == 0 ) //"fpsc map editor" ) ) == 0 )
+	if ( strcmp ( szBuffer, _T ( IDENAME ) ) == 0 ) //"fpsc map editor" ) ) == 0 )
 	{
 		LPARAM  lParam = 0;
 		lParam = ( LPARAM ) hwnd;
@@ -2788,7 +2920,11 @@ void CMainFrame::OnHelpReadUserManual()
 {
 	// Go to link
 	//ShellExecuteW( NULL, L"open", L"https://www.game-guru.com/downloads/pdfs/GameGuru%20-%20Getting%20Started%20Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
+	#ifdef GGBRANDED
+	ShellExecuteW( NULL, L"open", L"Files\\languagebank\\english\\artwork\\branded\\Getting Started Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
+	#else
 	ShellExecuteW( NULL, L"open", L"Files\\languagebank\\english\\artwork\\GameGuru - Getting Started Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
+	#endif
 }
 
 void CMainFrame::OnStandaloneEasterGame()
@@ -2924,7 +3060,7 @@ void CMainFrame::OnHelpCheckForUpdates()
 }
 */
 
-void CMainFrame::OnAboutBETA()
+void CMainFrame::OnCommunityGuide()
 {
 	// call Help for Beta link
 	char szBrowser [ MAX_PATH ];
@@ -2934,8 +3070,12 @@ void CMainFrame::OnAboutBETA()
 	//ShellExecuteW( NULL, L"open", L"http://fpscreator.thegamecreators.com/changelog1_009.php" , NULL, NULL, SW_SHOWMAXIMIZED );
 	//ShellExecuteW( NULL, L"open", L"http://fpscreator.thegamecreators.com/changelog1_01.php" , NULL, NULL, SW_SHOWMAXIMIZED );
 	//ShellExecuteW( NULL, L"open", L"http://steamcommunity.com/app/266310/announcements/" , NULL, NULL, SW_SHOWMAXIMIZED );
-	ShellExecuteW( NULL, L"open", L"https://www.game-guru.com/feature-vote" , NULL, NULL, SW_SHOWMAXIMIZED );
-	
+	//ShellExecuteW( NULL, L"open", L"https://www.game-guru.com/feature-vote" , NULL, NULL, SW_SHOWMAXIMIZED );
+
+	// call the CHM help guide created by the community
+	CString sFullPath = theApp.m_szDirectory;
+	sFullPath += "\\Docs\\GameGuru Classic.chm";
+	ShellExecute( NULL, "open", sFullPath.GetString(), NULL, NULL, SW_SHOW );
 
 	/*
 	// V117 - 200510 - use alternative user manual filename if provided

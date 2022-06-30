@@ -1,0 +1,19 @@
+"InstallScript"
+{
+    "Registry"
+    {
+        "HKLM\\SOFTWARE\\The Game Creators\\FPSCRELOADED"
+        {
+            "string"
+            {
+                "INSTALL-PATH"      "%INSTALLDIR%"
+            }
+        }
+    }
+	
+	"Firewall"
+	{
+		"FPS Creator Reloaded" "%INSTALLDIR%\\FPSC-MapEditor.exe"
+	}	
+
+}

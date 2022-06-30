@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{020523f8-f386-4752-8692-13751b8d1024}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{6fee32b5-b16c-42e8-9bb3-6a7aa132ea6c}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{63f52801-e49a-4d1d-900b-30ce47d5d6e0}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="GameGuruEngine">
+      <UniqueIdentifier>{66a63be7-d75f-4ac4-913b-0a3cd255c890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameGuruEngine\GameGuruSourceCode">
+      <UniqueIdentifier>{edc26ec9-6bc3-4d15-ae39-72ccf03ecf6f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DarkEXE.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Encryptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EXEBlock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DarkErrors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameGuruMain.cpp">
+      <Filter>GameGuruEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SDK\DirectX\directx-macros.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_gg_dx11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_impl_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-File.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Strings.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\G-Gun.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\MapEditor.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-AudioVolume.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterCreatorPlus.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterCreatorPlusTTS.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-ConstructionKit.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Gun.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Lighting.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-OBS.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-RealSense.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Types.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_demo.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Fonts.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Images.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Input.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Sounds.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\cStr.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\G-Entity.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\G-Lighting.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterKit.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterSound.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-ConstructionKitEdit.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-DAI.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Debug.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Decal.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-EBE.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Entity.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Explosion&amp;Fire.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Game.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-GridEdit.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-HUD.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Importer.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Interactive.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Lightmapping.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-LUA.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-LUA-Entity.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-LUA-General.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-MapFile.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Material.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-MPPhoton.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Panel.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Particles.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Physics.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Postprocess.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Ragdoll.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Sliders.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Terrain.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Titles.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Visuals.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Waypoint.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Weapon.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-WelcomeSystem.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Widget.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SDK\OpenXR\src\openxr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Sky.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Grass.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DarkEXE.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryptor.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EXEBlock.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGuruMain.h">
+      <Filter>GameGuruEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGuruEngine.h">
+      <Filter>GameGuruEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-File.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Fonts.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Images.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Input.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Keys.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Sounds.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Strings.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\cStr.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\gameguru.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\G-Entity.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\G-Gun.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\G-Lighting.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\MapEditor.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-AudioVolume.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterCreatorPlus.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterCreatorPlusTTS.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterKit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterSound.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-ConstructionKit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-ConstructionKitEdit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-DAI.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Debug.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Decal.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-EBE.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Entity.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Explosion&amp;Fire.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Game.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-GridEdit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Gun.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-HUD.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Importer.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Interactive.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Lighting.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Lightmapping.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-LUA.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-LUA-Entity.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-LUA-General.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-MapFile.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Material.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-MP.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-OBS.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Panel.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Particles.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Physics.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Postprocess.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Ragdoll.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-RealSense.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Sliders.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Terrain.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Titles.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Visuals.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Waypoint.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Weapon.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-WelcomeSystem.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Widget.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Types.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\boxer.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\imconfig.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\imgui.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\imgui_gg_dx11.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\imgui_impl_win32.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\imgui_internal.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\imstb_rectpack.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\imstb_textedit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Imgui\imstb_truetype.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\preprocessor-flags.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\OpenXR\include\openxr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Sky.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Grass.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="dbproexe.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="VRQuest.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,132 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+////#define _USING_V110_SDK71_
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United Kingdom) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_STRING101           "LOAD LUA[%LSL%?LoadLua@@YAHPADH@Z%String, ID"
+    IDS_STRING102           "LUA CALL SILENT%0%?LuaCallSilent@@YAXXZ%No params"
+    IDS_STRING104           "CLOSE LUA%L%?CloseLua@@YAXH@Z%String, ID"
+    IDS_STRING105           "LUA RESET%0%?LuaReset@@YAXXZ%No params"
+    IDS_STRING106           "LUA EXECUTE[%LSL%?LuaExecute@@YAHPADH@Z%String, ID"
+    IDS_STRING107           "LUA GET INT[%LSL%?LuaGetInt@@YAHPADH@Z%String, ID"
+    IDS_STRING108           "LUA GET FLOAT[%FSL%?LuaGetFloat@@YAKPADH@Z%String, ID"
+    IDS_STRING109           "LUA GET STRING[%SSL%?LuaGetString@@YAKKPADH@Z%String, ID"
+    IDS_STRING110           "LUA SET INT%SLL%?LuaSetInt@@YAXPADHH@Z%String, Value, ID"
+    IDS_STRING111           "LUA SET FLOAT%SFL%?LuaSetFloat@@YAXPADMH@Z%String, Value, ID"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING112           "LUA SET STRING%SSL%?LuaSetString@@YAXPAD0H@Z%String, Value, ID"
+    IDS_STRING113           "LUA ARRAY INT[%LSL%?LuaArrayInt@@YAHPADH@Z%String, ID"
+    IDS_STRING114           "LUA ARRAY FLOAT[%FSL%?LuaArrayFloat@@YAKPADH@Z%String, ID"
+    IDS_STRING115           "LUA ARRAY STRING[%SSL%?LuaArrayString@@YAKPAD0H@Z%String, ID"
+    IDS_STRING116           "LUA SET FUNCTION%SLLL%?LuaSetFunction@@YAXPADHHH@Z%String, ID, nParams, nResults"
+    IDS_STRING117           "LUA CALL%0%?LuaCall@@YAXXZ%No params"
+    IDS_STRING118           "LUA RETURN INT[%LL%?LuaReturnInt@@YAHH@Z%ID"
+    IDS_STRING119           "LUA RETURN FLOAT[%FL%?LuaReturnFloat@@YAKH@Z%ID"
+    IDS_STRING120           "LUA RETURN STRING[%SL%?LuaReturnString@@YAKKH@Z%ID"
+    IDS_STRING121           "LUA PUSH INT%LL%?LuaPushInt@@YAXHH@Z%Value, ID"
+    IDS_STRING122           "LUA PUSH FLOAT%FL%?LuaPushFloat@@YAXMH@Z%Value, ID"
+    IDS_STRING123           "LUA PUSH STRING%SL%?LuaPushString@@YAXPADH@Z%String, ID"
+    IDS_STRING124           "LUA MESSAGE DESC[%S%?LuaMessageDesc@@YAKK@Z%No params"
+    IDS_STRING125           "LUA NEXT[%L%?LuaNext@@YAHXZ%No params"
+    IDS_STRING126           "LUA MESSAGE INT[%L%?LuaMessageInt@@YAHXZ%No params"
+    IDS_STRING127           "LUA MESSAGE FLOAT[%F%?LuaMessageFloat@@YAKXZ%No params"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING128           "LUA MESSAGE STRING[%S%?LuaMessageString@@YAKK@Z%No params"
+    IDS_STRING129           "LUA MESSAGE INDEX[%L%?LuaMessageIndex@@YAHXZ%No params"
+    IDS_STRING130           "SET LUA STATE%L%?SetLuaState@@YAXH@Z%State ID"
+    IDS_STRING131           "LOAD LUA[%LS%?LoadLua@@YAHPAD@Z%String"
+    IDS_STRING132           "CLOSE LUA%0%?CloseLua@@YAXXZ%String"
+    IDS_STRING133           "LUA GET INT[%LS%?LuaGetInt@@YAHPAD@Z%String"
+    IDS_STRING134           "LUA GET FLOAT[%FS%?LuaGetFloat@@YAKPAD@Z%String"
+    IDS_STRING135           "LUA GET STRING[%SS%?LuaGetString@@YAKKPAD@Z%String"
+    IDS_STRING136           "LUA SET INT%SL%?LuaSetInt@@YAXPADH@Z%String, Value"
+    IDS_STRING137           "LUA SET FLOAT%SF%?LuaSetFloat@@YAXPADM@Z%String, Value"
+    IDS_STRING138           "LUA SET STRING%SS%?LuaSetString@@YAXPAD0@Z%String, Value"
+    IDS_STRING139           "LUA ARRAY INT[%LS%?LuaArrayInt@@YAHPAD@Z%String"
+    IDS_STRING140           "LUA ARRAY FLOAT[%FS%?LuaArrayFloat@@YAKPAD@Z%String"
+    IDS_STRING141           "LUA ARRAY STRING[%SS%?LuaArrayString@@YAKPAD0@Z%String"
+    IDS_STRING142           "LUA SET FUNCTION%SLL%?LuaSetFunction@@YAXPADHH@Z%String, nParams, nResults"
+    IDS_STRING143           "LUA RETURN INT[%L%?LuaReturnInt@@YAHXZ%"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING144           "LUA RETURN FLOAT[%F%?LuaReturnFloat@@YAKXZ%"
+    IDS_STRING145           "LUA RETURN STRING[%S%?LuaReturnString@@YAKK@Z%"
+    IDS_STRING146           "LUA EXECUTE[%LS%?LuaExecute@@YAHPAD@Z%String"
+    IDS_STRING147           "LUA PUSH INT%L%?LuaPushInt@@YAXH@Z%Value"
+    IDS_STRING148           "LUA PUSH FLOAT%F%?LuaPushFloat@@YAXM@Z%Value"
+    IDS_STRING149           "LUA PUSH STRING%S%?LuaPushString@@YAXPAD@Z%String"
+END
+
+#endif    // English (United Kingdom) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

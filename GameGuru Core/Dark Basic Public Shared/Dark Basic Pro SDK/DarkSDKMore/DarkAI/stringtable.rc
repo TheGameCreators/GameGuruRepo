@@ -1,0 +1,360 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+//#define _USING_V110_SDK71_
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United Kingdom) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_STRING101           "AI Add Static Obstacle%L%?AIAddStaticObstacle@@YAXH@Z%Object Number"
+    IDS_STRING102           "AI Add Static Obstacle%LL%?AIAddStaticObstacle@@YAXHH@Z%Object Number, Height"
+    IDS_STRING103           "AI Add Static Obstacle%LLL%?AIAddStaticObstacle@@YAXHHH@Z%Object Number, Height, Container Number"
+    IDS_STRING104           "AI Start New Obstacle%0%?AIStartNewObstacle@@YAXXZ%"
+    IDS_STRING105           "AI Add Obstacle Vertex%FF%?AIAddObstacleVertex@@YAXMM@Z%PosX, PosZ"
+    IDS_STRING106           "AI End New Obstacle%LLL%?AIEndNewObstacle@@YAXHHH@Z%Container Number, Height, Obstacle Type"
+    IDS_STRING107           "AI Discard New Obstacle%0%?AIDiscardNewObstacle@@YAXXZ%"
+    IDS_STRING108           "AI Make Memblock From Waypoints%LL%?AIMakeMemblockFromWaypoints@@YAXHH@Z%Memblock Number, Container Number"
+    IDS_STRING109           "AI Make Waypoints From Memblock%LL%?AIMakeWaypointsFromMemblock@@YAXHH@Z%Container Number, Memblock Number"
+    IDS_STRING110           "AI Count Waypoints[%LL%?AICountWaypoints@@YAHH@Z%Container Number"
+    IDS_STRING111           "AI Add Waypoint%LFF%?AIAddWaypoint@@YAXHMM@Z%Contianer Number, PosX, PosZ"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING224           "AI Entity Move Away From Sound%L%?AIEntityMoveAwayFromSound@@YAXH@Z%Entity Number"
+    IDS_STRING225           "AI Entity Move To Idle Position%L%?AIEntityMoveToIdlePosition@@YAXH@Z%Entity Number"
+    IDS_STRING226           "AI Entity Strafe Target%L%?AIEntityStrafeTarget@@YAXH@Z%Entity Number"
+    IDS_STRING227           "AI Entity Hold Position%L%?AIEntityHoldPosition@@YAXH@Z%Entity Number"
+    IDS_STRING228           "AI Entity Assign Zone%LL%?AIEntityAssignZone@@YAXHH@Z%Entity Number, Zone Number"
+    IDS_STRING229           "AI Entity Assign Patrol Path%LL%?AIEntityAssignPatrolPath@@YAXHH@Z%Entity Number, Path Number"
+    IDS_STRING230           "AI Team Follow Player%F%?AITeamFollowPlayer@@YAXM@Z%Distance"
+    IDS_STRING231           "AI Team Separate%0%?AITeamSeparate@@YAXXZ%"
+    IDS_STRING232           "AI Add Container%L%?AIAddContainer@@YAXH@Z%Container Number"
+    IDS_STRING233           "AI Remove Container%L%?AIRemoveContainer@@YAXH@Z%Container Number"
+    IDS_STRING234           "AI Container Exist[%LL%?AIContainerExist@@YAHH@Z%Container Number"
+    IDS_STRING235           "AI Set Container Active%LL%?AISetContainerActive@@YAXHH@Z%Container Number, Mode"
+    IDS_STRING236           "AI Kill Player%0%?AIKillPlayer@@YAXXZ%"
+    IDS_STRING237           "AI Set Entity Container%LL%?AISetEntityContainer@@YAXHH@Z%Entity Number, Container Number"
+    IDS_STRING238           "AI Remove Obstacle%L%?AIRemoveObstacle@@YAXH@Z%Obstacle Number"
+    IDS_STRING239           "AI Start New Obstacle%L%?AIStartNewObstacle@@YAXH@Z%Obstacle Number"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING112           "AI Remove Waypoint%LL%?AIRemoveWaypoint@@YAXHH@Z%Container Number, Waypoint Index"
+    IDS_STRING113           "AI Update Waypoint Visibility%L%?AIUpdateWaypointVisibility@@YAXH@Z%Container Number"
+    IDS_STRING114           "AI Update Waypoint Visibility%LF%?AIUpdateWaypointVisibility@@YAXHM@Z%Container Number, Max Distance"
+    IDS_STRING115           "AI Clear Waypoints%L%?AIClearWaypoints@@YAXH@Z%Container Number"
+    IDS_STRING116           "AI Make Path%L%?AIMakePath@@YAXH@Z%Path Number"
+    IDS_STRING117           "AI Delete Path%L%?AIDeletePath@@YAXH@Z%Path Number"
+    IDS_STRING118           "AI Path Add Point%LFF%?AIPathAddPoint@@YAXHMM@Z%Path Number, PosX, PosZ"
+    IDS_STRING119           "AI Path Get Point X[%FLL%?AIGetPathPointX@@YAKHH@Z%Path Number, Point Index"
+    IDS_STRING120           "AI Path Get Point Z[%FLL%?AIGetPathPointZ@@YAKHH@Z%Path Number, Point Index"
+    IDS_STRING121           "AI Path Count Points[%LL%?AIPathCountPoints@@YAHH@Z%Path Number"
+    IDS_STRING122           "AI Make Memblock From Path%LL%?AIMakeMemblockFromPath@@YAXHH@Z%Memblock Number, Path Number"
+    IDS_STRING123           "AI Make Path From Memblock%LL%?AIMakePathFromMemblock@@YAXHH@Z%Path Number, Memblock Number"
+    IDS_STRING124           "AI Make Path Between Points%LFFFF%?AIMakePathBetweenPoints@@YAXHMMMM@Z%Path Number, BeginX, BeginZ, EndX, EndZ"
+    IDS_STRING125           "AI Make Path Between Points%LLFFFF%?AIMakePathBetweenPoints@@YAXHHMMMM@Z%Path Number, Container Number, BeginX, BeginZ, EndX, EndZ"
+    IDS_STRING126           "AI Make Path From Closest Waypoints%LLFF%?AIMakePathFromClosestWaypoints@@YAXHHMM@Z%Path Number, Container Number, PosX, PosZ"
+    IDS_STRING127           "AI Add Zone%LFFFF%?AIAddZone@@YAXHMMMM@Z%Zone Number, MinX, MinZ, MaxX, MaxZ"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING128           "AI Get Entity In Zone[%LLL%?AIGetEntityInZone@@YAHHH@Z%Entity Number, Zone Number"
+    IDS_STRING129           "AI Create Sound%FFLF%?AICreateSound@@YAXMMHM@Z%PosX, PosZ, Type, Radius"
+    IDS_STRING130           "AI Debug Show Waypoints%LF%?AIDebugShowWaypoints@@YAXHM@Z%Container Number, Height"
+    IDS_STRING131           "AI Debug Hide Waypoints%L%?AIDebugHideWaypoints@@YAXH@Z%Container Number"
+    IDS_STRING132           "AI Debug Show Waypoint Edges%LF%?AIDebugShowWaypointEdges@@YAXHM@Z%Container Number, Height"
+    IDS_STRING133           "AI Debug Hide Waypoint Edges%L%?AIDebugHideWaypointEdges@@YAXH@Z%Container Number"
+    IDS_STRING134           "AI Debug Show Obstacle Bounds%LF%?AIDebugShowObstacleBounds@@YAXHM@Z%Container Number, Height"
+    IDS_STRING135           "AI Debug Hide Obstacle Bounds%L%?AIDebugHideObstacleBounds@@YAXH@Z%Container Number"
+    IDS_STRING136           "AI Debug Show Paths%F%?AIDebugShowPaths@@YAXM@Z%Height"
+    IDS_STRING137           "AI Debug Hide Paths%0%?AIDebugHidePaths@@YAXXZ%"
+    IDS_STRING138           "AI Debug Show View Arcs%F%?AIDebugShowViewArcs@@YAXM@Z%Height"
+    IDS_STRING139           "AI Debug Hide View Arcs%0%?AIDebugHideViewArcs@@YAXXZ%"
+    IDS_STRING140           "AI Debug Show Sounds%F%?AIDebugShowSounds@@YAXM@Z%Height"
+    IDS_STRING141           "AI Debug Hide Sounds%0%?AIDebugHideSounds@@YAXXZ%"
+    IDS_STRING142           "AI Set Console Output On%L%?AISetConsoleOutputOn@@YAXH@Z%Entity Number"
+    IDS_STRING143           "AI Set Console Output Off%0%?AISetConsoleOutputOff@@YAXXZ%"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING144           "AI Debug Show Avoidance Angles%F%?AIDebugShowAvoidanceAngles@@YAXM@Z%Height"
+    IDS_STRING145           "AI Debug Hide Avoidance Angles%0%?AIDebugHideAvoidanceAngles@@YAXXZ%"
+    IDS_STRING146           "AI Show Errors%0%?AIShowErrors@@YAXXZ%"
+    IDS_STRING147           "AI Hide Errors%0%?AIHideErrors@@YAXXZ%"
+    IDS_STRING148           "AI Update%0%?AIUpdate@@YAXXZ%"
+    IDS_STRING149           "AI Update%F%?AIUpdate@@YAXM@Z%Time Step"
+    IDS_STRING150           "AI Set Radius%F%?AISetRadius@@YAXM@Z%Radius"
+    IDS_STRING151           "AI Reset%0%?AIReset@@YAXXZ%"
+    IDS_STRING152           "AI Add Player%L%?AIAddPlayer@@YAXH@Z%Object Number"
+    IDS_STRING153           "AI Add Player%LL%?AIAddPlayer@@YAXHH@Z%Object Number, Use Object"
+    IDS_STRING154           "AI Set Entity Attack Distance%LF%?AISetEntityAttackDistance@@YAXHM@Z%Entity Number, Distance"
+    IDS_STRING155           "AI Set Player Position%FF%?AISetPlayerPosition@@YAXMM@Z%PosX, PosZ"
+    IDS_STRING156           "AI Get Player X[%F%?AIGetPlayerX@@YAKXZ%"
+    IDS_STRING157           "AI Get Player Z[%F%?AIGetPlayerZ@@YAKXZ%"
+    IDS_STRING158           "AI Set Player Ducking%L%?AISetPlayerDucking@@YAXH@Z%Mode"
+    IDS_STRING159           "AI Set Player Container%L%?AISetPlayerContainer@@YAXH@Z%Container Number"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING160           "AI Add Friendly%L%?AIAddFriendly@@YAXH@Z%Entity Number"
+    IDS_STRING161           "AI Add Friendly%LL%?AIAddFriendly@@YAXHH@Z%Entity Number, Use Object"
+    IDS_STRING162           "AI Add Friendly%LLL%?AIAddFriendly@@YAXHHH@Z%Entity Number, Use Object, Container Number"
+    IDS_STRING163           "AI Add Neutral%L%?AIAddNeutral@@YAXH@Z%Entity Number"
+    IDS_STRING164           "AI Add Neutral%LL%?AIAddNeutral@@YAXHH@Z%Entity Number, Use Object"
+    IDS_STRING165           "AI Add Neutral%LLL%?AIAddNeutral@@YAXHHH@Z%Entity Number, Use Object, Container Number"
+    IDS_STRING166           "AI Add Enemy%L%?AIAddEnemy@@YAXH@Z%Entity Number"
+    IDS_STRING167           "AI Add Enemy%LL%?AIAddEnemy@@YAXHH@Z%Entity Number, Use Object"
+    IDS_STRING168           "AI Add Enemy%LLL%?AIAddEnemy@@YAXHHH@Z%Entity Number, Use Object, Container Number"
+    IDS_STRING169           "AI Kill Entity%L%?AIKillEntity@@YAXH@Z%Entity Number"
+    IDS_STRING170           "AI Entity Exist[%LL%?AIEntityExist@@YAHH@Z%Entity Number"
+    IDS_STRING171           "AI Set Entity Active%LL%?AISetEntityActive@@YAXHH@Z%Entity Number, Mode"
+    IDS_STRING172           "AI Set Entity Stance%LL%?AISetEntityStance@@YAXHH@Z%Entity Number, Stance"
+    IDS_STRING173           "AI Set Entity Control%LL%?AISetEntityControl@@YAXHH@Z%Entity Number, Mode"
+    IDS_STRING174           "AI Set Entity Speed%LF%?AISetEntitySpeed@@YAXHM@Z%Entity Number, Speed"
+    IDS_STRING175           "AI Set Entity Turn Speed%LF%?AISetEntityTurnSpeed@@YAXHM@Z%Entity Number, Turn Speed"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING176           "AI Set Entity Hearing Range%LF%?AISetEntityHearingRange@@YAXHM@Z%Entity Number, Hearing Range"
+    IDS_STRING177           "AI Set Entity View Range%LF%?AISetEntityViewRange@@YAXHM@Z%Entity Number, View Range"
+    IDS_STRING178           "AI Set Entity View Arc%LFF%?AISetEntityViewArc@@YAXHMM@Z%Entity Number, Inner Angle, Outer Angle"
+    IDS_STRING179           "AI Set Entity Fire Arc%LF%?AISetEntityFireArc@@YAXHM@Z%Entity Number, Angle"
+    IDS_STRING180           "AI Set Entity Defend Distance%LF%?AISetEntityDefendDist@@YAXHM@Z%Entity Number, Distance"
+    IDS_STRING181           "AI Set Entity Idle Position%LFFL%?AISetEntityIdlePosition@@YAXHMMH@Z%Entity Number, PosX, PosZ, Container"
+    IDS_STRING182           "AI Set Entity Position%LFF%?AISetEntityPosition@@YAXHMM@Z%Entity Number, PosX, PosZ"
+    IDS_STRING183           "AI Set Entity Can Duck%LL%?AISetEntityCanDuck@@YAXHH@Z%Entity Number, Can Duck"
+    IDS_STRING184           "AI Set Entity Can Attack%LL%?AISetEntityCanAttack@@YAXHH@Z%Entity Number, Can Attack"
+    IDS_STRING185           "AI Set Entity Can Strafe%LL%?AISetEntityCanStrafe@@YAXHH@Z%Entity Number, Can Strafe"
+    IDS_STRING186           "AI Set Entity Can Hear%LL%?AISetEntityCanHear@@YAXHH@Z%Entity Number, Can Hear"
+    IDS_STRING187           "AI Set Entity Can Roam%LL%?AISetEntityCanRoam@@YAXHH@Z%Entity Number, Can Roam"
+    IDS_STRING188           "AI Set Entity No Look At Point%L%?AISetEntityNoLookAtPoint@@YAXH@Z%Entity Number"
+    IDS_STRING189           "AI Set Entity Hit%LFF%?AISetEntityHit@@YAXHMM@Z%Entity Number, DirX, DirZ"
+    IDS_STRING190           "AI Set Entity Collide%LL%?AISetEntityCollide@@YAXHH@Z%Entity Number, Object Number"
+    IDS_STRING191           "AI Set Entity Aggressive%L%?AISetEntityAggressive@@YAXH@Z%Entity Number"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING192           "AI Set Entity Run Away When Hit%L%?AISetEntityRunAwayWhenHit@@YAXH@Z%Entity Number"
+    IDS_STRING193           "AI Get Entity X[%FL%?AIGetEntityX@@YAKH@Z%Entity Number"
+    IDS_STRING194           "AI Get Entity Z[%FL%?AIGetEntityZ@@YAKH@Z%Entity Number"
+    IDS_STRING195           "AI Get Entity Destination X[%FL%?AIGetEntityDestinationX@@YAKH@Z%Entity Number"
+    IDS_STRING196           "AI Get Entity Destination Z[%FL%?AIGetEntityDestinationZ@@YAKH@Z%Entity Number"
+    IDS_STRING197           "AI Get Entity Target X[%FL%?AIGetEntityTargetX@@YAKH@Z%Entity Number"
+    IDS_STRING198           "AI Get Entity Target Z[%FL%?AIGetEntityTargetZ@@YAKH@Z%Entity Number"
+    IDS_STRING199           "AI Get Entity Angle Y[%FL%?AIGetEntityAngleY@@YAKH@Z%Entity Number"
+    IDS_STRING200           "AI Get Entity State$[%SL%?AIGetEntityState@@YAKKH@Z%Entity Number"
+    IDS_STRING201           "AI Get Entity Can Fire[%LL%?AIGetEntityCanFire@@YAHH@Z%Entity Number"
+    IDS_STRING202           "AI Get Entity Is Ducking[%LL%?AIGetEntityIsDucking@@YAHH@Z%Entity Number"
+    IDS_STRING203           "AI Get Entity Avoiding[%LL%?AIGetEntityAvoiding@@YAHH@Z%Entity Number"
+    IDS_STRING204           "AI Get Entity Heard Sound[%LL%?AIGetEntityHeardSound@@YAHH@Z%Entity Number"
+    IDS_STRING205           "AI Get Entity Can See[%LLFFL%?AIGetEntityCanSee@@YAHHMMH@Z%Entity Number, PosX, PosZ, Ground Mode"
+    IDS_STRING206           "AI Get Entity Is Moving[%LL%?AIGetEntityIsMoving@@YAHH@Z%Entity Number"
+    IDS_STRING207           "AI Get Entity Is Turning[%LL%?AIGetEntityIsTurning@@YAHH@Z%Entity Number"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING208           "AI Get Entity Stance[%LL%?AIGetEntityStance@@YAHH@Z%Entity Number"
+    IDS_STRING209           "AI Get Entity Count Targets[%LL%?AIGetEntityCountTargets@@YAHH@Z%Entity Number"
+    IDS_STRING210           "AI Entity Follow Player%LF%?AIEntityFollowPlayer@@YAXHM@Z%Entity Number, Distance"
+    IDS_STRING211           "AI Entity Separate%L%?AIEntitySeparate@@YAXH@Z%Entity Number"
+    IDS_STRING212           "AI Entity Defend Point%LFF%?AIEntityDefendPoint@@YAXHMM@Z%Entity Number, PosX, PosZ"
+    IDS_STRING213           "AI Entity Go To Position%LFFL%?AIEntityGoToPosition@@YAXHMMH@Z%Entity Number, PosX, PosZ, Container"
+    IDS_STRING214           "AI Entity Search Area%L%?AIEntitySearchArea@@YAXH@Z%Entity Number"
+    IDS_STRING215           "AI Entity Defend Area%LFFFH%?AIEntityDefendArea@@YAXHMMMH@Z%Entity Number, PosX, PosZ, Distance, Container"
+    IDS_STRING216           "AI Entity Stop%L%?AIEntityStop@@YAXH@Z%Entity Number"
+    IDS_STRING217           "AI Entity Look At Position%LFF%?AIEntityLookAtPosition@@YAXHMM@Z%Entity Number, PosX, PosZ"
+    IDS_STRING218           "AI Entity Look Around%LFF%?AIEntityLookAround@@YAXHMM@Z%Entity Number, Min Ang, Max Ang"
+    IDS_STRING219           "AI Entity Random Move%LFF%?AIEntityRandomMove@@YAXHMM@Z%Entity Number, Min Dist, Max Dist"
+    IDS_STRING220           "AI Entity Move Close%LFFF%?AIEntityMoveClose@@YAXHMMM@Z%Entity Number, PosX, PosZ, Distance"
+    IDS_STRING221           "AI Entity Duck%L%?AIEntityDuck@@YAXH@Z%Entity Number"
+    IDS_STRING222           "AI Entity Stand%L%?AIEntityStand@@YAXH@Z%Entity Number"
+    IDS_STRING223           "AI Entity Move To Closest Sound%L%?AIEntityMoveToClosestSound@@YAXH@Z%Entity Number"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING240           "AI Get Entity Container[%LL%?AIGetEntityContainer@@YAHH@Z%Entity Number"
+    IDS_STRING241           "AI Remove Zone%L%?AIRemoveZone@@YAXH@Z%Zone Number"
+    IDS_STRING242           "AI Set Entity Defending%LL%?AISetEntityDefending@@YAXHH@Z%Entity Number, Defending Mode"
+    IDS_STRING243           "AI Get Entity Target ID[%LLL%?AIGetEntityTargetID@@YAHHH@Z%Entity Number, Target index"
+    IDS_STRING244           "AI Get Entity Team[%LL%?AIGetEntityTeam@@YAHH@Z%Entity Number"
+    IDS_STRING245           "AI Start%0%?AIStart@@YAXXZ%"
+    IDS_STRING246           "AI Entity Remove Zone%LL%?AIEntityRemoveZone@@YAXHH@Z%Entity Number, Zone Number"
+    IDS_STRING247           "AI Entity Reset%L%?AIEntityReset@@YAXH@Z%Entity Number"
+    IDS_STRING248           "AI Add Zone%LFFFFL%?AIAddZone@@YAXHMMMMH@Z%Zone Number, MinX, MinZ, MaxX, MaxZ, Container Number"
+    IDS_STRING249           "AI Create Sound%FFLFL%?AICreateSound@@YAXMMHMH@Z%PosX, PosZ, Type, Radius, Container Number"
+    IDS_STRING250           "AI Add View Blocking Obstacle%L%?AIAddViewBlockingObstacle@@YAXH@Z%Object Number"
+    IDS_STRING251           "AI Add View Blocking Obstacle%LL%?AIAddViewBlockingObstacle@@YAXHH@Z%Object Number, Height"
+    IDS_STRING252           "AI Add View Blocking Obstacle%LLL%?AIAddViewBlockingObstacle@@YAXHHH@Z%Object Number, Height, Container Number"
+    IDS_STRING253           "AI End New Obstacle%LL%?AIEndNewObstacle@@YAXHH@Z%Container Number, Height"
+    IDS_STRING254           "AI Set Entity Hearing Threshold%LL%?AISetEntityHearingThreshold@@YAXHH@Z%Entity Number, Threshold"
+    IDS_STRING255           "AI Entity Move To Cover[%LLFF%?AIEntityMoveToCover@@YAHHMM@Z%Entity Number, PosX, PosZ"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING256           "AI Add Obstacle From Level%LFFF%?AIAddObstacleFromLevel@@YAXHMMM@Z%Object Number, Plane Height, Min Length, Min Height"
+    IDS_STRING257           "AI Complete Obstacles%0%?AICompleteObstacles@@YAXXZ%"
+    IDS_STRING258           "AI Complete Obstacles%L%?AICompleteObstacles@@YAXH@Z%Container Number"
+    IDS_STRING259           "AI Add Obstacle From Level%LLLFFFL%?AIAddObstacleFromLevel@@YAXHHHMMMH@Z%Object Number, Container Number, Height, Plane Height, Min Length, Min Height, Output To File"
+    IDS_STRING260           "AI Get Entity Move X[%FL%?AIGetEntityMoveX@@YAKH@Z%Entity Number"
+    IDS_STRING261           "AI Get Entity Move Z[%FL%?AIGetEntityMoveZ@@YAKH@Z%Entity Number"
+    IDS_STRING262           "AI Set Entity Patrol Time%LF%?AISetEntityPatrolTime@@YAXHM@Z%Entity Number, Time"
+    IDS_STRING263           "AI Set Avoid Mode%L%?AISetAvoidMode@@YAXH@Z%Mode"
+    IDS_STRING264           "AI Make Path Between Points%LLFFFFF%?AIMakePathBetweenPoints@@YAXHHMMMMM@Z%Path Number, Container Number, BeginX, BeginZ, EndX, EndZ, Max Start Cost"
+    IDS_STRING265           "AI Set Entity Avoid Distance%LF%?AISetEntityAvoidDistance@@YAXHM@Z%Entity Number, Distance"
+    IDS_STRING266           "AI Add Obstacle From Level%LLFFF%?AIAddObstacleFromLevel@@YAXHHMMM@Z%Object Number, Container Number, Plane Height, Min Length, Min Height"
+    IDS_STRING267           "AI Add Obstacle From Level%LLLFFF%?AIAddObstacleFromLevel@@YAXHHHMMM@Z%Object Number, Container Number, Height, Plane Height, Min Length, Min Height"
+    IDS_STRING268           "AI Get PLayer In Zone[%LL%?AIGetPlayerInZone@@YAHH@Z%Zone Number"
+    IDS_STRING269           "AI Zone Exist[%LL%?AIZoneExist@@YAHH@Z%Zone Number"
+    IDS_STRING270           "AI Set Entity Can Search%LL%?AISetEntityCanSearch@@YAXHH@Z%Entity Number, Mode"
+    IDS_STRING271           "AI Get Entity Action$[%SL%?AIGetEntityAction@@YAKKH@Z%Entity Number"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING272           "AI Set Entity Angle Y%LF%?AISetEntityAngleY@@YAXHM@Z%Entity Number, Angle Y"
+    IDS_STRING273           "AI Set Player Angle Y%F%?AISetPlayerAngleY@@YAXM@Z%Angle Y"
+    IDS_STRING274           "AI Entity Add Target%LL%?AIEntityAddTarget@@YAXHH@Z%Entity Number, Target ID"
+    IDS_STRING275           "AI Set Entity Can Select Targets%LL%?AISetEntityCanSelectTargets@@YAXHH@Z%Entity Number, Can Select Mode"
+    IDS_STRING276           "AI Entity Remove Target%LL%?AIEntityRemoveTarget@@YAXHH@Z%Entity Number, Target ID"
+    IDS_STRING277           "AI Get Entity Target Container[%LLL%?AIGetEntityTargetContainer@@YAHHH@Z%Entity Number, Target Index"
+    IDS_STRING278           "AI Connect Containers[%LLFFLFF%?AIConnectContainers@@YAHHMMHMM@Z%From Container Number, X,Z, To Container Number, X,Z"
+    IDS_STRING279           "AI Set Entity Position%LFFF%?AISetEntityPosition@@YAXHMMM@Z%Entity Number, PosX, PosY, PosZ"
+    IDS_STRING280           "AI Set Entity Height%LF%?AISetEntityHeight@@YAXHM@Z%Entity Number, Height"
+    IDS_STRING281           "AI Get Entity Can See[%LLFFFL%?AIGetEntityCanSee@@YAHHMMMH@Z%Entity Number, PosX, Pos Y, PosZ, Ground Mode"
+    IDS_STRING282           "AI Entity Go To Position%LFF%?AIEntityGoToPosition@@YAXHMM@Z%Entity Number, PosX, PosZ"
+    IDS_STRING283           "AI Set Entity Idle Position%LFF%?AISetEntityIdlePosition@@YAXHMM@Z%Entity Number, PosX, PosZ"
+    IDS_STRING284           "AI Add Alternate Visibility Object%LL%?AIAddAlternateVisibilityObject@@YAXHH@Z%Object Number, Collision Shape"
+    IDS_STRING285           "AI Set Player Height%F%?AISetPlayerHeight@@YAXM@Z%Height"
+    IDS_STRING286           "AI Change Console Object%L%?AIChangeConsoleObject@@YAXH@Z%New Debug Object"
+    IDS_STRING287           "AI Set Player Position%FFF%?AISetPlayerPosition@@YAXMMM@Z%PosX, PosY, PosZ"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING288           "AI Get Entity Changing Containers[%LL%?AIGetEntityChangingContainers@@YAHH@Z%Entity Number"
+    IDS_STRING289           "AI Set Entity Radius%LF%?AISetEntityRadius@@YAXHM@Z%Entity Number, Radius"
+    IDS_STRING290           "AI Set Player Radius%F%?AISetPlayerRadius@@YAXM@Z%Radius"
+    IDS_STRING291           "AI Ray Cast[%FFFFFFF%?AIRayCast@@YAKMMMMMM@Z%"
+    IDS_STRING292           "AI Set Entity Y Position%LF%?AISetEntityYPosition@@YAXHM@Z%Entity Number, Y Pos"
+    IDS_STRING293           "AI Set Thread Mode%L%?AISetThreadMode@@YAXH@Z%Thread Mode"
+    IDS_STRING294           "AI Set Thread Count%L%?AISetThreadCount@@YAXH@Z%Thread Count"
+    IDS_STRING295           "AI Save Obstacle Data%LS%?AISaveObstacleData@@YAXHK@Z%Container Num, Filename"
+    IDS_STRING296           "AI Load Obstacle Data%LS%?AILoadObstacleData@@YAXHK@Z%Container Num, Filename"
+    IDS_STRING297           "AI Count Container Obstacles[%LL%?AICountContainerObstacles@@YAHH@Z%Container Num"
+    IDS_STRING298           "AI Count Container Edges[%LL%?AICountContainerEdges@@YAHH@Z%Container Num"
+    IDS_STRING299           "AI Set Undesirable Grid Space%LFF%?AISetUndesirableGridSpace@@YAXHMM@Z%Container Num, X, Z"
+    IDS_STRING300           "AI Clear Undesirable Grid Space%LFF%?AIClearUndesirableGridSpace@@YAXHMM@Z%Container Num, X, Z"
+    IDS_STRING301           "AI Debug Show Avoidance Grid%LF%?AIDebugShowAvoidanceGrid@@YAXHM@Z%Container Num, Height"
+    IDS_STRING302           "AI Debug Hide Avoidance Grid%L%?AIDebugHideAvoidanceGrid@@YAXH@Z%Container Num"
+    IDS_STRING303           "AI Set Entity Melee Mode%LL%?AISetEntityMeleeMode@@YAXHH@Z%Entity Num, Mode"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING304           "AI Create Sound%FFFLFL%?AICreateSound@@YAXMMMHMH@Z%PosX, PosY, PosZ, Type, Radius, Container Number"
+    IDS_STRING305           "AI Set Blocking Threshold%L%?AISetBlockingThreshold@@YAXH@Z%Threshold"
+    IDS_STRING306           "AI Add Dynamic Blocker%LLFFF%?AIAddDynamicBlocker@@YAXHHMMM@Z%ID, Container, X, Z, Radius"
+    IDS_STRING307           "AI Remove Dynamic Blocker%L%?AIRemoveDynamicBlocker@@YAXH@Z%ID"
+    IDS_STRING308           "AI Get Grid Space[%LLFF%?AIGetGridSpace@@YAHHMM@Z%Container, X, Z"
+    IDS_STRING309           "AI Get Undesirable Grid Space[%LLFF%?AIGetUndesirableGridSpace@@YAHHMM@Z%Container, X, Z"
+    IDS_STRING310           "AI Set Entity Avoid Mode%LL%?AISetEntityAvoidMode@@YAXHH@Z%Entity Number, Avoid Mode"
+    IDS_STRING311           "AI Get Entity Avoid Mode[%LL%?AIGetEntityAvoidMode@@YAHH@Z%Entity Number"
+    IDS_STRING312           "AI Get Entity Following[%LL%?AIGetEntityFollowing@@YAHH@Z%Entity Number"
+    IDS_STRING313           "AI Set Entity Dive Speed Multiplier%HF%?AISetEntityDiveSpeedMultiplier@@YAXHM@Z%Entity Num, Multiplier"
+    IDS_STRING314           "AI Entity Defend Area%LFFFFH%?AIEntityDefendArea@@YAXHMMMMH@Z%Entity Number, PosX, PosY, PosZ, Distance, Container"
+    IDS_STRING315           "AI Set Avoidance Grid Radius%F%?AISetAvoidanceGridRadius@@YAXM@Z%Radius"
+    IDS_STRING316           "AI Remove Alternate Visibility Object%H%?AIRemoveAlternateVisibilityObject@@YAXH@Z%Object ID"
+    IDS_STRING317           "AI Get Entity Is Behind Corner[%LL%?AIGetEntityIsBehindCorner@@YAHH@Z%Entity Number"
+    IDS_STRING318           "AI Set Entity Can Hide Behind Corner%HH%?AISetEntityCanHideBehindCorner@@YAXHH@Z%Entity Number, Hide Mode"
+    IDS_STRING319           "AI Set Entity Dive Range%HF%?AISetEntityDiveRange@@YAXHM@Z%Entity Number, Range"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING320           "AI Get Entity Is Diving[%HH%?AIGetEntityIsDiving@@YAHH@Z%Entity Number"
+    IDS_STRING321           "AI Set Entity Can Dive%HH%?AISetEntityCanDive@@YAXHH@Z%Entity Number, Dive Mode"
+    IDS_STRING322           "AI Entity Force Out Of Cover%H%?AIEntityForceOutOfCover@@YAXH@Z%Entity Number"
+    IDS_STRING323           "AI Set Entity Leap Range%HF%?AISetEntityLeapRange@@YAXHM@Z%Entity Number, Leap Range"
+    IDS_STRING324           "AI Get Entity Is Leaping[%HH%?AIGetEntityIsLeaping@@YAHH@Z%Enity Number"
+    IDS_STRING325           "AI Set Entity Can Leap%HH%?AISetEntityCanLeap@@YAXHH@Z%Entity Number, Leap Mode"
+    IDS_STRING326           "AI Add Door%HHFFFF%?AIAddDoor@@YAXHHMMMM@Z%Door Number, Container ID, x1,y1, x2,y2"
+    IDS_STRING327           "AI Remove Door%HH%?AIRemoveDoor@@YAXHH@Z%Door Number, Container ID"
+    IDS_STRING328           "AI Make Path Between Points%LLFFFFFL%?AIMakePathBetweenPoints@@YAXHHMMMMMH@Z%Path Number, Container Number, BeginX, BeginZ, EndX, EndZ, Max Start Cost, Dest Container"
+    IDS_STRING329           "AI Path Add Point%LFFL%?AIPathAddPoint@@YAXHMMH@Z%Path Number, PosX, PosZ, container"
+    IDS_STRING330           "AI Set Entity Leap Speed Multiplier%HF%?AISetEntityLeapSpeedMultiplier@@YAXHM@Z%Entity Num, Multiplier"
+    IDS_STRING331           "AI Get Last Obstacle Center X[%F%?AILastObstacleCenterX@@YAKXZ%"
+    IDS_STRING332           "AI Get Last Obstacle Center Z[%F%?AILastObstacleCenterZ@@YAKXZ%"
+    IDS_STRING333           "AI Get Last Obstacle Radius[%F%?AILastObstacleRadius@@YAKXZ%"
+	IDS_STRING334			"AI Add Cover Point%FFF%?AIAddCoverPoint@@YAXMMM@Z%"
+END
+
+#endif    // English (United Kingdom) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

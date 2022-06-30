@@ -1,0 +1,71 @@
+//----------------------------------------------------
+//--- GAMEGURU - M-Importer
+//----------------------------------------------------
+
+#include "cstr.h"
+
+void importer_init ( void );
+void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& storage, const visualsdatastoragetype& desiredVisuals);
+void restore_visuals(visualstype& currentVisuals, visualsdatastoragetype& storage);
+void importer_free ( void );
+void importer_changeshader ( LPSTR pNewShaderFilename );
+void importer_loadmodel ( void );
+void importer_loadmodel( int objnumber );
+void importer_load_scenery();
+void importer_loop ( void );
+void imgui_importer_loop(void);
+void importer_update_selection_markers ( void );
+void importer_extract_collision ( void );
+void importer_ShowCollisionOnly ( void );
+void importer_ShowCollisionOnlyOff ( void );
+void importer_snapLeft ( void );
+void importer_snapUp ( void );
+void importer_snapforward ( void );
+void importer_check_for_physics_changes ( void );
+void importer_update_textures ( void );
+void importer_texture_all_meshes(int iTexSlot);
+void importer_set_all_material_settings(int slot, float value);
+void importer_set_all_material_colour(int slot, float values[4]);
+void importer_set_all_material_transparent(bool bIsTransparent);
+void importer_set_all_mesh_double_sided(bool bIsDoubleSided);
+void importer_set_all_material_planar_reflection(bool planarReflection);
+void importer_set_all_material_cast_shadow(bool bCastShadow);
+void importer_load_textures_finish ( int tCount, bool bCubeMapOnly );
+void importer_load_textures ( void );
+void importer_load_fpe ( void );
+void importer_apply_fpe ( void );
+void importer_save_fpe ( void );
+void importer_handleScale ( void );
+void importer_draw ( void );
+void importer_quit ( void );
+void importer_save_entity ( char *filename = NULL );
+void importer_tabs_update ( void );
+void import_generate_thumb(void);
+void importer_tabs_draw ( void );
+void importer_add_collision_box ( void );
+void importer_dupe_collision_box ( void );
+void importer_add_collision_box_loaded ( void );
+void importer_delete_collision_box ( void );
+void importer_checkForShaderFiles ( void );
+void importer_checkForScriptFiles ( void );
+void importer_help ( void );
+void importer_screenSwitch ( void );
+int findFreeDll ( void );
+int findFreeMemblock ( void );
+char* openFileBox ( char* filter, char* initdir, char* dtitle, char* defext, unsigned char open );
+LPSTR _get_str_ptr ( char* pstr );
+char* _get_str ( LPSTR strptr, int strsize );
+char* importerPadString ( char* tString );
+int findFreeObject ( void );
+float GetDistance ( float x1, float  y1, float  z1, float  x2, float  y2, float  z2 );
+int importer_check_if_protected ( char* timporterfilecheck_s );
+void importer_sort_names ( void );
+void importer_find_object_name_from_fpe ( void );
+void importer_hide_mouse ( void );
+void importer_show_mouse ( void );
+void importer_fade_out ( void );
+void importer_fade_in ( void );
+void importer_check_script_token_exists ( void );
+void importer_update_scale ( void );
+void importer_find_floor(void);
+float GetScaleMultiply(int iObj);

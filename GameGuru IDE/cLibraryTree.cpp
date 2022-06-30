@@ -108,14 +108,17 @@ int cLibraryTree::Start ( cLibraryImage* pImage, int iScroll )
 		// ensure default folders are always open
 		HTREEITEM hItem = g_TreeData [ i ].item;
 		CString sPath = GetItemPath( hItem );
+#ifdef VRQUEST
 		CString strparent = this->GetItemText ( g_TreeData [ i ].item );
 		if ( strparent.CompareNoCase ( _T("characters") )==0 
 		||   strparent.CompareNoCase ( _T("buildings") )==0 
-		||   strparent.CompareNoCase ( _T("fixtures") )==0 )
+		||   strparent.CompareNoCase ( _T("objects") )==0 
+		||   strparent.CompareNoCase ( _T("fixtures") )==0 
+		||   strparent.CompareNoCase ( _T("user") )==0 )
 		{
 			this->ExpandItem ( g_TreeData [ i ].item );
 		}
-
+#endif
 		// restore expanded foldes from last time we closed tree view
 		UINT iState = theApp.m_TreeGroups.GetExpanded( sPath );
 		if ( iState==1 ) Expand( hItem, 2 );

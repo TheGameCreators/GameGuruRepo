@@ -1,0 +1,140 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+///#define _USING_V110_SDK71_
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United Kingdom) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,0,2,1
+ PRODUCTVERSION 2,0,2,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "CompanyName", "Blitzwerks"
+            VALUE "FileDescription", "Blitzwerks Terrain Real-Time Terrain Modification System Plugin"
+            VALUE "FileVersion", "2.0.2.1"
+            VALUE "InternalName", "BTRTTMS"
+            VALUE "LegalCopyright", "Copyright (C) 2011"
+            VALUE "ProductName", "Blitzwerks Terrain"
+            VALUE "ProductVersion", "2.0.2.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_STRING101           "BT LOCKVERTEXDATAFORSECTOR%DDD%?BT_LockVertexdataForSector@@YAXKKK@Z%int TerrainID, int LODlevel, int Sector"
+    IDS_STRING102           "BT LOCKEDASECTOR[%D%?BT_LockedASector@@YAKXZ%* No Parameters *"
+    IDS_STRING103           "BT GETLOCKEDTERRAIN[%D%?BT_GetLockedTerrain@@YAKXZ%* No Parameters *"
+    IDS_STRING104           "BT GETLOCKEDLODLEVEL[%D%?BT_GetLockedLODLevel@@YAKXZ%* No Parameters *"
+    IDS_STRING105           "BT GETLOCKEDSECTOR[%D%?BT_GetLockedSector@@YAKXZ%* No Parameters *"
+    IDS_STRING106           "BT UNLOCKVERTEXDATA%0%?BT_UnlockVertexData@@YAXXZ%* No Parameters *"
+    IDS_STRING107           "BT GETVERTEXCOUNT[%D%?BT_GetVertexCount@@YAGXZ%* No Parameters *"
+    IDS_STRING108           "BT GETINDEXCOUNT[%D%?BT_GetIndexCount@@YAKXZ%* No Parameters *"
+    IDS_STRING109           "BT GETINDEX[%DD%?BT_GetIndex@@YAGK@Z%int IndexID"
+    IDS_STRING110           "BT GETVERTEXPOSITIONX[%FD%?BT_GetVertexPositionX@@YAKG@Z%int VertexID"
+    IDS_STRING111           "BT GETVERTEXPOSITIONY[%FD%?BT_GetVertexPositionY@@YAKG@Z%int VertexID"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STRING112           "BT GETVERTEXPOSITIONZ[%FD%?BT_GetVertexPositionZ@@YAKG@Z%int VertexID"
+    IDS_STRING113           "BT SETVERTEXHEIGHT%DF%?BT_SetVertexHeight@@YAXGM@Z%int VertexID, float Height"
+    IDS_STRING114           "BT SETPOINTHEIGHT%DDDF%?BT_SetPointHeight@@YAXKKKM@Z%int TerrainID, int Row, int Collumn, float Height"
+    IDS_STRING115           "BT RAISETERRAIN%DFFFF%?BT_RaiseTerrain@@YAXKMMMM@Z%int TerrainID, float X, float Z, float Radius, float Amount"
+    IDS_STRING116           "BT FLATTENTERRAIN%DFFF%?BT_FlattenTerrain@@YAXKMMM@Z%int TerrainID, float X, float Z, float Radius"
+    IDS_STRING117           "BT GETVERTEXPOSITIONX[%FDD%?BT_GetVertexPositionX@@YAKGG@Z%int Row, int Column"
+    IDS_STRING118           "BT GETVERTEXPOSITIONY[%FDD%?BT_GetVertexPositionY@@YAKGG@Z%int Row, int Column"
+    IDS_STRING119           "BT GETVERTEXPOSITIONZ[%FDD%?BT_GetVertexPositionZ@@YAKGG@Z%int Row, int Column"
+    IDS_STRING120           "BT SETVERTEXHEIGHT%DDF%?BT_SetVertexHeight@@YAXGGM@Z%int Row, int Column, float Height"
+    IDS_STRING121           "BT PAINTTERRAIN%DFFFD%?BT_PaintTerrain@@YAXKMMMK@Z%int TerrainID, float X, float Z, float Radius, dword Colour"
+    IDS_STRING122           "BT PAINTTERRAIN%DFFFDD%?BT_PaintTerrain@@YAXKMMMKK@Z%int TerrainID, float X, float Z, float Radius, dword MinColour, dword MaxColour"
+    IDS_STRING123           "BT SETPOINTCOLOUR%DFFD%?BT_SetPointColour@@YAXKMMK@Z%int TerrainID, float X, float Z, dword Colour"
+    IDS_STRING124           "BT UPDATETERRAINTEXTURE%D%?BT_UpdateTerrainTexture@@YAXK@Z%int TerrainID"
+    IDS_STRING125           "BT RAISETERRAIN%DFFFFF%?BT_RaiseTerrain@@YAXKMMMMM@Z%int TerrainID, float X, float Z, float Radius, float Amount, Cap Height"
+    IDS_STRING126           "BT BLENDTERRAIN%DFFFFF%?BT_BlendTerrain@@YAXKMMMMM@Z%int TerrainID, float X, float Z, float Radius, float Amount, Reserved"
+END
+
+#endif    // English (United Kingdom) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

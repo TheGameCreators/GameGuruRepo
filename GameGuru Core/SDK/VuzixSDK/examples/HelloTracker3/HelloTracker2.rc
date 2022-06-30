@@ -1,0 +1,240 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\HelloTracker2.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\HelloTracker2.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About HelloTracker2"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "HelloTracker2 Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2007",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+END
+
+IDD_HELLOTRACKER2_DIALOG DIALOGEX 0, 0, 320, 198
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "HelloTracker"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,0,0,50,6,NOT WS_VISIBLE
+    PUSHBUTTON      "Cancel",IDCANCEL,270,0,50,6,NOT WS_VISIBLE
+    LTEXT           "Roll:",IDC_STATIC,26,42,15,8
+    LTEXT           "Yaw:",IDC_STATIC,24,16,17,8
+    RTEXT           "Pitch:",IDC_STATIC,22,28,19,8
+    LTEXT           "Static",IDC_STATIC_YAW,43,16,48,8
+    LTEXT           "Static",IDC_STATIC_PITCH,43,28,48,8
+    LTEXT           "Static",IDC_STATIC_ROLL,43,42,48,8
+    PUSHBUTTON      "Set Zero",IDC_BUTTON_ZERO,263,14,50,14
+    GROUPBOX        "Tracking",IDC_STATIC,7,7,219,50
+    GROUPBOX        "Raw Data",IDC_STATIC,7,121,306,49
+    LTEXT           "MagX",IDC_TXT_MAGX,17,131,59,8
+    LTEXT           "MagY",IDC_TXT_MAGY,17,143,59,8
+    LTEXT           "MagZ",IDC_TXT_MAGZ,17,155,59,8
+    LTEXT           "AccX",IDC_TXT_ACCX,91,131,59,8
+    LTEXT           "AccY",IDC_TXT_ACCY,91,143,59,8
+    LTEXT           "AccZ",IDC_TXT_ACCZ,91,155,59,8
+    LTEXT           "GyroX",IDC_TXT_GX,170,131,59,8
+    LTEXT           "GyroY",IDC_TXT_GY,170,143,59,8
+    LTEXT           "GyroZ",IDC_TXT_GZ,170,155,59,8
+    LTEXT           "LBGX",IDC_TXT_LBGX,248,131,59,8
+    LTEXT           "LBGY",IDC_TXT_LBGY,248,143,59,8
+    LTEXT           "LBGZ",IDC_TXT_LBGZ,248,155,59,8
+    LTEXT           "Static",IDC_STATIC_XTRN,169,16,48,8
+    LTEXT           "Static",IDC_STATIC_YTRN,169,28,48,8
+    LTEXT           "Static",IDC_STATIC_ZTRN,169,42,48,8
+    LTEXT           "Z Trn:",IDC_STATIC,148,42,20,8
+    LTEXT           "X Trn:",IDC_STATIC,148,16,20,8
+    RTEXT           "Y Trn:",IDC_STATIC,146,28,20,8
+    GROUPBOX        "Filtered Data",IDC_STATIC,7,60,306,57
+    LTEXT           "MagX",IDC_TXT_MAGX2,17,77,59,8
+    LTEXT           "MagY",IDC_TXT_MAGY2,17,88,59,8
+    LTEXT           "MagZ",IDC_TXT_MAGZ2,17,101,59,8
+    LTEXT           "AccX",IDC_TXT_ACCX2,91,77,59,8
+    LTEXT           "AccY",IDC_TXT_ACCY2,91,88,59,8
+    LTEXT           "AccZ",IDC_TXT_ACCZ2,91,101,59,8
+    LTEXT           "GyroX",IDC_TXT_GX2,169,77,59,8
+    LTEXT           "GyroY",IDC_TXT_GY2,169,88,59,8
+    LTEXT           "GyroZ",IDC_TXT_GZ2,169,101,59,8
+    LTEXT           "LBGX",IDC_TXT_LBGX2,247,77,59,8
+    LTEXT           "LBGY",IDC_TXT_LBGY2,247,88,59,8
+    LTEXT           "LBGZ",IDC_TXT_LBGZ2,247,101,59,8
+    LTEXT           "Not Attached",IDC_TXT_STATUS,7,183,240,8
+    PUSHBUTTON      "Get Version",IDC_BTN_GETVERSION,263,177,50,14,NOT WS_VISIBLE | WS_DISABLED
+    CONTROL         "Auto Correct",IDC_CHK_AUTOCORRECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,256,31,57,10
+    LTEXT           "Static",IDC_TXT_MAGYAW,232,47,81,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 3,1,0,1
+ PRODUCTVERSION 3,1,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "Vuzix Corporation"
+            VALUE "FileDescription", "Head Tracker Sample Program"
+            VALUE "FileVersion", "3, 1, 0, 1"
+            VALUE "InternalName", "HelloTracker3.exe"
+            VALUE "LegalCopyright", "Copyright (c) 2010 Vuzix Corporation.  All rights reserved."
+            VALUE "OriginalFilename", "HelloTracker3.exe"
+            VALUE "ProductName", "Vuzix Video Eyewear"
+            VALUE "ProductVersion", "3, 1, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_HELLOTRACKER2_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 313
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 191
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About HelloTracker2..."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\HelloTracker2.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,8 @@
+{
+    "file_format_version": "1.0.0",
+    "runtime":
+    {
+        "library_path": "F:\\Steam\\steamapps\\common\\SteamVR\\bin\\vrclient.dll",
+        "VALVE_runtime_is_steamvr" : true
+    }
+}

@@ -1,0 +1,300 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{4ce9b0bd-dc17-44bf-93d9-ce1c54103285}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Table">
+      <UniqueIdentifier>{71b6a339-3dd6-4469-b7c3-b1b9186f6188}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EAX">
+      <UniqueIdentifier>{d9caae3e-05bf-46b3-a6e8-71a824fb0154}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OS">
+      <UniqueIdentifier>{26e46e1a-260b-4cba-a8d1-0806e034348c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OS\CPU">
+      <UniqueIdentifier>{e2ed4fa2-9ce9-4573-a886-7d695d768bda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OS\Hard Drive">
+      <UniqueIdentifier>{4b4a2dad-64db-40b0-abe2-da28ed0ddc3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OS\Name">
+      <UniqueIdentifier>{b33c8ea8-c83b-4521-a03f-43a92c5a56d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OS\Display">
+      <UniqueIdentifier>{b5fb930d-2b80-401d-af88-5198951c447b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OS\Dialog">
+      <UniqueIdentifier>{ad9cba15-e0a0-4cf3-ad08-db47571808ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OS\Memory">
+      <UniqueIdentifier>{f2381f94-d072-42a1-8474-d108062afac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File Blocks">
+      <UniqueIdentifier>{19a3240a-f900-43bc-a542-ed77311ca1a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File Mapping">
+      <UniqueIdentifier>{3ffc2c58-c7bc-4246-8ab8-cac2d7e9666b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File Blocks\zlib">
+      <UniqueIdentifier>{96c11182-b913-4c96-acc5-1fce6effffcd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="EAX.cpp">
+      <Filter>EAX</Filter>
+    </ClCompile>
+    <ClCompile Include="CpuUsage.cpp">
+      <Filter>OS\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="OSCpu.cpp">
+      <Filter>OS\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="OSCpuInfo.cpp">
+      <Filter>OS\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="OSHardDrive.cpp">
+      <Filter>OS\Hard Drive</Filter>
+    </ClCompile>
+    <ClCompile Include="OSComputerNames.cpp">
+      <Filter>OS\Name</Filter>
+    </ClCompile>
+    <ClCompile Include="OSDisplay.cpp">
+      <Filter>OS\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="OSDialog.cpp">
+      <Filter>OS\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="OSMemory.cpp">
+      <Filter>OS\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="FileBlocks.cpp">
+      <Filter>File Blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="FileMapping.cpp">
+      <Filter>File Mapping</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC.cpp">
+      <Filter>File Mapping</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\cZip.cpp">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\compress.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\crc32.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\deflate.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\entropy.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\fileenc.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\gzclose.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\gzlib.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\gzread.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\gzwrite.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\hmac.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\infback.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\inffast.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\inflate.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\inftrees.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\ioapi.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\ioapi_buf.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\ioapi_mem.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\iowin32.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\prng.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\pwd2key.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\sha1.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\trees.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\uncompr.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\unzip.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\zip.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\zutil.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\adler32.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\aescrypt.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\aeskey.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="Zlib\aestab.c">
+      <Filter>File Blocks\zlib</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Table</Filter>
+    </ClInclude>
+    <ClInclude Include="CpuUsage.h">
+      <Filter>OS\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="OSCpuInfo.h">
+      <Filter>OS\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="PerfCounters.h">
+      <Filter>OS\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="FileBlocksData.h">
+      <Filter>File Blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC.h">
+      <Filter>File Mapping</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Include\Enchancements.h" />
+    <ClInclude Include="Zlib\cZip.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\brg_endian.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\brg_types.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\crc32.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\crypt.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\deflate.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\entropy.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\fileenc.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\gzguts.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\hmac.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\inffast.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\inffixed.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\inflate.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\inftrees.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\ioapi.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\ioapi_buf.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\ioapi_mem.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\iowin32.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\prng.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\pwd2key.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\sha1.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\trees.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\unzip.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\zconf.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\zip.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\zlib.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\zutil.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\aes.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\aes_via_ace.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\aesopt.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="Zlib\aestab.h">
+      <Filter>File Blocks\zlib</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="commands.rc">
+      <Filter>Table</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

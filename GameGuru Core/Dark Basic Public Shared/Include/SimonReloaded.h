@@ -1,0 +1,32 @@
+// Dave - Header file didnt exist for this, so created one.
+
+void InfiniteVegetationConstructor ( void );
+void InfiniteVegetationDestructor ( void );
+void InfiniteVegetationReceiveCoreDataPtr ( LPVOID pCore );
+float floatFromBits( DWORD const bits );
+void SetPBRResourceValues ( int iPBRAGED, int iPBRSpec, int iPBRCube, int iPBRCurve );
+void SetResourceValues(int iGrassObjIN, int iGridObjectStartIN, int iGrassImgIN, int iShadowImgIN, int iBuildMeshIN, int iShaderIN, int iGrassMemBlockIN, int iGrassMemBlockResIN, int iCameraMaskIN);
+void SetTerrainMask(int iMask);
+ int InfiniteVegetationRnd(int iMax);
+ void DeleteVegetationGrid(void);
+ void SetVegetationGridVisible(bool bShow);
+ void DeleteInvalidGrass(int iTerrainID, float fWaterHeight, float fSlopeMax);
+ void MakeVegPatch(int iVegObj, float fVegHeight, float fVegWidth, int iX, int iZ, int iOptionalSkipGrassMemblock);
+ void UpdateVegPatch(int iVegObj, int iTerrainID, float fVegX, float fVegZ);
+ int ClampToMemblockRes(float fValue);
+ bool GridSquareContainsGrass(int iX, int iZ);
+ void RefreshGridExistArray(void);
+ void MakeVegetationGrid(int iVegPerMeshIN,  float fVegWidthIN, float fVegHeightIN, int iVegAreaWidthIN, int iGridSizeIN, int iTerrainID, int iOptionalSkipGrassMemblock, bool bBelowWater);
+ void MakeVegetationGridQuick(int iVegPerMeshIN, float fVegWidthIN, float fVegHeightIN, int iVegAreaWidthIN, int iGridSizeIN, int iTerrainID, int iOptionalSkipGrassMemblock, bool bBelowWater);
+ void UpdateVegZone(bool bSuperFlat, float fX1, float fZ1, float fX2, float fZ2, int iTerrainID, float fSuperFlatHeight);
+ void UpdateVegetation(bool bSuperFlat, float fViewPointX, float fViewPointZ, int iTerrainID, float fSuperFlatHeight, int iDynamicShadowImage);
+ void UpdateBlitzTerrain(float fViewPointX, float fViewPointZ, int iTerrainID, int iDynamicShadowImage);
+ void UpdateSuperFlat(float fViewPointX, float fViewPointZ, float fHeight, int iDynamicShadowImage );
+ void UpdateVegZoneBlitzTerrain(float fX1, float fZ1, float fX2, float fZ2, int iTerrainID);
+ void UpdateVegZoneSuperFlat(float fX1, float fZ1, float fX2, float fZ2, float fSuperFlatHeight);
+ void UpdateGrassTexture(int iPBRMode);
+ void UpdateGrassShader(int iShaderIndex);
+ void HideVegetationGrid(void);
+ void ShowVegetationGrid(void);
+ int GetFirstGrassObject(void);
+ int GetLastGrassObject(void);

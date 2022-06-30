@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Editor.rc
+// Used by EditorVRQ.rc
 //
 #define IDCPREVIEW                      3
 #define IDR_EDITORTYPE_CNTR_IP          6
@@ -99,6 +99,7 @@
 #define IDB_PORTAL_BUTTON               249
 #define IDB_UPDATE_LOGO1                250
 #define IDR_GAME2                       251
+#define IDR_COMBINEDTOOLBAR             252
 #define IDC_COMBO_TITLE_SCREEN          1005
 #define IDC_COMBO_WEAPONS               1006
 #define IDC_COMBO_GAME_MENU             1007
@@ -527,7 +528,9 @@
 #define ID_VIEW_DECREASE_SHROUD         32837
 #define ID_VIEW_LAYERS                  32838
 #define ID_VIEW_MOVEDOWN_LAYER          32839
+#define ID_VIEW_ZOOMIN_OLD              32839
 #define ID_VIEW_MOVEUP_LAYER            32840
+#define ID_VIEW_ZOOMOUT_OLD             32840
 #define ID_VIEW_OVERVIEW                32841
 #define ID_VIEW_CLOSEUP                 32842
 #define ID_BUTTON32843                  32843
@@ -573,6 +576,7 @@
 #define ID_VIEW_ROTATE_ENTITY           32885
 #define ID_BUTTON_TEST_GAME             32886
 #define ID_TEST_GAME                    32887
+#define ID_TESTVR_GAME                  32888
 #define ID_EDIT_UNDO_1                  32889
 #define ID_FILE_SAVE_EX                 32890
 #define ID_FILE_SAVE_AS_EX              32891
@@ -605,7 +609,7 @@
 #define ID_BUTTON32922                  32922
 #define ID_HELP_HELPWIZARD              32923
 #define ID_HELP_CHECKFORUPDATES         32924
-#define ID_HELP_ABOUTBETA               32925
+#define ID_HELP_COMMUNITYGUIDE          32925
 #define ID__DELETEPOSTER                32926
 #define ID_BUTTON32925                  32935
 #define ID_BUTTON32926                  32936
@@ -705,6 +709,16 @@
 #define ID_HELP_TOGGLEPARENTALCONTROL   33036
 #define ID_HELP_TOGGLEPARENTALCONTROL33037 33037
 #define ID_HELP_READUSERMANUAL          33038
+#define ID_OBJECTS_ADDNEWENTITY         33039
+#define ID_OBJECTS_ADDNEWSITE           33040
+#define ID_OBJECTS_PLAYERSTART          33041
+#define ID_OBJECTS_MULTIPLAYERSTART     33042
+#define ID_OBJECTS_CREATENEWWAYPOINT    33043
+#define ID_TESTGAME_DESKTOPGAMEPLAY     33044
+#define ID_HELP_GAMEKEYBOARDCONTROLS    33047
+#define ID_HELP_GAMEVRCONTROLS          33048
+#define ID_TESTGAME_SOCIALVRGAMEPLAY    33050
+#define ID_TESTGAME_SOLOVRGAMEPLAY      33051
 
 // Next default values for new objects
 // 
@@ -712,7 +726,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        252
-#define _APS_NEXT_COMMAND_VALUE         33039
+#define _APS_NEXT_COMMAND_VALUE         33052
 #define _APS_NEXT_CONTROL_VALUE         1381
 #define _APS_NEXT_SYMED_VALUE           301
 #endif
