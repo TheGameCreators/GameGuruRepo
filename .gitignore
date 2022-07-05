@@ -182,3 +182,32 @@ GameGuru/Files/mapbank/level2.dat
 GameGuru/Files/mapbank/level2.fpm
 GameGuru Core/.vs/GameGuru/v15/Browse.VC.opendb
 GameGuru Core/UseNONE.bat
+GameGuru Core/Dark Basic Public Shared/Lib/Animation.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Basic2D.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Basic3D.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Bitmap.lib
+GameGuru Core/Dark Basic Public Shared/Lib/BlitzTerrain.lib
+GameGuru Core/Dark Basic Public Shared/Lib/BlitzTerrain_RTTMSPlugin.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Bullet.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Camera.lib
+GameGuru Core/Dark Basic Public Shared/Lib/ConvX.lib
+GameGuru Core/Dark Basic Public Shared/Lib/CPU3D.lib
+GameGuru Core/Dark Basic Public Shared/Lib/DarkAI.lib
+GameGuru Core/Dark Basic Public Shared/Lib/DarkLUA.lib
+GameGuru Core/Dark Basic Public Shared/Lib/DBDLLCore.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Enhancements.lib
+GameGuru Core/Dark Basic Public Shared/Lib/File.lib
+GameGuru Core/Dark Basic Public Shared/Lib/FTP.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Image.lib
+GameGuru Core/Dark Basic Public Shared/Lib/InfiniteVegetation.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Input.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Light.lib
+GameGuru Core/Dark Basic Public Shared/Lib/LightMapper.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Memblocks.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Setup.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Sound.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Sprites.lib
+GameGuru Core/Dark Basic Public Shared/Lib/SteamMultiplayer.lib
+GameGuru Core/Dark Basic Public Shared/Lib/System.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Text.lib
+GameGuru Core/Dark Basic Public Shared/Lib/Vectors.lib
