@@ -211,3 +211,10 @@ GameGuru Core/Dark Basic Public Shared/Lib/SteamMultiplayer.lib
 GameGuru Core/Dark Basic Public Shared/Lib/System.lib
 GameGuru Core/Dark Basic Public Shared/Lib/Text.lib
 GameGuru Core/Dark Basic Public Shared/Lib/Vectors.lib
+GameGuru Core/Dark Basic Public Shared/Lib/GGVR.lib
+GameGuru Core/Dark Basic Public Shared/Lib/PhotonMultiplayer.lib
+GameGuru Core/GameGuru.bat
+GameGuru Core/GameGuruPreprocessor/preprocessor-flags-vrquestv3.h
+GameGuru Core/GameGuruVRQuestV3.bat
+GameGuru Core/GameGuruVRQuestV3.sln
+GameGuru Core/UseENCRYPTIONANDSECURITYCODES.bat
