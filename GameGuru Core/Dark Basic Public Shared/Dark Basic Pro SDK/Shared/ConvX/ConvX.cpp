@@ -440,16 +440,24 @@ DARKSDK bool ConvXLoadModelData ( char* szFilename, sFrame* pFrame, bool bAnim )
 	SAFE_MEMORY ( szFilename );
 	SAFE_MEMORY ( pFrame );
 
-	// setup variables
-	IDirectXFile*			pDXFile       = NULL;	// file interface
-	IDirectXFileEnumObject* pDXEnum       = NULL;	// object interface
-	IDirectXFileData*		pDXData       = NULL;	// data interface
-	char*					szTexturePath = "";		// default texture path
+	// get real filename location
+	char szRealFilename[MAX_PATH];
+	strcpy_s(szRealFilename, MAX_PATH, szFilename);
+	GG_GetRealPath(szRealFilename, 0);
 
-	//
 	// LEE, can use newer D3DXFileCreate (https://www.gamedev.net/forums/topic/662730-missing-d3dxofdll-in-windows-7-64-bit-directx-development/)
 	// in order to have a 64-bit version of this X file loader - if AssImp fails to preserve DBP style X loading, we can use this as a plan B
 	//
+	// LB: 32bit work - alas porting the X file parser is a chunk of work and no guarentee the X model data loaded will be identical to the older 32bit
+	// solution. Better to call a 32-bit process to produce the DBO file identically as it used to, and then load the DBO file.
+	// see X to DBO filename convertsion via the g_pRootFolderConverter converter that remains 32 bit in the installation
+
+	/*
+	// setup variables
+	IDirectXFile*			pDXFile = NULL;	// file interface
+	IDirectXFileEnumObject* pDXEnum = NULL;	// object interface
+	IDirectXFileData*		pDXData = NULL;	// data interface
+	char*					szTexturePath = "";		// default texture path
 
 	// create the file object
 	if ( FAILED ( DirectXFileCreate ( &pDXFile ) ) )
@@ -458,31 +466,6 @@ DARKSDK bool ConvXLoadModelData ( char* szFilename, sFrame* pFrame, bool bAnim )
 	// register the templates from RM
 	if ( FAILED ( pDXFile->RegisterTemplates ( ( LPVOID ) D3DRM_XTEMPLATES, D3DRM_XTEMPLATE_BYTES ) ) )
 		return false;
-
-//	// leeadd - 171003 - this registers manual templates stored in the xfile itself
-//	HANDLE hfile = CreateFile ( szFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
-//	if ( hfile != INVALID_HANDLE_VALUE )
-//	{
-//		DWORD dwBufferSize = GetFileSize ( hfile, 0 );
-//		LPSTR pBuffer = new char[dwBufferSize];
-//		DWORD bytesread=0;
-//		ReadFile(hfile, pBuffer, dwBufferSize, &bytesread, NULL );
-//		pDXFile->RegisterTemplates ( ( LPVOID ) pBuffer, dwBufferSize );
-//		SAFE_DELETE(pBuffer);
-//		CloseHandle ( hfile );
-//	}
-//	else
-//		return false;
-
-	// mem leak dump check
-//	_CrtMemDumpAllObjectsSince( &g_crt_mem_state );
-
-	// snapshot
-//	_CrtMemCheckpoint ( &g_crt_mem_state );
-
-	char szRealFilename[ MAX_PATH ];
-	strcpy_s( szRealFilename, MAX_PATH, szFilename );
-	GG_GetRealPath( szRealFilename, 0 );
 
 	// create an enumeration object
 	if ( FAILED ( pDXFile->CreateEnumObject ( ( LPVOID ) szRealFilename, DXFILELOAD_FROMFILE, &pDXEnum ) ) )
@@ -502,6 +485,7 @@ DARKSDK bool ConvXLoadModelData ( char* szFilename, sFrame* pFrame, bool bAnim )
 	// release dx handles
 	SAFE_RELEASE ( pDXEnum );
 	SAFE_RELEASE ( pDXFile );
+	*/
 
 	// return to caller
 	return true;

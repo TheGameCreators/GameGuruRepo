@@ -369,9 +369,9 @@ inline void MemSetWord(void *dest, USHORT data, int count);
 
 inline void MemSetQuad(void *dest, UINT data, int count)
 {
-// this function fills or sets unsigned 32-bit aligned memory
-// count is number of quads
-
+	#ifdef FOR32BIT
+	// this function fills or sets unsigned 32-bit aligned memory
+	// count is number of quads
 	_asm 
 		{ 
 		mov edi, dest   ; edi points to destination memory
@@ -379,7 +379,10 @@ inline void MemSetQuad(void *dest, UINT data, int count)
 		mov eax, data   ; 32-bit data
 		rep stosd       ; move data
 		} // end asm
-
+	#else
+	//LB: and the 64-bit equiv.
+	memset(dest, data, count * 4);
+	#endif
 } // end MemSetQuad
 
 // 3D parametric line /////////////////////////////////////////

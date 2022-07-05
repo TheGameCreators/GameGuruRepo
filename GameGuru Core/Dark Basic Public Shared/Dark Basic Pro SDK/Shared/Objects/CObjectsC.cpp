@@ -466,7 +466,6 @@ DARKSDK_DLL void LoadCore ( char* szFilename, char* szOrgFilename, int iID, int 
 	// check memory allocation
 	ID_ALLOCATION ( iID );
 
-
 	// load the object
 	if ( !LoadDBO ( szFilename, &g_ObjectList [ iID ] , szOrgFilename ) )
 		return;

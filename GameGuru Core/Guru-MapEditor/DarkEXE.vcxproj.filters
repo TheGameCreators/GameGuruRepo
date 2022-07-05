@@ -207,6 +207,9 @@
     <ClCompile Include="..\GameGuru\Source\M-Grass.cpp">
       <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
     </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Keys.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DarkEXE.h">

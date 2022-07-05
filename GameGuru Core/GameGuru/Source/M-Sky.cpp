@@ -255,7 +255,10 @@ void sky_skyspec_init ( void )
 				if (ObjectExist(t.skyobj) == 1)
 				{
 					cstr pFileToSave = cstr(cstr("skybank\\") + t.skyname_s + "\\" + t.skynameonly_s + ".dbo");
-					SaveObject(pFileToSave.Get(), t.skyobj);
+					if (FileExist(pFileToSave.Get()) == 0)
+					{
+						SaveObject(pFileToSave.Get(), t.skyobj);
+					}
 				}
 			}
 			else
