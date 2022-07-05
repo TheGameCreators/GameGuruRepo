@@ -62,4 +62,55 @@ typedef enum DWRITE_MEASURING_MODE
 
 } DWRITE_MEASURING_MODE;
 
+//+-----------------------------------------------------------------------------
+//
+//  Enum:
+//      D2D1_ALPHA_MODE
+//
+//  Synopsis:
+//      Qualifies how alpha is to be treated in a bitmap or render target containing
+//      alpha.
+//
+//------------------------------------------------------------------------------
+typedef enum D2D1_ALPHA_MODE
+{
+
+	//
+	// Alpha mode should be determined implicitly. Some target surfaces do not supply
+	// or imply this information in which case alpha must be specified.
+	//
+	D2D1_ALPHA_MODE_UNKNOWN = 0,
+
+	//
+	// Treat the alpha as premultipled.
+	//
+	D2D1_ALPHA_MODE_PREMULTIPLIED = 1,
+
+	//
+	// Opacity is in the 'A' component only.
+	//
+	D2D1_ALPHA_MODE_STRAIGHT = 2,
+
+	//
+	// Ignore any alpha channel information.
+	//
+	D2D1_ALPHA_MODE_IGNORE = 3,
+
+	D2D1_ALPHA_MODE_FORCE_DWORD = 0xffffffff
+
+} D2D1_ALPHA_MODE;
+
+//+-----------------------------------------------------------------------------
+//
+//  Struct:
+//      D2D1_PIXEL_FORMAT
+//
+//------------------------------------------------------------------------------
+typedef struct D2D1_PIXEL_FORMAT
+{
+	DXGI_FORMAT format;
+	D2D1_ALPHA_MODE alphaMode;
+
+} D2D1_PIXEL_FORMAT;
+
 #endif /* DCOMMON_H_INCLUDED */

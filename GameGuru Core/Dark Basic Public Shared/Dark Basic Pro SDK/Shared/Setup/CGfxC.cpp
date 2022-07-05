@@ -1101,7 +1101,9 @@ DARKSDK void DB_UpdateEntireWindow(bool bFullUpdate, bool bMovement)
 		DWORD dwActualWindowHeight = gWindowSizeY+gWindowExtraY;
 		SetWindowPos(m_hWnd, HWND_TOP, g_pGlob->dwWindowX, g_pGlob->dwWindowY, dwActualWindowWidth, dwActualWindowHeight, SWP_SHOWWINDOW);
 		ShowWindow(m_hWnd, gWindowVisible);
-		SetClassLong(m_hWnd, GCL_HICON, (LONG)gWindowIconHandle);
+		//LB: 32bit
+		//SetClassLong(m_hWnd, GCL_HICON, (LONG)gWindowIconHandle);
+		SetClassLong(m_hWnd, GCLP_HICON, (LONG)gWindowIconHandle);
 	}
 
 	// Paint after window switch

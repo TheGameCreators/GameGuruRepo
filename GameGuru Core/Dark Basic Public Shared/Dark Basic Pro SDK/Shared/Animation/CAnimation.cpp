@@ -21,6 +21,7 @@
 #include "CObjectsC.h"
 
 // Theoraplayer for Classic, Windows Media Foundation for Windows 10+
+#define WMFVIDEO
 #ifdef WMFVIDEO
  #define INITGUID
  #include <Guiddef.h>
@@ -971,7 +972,7 @@ void SetVideoPosition( float seconds )
 
 void AnimationConstructor ( void )
 {
-	// Initialise the Theora Player manager (.ogv)
+	// Initialise the video manager
 	#ifdef WMFVIDEO
 	g_bMFPlatExists = false;
 	HMODULE hMFPlat = LoadLibrary( "mfplat.dll" );

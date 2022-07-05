@@ -14,14 +14,16 @@ extern int g_iLightmapFileFormat;
 
 inline int FtoI( float f )
 {
-	int iValue;
-	
+	//LB: 32bit
+	return (int)f;
+	/*
+	int iValue;	
 	__asm {
 		fld f;
 		fistp iValue;
 	}
-
 	return iValue;
+	*/
 }
 
 #endif

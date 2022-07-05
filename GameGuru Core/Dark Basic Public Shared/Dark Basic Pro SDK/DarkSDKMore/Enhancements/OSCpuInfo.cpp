@@ -187,8 +187,10 @@ bool CPUInfo::DoesCPUSupportFeature ( DWORD dwFeature )
 
 bool __cdecl CPUInfo::DoesCPUSupportCPUID ( void )
 {
+	//LB: 32bit
+	return false;
+	/*
 	int CPUIDPresent = 0;
-
 	// Use SEH to determine CPUID presence
     __try
 	{
@@ -218,12 +220,14 @@ bool __cdecl CPUInfo::DoesCPUSupportCPUID ( void )
         CPUIDPresent = false;
 		return false;
     }
-
 	return ( CPUIDPresent == 0 ) ? true : false;
+	*/
 }
 
 bool __cdecl CPUInfo::RetrieveCPUFeatures ( void )
 {
+	//LB: 32bit
+	/*
 	int CPUFeatures = 0;
 	int CPUAdvanced = 0;
 
@@ -312,12 +316,14 @@ bool __cdecl CPUInfo::RetrieveCPUFeatures ( void )
 			Features.ExtendedFeatures.APIC_ID = ( ( CPUAdvanced & 0xFF000000 ) >> 24 );
 		}
 	}
-
+	*/
 	return true;
 }
 
 bool __cdecl CPUInfo::RetrieveCPUIdentity ( void )
 {
+	//LB: 32bit
+	/*
 	int CPUVendor [ 3 ];
 	int CPUSignature;
 
@@ -391,12 +397,15 @@ bool __cdecl CPUInfo::RetrieveCPUIdentity ( void )
 	ChipID.Family         =	( ( CPUSignature & 0x00000F00 ) >>  8 );	// Bits 11..8 Used
 	ChipID.Model          =	( ( CPUSignature & 0x000000F0 ) >>  4 );	// Bits 7..4 Used
 	ChipID.Revision       =	( ( CPUSignature & 0x0000000F ) >>  0 );	// Bits 3..0 Used
-
+	*/
 	return true;
 }
 
 bool __cdecl CPUInfo::RetrieveCPUCacheDetails ( void )
 {
+	//LB: 32bit
+	return true;
+	/*
 	int L1Cache [ 4 ] = { 0, 0, 0, 0 };
 	int L2Cache [ 4 ] = { 0, 0, 0, 0 };
 
@@ -497,10 +506,14 @@ bool __cdecl CPUInfo::RetrieveCPUCacheDetails ( void )
 
 	// return failure if we cannot detect either cache with this method
 	return ( ( Features.L1CacheSize == -1 ) && ( Features.L2CacheSize == -1 ) ) ? false : true;
+	*/
 }
 
 bool __cdecl CPUInfo::RetrieveClassicalCPUCacheDetails ( void )
 {
+	//LB: 32bit
+	return true;
+	/*
 	int TLBCode = -1, TLBData = -1, L1Code = -1, L1Data = -1, L1Trace = -1, L2Unified = -1, L3Unified = -1;
 	int TLBCacheData [ 4 ] = { 0, 0, 0, 0 };
 	int TLBPassCounter = 0;
@@ -662,6 +675,7 @@ bool __cdecl CPUInfo::RetrieveClassicalCPUCacheDetails ( void )
 		Features.L3CacheSize = L3Unified;
 
 	return true;
+	*/
 }
 
 bool __cdecl CPUInfo::RetrieveCPUClockSpeed ( void )
@@ -681,6 +695,9 @@ bool __cdecl CPUInfo::RetrieveCPUClockSpeed ( void )
 
 bool __cdecl CPUInfo::RetrieveClassicalCPUClockSpeed ( void )
 {
+	//LB: 32bit
+	return true;
+	/*
 	LARGE_INTEGER	liStart,
 					liEnd,
 					liCountsPerSecond;
@@ -736,10 +753,14 @@ bool __cdecl CPUInfo::RetrieveClassicalCPUClockSpeed ( void )
 	Features.CPUSpeed = ( int ) dFrequency;
 
 	return true;
+	*/
 }
 
 bool __cdecl CPUInfo::RetrieveCPUExtendedLevelSupport ( int CPULevelToCheck )
 {
+	//LB: 32bit
+	return true;
+	/*
 	int MaxCPUExtendedLevel = 0;
 
 	// the extended CPUID is supported by various vendors starting with the following CPU models: 
@@ -828,10 +849,14 @@ bool __cdecl CPUInfo::RetrieveCPUExtendedLevelSupport ( int CPULevelToCheck )
 		return false;
 
 	return true;
+	*/
 }
 
 bool __cdecl CPUInfo::RetrieveExtendedCPUFeatures ( void )
 {
+	//LB: 32bit
+	return true;
+	/*
 	int CPUExtendedFeatures = 0;
 
 	// check that we are not using an Intel processor as it does not support this
@@ -894,10 +919,14 @@ bool __cdecl CPUInfo::RetrieveExtendedCPUFeatures ( void )
 	}
 
 	return true;
+	*/
 }
 
 bool __cdecl CPUInfo::RetrieveProcessorSerialNumber ( void )
 {
+	//LB: 32bit
+	return true;
+	/*
 	int SerialNumber [ 3 ];
 
 	if ( !Features.HasSerial )
@@ -953,10 +982,14 @@ bool __cdecl CPUInfo::RetrieveProcessorSerialNumber ( void )
 			);
 
 	return true;
+	*/
 }
 
 bool __cdecl CPUInfo::RetrieveCPUPowerManagement ( void )
 {	
+	//LB: 32bit
+	return true;
+	/*
 	int CPUPowerManagement = 0;
 
 	if ( !RetrieveCPUExtendedLevelSupport ( 0x80000007 ) )
@@ -1001,10 +1034,14 @@ bool __cdecl CPUInfo::RetrieveCPUPowerManagement ( void )
 	Features.ExtendedFeatures.PowerManagement.HasVoltageID      = ( ( CPUPowerManagement & 0x00000004 ) != 0 );
 	
 	return true;
+	*/
 }
 
 bool __cdecl CPUInfo::RetrieveExtendedCPUIdentity ( void )
 {
+	//LB: 32bit
+	return true;
+	/*
 	int ProcessorNameStartPos = 0;
 	int CPUExtendedIdentity [ 12 ];
 
@@ -1097,6 +1134,7 @@ bool __cdecl CPUInfo::RetrieveExtendedCPUIdentity ( void )
 	}
 
 	return true;
+	*/
 }
 
 bool _cdecl CPUInfo::RetrieveClassicalCPUIdentity ()
@@ -1413,6 +1451,9 @@ CPUSpeed::~CPUSpeed ()
 
 __int64	__cdecl CPUSpeed::GetCyclesDifference (DELAY_FUNC DelayFunction, unsigned int uiParameter)
 {
+	//LB: 32bit
+	return true;
+	/*
 	unsigned int edx1, eax1;
 	unsigned int edx2, eax2;
 		
@@ -1449,6 +1490,7 @@ __int64	__cdecl CPUSpeed::GetCyclesDifference (DELAY_FUNC DelayFunction, unsigne
 	}
 
 	return (CPUSPEED_I32TO64 (edx2, eax2) - CPUSPEED_I32TO64 (edx1, eax1));
+	*/
 }
 
 void CPUSpeed::Delay (unsigned int uiMS)

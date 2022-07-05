@@ -113,6 +113,9 @@ DARKSDK bool CallExist(HINSTANCE hDLLModule, char* DecoratedName)
 
 DARKSDK bool Call(HINSTANCE hDLLModule, char* DecoratedName, DWORD* pDataAddress, int paramnum, DWORD* ReturnData)
 {
+	//LB: 32bit
+	MessageBox(NULL, "Call", "", MB_OK);
+	/*
 	FARPROC fpAddress = (FARPROC)GetProcAddress(hDLLModule, DecoratedName);
 	if(fpAddress)
 	{
@@ -142,7 +145,8 @@ DARKSDK bool Call(HINSTANCE hDLLModule, char* DecoratedName, DWORD* pDataAddress
 		return true;
 	}
 	else
-		return false;
+	*/
+	return false;
 }
 
 DARKSDK DWORD CallDLL_Param( int dllid, LPSTR pDLLFunction, int paramnum, DWORD* pDataAddress )

@@ -7217,10 +7217,28 @@ DARKSDK_DLL bool DBOFileExist ( LPSTR pFilename )
 
 DARKSDK_DLL bool ConvertToDBOBlock ( LPSTR pFilename, LPSTR pExtension, void** ppDBOBlock, DWORD* pdwBlockSize )
 {
+	//LB: 32bit - can no longer load DirectX files directly, 32 bit only DLL required for the old code
+	if (pFilename && strlen(pFilename) > 0)
+	{
+		// silently convert one if not already a DBO
+		if (strnicmp(pFilename + strlen(pFilename) - 2, ".x", 2) == NULL)
+		{
+			char pDBOVersion[MAX_PATH];
+			strcpy(pDBOVersion, pFilename);
+			pDBOVersion[strlen(pDBOVersion) - 2] = 0;
+			strcat(pDBOVersion, ".dbo");
+			if (FileExist(pDBOVersion) == 1)
+			{
+				if (DBOLoadBlockFile (pDBOVersion, ppDBOBlock, pdwBlockSize))
+					return true;
+			}
+		}
+	}
+	return false;
+
+	/*
 	// result var
 	bool bResult=false;
-
-	// LEELEE, there is, but its an updated loadde for X files, maybe look at it AFTER ASSIMP!
 
 	// clear return block
 	*ppDBOBlock = NULL;
@@ -7267,6 +7285,7 @@ DARKSDK_DLL bool ConvertToDBOBlock ( LPSTR pFilename, LPSTR pExtension, void** p
 
 	// okay
 	return bResult;
+	*/
 }
 
 // DBO Import/Export Functions
@@ -7340,10 +7359,34 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 	char pFilename[MAX_PATH];
 	strcpy(pFilename, pPassedInFilename);
 
+	//LB: 32bit no more X file loading in 64 bit version, old code uses a 32bit DLL
+	if (strnicmp(pFilename + strlen(pFilename) - 2, ".x", 2) == NULL)
+	{
+		// DBO version
+		char pDBOVersion[MAX_PATH];
+		strcpy(pDBOVersion, pFilename);
+		pDBOVersion[strlen(pDBOVersion) - 2] = 0;
+		strcat(pDBOVersion, ".dbo");
+
+		// if no DBO need to make one in 64 bit version using the 32 bit converter
+		if (FileExist(pDBOVersion) == 0)
+		{
+			extern char g_pRootFolderConverter[MAX_PATH];
+			ExecuteFile(g_pRootFolderConverter, pFilename, "", 1);
+			int iCount = 10; // wait a second for the file to show up!
+			while (FileExist(pDBOVersion) == 0 && iCount > 0 )
+			{
+				Sleep(50); iCount--;
+			}
+		}
+
+		// and can then use it
+		strcpy(pFilename, pDBOVersion);
+	}
+
 	// No object to start with
 	*ppObject = NULL;
 
-	// switch to use new AssImp Importer if not a DBO file
 	// Obtain extension
 	char pExtension[256];
 	strcpy(pExtension, "");
@@ -7388,7 +7431,6 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 	}
 	else
 	{
-
 		//PE: Check if we got a cached version.
 		void CreateCacheXFile(char *pFilename, void* pBlock, DWORD dwBlockSize);
 		bool bCheckCacheXFile(LPSTR pFilename, DWORD* pdwBlockSize, void** ppDBOBlock);
