@@ -8,4 +8,4 @@ Steam Product: https://store.steampowered.com/app/266310/GameGuru/
 
 You will need the media files associated with the above product to use this repository.
 
-This source code requires Visual Studio 2017 Community Edition.
+This source code requires Visual Studio 2017 Community Edition. Ensure you add Visual C++ MFC for x86 and x64 to a clean install of VS2017.
