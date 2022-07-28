@@ -1442,7 +1442,10 @@ void physics_player_gatherkeycontrols ( void )
 				#endif
 			}
 			#else
-			t.plrhasfocus=GetFileMapDWORD( 11, 148 );
+				t.plrhasfocus=GetFileMapDWORD( 11, 148 );
+				#ifdef PRODUCTCLASSICIMGUI
+					t.plrhasfocus = 1;
+				#endif
 			#endif
 		}
 	}
@@ -2023,12 +2026,10 @@ void physics_player_control_LUA ( void )
 			LuaSetInt ( "g_PlrKeySHIFT", t.plrkeySHIFT );
 			LuaSetInt ( "g_PlrKeySHIFT2", t.plrkeySHIFT2 );
 			LuaSetInt ( "g_PlrKeyJ", t.plrkeyJ );
-
 			// Call externaliszed script
 			LuaSetFunction ( "PlayerControl", 0, 0 );
 			LuaCall();
 		}
-
 		// System to detect when player (for whatever reason) drops BELOW the terrain
 		if ( ObjectPositionY(t.aisystem.objectstartindex)<t.tplayerterrainheight_f-1030.0 ) 
 		{
@@ -2064,12 +2065,10 @@ void physics_player_control ( void )
 		t.tmouseclick = control_mouseclick_mode(1);
 	else
 		t.tmouseclick=0;
-
 	// Set input data for LUA call
 	LuaSetInt ( "g_KeyPressJ", t.plrkeyJ );
 	LuaSetInt ( "g_MouseClickControl", t.tmouseclick );
 	physics_player_control_LUA();
-
 	// Apply colour to shader
 	SetVector4 ( g.terrainvectorindex, t.playercontrol.redDeathFog_f, 0, 0, 0 );
 	t.tColorVector = g.terrainvectorindex;

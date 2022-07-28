@@ -76,7 +76,7 @@ terrainbuildtype terrainbuild;
 // moved from below so Classic could compile
 bool bUpdateVeg = true; //Update veg on by default.
 
-#ifdef VRTECH
+#if defined(PRODUCTCLASSIC) || defined(VRTECH) //cyb
 #ifdef ENABLEIMGUI
 
 int delay_terrain_execute = 0;
@@ -412,7 +412,7 @@ void terrain_paintselector_show ( void )
 	if ( t.conkit.editmodeactive != 0 )  
 		return;
 
-	#ifdef VRTECH
+	#if defined(VRTECH) || defined(PRODUCTCLASSICIMGUI)
 	// if switch from terrain paint to grass paint, hide and reshow (grass does not need texture panel)
 	if (!bDisableAllTerrainSprites) {
 		if (SpriteExist(terrainbuild.iTexHelpSpr) == 1)
@@ -520,11 +520,15 @@ void imgui_terrain_loop(void)
 			grass_setgrassgridandfade();
 
 			#ifdef PRODUCTV3
-			grass_init();
+			  grass_init();
 			#else
-			if (!(ObjectExist(t.tGrassObj) == 1 && GetMeshExist(t.tGrassObj) == 1) )
-				grass_init();
-			#endif
+			  #ifdef PRODUCTCLASSICIMGUI
+			   grass_init();
+			  #else
+			   if (!(ObjectExist(t.tGrassObj) == 1 && GetMeshExist(t.tGrassObj) == 1) )
+				  grass_init();
+			  #endif
+			#endif	
 
 			//t.completelyfillvegarea = 1;
 			t.terrain.grassupdateafterterrain = 1;
@@ -1250,7 +1254,7 @@ void imgui_terrain_loop(void)
 				ImGui::PopItemWidth();
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Weather");
 
-
+#ifndef PRODUCTCLASSICIMGUI
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 				ImGui::Text("Display Weather:");
 				ImGui::SameLine();
@@ -1258,8 +1262,9 @@ void imgui_terrain_loop(void)
 				ImGui::SetCursorPos(ImVec2(136, ImGui::GetCursorPosY()));
 				if (ImGui::Checkbox("##DisplayWeather", &bEnableWeather)) 
 				{
-					reset_env_particles();
+					//reset_env_particles(); //cyb
 				}
+#endif
 
 				ImGui::Indent(-10);
 			}
@@ -1346,7 +1351,11 @@ void terrain_paintselector_control ( void )
 #endif
 #endif
 
+#ifdef PRODUCTCLASSICIMGUI
+	terrain_paintselector_hide();
+#else
 	terrain_paintselector_show();
+#endif
 
 	// Only when release mouse continue
 	if ( terrainbuild.bReleaseMouseFirst == true && t.inputsys.mclick != 0 ) return;
@@ -2361,7 +2370,7 @@ void terrain_editcontrol ( void )
 					{
 						t.terrain.AMOUNT_f=50*t.terrain.zoom_f;
 					}
-					#ifdef VRTECH
+					#if defined(VRTECH) || defined(PRODUCTCLASSICIMGUI)
 					if (  t.mc == 1 && (t.inputsys.keyshift == 1 || (iTerrainRaiseMode == 0 && t.terrain.terrainpaintermode == 1) ) )
 					#else
 					if (  t.mc == 1 && t.inputsys.keyshift == 1 )
@@ -2693,6 +2702,9 @@ void terrain_editcontrol ( void )
 				#ifdef VRTECH
 				bVegHasChanged = true;
 				#endif
+				#ifdef PRODUCTCLASSICIMGUI
+				bVegHasChanged = true;
+				#endif
 			}
 		}
 		t.terrain.lastmc=t.mc;
@@ -2723,7 +2735,7 @@ void terrain_editcontrol ( void )
 				t.terrain.lastpaintz_f=t.terrain.Y_f;
 				if ( t.terrain.terrainpaintermode != 10 ) 
 				{
-					#ifdef VRTECH
+					#if defined(VRTECH) || defined(PRODUCTCLASSICIMGUI)
 					if ( t.inputsys.keyshift == 1 || iTerrainPaintMode != 1 )
 					#else
 					if ( t.inputsys.keyshift == 1 )
@@ -2761,7 +2773,7 @@ void terrain_editcontrol ( void )
 
 					// grass value stored in RED component
 					t.texselectgrass = 1;
-					#ifdef VRTECH
+					#if defined(VRTECH) || defined(PRODUCTCLASSICIMGUI)
 					if ( t.inputsys.keyshift == 1 || iTerrainPaintMode != 1 )
 					#else
 					if ( t.inputsys.keyshift == 1 )
@@ -2771,6 +2783,9 @@ void terrain_editcontrol ( void )
 						t.texselect = Rgb(255,0,0);
 
 					#ifdef VRTECH
+					bVegHasChanged = true;
+					#endif
+					#ifdef PRODUCTCLASSICIMGUI
 					bVegHasChanged = true;
 					#endif
 				}
@@ -3575,7 +3590,7 @@ void terrain_make ( void )
 	t.terrain.waterliney_f = g.gdefaultwaterheight;
 }
 
-#ifdef VRTECH
+#if defined(ENABLEIMGUI) || defined(VRTECH) //cyb
 void terrain_make_image_only(void)
 {
 	// Terrain system
@@ -3654,7 +3669,11 @@ void terrain_make_image_only(void)
 		SetImageAutoMipMap(0); // PE: SetImageAutoMipMap Dont work anymore.
 		SetMipmapNum(1); //PE: mipmaps not needed.
 //			LoadImage (  "effectbank\\reloaded\\media\\circle.dds",t.terrain.imagestartindex+17,10,0 );
+		#ifndef PRODUCTCLASSICIMGUI
 		LoadImage("effectbank\\reloaded\\media\\circle2.dds", t.terrain.imagestartindex + 17, 10, 0);
+		#else
+		LoadImage("effectbank\\reloaded\\media\\circle.dds", t.terrain.imagestartindex + 17, 10, 0);
+		#endif
 		SetMipmapNum(-1);
 		SetImageAutoMipMap(1);
 
@@ -4265,7 +4284,11 @@ void terrain_shadowupdate ( void )
 				#ifdef VRTECH
 				if (  t.game.gameloop  !=  0 || bEnableVeg )  ShowVegetationGrid (  );
 				#else
-				if (  t.game.gameloop  !=  0 )  ShowVegetationGrid (  );
+				  #ifdef PRODUCTCLASSICIMGUI
+				  if (t.game.gameloop != 0 || bEnableVeg)  ShowVegetationGrid(); //cyb
+				  #else
+				  if (t.game.gameloop != 0)  ShowVegetationGrid();
+				  #endif
 				#endif
 			}
 
@@ -5559,9 +5582,11 @@ void terrain_water_setfog ( void )
 	if ( GetEffectExist(t.terrain.effectstartindex+1) ) 
 	{
 		SetVector4 (  g.terrainvectorindex,t.tFogR_f/255.0,t.tFogG_f/255.0,t.tFogB_f/255.0,t.tFogA_f/255.0 );
-		SetEffectConstantVEx (  t.terrain.effectstartindex+1,t.effectparam.water.HudFogColor,g.terrainvectorindex );
+		//SetEffectConstantVEx (  t.terrain.effectstartindex+1,t.effectparam.water.HudFogColor,g.terrainvectorindex );
+		SetEffectConstantV(t.terrain.effectstartindex + 1, "HudFogColor", g.terrainvectorindex); //cyb
 		SetVector4 (  g.terrainvectorindex,t.tFogNear_f,t.tFogFar_f,0,0 );
-		SetEffectConstantVEx (  t.terrain.effectstartindex+1,t.effectparam.water.HudFogDist,g.terrainvectorindex );
+		//SetEffectConstantVEx (  t.terrain.effectstartindex+1,t.effectparam.water.HudFogDist,g.terrainvectorindex );
+		SetEffectConstantV(t.terrain.effectstartindex + 1, "HudFogDist", g.terrainvectorindex); //cyb
 	}
 }
 

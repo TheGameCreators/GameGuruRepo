@@ -5704,6 +5704,12 @@ struct entityeleproftype
 	PropertiesVariables PropertiesVariable;
 	int PropertiesVariableActive;
 	#endif
+#ifdef ENABLEIMGUI //cyb
+	//PE: This takes up mem , should be converted to *PropertiesVariable
+	//PE: 10000 object * this ...
+	PropertiesVariables PropertiesVariable;
+	int PropertiesVariableActive;
+#endif
 
 	// Constructor
 	entityeleproftype ( )
@@ -5711,6 +5717,9 @@ struct entityeleproftype
 		#ifndef PRODUCTCLASSIC
 		PropertiesVariableActive = 0;
 		#endif
+#ifdef ENABLEIMGUI //cyb
+		PropertiesVariableActive = 0;
+#endif
 
 		 //phydw5 = 0;
 		 //phydw4 = 0;

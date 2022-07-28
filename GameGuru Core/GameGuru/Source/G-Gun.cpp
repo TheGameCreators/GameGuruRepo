@@ -614,7 +614,7 @@ void gun_change ( void )
 		}
 
 		//  cause gun lighting to reset
-		t.currentguncolr=-1;
+		//t.currentguncolr=-1;  //cyb - not used
 
 		//  Show gun as active
 		t.currentgunobj=t.gun[t.gunid].obj;
@@ -3914,7 +3914,6 @@ void gun_selectandorload ( void )
 		}
 	}
 	change_brass_firemode(); //PE: Make sure we use the same firemode settings. so can change later when needed.
-
 }
 
 void change_brass_firemode(void)

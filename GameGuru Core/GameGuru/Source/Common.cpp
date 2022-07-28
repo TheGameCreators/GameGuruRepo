@@ -46,6 +46,11 @@ extern bool g_bDisableVRDetectionByUserRequest;
 extern bool bStartNewPrompt;
 #endif
 
+#ifdef ENABLEIMGUI //cyb
+extern bool bStartNewPrompt;
+#endif
+
+
 // Globals
 int g_PopupControlMode = 0;
 int g_trialStampDaysLeft = 0;
@@ -4122,6 +4127,12 @@ void FPSC_Setup ( void )
 			ImGui::StyleColorsClassic();
 		else if (pref.current_style == 3)
 			myLightStyle(NULL);
+
+#ifdef PRODUCTCLASSICIMGUI
+		//temp override dark style
+		myStyle2(NULL);
+		pref.current_style = 0;
+#endif
 
 		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 		ImGuiStyle& style = ImGui::GetStyle();

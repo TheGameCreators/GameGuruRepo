@@ -2412,7 +2412,8 @@ void titleslua_main_stage4_afterloop(void)
 		strcpy ( g_pTitleCurrentPage, t.game.pSwitchToPage );
 
 	// ensure IMGUI does not attempt to render
-	#ifndef PRODUCTCLASSIC
+	//#ifndef PRODUCTCLASSIC
+	#ifdef ENABLEIMGUI
 	extern bool bBlockImGuiUntilNewFrame;
 	bBlockImGuiUntilNewFrame = true;
 	#endif

@@ -31,6 +31,7 @@ bool g_bAllowBackwardCompatibleConversion = false;
 
 #ifdef ENABLEIMGUI
 bool restore_old_map = false;
+int savestandalone_e = 1;
 #endif
 
 void mapfile_saveproject_fpm ( void )
@@ -299,7 +300,9 @@ void mapfile_saveproject_fpm ( void )
 	#ifdef VRTECH
 	//mp_save_workshop_files_needed ( ); // no longer needed, not using workshop
 	#else
-	mp_save_workshop_files_needed ( );
+	  #ifndef PRODUCTCLASSIC
+	    mp_save_workshop_files_needed ( );
+	  #endif
 	#endif
 
 	//  log prompts
@@ -3032,7 +3035,7 @@ void mapfile_savestandalone_stage2a ( void )
 	g_mapfile_iNumberOfLevels = 1 + t.levelmax;
 
 	// Stage 2 - collect all files (from all levels)
-	t.levelindex=0;
+	t.levelindex = 0;
 	t.tlevelfile_s="";
 	t.tlevelstoprocess = 1;
 	g.projectfilename_s = t.tmasterlevelfile_s;
@@ -3126,7 +3129,7 @@ int mapfile_savestandalone_stage2b ( void )
 		addfoldertocollection(cstr(cstr("vegbank\\")+g.vegstyle_s).Get() );
 
 		// start for loop
-		t.e = 1;
+		t.e = 1; savestandalone_e = 1; //cyb bug-fix
 		g_mapfile_fProgressSpan = g_mapfile_iNumberOfEntitiesAcrossAllLevels;
 	}
 	else
@@ -3138,6 +3141,9 @@ int mapfile_savestandalone_stage2b ( void )
 
 int mapfile_savestandalone_stage2c ( void )
 {
+	//cyb //bug-fix
+	t.e = savestandalone_e;
+
 	// choose all entities and associated files
 	int iMoveAlong = 0;
 	if ( t.e <= g.entityelementlist )
@@ -3211,7 +3217,7 @@ int mapfile_savestandalone_stage2c ( void )
 				}
 			}
 
-			//  entity profile file
+			//  entity profile file 
 			t.tentityname1_s=cstr("entitybank\\")+t.entitybank_s[t.entid];
 			t.tentityname2_s=cstr(Left(t.tentityname1_s.Get(),Len(t.tentityname1_s.Get())-4))+".bin";
 			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tentityname2_s).Get() ) == 1 ) 
@@ -3276,6 +3282,9 @@ int mapfile_savestandalone_stage2c ( void )
 				}
 				t.tmodelfile_s=t.tfile_s;
 				addtocollection(t.tmodelfile_s.Get());
+
+				
+
 				// if entity did not specify texture it is multi-texture, so interogate model file
 				// do it for every model
 				findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
@@ -3516,7 +3525,7 @@ int mapfile_savestandalone_stage2c ( void )
 	{
 		iMoveAlong = 1;
 	}
-	t.e++;
+	t.e++; savestandalone_e++; //cyb //bug-fix
 	return iMoveAlong;
 }
 
@@ -3693,7 +3702,7 @@ void mapfile_savestandalone_stage4 ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
-	for ( int iCritDLLs = 1; iCritDLLs <= 6; iCritDLLs++ )
+	for ( int iCritDLLs = 1; iCritDLLs <= 8; iCritDLLs++ ) //cyb
 	{
 		LPSTR pCritDLLFilename = "";
 		switch ( iCritDLLs )
@@ -3704,6 +3713,8 @@ void mapfile_savestandalone_stage4 ( void )
 			case 4 : pCritDLLFilename = "avformat-57.dll"; break;
 			case 5 : pCritDLLFilename = "avutil-55.dll"; break;
 			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
+			case 7 : pCritDLLFilename = "steam_api64.dll"; break; //cyb
+			case 8 : pCritDLLFilename = "sdkencryptedappticket64.dll"; break; //cyb
 		}
 		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
@@ -4012,6 +4023,11 @@ void mapfile_savestandalone_finish ( void )
 		{
 			//  NOTE; Need to exclude lightmaps from encryptor  set encrypt ignore list "lightmaps"
 			EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
+			//cyb
+			if (1 == 1) //i.e. no encryption component present
+			{
+				MessageBox(NULL, "This Standalone WILL NOT HAVE ITS ASSETS ENCRYPTED - DO NOT RELEASE", "Encryption WARNING", MB_OK);
+			}
 		}
 	}
 

@@ -71,6 +71,7 @@ DARKSDK DWORD CloseDisplay(void);
 // Actual commands
 
 DARKSDK void Sync(void);
+DARKSDK void Sync(int iProcessMessages);
 DARKSDK void SyncOn ( void );
 DARKSDK void SyncOff ( void );
 DARKSDK void SyncRate(int iRate);

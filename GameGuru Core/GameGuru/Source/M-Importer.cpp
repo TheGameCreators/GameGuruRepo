@@ -82,6 +82,10 @@ bool bRemoveSprites = false;
 extern preferences pref;
 #endif
 
+#ifdef ENABLEIMGUI //cyb
+extern preferences pref; //cyb
+#endif
+
 // Prototypes
 void LoadFBX ( LPSTR pFilename, int iObjectNumber );
 
@@ -5993,7 +5997,7 @@ void ConvertWorldToRelative ( sFrame* pFrame, GGMATRIX* pStoreNewPoseFrames, GGM
 	}
 }
 
-#ifdef VRTECH
+#if defined(ENABLEIMGUI) || defined(VRTECH) //cyb
 void importer_save_entity ( char *filename )
 {
 	//  Check if user folder exists, if not create it
@@ -8790,6 +8794,28 @@ char* openFileBox ( char* filter_, char* initdir_, char* dtitle_, char* defext_,
 	char initdir[512];
 	char dtitle[512];
 	char defext[512];
+
+#ifdef PRODUCTCLASSICIMGUI
+
+	//replace 32bit fileopen dialogue for 64bit build
+	code_s = "Error";
+	strcpy(t.szreturn, code_s.Get()); 
+	cStr tOldDir = GetDir();
+	char * cFileSelected;
+	cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "All\0*.*\0", initdir_, NULL, true); //"Diffuse File\0*.png\0" //"All\0*.*\0X\0*.x\0DBO\0*.dbo\0OBJ\0*.obj\0FBX\0*.fbx\0GLTF\0*.gltf\0GLB\0*.glb\0\0\0"
+	SetDir(tOldDir.Get());
+	if (cFileSelected && strlen(cFileSelected) > 0)
+	{
+		t.returnstring_s = cFileSelected;
+		if (t.returnstring_s != "")
+		{
+			return t.returnstring_s.Get();
+		}
+	}
+
+	return t.szreturn;
+
+#endif
 
 	strcpy ( filter , filter_ );
 	strcpy ( initdir , initdir_ );

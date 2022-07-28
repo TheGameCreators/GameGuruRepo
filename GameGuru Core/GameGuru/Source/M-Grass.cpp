@@ -279,6 +279,9 @@ void grass_loop ( void )
 			// grass with the function below (seems this functionality disappeared during MAX development for VRQ)
 			grass_updategrassfrombitmap();
 			#endif
+			#ifdef PRODUCTCLASSICIMGUI
+			grass_updategrassfrombitmap();
+			#endif
 
 			// region affected
 			t.tRegionX1 = t.terrain.grassregionx1 * 50;

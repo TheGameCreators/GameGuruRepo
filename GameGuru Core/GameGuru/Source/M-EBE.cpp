@@ -52,7 +52,7 @@ DWORD pVertCountStore[CUBEMAXMESH];
 bool pbTriggerDrawBufferCreation[CUBEMAXMESH];
 short pMasterGridMeshRef[20][20][20][2];
 
-#ifdef VRTECH
+#if defined(ENABLEIMGUI) || defined(VRTECH) //cyb
 char ActiveEBEFilename[260] = { "\0" };
 #endif
 
@@ -79,6 +79,11 @@ bool bDisableAllSprites = true;
 int iPaintMode = 1;
 #else
 bool bDisableAllSprites = false;
+#endif
+
+#ifdef ENABLEIMGUI //cyb
+//bool bDisableAllSprites = true;
+int iPaintMode = 1;
 #endif
 
 struct sMyColBox 
@@ -350,7 +355,6 @@ void ebe_init ( int BuildObj, int iEntID )
 		LoadImage("editors\\uiv3\\ebe-thumb.png", EBE_THUMB);
 	image_setlegacyimageloading(false);
 	#endif
-
 
 	// mark EBE has intialised
 	t.ebe.active = 1;
@@ -661,6 +665,7 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 	t.editorfreeflight.c.z_f = CameraPositionZ();
 	t.editorfreeflight.c.angx_f = 30;
 	#endif
+
 }
 
 void ebe_updateparent ( int entityelementindex )
@@ -1429,14 +1434,17 @@ void imgui_ebe_loop(void)
 						extern bool bImporter_Window;
 						extern bool bWaypoint_Window;
 						extern bool bWaypointDrawmode;
-						extern bool g_bCharacterCreatorPlusActivated;
+						#ifndef PRODUCTCLASSICIMGUI
+						extern bool g_bCharacterCreatorPlusActivated; //cyb
+						#endif
 						void CheckTooltipObjectDelete(void);
 						void CloseDownEditorProperties(void);
 
 						if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 						if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-
+						#ifndef PRODUCTCLASSICIMGUI
+						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
+						#endif
 						CheckTooltipObjectDelete();
 						CloseDownEditorProperties();
 
@@ -1636,7 +1644,7 @@ void imgui_ebe_loop(void)
 						if (skib_frames_execute == 0 && ImGui::IsItemHovered() && ImGui::IsMouseClicked(1)) 
 						{
 							ebebuild.iCurrentTexture = n;
-							delay_execute = 1; //@Lee remove this line if you dont want to support changing textures.
+							//cyb delay_execute = 1; //@Lee remove this line if you dont want to support changing textures.
 						}
 						if ( ImGui::IsItemHovered() )
 						{
