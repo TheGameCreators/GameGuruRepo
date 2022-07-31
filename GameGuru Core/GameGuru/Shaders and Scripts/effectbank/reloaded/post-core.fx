@@ -1,5 +1,7 @@
 #include "constantbuffers.fx"
 #include "settings.fx"
+//#define SHOW_SSAO
+#define BLUR_SSAO
 
 //#define LUMINANCE_CONSIDERATION
 extern float luminosity_threshold = 0.6;
@@ -28,6 +30,7 @@ float deltatime : deltatime;
 float time: Time;
 float4 ScrollScaleUV;
 float SpecularOverride;
+static float2 PixelSize = float2((1.0 / ViewSize.x), (1.0 / ViewSize.y));
 #ifdef CHROMATICABBERATIONLUA
 	float4 ChromaticAbberation = float4(0,0,0,0);
 #endif
@@ -35,6 +38,66 @@ float SpecularOverride;
 #ifdef UNDERWATERWAVE
 	float4 UnderWaterSettings = float4( 0.0 , 75.0, 0.015 , 0.0); // Active,SpeedX,Distortion
 #endif
+
+#ifdef HBAO
+	static float2 FocalLength = float2(tan(0.5f*radians(75.0f)) / PixelSize.x * PixelSize.y, tan(0.5f*radians(75.0f)));
+	#define HBAOSamples			9		//[7 to 36] Higher better, but less FPS.
+	#define HBAOAtt	        	0.02    //[0.001 to 0.2] 
+#endif
+
+#define USE_LUT             
+#define LUT_COLOURHEIGHT    16 
+#define LUT_COLOURWIDTH     256 
+
+#define USE_SATURATION_AND_SEPIA
+
+//#define AMD_CAS //Contrast Adaptive Sharpening
+
+	// LICENSE
+	// =======
+	// Copyright (c) 2017-2019 Advanced Micro Devices, Inc. All rights reserved.
+	// -------
+	// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+	// files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+	// modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+	// Software is furnished to do so, subject to the following conditions:
+	// -------
+	// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+	// Software.
+	// -------
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+	// WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR
+	// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+	// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
+
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	// SUGGESTIONS FOR INTEGRATION
+	// ===========================
+	// Best for performance, run CAS in sharpen-only mode, choose a video mode to have scan-out or the display scale.
+	//  - Sharpen-only mode is faster, and provides a better quality sharpening.
+	// The scaling support in CAS was designed for when the application wants to do Dynamic Resolution Scaling (DRS).
+	//  - With DRS, the render resolution can change per frame.
+	//  - Use CAS to sharpen and upsample to the fixed output resolution, then composite the full resolution UI over CAS output.
+	//  - This can all happen in one compute dispatch.
+	// It is likely better to reduce the amount of film grain which happens before CAS (as CAS will amplify grain).
+	//  - An alternative would be to add grain after CAS.
+	// It is best to run CAS after tonemapping.
+	//  - CAS needs to have input value 1.0 at the peak of the display output.
+	// It is ok to run CAS after compositing UI (it won't harm the UI).
+	//------------------------------------------------------------------------------------------------------------------------------
+
+	uniform float Sharpness = 1.0; // 0.5; //0.0 default
+
+	float3 min3rgb(float3 x, float3 y, float3 z)
+	{
+		return min(x, min(y, z));
+	}
+	float3 max3rgb(float3 x, float3 y, float3 z)
+	{
+		return max(x, max(y, z));
+	}
+
 
 float4x4 g_ProjectionInv : ProjectionInverse;
 float4x4 ViewProjection : ViewProjection;
@@ -192,6 +255,8 @@ float4 GaussFilter[9] =
 //>;
 Texture2D frame : register( t0 );
 Texture2D underWaterWaveNormal : register( t1 );
+Texture2D LUT : register(t2);
+Texture2D NOISE : register(t3);
 
 SamplerState SampleWrap
 {
@@ -210,6 +275,20 @@ SamplerState SampleBorder
     Filter = MIN_MAG_MIP_LINEAR;
     AddressU = Border;
     AddressV = Border;
+};
+SamplerState SampleLUT
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Clamp;
+	AddressV = Clamp;
+};
+SamplerState SampleNOISE
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	//AddressU = Clamp;
+	//AddressV = Clamp;
+	AddressU = Wrap;
+	AddressV = Wrap;
 };
 
 
@@ -422,6 +501,126 @@ float NdcDepthToViewDepth(float z_ndc)
     return viewZ;
 }
 
+#ifdef HBAO
+
+float2 GetRandomR(float2 co)
+{
+	float noiseX = (frac(sin(dot(co, float2(12.9898, 78.233) * 2.0)) * 43758.5453));
+	float noiseY = sqrt(1 - noiseX * noiseX);
+	return float2(noiseX, noiseY);
+}
+
+float2 getRandom(in float2 uv)
+{
+	float2 random_size = float2(64, 64); //256.0;
+	float2 g_screen_size = ViewSize * 2;
+	return saturate(NOISE.SampleLevel(SampleNOISE, g_screen_size * uv / random_size, 0).xy * 2.0f - 1.0f);
+}
+
+float3 GetEyePosition(in float2 uv, in float eye_z)
+{
+	uv = (uv * float2(2.0, -2.0) - float2(1.0, -1.0));
+	float3 pos = 0;
+	pos.xy = (uv * FocalLength) * eye_z;
+	pos.z = eye_z;
+	return pos;
+}
+
+float GetLinearDepth(float2 projQ)
+{
+	float zFarPlane = 7000; //70000;
+	float zNearPlane = 0.1;
+	float depth = (DepthTex.SampleLevel(SampleClamp, projQ.xy, 0.0f).x - 0.95) * 20;
+	return  1 / ((depth * ((zFarPlane - zNearPlane) / (-zFarPlane * zNearPlane)) + zFarPlane / (zFarPlane * zNearPlane)));
+}
+
+float4 SSAOCalculate3(VSOUT IN) : SV_Target
+{
+	float4 output = float4(1,1,1,1);
+	float3 viewSpacePos = VSPositionFromDepth(IN.UVCoord);
+	bool earlyOut = viewSpacePos.z > 2000.0f; //5000.0f; // || viewSpacePos.z < 25.0f;
+	[branch]
+	if (earlyOut)
+	{
+		return output;
+	}
+
+	float depth = GetLinearDepth(IN.UVCoord.xy);
+	if (depth > 5.0) return float4(1.0,1.0,1.0,1.0);
+
+	float2 sample_offset[8] =
+	{
+		float2(1, 0),
+		float2(0.7071f, 0.7071f),
+		float2(0, 1),
+		float2(-0.7071f, 0.7071f),
+		float2(-1, 0),
+		float2(-0.7071f, -0.7071f),
+		float2(0, -1),
+		float2(0.7071f, -0.7071f)
+	};
+
+	float3 pos = GetEyePosition(IN.UVCoord.xy, depth);
+	float3 dx = ddx(pos);
+	float3 dy = ddy(pos);
+	float3 norm = normalize(cross(dx,dy));
+
+	float sample_depth = 0;
+	float3 sample_pos = 0;
+
+	float ao = 0;
+	float s = 0.0;
+
+	//float HBAORange = SAOSettings.x * 5.0;
+	float radius = (((SAOSettings.x - 0) * (1.0 - 0.5)) / (1.0 - 0.0)) + 0.5;
+	float HBAORange = radius * 5.0;
+
+	//float2 rand_vec = GetRandomR(IN.UVCoord.xy); //uses formula
+	float2 rand_vec = getRandom(IN.UVCoord); //uses texture
+
+	float2 sample_vec_divisor = FocalLength * depth / (HBAORange*PixelSize.xy);
+	float2 sample_center = IN.UVCoord.xy;
+
+	for (float i = 0; i < 8; i++)
+	{
+		float theta,temp_theta,temp_ao,curr_ao = 0;
+		float3 occlusion_vector = 0.0;
+
+		float2 sample_vec = reflect(sample_offset[i], rand_vec);
+		sample_vec /= sample_vec_divisor;
+		float2 sample_coords = (sample_vec*float2(1,(float)ViewSize.x / (float)ViewSize.y)) / HBAOSamples;
+
+		for (float k = 1; k <= HBAOSamples; k++)
+		{
+			float2 GLD = 0;
+			GLD.xy = sample_center + sample_coords * (k - 0.5 * (i % 2));
+			sample_depth = GetLinearDepth(GLD);
+
+			sample_pos = GetEyePosition(sample_center + sample_coords * (k - 0.5*(i % 2)), sample_depth);
+			occlusion_vector = sample_pos - pos;
+			temp_theta = dot(norm, normalize(occlusion_vector));
+
+			if (temp_theta > theta)
+			{
+				theta = temp_theta;
+				temp_ao = 1 - sqrt(1 - theta * theta);
+				ao += (1 / (1 + HBAOAtt * pow(length(occlusion_vector) / HBAORange * 5000,2)))*(temp_ao - curr_ao);
+				curr_ao = temp_ao;
+			}
+		}
+		s += 1;
+	}
+
+	ao /= max(0.00001,s);
+	ao = 1.0 - ao * (10.0f*SAOSettings.y);
+	ao = clamp(ao,0,1);
+
+	return float4(ao.xxx, 1.0);
+}
+
+#endif
+
+
 float4 SSAOCalculate(VSOUT IN) : COLOR0
 {
     float4 output = float4(1,1,1,1);
@@ -536,8 +735,8 @@ float4 BlurBL(VSOUT IN, uniform texture2D bufferTexSamp, uniform bool isBlurHori
     float4 output = float4(1,1,1,1);
 	
 	float2 texOffset;
-    float gTexelWidth = (1.0f/1920.0f)*2.0f;
-    float gTexelHeight = (1.0f/1080.0f)*2.0f;
+  float gTexelWidth = (1 / ViewSize.x)*2.0f;
+	float gTexelHeight = (1 / ViewSize.y)*2.0f;
     if(isBlurHorizontal)
     {
         texOffset = float2(gTexelWidth, 0.0f);
@@ -1105,14 +1304,65 @@ float3 bestcolorc64( float3 oldcolor )
       }
    }
    return match/255.0;
-}      
+}  
+
+#ifdef USE_SATURATION_AND_SEPIA 
+float3 saturationMatrix(float VibranceI, float3 colorI)
+{
+	float3 color = colorI;
+	float  mean = (colorI.r + colorI.g + colorI.b) * 0.33333333;
+	float3 dev = colorI - mean;
+	color.rgb = mean + dev * VibranceI;
+
+	float3 sepia;
+	sepia.r = dot(color.rgb, float3(0.393, 0.769, 0.189));
+	sepia.g = dot(color.rgb, float3(0.349, 0.686, 0.168));
+	sepia.b = dot(color.rgb, float3(0.272, 0.534, 0.131));
+	color.rgb = lerp(color.rgb, sepia.rgb, DepthOfField.z);
+
+	return color;
+}
+#endif
+
 #ifdef LENSFLARE
 float4 PSPresent( output IN, uniform texture2D srcTex, uniform texture2D srcTex2, uniform texture2D srcTex3, uniform texture2D srcTex4 ) : COLOR
 #else
 float4 PSPresent( output IN, uniform texture2D srcTex, uniform texture2D srcTex2, uniform texture2D srcTex3 ) : COLOR
 #endif  
 {
-    // sample screen texture with supersampled UV's
+    
+	#ifdef AMD_CAS //Contrast Adaptive Sharpening
+
+		float pixelX = PixelSize.x;
+		float pixelY = PixelSize.y;
+		float3 a = srcTex.Sample(SampleWrap, IN.uv + float2(-pixelX, -pixelY)).rgb;
+		float3 b = srcTex.Sample(SampleWrap, IN.uv + float2(0.0, -pixelY)).rgb;
+		float3 c = srcTex.Sample(SampleWrap, IN.uv + float2(pixelX, -pixelY)).rgb;
+		float3 d = srcTex.Sample(SampleWrap, IN.uv + float2(-pixelX, 0.0)).rgb;
+		float4 allpixel = srcTex.Sample(SampleWrap, IN.uv).rgba;
+		float3 e = allpixel.rgb;
+		float allpixel_alpha = allpixel.a;
+		float3 f = srcTex.Sample(SampleWrap, IN.uv + float2(pixelX, 0.0)).rgb;
+		float3 g = srcTex.Sample(SampleWrap, IN.uv + float2(-pixelX, pixelY)).rgb;
+		float3 h = srcTex.Sample(SampleWrap, IN.uv + float2(0.0, pixelY)).rgb;
+		float3 i = srcTex.Sample(SampleWrap, IN.uv + float2(pixelX, pixelY)).rgb;
+		float3 mnRGB = min3rgb(min3rgb(d, e, f), b, h);
+		float3 mnRGB2 = min3rgb(min3rgb(mnRGB, a, c), g, i);
+		mnRGB += mnRGB2;
+		float3 mxRGB = max3rgb(max3rgb(d, e, f), b, h);
+		float3 mxRGB2 = max3rgb(max3rgb(mxRGB, a, c), g, i);
+		mxRGB += mxRGB2;
+		float3 rcpMRGB = rcp(mxRGB);
+		float3 ampRGB = saturate(min(mnRGB, 2.0 - mxRGB) * rcpMRGB);
+		ampRGB = sqrt(ampRGB);
+		float peak = -rcp(lerp(8.0, 5.0, saturate(Sharpness)));
+		float3 wRGB = ampRGB * peak;
+		float3 rcpWeightRGB = rcp(1.0 + 4.0 * wRGB);
+		float3 window = (b + d) + (f + h);
+		float3 outColor = saturate((window * wRGB + e) * rcpWeightRGB);
+	#endif
+	
+	// sample screen texture with supersampled UV's
     float4 BloomMap=srcTex2.Sample(SampleWrap, IN.uv );
     #ifdef LENSFLARE
      float4 LensMap = srcTex4.Sample(SampleWrap, IN.uv ) * LENSFLAREINTENSITY;
@@ -1129,7 +1379,11 @@ float4 PSPresent( output IN, uniform texture2D srcTex, uniform texture2D srcTex2
    
     #ifdef MOTIONBLUR
     // Motion Blur effect calculation
-    float4 ScreenMap = srcTex.Sample(SampleWrap, IN.uv );
+#ifdef AMD_CAS
+	float4 ScreenMap = float4(outColor.rgb, allpixel_alpha);
+#else
+	float4 ScreenMap = srcTex.Sample(SampleWrap, IN.uv);
+#endif
     if( Motion.y >= 0.05 ) 
     {
       float4 currentPos = mul(float4(worldSpacePos.xyz,1),ViewProjectionMatrix);
@@ -1175,7 +1429,11 @@ float4 PSPresent( output IN, uniform texture2D srcTex, uniform texture2D srcTex2
     }
     #else
      float2 texCoord = IN.uv;
-     float4 ScreenMap = srcTex.Sample(SampleWrap, texCoord);
+#ifdef AMD_CAS
+	 float4 ScreenMap = float4(outColor.rgb, allpixel_alpha);
+#else
+	 float4 ScreenMap = srcTex.Sample(SampleWrap, texCoord);
+#endif
     #endif
 
     // add results based scene pixel brightness
@@ -1224,6 +1482,24 @@ float4 PSPresent( output IN, uniform texture2D srcTex, uniform texture2D srcTex2
 
     float3 final = lerp(MaxAmount.xyz, ScreenMap.xyz, ToneLuminance);
 
+#ifdef USE_LUT
+
+	if (Motion.w > 0)
+	{
+		float2 Lut_Size = float2(LUT_COLOURWIDTH, LUT_COLOURHEIGHT);
+		float2 Lut_pSize = 1.0 / Lut_Size;
+		float4 Lut_UV;
+		float3 colorIN = saturate(final.xyz) * (Lut_Size.y - 1.0);
+
+		Lut_UV.w = floor(colorIN.b);
+		Lut_UV.xy = (colorIN.rg + 0.5) * Lut_pSize;
+		Lut_UV.x += Lut_UV.w * Lut_pSize.y;
+		Lut_UV.z = Lut_UV.x + Lut_pSize.y;
+		final.xyz = lerp(LUT.SampleLevel(SampleLUT, Lut_UV.xy, 0).rgb, LUT.SampleLevel(SampleLUT, Lut_UV.zy, 0).rgb, colorIN.b - Lut_UV.w);
+	}
+
+#endif
+
     // add any screen color effect
     #ifndef NOCOLOREFFECT
      final.xyz += ScreenColor.xyz;
@@ -1260,6 +1536,11 @@ float4 PSPresent( output IN, uniform texture2D srcTex, uniform texture2D srcTex2
      final = bestcolorc64(final);
     #endif
 
+	#ifdef USE_SATURATION_AND_SEPIA
+		float saturationlevel; 
+		saturationlevel = Motion.z * 3;
+		final.xyz = saturationMatrix(saturationlevel, final.xyz);
+	#endif
 
     return float4(final,1);
 }
@@ -1279,9 +1560,14 @@ technique11 Main
    >
    {
       SetVertexShader(CompileShader(vs_5_0, FrameVS()));
+#ifdef HBAO
+	  SetPixelShader(CompileShader(ps_5_0, SSAOCalculate3()));
+#else
       SetPixelShader(CompileShader(ps_5_0, SSAOCalculate()));
+#endif
       SetGeometryShader(NULL);
    }
+#ifdef BLUR_SSAO
    pass SAOp2
    <
       string RenderColorTarget = "buffer2Img";
@@ -1300,6 +1586,7 @@ technique11 Main
       SetPixelShader(CompileShader(ps_5_0, BlurBL(buffer2Img,false)));
       SetGeometryShader(NULL);
    }
+#endif
    pass SAOp4
    <
       string RenderColorTarget = "combineFrameImg";

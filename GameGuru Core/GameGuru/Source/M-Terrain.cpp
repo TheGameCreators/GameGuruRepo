@@ -5472,6 +5472,50 @@ void terrain_water_init ( void )
 
 	//  Make Water plain
 	LoadImage (  "effectbank\\reloaded\\media\\waves2.dds",t.terrain.imagestartindex+7,0,0);//g.gdividetexturesize );
+
+	//LUT processing (post processing shaders - post-core.fx)
+	{
+		SetMipmapNum(1);
+		LoadImage(cstr(cstr("lutbank\\") + t.visuals.lut_s).Get(), t.terrain.imagestartindex + 33, 0, 0);
+
+		if (ImageExist(t.terrain.imagestartindex + 33) == 0)
+		{
+			LoadImage("effectbank\\reloaded\\media\\LUT.png", t.terrain.imagestartindex + 33, 0, 0);
+			if (ImageExist(t.terrain.imagestartindex + 33) == 0)
+			{
+				SetCurrentBitmap(g.terrainworkbitmapindex);
+				CLS(Rgb(0, 0, 0));
+				GrabImage(t.terrain.imagestartindex + 33, 0, 0, 1, 1);
+				SetCurrentBitmap(0);
+			}
+		}
+		SetMipmapNum(-1);
+
+		if (ImageExist(t.terrain.imagestartindex + 33) == 1)
+		{
+			if (ObjectExist(g.postprocessobjectoffset + 0) == 1)
+				TextureObject(g.postprocessobjectoffset + 0, 2, t.terrain.imagestartindex + 33);
+		}
+	}
+
+	//HBAO processing (post processing shaders - post-core.fx)
+	SetMipmapNum(1);
+	LoadImage("effectbank\\reloaded\\media\\NOISE.png", t.terrain.imagestartindex + 38, 0, 0);
+
+	if (ImageExist(t.terrain.imagestartindex + 38) == 0)
+	{
+		SetCurrentBitmap(g.terrainworkbitmapindex);
+		CLS(Rgb(0, 0, 0));
+		GrabImage(t.terrain.imagestartindex + 38, 0, 0, 1, 1);
+		SetCurrentBitmap(0);
+	}
+	SetMipmapNum(-1);
+
+	if (ImageExist(t.terrain.imagestartindex + 38) == 1)
+	{
+		if (ObjectExist(g.postprocessobjectoffset + 0) == 1)
+			TextureObject(g.postprocessobjectoffset + 0, 3, t.terrain.imagestartindex + 38);
+	}
 	
 	if ( ImageExist(t.terrain.imagestartindex+4) == 0 ) 
 	{
@@ -5547,6 +5591,12 @@ void terrain_water_free ( void )
 		else
 			ShowObject (  t.terrain.objectstartindex+2 );
 	}
+
+	//LUT post processing
+	if (ImageExist(t.terrain.imagestartindex + 33) == 1)  DeleteImage(t.terrain.imagestartindex + 33);
+	
+	//HBAO post processing
+	if (ImageExist(t.terrain.imagestartindex + 38) == 1)  DeleteImage(t.terrain.imagestartindex + 38);
 }
 
 void terrain_updatewatermechanism ( void )

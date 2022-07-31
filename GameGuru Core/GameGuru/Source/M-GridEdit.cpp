@@ -8721,6 +8721,8 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	// Ensure game visuals settings used
 	t.gamevisuals.skyindex=t.visuals.skyindex;
 	t.gamevisuals.sky_s=t.visuals.sky_s;
+	t.gamevisuals.lutindex = t.visuals.lutindex;
+	t.gamevisuals.lut_s = t.visuals.lut_s;
 	t.gamevisuals.terrainindex=t.visuals.terrainindex;
 	t.gamevisuals.terrain_s=t.visuals.terrain_s;
 	t.gamevisuals.vegetationindex=t.visuals.vegetationindex;
@@ -9222,6 +9224,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals=t.editorvisuals;
 	t.visuals.skyindex=t.gamevisuals.skyindex;
 	t.visuals.sky_s=t.gamevisuals.sky_s;
+	t.visuals.lutindex = t.gamevisuals.lutindex;
+	t.visuals.lut_s = t.gamevisuals.lut_s;
 	t.visuals.terrainindex=t.gamevisuals.terrainindex;
 	t.visuals.terrain_s=t.gamevisuals.terrain_s;
 	t.visuals.vegetationindex=t.gamevisuals.vegetationindex;

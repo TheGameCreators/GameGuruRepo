@@ -480,6 +480,8 @@ void mapfile_loadproject_fpm ( void )
 			t.visuals=t.editorvisuals;
 			t.visuals.skyindex=t.gamevisuals.skyindex;
 			t.visuals.sky_s=t.gamevisuals.sky_s;
+			t.visuals.lutindex = t.gamevisuals.lutindex;
+			t.visuals.lut_s = t.gamevisuals.lut_s;
 			t.visuals.terrainindex=t.gamevisuals.terrainindex;
 			t.visuals.terrain_s=t.gamevisuals.terrain_s;
 			t.visuals.vegetationindex=t.gamevisuals.vegetationindex;
@@ -489,6 +491,7 @@ void mapfile_loadproject_fpm ( void )
 			//  takes visuals.sky$ visuals.terrain$ visuals.vegetation$
 			visuals_updateskyterrainvegindex ( );
 			t.gamevisuals.skyindex=t.visuals.skyindex;
+			t.gamevisuals.lutindex = t.visuals.lutindex;
 			t.gamevisuals.terrainindex=t.visuals.terrainindex;
 			t.gamevisuals.vegetationindex=t.visuals.vegetationindex;
 		}
@@ -530,6 +533,7 @@ void mapfile_loadproject_fpm ( void )
 			//  and refresh assets based on restore
 			t.visuals.refreshshaders=1;
 			t.visuals.refreshskysettings=1;
+			t.visuals.refreshlutsettings = 1;
 			t.visuals.refreshterraintexture=1;
 			t.visuals.refreshvegtexture=1;
 
@@ -3128,6 +3132,9 @@ int mapfile_savestandalone_stage2b ( void )
 		addfoldertocollection(cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
 		addfoldertocollection(cstr(cstr("vegbank\\")+g.vegstyle_s).Get() );
 
+		//add lutbank
+		addfoldertocollection("lutbank\\");
+
 		// start for loop
 		t.e = 1; savestandalone_e = 1; //cyb bug-fix
 		g_mapfile_fProgressSpan = g_mapfile_iNumberOfEntitiesAcrossAllLevels;
@@ -3770,7 +3777,7 @@ void mapfile_savestandalone_stage4 ( void )
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "memskipibr=" + Str(g.memskipibr); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "underwatermode=" + Str(g.underwatermode); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "usegrassbelowwater=" + Str(g.usegrassbelowwater); ++t.i;
-
+	
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "memskipwatermask=" + Str(g.memskipwatermask); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "lowestnearcamera=" + Str(g.lowestnearcamera); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "standalonefreememorybetweenlevels=" + Str(g.standalonefreememorybetweenlevels); ++t.i;

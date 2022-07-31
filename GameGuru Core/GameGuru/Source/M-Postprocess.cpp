@@ -75,6 +75,18 @@ void postprocess_init ( void )
 					TextureObject(g.postprocessobjectoffset + 0, 1, t.terrain.imagestartindex + 7);
 				}
 
+				//LUT post processing
+				if (ImageExist(t.terrain.imagestartindex + 33) == 1)
+				{
+					TextureObject(g.postprocessobjectoffset + 0, 2, t.terrain.imagestartindex + 33);
+				}
+				
+				//HBAO post processing
+				if (ImageExist(t.terrain.imagestartindex + 38) == 1)
+				{
+					TextureObject(g.postprocessobjectoffset + 0, 3, t.terrain.imagestartindex + 38);
+				}
+
 				//  special code to instruct this post process shader to generate depth texture
 				//  from the main camera zero and pass into the shader as 'DepthMapTex' texture slot
 				SetVector4 (  g.terrainvectorindex,0,0,0,0 );

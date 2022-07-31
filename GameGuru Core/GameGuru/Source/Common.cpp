@@ -1311,6 +1311,10 @@ void common_init_globals ( void )
 	g.skyindex = 0;
 	Dim ( t.skybank_s,1 );
 
+	g.lutmax = 0;
+	g.lutindex = 0;
+	Dim(t.lutbank_s, 1);
+
 	//  Terrain Texture Structure
 	g.terrainstylemax = 0;
 	g.terrainstyle_s = "";
@@ -1867,7 +1871,7 @@ void FPSC_SetDefaults ( void )
 	g.gproducelogfilesdir_s = "";
 	g.gpbroverride = 0;
 	g.memskipwatermask = 0;
-
+	
 	g.maxtotalmeshlights = 20;
 	g.maxpixelmeshlights = 10;
 	g.terrainoldlight = 0;
@@ -4717,6 +4721,7 @@ void FPSC_Setup ( void )
 		//  Call visuals loop once to set shader constants
 		t.visuals = t.gamevisuals;
 		t.visuals.refreshshaders = 1;
+		t.visuals.refreshlutsettings = 1;
 		visuals_loop();
 
 		//  Main loop

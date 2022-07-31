@@ -76,6 +76,34 @@ void sky_init ( void )
 	// Default sky settings
 	t.sky.currenthour_f=12.0;
 	t.sky.daynightprogress=0;
+
+	//  Dir
+	SetDir("lutbank");
+	timestampactivity(0, "entering lutbank");
+
+	//  Assemble list of all luts
+	g.lutmax = 0;
+	ChecklistForFiles();
+	timestampactivity(0, "checking lutbank files");
+	for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
+	{
+		if (ChecklistValueA(t.c) == 0) //i.e a file, ==1 means folder
+		{
+			t.file_s = ChecklistString(t.c);
+			timestampactivity(0, t.file_s.Get());
+			if (cstr(Left(t.file_s.Get(), 1)) != ".")
+			{
+				++g.lutmax;
+				Dim(t.lutbank_s, g.lutmax);
+				t.lutbank_s[g.lutmax] = Lower(t.file_s.Get());
+			}
+		}
+	}
+
+	//  Restore Dir
+	SetDir("..");
+	timestampactivity(0, "finished lutbank scan");
+
 }
 
 void sky_skyspec_init ( void )

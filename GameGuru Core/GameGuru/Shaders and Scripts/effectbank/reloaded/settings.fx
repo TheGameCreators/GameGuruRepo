@@ -8,6 +8,9 @@
 
 //#define LAPTOP // Make everything faster for laptops, will also remove DOF,MB,SAO. Lower shadow, remove grass normals, distance improvements.
 
+#define HBAO //replaces SSAO with Horizon Based Ambient Occlusion (HBAO)
+#define AMD_CAS //Contrast Adaptive Sharpening
+
 #define NOTERRAINSPECULAR // Ignores the W component of the terrain diffuse/albedo texture for zero specular effect
 
 #define COMPRESSLIGHTRANGE // For better PBR light, compress lightrange to remove very dark PBR light areas on objects.
