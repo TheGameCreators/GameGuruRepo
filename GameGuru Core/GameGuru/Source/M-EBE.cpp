@@ -52,7 +52,7 @@ DWORD pVertCountStore[CUBEMAXMESH];
 bool pbTriggerDrawBufferCreation[CUBEMAXMESH];
 short pMasterGridMeshRef[20][20][20][2];
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 char ActiveEBEFilename[260] = { "\0" };
 #endif
 
@@ -79,6 +79,7 @@ bool bDisableAllSprites = true;
 int iPaintMode = 1;
 #else
 bool bDisableAllSprites = false;
+int iPaintMode = 1;
 #endif
 
 struct sMyColBox 
@@ -1067,7 +1068,7 @@ void ebe_loadpattern ( LPSTR pEBEFilename )
 	// if EBE file exists, replace above pattern
 	if ( FileExist(pEBEFilename) == 1 ) 
 	{
-		#ifdef VRTECH
+		#ifdef ENABLEIMGUI
 		strcpy(ActiveEBEFilename, pEBEFilename);
 		#endif
 		Dim ( t.data_s, 2000 );
@@ -3209,7 +3210,11 @@ int ebe_save ( int iEntityIndex )
 	//  Ask for save filename
 	cStr tSaveFile = "";
 	cStr tSaveMessage = "Save EBE Structure";
+	#ifdef _WIN64
+	tSaveFile = openFileBox("EBE Structure (.ebe)\0*.ebe\0All Files\0*.*\0", t.strwork.Get(), tSaveMessage.Get(), ".ebe", IMPORTERSAVEFILE);
+	#else
 	tSaveFile = openFileBox("EBE Structure (.ebe)|*.ebe|All Files|*.*|", t.strwork.Get(), tSaveMessage.Get(), ".ebe", IMPORTERSAVEFILE);
+	#endif
 	if ( tSaveFile == "Error" )
 	{
 		SetDir(pOldDir);
@@ -3525,7 +3530,11 @@ int ebe_loadcustomtexture ( int iEntityProfileIndex, int iWhichTextureOver )
 	//  Ask for save filename
 	cStr tLoadFile = "";
 	cStr tLoadMessage = "Replace with custom texture";
+	#ifdef _WIN64
+	tLoadFile = openFileBox("Diffuse File (_D.dds)\0*.dds\0Texture File (.dds)\0*.dds\0All Files\0*.*\0", t.strwork.Get(), tLoadMessage.Get(), ".dds", IMPORTERSAVEFILE);
+	#else
 	tLoadFile = openFileBox("Diffuse File (_D.dds)|*.dds|Texture File (.dds)|*.dds|All Files|*.*|", t.strwork.Get(), tLoadMessage.Get(), ".dds", IMPORTERSAVEFILE);
+	#endif
 	if ( tLoadFile == "Error" )
 	{
 		SetDir(pOldDir);

@@ -1442,7 +1442,11 @@ void physics_player_gatherkeycontrols ( void )
 				#endif
 			}
 			#else
+			#ifdef ENABLEIMGUI
+			t.plrhasfocus = 1;
+			#else
 			t.plrhasfocus=GetFileMapDWORD( 11, 148 );
+			#endif
 			#endif
 		}
 	}

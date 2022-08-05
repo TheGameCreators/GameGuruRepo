@@ -97,11 +97,14 @@
 
   #else
    // Flags to compile the Classic version of GameGuru
-   #define FPSEXCHANGE
-   #define ENABLECUSTOMTERRAIN
-   #ifdef PRODUCTCONVERTER
-    #define NOSTEAMORVIDEO
-   #endif
+	//PE: Add ENABLEIMGUI,USERENDERTARGET to compile a imgui version of Classic.
+	//#define ENABLEIMGUI
+	//#define USERENDERTARGET
+	#define FPSEXCHANGE
+	#define ENABLECUSTOMTERRAIN
+	#ifdef PRODUCTCONVERTER
+		#define NOSTEAMORVIDEO
+	#endif
   #endif
  #endif
 #endif

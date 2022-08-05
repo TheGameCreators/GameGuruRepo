@@ -7359,9 +7359,29 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 	char pFilename[MAX_PATH];
 	strcpy(pFilename, pPassedInFilename);
 
+	//PE: Check if we got a cached version.
+	void CreateCacheXFile(char *pFilename, void* pBlock, DWORD dwBlockSize);
+	bool bCheckCacheXFile(LPSTR pFilename, DWORD* pdwBlockSize, void** ppDBOBlock);
+	bool bCached = false;
+
 	//LB: 32bit no more X file loading in 64 bit version, old code uses a 32bit DLL
 	if (strnicmp(pFilename + strlen(pFilename) - 2, ".x", 2) == NULL)
 	{
+		//PE: Also support bCheckCacheXFile here.
+		if (pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':' && bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
+		{
+			//PE: cached version found and loaded.
+			bCached = true;
+			// construct the object
+			if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
+			{
+				RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+				return false;
+			}
+			// free block when done
+			SAFE_DELETE_ARRAY(pDBOBlock);
+			return(true);
+		}
 		// DBO version
 		char pDBOVersion[MAX_PATH];
 		strcpy(pDBOVersion, pFilename);
@@ -7374,7 +7394,7 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 			extern char g_pRootFolderConverter[MAX_PATH];
 			ExecuteFile(g_pRootFolderConverter, pFilename, "", 1);
 			int iCount = 10; // wait a second for the file to show up!
-			while (FileExist(pDBOVersion) == 0 && iCount > 0 )
+			while (FileExist(pDBOVersion) == 0 && iCount > 0)
 			{
 				Sleep(50); iCount--;
 			}
@@ -7431,11 +7451,7 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 	}
 	else
 	{
-		//PE: Check if we got a cached version.
-		void CreateCacheXFile(char *pFilename, void* pBlock, DWORD dwBlockSize);
-		bool bCheckCacheXFile(LPSTR pFilename, DWORD* pdwBlockSize, void** ppDBOBlock);
-		bool bCached = false;
-		
+	
 		if (pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':' && bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
 		{
 			//PE: cached version found and loaded.

@@ -457,6 +457,7 @@ void postprocess_preterrain ( void )
 		BT_SetCurrentCamera (  0 );
 	}
 
+	#ifndef PRODUCTCLASSIC
 	#ifdef VRTECH
 	// VR Support - render VR cameras
 	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
@@ -658,6 +659,7 @@ void postprocess_preterrain ( void )
 			BT_SetCurrentCamera(0);
 		}
 	}
+	#endif
 	#endif
 }
 

@@ -93,6 +93,7 @@
 
 #include "CGfxC.h"
 
+
 //PE: ImGui render if we have a imgui frame.
 extern bool bImGuiFrameState;
 extern bool bImGuiRenderTargetFocus;
@@ -1199,6 +1200,10 @@ extern bool bImGuiInTestGame;
 
 LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
+#ifdef ENABLEIMGUI
+	return(ImguiWindowProc(hWnd, message, wParam, lParam));
+#endif
+
 	switch( message )
 	{
 		case WM_SETTEXT:
@@ -2282,7 +2287,11 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	if ( g_pGlob->hWnd==NULL )
 	{
 		wc.style = CS_HREDRAW | CS_VREDRAW;
+		#ifdef ENABLEIMGUI
+		wc.lpfnWndProc = ImguiWindowProc;
+		#else
 		wc.lpfnWndProc = WindowProc;
+		#endif
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
 		wc.hInstance = hInstance;
@@ -2331,7 +2340,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		SETUPConstructor();
 
 		// PE: Imgui register ImguiWindowProc so it can be used for IMGUI input in editor.
-		SetWindowLong(g_pGlob->hWnd, GWL_WNDPROC, (LONG)ImguiWindowProc);
+		SetWindowLong(g_pGlob->hWnd, GWLP_WNDPROC, (LONG)ImguiWindowProc);
 
 		// Initialise DisplayDLL
 		OverrideHWND(g_pGlob->hWnd);

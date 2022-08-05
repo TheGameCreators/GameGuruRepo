@@ -92,7 +92,6 @@ void mp_joinALobby ( void );
 void mp_canIJoinThisLobby ( void );
 void mp_leaveALobby ( void );
 void mp_SubscribeToWorkShopItem ( void );
-void mp_save_workshop_files_needed ( void );
 void mp_grabWorkshopChangedFlagAndVersion ( void );
 int mp_check_if_entity_is_from_install ( char* name_s );
 void mp_resetSteam ( void );

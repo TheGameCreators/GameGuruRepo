@@ -46,6 +46,11 @@
 #ifndef PRODUCTCLASSIC
 int iGenralWindowsFlags = ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove;
 bool bBoostIconColors = false;
+#else
+#ifdef ENABLEIMGUI
+int iGenralWindowsFlags = ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove;
+bool bBoostIconColors = false;
+#endif
 #endif
 
 
@@ -84,14 +89,26 @@ extern int g_iWelcomeLoopPage;
 extern int g_trialStampDaysLeft;
 int g_tstoreprojectmodifiedstatic = 0;
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 void process_entity_library(void);
 void process_entity_library_v2(void);
-extern bool g_bCharacterCreatorPlusActivated;
 // can prevent app from quitting out while in test game
 extern bool g_bDisableQuitFlag;
 extern bool bEnableWeather;
 char cImGuiDebug[2048] = "\0";
+bool bLaunchTestGameAfterLoad = false;
+char pLaunchAfterSyncPreSelectModel[MAX_PATH] = "\0";
+char pLaunchAfterSyncLastImportedModel[MAX_PATH] = "\0";
+#endif
+
+#ifdef ENABLEIMGUI
+#ifdef VRTECH
+extern bool g_bCharacterCreatorPlusActivated;
+#else
+bool g_bCharacterCreatorPlusActivated;
+#endif
+int iOldLaunchAfterSync = 0;
+int iSkibFramesBeforeLaunch = 0;
 bool bForceKey = false;
 int iForceScancode = -1;
 cstr csForceKey = "";
@@ -100,11 +117,6 @@ cstr csForceKey2 = "";
 bool bForceUndo = false;
 bool bForceRedo = false;
 int iLaunchAfterSync = 0;
-bool bLaunchTestGameAfterLoad = false;
-char pLaunchAfterSyncPreSelectModel[MAX_PATH] = "\0";
-char pLaunchAfterSyncLastImportedModel[MAX_PATH] = "\0";
-int iOldLaunchAfterSync = 0;
-int iSkibFramesBeforeLaunch = 0;
 DWORD gWindowSizeXOld = 0;
 DWORD gWindowSizeYOld = 0;
 DWORD gWindowSizeAddY = 0;
@@ -115,7 +127,6 @@ DWORD gWindowPosYOld = 0;
 DWORD gWindowMaximized = 0;
 int xmouseold = 0, ymouseold = 0;
 
-#ifdef ENABLEIMGUI
 extern bool bImGuiInTestGame;
 extern bool bBlockImGuiUntilNewFrame;
 extern bool bImGuiFrameState;
@@ -364,7 +375,6 @@ void generic_preloadfiles(void);
 void CloseDownEditorProperties(void);
 
 #endif
-#endif
 
 // moved here so Classic would compile
 bool Shooter_Tools_Window_Active = false;
@@ -383,10 +393,10 @@ void set_inputsys_mclick(int value)
 	//timestampactivity(0, pDebugMouseClick);
 }
 
-#ifdef VRTECH
+
 // GLOBAL to know when in welcome area
 int iTriggerWelcomeSystemStuff = 0;
-#endif
+
 int iCountDownToShowQuickStartDialog = 0;
 
 int gguishadereffectindex = 0;
@@ -581,9 +591,11 @@ void mapeditorexecutable_init ( void )
 	t.tsl_f=Timer();
 
 	// IDE announcement system (note VR Quest has this option)
-	#ifdef VRTECH
+	#ifdef ENABLEIMGUI
 	// (note VR Quest has this option)
 	iTriggerWelcomeSystemStuff = 1;
+	#else
+	iTriggerWelcomeSystemStuff = 0;
 	#endif
 	if ( g.gshowannouncements == 1 )
 	{
@@ -776,10 +788,10 @@ void mapeditorexecutable_init ( void )
 
 	// Moved last so we can load levels before main loop.
 	// start thread loader for Character Creator texture files (multi-threaded loading) (saves 2s if started CCP)
-
+	#ifdef VRTECH
 	timestampactivity(0, "preload CCP textures early");
 	charactercreatorplus_preloadinitialcharacter();
-
+	#endif
 	//  Main loop
 	iStartupTime = Timer();
 	timestampactivity(0, "Guru Map Editor Loop Starts");
@@ -944,6 +956,7 @@ void mapeditorexecutable_loop(void)
 			{
 				HWND hThisWnd = GetForegroundWindow();
 				MessageBoxA(hThisWnd, "You are not in VR mode. You need to exit the software. When you restart, select VR MODE ON to enable VR.", "Not in VR Mode", MB_OK);
+				iLaunchAfterSync = 0;
 			}
 			else
 			{
@@ -1572,9 +1585,15 @@ void mapeditorexecutable_loop(void)
 			t.inputsys.domodeentity = 1;
 			t.grideditselect = 5;
 			editor_refresheditmarkers();
+
+			#ifndef VRTECH
+			if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
+			#else
 			RedockNextWindow = "Character Creator##PropertiesWindow";
 			g_bCharacterCreatorPlusActivated = true;
 			ImGui::SetWindowFocus(TABENTITYNAME);
+			#endif
+
 		}
 		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Character Creator");
 		ImGui::SameLine();
@@ -1662,6 +1681,7 @@ void mapeditorexecutable_loop(void)
 
 		precise_icon_width = ImGui::GetCursorPos().x - precise_icon_width;
 
+		#ifdef VRTECH
 		CheckTutorialAction("TOOL_VRMODE", -10.0f); //Tutorial: check if we are waiting for this action
 		//if (ImGui::ImgBtn(TOOL_VRMODE, iToolbarIconSize, drawCol_back_test, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 		if (ImGui::ImgBtn(TOOL_VRMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant,false,false,false, bBoostIconColors))
@@ -1676,6 +1696,7 @@ void mapeditorexecutable_loop(void)
 			ImGui::SetTooltip("%s", "Test Level in VR");
 		}
 		ImGui::SameLine();
+		#endif
 
 		if (ImGui::ImgBtn(TOOL_SOCIALVR, iToolbarIconSize, drawCol_back_test, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant))
 		{
@@ -1777,6 +1798,7 @@ void mapeditorexecutable_loop(void)
 						bExport_Standalone_Window = true;
 					}
 				}
+				#ifdef VRTECH
 				if (ImGui::MenuItem("Save to Level Cloud"))
 				{
 					#ifdef ALPHAEXPIRESYSTEM
@@ -1797,13 +1819,37 @@ void mapeditorexecutable_loop(void)
 					}
 					#endif
 				}
+				#else
+				
+				if (ImGui::MenuItem("Download Store Items"))
+				{
+					if (bWaypointDrawmode) { bWaypointDrawmode = false; }
+					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
+					if (t.ebe.on == 1) ebe_hide();
+
+					//Download Store Items
+					int iRet;
+					iRet = AskSaveBeforeNewAction();
+					if (iRet != 2)
+					{
+						bDownloadStore_Window = true;
+					}
+				}
+				#endif
 				if (ImGui::MenuItem("Character Creator")) 
 				{
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
+
+					#ifndef VRTECH
+					if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
+					#else
 					g_bCharacterCreatorPlusActivated = true;
+					#endif
 				}
 				if (ImGui::MenuItem("Structure Editor")) 
 				{
@@ -2268,6 +2314,7 @@ void mapeditorexecutable_loop(void)
 					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
 					bHelp_Menu_Image_Window = true;
 				}
+				#ifdef VRTECH
 				if (ImGui::MenuItem("Level Shortcuts")) {
 					strcpy(cHelpMenuImage, "languagebank\\english\\artwork\\testgamelayout.png");
 					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
@@ -2278,9 +2325,28 @@ void mapeditorexecutable_loop(void)
 					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
 					bHelp_Menu_Image_Window = true;
 				}
+				#else
+				if (ImGui::MenuItem("Level Shortcuts")) {
+					strcpy(cHelpMenuImage, "languagebank\\english\\artwork\\testgamelayout-1024x768.png");
+					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
+					bHelp_Menu_Image_Window = true;
+				}
+				if (ImGui::MenuItem("Multiplayer Controls")) {
+					strcpy(cHelpMenuImage, "languagebank\\english\\artwork\\testgamelayoutmp-1024x768.png");
+					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
+					bHelp_Menu_Image_Window = true;
+				}
+				#endif
+
 				if (ImGui::MenuItem("Read User Manual")) 
 				{
+					///Files/languagebank/english/artwork/GameGuru%20-%20Getting%20Started%20Guide.pdf
+					#ifdef VRTECH
 					ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);
+					#else
+					cstr pPDFPath = g.fpscrootdir_s + "\\Files\\languagebank\\english\\artwork\\GameGuru - Getting Started Guide.pdf";
+					ExecuteFile(pPDFPath.Get(), "", "", 0);
+					#endif
 				}
 				#ifndef DISABLETUTORIALS
 				if (ImGui::MenuItem("Getting Started Tutorial"))
@@ -3356,7 +3422,11 @@ void mapeditorexecutable_loop(void)
 
 		//PE: PRODUCTV3 version.
 		if (refresh_gui_docking == 0 ) {
+			#ifdef VRTECH
 			ImGui::SetNextWindowSize(ImVec2(28 * ImGui::GetFontSize(), 44 * ImGui::GetFontSize()), ImGuiCond_Once); //ImGuiCond_FirstUseEver
+			#else
+			ImGui::SetNextWindowSize(ImVec2(28 * ImGui::GetFontSize(), 34 * ImGui::GetFontSize()), ImGuiCond_Once); //ImGuiCond_FirstUseEver
+			#endif
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Once);
 			ImGui::Begin("About##AboutWindow", &bAbout_Window, 0);
 			ImGui::End();
@@ -3382,7 +3452,11 @@ void mapeditorexecutable_loop(void)
 			}
 			if (bAbout_Window_First_Run)
 			{
+				#ifdef VRTECH
 				ImGui::SetNextWindowSize(ImVec2(28 * ImGui::GetFontSize(), 44 * ImGui::GetFontSize()), ImGuiCond_Always); //ImGuiCond_FirstUseEver
+				#else
+				ImGui::SetNextWindowSize(ImVec2(28 * ImGui::GetFontSize(), 34 * ImGui::GetFontSize()), ImGuiCond_Always); //ImGuiCond_FirstUseEver
+				#endif
 				ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 				bAbout_Window_First_Run = false;
 			}
@@ -3395,16 +3469,18 @@ void mapeditorexecutable_loop(void)
 			float img_w = ImageWidth(ABOUT_LOGO);
 			float img_h = ImageHeight(ABOUT_LOGO);
 
+			#ifdef VRTECH
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((fRegionWidth*0.5) - (img_w*0.5), 0.0f));
-
 			ImGui::ImgBtn(ABOUT_LOGO, ImVec2(img_w, img_h), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(1.0, 1.0, 1.0, 1.0), 0, 0, 0, 0, false);
-
 			ImGui::TextCenter("");
+			#endif
+
 			char pBuildText[1024];
 			sprintf(pBuildText, "Build: %s", g.version_s.Get());
 			ImGui::TextCenter(pBuildText);
 			ImGui::TextCenter("");
 
+			#ifdef VRTECH
 			for (int vloop = 0; vloop < about_text.size(); vloop++) {
 
 				if (pestrcasestr(about_text[vloop].Get(), "https://") || pestrcasestr(about_text[vloop].Get(), "http://")) {
@@ -3429,6 +3505,13 @@ void mapeditorexecutable_loop(void)
 
 			}
 			ImGui::Text("");
+			#else
+			ImGui::Text("");
+			ImGui::TextCenter("(c)Copyright 2005 - 2022 The Game Creators Ltd.");
+			ImGui::TextCenter("All Rights Reserved.");
+			ImGui::Text("");
+			ImGui::Text("");
+			#endif
 
 			float fTotalWidth = ImageWidth(ABOUT_TGC);
 			#ifdef PRODUCTV3
@@ -3684,7 +3767,7 @@ void mapeditorexecutable_loop(void)
 		//############################
 		//#### Save To Level Cloud ###
 		//############################
-
+		#ifdef VRTECH
 		// allows flag to be reset if user closes save cloud popup directly
 		static bool bSaveToGameCloudInitList = false;
 		if (bExport_SaveToGameCloud_Window == false) bSaveToGameCloudInitList = false;
@@ -4116,7 +4199,7 @@ void mapeditorexecutable_loop(void)
 				ImGui::EndPopup();
 			}
 		}
-
+		#endif
 		//########################
 		//#### Download Store ####
 		//########################
@@ -4191,6 +4274,7 @@ void mapeditorexecutable_loop(void)
 		//#### Character Creator ####
 		//###########################
 
+		#ifdef VRTECH
 		if (refresh_gui_docking == 0 && !g_bCharacterCreatorPlusActivated) 
 		{
 			//Make sure window is setup in docking space.
@@ -4198,6 +4282,7 @@ void mapeditorexecutable_loop(void)
 			ImGui::End();
 		}
 		charactercreatorplus_imgui();
+		#endif
 
 		//###########################
 		//#### Entity Properties ####
@@ -4241,7 +4326,8 @@ void mapeditorexecutable_loop(void)
 					iOldgridentity = t.gridentity;
 
 					// get voices sets
-					if (g_voiceList_s.size() == 0) 
+					#ifdef VRTECH
+					if (g_voiceList_s.size() == 0)
 					{
 						if (CreateListOfVoices() > 0) 
 						{
@@ -4249,8 +4335,10 @@ void mapeditorexecutable_loop(void)
 							CCP_SelectedToken = g_voicetoken[0];
 						}
 					}
+					#endif
 
 					// entity may have voice preferences set to check that
+					#ifdef VRTECH
 					pCCPVoiceSet = t.grideleprof.voiceset_s.Get();
 					CCP_Speak_Rate = t.grideleprof.voicerate;
 					if (strlen(pCCPVoiceSet) > 0)
@@ -4278,7 +4366,7 @@ void mapeditorexecutable_loop(void)
 							CCP_SelectedToken = NULL;
 						CCP_Speak_Rate = 0;
 					}
-
+					#endif
 					//Make sure to read DLUA.
 					current_loaded_script = -1;
 				}
@@ -4541,11 +4629,13 @@ void mapeditorexecutable_loop(void)
 									ImGui::Indent(-10);
 								}
 
+								#ifdef VRTECH
 								if(speech_entries > 0)
 								{
 									//@Lee all SPEECH control is moved to this function.
 									SpeechControls(speech_entries, bUpdateMainString);
 								}
+								#endif
 
 								if (ImGui::StyleCollapsingHeader("Customize", ImGuiTreeNodeFlags_DefaultOpen)) {
 
@@ -4715,13 +4805,13 @@ void mapeditorexecutable_loop(void)
 										ImGui::Indent(-10);
 									}
 								}
-
+								#ifdef VRTECH
 								if (speech_entries > 0)
 								{
 									// all SPEECH control is moved to this function.
 									SpeechControls(speech_entries, bUpdateMainString);
 								}
-
+								#endif
 
 								if (ImGui::StyleCollapsingHeader("Customize", ImGuiTreeNodeFlags_DefaultOpen)) {
 
@@ -4946,12 +5036,13 @@ void mapeditorexecutable_loop(void)
 
 										ImGui::Indent(-10);
 									}
-
+									#ifdef VRTECH
 									if (speech_entries > 0)
 									{
 										// all SPEECH control is moved to this function.
 										SpeechControls(speech_entries, bUpdateMainString);
 									}
+									#endif
 								}
 								else
 									bUnfoldAdvanced = true;
@@ -5158,13 +5249,13 @@ void mapeditorexecutable_loop(void)
 										ImGui::Indent(-10);
 									}
 								}
-
+								#ifdef VRTECH
 								if (speech_entries > 0)
 								{
 									// all SPEECH control is moved to this function.
 									SpeechControls(speech_entries, bUpdateMainString);
 								}
-
+								#endif
 							}
 
 							t.group = 1;
@@ -7368,7 +7459,7 @@ void mapeditorexecutable_loop(void)
 	input_getcontrols();
 	#endif
 
-	#ifdef VRTECH
+	#ifdef ENABLEIMGUI
 	// could not launch Welcome system before IMGUI inits, so flagged to happen here
 	if (iTriggerWelcomeSystemStuff > 0 && iTriggerWelcomeSystemStuff < 6) iTriggerWelcomeSystemStuff++;
 	if (iTriggerWelcomeSystemStuff > 5)
@@ -7874,7 +7965,7 @@ void mapeditorexecutable(void)
 	mapeditorexecutable_finish();
 }
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 int AskSaveBeforeNewAction(void)
 {
 	int iAction = 0;
@@ -10404,7 +10495,7 @@ void imgui_input_getcontrols(void)
 		bForceRedo = false;
 	}
 
-	#ifdef PRODUCTV3
+	#ifdef ENABLEIMGUI
 	// When old in welcome system, do not allow regular edit keys to work!
 	if (iTriggerWelcomeSystemStuff != 0)
 		return;
@@ -10898,7 +10989,7 @@ void input_getcontrols ( void )
 	if (t.inputsys.kscancode == 0) 
 	{
 		t.inputsys.keypress = 0;
-		#ifdef VRTECH
+		#ifdef ENABLEIMGUI
 		if (iForceScancode > 0 ) 
 		{
 			t.inputsys.kscancode = iForceScancode;
@@ -21265,7 +21356,7 @@ void generic_preloadfiles(void)
 	image_preload_files_finish();
 }
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 void CloseDownEditorProperties(void)
 {
 	if (t.gridentityinzoomview > 0) 
@@ -21299,6 +21390,7 @@ void FormatTTS(LPSTR pFormattedTTS, LPSTR pFormattedTTSOut)
 bool g_bVoiceSettingsChanged = false;
 int g_iVoiceSettingsUpdateSpeechID = 0;
 
+#ifdef VRTECH
 void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftype *edit_grideleprof)
 {
 	if (!edit_grideleprof)
@@ -22013,6 +22105,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 		ImGui::Indent(-10);
 	}
 }
+#endif
 
 void RedockWindow(char *name)
 {
@@ -22229,7 +22322,7 @@ void Add_Grid_Snap_To_Position(void)
 
 }
 
-#ifndef PRODUCTCLASSIC
+#ifdef ENABLEIMGUI
 void DisplaySmallImGuiMessage(char *text)
 {
 	ImGui::SetNextWindowPos(OldrenderTargetPos + ImVec2(50, 50), ImGuiCond_Always); //ImGuiCond_Always
@@ -23005,7 +23098,7 @@ float ImGuiGetMouseY(void)
 }
 
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 
 void process_entity_library(void)
 {
@@ -24358,7 +24451,8 @@ bool bCheckCacheXFile(LPSTR pFilename, DWORD* pdwBlockSize, void** ppDBOBlock)
 	{
 		return LoadDBODataBlock(GenericFileCacheName.Get(), pdwBlockSize, ppDBOBlock);
 	}
-	else return false;
+	else
+		return false;
 }
 
 bool bCopyOBSFileToCache(void)

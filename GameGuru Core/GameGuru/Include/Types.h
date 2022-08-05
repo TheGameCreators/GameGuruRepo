@@ -5703,6 +5703,11 @@ struct entityeleproftype
 	//PE: 10000 object * this ...
 	PropertiesVariables PropertiesVariable;
 	int PropertiesVariableActive;
+	#else
+	#ifdef ENABLEIMGUI
+	PropertiesVariables PropertiesVariable;
+	int PropertiesVariableActive;
+	#endif
 	#endif
 
 	// Constructor
