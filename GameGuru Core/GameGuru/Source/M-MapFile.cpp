@@ -5,6 +5,7 @@
 // Includes
 #include "stdafx.h"
 #include "gameguru.h"
+#include "Common-Keys.h"
 
 #ifdef ENABLEIMGUI
 #include "..\Imgui\imgui.h"
@@ -4125,7 +4126,7 @@ void mapfile_savestandalone_stage4 ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
-	for ( int iCritDLLs = 1; iCritDLLs <= 8; iCritDLLs++ ) //cyb
+	for ( int iCritDLLs = 1; iCritDLLs <= 9; iCritDLLs++ ) //cyb
 	{
 		LPSTR pCritDLLFilename = "";
 		switch ( iCritDLLs )
@@ -4138,6 +4139,7 @@ void mapfile_savestandalone_stage4 ( void )
 			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
 			case 7 : pCritDLLFilename = "steam_api64.dll"; break; //cyb
 			case 8 : pCritDLLFilename = "sdkencryptedappticket64.dll"; break; //cyb
+			case 9 : pCritDLLFilename = "Guru-Converter.exe"; break; //PE: Needed in standalone to generate cached dbo in 64 bit. many weapons/... dont have a dbo.
 		}
 		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
@@ -4447,7 +4449,8 @@ void mapfile_savestandalone_finish ( void )
 			//  NOTE; Need to exclude lightmaps from encryptor  set encrypt ignore list "lightmaps"
 			EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
 			//cyb
-			if (1 == 1) //i.e. no encryption component present
+			//PE: @cyb when lee compiles the final .exe the keys and enc all works so only if repo keys used :)
+			if(DOWNLOADSTOREKEY == "sc=[none]")
 			{
 				MessageBox(NULL, "This Standalone WILL NOT HAVE ITS ASSETS ENCRYPTED - DO NOT RELEASE", "Encryption WARNING", MB_OK);
 			}

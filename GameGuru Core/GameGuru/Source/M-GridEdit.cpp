@@ -4212,7 +4212,7 @@ void mapeditorexecutable_loop(void)
 			ImGui::Begin("Download Store Items##DownloadStoreWindow", &bDownloadStore_Window, 0);
 			ImGui::End();
 		}
-		//imgui_download_store(); //cyb
+		imgui_download_store(); //@cyb this will work when proper keys used. if not if will just fail with a error.
 
 
 		//#####################
