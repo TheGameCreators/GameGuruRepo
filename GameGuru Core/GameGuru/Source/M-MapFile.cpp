@@ -31,6 +31,7 @@ bool g_bAllowBackwardCompatibleConversion = false;
 
 #ifdef ENABLEIMGUI
 bool restore_old_map = false;
+int savestandalone_e = 1;
 #endif
 
 //PE: Moved here cstr is crashing when called from M-MPSteam.cpp in 64 bit version.
@@ -709,6 +710,7 @@ void mapfile_saveproject_fpm ( void )
 	//PE: This crash in 64 bit, cstr error when accessing t.skybank_s[g.skyindex] ?
 	//PE: But only when function is placed inside M-MPSteam.cpp ?
 	//PE: Moved here and are now working.
+	//PE: @Cyb needed for steam multiplayer :)
 	mp_save_workshop_files_needed ( );
 	#endif
 
@@ -887,6 +889,8 @@ void mapfile_loadproject_fpm ( void )
 			t.visuals=t.editorvisuals;
 			t.visuals.skyindex=t.gamevisuals.skyindex;
 			t.visuals.sky_s=t.gamevisuals.sky_s;
+			t.visuals.lutindex = t.gamevisuals.lutindex;
+			t.visuals.lut_s = t.gamevisuals.lut_s;
 			t.visuals.terrainindex=t.gamevisuals.terrainindex;
 			t.visuals.terrain_s=t.gamevisuals.terrain_s;
 			t.visuals.vegetationindex=t.gamevisuals.vegetationindex;
@@ -896,6 +900,7 @@ void mapfile_loadproject_fpm ( void )
 			//  takes visuals.sky$ visuals.terrain$ visuals.vegetation$
 			visuals_updateskyterrainvegindex ( );
 			t.gamevisuals.skyindex=t.visuals.skyindex;
+			t.gamevisuals.lutindex = t.visuals.lutindex;
 			t.gamevisuals.terrainindex=t.visuals.terrainindex;
 			t.gamevisuals.vegetationindex=t.visuals.vegetationindex;
 		}
@@ -937,6 +942,7 @@ void mapfile_loadproject_fpm ( void )
 			//  and refresh assets based on restore
 			t.visuals.refreshshaders=1;
 			t.visuals.refreshskysettings=1;
+			t.visuals.refreshlutsettings = 1;
 			t.visuals.refreshterraintexture=1;
 			t.visuals.refreshvegtexture=1;
 
@@ -3442,7 +3448,7 @@ void mapfile_savestandalone_stage2a ( void )
 	g_mapfile_iNumberOfLevels = 1 + t.levelmax;
 
 	// Stage 2 - collect all files (from all levels)
-	t.levelindex=0;
+	t.levelindex = 0;
 	t.tlevelfile_s="";
 	t.tlevelstoprocess = 1;
 	g.projectfilename_s = t.tmasterlevelfile_s;
@@ -3535,8 +3541,14 @@ int mapfile_savestandalone_stage2b ( void )
 		addfoldertocollection(cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
 		addfoldertocollection(cstr(cstr("vegbank\\")+g.vegstyle_s).Get() );
 
+		//add lutbank
+		addfoldertocollection("lutbank\\");
+
 		// start for loop
 		t.e = 1;
+		#ifdef ENABLEIMGUI
+		savestandalone_e = 1; //cyb bug-fix
+		#endif
 		g_mapfile_fProgressSpan = g_mapfile_iNumberOfEntitiesAcrossAllLevels;
 	}
 	else
@@ -3548,6 +3560,10 @@ int mapfile_savestandalone_stage2b ( void )
 
 int mapfile_savestandalone_stage2c ( void )
 {
+	//cyb //bug-fix
+	#ifdef ENABLEIMGUI
+	t.e = savestandalone_e;
+	#endif
 	// choose all entities and associated files
 	int iMoveAlong = 0;
 	if ( t.e <= g.entityelementlist )
@@ -3621,7 +3637,7 @@ int mapfile_savestandalone_stage2c ( void )
 				}
 			}
 
-			//  entity profile file
+			//  entity profile file 
 			t.tentityname1_s=cstr("entitybank\\")+t.entitybank_s[t.entid];
 			t.tentityname2_s=cstr(Left(t.tentityname1_s.Get(),Len(t.tentityname1_s.Get())-4))+".bin";
 			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tentityname2_s).Get() ) == 1 ) 
@@ -3686,6 +3702,9 @@ int mapfile_savestandalone_stage2c ( void )
 				}
 				t.tmodelfile_s=t.tfile_s;
 				addtocollection(t.tmodelfile_s.Get());
+
+				
+
 				// if entity did not specify texture it is multi-texture, so interogate model file
 				// do it for every model
 				findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
@@ -3927,6 +3946,9 @@ int mapfile_savestandalone_stage2c ( void )
 		iMoveAlong = 1;
 	}
 	t.e++;
+	#ifdef ENABLEIMGUI
+	savestandalone_e++; //cyb //bug-fix
+	#endif
 	return iMoveAlong;
 }
 
@@ -4103,7 +4125,7 @@ void mapfile_savestandalone_stage4 ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
-	for ( int iCritDLLs = 1; iCritDLLs <= 6; iCritDLLs++ )
+	for ( int iCritDLLs = 1; iCritDLLs <= 8; iCritDLLs++ ) //cyb
 	{
 		LPSTR pCritDLLFilename = "";
 		switch ( iCritDLLs )
@@ -4114,6 +4136,8 @@ void mapfile_savestandalone_stage4 ( void )
 			case 4 : pCritDLLFilename = "avformat-57.dll"; break;
 			case 5 : pCritDLLFilename = "avutil-55.dll"; break;
 			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
+			case 7 : pCritDLLFilename = "steam_api64.dll"; break; //cyb
+			case 8 : pCritDLLFilename = "sdkencryptedappticket64.dll"; break; //cyb
 		}
 		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
@@ -4169,7 +4193,7 @@ void mapfile_savestandalone_stage4 ( void )
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "memskipibr=" + Str(g.memskipibr); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "underwatermode=" + Str(g.underwatermode); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "usegrassbelowwater=" + Str(g.usegrassbelowwater); ++t.i;
-
+	
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "memskipwatermask=" + Str(g.memskipwatermask); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "lowestnearcamera=" + Str(g.lowestnearcamera); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "standalonefreememorybetweenlevels=" + Str(g.standalonefreememorybetweenlevels); ++t.i;
@@ -4422,6 +4446,11 @@ void mapfile_savestandalone_finish ( void )
 		{
 			//  NOTE; Need to exclude lightmaps from encryptor  set encrypt ignore list "lightmaps"
 			EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
+			//cyb
+			if (1 == 1) //i.e. no encryption component present
+			{
+				MessageBox(NULL, "This Standalone WILL NOT HAVE ITS ASSETS ENCRYPTED - DO NOT RELEASE", "Encryption WARNING", MB_OK);
+			}
 		}
 	}
 

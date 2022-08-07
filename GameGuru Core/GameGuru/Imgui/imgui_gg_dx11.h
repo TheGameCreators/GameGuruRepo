@@ -20,7 +20,9 @@
 
 #define ENABLEIMGUI
 #define USERENDERTARGET
+#ifndef PRODUCTCLASSIC
 #define ALLOW_WEATHER_IN_EDITOR
+#endif
 #define ADDGGTOOLBAR
 
 //PE: icons use tons of memory i have 12000 so...

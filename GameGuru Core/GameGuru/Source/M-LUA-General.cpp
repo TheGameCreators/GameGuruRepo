@@ -1447,11 +1447,18 @@ void lua_leavegame ( void )
 {
 	t.game.titleloop=0;
 	strcpy ( t.game.pSwitchToPage, "" );
-	mp_quitGame ( );
+
+	//mp_quitGame ( );
+	
+	//something wrong here - just stays stuck instead of going back to main menu
+	//just quit to windows for now:
+	t.game.levelloop = 0;
+	t.game.masterloop = 0;
+	t.game.quitflag = 1;
 
 	// ensure IMGUI does not attempt to render
-	#ifndef PRODUCTCLASSIC
-	extern bool bBlockImGuiUntilFurtherNotice;
+	#ifndef PRODUCTCLASSIC //cyb? needed?
+    extern bool bBlockImGuiUntilFurtherNotice;
 	bBlockImGuiUntilFurtherNotice = true;
 	#endif
 }

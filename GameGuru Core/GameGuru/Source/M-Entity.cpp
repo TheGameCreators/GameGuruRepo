@@ -457,7 +457,6 @@ bool entity_load ( void )
 #if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 		t.strwork = t.entdir_s + t.ent_s;
 		t.tthumbbmpfile_s = "";	t.tthumbbmpfile_s = t.tthumbbmpfile_s + Left(t.strwork.Get(), (Len(t.entdir_s.Get()) + Len(t.ent_s.Get())) - 4) + ".bmp";
-
 		image_setlegacyimageloading(true);
 		LoadImage(t.tthumbbmpfile_s.Get(), ENTITY_CACHE_ICONS + t.entid);
 		image_setlegacyimageloading(false);

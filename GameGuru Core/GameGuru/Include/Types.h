@@ -3688,6 +3688,7 @@ struct visualstype
 	int refreshvegetation;
 	int refreshskysettings;
 	bool refreshskysettingsfromlua;
+	int refreshlutsettings;
 	int refreshterraintexture;
 	int refreshvegtexture;
 	int refreshterrainsupertexture;
@@ -3730,6 +3731,8 @@ struct visualstype
 	float DistanceTransitionMultiplier_f;
 	int skyindex;
 	cstr sky_s;
+	int lutindex;
+	cstr lut_s;
 	int terrainindex;
 	cstr terrain_s;
 	int vegetationindex;
@@ -3758,6 +3761,8 @@ struct visualstype
 	float SAOIntensity_f;
 	float SAOQuality_f;
 	float LensFlare_f;
+	float Saturation_f; 
+	float Sepia_f;
 	float WaterRed_f;
 	float WaterBlue_f;
 	float WaterGreen_f;
@@ -3776,6 +3781,8 @@ struct visualstype
 	visualstype ( )
 	{
 		 LensFlare_f = 0.5f;
+		 Saturation_f = 0.3f;
+		 Sepia_f = 0.0f;
 		 SAORadius_f = 0.0f;
 		 SAOIntensity_f = 0.0f;
 		 SAOQuality_f = 0.0f;
@@ -3805,6 +3812,8 @@ struct visualstype
 		 terrainindex = 0;
 		 sky_s = "";
 		 skyindex = 0;
+		 lut_s = "";
+		 lutindex = 0;
 		 DistanceTransitionMultiplier_f = 0.0f;
 		 DistanceTransitionRange_f = 0.0f;
 		 DistanceTransitionStart_f = 0.0f;
@@ -3847,6 +3856,7 @@ struct visualstype
 		 refreshterraintexture = 0;
 		 refreshskysettings = 0;
 		 refreshskysettingsfromlua = false;
+		 refreshlutsettings = 0;
 		 refreshvegetation = 0;
 		 refreshshaders = 0;
 		 showpromptssavestate = 0;
@@ -5709,13 +5719,15 @@ struct entityeleproftype
 	int PropertiesVariableActive;
 	#endif
 	#endif
-
 	// Constructor
 	entityeleproftype ( )
 	{
 		#ifndef PRODUCTCLASSIC
 		PropertiesVariableActive = 0;
 		#endif
+#ifdef ENABLEIMGUI //cyb
+		PropertiesVariableActive = 0;
+#endif
 
 		 //phydw5 = 0;
 		 //phydw4 = 0;

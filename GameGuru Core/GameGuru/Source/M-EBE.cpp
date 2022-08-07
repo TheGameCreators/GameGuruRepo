@@ -52,11 +52,8 @@ DWORD pVertCountStore[CUBEMAXMESH];
 bool pbTriggerDrawBufferCreation[CUBEMAXMESH];
 short pMasterGridMeshRef[20][20][20][2];
 
-#ifdef ENABLEIMGUI
-char ActiveEBEFilename[260] = { "\0" };
-#endif
-
 #if defined(ENABLEIMGUI)
+char ActiveEBEFilename[260] = { "\0" };
 extern bool bBuilder_Properties_Window;
 int texture_set_selection = 0;
 char structure_name[MAX_PATH];
@@ -74,7 +71,7 @@ extern preferences pref;
 #endif
 
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 bool bDisableAllSprites = true;
 int iPaintMode = 1;
 #else
@@ -351,7 +348,6 @@ void ebe_init ( int BuildObj, int iEntID )
 		LoadImage("editors\\uiv3\\ebe-thumb.png", EBE_THUMB);
 	image_setlegacyimageloading(false);
 	#endif
-
 
 	// mark EBE has intialised
 	t.ebe.active = 1;
@@ -662,6 +658,7 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 	t.editorfreeflight.c.z_f = CameraPositionZ();
 	t.editorfreeflight.c.angx_f = 30;
 	#endif
+
 }
 
 void ebe_updateparent ( int entityelementindex )
@@ -1430,14 +1427,13 @@ void imgui_ebe_loop(void)
 						extern bool bImporter_Window;
 						extern bool bWaypoint_Window;
 						extern bool bWaypointDrawmode;
-						extern bool g_bCharacterCreatorPlusActivated;
+						extern bool g_bCharacterCreatorPlusActivated; //cyb
 						void CheckTooltipObjectDelete(void);
 						void CloseDownEditorProperties(void);
 
 						if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 						if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-
+						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 						CheckTooltipObjectDelete();
 						CloseDownEditorProperties();
 
@@ -1637,7 +1633,9 @@ void imgui_ebe_loop(void)
 						if (skib_frames_execute == 0 && ImGui::IsItemHovered() && ImGui::IsMouseClicked(1)) 
 						{
 							ebebuild.iCurrentTexture = n;
-							delay_execute = 1; //@Lee remove this line if you dont want to support changing textures.
+							#ifndef VRTECH
+							delay_execute = 1; //@cyb only disabled in vrquest :)
+							#endif
 						}
 						if ( ImGui::IsItemHovered() )
 						{

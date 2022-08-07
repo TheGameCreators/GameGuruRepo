@@ -76,9 +76,8 @@ terrainbuildtype terrainbuild;
 // moved from below so Classic could compile
 bool bUpdateVeg = true; //Update veg on by default.
 
-//#ifdef VRTECH
-#ifdef ENABLEIMGUI
 
+#ifdef ENABLEIMGUI
 int delay_terrain_execute = 0;
 int skib_terrain_frames_execute = 0;
 
@@ -522,9 +521,9 @@ void imgui_terrain_loop(void)
 			#ifdef ENABLEIMGUI
 			grass_init();
 			#else
-			if (!(ObjectExist(t.tGrassObj) == 1 && GetMeshExist(t.tGrassObj) == 1) )
-				grass_init();
-			#endif
+			   if (!(ObjectExist(t.tGrassObj) == 1 && GetMeshExist(t.tGrassObj) == 1) )
+				  grass_init();
+			#endif	
 
 			//t.completelyfillvegarea = 1;
 			t.terrain.grassupdateafterterrain = 1;
@@ -1250,7 +1249,7 @@ void imgui_terrain_loop(void)
 				ImGui::PopItemWidth();
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Weather");
 
-
+#ifndef PRODUCTCLASSIC
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 				ImGui::Text("Display Weather:");
 				ImGui::SameLine();
@@ -1258,8 +1257,9 @@ void imgui_terrain_loop(void)
 				ImGui::SetCursorPos(ImVec2(136, ImGui::GetCursorPosY()));
 				if (ImGui::Checkbox("##DisplayWeather", &bEnableWeather)) 
 				{
-					reset_env_particles();
+					//reset_env_particles(); //cyb
 				}
+#endif
 
 				ImGui::Indent(-10);
 			}
@@ -1346,7 +1346,11 @@ void terrain_paintselector_control ( void )
 #endif
 #endif
 
+#ifdef ENABLEIMGUI
+	terrain_paintselector_hide();
+#else
 	terrain_paintselector_show();
+#endif
 
 	// Only when release mouse continue
 	if ( terrainbuild.bReleaseMouseFirst == true && t.inputsys.mclick != 0 ) return;
@@ -2764,6 +2768,7 @@ void terrain_editcontrol ( void )
 
 					// grass value stored in RED component
 					t.texselectgrass = 1;
+
 					#ifdef ENABLEIMGUI
 					if ( t.inputsys.keyshift == 1 || iTerrainPaintMode != 1 )
 					#else
@@ -3657,11 +3662,13 @@ void terrain_make_image_only(void)
 		SetImageAutoMipMap(0); // PE: SetImageAutoMipMap Dont work anymore.
 		SetMipmapNum(1); //PE: mipmaps not needed.
 //			LoadImage (  "effectbank\\reloaded\\media\\circle.dds",t.terrain.imagestartindex+17,10,0 );
-#ifdef VRTECH
+
+		#ifdef VRTECH
 		LoadImage("effectbank\\reloaded\\media\\circle2.dds", t.terrain.imagestartindex + 17, 10, 0);
-#else
+		#else
 		LoadImage("effectbank\\reloaded\\media\\circle.dds", t.terrain.imagestartindex + 17, 10, 0);
-#endif
+		#endif
+
 		SetMipmapNum(-1);
 		SetImageAutoMipMap(1);
 
@@ -4272,7 +4279,7 @@ void terrain_shadowupdate ( void )
 				#ifdef ENABLEIMGUI
 				if (  t.game.gameloop  !=  0 || bEnableVeg )  ShowVegetationGrid (  );
 				#else
-				if (  t.game.gameloop  !=  0 )  ShowVegetationGrid (  );
+				  if (t.game.gameloop != 0)  ShowVegetationGrid();
 				#endif
 			}
 
@@ -5456,6 +5463,50 @@ void terrain_water_init ( void )
 
 	//  Make Water plain
 	LoadImage (  "effectbank\\reloaded\\media\\waves2.dds",t.terrain.imagestartindex+7,0,0);//g.gdividetexturesize );
+
+	//LUT processing (post processing shaders - post-core.fx)
+	{
+		SetMipmapNum(1);
+		LoadImage(cstr(cstr("lutbank\\") + t.visuals.lut_s).Get(), t.terrain.imagestartindex + 33, 0, 0);
+
+		if (ImageExist(t.terrain.imagestartindex + 33) == 0)
+		{
+			LoadImage("effectbank\\reloaded\\media\\LUT.png", t.terrain.imagestartindex + 33, 0, 0);
+			if (ImageExist(t.terrain.imagestartindex + 33) == 0)
+			{
+				SetCurrentBitmap(g.terrainworkbitmapindex);
+				CLS(Rgb(0, 0, 0));
+				GrabImage(t.terrain.imagestartindex + 33, 0, 0, 1, 1);
+				SetCurrentBitmap(0);
+			}
+		}
+		SetMipmapNum(-1);
+
+		if (ImageExist(t.terrain.imagestartindex + 33) == 1)
+		{
+			if (ObjectExist(g.postprocessobjectoffset + 0) == 1)
+				TextureObject(g.postprocessobjectoffset + 0, 2, t.terrain.imagestartindex + 33);
+		}
+	}
+
+	//HBAO processing (post processing shaders - post-core.fx)
+	SetMipmapNum(1);
+	LoadImage("effectbank\\reloaded\\media\\NOISE.png", t.terrain.imagestartindex + 38, 0, 0);
+
+	if (ImageExist(t.terrain.imagestartindex + 38) == 0)
+	{
+		SetCurrentBitmap(g.terrainworkbitmapindex);
+		CLS(Rgb(0, 0, 0));
+		GrabImage(t.terrain.imagestartindex + 38, 0, 0, 1, 1);
+		SetCurrentBitmap(0);
+	}
+	SetMipmapNum(-1);
+
+	if (ImageExist(t.terrain.imagestartindex + 38) == 1)
+	{
+		if (ObjectExist(g.postprocessobjectoffset + 0) == 1)
+			TextureObject(g.postprocessobjectoffset + 0, 3, t.terrain.imagestartindex + 38);
+	}
 	
 	if ( ImageExist(t.terrain.imagestartindex+4) == 0 ) 
 	{
@@ -5531,6 +5582,12 @@ void terrain_water_free ( void )
 		else
 			ShowObject (  t.terrain.objectstartindex+2 );
 	}
+
+	//LUT post processing
+	if (ImageExist(t.terrain.imagestartindex + 33) == 1)  DeleteImage(t.terrain.imagestartindex + 33);
+	
+	//HBAO post processing
+	if (ImageExist(t.terrain.imagestartindex + 38) == 1)  DeleteImage(t.terrain.imagestartindex + 38);
 }
 
 void terrain_updatewatermechanism ( void )
@@ -5566,9 +5623,11 @@ void terrain_water_setfog ( void )
 	if ( GetEffectExist(t.terrain.effectstartindex+1) ) 
 	{
 		SetVector4 (  g.terrainvectorindex,t.tFogR_f/255.0,t.tFogG_f/255.0,t.tFogB_f/255.0,t.tFogA_f/255.0 );
-		SetEffectConstantVEx (  t.terrain.effectstartindex+1,t.effectparam.water.HudFogColor,g.terrainvectorindex );
+		//SetEffectConstantVEx (  t.terrain.effectstartindex+1,t.effectparam.water.HudFogColor,g.terrainvectorindex );
+		SetEffectConstantV(t.terrain.effectstartindex + 1, "HudFogColor", g.terrainvectorindex); //cyb
 		SetVector4 (  g.terrainvectorindex,t.tFogNear_f,t.tFogFar_f,0,0 );
-		SetEffectConstantVEx (  t.terrain.effectstartindex+1,t.effectparam.water.HudFogDist,g.terrainvectorindex );
+		//SetEffectConstantVEx (  t.terrain.effectstartindex+1,t.effectparam.water.HudFogDist,g.terrainvectorindex );
+		SetEffectConstantV(t.terrain.effectstartindex + 1, "HudFogDist", g.terrainvectorindex); //cyb
 	}
 }
 

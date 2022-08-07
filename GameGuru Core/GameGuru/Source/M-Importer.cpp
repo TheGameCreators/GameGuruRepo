@@ -93,6 +93,10 @@ extern preferences pref;
 extern preferences pref;
 #endif
 
+#ifdef ENABLEIMGUI //cyb
+extern preferences pref; //cyb
+#endif
+
 // Prototypes
 void LoadFBX ( LPSTR pFilename, int iObjectNumber );
 

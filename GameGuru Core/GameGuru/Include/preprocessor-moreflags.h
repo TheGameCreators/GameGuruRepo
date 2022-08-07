@@ -96,7 +96,7 @@
 
 
   #else
-   // Flags to compile the Classic version of GameGuru
+	// Flags to compile the Classic version of GameGuru
 	//PE: Add ENABLEIMGUI,USERENDERTARGET to compile a imgui version of Classic.
 	//#define ENABLEIMGUI
 	//#define USERENDERTARGET
@@ -105,6 +105,7 @@
 	#ifdef PRODUCTCONVERTER
 		#define NOSTEAMORVIDEO
 	#endif
+
   #endif
  #endif
 #endif

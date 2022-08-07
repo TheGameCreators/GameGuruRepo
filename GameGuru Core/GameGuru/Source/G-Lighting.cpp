@@ -703,8 +703,12 @@ void lighting_loop ( void )
 		}
 	}
 
-	//  update dynamic lights whether have them or not
-	if (  1 ) 
+	//  update dynamic lights whether have them or not //cyb
+#ifdef PRODUCTCLASSIC
+	if (  0 )
+#else
+	if (  1 )
+#endif
 	{
 		//  For all shaders, affect using dynamic light values arrived at
 		if (  t.terrain.terrainshaderindex>0 ) 
@@ -750,23 +754,45 @@ void lighting_loop ( void )
 						SetVector4 (  g.terrainvectorindex3,0,0,0,0 );
 					}
 				}
-
+		
 				if (  GetEffectExist(t.terrain.terrainshaderindex) == 1 ) 
 				{
 					dynamic_sun_position(t.terrain.terrainshaderindex);
 					if ( t.best == 0 )
 					{
-						t.bestpos = t.effectparam.terrain.g_lights_data;
-						SetEffectConstantVEx(  t.terrain.terrainshaderindex,t.bestpos,g.terrainvectorindex1 );
+						t.bestpos = t.effectparam.terrain.g_lights_data; 
+						//SetEffectConstantVEx(  t.terrain.terrainshaderindex,t.bestpos,g.terrainvectorindex1 );
+						//cyb
+						SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_data", g.terrainvectorindex1);
 					}
 					else
 					{
 						if (  t.best == 1 ) { t.bestpos = t.effectparam.terrain.g_lights_pos0  ; t.bestatt = t.effectparam.terrain.g_lights_atten0 ; t.bestdif = t.effectparam.terrain.g_lights_diffuse0; }
 						if (  t.best == 2 ) { t.bestpos = t.effectparam.terrain.g_lights_pos1  ; t.bestatt = t.effectparam.terrain.g_lights_atten1 ; t.bestdif = t.effectparam.terrain.g_lights_diffuse1; }
 						if (  t.best == 3 ) { t.bestpos = t.effectparam.terrain.g_lights_pos2  ; t.bestatt = t.effectparam.terrain.g_lights_atten2 ; t.bestdif = t.effectparam.terrain.g_lights_diffuse2; }
-						SetEffectConstantVEx(  t.terrain.terrainshaderindex,t.bestpos,g.terrainvectorindex1 );
-						SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestatt,g.terrainvectorindex2 );
-						SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestdif,g.terrainvectorindex3 );
+						//SetEffectConstantVEx(  t.terrain.terrainshaderindex,t.bestpos,g.terrainvectorindex1 );
+						//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestatt,g.terrainvectorindex2 );
+						//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestdif,g.terrainvectorindex3 );
+						//cyb
+						if (t.best == 1)
+						{
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_pos0", g.terrainvectorindex1);
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_atten0", g.terrainvectorindex2);
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_diffuse0", g.terrainvectorindex3);
+						}
+						if (t.best == 2)
+						{
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_pos1", g.terrainvectorindex1);
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_atten1", g.terrainvectorindex2);
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_diffuse1", g.terrainvectorindex3);
+						}
+						if (t.best == 3)
+						{
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_pos2", g.terrainvectorindex1);
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_atten2", g.terrainvectorindex2);
+							SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_diffuse2", g.terrainvectorindex3);
+						}
+
 					}
 				}
 				if ( t.terrain.vegetationshaderindex>0 ) 
@@ -778,16 +804,37 @@ void lighting_loop ( void )
 						if ( t.best == 0 )
 						{
 							t.bestpos = t.effectparam.vegetation.g_lights_data;
-							SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestpos,g.terrainvectorindex1 );
+							//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestpos,g.terrainvectorindex1 );
+							//cyb
+							SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_data", g.terrainvectorindex1);
 						}
 						else
 						{
 							if (  t.best == 1 ) { t.bestpos = t.effectparam.vegetation.g_lights_pos0  ; t.bestatt = t.effectparam.vegetation.g_lights_atten0 ; t.bestdif = t.effectparam.vegetation.g_lights_diffuse0; }
 							if (  t.best == 2 ) { t.bestpos = t.effectparam.vegetation.g_lights_pos1  ; t.bestatt = t.effectparam.vegetation.g_lights_atten1 ; t.bestdif = t.effectparam.vegetation.g_lights_diffuse1; }
 							if (  t.best == 3 ) { t.bestpos = t.effectparam.vegetation.g_lights_pos2  ; t.bestatt = t.effectparam.vegetation.g_lights_atten2 ; t.bestdif = t.effectparam.vegetation.g_lights_diffuse2; }
-							SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestpos,g.terrainvectorindex1 );
-							SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestatt,g.terrainvectorindex2 );
-							SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestdif,g.terrainvectorindex3 );
+							//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestpos,g.terrainvectorindex1 );
+							//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestatt,g.terrainvectorindex2 );
+							//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestdif,g.terrainvectorindex3 );
+							//cyb
+							if (t.best == 1)
+							{
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_pos0", g.terrainvectorindex1);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_atten0", g.terrainvectorindex2);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_diffuse0", g.terrainvectorindex3);
+							}
+							if (t.best == 2)
+							{
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_pos1", g.terrainvectorindex1);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_atten1", g.terrainvectorindex2);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_diffuse1", g.terrainvectorindex3);
+							}
+							if (t.best == 3)
+							{
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_pos2", g.terrainvectorindex1);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_atten2", g.terrainvectorindex2);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_diffuse2", g.terrainvectorindex3);
+							}
 						}
 					}
 				}
@@ -803,20 +850,42 @@ void lighting_loop ( void )
 							if ( t.best == 0 )
 							{
 								t.bestpos = t.effectparamarray[t.tteffectid].g_lights_data;
-								SetEffectConstantVEx (  t.tteffectid,t.bestpos,g.terrainvectorindex1 );
+								//SetEffectConstantVEx (  t.tteffectid,t.bestpos,g.terrainvectorindex1 );
+								//cyb
+								SetEffectConstantV(t.tteffectid,"g_lights_data", g.terrainvectorindex1);
 							}
 							else
 							{
 								if (  t.best == 1 ) { t.bestpos = t.effectparamarray[t.tteffectid].g_lights_pos0  ; t.bestatt = t.effectparamarray[t.tteffectid].g_lights_atten0 ; t.bestdif = t.effectparamarray[t.tteffectid].g_lights_diffuse0; }
 								if (  t.best == 2 ) { t.bestpos = t.effectparamarray[t.tteffectid].g_lights_pos1  ; t.bestatt = t.effectparamarray[t.tteffectid].g_lights_atten1 ; t.bestdif = t.effectparamarray[t.tteffectid].g_lights_diffuse1; }
 								if (  t.best == 3 ) { t.bestpos = t.effectparamarray[t.tteffectid].g_lights_pos2  ; t.bestatt = t.effectparamarray[t.tteffectid].g_lights_atten2 ; t.bestdif = t.effectparamarray[t.tteffectid].g_lights_diffuse2; }
-								SetEffectConstantVEx (  t.tteffectid,t.bestpos,g.terrainvectorindex1 );
-								SetEffectConstantVEx (  t.tteffectid,t.bestatt,g.terrainvectorindex2 );
-								SetEffectConstantVEx (  t.tteffectid,t.bestdif,g.terrainvectorindex3 );
+								//SetEffectConstantVEx (  t.tteffectid,t.bestpos,g.terrainvectorindex1 );
+								//SetEffectConstantVEx (  t.tteffectid,t.bestatt,g.terrainvectorindex2 );
+								//SetEffectConstantVEx (  t.tteffectid,t.bestdif,g.terrainvectorindex3 );
+								//cyb
+								if (t.best == 1)
+								{
+									SetEffectConstantV(t.tteffectid, "g_lights_pos0", g.terrainvectorindex1);
+									SetEffectConstantV(t.tteffectid, "g_lights_atten0", g.terrainvectorindex2);
+									SetEffectConstantV(t.tteffectid, "g_lights_diffuse0", g.terrainvectorindex3);
+								}
+								if (t.best == 2)
+								{
+									SetEffectConstantV(t.tteffectid, "g_lights_pos1", g.terrainvectorindex1);
+									SetEffectConstantV(t.tteffectid, "g_lights_atten1", g.terrainvectorindex2);
+									SetEffectConstantV(t.tteffectid, "g_lights_diffuse1", g.terrainvectorindex3);
+								}
+								if (t.best == 3)
+								{
+									SetEffectConstantV(t.tteffectid, "g_lights_pos2", g.terrainvectorindex1);
+									SetEffectConstantV(t.tteffectid, "g_lights_atten2", g.terrainvectorindex2);
+									SetEffectConstantV(t.tteffectid, "g_lights_diffuse2", g.terrainvectorindex3);
+								}
 							}
 						}
 					}
 				}
+				
 				for ( t.t = -6 ; t.t<=  g.effectbankmax; t.t++ )
 				{
 					if (  t.t == -6  )  t.tteffectid = g.lightmappbreffectillum;
@@ -831,6 +900,7 @@ void lighting_loop ( void )
 					if (  t.t == -1  )  t.tteffectid = g.staticlightmapeffectoffset;
 					if (  t.t == 0  )  t.tteffectid = g.staticshadowlightmapeffectoffset;
 					if (  t.t>0  )  t.tteffectid = g.effectbankoffset+t.t;
+
 					if (  GetEffectExist(t.tteffectid) == 1 ) 
 					{
 						dynamic_sun_position(t.tteffectid);
@@ -838,19 +908,42 @@ void lighting_loop ( void )
 						if ( t.best == 0 )
 						{
 							t.bestpos = t.effectparamarray[t.tteffectid].g_lights_data;
-							SetEffectConstantVEx (  t.tteffectid,t.bestpos,g.terrainvectorindex1 );
+							//SetEffectConstantVEx (  t.tteffectid,t.bestpos,g.terrainvectorindex1 ); 
+							//cyb
+							SetEffectConstantV(t.tteffectid, "g_lights_data", g.terrainvectorindex1);
 						}
 						else
 						{
 							if (  t.best == 1 ) { t.bestpos = t.effectparamarray[t.tteffectid].g_lights_pos0  ; t.bestatt = t.effectparamarray[t.tteffectid].g_lights_atten0 ; t.bestdif = t.effectparamarray[t.tteffectid].g_lights_diffuse0; }
 							if (  t.best == 2 ) { t.bestpos = t.effectparamarray[t.tteffectid].g_lights_pos1  ; t.bestatt = t.effectparamarray[t.tteffectid].g_lights_atten1 ; t.bestdif = t.effectparamarray[t.tteffectid].g_lights_diffuse1; }
 							if (  t.best == 3 ) { t.bestpos = t.effectparamarray[t.tteffectid].g_lights_pos2  ; t.bestatt = t.effectparamarray[t.tteffectid].g_lights_atten2 ; t.bestdif = t.effectparamarray[t.tteffectid].g_lights_diffuse2; }
-							SetEffectConstantVEx (  t.tteffectid,t.bestpos,g.terrainvectorindex1 );
-							SetEffectConstantVEx (  t.tteffectid,t.bestatt,g.terrainvectorindex2 );
-							SetEffectConstantVEx (  t.tteffectid,t.bestdif,g.terrainvectorindex3 );
+							//SetEffectConstantVEx(t.tteffectid, t.bestpos, g.terrainvectorindex1);
+							//SetEffectConstantVEx(t.tteffectid, t.bestatt, g.terrainvectorindex2);
+							//SetEffectConstantVEx(t.tteffectid, t.bestdif, g.terrainvectorindex3);
+							//cyb
+							if (t.best == 1)
+							{
+								SetEffectConstantV(t.tteffectid, "g_lights_pos0", g.terrainvectorindex1);
+								SetEffectConstantV(t.tteffectid, "g_lights_atten0", g.terrainvectorindex2);
+								SetEffectConstantV(t.tteffectid, "g_lights_diffuse0", g.terrainvectorindex3);
+							}
+							if (t.best == 2)
+							{
+								SetEffectConstantV(t.tteffectid, "g_lights_pos1", g.terrainvectorindex1);
+								SetEffectConstantV(t.tteffectid, "g_lights_atten1", g.terrainvectorindex2);
+								SetEffectConstantV(t.tteffectid, "g_lights_diffuse1", g.terrainvectorindex3);
+							}
+							if (t.best == 3)
+							{
+								SetEffectConstantV(t.tteffectid, "g_lights_pos2", g.terrainvectorindex1);
+								SetEffectConstantV(t.tteffectid, "g_lights_atten2", g.terrainvectorindex2);
+								SetEffectConstantV(t.tteffectid, "g_lights_diffuse2", g.terrainvectorindex3);
+							}
 						}
+
 					}
 				}
+				
 			}
 		}
 	}
@@ -882,32 +975,68 @@ void lighting_loop ( void )
 						t.grideleprof.light = t.entityelement[t.widget.pickedEntityIndex].eleprof.light;
 					}
 				}
-				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.g_lights_pos0,g.terrainvectorindex );
+				//cyb
+				//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.g_lights_pos0,g.terrainvectorindex );
+				SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_pos0", g.terrainvectorindex);
 				SetVector4 (  g.terrainvectorindex,1,1.0/t.grideleprof.light.range,1.0/(t.grideleprof.light.range*t.grideleprof.light.range),0 );
-				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.g_lights_atten0,g.terrainvectorindex );
+				//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.g_lights_atten0,g.terrainvectorindex );
+				SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_atten0", g.terrainvectorindex);
 				SetVector4 (  g.terrainvectorindex,RgbR(t.grideleprof.light.color)/255.0,RgbG(t.grideleprof.light.color)/255.0,RgbB(t.grideleprof.light.color)/255.0,0 );
-				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.g_lights_diffuse0,g.terrainvectorindex );
+				//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.g_lights_diffuse0,g.terrainvectorindex );
+				SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_diffuse0", g.terrainvectorindex);
 				int iLightCount = 3; SetVector4 (  g.terrainvectorindex,iLightCount,0,0,0);
-				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.g_lights_data,g.terrainvectorindex );
+				//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.g_lights_data,g.terrainvectorindex );
+				SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_data", g.terrainvectorindex);
 
 				//  wipe out rest
 				SetVector4 (  g.terrainvectorindex,0,0,0,0 );
 				for ( t.ttt = 2 ; t.ttt<=  3; t.ttt++ )
 				{
-					if (  t.ttt == 2 ) { t.bestpos = t.effectparam.terrain.g_lights_pos1  ; t.bestatt = t.effectparam.terrain.g_lights_atten1 ; t.bestdif = t.effectparam.terrain.g_lights_diffuse1; }
-					if (  t.ttt == 3 ) { t.bestpos = t.effectparam.terrain.g_lights_pos2  ; t.bestatt = t.effectparam.terrain.g_lights_atten2 ; t.bestdif = t.effectparam.terrain.g_lights_diffuse2; }
-					SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestpos,g.terrainvectorindex );
-					SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestatt,g.terrainvectorindex );
-					SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestdif,g.terrainvectorindex );
+					//if (  t.ttt == 2 ) { t.bestpos = t.effectparam.terrain.g_lights_pos1  ; t.bestatt = t.effectparam.terrain.g_lights_atten1 ; t.bestdif = t.effectparam.terrain.g_lights_diffuse1; }
+					//if (  t.ttt == 3 ) { t.bestpos = t.effectparam.terrain.g_lights_pos2  ; t.bestatt = t.effectparam.terrain.g_lights_atten2 ; t.bestdif = t.effectparam.terrain.g_lights_diffuse2; }
+					//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestpos,g.terrainvectorindex ); //"g_lights_pos1" & "g_lights_pos2"
+					//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestatt,g.terrainvectorindex ); //"g_lights_atten1"
+					//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.bestdif,g.terrainvectorindex ); //"g_lights_diffuse1"
+					
+					//cyb
+					if (t.ttt == 2)
+					{
+						SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_pos1", g.terrainvectorindex); 
+						SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_atten1", g.terrainvectorindex); 
+						SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_diffuse1", g.terrainvectorindex); 
+					}
+					if (t.ttt == 3)
+					{
+						SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_pos2", g.terrainvectorindex); 
+						SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_atten2", g.terrainvectorindex); 
+						SetEffectConstantV(t.terrain.terrainshaderindex, "g_lights_diffuse2", g.terrainvectorindex); 
+					}
+
+
 					if (  t.terrain.vegetationshaderindex>0 ) 
 					{
 						if ( GetEffectExist(t.terrain.vegetationshaderindex) == 1 ) 
 						{
-							if (  t.ttt == 2 ) { t.bestpos = t.effectparam.vegetation.g_lights_pos1  ; t.bestatt = t.effectparam.vegetation.g_lights_atten1 ; t.bestdif = t.effectparam.vegetation.g_lights_diffuse1; }
-							if (  t.ttt == 3 ) { t.bestpos = t.effectparam.vegetation.g_lights_pos2  ; t.bestatt = t.effectparam.vegetation.g_lights_atten2 ; t.bestdif = t.effectparam.vegetation.g_lights_diffuse2; }
-							SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestpos,g.terrainvectorindex );
-							SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestatt,g.terrainvectorindex );
-							SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestdif,g.terrainvectorindex );
+							//if (  t.ttt == 2 ) { t.bestpos = t.effectparam.vegetation.g_lights_pos1  ; t.bestatt = t.effectparam.vegetation.g_lights_atten1 ; t.bestdif = t.effectparam.vegetation.g_lights_diffuse1; }
+							//if (  t.ttt == 3 ) { t.bestpos = t.effectparam.vegetation.g_lights_pos2  ; t.bestatt = t.effectparam.vegetation.g_lights_atten2 ; t.bestdif = t.effectparam.vegetation.g_lights_diffuse2; }
+							//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestpos,g.terrainvectorindex ); //"g_lights_pos1"
+							//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestatt,g.terrainvectorindex );
+							//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.bestdif,g.terrainvectorindex );
+							//cyb
+
+							if (t.ttt == 2)
+							{
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_pos1", g.terrainvectorindex);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_atten1", g.terrainvectorindex);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_diffuse1", g.terrainvectorindex);
+							}
+							if (t.ttt == 3)
+							{
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_pos2", g.terrainvectorindex);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_atten2", g.terrainvectorindex);
+								SetEffectConstantV(t.terrain.vegetationshaderindex, "g_lights_diffuse2", g.terrainvectorindex);
+							}
+
 						}
 					}
 				}
@@ -926,10 +1055,18 @@ void lighting_loop ( void )
 			{
 				SetVector4 (  g.terrainvectorindex1,t.playerlight.spotflashx_f,t.playerlight.spotflashy_f,t.playerlight.spotflashz_f,t.playerlight.spotfadeout_f );
 				SetVector4 (  g.terrainvectorindex2,t.playerlight.spotlightr_f,t.playerlight.spotlightg_f,t.playerlight.spotlightb_f,t.playerlight.flashlightcontrol_f );
-				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashPos,g.terrainvectorindex1 );
-				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashColor,g.terrainvectorindex2 );
-				SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashPos,g.terrainvectorindex1 );
-				SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashColor,g.terrainvectorindex2 );
+				//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashPos,g.terrainvectorindex1 );
+				//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashColor,g.terrainvectorindex2 );
+				//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashPos,g.terrainvectorindex1 );
+				//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashColor,g.terrainvectorindex2 );
+				//cyb //above replaced with:
+				SetEffectConstantV(t.terrain.terrainshaderindex, "SpotFlashPos", g.terrainvectorindex1);
+				SetEffectConstantV(t.terrain.terrainshaderindex, "SpotFlashColor", g.terrainvectorindex2);
+				SetEffectConstantV(t.terrain.vegetationshaderindex, "SpotFlashPos", g.terrainvectorindex1);
+				SetEffectConstantV(t.terrain.vegetationshaderindex, "SpotFlashColor", g.terrainvectorindex2);
+
+				
+
 				for ( t.t = -6 ; t.t<=  g.effectbankmax; t.t++ )
 				{
 					if (  t.t == -6  )  t.effectid = g.lightmappbreffectillum;
@@ -944,10 +1081,14 @@ void lighting_loop ( void )
 					if (  t.t == -1  )  t.effectid = g.staticlightmapeffectoffset;
 					if (  t.t == 0  )  t.effectid = g.staticshadowlightmapeffectoffset;
 					if (  t.t>0  )  t.effectid = g.effectbankoffset+t.t;
+
 					if (  GetEffectExist(t.effectid) == 1 ) 
 					{
-						SetEffectConstantVEx (  t.effectid,t.effectparamarray[t.effectid].SpotFlashPos,g.terrainvectorindex1 );
-						SetEffectConstantVEx (  t.effectid,t.effectparamarray[t.effectid].SpotFlashColor,g.terrainvectorindex2 );
+						//SetEffectConstantVEx (  t.effectid,t.effectparamarray[t.effectid].SpotFlashPos,g.terrainvectorindex1 );
+						//SetEffectConstantVEx (  t.effectid,t.effectparamarray[t.effectid].SpotFlashColor,g.terrainvectorindex2 );
+						//cyb
+						SetEffectConstantV(t.effectid, "SpotFlashPos", g.terrainvectorindex1);
+						SetEffectConstantV(t.effectid, "SpotFlashColor", g.terrainvectorindex2);
 					}
 				}
 			}
@@ -955,10 +1096,16 @@ void lighting_loop ( void )
 			{
 				SetVector4 (  g.terrainvectorindex1,0,0,0,0 );
 				SetVector4 (  g.terrainvectorindex2,0,0,0,t.playerlight.flashlightcontrol_f );
-				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashPos,g.terrainvectorindex1 );
-				SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashColor,g.terrainvectorindex2 );
-				SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashPos,g.terrainvectorindex1 );
-				SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashColor,g.terrainvectorindex2 );
+				//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashPos,g.terrainvectorindex1 );
+				//SetEffectConstantVEx (  t.terrain.terrainshaderindex,t.effectparam.terrain.SpotFlashColor,g.terrainvectorindex2 );
+				//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashPos,g.terrainvectorindex1 );
+				//SetEffectConstantVEx (  t.terrain.vegetationshaderindex,t.effectparam.vegetation.SpotFlashColor,g.terrainvectorindex2 );
+				//cyb
+				SetEffectConstantV(t.terrain.terrainshaderindex, "SpotFlashPos", g.terrainvectorindex1);
+				SetEffectConstantV(t.terrain.terrainshaderindex, "SpotFlashColor", g.terrainvectorindex2);
+				SetEffectConstantV(t.terrain.vegetationshaderindex, "SpotFlashPos", g.terrainvectorindex1);
+				SetEffectConstantV(t.terrain.vegetationshaderindex, "SpotFlashColor", g.terrainvectorindex2);
+
 				for ( t.t = -6 ; t.t<=  g.effectbankmax; t.t++ )
 				{
 					if (  t.t == -6  )  t.effectid = g.lightmappbreffectillum;
@@ -973,10 +1120,14 @@ void lighting_loop ( void )
 					if (  t.t == -1  )  t.effectid = g.staticlightmapeffectoffset;
 					if (  t.t == 0  )  t.effectid = g.staticshadowlightmapeffectoffset;
 					if (  t.t>0  )  t.effectid = g.effectbankoffset+t.t;
+					
 					if (  GetEffectExist(t.effectid) == 1 ) 
 					{
-						SetEffectConstantVEx (  t.effectid,t.effectparamarray[t.effectid].SpotFlashPos,g.terrainvectorindex1 );
-						SetEffectConstantVEx (  t.effectid,t.effectparamarray[t.effectid].SpotFlashColor,g.terrainvectorindex2 );
+						//SetEffectConstantVEx (  t.effectid,t.effectparamarray[t.effectid].SpotFlashPos,g.terrainvectorindex1 );
+						//SetEffectConstantVEx (  t.effectid,t.effectparamarray[t.effectid].SpotFlashColor,g.terrainvectorindex2 );
+						//cyb
+						SetEffectConstantV(t.effectid, "SpotFlashPos", g.terrainvectorindex1);
+						SetEffectConstantV(t.effectid, "SpotFlashColor", g.terrainvectorindex2);
 					}
 				}
 			}

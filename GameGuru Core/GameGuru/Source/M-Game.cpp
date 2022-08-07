@@ -28,6 +28,10 @@ extern bool	g_occluderf9Mode;
 extern bool g_bInTutorialMode;
 #endif
 
+#ifdef ENABLEIMGUI //cyb
+extern bool g_bInTutorialMode;
+#endif
+
 // Globals
 bool g_bInEditor = true;
 int g_iMasterRootState = 0;
@@ -37,7 +41,8 @@ int g_iActivelyUsingVRNow = 0;
 //  Game Module to manage all game flow
 // 
 
-#ifndef PRODUCTCLASSIC
+//#ifndef PRODUCTCLASSIC //cyb
+#ifdef ENABLEIMGUI
 extern int iLaunchAfterSync;
 #endif
 extern bool commonexecutable_loop_for_game(void);
@@ -47,7 +52,8 @@ void gameexecutable_init(void)
 	// start game init code
 	int iEXEGameIsVR = 0;
 	editor_previewmap_initcode(iEXEGameIsVR);
-	#ifndef PRODUCTCLASSIC
+	//#ifndef PRODUCTCLASSIC
+    #ifdef ENABLEIMGUI
 	iLaunchAfterSync = 201;
 	#endif
 }
@@ -1810,7 +1816,7 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 		{
 			game_masterroot_gameloop_afterexitgamemenu();
 			game_masterroot_gameloop_afterescapepressed();
-			g_iInGameMenuState = 0;
+			g_iInGameMenuState = 0;		
 		}
 	}
 
@@ -1853,6 +1859,9 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 			else
 				t.plrhasfocus = 1;
 		}
+		#ifdef ENABLEIMGUI
+		t.plrhasfocus = 1;
+		#endif
 	}
 
 	// if controller active, also detect for START button press (same as ESCAPE)
@@ -2013,10 +2022,10 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 	//  Run all game subroutines		
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_main_loop");
 	game_main_loop ( );
-
 	//  Update screen
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_sync");
-	game_sync ( );
+	
+	game_sync ( ); 
 
 	// determine if end of game loop
 	if (t.game.gameloop != 1)
@@ -2265,8 +2274,8 @@ bool game_masterroot_levelloop_initcode(int iUseVRTest)
 		titleslua_init();
 
 		// this is a special flag set when quit from game (avoids rogue IMGUI renders that have been deleted in the restart)
-		#ifndef PRODUCTCLASSIC
-		extern bool bBlockImGuiUntilFurtherNotice;
+		#ifndef PRODUCTCLASSIC //cyb // needed?
+        extern bool bBlockImGuiUntilFurtherNotice;
 		bBlockImGuiUntilFurtherNotice = false;
 		#endif
 
@@ -4401,6 +4410,7 @@ void game_sync ( void )
 	//g.gameperftimestamp=PerformanceTimer();
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sync");
 	Sync (  );
+	
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_dynamicRes");
 	game_dynamicRes();
 
@@ -4457,6 +4467,7 @@ void game_sync ( void )
 	//  Work out performance metrics
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders_readall");
 	t.slidersmenuindex=t.slidersmenunames.performance  ; sliders_readall ( );
+
 }
 
 void game_main_stop ( void )
