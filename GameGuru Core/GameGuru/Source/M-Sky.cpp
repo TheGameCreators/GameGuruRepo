@@ -93,9 +93,16 @@ void sky_init ( void )
 			timestampactivity(0, t.file_s.Get());
 			if (cstr(Left(t.file_s.Get(), 1)) != ".")
 			{
-				++g.lutmax;
-				Dim(t.lutbank_s, g.lutmax);
-				t.lutbank_s[g.lutmax] = Lower(t.file_s.Get());
+				//PE: Ignore other files like .txt
+				if (pestrcasestr(t.file_s.Get(), ".png"))
+				{
+					++g.lutmax;
+					Dim(t.lutbank_s, g.lutmax);
+					if( cstr(Left(t.file_s.Get(),3)) == "_e_")
+						t.lutbank_s[g.lutmax] = Lower(t.file_s.Get()+3);
+					else
+						t.lutbank_s[g.lutmax] = Lower(t.file_s.Get());
+				}
 			}
 		}
 	}

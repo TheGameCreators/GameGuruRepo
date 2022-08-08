@@ -531,6 +531,7 @@ return;
 
 void visuals_load ( void )
 {
+	bool bUpdateLutIndex = false;
 	//  Record previous visuals settings (see below)
 	t.defaultvisuals = t.visuals;
 
@@ -635,8 +636,15 @@ void visuals_load ( void )
 			t.try_s = "visuals.VegHeight#" ; if (  t.tfield_s == t.try_s  )  t.visuals.VegHeight_f = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.skyindex" ; if (  t.tfield_s == t.try_s  )  t.visuals.skyindex = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.sky$" ; if (  t.tfield_s == t.try_s  )  t.visuals.sky_s = t.tvalue_s;
-			t.try_s = "visuals.lutindex"; if (t.tfield_s == t.try_s)  t.visuals.lutindex = ValF(t.tvalue_s.Get());
-			t.try_s = "visuals.lut$"; if (t.tfield_s == t.try_s)  t.visuals.lut_s = t.tvalue_s;
+			t.try_s = "visuals.lutindex"; if (t.tfield_s == t.try_s)
+			{
+				t.visuals.lutindex = ValF(t.tvalue_s.Get());
+			}
+			t.try_s = "visuals.lut$"; if (t.tfield_s == t.try_s)
+			{
+				t.visuals.lut_s = t.tvalue_s;
+				bUpdateLutIndex = true;
+			}
 			t.try_s = "visuals.terrainindex" ; if (  t.tfield_s == t.try_s  )  t.visuals.terrainindex = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.terrain$" ; if (  t.tfield_s == t.try_s  )  t.visuals.terrain_s = t.tvalue_s;
 			t.try_s = "visuals.vegetationindex" ; if (  t.tfield_s == t.try_s  )  t.visuals.vegetationindex = ValF(t.tvalue_s.Get());
@@ -716,6 +724,25 @@ void visuals_load ( void )
 		//  save out to establish these defaults (if later used to save a level)
 		visuals_save ( );
 	}
+	else
+	{
+		if (bUpdateLutIndex)
+		{
+			//PE: If lutbank count dont match search for real index. (deleted/added a lut)
+			if (t.visuals.lut_s != "")
+			{
+				for (int i = 1; i <= g.lutmax; i++)
+				{
+					if (t.lutbank_s[i] == t.visuals.lut_s)
+					{
+						t.visuals.lutindex = i;
+					}
+				}
+			}
+		}
+
+	}
+
 }
 
 void visuals_justshaderupdate ( void )
@@ -1676,10 +1703,17 @@ void visuals_loop ( void )
 	{
 		//  change lut (post process shader)
 		g.lutindex = t.visuals.lutindex;
-		if (g.lutindex > g.lutmax)  g.lutindex = g.lutmax;
+
+		if (g.lutindex > g.lutmax || g.lutindex == 0)
+		{
+			g.lutindex = g.lutmax;
+			for (t.s = 1; t.s <= g.lutmax; t.s++)
+			{
+				if (t.lutbank_s[t.s] == "none.png")  g.lutindex = t.s;
+			}
+		}
 
 		t.visuals.lut_s = t.lutbank_s[g.lutindex];
-		//terrain_skyspec_init();
 
 		// Delete LUT texture for post processing (if used)
 		{
