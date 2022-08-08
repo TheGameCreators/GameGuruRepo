@@ -8,6 +8,7 @@
 #include "gameguru.h"
 #include "M-WelcomeSystem.h"
 #include "M-Widget.h"
+#include "direct.h"
 
 #ifdef VRTECH
 //Windows Mixed Reality Support
@@ -24523,3 +24524,41 @@ bool bLoadOBSFileFromCache( void )
 	}
 	return false;
 }
+
+char tmpConvererString[1024];
+char * bTempXToDBO(char* from, char *to)
+{
+	if (!from) return NULL;
+	if (!to) return NULL;
+	if (t.game.gameisexe != 1) return NULL;
+
+	cstr tmpdestx = g.mysystem.cachebank_s + "t.x";
+	cstr tmpdestdbo = g.mysystem.cachebank_s + "t.dbo";
+
+	if (CopyFile(from, tmpdestx.Get(), false))
+	{
+		DeleteAFile(tmpdestdbo.Get());
+		//Convert directly to cachebank.
+		extern char g_pRootFolderConverter[MAX_PATH];
+		ExecuteFile(g_pRootFolderConverter, tmpdestx.Get(), "", 1);
+		int iCount = 20; // wait a second for the file to show up!
+		while (FileExist(tmpdestdbo.Get()) == 0 && iCount > 0)
+		{
+			Sleep(50); iCount--;
+		}
+		CreateGenericFileCacheName(to);
+		CopyFile(tmpdestdbo.Get(), GenericFileCacheName.Get(), false);
+		strcpy(tmpConvererString, GenericFileCacheName.Get());
+		//PE: recreate from or dsys will fail.
+		if (g_pGlob)
+		{
+			mkdir(g_pGlob->pEXEUnpackDirectory);
+		}
+		CopyFile(tmpdestx.Get(), from, false);
+		DeleteAFile(tmpdestx.Get());
+		DeleteAFile(tmpdestdbo.Get());
+		return(&tmpConvererString[0]);
+	}
+	return NULL;
+}
+
