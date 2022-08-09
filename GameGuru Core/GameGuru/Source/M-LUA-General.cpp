@@ -1443,6 +1443,16 @@ void lua_quitgame ( void )
 	t.game.titleloop=0;
 	strcpy ( t.game.pSwitchToPage, "" );
 }
+
+#ifdef PRODUCTCLASSIC
+void lua_leavegame(void)
+{
+	//PE: Not sure why "t.game.quitflag = 1;" was added ? , in classic "main menu" should start the title screen again.
+	t.game.titleloop = 0;
+	strcpy(t.game.pSwitchToPage, "");
+	mp_quitGame();
+}
+#else
 void lua_leavegame ( void )
 {
 	t.game.titleloop=0;
@@ -1462,6 +1472,7 @@ void lua_leavegame ( void )
 	bBlockImGuiUntilFurtherNotice = true;
 	#endif
 }
+#endif
 void lua_resumegame ( void )
 {
 	t.game.titleloop=0;
