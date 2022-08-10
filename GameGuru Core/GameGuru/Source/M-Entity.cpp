@@ -2532,7 +2532,9 @@ void entity_loadvideoid ( void )
 {
 	t.tvideoid=0;
 	t.text_s = Lower(Right(t.tvideofile_s.Get(),4));
-	if ( t.text_s == ".ogv" || t.text_s == ".mp4" ) 
+	//LB: 32bit no support for Theora as 64bit player, only MP4 remains
+	//if ( t.text_s == ".ogv" || t.text_s == ".mp4" ) 
+	if ( t.text_s == ".mp4" )
 	{
 		t.tvideoid=32;
 		for ( t.tt = 1 ; t.tt<=  32; t.tt++ )

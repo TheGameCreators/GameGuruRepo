@@ -2310,7 +2310,9 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	if ( g_pGlob->hWnd )
 	{
 		// override window handle with new winproc
-		SetWindowLong ( g_pGlob->hWnd, GWL_WNDPROC, (LONG)WindowProc );
+		//LB: 32bit
+		//SetWindowLong ( g_pGlob->hWnd, GWL_WNDPROC, (LONG)WindowProc );
+		SetWindowLong (g_pGlob->hWnd, GWLP_WNDPROC, (LONG)WindowProc);
 	}
 	else
 	{

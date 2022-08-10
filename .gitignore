@@ -218,3 +218,32 @@ GameGuru Core/GameGuruPreprocessor/preprocessor-flags-vrquestv3.h
 GameGuru Core/GameGuruVRQuestV3.bat
 GameGuru Core/GameGuruVRQuestV3.sln
 GameGuru Core/UseENCRYPTIONANDSECURITYCODES.bat
+GameGuru Core/Dark Basic Public Shared/Lib64/Animation.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Basic2D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Basic3D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Bitmap.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/BlitzTerrain.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/BlitzTerrain_RTTMSPlugin.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Bullet.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Camera.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/ConvX.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/CPU3D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/DarkAI.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/DarkLUA.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/DBDLLCore.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Enhancements.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/File.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/FTP.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Image.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/InfiniteVegetation.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Input.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Light.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/LightMapper.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Memblocks.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Setup.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Sound.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Sprites.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/SteamMultiplayer.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/System.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Text.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Vectors.lib
