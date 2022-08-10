@@ -53,8 +53,16 @@ void visuals_init ( void )
 	t.visuals.LightrayLength_f=0.55f;
 	t.visuals.LightrayQuality_f=20.0f;
 	t.visuals.LightrayDecay_f=0.8f;
-	t.visuals.SAORadius_f=0.5f;
-	t.visuals.SAOIntensity_f=0.5f;
+	if (VISUALVERSION >= 312)
+	{
+		t.visuals.SAORadius_f = 0.25f;
+		t.visuals.SAOIntensity_f = 0.25f;
+	}
+	else
+	{
+		t.visuals.SAORadius_f = 0.5f;
+		t.visuals.SAOIntensity_f = 0.5f;
+	}
 	t.visuals.SAOQuality_f=1.0f;
 	t.visuals.LensFlare_f=0.5f;
 	t.visuals.Saturation_f = 0.3f;
@@ -135,8 +143,16 @@ void visuals_resetvalues ( void )
 	t.visuals.LightrayLength_f=0.55f;
 	t.visuals.LightrayQuality_f=20.0f;
 	t.visuals.LightrayDecay_f=0.8f;
-	t.visuals.SAORadius_f=0.5f;
-	t.visuals.SAOIntensity_f=0.5f;
+	if (VISUALVERSION >= 312)
+	{
+		t.visuals.SAORadius_f = 0.25f;
+		t.visuals.SAOIntensity_f = 0.25f;
+	}
+	else
+	{
+		t.visuals.SAORadius_f = 0.5f;
+		t.visuals.SAOIntensity_f = 0.5f;
+	}
 	t.visuals.SAOQuality_f=1.0f;
 	t.visuals.LensFlare_f=0.5f;
 	t.visuals.Saturation_f = 0.3f;
@@ -357,6 +373,9 @@ void visuals_save ( void )
 	t.visfile_s=g.fpscrootdir_s+"\\visuals.ini";
 	if ( FileExist(t.visfile_s.Get()) == 1 ) DeleteAFile ( t.visfile_s.Get() );
 	OpenToWrite (  1,t.visfile_s.Get() );
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.iVisualVersion=" + Str(VISUALVERSION);
+	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork +"visuals.shaderlevels.terrain="+Str(t.visuals.shaderlevels.terrain);
 	WriteString (  1, t.strwork.Get() );
 	t.strwork = ""; t.strwork = t.strwork +"visuals.shaderlevels.entities="+Str(t.visuals.shaderlevels.entities);
@@ -535,6 +554,8 @@ void visuals_load ( void )
 	//  Record previous visuals settings (see below)
 	t.defaultvisuals = t.visuals;
 
+	t.visuals.iVisualVersion = 0.0;
+
 	//  Reset newer visual values that may not exist in older visuals.ini files
 	t.visuals.VignetteRadius_f=0.5;
 	t.visuals.VignetteIntensity_f=0;
@@ -545,8 +566,16 @@ void visuals_load ( void )
 	t.visuals.LightrayLength_f=0.55f;
 	t.visuals.LightrayQuality_f=20.0f;
 	t.visuals.LightrayDecay_f=0.8f;
-	t.visuals.SAORadius_f=0.5f;
-	t.visuals.SAOIntensity_f=0.5f;
+	if (VISUALVERSION >= 312)
+	{
+		t.visuals.SAORadius_f = 0.25f;
+		t.visuals.SAOIntensity_f = 0.25f;
+	}
+	else
+	{
+		t.visuals.SAORadius_f = 0.5f;
+		t.visuals.SAOIntensity_f = 0.5f;
+	}
 	t.visuals.SAOQuality_f=1.0f;
 	t.visuals.LensFlare_f=0.5f;
 	t.visuals.Saturation_f = 0.3f;
@@ -577,6 +606,9 @@ void visuals_load ( void )
 					t.tvalue_s=Right(t.tline_s.Get(),Len(t.tline_s.Get())-Len(t.tfield_s.Get())-1);
 				}
 			}
+
+			t.try_s = "visuals.iVisualVersion"; if (t.tfield_s == t.try_s)  t.visuals.iVisualVersion = ValF(t.tvalue_s.Get());
+
 			t.try_s = "visuals.shaderlevels.terrain" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.terrain = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.shaderlevels.entities" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.entities = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.shaderlevels.vegetation" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.vegetation = ValF(t.tvalue_s.Get());
@@ -693,6 +725,13 @@ void visuals_load ( void )
 		CloseFile (  1 );
 		t.terrain.waterliney_f = g.gdefaultwaterheight;
 
+	}
+
+	//PE: Adjust new effects (HBAO) if using a old visual.ini version.
+	if (t.visuals.iVisualVersion < 312)
+	{
+		if (t.visuals.SAORadius_f > 0.0f) t.visuals.SAORadius_f *= 0.6f;
+		if (t.visuals.SAOIntensity_f > 0.0f) t.visuals.SAOIntensity_f *= 0.6f;
 	}
 
 	//  Right away we cap 'VERTICAL' CameraFOV# for legacy levels which could set it VERY high

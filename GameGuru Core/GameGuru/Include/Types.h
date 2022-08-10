@@ -3776,7 +3776,7 @@ struct visualstype
 	float WaterSpeed1;
 	float WaterFlowSpeed;
 	int iEnvironmentWeather;
-
+	int iVisualVersion;
 	// Constructor
 	visualstype ( )
 	{
@@ -3882,6 +3882,7 @@ struct visualstype
 		 WaterSpeed1 = 0.0f;
 		 WaterFlowSpeed=0.0f;
 		 iEnvironmentWeather = 0;
+		 iVisualVersion = 0;
 
 	}
 	// End of Constructor
