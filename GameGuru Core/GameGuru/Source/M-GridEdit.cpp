@@ -8,26 +8,29 @@
 #include "gameguru.h"
 #include "M-WelcomeSystem.h"
 #include "M-Widget.h"
+#include "direct.h"
 
 #ifdef VRTECH
 //Windows Mixed Reality Support
 #include "GGVR.h"
 #endif
 
-//PE: GameGuru IMGUI.
 #ifdef ENABLEIMGUI
-#include "..\..\GameGuru\Imgui\imgui.h"
+//PE: GameGuru IMGUI.
+#include "..\Imgui\imgui.h"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-#include "..\..\GameGuru\Imgui\imgui_internal.h"
-#include "..\..\GameGuru\Imgui\imgui_impl_win32.h"
-#include "..\..\GameGuru\Imgui\imgui_gg_dx11.h"
+#include "..\Imgui\imgui_internal.h"
+#include "..\Imgui\imgui_impl_win32.h"
+#include "..\Imgui\imgui_gg_dx11.h"
+#endif
 
 #ifdef PETESTING
 #include "..\Imgui\imgui_demo.cpp"
 #endif
 
+#ifdef VRTECH
 #include "M-CharacterCreatorPlusTTS.h"
 #endif
 
@@ -43,12 +46,10 @@
 
 #include "miniz.h"
 
-#ifndef PRODUCTCLASSIC
+#ifdef ENABLEIMGUI
 int iGenralWindowsFlags = ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove;
 bool bBoostIconColors = false;
 #endif
-
-
 
 
 bool bTrashcanIconActive = false, bTrashcanIconActive2 = false;
@@ -67,7 +68,7 @@ cStr sNextLevelToLoad;
 float fMouseWheelZoomFactor = 1.0;
 
 // Defines
-#define ENABLETUTORIALVIDEOS
+//#define ENABLETUTORIALVIDEOS
 
 // 
 //  GAMEGURU MAP EDITOR EXECUTABLE CODE
@@ -84,14 +85,26 @@ extern int g_iWelcomeLoopPage;
 extern int g_trialStampDaysLeft;
 int g_tstoreprojectmodifiedstatic = 0;
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 void process_entity_library(void);
 void process_entity_library_v2(void);
-extern bool g_bCharacterCreatorPlusActivated;
 // can prevent app from quitting out while in test game
 extern bool g_bDisableQuitFlag;
 extern bool bEnableWeather;
 char cImGuiDebug[2048] = "\0";
+bool bLaunchTestGameAfterLoad = false;
+char pLaunchAfterSyncPreSelectModel[MAX_PATH] = "\0";
+char pLaunchAfterSyncLastImportedModel[MAX_PATH] = "\0";
+#endif
+
+#ifdef ENABLEIMGUI
+#ifdef VRTECH
+extern bool g_bCharacterCreatorPlusActivated;
+#else
+bool g_bCharacterCreatorPlusActivated;
+#endif
+int iOldLaunchAfterSync = 0;
+int iSkibFramesBeforeLaunch = 0;
 bool bForceKey = false;
 int iForceScancode = -1;
 cstr csForceKey = "";
@@ -100,11 +113,6 @@ cstr csForceKey2 = "";
 bool bForceUndo = false;
 bool bForceRedo = false;
 int iLaunchAfterSync = 0;
-bool bLaunchTestGameAfterLoad = false;
-char pLaunchAfterSyncPreSelectModel[MAX_PATH] = "\0";
-char pLaunchAfterSyncLastImportedModel[MAX_PATH] = "\0";
-int iOldLaunchAfterSync = 0;
-int iSkibFramesBeforeLaunch = 0;
 DWORD gWindowSizeXOld = 0;
 DWORD gWindowSizeYOld = 0;
 DWORD gWindowSizeAddY = 0;
@@ -115,7 +123,6 @@ DWORD gWindowPosYOld = 0;
 DWORD gWindowMaximized = 0;
 int xmouseold = 0, ymouseold = 0;
 
-#ifdef ENABLEIMGUI
 extern bool bImGuiInTestGame;
 extern bool bBlockImGuiUntilNewFrame;
 extern bool bImGuiFrameState;
@@ -212,7 +219,7 @@ cstr sStartLibrarySearchString = "";
 int iLibraryStingReturnToID = 0;
 int iSelectedLibraryStingReturnID = -1;
 cstr sSelectedLibrarySting = "";
-bool bExternal_Entities_Init = false;
+//bool bExternal_Entities_Init = false;
 bool bEntity_Properties_Window = false;
 bool bProperties_Window_Block_Mouse = false;
 bool bCheckForClosing = false;
@@ -262,14 +269,6 @@ ImVec4 drawCol_back;
 ImVec4 drawCol_normal;
 ImVec4 drawCol_hover;
 ImVec4 drawCol_Down;
-
-
-extern ISpObjectToken * CCP_SelectedToken;
-extern LPSTR pCCPVoiceSet;
-extern char CCP_SpeakText[1024];
-extern wchar_t CCP_SpeakText_w[1024];
-extern int CCP_Speak_Rate;
-
 
 std::vector<cstr> tutorial_list; //unsorted.
 std::map<std::string, std::string> tutorial_files;
@@ -324,7 +323,7 @@ bool bLostFocus = false;
 bool bRenderTargetModalMode = false;
 int iStartupTime = 0;
 cstr CurrentWinTitle = "";
-int speech_ids[5];
+//int speech_ids[5];
 
 extern bool bWaypointDrawmode;
 extern float custom_back_color[4];
@@ -364,7 +363,9 @@ void generic_preloadfiles(void);
 void CloseDownEditorProperties(void);
 
 #endif
-#endif
+
+bool bExternal_Entities_Init = false; //moved  //cyb
+int speech_ids[5]; //moved //cyb
 
 // moved here so Classic would compile
 bool Shooter_Tools_Window_Active = false;
@@ -383,10 +384,9 @@ void set_inputsys_mclick(int value)
 	//timestampactivity(0, pDebugMouseClick);
 }
 
-#ifdef VRTECH
 // GLOBAL to know when in welcome area
 int iTriggerWelcomeSystemStuff = 0;
-#endif
+
 int iCountDownToShowQuickStartDialog = 0;
 
 int gguishadereffectindex = 0;
@@ -581,9 +581,11 @@ void mapeditorexecutable_init ( void )
 	t.tsl_f=Timer();
 
 	// IDE announcement system (note VR Quest has this option)
-	#ifdef VRTECH
+	#ifdef ENABLEIMGUI
 	// (note VR Quest has this option)
 	iTriggerWelcomeSystemStuff = 1;
+	#else
+	iTriggerWelcomeSystemStuff = 0;
 	#endif
 	if ( g.gshowannouncements == 1 )
 	{
@@ -673,7 +675,9 @@ void mapeditorexecutable_init ( void )
 	#endif
 	LoadImage("editors\\uiv3\\ABOUT-Logo.png", ABOUT_LOGO);
 	LoadImage("editors\\uiv3\\ABOUT-TGC.png", ABOUT_TGC);
+	#ifdef PRODUCTV3
 	LoadImage("editors\\uiv3\\ABOUT-Country.png", ABOUT_HB);
+	#endif
 	LoadImage("editors\\uiv3\\ebe-control1.png", EBE_CONTROL1);
 	LoadImage("editors\\uiv3\\ebe-control2.png", EBE_CONTROL2);
 	LoadImage("editors\\uiv3\\shape-up.png", TOOL_SHAPE_UP);
@@ -776,9 +780,10 @@ void mapeditorexecutable_init ( void )
 
 	// Moved last so we can load levels before main loop.
 	// start thread loader for Character Creator texture files (multi-threaded loading) (saves 2s if started CCP)
-
+	#ifdef VRTECH
 	timestampactivity(0, "preload CCP textures early");
 	charactercreatorplus_preloadinitialcharacter();
+	#endif
 
 	//  Main loop
 	iStartupTime = Timer();
@@ -820,7 +825,7 @@ int back_iLastResolutionHeight = 0;
 
 bool commonexecutable_loop_for_game(void)
 {
-#ifndef PRODUCTCLASSIC
+#ifdef ENABLEIMGUI //#ifndef PRODUCTCLASSIC //cyb
 	// called from both mapeditor(test game) and standalone game
 	if (iLaunchAfterSync == 201)
 	{
@@ -944,6 +949,7 @@ void mapeditorexecutable_loop(void)
 			{
 				HWND hThisWnd = GetForegroundWindow();
 				MessageBoxA(hThisWnd, "You are not in VR mode. You need to exit the software. When you restart, select VR MODE ON to enable VR.", "Not in VR Mode", MB_OK);
+				iLaunchAfterSync = 0;
 			}
 			else
 			{
@@ -1014,13 +1020,15 @@ void mapeditorexecutable_loop(void)
 			break;
 	}
 
-	//Display Weather.
-	extern bool bEnableWeather;
+	//Display Weather. ALLOW_WEATHER_IN_EDITOR
+	#ifdef VRTECH
+	extern bool bEnableWeather; //cyb
 	if (bEnableWeather) 
 	{
 		update_env_particles();
 		ravey_particles_update();
 	}
+	#endif
 
 	//PE: Imgui variables.
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -1260,8 +1268,7 @@ void mapeditorexecutable_loop(void)
 			}
 		}
 
-		if(g_bCharacterCreatorPlusActivated)
-			current_mode = TOOL_CCP;
+		//	current_mode = TOOL_CCP;
 		if(bBuilder_Properties_Window || t.ebe.on == 1)
 			current_mode = TOOL_BUILDER;
 		if (bImporter_Window && t.importer.importerActive == 1)
@@ -1556,7 +1563,7 @@ void mapeditorexecutable_loop(void)
 		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Create New Waypoint");
 		ImGui::SameLine();
 		*/
-
+		#ifdef VRTECH
 		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
 		CheckTutorialAction("TOOL_CCP", -10.0f); //Tutorial: check if we are waiting for this action
 		if (current_mode == TOOL_CCP) drawCol_tmp = drawCol_back_tools * drawCol_back_active; else drawCol_tmp = drawCol_back_tools;
@@ -1572,12 +1579,19 @@ void mapeditorexecutable_loop(void)
 			t.inputsys.domodeentity = 1;
 			t.grideditselect = 5;
 			editor_refresheditmarkers();
+
+			#ifndef VRTECH
+			if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
+			#else
 			RedockNextWindow = "Character Creator##PropertiesWindow";
-			g_bCharacterCreatorPlusActivated = true;
+			g_bCharacterCreatorPlusActivated = true; //cyb
 			ImGui::SetWindowFocus(TABENTITYNAME);
+			#endif
+
 		}
 		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Character Creator");
 		ImGui::SameLine();
+		#endif
 
 		CheckTutorialAction("TOOL_BUILDER", -10.0f); //Tutorial: check if we are waiting for this action
 		if (current_mode == TOOL_BUILDER) drawCol_tmp = drawCol_back_tools * drawCol_back_active; else drawCol_tmp = drawCol_back_tools;
@@ -1662,6 +1676,7 @@ void mapeditorexecutable_loop(void)
 
 		precise_icon_width = ImGui::GetCursorPos().x - precise_icon_width;
 
+		#ifdef VRTECH
 		CheckTutorialAction("TOOL_VRMODE", -10.0f); //Tutorial: check if we are waiting for this action
 		//if (ImGui::ImgBtn(TOOL_VRMODE, iToolbarIconSize, drawCol_back_test, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant)) {
 		if (ImGui::ImgBtn(TOOL_VRMODE, iToolbarIconSize, drawCol_tmp, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant,false,false,false, bBoostIconColors))
@@ -1676,11 +1691,12 @@ void mapeditorexecutable_loop(void)
 			ImGui::SetTooltip("%s", "Test Level in VR");
 		}
 		ImGui::SameLine();
+		#endif
 
 		if (ImGui::ImgBtn(TOOL_SOCIALVR, iToolbarIconSize, drawCol_back_test, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant))
 		{
 			if (bWaypointDrawmode) { bWaypointDrawmode = false; }
-			if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+			if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 			if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 			if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 			if (t.ebe.on == 1) ebe_hide();
@@ -1712,7 +1728,7 @@ void mapeditorexecutable_loop(void)
 				{
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 
@@ -1767,7 +1783,7 @@ void mapeditorexecutable_loop(void)
 					// Save Standalone
 					if (bWaypointDrawmode) { bWaypointDrawmode = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					int iRet;
@@ -1777,6 +1793,7 @@ void mapeditorexecutable_loop(void)
 						bExport_Standalone_Window = true;
 					}
 				}
+				#ifdef VRTECH
 				if (ImGui::MenuItem("Save to Level Cloud"))
 				{
 					#ifdef ALPHAEXPIRESYSTEM
@@ -1784,7 +1801,7 @@ void mapeditorexecutable_loop(void)
 					#else
 					if (bWaypointDrawmode) { bWaypointDrawmode = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 
@@ -1797,19 +1814,43 @@ void mapeditorexecutable_loop(void)
 					}
 					#endif
 				}
+				#else
+				
+				if (ImGui::MenuItem("Download Store Items"))
+				{
+					if (bWaypointDrawmode) { bWaypointDrawmode = false; }
+					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
+					if (t.ebe.on == 1) ebe_hide();
+
+					//Download Store Items
+					int iRet;
+					iRet = AskSaveBeforeNewAction();
+					if (iRet != 2)
+					{
+						bDownloadStore_Window = true;
+					}
+				}
+				#endif
 				if (ImGui::MenuItem("Character Creator")) 
 				{
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
+
+					#ifndef VRTECH
+					if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
+					#else
 					g_bCharacterCreatorPlusActivated = true;
+					#endif
 				}
 				if (ImGui::MenuItem("Structure Editor")) 
 				{
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 
@@ -1844,11 +1885,12 @@ void mapeditorexecutable_loop(void)
 						#endif
 					}
 				}
+				
 				if (ImGui::MenuItem("Import Model")) 
 				{
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 
@@ -1873,7 +1915,7 @@ void mapeditorexecutable_loop(void)
 						if (ImGui::MenuItem( s_tmp.c_str() )) {
 							if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 							if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-							if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+							if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 							if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 							if (t.ebe.on == 1) ebe_hide();
 
@@ -1890,8 +1932,8 @@ void mapeditorexecutable_loop(void)
 				{
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
+					if (bEntity_Properties_Window) bEntity_Properties_Window = false; 
 					if (t.ebe.on == 1) ebe_hide();
 					int iRet = AskSaveBeforeNewAction();
 					if (iRet != 2)
@@ -1927,7 +1969,7 @@ void mapeditorexecutable_loop(void)
 
 				if (ImGui::BeginMenu("Window Views")) 
 				{
-//					#ifndef DISABLETUTORIALS
+					#ifndef DISABLETUTORIALS
 					if (bHelp_Window) 
 					{
 						if (ImGui::MenuItem("Hide Tutorial")) {
@@ -1944,7 +1986,7 @@ void mapeditorexecutable_loop(void)
 
 						}
 					}
-//					#endif
+					#endif
 					#ifdef USELEFTPANELSTRUCTUREEDITOR
 					if (bBuilder_Left_Window) {
 						if (ImGui::MenuItem("Hide Structure Editor")) {
@@ -1957,6 +1999,7 @@ void mapeditorexecutable_loop(void)
 						}
 					}
 					#endif
+//#ifndef PRODUCTCLASSICIMGUI //PE: welcome now work.
 					if (iTriggerWelcomeSystemStuff == 0) 
 					{
 						if (ImGui::MenuItem("Show Welcome Screen")) 
@@ -1973,18 +2016,17 @@ void mapeditorexecutable_loop(void)
 							iTriggerWelcomeSystemStuff = 7;
 						}
 					}
-
+//#endif
 					ImGui::EndMenu();
 				}
 
 				if (ImGui::BeginMenu("Change Color Scheme")) 
 				{
-					#ifdef PRODUCTV3
+					#ifdef ENABLEIMGUI
 					if (ImGui::MenuItem("Light Style")) { // VRQ/Classic = Light Style
 						myLightStyle(NULL);
 						pref.current_style = 3;
 					}
-					#else
 					if (ImGui::MenuItem("Dark Style")) {
 						myStyle2(NULL);
 						pref.current_style = 0;
@@ -2060,7 +2102,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Shape Mode")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2071,7 +2113,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Level Mode")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2082,7 +2124,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Stored Level Mode")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2093,7 +2135,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Blend Mode")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2104,7 +2146,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Ramp Mode")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2115,7 +2157,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Paint Texture")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2126,7 +2168,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Paint Grass")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2146,7 +2188,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Entity Mode")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2155,7 +2197,7 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Marker Mode")) {
 					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					bForceKey = true;
@@ -2164,7 +2206,7 @@ void mapeditorexecutable_loop(void)
 				//PE: if we change text "waypoint" it should be done everywhere, like lua/help ... until then:
 				if (ImGui::MenuItem("Waypoint Mode")) { //Follow text used: was Path Mode
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 
@@ -2174,7 +2216,7 @@ void mapeditorexecutable_loop(void)
 				}
 				if (ImGui::MenuItem("Draw Waypoint Path")) { //Follow text used, was: Draw New Path
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 
@@ -2215,22 +2257,24 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Test Level")) 
 				{
 					if (bWaypointDrawmode) { bWaypointDrawmode = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 
 					iLaunchAfterSync = 1;
 				}
+				#ifdef VRTECH
 				if (ImGui::MenuItem("Test Game in VR")) 
 				{
 					if (bWaypointDrawmode) { bWaypointDrawmode = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 					if (t.ebe.on == 1) ebe_hide();
 					iLaunchAfterSync = 20; //Test game VR.
 				}
+				#endif
 				#ifdef PRODUCTV3
 				if (ImGui::MenuItem("Social VR")) {
 				#else
@@ -2240,7 +2284,7 @@ void mapeditorexecutable_loop(void)
 				MessageBoxA(NULL, "Multiplayer Mode not available in build", "Not In Build", MB_OK);
 				#else
 				if (bWaypointDrawmode) { bWaypointDrawmode = false; }
-				if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+				//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 				if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 				if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 				if (t.ebe.on == 1) ebe_hide();
@@ -2268,6 +2312,8 @@ void mapeditorexecutable_loop(void)
 					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
 					bHelp_Menu_Image_Window = true;
 				}
+
+				#ifdef VRTECH
 				if (ImGui::MenuItem("Level Shortcuts")) {
 					strcpy(cHelpMenuImage, "languagebank\\english\\artwork\\testgamelayout.png");
 					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
@@ -2278,9 +2324,28 @@ void mapeditorexecutable_loop(void)
 					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
 					bHelp_Menu_Image_Window = true;
 				}
+				#else
+				if (ImGui::MenuItem("Level Shortcuts")) {
+					strcpy(cHelpMenuImage, "languagebank\\english\\artwork\\testgamelayout-1024x768.png");
+					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
+					bHelp_Menu_Image_Window = true;
+				}
+				if (ImGui::MenuItem("Multiplayer Controls")) {
+					strcpy(cHelpMenuImage, "languagebank\\english\\artwork\\testgamelayoutmp-1024x768.png");
+					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
+					bHelp_Menu_Image_Window = true;
+				}
+				#endif
+
 				if (ImGui::MenuItem("Read User Manual")) 
 				{
+					///Files/languagebank/english/artwork/GameGuru%20-%20Getting%20Started%20Guide.pdf
+					#ifdef VRTECH
 					ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);
+					#else
+					cstr pPDFPath = g.fpscrootdir_s + "\\Files\\languagebank\\english\\artwork\\GameGuru - Getting Started Guide.pdf";
+					ExecuteFile(pPDFPath.Get(), "", "", 0);
+					#endif
 				}
 				#ifndef DISABLETUTORIALS
 				if (ImGui::MenuItem("Getting Started Tutorial"))
@@ -3356,7 +3421,11 @@ void mapeditorexecutable_loop(void)
 
 		//PE: PRODUCTV3 version.
 		if (refresh_gui_docking == 0 ) {
+			#ifdef VRTECH
 			ImGui::SetNextWindowSize(ImVec2(28 * ImGui::GetFontSize(), 44 * ImGui::GetFontSize()), ImGuiCond_Once); //ImGuiCond_FirstUseEver
+			#else
+			ImGui::SetNextWindowSize(ImVec2(28 * ImGui::GetFontSize(), 34 * ImGui::GetFontSize()), ImGuiCond_Once); //ImGuiCond_FirstUseEver
+			#endif
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Once);
 			ImGui::Begin("About##AboutWindow", &bAbout_Window, 0);
 			ImGui::End();
@@ -3382,7 +3451,11 @@ void mapeditorexecutable_loop(void)
 			}
 			if (bAbout_Window_First_Run)
 			{
+				#ifdef VRTECH
 				ImGui::SetNextWindowSize(ImVec2(28 * ImGui::GetFontSize(), 44 * ImGui::GetFontSize()), ImGuiCond_Always); //ImGuiCond_FirstUseEver
+				#else
+				ImGui::SetNextWindowSize(ImVec2(28 * ImGui::GetFontSize(), 34 * ImGui::GetFontSize()), ImGuiCond_Always); //ImGuiCond_FirstUseEver
+				#endif
 				ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 				bAbout_Window_First_Run = false;
 			}
@@ -3395,16 +3468,18 @@ void mapeditorexecutable_loop(void)
 			float img_w = ImageWidth(ABOUT_LOGO);
 			float img_h = ImageHeight(ABOUT_LOGO);
 
+			#ifdef VRTECH
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((fRegionWidth*0.5) - (img_w*0.5), 0.0f));
-
 			ImGui::ImgBtn(ABOUT_LOGO, ImVec2(img_w, img_h), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(1.0, 1.0, 1.0, 1.0), 0, 0, 0, 0, false);
-
 			ImGui::TextCenter("");
+			#endif
+
 			char pBuildText[1024];
 			sprintf(pBuildText, "Build: %s", g.version_s.Get());
 			ImGui::TextCenter(pBuildText);
 			ImGui::TextCenter("");
 
+			#ifdef VRTECH
 			for (int vloop = 0; vloop < about_text.size(); vloop++) {
 
 				if (pestrcasestr(about_text[vloop].Get(), "https://") || pestrcasestr(about_text[vloop].Get(), "http://")) {
@@ -3429,6 +3504,13 @@ void mapeditorexecutable_loop(void)
 
 			}
 			ImGui::Text("");
+			#else
+			ImGui::Text("");
+			ImGui::TextCenter("(c)Copyright 2005 - 2022 The Game Creators Ltd.");
+			ImGui::TextCenter("All Rights Reserved.");
+			ImGui::Text("");
+			ImGui::Text("");
+			#endif
 
 			float fTotalWidth = ImageWidth(ABOUT_TGC);
 			#ifdef PRODUCTV3
@@ -3684,7 +3766,7 @@ void mapeditorexecutable_loop(void)
 		//############################
 		//#### Save To Level Cloud ###
 		//############################
-
+		#ifdef VRTECH
 		// allows flag to be reset if user closes save cloud popup directly
 		static bool bSaveToGameCloudInitList = false;
 		if (bExport_SaveToGameCloud_Window == false) bSaveToGameCloudInitList = false;
@@ -3762,7 +3844,7 @@ void mapeditorexecutable_loop(void)
 				static int iCloudLevelListCount = 0;
 				static char** pCloudLevelList = NULL;
 				static char** pCloudLevelListDisplay = NULL;
-				extern std::vector<cstr> g_gamecloud_gamelist;
+				extern std::vector<cstr> g_gamecloud_gamelist; //cyb
 				static int iTeacherCode = 0;
 
 				if (iSaveToGameCloudCycle == 0) 
@@ -3772,7 +3854,7 @@ void mapeditorexecutable_loop(void)
 					{
 						// as it speeds up potential delete game step as getlist moved earlier
 						bSaveToGameCloudInitList = true;
-						mp_gamecloud_getlist();
+						//mp_gamecloud_getlist(); //cyb
 
 						// LICENSE-ID is used to schools/users can identify their game from all the others
 						strcpy(pLicenseID, "NOSITE");
@@ -3975,7 +4057,7 @@ void mapeditorexecutable_loop(void)
 								if (MessageBoxA(NULL, pMessage, "Delete Level Confirmation", MB_YESNO) == IDYES)
 								{
 									// delete level in cloud
-									mp_gamecloud_delete(pLevelToDelete);
+									//mp_gamecloud_delete(pLevelToDelete); //cyb
 
 									// and force a refresh of the list
 									bSaveToGameCloudInitList = false;
@@ -3994,7 +4076,7 @@ void mapeditorexecutable_loop(void)
 
 				ImGui::Indent(10);
 
-				float fdone = (float)mp_gamecloud_getprogress() / 100.0f;
+				float fdone = 0;//cyb // (float)mp_gamecloud_getprogress() / 100.0f;
 
 				if (iSaveToGameCloudCycle == 1) fdone = 0.01f;
 
@@ -4045,11 +4127,11 @@ void mapeditorexecutable_loop(void)
 					//else
 					{
 						// start save to level cloud, first check existing games up there
-						if (mp_gamecloud_overwriteexisting(pFinalFilenameToUse) != -1)
+						if (0)//(mp_gamecloud_overwriteexisting(pFinalFilenameToUse) != -1) //cyb
 						{
 							//if (bJustWantToDeleteSomeOldFiles == false)
 							{
-								int iUploadResult = mp_gamecloud_upload(true, cSaveToGameCloudPath, pFinalFilenameToUse);
+								int iUploadResult = 0;//cyb // mp_gamecloud_upload(true, cSaveToGameCloudPath, pFinalFilenameToUse);
 								if (iUploadResult != -1)
 								{
 									if (iUploadResult == 1)
@@ -4070,7 +4152,7 @@ void mapeditorexecutable_loop(void)
 				if (iSaveToGameCloudCycle == 3)
 				{
 					// upload cycle
-					int iResultAsync = mp_gamecloud_upload(false, cSaveToGameCloudPath, NULL);
+					int iResultAsync = 0; //cyb // mp_gamecloud_upload(false, cSaveToGameCloudPath, NULL);
 					if (iResultAsync != 0 )
 					{
 						// complete standalone creation
@@ -4103,7 +4185,7 @@ void mapeditorexecutable_loop(void)
 					// cancel popup
 					iSaveToGameCloudCycle = 0;
 					bSaveToGameCloudInitList = false;
-					strcpy(cTriggerMessage, mp_gamecloud_geterror());
+					//strcpy(cTriggerMessage, mp_gamecloud_geterror()); //cyb
 					bTriggerMessage = true;
 					bExport_SaveToGameCloud_Window = false; //Close window.
 				}
@@ -4116,7 +4198,7 @@ void mapeditorexecutable_loop(void)
 				ImGui::EndPopup();
 			}
 		}
-
+		#endif
 		//########################
 		//#### Download Store ####
 		//########################
@@ -4131,7 +4213,7 @@ void mapeditorexecutable_loop(void)
 			ImGui::Begin("Download Store Items##DownloadStoreWindow", &bDownloadStore_Window, 0);
 			ImGui::End();
 		}
-		imgui_download_store();
+		imgui_download_store(); //@cyb this will work when proper keys used. if not if will just fail with a error.
 
 
 		//#####################
@@ -4191,13 +4273,15 @@ void mapeditorexecutable_loop(void)
 		//#### Character Creator ####
 		//###########################
 
+		#ifdef VRTECH
 		if (refresh_gui_docking == 0 && !g_bCharacterCreatorPlusActivated) 
 		{
 			//Make sure window is setup in docking space.
-			ImGui::Begin("Character Creator##PropertiesWindow", &g_bCharacterCreatorPlusActivated, iGenralWindowsFlags);
+			ImGui::Begin("Character Creator##PropertiesWindow", &g_bCharacterCreatorPlusActivated, iGenralWindowsFlags);  //cyb
 			ImGui::End();
 		}
 		charactercreatorplus_imgui();
+		#endif
 
 		//###########################
 		//#### Entity Properties ####
@@ -4241,16 +4325,19 @@ void mapeditorexecutable_loop(void)
 					iOldgridentity = t.gridentity;
 
 					// get voices sets
-					if (g_voiceList_s.size() == 0) 
+					#ifdef VRTECH
+					if (g_voiceList_s.size() == 0)
 					{
-						if (CreateListOfVoices() > 0) 
+						if (0)//cyb //(CreateListOfVoices() > 0) 
 						{
 							pCCPVoiceSet = g_voiceList_s[0].Get();
 							CCP_SelectedToken = g_voicetoken[0];
 						}
 					}
+					#endif
 
 					// entity may have voice preferences set to check that
+					#ifdef VRTECH
 					pCCPVoiceSet = t.grideleprof.voiceset_s.Get();
 					CCP_Speak_Rate = t.grideleprof.voicerate;
 					if (strlen(pCCPVoiceSet) > 0)
@@ -4278,7 +4365,7 @@ void mapeditorexecutable_loop(void)
 							CCP_SelectedToken = NULL;
 						CCP_Speak_Rate = 0;
 					}
-
+					#endif
 					//Make sure to read DLUA.
 					current_loaded_script = -1;
 				}
@@ -4541,11 +4628,13 @@ void mapeditorexecutable_loop(void)
 									ImGui::Indent(-10);
 								}
 
+								#ifdef VRTECH
 								if(speech_entries > 0)
 								{
 									//@Lee all SPEECH control is moved to this function.
 									SpeechControls(speech_entries, bUpdateMainString);
 								}
+								#endif
 
 								if (ImGui::StyleCollapsingHeader("Customize", ImGuiTreeNodeFlags_DefaultOpen)) {
 
@@ -4715,13 +4804,13 @@ void mapeditorexecutable_loop(void)
 										ImGui::Indent(-10);
 									}
 								}
-
+								#ifdef VRTECH
 								if (speech_entries > 0)
 								{
 									// all SPEECH control is moved to this function.
 									SpeechControls(speech_entries, bUpdateMainString);
 								}
-
+								#endif
 
 								if (ImGui::StyleCollapsingHeader("Customize", ImGuiTreeNodeFlags_DefaultOpen)) {
 
@@ -4946,12 +5035,13 @@ void mapeditorexecutable_loop(void)
 
 										ImGui::Indent(-10);
 									}
-
+									#ifdef VRTECH
 									if (speech_entries > 0)
 									{
 										// all SPEECH control is moved to this function.
 										SpeechControls(speech_entries, bUpdateMainString);
 									}
+									#endif
 								}
 								else
 									bUnfoldAdvanced = true;
@@ -5158,13 +5248,13 @@ void mapeditorexecutable_loop(void)
 										ImGui::Indent(-10);
 									}
 								}
-
+								#ifdef VRTECH
 								if (speech_entries > 0)
 								{
 									// all SPEECH control is moved to this function.
 									SpeechControls(speech_entries, bUpdateMainString);
 								}
-
+								#endif
 							}
 
 							t.group = 1;
@@ -6419,7 +6509,7 @@ void mapeditorexecutable_loop(void)
 											if (bToolTipActive)
 											{
 												if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
-												if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+												//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 												if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 
 
@@ -6473,17 +6563,21 @@ void mapeditorexecutable_loop(void)
 				bImGuiGotFocus = true;
 
 			//PE: display additional debug information.
-			//ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+			//ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate); //cyb
 			//ImGui::Text("DrawCalls: %d", g_pGlob->dwNumberOfPrimCalls);
 			//ImGui::Text("Poly: %d", g_pGlob->dwNumberOfPolygonsDrawn);
-
 			//ImGui::Text("triggerfindundercursor: %d", triggerfindundercursor);
 			//ImGui::Text("bImGuiRenderTargetFocus: %d", (int) bImGuiRenderTargetFocus);
 			//ImGui::Text("t.inputsys.mclick: %d", (int)t.inputsys.mclick);
 			//ImGui::Text("t.onedrag: %d", t.onedrag);
 			//ImGui::Text("io.WantCaptureKeyboard: %d", (int) io.WantCaptureKeyboard);
+			//ImGui::Text("io.WantCaptureMouse: %d", (int)io.WantCaptureMouse);
 			//ImGui::Text("IsAnyItemActive(): %d", (int)ImGui::IsAnyItemActive());
-
+			//ImGui::Text("IsMouseClicked: %d", (int)ImGui::IsMouseClicked(0));
+			//ImGui::Text("IsMouseDown: %d", (int)ImGui::IsMouseDown(0));
+			//ImGui::Text("MouseClick(): %d", (int)MouseClick());
+			//ImGui::Text("GetMousePos x,y: %d , %d", (int)ImGui::GetMousePos().x, (int)ImGui::GetMousePos().y);
+			
 
 //				ImGui::Text("object_preload_still_running: %d", (int)object_preload_still_running());
 
@@ -7283,6 +7377,7 @@ void mapeditorexecutable_loop(void)
 
 
 	}
+
 #endif
 
 	// 191015 - Trigger quick start dialog when editor flowing
@@ -7368,7 +7463,7 @@ void mapeditorexecutable_loop(void)
 	input_getcontrols();
 	#endif
 
-	#ifdef VRTECH
+	#ifdef ENABLEIMGUI
 	// could not launch Welcome system before IMGUI inits, so flagged to happen here
 	if (iTriggerWelcomeSystemStuff > 0 && iTriggerWelcomeSystemStuff < 6) iTriggerWelcomeSystemStuff++;
 	if (iTriggerWelcomeSystemStuff > 5)
@@ -7547,7 +7642,7 @@ void mapeditorexecutable_loop(void)
 			///characterkit_updateAllCharacterCreatorEntitiesInMap ( );
 
 			//  Ensure lighting is updated as lighting is edited and moved
-			lighting_loop ( );
+			lighting_loop ( ); 
 
 			//  Only show terrain cursor if in terrain edit mode
 			if (  t.grideditselect == 0 && t.inputsys.mclick != 2 && t.inputsys.mclick != 4 && t.interactive.insidepanel == 0 ) 
@@ -7759,7 +7854,7 @@ void mapeditorexecutable_loop(void)
 
 	//  Update screen (if mouse in 3D are)
 	if (  t.recoverdonotuseany3dreferences == 0 ) 
-	{
+		{
 		//  editor super chuggy
 		if (  t.inputsys.activemouse == 1 ) 
 		{
@@ -7782,14 +7877,16 @@ void mapeditorexecutable_loop(void)
 			}
 			#endif
 			SyncRate (  0 );
+		
 			if (  t.syncthreetimes>0 ) {  --t.syncthreetimes; Sync ( ); }
+	
 			SleepNow ( 10 );
 		}
 
 		//  Detect if resolution changed (windows)
 		editor_detect_invalid_screen ( );
 	}
-
+	
 	#ifdef VRTECH
 	if (g_bCascadeQuitFlag) 
 	{
@@ -7874,7 +7971,7 @@ void mapeditorexecutable(void)
 	mapeditorexecutable_finish();
 }
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 int AskSaveBeforeNewAction(void)
 {
 	int iAction = 0;
@@ -8430,7 +8527,7 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	//Hide any windows outside main viewport.
 	ImGui::HideAllViewPortWindows();
 	LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	//SetWindowLong(g_pGlob->hWnd, GWL_WNDPROC, (LONG)WindowProc);
+	//SetWindowLong(g_pGlob->hWnd, GWLP_WNDPROC, (LONG)WindowProc);
 
 #endif
 #endif
@@ -8628,6 +8725,8 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	// Ensure game visuals settings used
 	t.gamevisuals.skyindex=t.visuals.skyindex;
 	t.gamevisuals.sky_s=t.visuals.sky_s;
+	t.gamevisuals.lutindex = t.visuals.lutindex;
+	t.gamevisuals.lut_s = t.visuals.lut_s;
 	t.gamevisuals.terrainindex=t.visuals.terrainindex;
 	t.gamevisuals.terrain_s=t.visuals.terrain_s;
 	t.gamevisuals.vegetationindex=t.visuals.vegetationindex;
@@ -9129,6 +9228,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals=t.editorvisuals;
 	t.visuals.skyindex=t.gamevisuals.skyindex;
 	t.visuals.sky_s=t.gamevisuals.sky_s;
+	t.visuals.lutindex = t.gamevisuals.lutindex;
+	t.visuals.lut_s = t.gamevisuals.lut_s;
 	t.visuals.terrainindex=t.gamevisuals.terrainindex;
 	t.visuals.terrain_s=t.gamevisuals.terrain_s;
 	t.visuals.vegetationindex=t.gamevisuals.vegetationindex;
@@ -10039,6 +10140,12 @@ void imgui_input_getcontrols(void)
 	t.inputsys.tseldelete = 0;
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+	//io.AddMousePosEvent(mouse_x, mouse_y);  // update mouse position //cyb
+	//io.AddMouseButtonEvent(0, mouse_b[0]);  // update mouse button states
+	//io.AddMouseButtonEvent(1, mouse_b[1]);  // update mouse button states
+
+
 	#ifdef USERENDERTARGET
 	//PE: Take everything from imgui.
 
@@ -10081,7 +10188,11 @@ void imgui_input_getcontrols(void)
 		ymouseold = t.inputsys.ymouse;
 
 		t.inputsys.wheelmousemove = io.MouseWheel; //MouseMoveZ();
+		
 		set_inputsys_mclick(io.MouseDown[0] + (io.MouseDown[1] * 2.0) + (io.MouseDown[2] * 3.0) + (io.MouseDown[3] * 4.0));// t.inputsys.mclick = io.MouseDown[0] + (io.MouseDown[1] * 2.0) + (io.MouseDown[2] * 3.0) + (io.MouseDown[3] * 4.0); //  MouseClick();
+		
+		//cyb //set_inputsys_mclick(MouseClick());// t.inputsys.mclick = io.MouseDown[0] + (io.MouseDown[1] * 2.0) + (io.MouseDown[2] * 3.0) + (io.MouseDown[3] * 4.0); //  MouseClick();
+
 		t.inputsys.k_s = Lower(Inkey());
 
 		//  Control keys direct from keyboard
@@ -10150,7 +10261,7 @@ void imgui_input_getcontrols(void)
 		//Disable some keys.
 	}
 
-	if (g_bCharacterCreatorPlusActivated) 
+	if (0) //(g_bCharacterCreatorPlusActivated)  //cyb
 	{
 		//Disable some keys.
 		if( t.inputsys.kscancode == Asc("t") || t.inputsys.kscancode == Asc("T") )
@@ -10404,7 +10515,7 @@ void imgui_input_getcontrols(void)
 		bForceRedo = false;
 	}
 
-	#ifdef PRODUCTV3
+	#ifdef ENABLEIMGUI
 	// When old in welcome system, do not allow regular edit keys to work!
 	if (iTriggerWelcomeSystemStuff != 0)
 		return;
@@ -10861,7 +10972,12 @@ void input_getcontrols ( void )
 	//  Obtain input data
 	if (  g.globals.ideinputmode == 1 ) 
 	{
-		input_getfilemapcontrols ( );
+		//input_getfilemapcontrols ( ); //cyb ???
+//#ifndef USEOLDIDE
+//		imgui_input_getcontrols();
+//#else
+		input_getfilemapcontrols();
+//#endif
 	}
 	else
 	{
@@ -10898,7 +11014,7 @@ void input_getcontrols ( void )
 	if (t.inputsys.kscancode == 0) 
 	{
 		t.inputsys.keypress = 0;
-		#ifdef VRTECH
+		#ifdef ENABLEIMGUI
 		if (iForceScancode > 0 ) 
 		{
 			t.inputsys.kscancode = iForceScancode;
@@ -14154,7 +14270,7 @@ void editor_camera ( void )
 						t.tffcspeed_f=35.0*g.timeelapsed_f;
 					}
 				}
-				#if defined(ENABLEIMGUI)
+				#if defined(ENABLEIMGUI2)//cyb
 				if (g_bCharacterCreatorPlusActivated) {
 					//Slow down movement when i CCP.
 					t.tffcspeed_f *= 0.25;
@@ -15741,7 +15857,6 @@ void gridedit_mapediting ( void )
 									#endif
 									gridedit_addentitytomap ( );
 
-
 								}
 
 								//  if drag char to start marker, assign here
@@ -15809,6 +15924,7 @@ void gridedit_mapediting ( void )
 							t.gridentityscalex_f=t.storegridentityscalex_f;
 							t.gridentityscaley_f=t.storegridentityscaley_f;
 							t.gridentityscalez_f=t.storegridentityscalez_f;
+
 						}
 						else
 						{
@@ -16077,6 +16193,7 @@ void gridedit_mapediting ( void )
 						int entid = t.entityelement[t.widget.pickedEntityIndex].bankindex;
 						if ( t.entityprofile[entid].isebe != 0 )
 						{
+							
 							// EBE entity - begin editing this site
 							ebe_newsite ( t.widget.pickedEntityIndex );
 						}
@@ -16100,7 +16217,7 @@ void gridedit_mapediting ( void )
 								// Added NEW (not overwritten) - now saved to entitybank\user\ebestructures
 								//editor_addEBEtoLibrary ( entid );
 							}
-
+				
 							// and close widget as Save bit big deal
 							widget_switchoff();
 						}
@@ -16322,6 +16439,7 @@ void gridedit_mapediting ( void )
 		}
 
 		// this is triggered when set to a negative, and continues to force find surface until zero
+
 	}
 }
 
@@ -19661,7 +19779,14 @@ int imgui_setpropertylist2(int group, int controlindex, char* data_s, char* fiel
 }
 #endif
 
+
+
 #ifdef FPSEXCHANGE
+//char * imgui_setpropertyfile2(int group, char* data_s, char* field_s, char* desc_s, char* within_s)
+//{
+//	char *cRet;
+//	return cRet;
+//}
 
 void startgroup ( char* s_s )
 {
@@ -21265,7 +21390,7 @@ void generic_preloadfiles(void)
 	image_preload_files_finish();
 }
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 void CloseDownEditorProperties(void)
 {
 	if (t.gridentityinzoomview > 0) 
@@ -21299,6 +21424,7 @@ void FormatTTS(LPSTR pFormattedTTS, LPSTR pFormattedTTSOut)
 bool g_bVoiceSettingsChanged = false;
 int g_iVoiceSettingsUpdateSpeechID = 0;
 
+#ifdef VRTECH
 void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftype *edit_grideleprof)
 {
 	if (!edit_grideleprof)
@@ -21381,7 +21507,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 
 		// monitor lip sync generator
 		bool bLipSyncGenerationBusy = false;
-		float fProgressOfGeneration = GetWAVtoLIPProgress();
+		float fProgressOfGeneration = 0;//cyb // GetWAVtoLIPProgress();
 		if (fProgressOfGeneration > 0.0f && fProgressOfGeneration < 1.0f)
 			bLipSyncGenerationBusy = true;
 
@@ -21425,7 +21551,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 				if (iButtonControlAndState == 1)
 				{
 					// user changed one of the speech fields, so generate LIP file for it
-					ConvertWAVtoLIP(used_soundset.Get());
+					//ConvertWAVtoLIP(used_soundset.Get()); //cyb
 				}
 
 				std::string uniquiField = ">";
@@ -21503,7 +21629,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 							char pRealAbsWAVForRecording[MAX_PATH];
 							strcpy(pRealAbsWAVForRecording, absWAVPath_s.Get());
 							GG_GetRealPath(pRealAbsWAVForRecording, 1);
-							RecordWAV(pRealAbsWAVForRecording);
+							//RecordWAV(pRealAbsWAVForRecording); //cyb
 							g_bRecordingSound = true;
 						}
 					}
@@ -21513,7 +21639,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 				ImGui::PopID();
 				if (g_bRecordingSound == true)
 				{
-					if ( RecordWAVProgress() >= 1.0f && bLipSyncGenerationBusy == false )
+					if (0) //cyb //( RecordWAVProgress() >= 1.0f && bLipSyncGenerationBusy == false )
 					{
 						// end recording mode
 						g_bRecordingSound = false;
@@ -21526,7 +21652,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 
 						// generate LIP file from recording
 						cstr absWAVPath_s = g.fpscrootdir_s + "\\Files\\" + g_recordingFile_s;
-						ConvertWAVtoLIP(absWAVPath_s.Get());
+						//ConvertWAVtoLIP(absWAVPath_s.Get()); //cyb
 						bLipSyncGenerationBusy = true;
 					}
 				}
@@ -21557,7 +21683,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 					if (g_bVoiceSettingsChanged == true)
 					{
 						// go through all speeches and regeneate them one by one
-						float fProgressOfGeneration = GetWAVtoLIPProgress();
+						float fProgressOfGeneration = 0;//cyb // GetWAVtoLIPProgress();
 						if (fProgressOfGeneration > 0.0f && fProgressOfGeneration < 1.0f)
 						{
 							// but if lip sync busy, we wait until free!
@@ -21580,7 +21706,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 					}
 					// only proceed when LIP sync not busy
 					bool bLipSyncBusy = false;
-					float fProgressOfGeneration = GetWAVtoLIPProgress();
+					float fProgressOfGeneration = 0;//cyb GetWAVtoLIPProgress();
 					if (fProgressOfGeneration > 0.0f && fProgressOfGeneration < 1.0f) bLipSyncBusy = true;
 					if (ImGui::IsItemActive() == false && bDetectWhenFinishedEditingTTSText==true && bLipSyncBusy==false)
 					{
@@ -21719,7 +21845,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 									{
 										char pFinalWAVFilename[MAX_PATH];
 										strcpy(pFinalWAVFilename, pWAVFilename);
-										ConvertTXTtoWAVMeatyPart(spVoice, CCP_SelectedToken, CCP_Speak_Rate, pWhatToSay, pFinalWAVFilename);
+										//ConvertTXTtoWAVMeatyPart(spVoice, CCP_SelectedToken, CCP_Speak_Rate, pWhatToSay, pFinalWAVFilename); //cyb
 									}
 								}
 							}
@@ -21739,7 +21865,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 						SetDir(pOldDir.Get());
 
 						// can begin the WAV to LIP file now as we have the WAV file created
-						ConvertWAVtoLIP(pRelLocationOfWAV);
+						//ConvertWAVtoLIP(pRelLocationOfWAV); //cyb
 
 						// and before we leave, take the opportunity to scan ALL entities and see if there are
 						// any entries in the TTS table (and associated WAVs) that are not needed (probably due to recent change above)
@@ -22013,6 +22139,7 @@ void SpeechControls(int speech_entries, bool bUpdateMainString, entityeleproftyp
 		ImGui::Indent(-10);
 	}
 }
+#endif
 
 void RedockWindow(char *name)
 {
@@ -22229,7 +22356,7 @@ void Add_Grid_Snap_To_Position(void)
 
 }
 
-#ifndef PRODUCTCLASSIC
+#ifdef ENABLEIMGUI
 void DisplaySmallImGuiMessage(char *text)
 {
 	ImGui::SetNextWindowPos(OldrenderTargetPos + ImVec2(50, 50), ImGuiCond_Always); //ImGuiCond_Always
@@ -22953,7 +23080,7 @@ void CloseAllOpenTools(bool bTerrainTools)
 {
 	if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 	if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-	if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+	//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 	if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 	if (t.ebe.on == 1) ebe_hide();
 	if (bTerrainTools)
@@ -22967,7 +23094,7 @@ void CloseAllOpenTools(bool bTerrainTools)
 void CloseAllOpenToolsThatNeedSave(void)
 {
 	if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-	if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+	//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 	if (t.ebe.on == 1) ebe_hide();
 }
 
@@ -23004,9 +23131,7 @@ float ImGuiGetMouseY(void)
 	return(t.inputsys.ymouse);
 }
 
-
-#ifdef VRTECH
-
+#ifdef ENABLEIMGUI
 void process_entity_library(void)
 {
 	if (bExternal_Entities_Window)
@@ -23522,9 +23647,20 @@ void process_entity_library(void)
 														myfiles->iPreview = uniqueId; //TOOL_ENTITY; //Just for testing.
 														SetMipmapNum(1); //PE: mipmaps not needed.
 														image_setlegacyimageloading(true);
+														
+														//cyb
+														char *fp = new char[sImgName.length() + 1];
+														strcpy(fp, sImgName.c_str());
+														if (FileExist(fp) == 0)
+														{
+															sImgName = (g.mysystem.root_s + "files\\editors\\gfx\\missing.bmp").Get();
+														}
+														delete[] fp;
+													
 														LoadImage((char *)sImgName.c_str(), myfiles->iPreview);
 														image_setlegacyimageloading(false);
 														SetMipmapNum(-1);
+
 														if (!GetImageExistEx(myfiles->iPreview))
 														{
 															myfiles->iPreview = TOOL_ENTITY;
@@ -23690,7 +23826,7 @@ void process_entity_library(void)
 													{
 														if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 														if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-														if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+														//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 
 														//Make sure we are in entity mode.
 														bForceKey = true;
@@ -23725,7 +23861,8 @@ void process_entity_library(void)
 													}
 												}
 
-												if (!bEntity_Properties_Window && !g_bCharacterCreatorPlusActivated && !bImporter_Window && i == 0 && ImGui::IsItemHovered()) {
+												//if (!bEntity_Properties_Window && !g_bCharacterCreatorPlusActivated && !bImporter_Window && i == 0 && ImGui::IsItemHovered()) {
+												if (!bEntity_Properties_Window && !bImporter_Window && i == 0 && ImGui::IsItemHovered()) { //cyb
 
 													iTooltipHoveredTimer = Timer();
 													static void* additionalcheck = NULL;
@@ -24014,7 +24151,7 @@ void process_entity_library(void)
 							if (searchfiles->iFlags == 1) {
 								if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 								if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-								if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+								//if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 
 								//Insert.
 								cStr path = pSearchFolder->m_sFolderFullPath.Get();
@@ -24358,7 +24495,8 @@ bool bCheckCacheXFile(LPSTR pFilename, DWORD* pdwBlockSize, void** ppDBOBlock)
 	{
 		return LoadDBODataBlock(GenericFileCacheName.Get(), pdwBlockSize, ppDBOBlock);
 	}
-	else return false;
+	else
+		return false;
 }
 
 bool bCopyOBSFileToCache(void)
@@ -24386,3 +24524,41 @@ bool bLoadOBSFileFromCache( void )
 	}
 	return false;
 }
+
+char tmpConvererString[1024];
+char * bTempXToDBO(char* from, char *to)
+{
+	if (!from) return NULL;
+	if (!to) return NULL;
+	if (t.game.gameisexe != 1) return NULL;
+
+	cstr tmpdestx = g.mysystem.cachebank_s + "t.x";
+	cstr tmpdestdbo = g.mysystem.cachebank_s + "t.dbo";
+
+	if (CopyFile(from, tmpdestx.Get(), false))
+	{
+		DeleteAFile(tmpdestdbo.Get());
+		//Convert directly to cachebank.
+		extern char g_pRootFolderConverter[MAX_PATH];
+		ExecuteFile(g_pRootFolderConverter, tmpdestx.Get(), "", 1);
+		int iCount = 20; // wait a second for the file to show up!
+		while (FileExist(tmpdestdbo.Get()) == 0 && iCount > 0)
+		{
+			Sleep(50); iCount--;
+		}
+		CreateGenericFileCacheName(to);
+		CopyFile(tmpdestdbo.Get(), GenericFileCacheName.Get(), false);
+		strcpy(tmpConvererString, GenericFileCacheName.Get());
+		//PE: recreate from or dsys will fail.
+		if (g_pGlob)
+		{
+			mkdir(g_pGlob->pEXEUnpackDirectory);
+		}
+		CopyFile(tmpdestx.Get(), from, false);
+		DeleteAFile(tmpdestx.Get());
+		DeleteAFile(tmpdestdbo.Get());
+		return(&tmpConvererString[0]);
+	}
+	return NULL;
+}
+

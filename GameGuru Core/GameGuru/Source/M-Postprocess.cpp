@@ -75,6 +75,18 @@ void postprocess_init ( void )
 					TextureObject(g.postprocessobjectoffset + 0, 1, t.terrain.imagestartindex + 7);
 				}
 
+				//LUT post processing
+				if (ImageExist(t.terrain.imagestartindex + 33) == 1)
+				{
+					TextureObject(g.postprocessobjectoffset + 0, 2, t.terrain.imagestartindex + 33);
+				}
+				
+				//HBAO post processing
+				if (ImageExist(t.terrain.imagestartindex + 38) == 1)
+				{
+					TextureObject(g.postprocessobjectoffset + 0, 3, t.terrain.imagestartindex + 38);
+				}
+
 				//  special code to instruct this post process shader to generate depth texture
 				//  from the main camera zero and pass into the shader as 'DepthMapTex' texture slot
 				SetVector4 (  g.terrainvectorindex,0,0,0,0 );
@@ -457,6 +469,7 @@ void postprocess_preterrain ( void )
 		BT_SetCurrentCamera (  0 );
 	}
 
+	#ifndef PRODUCTCLASSIC
 	#ifdef VRTECH
 	// VR Support - render VR cameras
 	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
@@ -659,6 +672,7 @@ void postprocess_preterrain ( void )
 		}
 	}
 	#endif
+	#endif
 }
 
 void postprocess_apply ( void )
@@ -711,7 +725,8 @@ void postprocess_apply ( void )
 				t.ldirDY_f=t.ldirDY_f/t.ldirDD_f;
 				t.ldirDZ_f=t.ldirDZ_f/t.ldirDD_f;
 				SetVector4 (  g.postprocesseffectoffset+1,t.ldirDX_f,t.ldirDY_f,t.ldirDZ_f,0 );
-				SetEffectConstantVEx (  g.postprocesseffectoffset+1,t.effectparam.postprocess.LightDir,g.postprocesseffectoffset+1 );
+				//SetEffectConstantVEx (  g.postprocesseffectoffset+1,t.effectparam.postprocess.LightDir,g.postprocesseffectoffset+1 );
+				SetEffectConstantV(g.postprocesseffectoffset + 1, "LightDir", g.postprocesseffectoffset + 1);//cyb
 
 				//  light ray AlphaAngle
 				if (  t.ldirDA_f<-180  )  t.ldirDA_f = t.ldirDA_f+360.0;
@@ -720,11 +735,14 @@ void postprocess_apply ( void )
 				if (  t.ldirDAlpha_f<0  )  t.ldirDAlpha_f = 0;
 				if (  t.ldirDAlpha_f>1  )  t.ldirDAlpha_f = 1;
 				t.ldirDAlpha_f=t.ldirDAlpha_f*t.sky.alpha1_f;
-				SetEffectConstantFEx (  g.postprocesseffectoffset+1,t.effectparam.postprocess.AlphaAngle,t.ldirDAlpha_f );
-				
+				//SetEffectConstantFEx (  g.postprocesseffectoffset+1,t.effectparam.postprocess.AlphaAngle,t.ldirDAlpha_f ); //cyb
+				SetEffectConstantF(g.postprocesseffectoffset + 1, "AlphaAngle", t.ldirDAlpha_f);
+								
 				// pass in settings
-				SetEffectConstantFEx ( g.postprocesseffectoffset+1, t.effectparam.postprocess.LightRayLength, t.visuals.LightrayLength_f );
-				SetEffectConstantFEx ( g.postprocesseffectoffset+1, t.effectparam.postprocess.LightRayDecay, t.visuals.LightrayDecay_f );
+				//SetEffectConstantFEx ( g.postprocesseffectoffset+1, t.effectparam.postprocess.LightRayLength, t.visuals.LightrayLength_f ); //cyb
+				//SetEffectConstantFEx ( g.postprocesseffectoffset+1, t.effectparam.postprocess.LightRayDecay, t.visuals.LightrayDecay_f ); //cyb
+				SetEffectConstantF(g.postprocesseffectoffset + 1, "LightRayLength", t.visuals.LightrayLength_f);
+				SetEffectConstantF(g.postprocesseffectoffset + 1, "LightRayDecay", t.visuals.LightrayDecay_f);
 			}
 		}
 	}
@@ -732,7 +750,12 @@ void postprocess_apply ( void )
 
 void postprocess_setscreencolor ( void )
 {
-	SetEffectConstantVEx (  g.postprocesseffectoffset+0,t.effectparam.postprocess.ScreenColor0,t.tColorVector );
-	SetEffectConstantVEx (  g.postprocesseffectoffset+2,t.effectparam.postprocess.ScreenColor2,t.tColorVector );
-	SetEffectConstantVEx (  g.postprocesseffectoffset+4,t.effectparam.postprocess.ScreenColor4,t.tColorVector );
+	//SetEffectConstantVEx (  g.postprocesseffectoffset+0,t.effectparam.postprocess.ScreenColor0,t.tColorVector );
+	//SetEffectConstantVEx (  g.postprocesseffectoffset+2,t.effectparam.postprocess.ScreenColor2,t.tColorVector );
+	//SetEffectConstantVEx (  g.postprocesseffectoffset+4,t.effectparam.postprocess.ScreenColor4,t.tColorVector );
+
+	//cyb
+	SetEffectConstantV(g.postprocesseffectoffset + 0, "ScreenColor", t.tColorVector);
+	SetEffectConstantV(g.postprocesseffectoffset + 2, "ScreenColor", t.tColorVector);
+	SetEffectConstantV(g.postprocesseffectoffset + 4, "ScreenColor", t.tColorVector);
 }

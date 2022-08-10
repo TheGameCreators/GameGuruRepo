@@ -76,6 +76,41 @@ void sky_init ( void )
 	// Default sky settings
 	t.sky.currenthour_f=12.0;
 	t.sky.daynightprogress=0;
+
+	//  Dir
+	SetDir("lutbank");
+	timestampactivity(0, "entering lutbank");
+
+	//  Assemble list of all luts
+	g.lutmax = 0;
+	ChecklistForFiles();
+	timestampactivity(0, "checking lutbank files");
+	for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
+	{
+		if (ChecklistValueA(t.c) == 0) //i.e a file, ==1 means folder
+		{
+			t.file_s = ChecklistString(t.c);
+			timestampactivity(0, t.file_s.Get());
+			if (cstr(Left(t.file_s.Get(), 1)) != ".")
+			{
+				//PE: Ignore other files like .txt
+				if (pestrcasestr(t.file_s.Get(), ".png"))
+				{
+					++g.lutmax;
+					Dim(t.lutbank_s, g.lutmax);
+					if( cstr(Left(t.file_s.Get(),3)) == "_e_")
+						t.lutbank_s[g.lutmax] = Lower(t.file_s.Get()+3);
+					else
+						t.lutbank_s[g.lutmax] = Lower(t.file_s.Get());
+				}
+			}
+		}
+	}
+
+	//  Restore Dir
+	SetDir("..");
+	timestampactivity(0, "finished lutbank scan");
+
 }
 
 void sky_skyspec_init ( void )
@@ -440,7 +475,8 @@ void sky_loop ( void )
 				t.terrain.sunskyscrollx_f=t.terrain.sunskyscrollx_f+(t.terrain.sunskyscrollspeedx_f*g.timeelapsed_f);
 				t.terrain.sunskyscrollz_f=t.terrain.sunskyscrollz_f+(t.terrain.sunskyscrollspeedz_f*g.timeelapsed_f);
 				SetVector4 ( g.terrainvectorindex,t.terrain.sunskyscrollx_f,t.terrain.sunskyscrollz_f,0,0 );
-				SetEffectConstantVEx ( t.terrain.effectstartindex+9,t.effectparam.skyscroll.SkyScrollValues,g.terrainvectorindex );
+				//SetEffectConstantVEx ( t.terrain.effectstartindex+9,t.effectparam.skyscroll.SkyScrollValues,g.terrainvectorindex );//cyb
+				SetEffectConstantV(t.terrain.effectstartindex + 9, "SkyScrollValues", g.terrainvectorindex);//cyb
 			}
 		}
 	}
@@ -449,15 +485,19 @@ void sky_loop ( void )
 	if ( GetEffectExist(t.terrain.effectstartindex+4) ) 
 	{
 		SetVector4 ( g.terrainvectorindex,t.visuals.FogNearest_f,t.visuals.FogDistance_f,0,0 );
-		SetEffectConstantVEx ( t.terrain.effectstartindex+4,t.effectparam.sky.HudFogDist,g.terrainvectorindex );
+		//SetEffectConstantVEx ( t.terrain.effectstartindex+4,t.effectparam.sky.HudFogDist,g.terrainvectorindex );//cyb
+		SetEffectConstantV(t.terrain.effectstartindex + 4, "HudFogDist", g.terrainvectorindex);
 		SetVector4 ( g.terrainvectorindex,t.visuals.FogR_f/255.0,t.visuals.FogG_f/255.0,t.visuals.FogB_f/255.0,t.visuals.FogA_f/255.0 );
-		SetEffectConstantVEx ( t.terrain.effectstartindex+4,t.effectparam.sky.HudFogColor,g.terrainvectorindex );
+		//SetEffectConstantVEx ( t.terrain.effectstartindex+4,t.effectparam.sky.HudFogColor,g.terrainvectorindex );//cyb
+		SetEffectConstantV(t.terrain.effectstartindex + 4, "HudFogColor", g.terrainvectorindex);
 	}
 	if ( GetEffectExist(t.terrain.effectstartindex+9) == 1 ) 
 	{
 		SetVector4 ( g.terrainvectorindex,t.visuals.FogNearest_f,t.visuals.FogDistance_f,0,0 );
-		SetEffectConstantVEx ( t.terrain.effectstartindex+9,t.effectparam.skyscroll.HudFogDist,g.terrainvectorindex );
+		//SetEffectConstantVEx ( t.terrain.effectstartindex+9,t.effectparam.skyscroll.HudFogDist,g.terrainvectorindex );//cyb
+		SetEffectConstantV(t.terrain.effectstartindex + 9, "HudFogDist", g.terrainvectorindex);
 		SetVector4 ( g.terrainvectorindex,t.visuals.FogR_f/255.0,t.visuals.FogG_f/255.0,t.visuals.FogB_f/255.0,t.visuals.FogA_f/255.0 );
-		SetEffectConstantVEx ( t.terrain.effectstartindex+9,t.effectparam.skyscroll.HudFogColor,g.terrainvectorindex );
+		//SetEffectConstantVEx ( t.terrain.effectstartindex+9,t.effectparam.skyscroll.HudFogColor,g.terrainvectorindex );//cyb
+		SetEffectConstantV(t.terrain.effectstartindex + 9, "HudFogColor", g.terrainvectorindex);
 	}
 }

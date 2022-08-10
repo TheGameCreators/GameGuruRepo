@@ -5828,9 +5828,15 @@ bool CObjectManager::UpdateLayerInner ( int iLayer )
 					}
 					if ( iCutOutPassIndex == 1 )
 					{
-						if ( g_weaponbasicshadereffectindex > 0 ) if ( GetEffectExist(g_weaponbasicshadereffectindex) ) SetEffectTechniqueEx ( g_weaponbasicshadereffectindex, dwOldWeaponBasicShaderPtr );
-						if ( g_weaponboneshadereffectindex > 0 ) if ( GetEffectExist(g_weaponboneshadereffectindex) ) SetEffectTechniqueEx ( g_weaponboneshadereffectindex, dwOldWeaponBoneShaderPtr );
-						if ( g_jetpackboneshadereffectindex > 0 ) if ( GetEffectExist(g_jetpackboneshadereffectindex) ) SetEffectTechniqueEx ( g_jetpackboneshadereffectindex, dwOldJetpackBoneShaderPtr );
+						//cyb
+						//if ( g_weaponbasicshadereffectindex > 0 ) if ( GetEffectExist(g_weaponbasicshadereffectindex) ) SetEffectTechniqueEx ( g_weaponbasicshadereffectindex, dwOldWeaponBasicShaderPtr );
+						//if ( g_weaponboneshadereffectindex > 0 ) if ( GetEffectExist(g_weaponboneshadereffectindex) ) SetEffectTechniqueEx ( g_weaponboneshadereffectindex, dwOldWeaponBoneShaderPtr );
+						//if ( g_jetpackboneshadereffectindex > 0 ) if ( GetEffectExist(g_jetpackboneshadereffectindex) ) SetEffectTechniqueEx ( g_jetpackboneshadereffectindex, dwOldJetpackBoneShaderPtr );
+						//cyb //above replaced with:
+						if (g_weaponbasicshadereffectindex > 0) if (GetEffectExist(g_weaponbasicshadereffectindex)) SetEffectTechnique(g_weaponbasicshadereffectindex, "High");
+						if (g_weaponboneshadereffectindex > 0) if (GetEffectExist(g_weaponboneshadereffectindex)) SetEffectTechnique(g_weaponboneshadereffectindex, "High");
+						if (g_jetpackboneshadereffectindex > 0) if (GetEffectExist(g_jetpackboneshadereffectindex)) SetEffectTechnique(g_jetpackboneshadereffectindex, "High");
+
 					}
 				}
 				for ( DWORD iIndex = 0; iIndex < m_vVisibleObjectNoZDepth.size(); ++iIndex )

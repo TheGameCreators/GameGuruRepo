@@ -1075,6 +1075,7 @@ struct Sglobals
 	int righthip;
 	float rotvar_f;
 	int skyindex;
+	int lutindex;
 	int syncrate;
 	travey_particle_emitter tEmitter;
 	int temptilt;
@@ -1126,6 +1127,7 @@ struct Sglobals
 	int radarx;
 	int radary;
 	int skymax;
+	int lutmax;
 	int sparks;
 	int tilton;
 	int unskip;
@@ -1329,6 +1331,7 @@ struct Sglobals
 		 temptilt = 0;
 		 syncrate = 0;
 		 skyindex = 0;
+		 lutindex = 0;
 		 rotvar_f = 0.0f;
 		 righthip = 0;
 		 rightArm = 0;
@@ -4177,6 +4180,7 @@ struct Stemps
 	std::vector <int> propfield;
 	std::vector <int> shadowobj;
 	std::vector <cstr> skybank_s;
+	std::vector <cstr> lutbank_s;
 	std::vector <int> stateanim;
 	std::vector <int> statemove;
 	std::vector <float> statesvel;

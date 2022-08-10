@@ -6,6 +6,11 @@
 #define DISABLETUTORIALS
 #define DISABLEMULTIPLAYERFORMAX
 
+//PE: Saved with visual.ini, used for adjusting old effects values when adding new effects.
+//PE: When adding a new effect (like HBAO) increase this value and adjust depending of version.
+#define VISUALVERSION 312
+
+
 // default of 260 some long paths when Asset Store item paths added to Docs path! 
 #undef MAX_PATH
 #define MAX_PATH 1050
@@ -96,12 +101,16 @@
 
 
   #else
-   // Flags to compile the Classic version of GameGuru
-   #define FPSEXCHANGE
-   #define ENABLECUSTOMTERRAIN
-   #ifdef PRODUCTCONVERTER
-    #define NOSTEAMORVIDEO
-   #endif
+	// Flags to compile the Classic version of GameGuru
+	//PE: Add ENABLEIMGUI,USERENDERTARGET to compile a imgui version of Classic.
+	//#define ENABLEIMGUI
+	//#define USERENDERTARGET
+	#define FPSEXCHANGE
+	#define ENABLECUSTOMTERRAIN
+	#ifdef PRODUCTCONVERTER
+		#define NOSTEAMORVIDEO
+	#endif
+
   #endif
  #endif
 #endif

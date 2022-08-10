@@ -18,7 +18,7 @@ void characterkit_init ( void )
 		pastebitmapfontcenter("PREPARING CHARACTERS",GetChildWindowWidth()/2,40,1,255) ; Sync (  );
 	}
 
-	#ifdef VRTECH
+	#ifdef ENABLEIMGUI
 	// hide paint tool
 	terrain_paintselector_hide();
 	#endif
@@ -584,8 +584,13 @@ void characterkit_loop ( void )
 		else
 		{
 			//  Multiplier to convert mouse coords to importer coords
+			#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+			t.tadjustedtoccxbase_f = ((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth());
+			t.tadjustedtoccybase_f = ((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight());
+			#else
 			t.tadjustedtoccxbase_f=GetChildWindowWidth()/800.0;
 			t.tadjustedtoccybase_f=GetChildWindowHeight()/600.0;
+			#endif
 			t.tccoldmousex = t.inputsys.xmouse;
 			t.tccoldmousey = t.inputsys.ymouse;
 			t.inputsys.xmouse = t.inputsys.xmouse*t.tadjustedtoccxbase_f;
@@ -915,7 +920,7 @@ void characterkit_draw ( void )
 	}
 	else
 	{
-		#ifdef VRTECH
+		#ifdef ENABLEIMGUI
 		#else
 		 pastebitmapfont("Left click the section of the object you wish to change",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("Left click the section of the object you wish to change",1)/2),GetChildWindowHeight()-100,1,255);
 		 pastebitmapfont("or right click to rotate",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("or right click to rotate",1)/2),GetChildWindowHeight()-70,1,255);
@@ -1229,7 +1234,11 @@ void characterkit_save_entity ( void )
 	t.ttitlemessage_s="Save Entity";
 	while ( t.tentityprotected == 1 ) 
 	{
+		#ifdef _WIN64
+		t.tSaveFile_s = openFileBox("All Files\0*.*\0FPSC Entity (.fpe)\0*.fpe\0", cstr(g.fpscrootdir_s + "\\Files\\entitybank\\user\\charactercreator\\").Get(), t.ttitlemessage_s.Get(), ".fpe", CHARACTERKITSAVEFILE);
+		#else
 		t.tSaveFile_s=openFileBox("FPSC Entity (.fpe)|*.fpe|All Files|*.*|", cstr(g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\").Get(), t.ttitlemessage_s.Get(), ".fpe", CHARACTERKITSAVEFILE);
+		#endif
 		if (  t.tSaveFile_s == "Error"  )  return;
 		t.tentityprotected=0;
 	}
@@ -1461,7 +1470,13 @@ void characterkit_save_entity ( void )
 	}
 	bool b6002 = false; if ( ObjectExist(6002)==1) { b6002 = GetVisible(6002); HideObject(6002); }
 	bool b6003 = false; if ( ObjectExist(6003)==1) { b6003 = GetVisible(6003); HideObject(6003); }
+	#ifdef ENABLEIMGUI	
+	extern bool bBlockImGuiUntilNewFrame;
+	bBlockImGuiUntilNewFrame = true;
+	//PE: TODO Not actual visible, but now without imgui , so need more work.
+	#endif
 	Sync (  );
+
 	if ( b6002 == true ) ShowObject ( 6002 );
 	if ( b6003 == true ) ShowObject ( 6003 );
 	for ( t.tloop = 1 ; t.tloop<=  4; t.tloop++ )
@@ -1767,16 +1782,18 @@ void characterkit_mousePick ( void )
 {
 	if (  t.importer.objectRotateMode  !=  0 || t.characterkit.thumbGadgetOn  ==  1 || t.characterkit.skinPickOn  ==  1   )  return;
 
-	#ifdef VRTECH
+	#ifdef ENABLEIMGUI
 	 // No picking in CC for now
 	#else
 	 //  try attachments first
 	 t.tpick = 0;
 	 #ifdef DX11
-	 float fMX = (GetDisplayWidth()+0.0) / 800.0f;
-	 float fMY = (GetDisplayHeight()+0.0) / 600.0f;
-	 t.tadjustedtoareax_f = t.tccoldmousex*fMX;
-	 t.tadjustedtoareay_f = t.tccoldmousey*fMY;
+
+	 float fMX = (GetDisplayWidth() + 0.0) / 800.0f;
+	 float fMY = (GetDisplayHeight() + 0.0) / 600.0f;
+	 t.tadjustedtoareax_f = t.tccoldmousex * fMX;
+	 t.tadjustedtoareay_f = t.tccoldmousey * fMY;
+
 	 #else
 	 t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
 	 t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
@@ -2397,7 +2414,15 @@ void characterkit_pickSkinTone ( void )
 
 		return;
 	}
+
+	//#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+	////PE: Not correct ?
+	//t.tadjustedtoccxbase_f = ((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth());
+	//t.tadjustedtoccybase_f = ((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight());
+	//t.tpixel = GetPoint(t.inputsys.xmouse* t.tadjustedtoccxbase_f, t.inputsys.ymouse* t.tadjustedtoccybase_f);
+	//#else
 	t.tpixel = GetPoint(t.inputsys.xmouse,t.inputsys.ymouse);
+	//#endif
 	if (  t.tuseOtherMask  ==  0 ) 
 	{
 		t.tnewred_f = RgbR(t.tpixel);
@@ -3470,9 +3495,13 @@ void characterkit_chooseOnlineAvatar ( void )
 		 t.inputsys.xmouse = MouseX();
 		 t.inputsys.ymouse = MouseY();
 		#endif
-
+		#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+		 t.tadjustedtoccxbase_f = ((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth());
+		 t.tadjustedtoccybase_f = ((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight());
+		#else
 		t.tadjustedtoccxbase_f=GetChildWindowWidth()/800.0;
 		t.tadjustedtoccybase_f=GetChildWindowHeight()/600.0;
+		#endif
 
 		t.tccoldmousex = t.inputsys.xmouse;
 		t.tccoldmousey = t.inputsys.ymouse;
@@ -3660,8 +3689,11 @@ void characterkit_customHead ( void )
 			t.ttitlemessage_s="Choose an image to use";
 			while (  t.tentityprotected == 1 ) 
 			{
+				#ifdef _WIN64
+				t.tFileName_s = openFileBox("All Files\0*.*\0PNG\0*.png\0JPEG\0*.jpg\0BMP\0*.bmp\0DDS\0*.dds\0TGA\0*.tga\0", "", "Select Head Image", "*.*", IMPORTEROPENFILE);
+				#else
 				t.tFileName_s = openFileBox("All Files|*.*|PNG|*.png|JPEG|*.jpg|BMP|*.bmp|DDS|*.dds|TGA|*.tga|", "", "Select Head Image", "*.*", IMPORTEROPENFILE);
-
+				#endif
 				if (  t.tFileName_s == "Error" || t.tFileName_s  ==  "" ) 
 				{
 					SetDir (  t.characterkitcontrol.originalDir_s.Get() );
@@ -3679,14 +3711,10 @@ void characterkit_customHead ( void )
 				}
 
 //     `tempstring$ = Lower(Right(tFileName$,3))
-
 //     `if tempstring$<>"jpg" and tempstring$<>"png" and tempstring$<>"bmp" and tempstring$<>"dds" and tempstring$<>"tga"
-
 //     `tentityprotected=1
-
 //     `else
-
-					t.tentityprotected=0;
+				t.tentityprotected=0;
 //     `endif
 
 			}

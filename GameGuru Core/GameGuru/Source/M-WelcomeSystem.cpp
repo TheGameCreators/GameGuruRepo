@@ -966,10 +966,15 @@ void welcome_mainvr_page ( int iHighlightingButton )
 	welcome_text ( "Would you like to learn more about VR Quest\nor go directly to the editor and start creating?", 1, 50, 72, 192, true, false );
 	welcome_drawrotatedimage(g.editorimagesoffset + 66, 73, 69, 0, 0, 0, false);
 	#else
+	#ifdef WICKEDENGINE
 	welcome_text ( "WELCOME TO GAMEGURU MAX", 5, 50, 10, 255, false, false );
 	welcome_text ( "GameGuru MAX is still in development - this is an Alpha version", 1, 50, 18, 192, true, false );
 	welcome_text ( "Look out for regular updates!", 1, 50, 23, 192, true, false );
 	welcome_text ( "Would you like to learn more about GameGuru MAX\nor go directly to the editor and start creating?", 1, 50, 72, 192, true, false );
+	#else
+	welcome_text("WELCOME TO GAMEGURU CLASSIC", 5, 50, 10, 255, false, false);
+	welcome_text("Look out for regular updates!", 1, 50, 23, 192, true, false);
+	#endif
 	#endif
 	iID = 4; welcome_drawbox ( iID, 10, 90, 11.5f, 92 );
 	if ( g.gshowonstartup != 0 ) welcome_drawrotatedimage ( g.editorimagesoffset+40, 10.75f, 88.5f, 0, 0, 0, false );
@@ -2243,7 +2248,7 @@ bool welcome_setuppage ( int iPageIndex )
 
 void welcome_runloop ( int iPageIndex )
 {
-	#ifdef VRTECH
+	#ifdef ENABLEIMGUI
 	// code moved to welcome_cycle
 	g_iWelcomeLoopPage = iPageIndex;
 
@@ -2356,7 +2361,7 @@ void welcome_runloop ( int iPageIndex )
 	#endif
 }
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 bool welcome_cycle(void)
 {
 	// carry page running from store
@@ -2535,7 +2540,7 @@ int iDownloadLocation = 0;
 
 #include "Common-Keys.h"
 
-#ifndef PRODUCTCLASSIC
+#ifdef ENABLEIMGUI
 void imgui_download_store( void )
 {
 	if (!bDownloadStore_Window) return;
@@ -3439,6 +3444,8 @@ void imgui_download_store( void )
 			//Only if download has not started.
 			if (iDownloadStoreProgress >= 2 && iDownloadStoreProgress <= 7 && files_downloaded == 0)
 			{
+				//PE: Selection only for when using docwrite system.
+				#ifdef WICKEDENGINE
 				//Make it possible to select.
 				ImGui::Text("Select download folder:");
 				if (ImGui::RadioButton(StoreAppWriteFolder, &iDownloadLocation, 0))
@@ -3451,6 +3458,7 @@ void imgui_download_store( void )
 					strcpy(StoreWriteFolder, StoreDocWriteFolder);
 					//iDownloadStoreProgress = 5; //Read checksum files again.
 				}
+				#endif	
 			}
 		}
 
@@ -3460,7 +3468,7 @@ void imgui_download_store( void )
 }
 #endif
 
-#ifndef PRODUCTCLASSIC
+#ifdef ENABLEIMGUI
 UINT StoreOpenURLForDataOrFile(LPSTR pDataReturned, DWORD* pReturnDataSize, LPSTR pPostData, LPSTR pVerb, LPSTR urlWhere, LPSTR pLocalFileForImageOrNews)
 {
 	UINT iError = 0;

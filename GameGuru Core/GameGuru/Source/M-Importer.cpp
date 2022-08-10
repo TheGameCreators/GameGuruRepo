@@ -6,6 +6,14 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#if defined(_WIN64) && !defined(ENABLEIMGUI)
+//PE: for 64 bits file dialogs.
+#include "windows.h"
+#include "winuser.h"
+#include <shlobj.h>
+#include <conio.h>
+#endif
+
 #ifdef ENABLEIMGUI
 //PE: GameGuru IMGUI.
 #include "..\Imgui\imgui.h"
@@ -80,6 +88,13 @@ bool bRemoveSprites = false;
 
 #ifndef PRODUCTCLASSIC
 extern preferences pref;
+#endif
+#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+extern preferences pref;
+#endif
+
+#ifdef ENABLEIMGUI //cyb
+extern preferences pref; //cyb
 #endif
 
 // Prototypes
@@ -1938,7 +1953,7 @@ void importer_loadmodel ( void )
 							cstr pAbsoluteFile = t.importer.objectFileOriginalPath + pMesh->pTextures[iTextureStage].pName;
 							iSlotUsed = importer_addtexturefiletolist ( pAbsoluteFile.Get(), pAbsoluteFile.Get(), &tCount );
 						}
-						#ifdef VRTECH
+						#ifdef ENABLEIMGUI
 						else 
 						{
 							//PE:Some models have empty texture field, just add blank.
@@ -2128,10 +2143,12 @@ void importer_RestoreCollisionShiftHeight ( void )
 
 #if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 
-
-
 void imgui_importer_loop(void)
 {
+#ifndef VRTECH
+	//PE: Until all import parameters is suppored use old design.
+	return;
+#endif
 	switch (iDelayedExecute) 
 	{
 		case 2: //Quit Importer, need to be done heree , so we dont have any images in the draw call list.
@@ -2144,7 +2161,11 @@ void imgui_importer_loop(void)
 		case 1:
 		{
 			iDelayedExecute = 0;
+			#ifdef _WIN64
+			t.tFileName_s = openFileBox("All Files\0*.*\0PNG\0*.png\0JPEG\0*.jpg\0BMP\0*.bmp\0DDS\0*.dds\0", "", "Open Texture", "*.*", IMPORTEROPENFILE);
+			#else
 			t.tFileName_s = openFileBox("All Files|*.*|PNG|*.png|DDS|*.dds|JPEG|*.jpg|BMP|*.bmp|", "", "Open Texture", ".dds", IMPORTEROPENFILE);
+			#endif
 			if (t.tFileName_s == "Error")  return;
 			if (FileExist(t.tFileName_s.Get()) == 1)
 			{
@@ -2341,7 +2362,7 @@ void imgui_importer_loop(void)
 			ImGui::PushItemWidth(-10);
 			t.importer.showScaleChange = 0;
 			float fImporterScale = iImporterScale;
-			if (ImGui::MaxSliderInputFloat("##ImporterScale", &fImporterScale, 0.0f, 200.0f, "Change the scale of the model before saving object", 0, 200))
+			if (ImGui::MaxSliderInputFloat("##ImporterScale", &fImporterScale, 0.0f, 500.0f, "Change the scale of the model before saving object", 0, 500))
 			{
 				iImporterScale = fImporterScale;
 
@@ -2383,8 +2404,13 @@ void imgui_importer_loop(void)
 						if (ImGui::ImgBtn(img_id, ImVec2(media_icon_size, media_icon_size), ImColor(0, 0, 0, 255))) 
 						{
 							//LB: disable ability to change texture, just view
+							#ifdef ENABLEIMGUI
+							iDelayedExecuteSelection = tCount;
+							iDelayedExecute = 1;
+							#else
 							//iDelayedExecuteSelection = tCount;
 							//iDelayedExecute = 1;
+							#endif
 						}
 						if (tCount < t.tcounttextures && (cur_pos < w)) ImGui::SameLine();
 					}
@@ -2543,7 +2569,7 @@ void imgui_importer_loop(void)
 		ImGui::End();
 	}
 	else 
-{
+	{
 		if (!bImporter_Window && t.importer.importerActive == 1)
 		{
 			//Window must have been close, shutdown.
@@ -4663,7 +4689,11 @@ void importer_update_textures ( void )
 					{
 						if (t.importer.oldMouseClick == 0)
 						{
+							#ifdef _WIN64
+							t.tFileName_s = openFileBox("All Files\0*.*\0PNG\0*.png\0DDS\0*.dds\0JPEG\0*.jpg\0BMP\0*.bmp\0", "", "Open Texture", ".dds", IMPORTEROPENFILE);
+							#else
 							t.tFileName_s = openFileBox("PNG|*.png|DDS|*.dds|JPEG|*.jpg|BMP|*.bmp|All Files|*.*|", "", "Open Texture", ".dds", IMPORTEROPENFILE);
+							#endif
 							if (t.tFileName_s == "Error")  return;
 							if (FileExist(t.tFileName_s.Get()) == 1)
 							{
@@ -5993,7 +6023,7 @@ void ConvertWorldToRelative ( sFrame* pFrame, GGMATRIX* pStoreNewPoseFrames, GGM
 	}
 }
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 void importer_save_entity ( char *filename )
 {
 	//  Check if user folder exists, if not create it
@@ -6016,12 +6046,24 @@ void importer_save_entity ( char *filename )
 			if (t.importer.fpeIsMainFile == 0)
 			{
 				t.strwork = ""; t.strwork = t.strwork + t.importer.startDir + "\\entitybank\\user";
+				#ifdef _WIN64
+				t.tSaveFile_s = openFileBox("All Files\0*.*\0Model (.dbo)\0*.dbo\0", t.strwork.Get(), t.timportermessage_s.Get(), ".dbo", IMPORTERSAVEFILE);
+				#else
 				t.tSaveFile_s = openFileBox("Model (.dbo)|*.dbo|All Files|*.*|", t.strwork.Get(), t.timportermessage_s.Get(), ".dbo", IMPORTERSAVEFILE);
+				#endif
+				if (!pestrcasestr(t.tSaveFile_s.Get(), ".dbo"))
+					t.tSaveFile_s += ".dbo";
 			}
 			else
 			{
 				t.strwork = ""; t.strwork = t.strwork + t.importer.startDir + "\\entitybank\\user";
+				#ifdef _WIN64
+				t.tSaveFile_s = openFileBox("All Files\0*.*\0GG Entity (.fpe)\0*.fpe\0", t.strwork.Get(), t.timportermessage_s.Get(), ".fpe", IMPORTERSAVEFILE);
+				#else
 				t.tSaveFile_s = openFileBox("GG Entity (.fpe)|*.fpe|All Files|*.*|", t.strwork.Get(), t.timportermessage_s.Get(), ".fpe", IMPORTERSAVEFILE);
+				#endif
+				if (!pestrcasestr(t.tSaveFile_s.Get(), ".fpe"))
+					t.tSaveFile_s += ".fpe";
 			}
 		}
 		else {
@@ -7059,12 +7101,24 @@ void importer_save_entity ( char *filename )
 		if (  t.importer.fpeIsMainFile  ==  0 ) 
 		{
 			t.strwork = ""; t.strwork = t.strwork +t.importer.startDir + "\\entitybank\\user";
-			t.tSaveFile_s = openFileBox("Model (.dbo)|*.dbo|All Files|*.*|", t.strwork.Get() , t.timportermessage_s.Get(), ".dbo", IMPORTERSAVEFILE);
+			#ifdef _WIN64
+			t.tSaveFile_s = openFileBox("Model (.dbo)\0*.dbo\0All Files\0*.*\0", t.strwork.Get(), t.timportermessage_s.Get(), ".dbo", IMPORTERSAVEFILE);
+			#else
+			t.tSaveFile_s = openFileBox("Model (.dbo)|*.dbo|All Files|*.*|", t.strwork.Get(), t.timportermessage_s.Get(), ".dbo", IMPORTERSAVEFILE);
+			#endif
+			if (!pestrcasestr(t.tSaveFile_s.Get(), ".dbo"))
+				t.tSaveFile_s += ".dbo";
 		}
 		else
 		{
 			t.strwork = ""; t.strwork = t.strwork +t.importer.startDir + "\\entitybank\\user";
+			#ifdef _WIN64
+			t.tSaveFile_s = openFileBox("GG Entity (.fpe)\0*.fpe\0All Files\0*.*\0", t.strwork.Get(), t.timportermessage_s.Get(), ".fpe", IMPORTERSAVEFILE);
+			#else
 			t.tSaveFile_s = openFileBox("GG Entity (.fpe)|*.fpe|All Files|*.*|", t.strwork.Get(), t.timportermessage_s.Get(), ".fpe", IMPORTERSAVEFILE);
+			#endif
+			if (!pestrcasestr(t.tSaveFile_s.Get(), ".fpe"))
+				t.tSaveFile_s += ".fpe";
 		}
 		if (  t.tSaveFile_s  ==  "Error" ) 
 		{
@@ -8770,6 +8824,163 @@ int findFreeMemblock ( void )
 	return tFoundFree;
 }
 
+//PE: 64 bits file dialogs.
+#if defined(_WIN64) && !defined(ENABLEIMGUI)
+static char* g_noc_file_dialog_ret = NULL;
+
+enum {
+	NOC_FILE_DIALOG_OPEN = 1 << 0,   // Create an open file dialog.
+	NOC_FILE_DIALOG_SAVE = 1 << 1,   // Create a save file dialog.
+	NOC_FILE_DIALOG_DIR = 1 << 2,   // Open a directory.
+	NOC_FILE_DIALOG_OVERWRITE_CONFIRMATION = 1 << 3,
+};
+
+static int __stdcall BrowseCallbackProcW(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
+{
+	if (uMsg == BFFM_INITIALIZED)
+	{
+		#ifdef UNICODE
+		SendMessageW(hwnd, BFFM_SETSELECTIONW, TRUE, (LPARAM)pData);
+		#else
+		SendMessageA(hwnd, BFFM_SETSELECTIONW, TRUE, (LPARAM)pData);
+		#endif
+	}
+	return 0;
+}
+
+// callback function
+INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
+{
+	if (uMsg == BFFM_INITIALIZED)
+		SendMessage(hwnd, BFFM_SETSELECTION, TRUE, pData);
+	return 0;
+}
+
+const char* noc_file_dialog_open(int flags,
+	const char* filters,
+	const char* default_path,
+	const char* default_name,
+	bool bUseDefaultPath,
+	const char* pTitle)
+{
+	OPENFILENAMEA ofn;       // common dialog box structure
+	char szFile[MAX_PATH];       // buffer for file name
+	int ret;
+	szFile[0] = '\0';
+
+	HWND hThisWnd = GetForegroundWindow();
+
+	if (flags & NOC_FILE_DIALOG_DIR)
+	{
+		static wchar_t lBuff[MAX_PATH];
+		//wchar_t aTitle[MAX_PATH];
+		BROWSEINFOW bInfo;
+		LPITEMIDLIST lpItem;
+		HRESULT lHResult;
+
+		CoUninitialize();
+		lHResult = CoInitialize(NULL);
+
+		ZeroMemory(&bInfo, sizeof(BROWSEINFO));
+		
+		bInfo.hwndOwner = hThisWnd;
+		bInfo.lpszTitle = L"Select folder";
+		bInfo.lpfn = BrowseCallbackProc;
+
+		if (lHResult == S_OK || lHResult == S_FALSE)
+		{
+			bInfo.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE; //BIF_USENEWUI; //BIF_NEWDIALOGSTYLE
+
+			if (bUseDefaultPath && default_path)
+			{
+				// ZJ: Added MultiByteToWideChar so cast to LPARAM is successful
+				wchar_t szFolderPath[MAX_PATH];
+				MultiByteToWideChar(CP_UTF8, 0, default_path, -1, szFolderPath, MAX_PATH);
+				bInfo.lParam = (LPARAM)szFolderPath;
+				//bInfo.lParam = (LPARAM)default_path;
+			}
+
+			else
+				bInfo.lParam = (LPARAM)NULL;
+
+			lpItem = SHBrowseForFolderW(&bInfo);
+			if (lpItem)
+			{
+				SHGetPathFromIDListW(lpItem, lBuff);
+			}
+
+			if (lHResult == S_OK || lHResult == S_FALSE)
+			{
+				CoUninitialize();
+				CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
+			}
+		}
+		sprintf(szFile, "%ws", lBuff);
+
+		return strdup(szFile);
+	}
+
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.lpstrFile = szFile;
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = filters;
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = NULL;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrTitle = pTitle;
+
+	//PE: Why was default path removed ? added a flag instead bUseDefaultPath , need it :)
+	if ((flags & NOC_FILE_DIALOG_OPEN || flags & NOC_FILE_DIALOG_SAVE) && default_path && bUseDefaultPath) {
+		ofn.lpstrInitialDir = default_path;
+	}
+	else
+		ofn.lpstrInitialDir = NULL;
+
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	ofn.hwndOwner = hThisWnd;
+
+	if (flags & NOC_FILE_DIALOG_DIR)
+	{
+		ofn.Flags = OFN_CREATEPROMPT;
+		ret = GetOpenFileNameA(&ofn);
+	}
+	else if (flags & NOC_FILE_DIALOG_OPEN) // || flags
+		ret = GetOpenFileNameA(&ofn);
+	else
+		ret = GetSaveFileNameA(&ofn);
+
+	if (g_noc_file_dialog_ret != NULL)
+		free(g_noc_file_dialog_ret);
+	g_noc_file_dialog_ret = ret ? strdup(szFile) : NULL;
+
+	return g_noc_file_dialog_ret;
+}
+
+#endif
+
+#if defined(_WIN64)
+char* openFileBox(char* filter_, char* initdir_, char* dtitle_, char* defext_, unsigned char open)
+{
+	char* cFileSelected = NULL;
+	if (open)
+	{
+		cStr tOldDir = GetDir();
+		cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, filter_, initdir_, NULL, true, dtitle_);
+		SetDir(tOldDir.Get());
+	}
+	else
+	{
+		cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, filter_, initdir_, NULL, true, dtitle_);
+	}
+	if (cFileSelected && strlen(cFileSelected) > 0)
+		return cFileSelected;
+	else
+		return "";
+}
+#else
 char* openFileBox ( char* filter_, char* initdir_, char* dtitle_, char* defext_, unsigned char open )
 {
 	LPSTR filebufferptr = 0;
@@ -8906,6 +9117,7 @@ char* openFileBox ( char* filter_, char* initdir_, char* dtitle_, char* defext_,
 
 	return t.szreturn;
 }
+#endif
 
 LPSTR _get_str_ptr ( char* pstr )
 {

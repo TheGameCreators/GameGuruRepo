@@ -980,7 +980,7 @@ void ravey_particles_get_free_emitter ( void )
 	t.tResult = 0;
 }
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 #define MAX_ENV_PARTICLES 600
 int environment_weather = 0; // 1 = rain.
 int environment_emitter_id = 0;

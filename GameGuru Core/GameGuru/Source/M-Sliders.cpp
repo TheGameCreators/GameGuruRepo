@@ -303,7 +303,7 @@ void sliders_init ( void )
 	t.slidersmenu[g.slidersmenumax].thighlight=-1;
 	t.slidersmenu[g.slidersmenumax].titlemargin=63;
 	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=13;
+	t.slidersmenu[g.slidersmenumax].itemcount=15;
 	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
 	t.slidersmenu[g.slidersmenumax].tleft=GetDisplayWidth()-256-16-5-260;
 	t.slidersmenu[g.slidersmenumax].ttop=GetDisplayHeight()-t.slidersmenu[t.slidersmenunames.posteffects].panelheight-82;
@@ -333,6 +333,10 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][12].value=t.visuals.SAOIntensity_f*100;
 	t.slidersmenuvalue[g.slidersmenumax][13].name_s="Lens Flare Intensity";
 	t.slidersmenuvalue[g.slidersmenumax][13].value=t.visuals.LensFlare_f*100;
+	t.slidersmenuvalue[g.slidersmenumax][14].name_s = "Saturation";
+	t.slidersmenuvalue[g.slidersmenumax][14].value = t.visuals.Saturation_f * 100; 
+	t.slidersmenuvalue[g.slidersmenumax][15].name_s = "Sepia";
+	t.slidersmenuvalue[g.slidersmenumax][15].value = t.visuals.Sepia_f * 100;
 
 	//  Sky panel
 //  `++slidersmenumax
@@ -410,7 +414,7 @@ void sliders_init ( void )
 	#ifdef VRTECH
 	t.slidersmenu[g.slidersmenumax].itemcount=4;
 	#else
-	t.slidersmenu[g.slidersmenumax].itemcount=3;
+	t.slidersmenu[g.slidersmenumax].itemcount=4;
 	#endif
 	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
 	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Sky Type";
@@ -425,6 +429,12 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.vegetationindex;
 	t.slidersmenuvalue[g.slidersmenumax][3].gadgettype=1;
 	t.slidersmenuvalue[g.slidersmenumax][3].gadgettypevalue=3;
+
+	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "LUT Selection";
+	t.slidersmenuvalue[g.slidersmenumax][4].value = t.visuals.lutindex;
+	t.slidersmenuvalue[g.slidersmenumax][4].gadgettype = 1;
+	t.slidersmenuvalue[g.slidersmenumax][4].gadgettypevalue = 8;// 11;
+
 	#ifdef VRTECH
 	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "Weather";
 	t.slidersmenuvalue[g.slidersmenumax][4].value = t.visuals.iEnvironmentWeather+1;
@@ -432,7 +442,7 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][4].gadgettypevalue = 40;
 	for ( t.tn = 1 ; t.tn<=  4; t.tn++ )
 	#else
-	for ( t.tn = 1 ; t.tn<=  3; t.tn++ )
+	for ( t.tn = 1 ; t.tn<=  4; t.tn++ )
 	#endif
 	{
 		t.slidersmenuindex=g.slidersmenumax;
@@ -2103,6 +2113,7 @@ void sliders_getchoice ( void )
 	if (  t.slidersmenuvaluechoice == 5  )  t.sliderschoicemax = 3;
 	if (  t.slidersmenuvaluechoice == 6  )  t.sliderschoicemax = 4; // grass techniques
 	if (  t.slidersmenuvaluechoice == 7  )  t.sliderschoicemax = 2;//3; // 150917 - added PBR - now using pbroverride
+	if (  t.slidersmenuvaluechoice == 8  )  t.sliderschoicemax = g.lutmax;
 	#ifdef VRTECH
 	if (t.slidersmenuvaluechoice == 40)  t.sliderschoicemax = 5;//Weather
 	#endif
@@ -2192,6 +2203,15 @@ void sliders_getnamefromvalue ( void )
 		if (  t.slidersmenuvalueindex == 1  )  t.slidervaluename_s = "PRE-BAKE";
 		if (  t.slidersmenuvalueindex == 2  )  t.slidervaluename_s = "REALTIME";
 		//if (  t.slidersmenuvalueindex == 3  )  t.slidervaluename_s = "REALTIME PBR";
+	}
+	if (t.slidersmenuvaluechoice == 8)
+	{
+		if (t.slidersmenuvalueindex <= ArrayCount(t.lutbank_s))
+		{
+			t.slidervaluename_s = t.lutbank_s[t.slidersmenuvalueindex];
+			if (strnicmp(t.slidervaluename_s.Get() + strlen(t.slidervaluename_s.Get()) - 4, ".png", 4) == NULL)
+				t.slidervaluename_s = Left(t.slidervaluename_s.Get(), strlen(t.slidervaluename_s.Get()) - 4);
+		}
 	}
 
 	#ifdef VRTECH
@@ -2489,6 +2509,8 @@ void sliders_write (bool bOnlyVisualSettings )
 		t.visuals.SAORadius_f=t.slidersmenuvalue[t.slidersmenuindex][11].value/100.0;
 		t.visuals.SAOIntensity_f=t.slidersmenuvalue[t.slidersmenuindex][12].value/100.0;
 		t.visuals.LensFlare_f=t.slidersmenuvalue[t.slidersmenuindex][13].value/100.0;
+		t.visuals.Saturation_f = t.slidersmenuvalue[t.slidersmenuindex][14].value / 100.0;
+		t.visuals.Sepia_f = t.slidersmenuvalue[t.slidersmenuindex][15].value / 100.0;
 		if (!bOnlyVisualSettings)
 		{
 			t.storeprojectmodified = 1;
@@ -2566,6 +2588,13 @@ void sliders_write (bool bOnlyVisualSettings )
 				t.storeprojectmodified = 1;
 				t.visuals.refreshvegtexture = 1;
 			}
+		}
+		if (t.visuals.lutindex != t.slidersmenuvalue[t.slidersmenuindex][4].value)
+		{
+			t.storeprojectmodified = 1;
+			t.visuals.lutindex = t.slidersmenuvalue[t.slidersmenuindex][4].value;
+			t.visuals.refreshlutsettings = 1;
+			t.visuals.refreshshaders = 1;
 		}
 		#ifdef VRTECH
 		if (t.visuals.iEnvironmentWeather+1 != t.slidersmenuvalue[t.slidersmenuindex][4].value)

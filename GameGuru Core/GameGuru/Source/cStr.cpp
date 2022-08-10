@@ -30,7 +30,11 @@ bool noDeleteCSTR = false;
 #else
 //#define STRMINSIZE 1024
 //PE: The default STRMINSIZE use tons of mem, i think we fixed all bugs in here so we should be able to use a lower amount, it will increase if needed.
-#define STRMINSIZE 512
+//#define STRMINSIZE 512
+//PE: eleprof have around 620 cstr = 620 * cstr(512) = 310kb a normal level with 5000 objects = 1.4GB , and we take a backup of all entitydat  when using test game = 2.8GB.
+//PE: 128 works fine, and have a low realloc rate. so 77.5kb per entity, in sample above (2.8gb), this with testgame backup only 0.73GB. used.
+//PE: The above is ONLY for cstr alloc per object, each object takes up more mem, need to look at that.
+#define STRMINSIZE 128
 #endif
 
 //#define TESTUSEOFSTRINGS
@@ -42,7 +46,7 @@ int CheckReSize[5000];
 cStr::cStr ( const cStr& cString )
 {
 
-	m_size = strlen ( cString.m_pString );
+	m_size = (int) strlen ( cString.m_pString );
 
 	#ifdef TESTUSEOFSTRINGS
 	if (m_size < 5000) CheckPreSize[m_size]++;
@@ -68,7 +72,7 @@ cStr::cStr ( const cStr& cString )
 
 cStr::cStr ( char* szString )
 {
-	m_size = strlen ( szString );
+	m_size = (int) strlen ( szString );
 #ifdef TESTUSEOFSTRINGS
 	if (m_size < 5000) CheckPreSize[m_size]++;
 #endif
@@ -149,7 +153,7 @@ cStr cStr::operator + ( const cStr& other )
 	// s = s + " " //This generates a heap error.
 	// s += " " // This works.
 
-	m_size = strlen ( other.m_pString ) + strlen ( m_pString );
+	m_size = (int) strlen ( other.m_pString ) + (int) strlen ( m_pString );
 
 	if ( m_size >= STRMINSIZE )
 	{
@@ -175,7 +179,7 @@ cStr cStr::operator + ( const cStr& other )
 cStr& cStr::operator += ( const cStr& other )
 {
 
-	m_size = strlen ( other.m_pString ) + strlen ( m_pString );
+	m_size = (int) strlen ( other.m_pString ) + (int) strlen ( m_pString );
 
 	if ( m_size >= STRMINSIZE )
 	{
@@ -199,7 +203,7 @@ cStr& cStr::operator += ( const cStr& other )
 		
 cStr cStr::operator = ( const cStr& other )
 {
-	m_size = strlen ( other.m_pString );
+	m_size = (int) strlen ( other.m_pString );
 
 	if ( m_size >= STRMINSIZE )
 	{
@@ -220,10 +224,16 @@ cStr cStr::operator = ( const cStr& other )
 	return cStr ( other.m_pString );
 }
 
+cstr global_string_error = "Error in cStr ? "; //PE: Remove warning.
+
 cStr& cStr::operator = ( const char* other )
 {
-
-	m_size = strlen ( other );
+	if(!m_pString)
+	{
+		//PE: Strange. had this, but after a recomile it worked again, what was wrong ? keep it here with breakpoint just in case.
+		return(global_string_error);
+	}
+	m_size = (int) strlen ( other );
 
 	if ( m_size >= STRMINSIZE )
 	{
@@ -236,7 +246,7 @@ cStr& cStr::operator = ( const char* other )
 		delete[] m_szTemp;
 		m_szTemp = new char [ sizeof ( char ) * ( m_size ) + 1 ];
 	}
-
+	//PE: m_pString was 0 here ? called from line (t.tfile_s="audiobank\\materials\\materialdefault.txt";) ?
 	strcpy ( m_pString, other );
 
 	return *this;
@@ -280,7 +290,7 @@ bool cStr::operator != ( const char* s )
 int cStr::Len ( void )
 {
 	if ( m_pString )
-		return strlen ( m_pString );
+		return (int) strlen ( m_pString );
 
 	return 0;
 }
@@ -623,14 +633,14 @@ bool cStr::operator != ( const char* s ) const
 
 int ArrayCount2 ( std::vector<std::vector<cstr>> array )
 {
-	return (array.size()*array[0].size()) - 1;
+	return ( (int) array.size()* (int) array[0].size()) - 1;
 }
 
 cstr ArrayAt ( std::vector<std::vector<cstr>>& array, int l )
 {
 	int a,b;
 	b = (int)(floor((float)l / (float)array.size()));
-	a = l - (b*array.size());
+	a = l - (b* (int) array.size());
 	return array[a][b];
 }
 
@@ -661,7 +671,7 @@ void SaveArray ( char* filename , std::vector<std::vector<cstr>> array )
 {
 	FILE* file;
 	char t[2048];
-	int size = array[0].size();
+	int size = (int) array[0].size();
 
 	DeleteFileA ( filename );
 
@@ -742,7 +752,7 @@ void LoadArray ( char* filename , std::vector<std::vector<cstr>>& array )
 	FILE* file;
 	char t[2048];
 	int lineCount = 0;
-	int size = array[0].size();
+	int size = (int) array[0].size();
 
 	// Uses actual or virtual file..
 	char VirtualFilename[_MAX_PATH];
@@ -795,6 +805,5 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 		start_pos += to.length();
 	}
 }
-
 
 

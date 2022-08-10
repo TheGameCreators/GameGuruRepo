@@ -10,7 +10,7 @@ int g_iSuperTriggerFullGrassReveal = 0;
 
 // Externs
 
-#ifndef PRODUCTCLASSIC
+#ifdef ENABLEIMGUI
 extern bool bUpdateVeg;
 #endif
 
@@ -237,7 +237,7 @@ void grass_setgrassimage ( void )
 		LoadImage ( cstr(cstr("vegbank\\")+g.vegstyle_s+"\\grass.dds").Get(),t.tGrassImg );
 	}
 	extern bool bResourcesSet, bGridMade;
-	#ifndef PRODUCTCLASSIC
+	#ifdef ENABLEIMGUI
 	if (!bGridMade)
 	{
 		bUpdateVeg = true;
@@ -274,7 +274,7 @@ void grass_loop ( void )
 		// do we need to update after an terrain raise
 		if ( t.terrain.grassupdateafterterrain == 1 ) 
 		{
-			#ifdef PRODUCTV3
+			#ifdef ENABLEIMGUI
 			// seems we need to ensure grass texture copies to grass memblock so the latest data can be turned into
 			// grass with the function below (seems this functionality disappeared during MAX development for VRQ)
 			grass_updategrassfrombitmap();

@@ -44,7 +44,14 @@ extern float g_fVR920Sensitivity;
 #ifdef VRTECH
 extern bool g_bDisableVRDetectionByUserRequest;
 extern bool bStartNewPrompt;
+#else
+extern bool bStartNewPrompt;
 #endif
+
+#ifdef ENABLEIMGUI //cyb
+extern bool bStartNewPrompt;
+#endif
+
 
 // Globals
 int g_PopupControlMode = 0;
@@ -1306,6 +1313,10 @@ void common_init_globals ( void )
 	g.skyindex = 0;
 	Dim ( t.skybank_s,1 );
 
+	g.lutmax = 0;
+	g.lutindex = 0;
+	Dim(t.lutbank_s, 1);
+
 	//  Terrain Texture Structure
 	g.terrainstylemax = 0;
 	g.terrainstyle_s = "";
@@ -1862,7 +1873,7 @@ void FPSC_SetDefaults ( void )
 	g.gproducelogfilesdir_s = "";
 	g.gpbroverride = 0;
 	g.memskipwatermask = 0;
-
+	
 	g.maxtotalmeshlights = 20;
 	g.maxpixelmeshlights = 10;
 	g.terrainoldlight = 0;
@@ -4077,8 +4088,80 @@ void FPSC_Setup ( void )
 	//PE: IMGUI init.
 	if (t.game.set.ismapeditormode == 1) 
 	{
+		//Setup default write folder and load preferences.
 		extern char defaultWriteFolder[260];
 		extern preferences pref;
+		FindAWriteablefolder();
+
+		bool bResetPreferences = true;
+		char prefile[MAX_PATH];
+		strcpy(prefile, defaultWriteFolder);
+		strcat(prefile, "gameguru.pref");
+
+		//Load setup.
+		FILE* preffile = fopen(prefile, "rb");
+		if (preffile)
+		{
+			size_t size = fread(&pref, 1, sizeof(pref), preffile);
+			//Valid pref:
+			if (pref.szCheckFile[0] == 'G' && pref.szCheckFile[9] == 'P')
+			{
+				bResetPreferences = false;
+			}
+			pref.launched++;
+			fclose(preffile);
+		}
+
+		if (bResetPreferences)
+		{
+			//Init prefereences defaults.
+			strcpy(pref.szCheckFile, "GAMEGURU-PREFS");
+			pref.launched = 0;
+			pref.current_style = 1; // now "blue" was 0 , Max default to style "Dark Style"
+			pref.vStartResolution = { 1280,800 };
+			for (int i = 0; i < 10; i++)
+			{
+				strcpy(pref.last_open_files[i], "");
+			}
+
+			for (int i = 0; i < 15; i++)
+				strcpy(pref.search_history[i], "");
+
+			for (int i = 0; i < 15; i++)
+				strcpy(pref.small_search_history[i], "");
+
+			for (int i = 0; i < 10; i++)
+				strcpy(pref.last_import_files[i], "");
+
+			for (int il = 0; il < 16; il++)
+			{
+				pref.vSaved_Light_Palette_R[il] = 1.0f;
+				pref.vSaved_Light_Palette_G[il] = 1.0f;
+				pref.vSaved_Light_Palette_B[il] = 1.0f;
+				pref.iSaved_Light_Type[il] = -1;
+				pref.iSaved_Light_Range[il] = 0;
+				pref.fSaved_Light_ProbeScale[il] = 1.0f;
+			}
+
+			for (int il = 0; il < 16; il++)
+			{
+				strcpy(pref.Saved_Particle_Name[il], "");
+				pref.Saved_bParticle_Preview[il] = true;
+				pref.Saved_bParticle_Show_At_Start[il] = true;
+				pref.Saved_bParticle_Looping_Animation[il] = true;
+				pref.Saved_bParticle_Full_Screen[il] = false;
+				pref.Saved_fParticle_Fullscreen_Duration[il] = 10.0f;
+				pref.Saved_fParticle_Fullscreen_Fadein[il] = 1.0f;
+				pref.Saved_fParticle_Fullscreen_Fadeout[il] = 1.0f;
+				strcpy(pref.Saved_Particle_Fullscreen_Transition[il], "");
+				pref.Saved_fParticle_Speed[il] = 1.0f;
+				pref.Saved_fParticle_Opacity[il] = 1.0f;
+			}
+
+			pref.save_layout = true;
+			pref.iMaximized = 1;
+		}
+
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
@@ -4706,6 +4789,7 @@ void FPSC_Setup ( void )
 		//  Call visuals loop once to set shader constants
 		t.visuals = t.gamevisuals;
 		t.visuals.refreshshaders = 1;
+		t.visuals.refreshlutsettings = 1;
 		visuals_loop();
 
 		//  Main loop

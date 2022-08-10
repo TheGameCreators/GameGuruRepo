@@ -5,6 +5,7 @@
 // Includes
 #include "stdafx.h"
 #include "gameguru.h"
+#include "Common-Keys.h"
 
 #ifdef ENABLEIMGUI
 #include "..\Imgui\imgui.h"
@@ -31,7 +32,415 @@ bool g_bAllowBackwardCompatibleConversion = false;
 
 #ifdef ENABLEIMGUI
 bool restore_old_map = false;
+int savestandalone_e = 1;
 #endif
+
+//PE: Moved here cstr is crashing when called from M-MPSteam.cpp in 64 bit version.
+void mp_save_workshop_files_needed(void)
+{
+	cstr toriginalMasterLevelFile_s = "";
+	cstr toriginalprojectname_s = "";
+
+	toriginalMasterLevelFile_s = t.tmasterlevelfile_s;
+	toriginalprojectname_s = g.projectfilename_s;
+	//  If there is no baseList.dat file we cant proceed
+	if (FileExist("editors\\baseList.dat") == 0)
+	{
+		// LB: seems 'baseList' was destroyed long ago, needs reconstructing from time to time
+		/*
+		if (1)
+		{
+			char pOldDir[MAX_PATH];
+			strcpy (pOldDir, GetDir());
+
+			// collect all files from Files folder
+			MessageBox(NULL, "baseList.dat", "About to create baseList.dat", MB_OK);
+			g.filecollectionmax = 0;
+			Dim (t.filecollection_s, 10000);
+			SetDir("F:\\Dropbox\\GameGuru Builds\\Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\");
+			addallinfoldertocollection("Files","");
+
+			// and write all folders/files to the new baseList.dat
+			SetDir("F:\\Dropbox\\GameGuru Builds\\Steam\\Steamworks SDK\\tools\\ContentBuilder\\content\\Files\\editors\\");
+			OpenToWrite (1, "baseList (new).dat");
+			for ( int i=0; i < g.filecollectionmax; i++ )
+			{
+				WriteString (1, t.filecollection_s[i].Get());
+			}
+			CloseFile (1);
+			MessageBox(NULL, "baseList.dat", "DONE!!", MB_OK);
+
+			SetDir(pOldDir);
+		}
+		*/
+		return;
+	}
+
+	//  Work out how many lines there are so we can Dim (  the right amount )
+	t.thowmanyfpefiles = 0;
+	OpenToRead(1, "editors\\baseList.dat");
+	while (FileEnd(1) == 0)
+	{
+		t.tthrowawaystring_s = ReadString(1);
+		++t.thowmanyfpefiles;
+	}
+	CloseFile(1);
+
+	//  Store the count in our global steamworks type
+	g.mp.howmanyfpefiles = t.thowmanyfpefiles;
+
+	Dim(t.tallfpefiles_s, t.thowmanyfpefiles);
+	t.thowmanyfpefiles = 0;
+	OpenToRead(1, "editors\\baseList.dat");
+	while (FileEnd(1) == 0)
+	{
+		t.tallfpefiles_s[t.thowmanyfpefiles] = ReadString(1);
+		++t.thowmanyfpefiles;
+	}
+	CloseFile(1);
+
+	t.exename_s = t.tsteamsavefilename_s;
+	if (cstr(Lower(Right(t.exename_s.Get(), 4))) == ".fpm")
+	{
+		t.exename_s = Left(t.exename_s.Get(), Len(t.exename_s.Get()) - 4);
+	}
+	for (t.n = Len(t.exename_s.Get()); t.n >= 1; t.n += -1)
+	{
+		if (cstr(Mid(t.exename_s.Get(), t.n)) == "\\" || cstr(Mid(t.exename_s.Get(), t.n)) == "/")
+		{
+			t.exename_s = Right(t.exename_s.Get(), Len(t.exename_s.Get()) - t.n);
+			break;
+		}
+	}
+	if (Len(t.exename_s.Get()) < 1)  t.exename_s = "sample";
+
+	//  the level
+	t.tmasterlevelfile_s = cstr("mapbank\\") + t.exename_s + ".fpm";
+	t.strwork = ""; t.strwork = t.strwork + "Saving required files list for " + t.tmasterlevelfile_s;
+	timestampactivity(0, t.strwork.Get());
+
+	//  Get absolute My Games folder
+	g.exedir_s = "?";
+	t.told_s = GetDir();
+	t.tworkshoplistfile_s = t.told_s + "\\mapbank\\" + t.exename_s + ".dat";
+	t.tMPshopTheVersionNumber = 1;
+	if (FileExist(t.tworkshoplistfile_s.Get()) == 1)
+	{
+		t.tmphopitemtocheckifchangedandversion_s = t.tworkshoplistfile_s;
+		mp_grabWorkshopChangedFlagAndVersion();
+		++t.tMPshopTheVersionNumber;
+		DeleteAFile(t.tworkshoplistfile_s.Get());
+	}
+	OpenToWrite(1, t.tworkshoplistfile_s.Get());
+
+	//  set the changed flag since we are saving, this way we dont rely on workshop info to know if a file is new or not
+	WriteString(1, "DO NOT MANUALY EDIT THIS FILE");
+	WriteString(1, "1");
+	WriteString(1, Str(t.tMPshopTheVersionNumber));
+	WriteString(1, "0");
+
+	//  Collect ALL files in string array list
+	g.filecollectionmax = 0;
+	Dim(t.filecollection_s, 500);
+
+	//  include original FPM
+	addtocollection(t.tmasterlevelfile_s.Get());
+
+	//  Stage 2 - collect all files
+	t.tlevelfile_s = "";
+	g.projectfilename_s = t.tmasterlevelfile_s;
+
+	//  load in level FPM
+	if (Len(t.tlevelfile_s.Get()) > 1)
+	{
+		g.projectfilename_s = t.tlevelfile_s;
+	}
+
+	//  chosen sky, terrain and veg
+	//PE: 64bit Accessing t.skybank_s[g.skyindex] crash here ?
+	addfoldertocollection(cstr(cstr("skybank\\") + t.skybank_s[g.skyindex]).Get());
+	addfoldertocollection("skybank\\night");
+	if (stricmp(g.terrainstyle_s.Get(), "CUSTOM") != NULL)
+	{
+		addfoldertocollection(cstr(cstr("terrainbank\\") + g.terrainstyle_s).Get());
+	}
+	addfoldertocollection(cstr(cstr("vegbank\\") + g.vegstyle_s).Get());
+
+	//  choose all entities and associated files
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		t.entid = t.entityelement[t.e].bankindex;
+		if (t.entid > 0)
+		{
+			//  check for lua scripts
+			if (t.entityelement[t.e].eleprof.aimain_s != "")
+			{
+				if (mp_check_if_entity_is_from_install(t.entityelement[t.e].eleprof.aimain_s.Get()) == 0)
+				{
+					addtocollection(cstr(cstr("scriptbank\\") + t.entityelement[t.e].eleprof.aimain_s).Get());
+				}
+			}
+			//  entity profile file
+			t.tentityname1_s = cstr("entitybank\\") + t.entitybank_s[t.entid];
+			t.tentityname2_s = cstr(Left(t.tentityname1_s.Get(), Len(t.tentityname1_s.Get()) - 4)) + ".fpe";
+			if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tentityname2_s).Get()) == 1)
+			{
+				t.tentityname_s = t.tentityname2_s;
+			}
+			else
+			{
+				t.tentityname_s = t.tentityname1_s;
+			}
+			//  Check to see if the entity is part of the base install
+			//  If it is, we can skip checking any further with it
+			if (mp_check_if_entity_is_from_install(t.tentityname_s.Get()) == 0)
+			{
+
+				addtocollection(t.tentityname_s.Get());
+				//  entity files in folder
+				t.tentityfolder_s = t.tentityname_s;
+				for (t.n = Len(t.tentityname_s.Get()); t.n >= 1; t.n += -1)
+				{
+					if (cstr(Mid(t.tentityname_s.Get(), t.n)) == "\\" || cstr(Mid(t.tentityname_s.Get(), t.n)) == "/")
+					{
+						t.tentityfolder_s = Left(t.tentityfolder_s.Get(), t.n);
+						break;
+					}
+				}
+				//  model file
+				t.tlocaltofpe = 1;
+				for (t.n = 1; t.n <= Len(t.entityprofile[t.entid].model_s.Get()); t.n++)
+				{
+					if (cstr(Mid(t.entityprofile[t.entid].model_s.Get(), t.n)) == "\\" || cstr(Mid(t.entityprofile[t.entid].model_s.Get(), t.n)) == "/")
+					{
+						t.tlocaltofpe = 0; break;
+					}
+				}
+				if (t.tlocaltofpe == 1)
+				{
+					t.tfile1_s = t.tentityfolder_s + t.entityprofile[t.entid].model_s;
+				}
+				else
+				{
+					t.tfile1_s = t.entityprofile[t.entid].model_s;
+				}
+				t.tfile2_s = cstr(Left(t.tfile1_s.Get(), Len(t.tfile1_s.Get()) - 2)) + ".dbo";
+				if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile2_s).Get()) == 1)
+				{
+					t.tfile_s = t.tfile2_s;
+				}
+				else
+				{
+					t.tfile_s = t.tfile1_s;
+				}
+				t.tmodelfile_s = t.tfile_s;
+				addtocollection(t.tmodelfile_s.Get());
+				//  entity characterpose file (if any)
+				t.tfile3_s = cstr(Left(t.tfile1_s.Get(), Len(t.tfile1_s.Get()) - 2)) + ".dat";
+				if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile3_s).Get()) == 1)
+				{
+					addtocollection(t.tfile3_s.Get());
+				}
+
+				//  texture files
+				t.tlocaltofpe = 1;
+				for (t.n = 1; t.n <= Len(t.entityelement[t.e].eleprof.texd_s.Get()); t.n++)
+				{
+					if (cstr(Mid(t.entityelement[t.e].eleprof.texd_s.Get(), t.n)) == "\\" || cstr(Mid(t.entityelement[t.e].eleprof.texd_s.Get(), t.n)) == "/")
+					{
+						t.tlocaltofpe = 0; break;
+					}
+				}
+				if (t.tlocaltofpe == 1)
+				{
+					t.tfile_s = t.tentityfolder_s + t.entityelement[t.e].eleprof.texd_s;
+				}
+				else
+				{
+					t.tfile_s = t.entityelement[t.e].eleprof.texd_s;
+				}
+				addtocollection(t.tfile_s.Get());
+				timestampactivity(0, cstr(cstr("Exporting ") + t.entitybank_s[t.entid] + " texd:" + t.tfile_s).Get());
+				if (cstr(Left(Lower(Right(t.tfile_s.Get(), 6)), 2)) == "_d")
+				{
+					t.tfileext_s = Right(t.tfile_s.Get(), 3);
+					t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_n." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+					t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_s." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+					t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_i." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+					t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_o." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				}
+				if (t.tlocaltofpe == 1)
+				{
+					t.tfile_s = t.tentityfolder_s + t.entityelement[t.e].eleprof.texaltd_s;
+				}
+				else
+				{
+					t.tfile_s = t.entityelement[t.e].eleprof.texaltd_s;
+				}
+				addtocollection(t.tfile_s.Get());
+				//  if entity did not specify texture it is multi-texture, so interogate model file
+				findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
+				//  shader file
+				t.tfile_s = t.entityelement[t.e].eleprof.effect_s; addtocollection(t.tfile_s.Get());
+				//  script files
+				// t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aiinit_s ; addtocollection(t.tfile_s.Get()); //PE: Not used anymore.
+				t.tfile_s = cstr("scriptbank\\") + t.entityelement[t.e].eleprof.aimain_s; addtocollection(t.tfile_s.Get());
+				// t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aidestroy_s ; addtocollection(t.tfile_s.Get()); //PE: Not used anymore.
+				// t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aishoot_s ; addtocollection(t.tfile_s.Get()); //PE: Not used anymore.
+				//  sound files
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset1_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset2_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset3_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset4_s; addtocollection(t.tfile_s.Get());
+				//  collectable guns
+				if (Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1)
+				{
+					t.tfile_s = cstr("gamecore\\guns\\") + t.entityprofile[t.entid].isweapon_s; addfoldertocollection(t.tfile_s.Get());
+					t.foundgunid = t.entityprofile[t.entid].isweapon;
+					if (t.foundgunid > 0)
+					{
+						for (t.x = 0; t.x <= 1; t.x++)
+						{
+							t.tpoolindex = g.firemodes[t.foundgunid][t.x].settings.poolindex;
+							if (t.tpoolindex > 0)
+							{
+								t.tfile_s = cstr("gamecore\\ammo\\") + t.ammopool[t.tpoolindex].name_s; addfoldertocollection(t.tfile_s.Get());
+							}
+						}
+					}
+				}
+				//  associated guns and ammo
+				if (Len(t.entityelement[t.e].eleprof.hasweapon_s.Get()) > 1)
+				{
+					t.tfile_s = cstr("gamecore\\guns\\") + t.entityelement[t.e].eleprof.hasweapon_s; addfoldertocollection(t.tfile_s.Get());
+					t.foundgunid = t.entityelement[t.e].eleprof.hasweapon;
+					if (t.foundgunid > 0)
+					{
+						for (t.x = 0; t.x <= 1; t.x++)
+						{
+							t.tpoolindex = g.firemodes[t.foundgunid][t.x].settings.poolindex;
+							if (t.tpoolindex > 0)
+							{
+								t.tfile_s = cstr("gamecore\\ammo\\") + t.ammopool[t.tpoolindex].name_s; addfoldertocollection(t.tfile_s.Get());
+							}
+						}
+					}
+				}
+				//  zone marker can reference other levels to jump to
+				if (t.entityprofile[t.entid].ismarker == 3)
+				{
+					t.tlevelfile_s = t.entityelement[t.e].eleprof.ifused_s;
+					if (Len(t.tlevelfile_s.Get()) > 1)
+					{
+						t.tlevelfile_s = cstr("mapbank\\") + t.tlevelfile_s + ".fpm";
+						addtocollection(t.tlevelfile_s.Get());
+					}
+				}
+			}
+
+		}
+	}
+
+	//  fill in the .dat file
+	SetDir(cstr(g.fpscrootdir_s + "\\Files\\").Get());
+	t.filesmax = g.filecollectionmax;
+	t.thowmanyadded = 0;
+	for (t.fileindex = 1; t.fileindex <= t.filesmax; t.fileindex++)
+	{
+		t.name_s = t.filecollection_s[t.fileindex];
+		if (cstr(Left(t.name_s.Get(), 12)) == "entitybank\\\\")  t.name_s = cstr("entitybank\\") + Right(t.name_s.Get(), Len(t.name_s.Get()) - 12);
+		if (cstr(Left(t.name_s.Get(), 12)) == "scriptbank\\\\")  t.name_s = cstr("scriptbank\\") + Right(t.name_s.Get(), Len(t.name_s.Get()) - 12);
+		if (FileExist(t.name_s.Get()) == 1)
+		{
+			if (mp_check_if_entity_is_from_install(t.name_s.Get()) == 0)
+			{
+				WriteString(1, t.name_s.Get());
+				//  check if it is character creator, if it is, check for the existance of a texture
+				if (cstr(Lower(Left(t.name_s.Get(), 32))) == "entitybank\\user\\charactercreator")
+				{
+					t.tname_s = cstr(Left(t.name_s.Get(), Len(t.name_s.Get()) - 4)) + "_cc.dds";
+					if (FileExist(t.tname_s.Get()) == 1)
+					{
+						WriteString(1, t.tname_s.Get());
+						++t.thowmanyadded;
+					}
+				}
+
+				++t.thowmanyadded;
+				//  09032015 - 017 - If its a gun, grab the muzzleflash, decals and include them
+				if (cstr(Right(t.name_s.Get(), 11)) == "gunspec.txt")
+				{
+					if (FileOpen(3))  CloseFile(3);
+					t.tfoundflash = 0;
+					OpenToRead(3, t.name_s.Get());
+					t.tfoundflash = 0;
+					while (FileEnd(3) == 0 && t.tfoundflash == 0)
+					{
+						t.tisthisflash_s = ReadString(3);
+						if (cstr(Left(t.tisthisflash_s.Get(), 11)) == "muzzleflash")
+						{
+							t.tlocationofequals = FindLastChar(t.tisthisflash_s.Get(), "=");
+							if (t.tlocationofequals > 1)
+							{
+								if (cstr(Mid(t.tisthisflash_s.Get(), t.tlocationofequals + 1)) == " ")
+								{
+									t.tflash_s = Right(t.tisthisflash_s.Get(), Len(t.tisthisflash_s.Get()) - (t.tlocationofequals + 1));
+								}
+								else
+								{
+									t.tflash_s = Right(t.tisthisflash_s.Get(), Len(t.tisthisflash_s.Get()) - (t.tlocationofequals));
+								}
+								t.tfext_s = "";
+								if (FileExist(cstr(cstr("gamecore\\muzzleflash\\flash") + t.tflash_s + ".png").Get()) == 1)  t.tfext_s = ".png";
+								if (FileExist(cstr(cstr("gamecore\\muzzleflash\\flash") + t.tflash_s + ".dds").Get()) == 1)  t.tfext_s = ".dds";
+								if (t.tfext_s != "")
+								{
+									WriteString(1, cstr(cstr("gamecore\\muzzleflash\\flash") + t.tflash_s + t.tfext_s).Get());
+									++t.thowmanyadded;
+								}
+								t.tfext_s = "";
+								if (FileExist(cstr(cstr("gamecore\\decals\\muzzleflash") + t.tflash_s + "\\decal.png").Get()) == 1)  t.tfext_s = ".png";
+								if (FileExist(cstr(cstr("gamecore\\decals\\muzzleflash") + t.tflash_s + "\\decal.dds").Get()) == 1)  t.tfext_s = ".dds";
+								if (t.tfext_s != "")
+								{
+									WriteString(1, cstr(cstr("gamecore\\decals\\muzzleflash") + t.tflash_s + "\\decal" + t.tfext_s).Get());
+									++t.thowmanyadded;
+								}
+								t.tfext_s = "";
+								if (FileExist(cstr(cstr("gamecore\\decals\\muzzleflash") + t.tflash_s + "\\decalspec.txt").Get()) == 1)  t.tfext_s = ".txt";
+								if (t.tfext_s != "")
+								{
+									WriteString(1, cstr(cstr("gamecore\\decals\\muzzleflash") + t.tflash_s + "\\decalspec" + t.tfext_s).Get());
+									++t.thowmanyadded;
+								}
+								t.tfoundflash = 1;
+							}
+						}
+					}
+					CloseFile(3);
+				}
+			}
+		}
+	}
+
+	CloseFile(1);
+
+	//  if (  it is just the fpm  )  there are is no custom media with this level
+	if (t.thowmanyadded <= 1)  DeleteAFile(t.tworkshoplistfile_s.Get());
+
+	//  cleanup file array
+	UnDim(t.filecollection_s);
+
+	//  Restore directory
+	SetDir(t.told_s.Get());
+
+	UnDim(t.tallfpefiles);
+
+	t.tmasterlevelfile_s = toriginalMasterLevelFile_s;
+	g.projectfilename_s = toriginalprojectname_s;
+
+}
 
 void mapfile_saveproject_fpm ( void )
 {
@@ -299,6 +708,10 @@ void mapfile_saveproject_fpm ( void )
 	#ifdef VRTECH
 	//mp_save_workshop_files_needed ( ); // no longer needed, not using workshop
 	#else
+	//PE: This crash in 64 bit, cstr error when accessing t.skybank_s[g.skyindex] ?
+	//PE: But only when function is placed inside M-MPSteam.cpp ?
+	//PE: Moved here and are now working.
+	//PE: @Cyb needed for steam multiplayer :)
 	mp_save_workshop_files_needed ( );
 	#endif
 
@@ -477,6 +890,8 @@ void mapfile_loadproject_fpm ( void )
 			t.visuals=t.editorvisuals;
 			t.visuals.skyindex=t.gamevisuals.skyindex;
 			t.visuals.sky_s=t.gamevisuals.sky_s;
+			t.visuals.lutindex = t.gamevisuals.lutindex;
+			t.visuals.lut_s = t.gamevisuals.lut_s;
 			t.visuals.terrainindex=t.gamevisuals.terrainindex;
 			t.visuals.terrain_s=t.gamevisuals.terrain_s;
 			t.visuals.vegetationindex=t.gamevisuals.vegetationindex;
@@ -486,6 +901,7 @@ void mapfile_loadproject_fpm ( void )
 			//  takes visuals.sky$ visuals.terrain$ visuals.vegetation$
 			visuals_updateskyterrainvegindex ( );
 			t.gamevisuals.skyindex=t.visuals.skyindex;
+			t.gamevisuals.lutindex = t.visuals.lutindex;
 			t.gamevisuals.terrainindex=t.visuals.terrainindex;
 			t.gamevisuals.vegetationindex=t.visuals.vegetationindex;
 		}
@@ -527,6 +943,7 @@ void mapfile_loadproject_fpm ( void )
 			//  and refresh assets based on restore
 			t.visuals.refreshshaders=1;
 			t.visuals.refreshskysettings=1;
+			t.visuals.refreshlutsettings = 1;
 			t.visuals.refreshterraintexture=1;
 			t.visuals.refreshvegtexture=1;
 
@@ -3032,7 +3449,7 @@ void mapfile_savestandalone_stage2a ( void )
 	g_mapfile_iNumberOfLevels = 1 + t.levelmax;
 
 	// Stage 2 - collect all files (from all levels)
-	t.levelindex=0;
+	t.levelindex = 0;
 	t.tlevelfile_s="";
 	t.tlevelstoprocess = 1;
 	g.projectfilename_s = t.tmasterlevelfile_s;
@@ -3125,8 +3542,14 @@ int mapfile_savestandalone_stage2b ( void )
 		addfoldertocollection(cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
 		addfoldertocollection(cstr(cstr("vegbank\\")+g.vegstyle_s).Get() );
 
+		//add lutbank
+		addfoldertocollection("lutbank\\");
+
 		// start for loop
 		t.e = 1;
+		#ifdef ENABLEIMGUI
+		savestandalone_e = 1; //cyb bug-fix
+		#endif
 		g_mapfile_fProgressSpan = g_mapfile_iNumberOfEntitiesAcrossAllLevels;
 	}
 	else
@@ -3138,6 +3561,10 @@ int mapfile_savestandalone_stage2b ( void )
 
 int mapfile_savestandalone_stage2c ( void )
 {
+	//cyb //bug-fix
+	#ifdef ENABLEIMGUI
+	t.e = savestandalone_e;
+	#endif
 	// choose all entities and associated files
 	int iMoveAlong = 0;
 	if ( t.e <= g.entityelementlist )
@@ -3211,7 +3638,7 @@ int mapfile_savestandalone_stage2c ( void )
 				}
 			}
 
-			//  entity profile file
+			//  entity profile file 
 			t.tentityname1_s=cstr("entitybank\\")+t.entitybank_s[t.entid];
 			t.tentityname2_s=cstr(Left(t.tentityname1_s.Get(),Len(t.tentityname1_s.Get())-4))+".bin";
 			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tentityname2_s).Get() ) == 1 ) 
@@ -3276,6 +3703,9 @@ int mapfile_savestandalone_stage2c ( void )
 				}
 				t.tmodelfile_s=t.tfile_s;
 				addtocollection(t.tmodelfile_s.Get());
+
+				
+
 				// if entity did not specify texture it is multi-texture, so interogate model file
 				// do it for every model
 				findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
@@ -3517,6 +3947,9 @@ int mapfile_savestandalone_stage2c ( void )
 		iMoveAlong = 1;
 	}
 	t.e++;
+	#ifdef ENABLEIMGUI
+	savestandalone_e++; //cyb //bug-fix
+	#endif
 	return iMoveAlong;
 }
 
@@ -3693,7 +4126,7 @@ void mapfile_savestandalone_stage4 ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 
 	// Copy critical DLLs
-	for ( int iCritDLLs = 1; iCritDLLs <= 6; iCritDLLs++ )
+	for ( int iCritDLLs = 1; iCritDLLs <= 9; iCritDLLs++ ) //cyb
 	{
 		LPSTR pCritDLLFilename = "";
 		switch ( iCritDLLs )
@@ -3704,6 +4137,9 @@ void mapfile_savestandalone_stage4 ( void )
 			case 4 : pCritDLLFilename = "avformat-57.dll"; break;
 			case 5 : pCritDLLFilename = "avutil-55.dll"; break;
 			case 6 : pCritDLLFilename = "swresample-2.dll"; break;
+			case 7 : pCritDLLFilename = "steam_api64.dll"; break; //cyb
+			case 8 : pCritDLLFilename = "sdkencryptedappticket64.dll"; break; //cyb
+			case 9 : pCritDLLFilename = "Guru-Converter.exe"; break; //PE: Needed in standalone to generate cached dbo in 64 bit. many weapons/... dont have a dbo.
 		}
 		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
@@ -3759,7 +4195,7 @@ void mapfile_savestandalone_stage4 ( void )
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "memskipibr=" + Str(g.memskipibr); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "underwatermode=" + Str(g.underwatermode); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "usegrassbelowwater=" + Str(g.usegrassbelowwater); ++t.i;
-
+	
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "memskipwatermask=" + Str(g.memskipwatermask); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "lowestnearcamera=" + Str(g.lowestnearcamera); ++t.i;
 	t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "standalonefreememorybetweenlevels=" + Str(g.standalonefreememorybetweenlevels); ++t.i;
@@ -4012,6 +4448,12 @@ void mapfile_savestandalone_finish ( void )
 		{
 			//  NOTE; Need to exclude lightmaps from encryptor  set encrypt ignore list "lightmaps"
 			EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
+			//cyb
+			//PE: @cyb when lee compiles the final .exe the keys and enc all works so only if repo keys used :)
+			if(DOWNLOADSTOREKEY == "sc=[none]")
+			{
+				MessageBox(NULL, "This Standalone WILL NOT HAVE ITS ASSETS ENCRYPTED - DO NOT RELEASE", "Encryption WARNING", MB_OK);
+			}
 		}
 	}
 

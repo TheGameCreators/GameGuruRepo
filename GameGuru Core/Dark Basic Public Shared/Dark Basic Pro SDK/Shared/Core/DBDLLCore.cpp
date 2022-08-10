@@ -93,6 +93,7 @@
 
 #include "CGfxC.h"
 
+
 //PE: ImGui render if we have a imgui frame.
 extern bool bImGuiFrameState;
 extern bool bImGuiRenderTargetFocus;
@@ -314,6 +315,10 @@ DARKSDK void ConstantNonDisplayUpdate(void)
 	UpdateAllAnimation();
 	#endif
 }
+
+#ifdef ENABLEIMGUI
+extern bool bImGuiInTestGame; //cyb
+#endif
 
 void ImGui_RenderLast(void)
 {
@@ -839,22 +844,24 @@ LRESULT CALLBACK EmptyWindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
+
+
 #ifdef ENABLEIMGUI
 LRESULT CALLBACK ImguiWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	extern bool bImGuiInTestGame;
 	extern bool bRenderTargetModalMode;
 
-	//	if (bImGuiInTestGame) {
-	//		return DefWindowProc(hWnd, message, wParam, lParam);
-	//	}
+		//if (bImGuiInTestGame) {
+		//	return DefWindowProc(hWnd, message, wParam, lParam);
+		//}
 
 		//PE: IMGUI handle messages.
 	extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	if (!bImGuiInTestGame) {
 		if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam)) {
-			//		//return true;
+			//return true;
 		}
 	}
 
@@ -1193,12 +1200,12 @@ LRESULT CALLBACK ImguiWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 }
 #endif
 
-#ifdef ENABLEIMGUI
-extern bool bImGuiInTestGame;
-#endif
-
 LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
+#ifdef ENABLEIMGUI
+	return(ImguiWindowProc(hWnd, message, wParam, lParam));
+#endif
+
 	switch( message )
 	{
 		case WM_SETTEXT:
@@ -2282,7 +2289,11 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 	if ( g_pGlob->hWnd==NULL )
 	{
 		wc.style = CS_HREDRAW | CS_VREDRAW;
+		#ifdef ENABLEIMGUI
+		wc.lpfnWndProc = ImguiWindowProc;
+		#else
 		wc.lpfnWndProc = WindowProc;
+		#endif
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
 		wc.hInstance = hInstance;
@@ -2307,6 +2318,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 
 	// Create Window (if one not already created)
 	g_pGlob->hInstance = hInstance;
+	
 	if ( g_pGlob->hWnd )
 	{
 		// override window handle with new winproc
@@ -2319,6 +2331,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		// hidden window
 		g_pGlob->hWnd = CreateWindow( pAppNameUnique, pAppName, dwWindowStyle, g_pGlob->dwWindowX, g_pGlob->dwWindowY, g_pGlob->dwWindowWidth, g_pGlob->dwWindowHeight, NULL, NULL, hInstance, NULL);
 	}
+	
 
 #if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
 	bool bNeededToCreateExtraWindowForWMRWindow = false;
@@ -2331,7 +2344,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		SETUPConstructor();
 
 		// PE: Imgui register ImguiWindowProc so it can be used for IMGUI input in editor.
-		SetWindowLong(g_pGlob->hWnd, GWL_WNDPROC, (LONG)ImguiWindowProc);
+		SetWindowLong(g_pGlob->hWnd, GWLP_WNDPROC, (LONG)ImguiWindowProc);
 
 		// Initialise DisplayDLL
 		OverrideHWND(g_pGlob->hWnd);
@@ -2378,6 +2391,7 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 		}
 		else
 			bDXFailed = true;
+		
 		/*
 		// Need window for game so original window can stay hidden until VR activates (used by standalone game exe)
 		if (g_pGlob->hOriginalhWnd == g_pGlob->hWnd)

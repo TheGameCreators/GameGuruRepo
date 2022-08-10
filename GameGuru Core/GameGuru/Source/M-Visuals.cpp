@@ -53,15 +53,26 @@ void visuals_init ( void )
 	t.visuals.LightrayLength_f=0.55f;
 	t.visuals.LightrayQuality_f=20.0f;
 	t.visuals.LightrayDecay_f=0.8f;
-	t.visuals.SAORadius_f=0.5f;
-	t.visuals.SAOIntensity_f=0.5f;
+	if (VISUALVERSION >= 312)
+	{
+		t.visuals.SAORadius_f = 0.25f;
+		t.visuals.SAOIntensity_f = 0.25f;
+	}
+	else
+	{
+		t.visuals.SAORadius_f = 0.5f;
+		t.visuals.SAOIntensity_f = 0.5f;
+	}
 	t.visuals.SAOQuality_f=1.0f;
 	t.visuals.LensFlare_f=0.5f;
+	t.visuals.Saturation_f = 0.3f;
+	t.visuals.Sepia_f = 0.0f;
 
 	//  Trigger all visuals to update
 	t.visuals.refreshvegetation=0;
 	t.visuals.refreshshaders=1;
 	t.visuals.refreshskysettings=0;
+	t.visuals.refreshlutsettings = 0;
 	t.visuals.refreshterraintexture=0;
 	t.visuals.refreshvegtexture=0;
 
@@ -132,10 +143,20 @@ void visuals_resetvalues ( void )
 	t.visuals.LightrayLength_f=0.55f;
 	t.visuals.LightrayQuality_f=20.0f;
 	t.visuals.LightrayDecay_f=0.8f;
-	t.visuals.SAORadius_f=0.5f;
-	t.visuals.SAOIntensity_f=0.5f;
+	if (VISUALVERSION >= 312)
+	{
+		t.visuals.SAORadius_f = 0.25f;
+		t.visuals.SAOIntensity_f = 0.25f;
+	}
+	else
+	{
+		t.visuals.SAORadius_f = 0.5f;
+		t.visuals.SAOIntensity_f = 0.5f;
+	}
 	t.visuals.SAOQuality_f=1.0f;
 	t.visuals.LensFlare_f=0.5f;
+	t.visuals.Saturation_f = 0.3f;
+	t.visuals.Sepia_f = 0.0f;
 
 	//  Camera settings
 	t.visuals.CameraNEAR_f=2.0;
@@ -158,6 +179,7 @@ void visuals_resetvalues ( void )
 	terrain_initstyles_reset ( );
 	grass_initstyles_reset();
 	t.visuals.sky_s="";
+	t.visuals.lut_s = "";
 	t.visuals.terrain_s=g.terrainstyle_s;
 	t.visuals.vegetation_s=g.vegstyle_s;
 	visuals_updateskyterrainvegindex ( );
@@ -165,10 +187,13 @@ void visuals_resetvalues ( void )
 	if (t.visuals.terrainindex >= t.terrainstylebank_s.size()) t.visuals.terrainindex = t.terrainstylebank_s.size() - 1;
 	if (t.visuals.vegetationindex >= t.vegstylebank_s.size()) t.visuals.vegetationindex = t.vegstylebank_s.size() - 1;
 	t.visuals.sky_s=t.skybank_s[t.visuals.skyindex];
+	t.visuals.lut_s = t.lutbank_s[t.visuals.lutindex];
 	t.visuals.terrain_s=t.terrainstylebank_s[t.visuals.terrainindex];
 	t.visuals.vegetation_s=t.vegstylebank_s[t.visuals.vegetationindex];
 	t.strwork = ""; t.strwork = t.strwork +"visuals.sky$="+t.visuals.sky_s;
 	timestampactivity(0,t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.lut$=" + t.visuals.lut_s;
+	timestampactivity(0, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork +"visuals.terrain$="+t.visuals.terrain_s;
 	timestampactivity(0,t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork +"visuals.vegetation$="+t.visuals.vegetation_s;
@@ -303,6 +328,22 @@ void visuals_updateskyterrainvegindex ( void )
 	}
 	t.visuals.skyindex=g.skyindex;
 
+	//  Find lut 
+	g.lutindex = 1;
+	for (t.s = 1; t.s <= g.lutmax; t.s++)
+	{
+		//if (t.lutbank_s[t.s] == "1-LUT.png")  g.lutindex = t.s;
+		if (t.lutbank_s[t.s] == "none.png")  g.lutindex = t.s;
+	}
+	for (t.s = 1; t.s <= g.lutmax; t.s++)
+	{
+		if (t.lutbank_s[t.s] == t.visuals.lut_s)
+		{
+			g.lutindex = t.s;
+		}
+	}
+	t.visuals.lutindex = g.lutindex;
+
 	//  Find terrain (saved EXEs have smaller sky banks)
 	g.terrainstyleindex=1;
 	for ( t.t = 1 ; t.t<=  g.terrainstylemax; t.t++ )
@@ -332,6 +373,9 @@ void visuals_save ( void )
 	t.visfile_s=g.fpscrootdir_s+"\\visuals.ini";
 	if ( FileExist(t.visfile_s.Get()) == 1 ) DeleteAFile ( t.visfile_s.Get() );
 	OpenToWrite (  1,t.visfile_s.Get() );
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.iVisualVersion=" + Str(VISUALVERSION);
+	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork +"visuals.shaderlevels.terrain="+Str(t.visuals.shaderlevels.terrain);
 	WriteString (  1, t.strwork.Get() );
 	t.strwork = ""; t.strwork = t.strwork +"visuals.shaderlevels.entities="+Str(t.visuals.shaderlevels.entities);
@@ -410,6 +454,10 @@ void visuals_save ( void )
 	WriteString (  1, t.strwork.Get() );
 	t.strwork = ""; t.strwork = t.strwork +"visuals.sky$="+t.visuals.sky_s;
 	WriteString (  1, t.strwork.Get() );
+	t.strwork = ""; t.strwork = t.strwork + "visuals.lutindex=" + Str(t.visuals.lutindex);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.lut$=" + t.visuals.lut_s;
+	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork +"visuals.terrainindex="+Str(t.visuals.terrainindex);
 	WriteString (  1, t.strwork.Get() );
 	t.strwork = ""; t.strwork = t.strwork +"visuals.terrain$="+t.visuals.terrain_s;
@@ -458,6 +506,10 @@ void visuals_save ( void )
 	WriteString (  1, t.strwork.Get() );
 	t.strwork = ""; t.strwork = t.strwork +"visuals.LensFlare="+Str(t.visuals.LensFlare_f);
 	WriteString (  1, t.strwork.Get() );
+	t.strwork = ""; t.strwork = t.strwork + "visuals.Saturation=" + Str(t.visuals.Saturation_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.Sepia=" + Str(t.visuals.Sepia_f);
+	WriteString(1, t.strwork.Get());
 	//New Water Settings
 	t.strwork = ""; t.strwork = t.strwork + "visuals.Waterheight=" + Str(g.gdefaultwaterheight);
 	WriteString(1, t.strwork.Get());
@@ -498,8 +550,11 @@ return;
 
 void visuals_load ( void )
 {
+	bool bUpdateLutIndex = false;
 	//  Record previous visuals settings (see below)
 	t.defaultvisuals = t.visuals;
+
+	t.visuals.iVisualVersion = 0.0;
 
 	//  Reset newer visual values that may not exist in older visuals.ini files
 	t.visuals.VignetteRadius_f=0.5;
@@ -511,10 +566,20 @@ void visuals_load ( void )
 	t.visuals.LightrayLength_f=0.55f;
 	t.visuals.LightrayQuality_f=20.0f;
 	t.visuals.LightrayDecay_f=0.8f;
-	t.visuals.SAORadius_f=0.5f;
-	t.visuals.SAOIntensity_f=0.5f;
+	if (VISUALVERSION >= 312)
+	{
+		t.visuals.SAORadius_f = 0.25f;
+		t.visuals.SAOIntensity_f = 0.25f;
+	}
+	else
+	{
+		t.visuals.SAORadius_f = 0.5f;
+		t.visuals.SAOIntensity_f = 0.5f;
+	}
 	t.visuals.SAOQuality_f=1.0f;
 	t.visuals.LensFlare_f=0.5f;
+	t.visuals.Saturation_f = 0.3f;
+	t.visuals.Sepia_f = 0.0f;
 	//water settings
 	visuals_water_reset();
 	
@@ -541,6 +606,9 @@ void visuals_load ( void )
 					t.tvalue_s=Right(t.tline_s.Get(),Len(t.tline_s.Get())-Len(t.tfield_s.Get())-1);
 				}
 			}
+
+			t.try_s = "visuals.iVisualVersion"; if (t.tfield_s == t.try_s)  t.visuals.iVisualVersion = ValF(t.tvalue_s.Get());
+
 			t.try_s = "visuals.shaderlevels.terrain" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.terrain = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.shaderlevels.entities" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.entities = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.shaderlevels.vegetation" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.vegetation = ValF(t.tvalue_s.Get());
@@ -600,6 +668,15 @@ void visuals_load ( void )
 			t.try_s = "visuals.VegHeight#" ; if (  t.tfield_s == t.try_s  )  t.visuals.VegHeight_f = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.skyindex" ; if (  t.tfield_s == t.try_s  )  t.visuals.skyindex = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.sky$" ; if (  t.tfield_s == t.try_s  )  t.visuals.sky_s = t.tvalue_s;
+			t.try_s = "visuals.lutindex"; if (t.tfield_s == t.try_s)
+			{
+				t.visuals.lutindex = ValF(t.tvalue_s.Get());
+			}
+			t.try_s = "visuals.lut$"; if (t.tfield_s == t.try_s)
+			{
+				t.visuals.lut_s = t.tvalue_s;
+				bUpdateLutIndex = true;
+			}
 			t.try_s = "visuals.terrainindex" ; if (  t.tfield_s == t.try_s  )  t.visuals.terrainindex = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.terrain$" ; if (  t.tfield_s == t.try_s  )  t.visuals.terrain_s = t.tvalue_s;
 			t.try_s = "visuals.vegetationindex" ; if (  t.tfield_s == t.try_s  )  t.visuals.vegetationindex = ValF(t.tvalue_s.Get());
@@ -625,6 +702,8 @@ void visuals_load ( void )
 			t.try_s = "visuals.SAOIntensity" ; if (  t.tfield_s == t.try_s  )  t.visuals.SAOIntensity_f = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.SAOQuality" ; if (  t.tfield_s == t.try_s  )  t.visuals.SAOQuality_f = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.LensFlare" ; if (  t.tfield_s == t.try_s  )  t.visuals.LensFlare_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.Saturation"; if (t.tfield_s == t.try_s)  t.visuals.Saturation_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.Sepia"; if (t.tfield_s == t.try_s)  t.visuals.Sepia_f = ValF(t.tvalue_s.Get());
 			//new water settings
 			t.try_s = "visuals.Waterheight"; if (t.tfield_s == t.try_s)  g.gdefaultwaterheight = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.Waterred"; if (t.tfield_s == t.try_s)  t.visuals.WaterRed_f = ValF(t.tvalue_s.Get());
@@ -648,6 +727,13 @@ void visuals_load ( void )
 
 	}
 
+	//PE: Adjust new effects (HBAO) if using a old visual.ini version.
+	if (t.visuals.iVisualVersion < 312)
+	{
+		if (t.visuals.SAORadius_f > 0.0f) t.visuals.SAORadius_f *= 0.6f;
+		if (t.visuals.SAOIntensity_f > 0.0f) t.visuals.SAOIntensity_f *= 0.6f;
+	}
+
 	//  Right away we cap 'VERTICAL' CameraFOV# for legacy levels which could set it VERY high
 	if (  t.visuals.CameraFOV_f>62.14f  )  t.visuals.CameraFOV_f = 62.14f;
 	if (  t.visuals.WeaponFOV_f>62.14f  )  t.visuals.WeaponFOV_f = 62.14f;
@@ -665,6 +751,8 @@ void visuals_load ( void )
 		t.visuals.SurfaceBlue_f=t.defaultvisuals.SurfaceBlue_f;
 		t.visuals.skyindex=t.defaultvisuals.skyindex;
 		t.visuals.sky_s=t.defaultvisuals.sky_s;
+		t.visuals.lutindex = t.defaultvisuals.lutindex;
+		t.visuals.lut_s = t.defaultvisuals.lut_s;
 		t.visuals.terrainindex=t.defaultvisuals.terrainindex;
 		t.visuals.terrain_s=t.defaultvisuals.terrain_s;
 		t.visuals.vegetationindex=t.defaultvisuals.vegetationindex;
@@ -675,6 +763,25 @@ void visuals_load ( void )
 		//  save out to establish these defaults (if later used to save a level)
 		visuals_save ( );
 	}
+	else
+	{
+		if (bUpdateLutIndex)
+		{
+			//PE: If lutbank count dont match search for real index. (deleted/added a lut)
+			if (t.visuals.lut_s != "")
+			{
+				for (int i = 1; i <= g.lutmax; i++)
+				{
+					if (t.lutbank_s[i] == t.visuals.lut_s)
+					{
+						t.visuals.lutindex = i;
+					}
+				}
+			}
+		}
+
+	}
+
 }
 
 void visuals_justshaderupdate ( void )
@@ -1631,6 +1738,53 @@ void visuals_loop ( void )
 		cubemap_generateglobalenvmap();
 	}
 
+	if (t.visuals.refreshlutsettings == 1) //uselut
+	{
+		//  change lut (post process shader)
+		g.lutindex = t.visuals.lutindex;
+
+		if (g.lutindex > g.lutmax || g.lutindex == 0)
+		{
+			g.lutindex = g.lutmax;
+			for (t.s = 1; t.s <= g.lutmax; t.s++)
+			{
+				if (t.lutbank_s[t.s] == "none.png")  g.lutindex = t.s;
+			}
+		}
+
+		t.visuals.lut_s = t.lutbank_s[g.lutindex];
+
+		// Delete LUT texture for post processing (if used)
+		{
+			if (ImageExist(t.terrain.imagestartindex + 33) == 1)  DeleteImage(t.terrain.imagestartindex + 33); //Cogwheel
+
+			SetMipmapNum(1);
+			LoadImage(cstr(cstr("lutbank\\") + t.visuals.lut_s).Get(), t.terrain.imagestartindex + 33, 0, 0);
+
+			if (ImageExist(t.terrain.imagestartindex + 33) == 0)
+			{
+				LoadImage("effectbank\\reloaded\\media\\LUT.png", t.terrain.imagestartindex + 33, 0, 0);
+				if (ImageExist(t.terrain.imagestartindex + 33) == 0)
+				{
+					SetCurrentBitmap(g.terrainworkbitmapindex);
+					CLS(Rgb(0, 0, 0));
+					GrabImage(t.terrain.imagestartindex + 33, 0, 0, 1, 1);
+					SetCurrentBitmap(0);
+				}
+			}
+			SetMipmapNum(-1);
+
+			if (ImageExist(t.terrain.imagestartindex + 33) == 1)
+			{
+				if (ObjectExist(g.postprocessobjectoffset + 0) == 1)
+					TextureObject(g.postprocessobjectoffset + 0, 2, t.terrain.imagestartindex + 33);
+			}
+		}
+
+		t.visuals.refreshlutsettings = 0;
+		g.lowfpstarttimer = Timer();
+	}
+
 	// Update terrain textures
 	if ( t.visuals.refreshterraintexture > 0 ) 
 	{
@@ -1720,9 +1874,17 @@ void visuals_loop ( void )
 		int iPPS = 0; if ( t.visuals.SAOIntensity_f > 0.0f ) iPPS = 4;
 
 		// More values to the post processing shader
-		SetVector4 ( g.generalvectorindex+1,t.visuals.MotionDistance_f,t.tMotionIntensity_f,0,0 );
+		// Note re post processing shaders for Saturation and Sepia:
+		// t.visuals.Saturation_f = 0.3f ~ Motion.z in post-core.fx
+		// t.visuals.Sepia_f = 0.0f; ~ DepthOfField.z in post-core.fx
+
+		if (strnicmp(t.lutbank_s[g.lutindex].Get() + strlen(t.lutbank_s[g.lutindex].Get()) - 8, "none.png", 8) == NULL)
+			SetVector4(g.generalvectorindex + 1, t.visuals.MotionDistance_f, t.tMotionIntensity_f, t.visuals.Saturation_f, 0);
+		else
+			SetVector4(g.generalvectorindex + 1, t.visuals.MotionDistance_f, t.tMotionIntensity_f, t.visuals.Saturation_f, 1);
+
 		SetEffectConstantV (  g.postprocesseffectoffset+iPPS,"Motion",g.generalvectorindex+1 );
-		SetVector4 ( g.generalvectorindex+1,t.tDepthOfFieldDistance_f,t.tDepthOfFieldIntensity_f,0,0 );
+		SetVector4 ( g.generalvectorindex+1,t.tDepthOfFieldDistance_f,t.tDepthOfFieldIntensity_f,t.visuals.Sepia_f, 0);
 		SetEffectConstantV (  g.postprocesseffectoffset+iPPS,"DepthOfField",g.generalvectorindex+1 );
 		SetVector4 ( g.generalvectorindex+1,t.tFogNear_f,t.tFogFar_f,0,t.tFogA_f/255.0 );
 		SetEffectConstantV ( g.postprocesseffectoffset+iPPS,"HudFogDistAndAlpha",g.generalvectorindex+1 );

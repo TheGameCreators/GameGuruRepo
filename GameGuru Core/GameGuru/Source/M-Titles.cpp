@@ -671,7 +671,7 @@ void titles_steampage ( void )
 	t.titlesbar[t.titlespage][g.titlesbarmax].y1=0;
 	t.titlesbar[t.titlespage][g.titlesbarmax].y2=GetDisplayHeight();
 
-	#ifdef VRTECH
+	#ifdef ENABLEIMGUI
 	// Add multiplayer title text
 	++g.titlesbarmax;
 	t.titlesbar[t.titlespage][g.titlesbarmax].mode=2;
@@ -1399,7 +1399,7 @@ void titles_base ( void )
 			 SetEventAndWait (  1 );
 			 t.mx=GetFileMapDWORD( 1, 0 );
 			 t.my=GetFileMapDWORD( 1, 4 );
-			 #ifdef PRODUCTV3
+			 #ifdef ENABLEIMGUI
 			 // No expansion needed fo VRQ
 			 #else
 			 //PE: Need to expand mouse xy in classic.
@@ -2412,7 +2412,8 @@ void titleslua_main_stage4_afterloop(void)
 		strcpy ( g_pTitleCurrentPage, t.game.pSwitchToPage );
 
 	// ensure IMGUI does not attempt to render
-	#ifndef PRODUCTCLASSIC
+	//#ifndef PRODUCTCLASSIC
+	#ifdef ENABLEIMGUI
 	extern bool bBlockImGuiUntilNewFrame;
 	bBlockImGuiUntilNewFrame = true;
 	#endif

@@ -1443,18 +1443,36 @@ void lua_quitgame ( void )
 	t.game.titleloop=0;
 	strcpy ( t.game.pSwitchToPage, "" );
 }
+
+#ifdef PRODUCTCLASSIC
+void lua_leavegame(void)
+{
+	//PE: Not sure why "t.game.quitflag = 1;" was added ? , in classic "main menu" should start the title screen again.
+	t.game.titleloop = 0;
+	strcpy(t.game.pSwitchToPage, "");
+	mp_quitGame();
+}
+#else
 void lua_leavegame ( void )
 {
 	t.game.titleloop=0;
 	strcpy ( t.game.pSwitchToPage, "" );
-	mp_quitGame ( );
+
+	//mp_quitGame ( );
+	
+	//something wrong here - just stays stuck instead of going back to main menu
+	//just quit to windows for now:
+	t.game.levelloop = 0;
+	t.game.masterloop = 0;
+	t.game.quitflag = 1;
 
 	// ensure IMGUI does not attempt to render
-	#ifndef PRODUCTCLASSIC
-	extern bool bBlockImGuiUntilFurtherNotice;
+	#ifndef PRODUCTCLASSIC //cyb? needed?
+    extern bool bBlockImGuiUntilFurtherNotice;
 	bBlockImGuiUntilFurtherNotice = true;
 	#endif
 }
+#endif
 void lua_resumegame ( void )
 {
 	t.game.titleloop=0;

@@ -7359,24 +7359,80 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 	char pFilename[MAX_PATH];
 	strcpy(pFilename, pPassedInFilename);
 
+	//PE: Check if we got a cached version.
+	void CreateCacheXFile(char *pFilename, void* pBlock, DWORD dwBlockSize);
+	bool bCheckCacheXFile(LPSTR pFilename, DWORD* pdwBlockSize, void** ppDBOBlock);
+	bool bCached = false;
+
 	//LB: 32bit no more X file loading in 64 bit version, old code uses a 32bit DLL
 	if (strnicmp(pFilename + strlen(pFilename) - 2, ".x", 2) == NULL)
 	{
+		//PE: Also support bCheckCacheXFile here.
+		if (pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':' && bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
+		{
+			//PE: cached version found and loaded.
+			bCached = true;
+			// construct the object
+			if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
+			{
+				RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+				return false;
+			}
+			// free block when done
+			SAFE_DELETE_ARRAY(pDBOBlock);
+			return(true);
+		}
 		// DBO version
 		char pDBOVersion[MAX_PATH];
 		strcpy(pDBOVersion, pFilename);
 		pDBOVersion[strlen(pDBOVersion) - 2] = 0;
 		strcat(pDBOVersion, ".dbo");
 
+		//PE: converter is deleting the \AppData\Local\Temp\\dbpdata\. so it cant work like this in standalone.
+		//PE: @Lee "Guru-Converter.exe" should never delete the dbpdata folder.
+		
 		// if no DBO need to make one in 64 bit version using the 32 bit converter
 		if (FileExist(pDBOVersion) == 0)
 		{
-			extern char g_pRootFolderConverter[MAX_PATH];
-			ExecuteFile(g_pRootFolderConverter, pFilename, "", 1);
-			int iCount = 10; // wait a second for the file to show up!
-			while (FileExist(pDBOVersion) == 0 && iCount > 0 )
+			//PE: For now this workaround. .x->cachebank->"convert"->cachebank new dbo->recreate dbpdata.
+			bool bProcessNormally = false;
+			char* tmpfile = NULL;
+			char* bTempXToDBO(char* from, char* to);
+			tmpfile = bTempXToDBO(pFilename, pOrgFilename);
+			if (tmpfile == NULL)
 			{
-				Sleep(50); iCount--;
+				bProcessNormally = true;
+			}
+			else
+			{
+				//PE: Validate new dbo.
+				if (bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
+				{
+					//PE: Worked use it.
+					bCached = true;
+					// construct the object
+					if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
+					{
+						RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+						return false;
+					}
+					// free block when done
+					SAFE_DELETE_ARRAY(pDBOBlock);
+					return(true);
+				}
+				else
+					bProcessNormally = false;
+			}
+			if (bProcessNormally)
+			{
+				//PE: Still use this in testgame/editor.
+				extern char g_pRootFolderConverter[MAX_PATH];
+				ExecuteFile(g_pRootFolderConverter, pFilename, "", 1);
+				int iCount = 10; // wait a second for the file to show up!
+				while (FileExist(pDBOVersion) == 0 && iCount > 0)
+				{
+					Sleep(50); iCount--;
+				}
 			}
 		}
 
@@ -7431,11 +7487,7 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 	}
 	else
 	{
-		//PE: Check if we got a cached version.
-		void CreateCacheXFile(char *pFilename, void* pBlock, DWORD dwBlockSize);
-		bool bCheckCacheXFile(LPSTR pFilename, DWORD* pdwBlockSize, void** ppDBOBlock);
-		bool bCached = false;
-		
+	
 		if (pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':' && bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
 		{
 			//PE: cached version found and loaded.

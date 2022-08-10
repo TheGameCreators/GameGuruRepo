@@ -4225,30 +4225,36 @@ int SetUnderwaterOff ( lua_State *L )
 
 // Set Shader Values
 
-int SetShaderVariable ( lua_State *L )
+int SetShaderVariable(lua_State* L)
 {
 	int n = lua_gettop(L);
-	if ( n < 6 ) return 0;
+	if (n < 6) return 0;
 	int iShaderIndex = lua_tonumber(L, 1);
 	char pConstantName[512];
-	strcpy ( pConstantName, lua_tostring(L, 2) );
+	strcpy(pConstantName, lua_tostring(L, 2));
 	float fValue1 = lua_tonumber(L, 3);
 	float fValue2 = lua_tonumber(L, 4);
 	float fValue3 = lua_tonumber(L, 5);
 	float fValue4 = lua_tonumber(L, 6);
 	int iShaderIndexStart = 1;
 	int iShaderIndexFinish = 2000;
-	if ( iShaderIndex > 0 ) { iShaderIndexStart = iShaderIndex; iShaderIndexFinish = iShaderIndex; }
-	SetVector4 ( g.terrainvectorindex1, fValue1, fValue2, fValue3, fValue4 );
-	for ( int iSI = iShaderIndexStart; iSI <= iShaderIndexFinish; iSI++ )
+	if (iShaderIndex > 0) { iShaderIndexStart = iShaderIndex; iShaderIndexFinish = iShaderIndex; }
+	SetVector4(g.terrainvectorindex1, fValue1, fValue2, fValue3, fValue4);
+	for (int iSI = iShaderIndexStart; iSI <= iShaderIndexFinish; iSI++)
 	{
-		if ( GetEffectExist ( iSI ) == 1 ) 
+		if (GetEffectExist(iSI) == 1)
 		{
-			DWORD pConstantPtr = GetEffectParameterIndex ( iSI, pConstantName );
-			if ( pConstantPtr ) 
+			#ifdef _WIN64
+			//PE: pConstantPtr is 32bit but GGHANDLE is 64 bit.
+			//PE: So when using a stored pConstantPtr it can crash if !hParam->IsValid() as a failed handle is validated using 64bit.
+			SetEffectConstantV(iSI, pConstantName, -1, g.terrainvectorindex1);
+			#else
+			DWORD pConstantPtr = GetEffectParameterIndex(iSI, pConstantName);
+			if (pConstantPtr)
 			{
-				SetEffectConstantVEx( iSI, pConstantPtr, g.terrainvectorindex1 );
+				SetEffectConstantVEx(iSI, pConstantPtr, g.terrainvectorindex1);
 			}
+			#endif
 		}
 	}
 	return 0;

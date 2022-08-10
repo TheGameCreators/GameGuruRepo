@@ -19,6 +19,9 @@
     <Filter Include="GameGuruEngine\GameGuruSourceCode">
       <UniqueIdentifier>{edc26ec9-6bc3-4d15-ae39-72ccf03ecf6f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{ea7456ee-dd3d-496e-9907-6f5e65e3e2d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DarkEXE.cpp">
@@ -209,6 +212,21 @@
     </ClCompile>
     <ClCompile Include="..\GameGuru\Source\Common-Keys.cpp">
       <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_gg_dx11.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_impl_win32.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_widgets.cpp">
+      <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

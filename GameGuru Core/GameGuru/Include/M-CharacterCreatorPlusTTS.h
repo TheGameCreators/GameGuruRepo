@@ -16,8 +16,11 @@
 #include <cstdlib>
 
 // Externs
-extern std::vector <cstr> g_voiceList_s;
-extern std::vector <ISpObjectToken *> g_voicetoken;
+//extern std::vector <cstr> g_voiceList_s; //cyb
+//extern std::vector <ISpObjectToken *> g_voicetoken; //cyb
+
+std::vector <cstr> g_voiceList_s; //cyb
+std::vector <ISpObjectToken *> g_voicetoken; //cyb
 
 // COM Class
 class CCoInitialize

@@ -52,11 +52,8 @@ DWORD pVertCountStore[CUBEMAXMESH];
 bool pbTriggerDrawBufferCreation[CUBEMAXMESH];
 short pMasterGridMeshRef[20][20][20][2];
 
-#ifdef VRTECH
-char ActiveEBEFilename[260] = { "\0" };
-#endif
-
 #if defined(ENABLEIMGUI)
+char ActiveEBEFilename[260] = { "\0" };
 extern bool bBuilder_Properties_Window;
 int texture_set_selection = 0;
 char structure_name[MAX_PATH];
@@ -74,11 +71,12 @@ extern preferences pref;
 #endif
 
 
-#ifdef VRTECH
+#ifdef ENABLEIMGUI
 bool bDisableAllSprites = true;
 int iPaintMode = 1;
 #else
 bool bDisableAllSprites = false;
+int iPaintMode = 1;
 #endif
 
 struct sMyColBox 
@@ -350,7 +348,6 @@ void ebe_init ( int BuildObj, int iEntID )
 		LoadImage("editors\\uiv3\\ebe-thumb.png", EBE_THUMB);
 	image_setlegacyimageloading(false);
 	#endif
-
 
 	// mark EBE has intialised
 	t.ebe.active = 1;
@@ -661,6 +658,7 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 	t.editorfreeflight.c.z_f = CameraPositionZ();
 	t.editorfreeflight.c.angx_f = 30;
 	#endif
+
 }
 
 void ebe_updateparent ( int entityelementindex )
@@ -1067,7 +1065,7 @@ void ebe_loadpattern ( LPSTR pEBEFilename )
 	// if EBE file exists, replace above pattern
 	if ( FileExist(pEBEFilename) == 1 ) 
 	{
-		#ifdef VRTECH
+		#ifdef ENABLEIMGUI
 		strcpy(ActiveEBEFilename, pEBEFilename);
 		#endif
 		Dim ( t.data_s, 2000 );
@@ -1429,14 +1427,13 @@ void imgui_ebe_loop(void)
 						extern bool bImporter_Window;
 						extern bool bWaypoint_Window;
 						extern bool bWaypointDrawmode;
-						extern bool g_bCharacterCreatorPlusActivated;
+						extern bool g_bCharacterCreatorPlusActivated; //cyb
 						void CheckTooltipObjectDelete(void);
 						void CloseDownEditorProperties(void);
 
 						if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 						if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-
+						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false; //cyb
 						CheckTooltipObjectDelete();
 						CloseDownEditorProperties();
 
@@ -1636,7 +1633,9 @@ void imgui_ebe_loop(void)
 						if (skib_frames_execute == 0 && ImGui::IsItemHovered() && ImGui::IsMouseClicked(1)) 
 						{
 							ebebuild.iCurrentTexture = n;
-							delay_execute = 1; //@Lee remove this line if you dont want to support changing textures.
+							#ifndef VRTECH
+							delay_execute = 1; //@cyb only disabled in vrquest :)
+							#endif
 						}
 						if ( ImGui::IsItemHovered() )
 						{
@@ -3209,7 +3208,11 @@ int ebe_save ( int iEntityIndex )
 	//  Ask for save filename
 	cStr tSaveFile = "";
 	cStr tSaveMessage = "Save EBE Structure";
+	#ifdef _WIN64
+	tSaveFile = openFileBox("EBE Structure (.ebe)\0*.ebe\0All Files\0*.*\0", t.strwork.Get(), tSaveMessage.Get(), ".ebe", IMPORTERSAVEFILE);
+	#else
 	tSaveFile = openFileBox("EBE Structure (.ebe)|*.ebe|All Files|*.*|", t.strwork.Get(), tSaveMessage.Get(), ".ebe", IMPORTERSAVEFILE);
+	#endif
 	if ( tSaveFile == "Error" )
 	{
 		SetDir(pOldDir);
@@ -3525,7 +3528,11 @@ int ebe_loadcustomtexture ( int iEntityProfileIndex, int iWhichTextureOver )
 	//  Ask for save filename
 	cStr tLoadFile = "";
 	cStr tLoadMessage = "Replace with custom texture";
+	#ifdef _WIN64
+	tLoadFile = openFileBox("Diffuse File (_D.dds)\0*.dds\0Texture File (.dds)\0*.dds\0All Files\0*.*\0", t.strwork.Get(), tLoadMessage.Get(), ".dds", IMPORTERSAVEFILE);
+	#else
 	tLoadFile = openFileBox("Diffuse File (_D.dds)|*.dds|Texture File (.dds)|*.dds|All Files|*.*|", t.strwork.Get(), tLoadMessage.Get(), ".dds", IMPORTERSAVEFILE);
+	#endif
 	if ( tLoadFile == "Error" )
 	{
 		SetDir(pOldDir);
