@@ -10,7 +10,9 @@ float           m_fCascadeBlendArea;
 float           m_fTexelSize; // PE: looks fixed
 float           m_fCascadeFrustumsEyeSpaceDepths[8];
 float3          m_vLightDir;
-float 			ShadowStrength = 1.0f;
+#ifndef USEPARALLAXMAPPING
+	float 		ShadowStrength = 1.0f;
+#endif
 float4 			LightSource = {-1.0f, -1.0f, -1.0f, 1.0f};
 
 Texture2D DepthMapTX1 : register( t24 );

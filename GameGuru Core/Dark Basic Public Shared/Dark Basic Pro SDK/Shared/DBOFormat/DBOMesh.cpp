@@ -2256,6 +2256,7 @@ void CopyMeshSettings ( sMesh* pDestMesh, sMesh* pSrcMesh )
 	pDestMesh->fZBiasSlopeScale = pSrcMesh->fZBiasSlopeScale;
 	pDestMesh->iCastShadowIfStatic = pSrcMesh->iCastShadowIfStatic;
 	pDestMesh->fBoostIntensity = pSrcMesh->fBoostIntensity;
+	pDestMesh->fParallaxStrength = pSrcMesh->fParallaxStrength;
 	pDestMesh->iCurrentFrame = pSrcMesh->iCurrentFrame;
 	pDestMesh->iSolidForVisibility = pSrcMesh->iSolidForVisibility;
 	CopyBaseMaterialToMultiMaterial ( pDestMesh );

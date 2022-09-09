@@ -430,7 +430,7 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][3].gadgettype=1;
 	t.slidersmenuvalue[g.slidersmenumax][3].gadgettypevalue=3;
 
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "LUT Selection";
+	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "LUT Filter";
 	t.slidersmenuvalue[g.slidersmenumax][4].value = t.visuals.lutindex;
 	t.slidersmenuvalue[g.slidersmenumax][4].gadgettype = 1;
 	t.slidersmenuvalue[g.slidersmenumax][4].gadgettypevalue = 8;// 11;

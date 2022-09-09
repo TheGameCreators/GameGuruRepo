@@ -39,6 +39,8 @@ void lua_setglobalspecular ( void );
 void lua_setbrightness ( void );
 void lua_setconstrast ( void );
 
+void lua_setsaturation(void);
+void lua_setsepia(void);
 void lua_setpostbloom ( void );
 void lua_setpostvignetteradius ( void );
 void lua_setpostvignetteintensity ( void );
@@ -134,3 +136,4 @@ void lua_setgamesoundvolume ( void );
 void lua_setgamemusicvolume ( void );
 void lua_setloadingresource ( void );
 void lua_set_sky(void);
+void lua_set_lut(void);

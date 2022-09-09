@@ -1234,7 +1234,8 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].uvscaleu=1.0f;
 		t.entityprofile[t.entid].uvscalev=1.0f;
 		t.entityprofile[t.entid].invertnormal=0;
-		t.entityprofile[t.entid].preservetangents=0;		
+		t.entityprofile[t.entid].preservetangents=0;	
+		t.entityprofile[t.entid].parallaxstrength = 0;	
 		t.entityprofile[t.entid].colondeath=1;
 		t.entityprofile[t.entid].parententityindex=0;
 		t.entityprofile[t.entid].parentlimbindex=0;
@@ -1648,6 +1649,15 @@ void entity_loaddata ( void )
 					// can choose whether to generate tangent/binormal in the shader
 					t.tryfield_s="preservetangents";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].preservetangents = t.value1;
+
+					// for apbr_basic_parallax shader - strength of parallax effect 0 to 100
+					t.tryfield_s = "parallaxstrength";
+					if (t.field_s == t.tryfield_s)
+					{
+						t.entityprofile[t.entid].parallaxstrength = t.value1;
+						if (t.entityprofile[t.entid].parallaxstrength < 0 || t.entityprofile[t.entid].parallaxstrength > 100)
+							t.entityprofile[t.entid].parallaxstrength = 100;
+					}
 					
 					t.tryfield_s="zdepth";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].zdepth = t.value1;
@@ -5279,7 +5289,9 @@ void entity_savebank ( void )
 					}
 					if (  t.treadentid <= g.entidmaster ) 
 					{
-						t.entitybank_s[t.tttentid] = t.entitybank_s[t.treadentid];
+						if(t.tttentid != t.treadentid) //corrupts if string contains "&" character copied to itself, so avoid by not copying if same value anyway
+							t.entitybank_s[t.tttentid] = t.entitybank_s[t.treadentid];
+
 						t.entityprofileheader[t.tttentid]=t.entityprofileheader[t.treadentid];
 						t.entityprofile[t.tttentid]=t.entityprofile[t.treadentid];
 						if ( t.entityprofile[t.treadentid].ebe.pRLEData != NULL && t.tttentid < t.treadentid )

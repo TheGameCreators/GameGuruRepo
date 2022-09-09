@@ -332,7 +332,6 @@ void visuals_updateskyterrainvegindex ( void )
 	g.lutindex = 1;
 	for (t.s = 1; t.s <= g.lutmax; t.s++)
 	{
-		//if (t.lutbank_s[t.s] == "1-LUT.png")  g.lutindex = t.s;
 		if (t.lutbank_s[t.s] == "none.png")  g.lutindex = t.s;
 	}
 	for (t.s = 1; t.s <= g.lutmax; t.s++)
@@ -1756,7 +1755,7 @@ void visuals_loop ( void )
 
 		// Delete LUT texture for post processing (if used)
 		{
-			if (ImageExist(t.terrain.imagestartindex + 33) == 1)  DeleteImage(t.terrain.imagestartindex + 33); //Cogwheel
+			if (ImageExist(t.terrain.imagestartindex + 33) == 1)  DeleteImage(t.terrain.imagestartindex + 33); 
 
 			SetMipmapNum(1);
 			LoadImage(cstr(cstr("lutbank\\") + t.visuals.lut_s).Get(), t.terrain.imagestartindex + 33, 0, 0);

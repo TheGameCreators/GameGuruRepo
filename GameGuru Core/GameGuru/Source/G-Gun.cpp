@@ -4505,7 +4505,7 @@ void gun_load ( void )
 	DWORD dwArtFlags = 0;
 	if ( t.gun[t.gunid].invertnormal == 1 ) dwArtFlags = 1;
 	if ( t.gun[t.gunid].preservetangents == 1 ) dwArtFlags |= 1<<1;
-	SetObjectArtFlags ( t.currentgunobj, dwArtFlags, t.gun[t.gunid].boostintensity );
+	SetObjectArtFlags ( t.currentgunobj, dwArtFlags, t.gun[t.gunid].boostintensity, 0.0f );
 
 	//  Setup gun with muzzle flash image
 	for ( t.i = 0 ; t.i <= 1; t.i++ )

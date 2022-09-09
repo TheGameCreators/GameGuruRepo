@@ -2026,6 +2026,8 @@ int AIGetVisualSetting ( lua_State *L, int iMode )
 		case 18 : lua_pushnumber ( L, t.visuals.MotionIntensity_f ); break;
 		case 19 : lua_pushnumber ( L, t.visuals.DepthOfFieldDistance_f ); break;
 		case 20 : lua_pushnumber ( L, t.visuals.DepthOfFieldIntensity_f ); break;
+		case 21 : lua_pushnumber ( L, t.visuals.Saturation_f * 100.0f ); break;
+		case 22 : lua_pushnumber ( L, t.visuals.Sepia_f * 100.0f ); break;
 		default : lua_pushnumber ( L, 0 ); break;
 	}
 	return 1;
@@ -2051,6 +2053,8 @@ int GetPostMotionDistance(lua_State *L) { return AIGetVisualSetting ( L, 17 ); }
 int GetPostMotionIntensity(lua_State *L) { return AIGetVisualSetting ( L, 18 ); }
 int GetPostDepthOfFieldDistance(lua_State *L) { return AIGetVisualSetting ( L, 19 ); }
 int GetPostDepthOfFieldIntensity(lua_State *L) { return AIGetVisualSetting ( L, 20 ); }
+int GetPostSaturation(lua_State *L) { return AIGetVisualSetting(L, 21); }
+int GetPostSepia(lua_State *L) { return AIGetVisualSetting(L, 22); }
 
 int AICouldSee(lua_State *L )
 {
@@ -5960,6 +5964,31 @@ void HideOrShowLUASprites ( bool hide )
 	}
 }
 
+//cyb
+int SetEntityHighlight(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	int entityID = lua_tointeger(L, 1);
+	if (entityID == 0)
+		return 0;
+	
+	int mappingMode = lua_tointeger(L, 2);
+	mappingMode += 100;
+	if (mappingMode < 100 || mappingMode >105)
+		return 0;
+
+	int objectToHighlight = t.entityelement[entityID].obj; 
+	
+	if(ObjectExist(objectToHighlight))
+		SetAlphaMappingOn(objectToHighlight, mappingMode); //101(red),102(pink),103(green),104(blue/green),105(gold)
+
+	return 0;
+}
+
+
 int SetFlashLight ( lua_State *L )
 {
 	lua = L;
@@ -6067,8 +6096,13 @@ int SetOcclusion ( lua_State *L )
 	if ( n < 1 )
 		return 0;
 
-	t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value = lua_tointeger(L, 1);
-	CPU3DSetPolyCount ( t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value );
+	//cyb - this causes a periodic stutter if called continuously even though value to be set may be same, so only call on change ...
+	int occValue = lua_tointeger(L, 1);
+	if (occValue != t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value)
+	{
+		t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value = occValue;
+		CPU3DSetPolyCount(t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value);
+	}
 
 	return 0;
 }
@@ -6390,6 +6424,8 @@ void addFunctions()
 	lua_register(lua, "GetPostMotionIntensity" , GetPostMotionIntensity );
 	lua_register(lua, "GetPostDepthOfFieldDistance" , GetPostDepthOfFieldDistance );
 	lua_register(lua, "GetPostDepthOfFieldIntensity" , GetPostDepthOfFieldIntensity );
+	lua_register(lua, "GetPostSaturation", GetPostSaturation);
+	lua_register(lua, "GetPostSepia", GetPostSepia);
 
 	lua_register(lua, "LoadImage" , LoadImage );
 	lua_register(lua, "DeleteImage" , DeleteSpriteImage );
@@ -7029,6 +7065,10 @@ void addFunctions()
 	lua_register(lua, "ParticlesSetNoWind",       ParticlesSetNoWind );
 
 	lua_register(lua, "GetBulletHit",             GetBulletHit);
+
+	//cyb
+	lua_register(lua, "SetEntityHighlight", SetEntityHighlight);
+
 
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	
 	lua_register(lua, "SetAttachmentVisible" , SetAttachmentVisible );

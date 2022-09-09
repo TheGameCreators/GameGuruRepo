@@ -1565,7 +1565,7 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 									DWORD dwArtFlags = 0;
 									if (t.entityprofile[t.entid].invertnormal == 1) dwArtFlags = 1;
 									if (t.entityprofile[t.entid].preservetangents == 1) dwArtFlags |= 1 << 1;
-									SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
+									SetObjectArtFlags(destobj, dwArtFlags, 0.0f, t.entityprofile[t.entid].parallaxstrength);
 
 								}
 
