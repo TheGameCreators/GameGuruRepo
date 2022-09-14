@@ -648,6 +648,32 @@ void lua_setpostbloom ( void )
 	visuals_justshaderupdate ( );
 }
 
+void lua_setsaturation(void) //cyb
+{
+	float Saturation = t.v_f / 100.0f;
+	if (Saturation >= 0 && Saturation <= 1)
+	{
+		if (t.visuals.Saturation_f != Saturation)
+		{
+			t.visuals.Saturation_f = Saturation;
+			visuals_justshaderupdate();
+		}
+	}
+}
+
+void lua_setsepia(void) //cyb
+{
+	float Sepia = t.v_f / 100.0f;
+	if (Sepia >= 0 && Sepia <= 1)
+	{
+		if (t.visuals.Sepia_f != Sepia)
+		{
+			t.visuals.Sepia_f = Sepia;
+			visuals_justshaderupdate();
+		}
+	}
+}
+
 //PE: fix for https://github.com/TheGameCreators/GameGuruRepo/issues/615
 //PE: To make it work on current and new levels , it will work on range 0.0-1.0 and range 0-100.
 
@@ -776,8 +802,11 @@ void lua_setoptionvegetation ( void )
 
 void lua_setoptionocclusion ( void )
 {
-	t.visuals.occlusionvalue=t.v_f;
-	visuals_justshaderupdate ( );
+	if (t.visuals.occlusionvalue != t.v_f) //cyb - prevent stutter on repeat call
+	{
+		t.visuals.occlusionvalue = t.v_f;
+		visuals_justshaderupdate();
+	}
 }
 
 void lua_setcameradistance ( void )
@@ -1552,6 +1581,30 @@ void lua_set_sky(void)
 			t.visuals.skyindex = index;
 			t.visuals.refreshskysettingsfromlua = true;
 			t.visuals.refreshskysettings = 1;
+			t.visuals.refreshshaders = 1;
+		}
+	}
+}
+
+void lua_set_lut(void) //cyb
+{
+	t.s_s = t.s_s + cstr(".png");
+	int index = -1;
+	for (int i = 1; i <= g.lutmax; i++)
+	{
+		if (t.lutbank_s[i].Lower() == t.s_s.Lower())
+		{
+			index = i;
+			break;
+		}
+	}
+	if (index != -1)
+	{
+		//Only if not the same lut.
+		if (t.visuals.lutindex != index) //g.lutindex 
+		{
+			t.visuals.lutindex = index;
+			t.visuals.refreshlutsettings = 1;
 			t.visuals.refreshshaders = 1;
 		}
 	}

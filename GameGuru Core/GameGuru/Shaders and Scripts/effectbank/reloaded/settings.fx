@@ -11,6 +11,11 @@
 #define HBAO //replaces SSAO with Horizon Based Ambient Occlusion (HBAO)
 #define AMD_CAS //Contrast Adaptive Sharpening
 
+#define ENABLE_PULSE_HIGHLIGHTING
+#define PULSE_HIGHLIGHTING_SPEED 3.0
+
+#define PARALLAX_RANGE 1000.0
+
 #define NOTERRAINSPECULAR // Ignores the W component of the terrain diffuse/albedo texture for zero specular effect
 
 #define COMPRESSLIGHTRANGE // For better PBR light, compress lightrange to remove very dark PBR light areas on objects.

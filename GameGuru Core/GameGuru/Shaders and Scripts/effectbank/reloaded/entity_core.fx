@@ -359,6 +359,9 @@ float4 CalcSpotFlash( float3 worldNormal, float3 worldPos )
 float3 CalcExtLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap )
 {
 	float3 output = GlowIntensity.xyz;
+#ifdef ENABLE_PULSE_HIGHLIGHTING
+	output *= abs(sin(timer*PULSE_HIGHLIGHTING_SPEED)); 
+#endif
     float3 toLight;
     float lightDist;
     float fAtten;
@@ -392,6 +395,9 @@ float3 CalcExtLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap,
 float4 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float4 diffusemap, float4 specmap)
 {
    float4 output = GlowIntensity;
+#ifdef ENABLE_PULSE_HIGHLIGHTING
+   output *= abs(sin(timer*PULSE_HIGHLIGHTING_SPEED)); 
+#endif
     
 #ifdef SKIPIFNODYNAMICLIGHTS
    // early out - thanks Preben for the inspiration!

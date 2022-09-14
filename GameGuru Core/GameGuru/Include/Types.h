@@ -5208,6 +5208,7 @@ struct entityprofiletype
 	float uvscalev;
 	int invertnormal;
 	int preservetangents;
+	float parallaxstrength;
 	int zdepth;
 	int cullmode;
 	int reducetexture;
@@ -7273,6 +7274,7 @@ struct guntype
 	int invertnormal;
 	int preservetangents;
 	float boostintensity;
+	float parallaxstrength;
 
 	// Constructor
 	guntype ( )

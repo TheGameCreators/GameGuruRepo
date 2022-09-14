@@ -3474,7 +3474,8 @@ bool CObjectManager::ShaderPass ( sMesh* pMesh, UINT uPass, UINT uPasses, bool b
 				if ( pMesh->dwArtFlags & 0x1 ) fInvertNormal = 1.0f;
 				if ( pMesh->dwArtFlags & 0x2 ) fGenerateTangents = 1.0f;
 				float fBoostIntensity = pMesh->fBoostIntensity;
-				GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, fGenerateTangents, fBoostIntensity, 0.0f );
+				float fParallaxStrength = pMesh->fParallaxStrength;
+				GGVECTOR4 vec4 = GGVECTOR4 ( fInvertNormal, fGenerateTangents, fBoostIntensity, fParallaxStrength);
 				pArtFlags->AsVector()->SetFloatVector ( (float*)&vec4 );
 			}
 			#endif
