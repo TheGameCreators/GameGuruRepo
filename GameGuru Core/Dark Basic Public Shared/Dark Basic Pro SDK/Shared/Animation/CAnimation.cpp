@@ -913,8 +913,9 @@ float GetVideoPosition()
 {
 	if ( g_bMFPlatExists )
 	{
-		if ( !g_pVideoSession ) return 0;
-		if ( !g_pVideoClock ) return 0;		
+		//LB: if no video or at end, show position as at end (so loops that wait to end of video can exit)
+		if ( !g_pVideoSession ) return fVideoDuration;
+		if ( !g_pVideoClock ) return fVideoDuration;
 
 		MFTIME currTime;
 		g_pVideoClock->GetTime( &currTime );
@@ -1593,7 +1594,10 @@ DARKSDK void UpdateAllAnimation(void)
 				{
 					// If Looping, repeat run when it ends
 					#ifdef WMFVIDEO
-					if ( GetVideoPosition() >= GetVideoDuration() )
+					//char what[256];
+					//sprintf(what, "%d %d", (int)GetVideoPosition(), (int)GetVideoDuration());
+					//MessageBox(NULL, what, "", MB_OK);
+					if ( GetVideoPosition() >= GetVideoDuration() || GetVideoPlaying() == 0)
 					{
 						if(Anim[AnimIndex].loop==true)
 						{
