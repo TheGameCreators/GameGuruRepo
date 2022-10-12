@@ -323,7 +323,7 @@
       </HeaderFileName>
     </Midl>
     <ClCompile>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>.\..\..\Shared\Bullet\Ragdoll\DBPro\include;.\..\..\ode\include;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\Include\;.\..\..\..\..\SDK\BULLET\bullet-2.81-rev2613\src;$(ProjectDir)..\..\..\..\GameGuru\Include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;ODE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>

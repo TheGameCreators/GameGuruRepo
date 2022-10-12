@@ -520,7 +520,7 @@
       </HeaderFileName>
     </Midl>
     <ClCompile>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\Include\;$(ProjectDir)..\..\..\..\GameGuru\Include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MAIN_EXPORTS;%(PreprocessorDefinitions);TARGET_WINDOWS</PreprocessorDefinitions>

@@ -515,7 +515,7 @@
       </HeaderFileName>
     </Midl>
     <ClCompile>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>..\..\..\Shared\BaseClasses;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\Include\;$(ProjectDir)..\..\..\..\GameGuru\Include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WMFVIDEO;_LIB;WIN32;NDEBUG;_WINDOWS;_USRDLL;ANIMATION_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
