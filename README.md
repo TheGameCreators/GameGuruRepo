@@ -2,10 +2,14 @@
 
 This is not open source and remains the copyright of The Game Creators Ltd, see Wiki for more information on license matters. This repository contains a 64-bit version of Classic as the master trunk, and a legacy 32-bit version under the 'June-2022-(32bit)' branch for older OS platforms.
 
-GameGuru Classic is a 3D game maker for simple first and third Person games and is available to buy from Steam. 
+GameGuru Classic is a 3D game maker for simple first and third person games and is available to buy from Steam. 
 
 Steam Product: https://store.steampowered.com/app/266310/GameGuru/
 
 You will need the media files associated with the above product to use this repository.
 
-This source code requires Visual Studio 2017 Community Edition. Ensure you add Visual C++ MFC for x86 and x64 to a clean install of VS2017.
+This source code requires Visual Studio 2017 Professional Edition. here is a link to the older Visual Studio downloads: https://visualstudio.microsoft.com/vs/older-downloads/
+
+To download Visual Studio 2017 Professional, click the download button and log in with your Visual Studio Subscription account when prompted. If you don’t have a Visual Studio Subscription, you can create one for free by clicking on “Create a new Microsoft account” on the login page.
+
+When installing Visual Studio 2017 Professional, ensure you select the "Desktop C++" development track, and tick the optional Visual C++ MFC for x86 and x64 as you will need these additional files to compile the legacy GameGuru Classic executables.
