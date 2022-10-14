@@ -18,7 +18,7 @@ To give you a better idea about getting started, we have made a 12 minute video 
 
 How To Use Repository Video: [url]
 
-# F.A.Q
+## F.A.Q
 
 Q> Is GameGuru Classic open source?
 A> No, the product and it's source code is copyright The Game Creators Ltd. We make the source code available so contributors from the community can integrate additional functionality, and to enable any user to scan through the code to find out how the inner workings of this game maker works.
