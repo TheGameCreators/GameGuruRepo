@@ -16,7 +16,7 @@ When installing Visual Studio 2017 Professional, ensure you select the "Desktop 
 
 To give you a better idea about getting started, we have made a 12 minute video showing the whole setup process from the very first download to running GameGuru Classic under your own binary creations. Do let the team know if you have any additional questions and we will post the answers below.
 
-How To Use Repository Video: [[url]](https://www.youtube.com/watch?v=gtkmwEDivxo)
+How To Use Repository Video: [[Click To Watch Video]](https://www.youtube.com/watch?v=gtkmwEDivxo)
 
 ## F.A.Q
 
