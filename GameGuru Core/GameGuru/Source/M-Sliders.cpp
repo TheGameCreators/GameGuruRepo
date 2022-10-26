@@ -259,11 +259,12 @@ void sliders_init ( void )
 	//  Water panel
 	++g.slidersmenumax;
 	t.slidersmenunames.water = g.slidersmenumax;
+	t.slidersmenu[g.slidersmenumax].minimised = 1;
 	t.slidersmenu[g.slidersmenumax].tabpage = 2;
 	t.slidersmenu[g.slidersmenumax].title_s = "WATER SETTINGS";
 	t.slidersmenu[g.slidersmenumax].thighlight = -1;
 	t.slidersmenu[g.slidersmenumax].ttop = 5;
-	t.slidersmenu[g.slidersmenumax].tleft = GetDisplayWidth() - 256 - 16 - 5 - 260 - 260 - 260 -260;
+	t.slidersmenu[g.slidersmenumax].tleft = GetDisplayWidth() - 256 - 16 - 5 - 260 - 260 - 260 - 260 - 260;
 	t.slidersmenu[g.slidersmenumax].titlemargin = 63;
 	t.slidersmenu[g.slidersmenumax].leftmargin = 25;
 	t.slidersmenu[g.slidersmenumax].itemcount = 13;
@@ -339,40 +340,53 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][15].value = t.visuals.Sepia_f * 100;
 
 	//  Sky panel
-//  `++slidersmenumax
+	++g.slidersmenumax;
+	t.slidersmenunames.sky = g.slidersmenumax;
+	t.slidersmenu[g.slidersmenumax].minimised = 1; ///default is panel closed  when = 1
+	t.slidersmenu[g.slidersmenumax].tabpage = 2;
+	t.slidersmenu[g.slidersmenumax].title_s = "SKY SETTINGS";
 
-//  `slidersmenunames.sky=slidersmenumax
+	t.slidersmenu[g.slidersmenumax].thighlight = -1;
+	t.slidersmenu[g.slidersmenumax].titlemargin = 63;
+	t.slidersmenu[g.slidersmenumax].leftmargin = 25;
+	t.slidersmenu[g.slidersmenumax].itemcount = 10; 
+	t.slidersmenu[g.slidersmenumax].panelheight = 30 + (t.slidersmenu[g.slidersmenumax].itemcount * 38);
+	t.slidersmenu[g.slidersmenumax].ttop = 5;
+	t.slidersmenu[g.slidersmenumax].tleft = GetDisplayWidth() - 256 - 16 - 5 - 260 - 260 - 260 - 260;
 
-//  `slidersmenu(slidersmenumax).tabpage=2
-
-//  `slidersmenu(slidersmenumax).title$="SKY SETTINGS"
-
-//  `slidersmenu(slidersmenumax).thighlight=-1
-
-//  `slidersmenu(slidersmenumax).ttop=300
-
-//  `slidersmenu(slidersmenumax).tleft=GetDisplayWidth()-256-16-5-260
-
-//  `slidersmenu(slidersmenumax).titlemargin=63
-
-//  `slidersmenu(slidersmenumax).leftmargin=25
-
-//  `slidersmenu(slidersmenumax).itemcount=3
-
-//  `slidersmenu(slidersmenumax).panelheight=30+(slidersmenu(slidersmenumax).itemcount*38)
-
-//  `slidersmenuvalue(slidersmenumax,1).name$="Sun Position X"
-
-//  `slidersmenuvalue(slidersmenumax,1).value=50+(terrain.sundirectionx#/1000)
-
-//  `slidersmenuvalue(slidersmenumax,2).name$="Sun Position Y"
-
-//  `slidersmenuvalue(slidersmenumax,2).value=0+(terrain.sundirectiony#/1000)
-
-//  `slidersmenuvalue(slidersmenumax,3).name$="Sun Position Z"
-
-//  `slidersmenuvalue(slidersmenumax,3).value=50+(terrain.sundirectionz#/1000)
-
+	t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Cloud Coverage";
+	t.slidersmenuvalue[g.slidersmenumax][1].value = t.visuals.CloudCoverage_f * 100;
+	t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Cloud Speed";
+	t.slidersmenuvalue[g.slidersmenumax][2].value = t.visuals.CloudSpeed_f * 5000;
+	t.slidersmenuvalue[g.slidersmenumax][3].name_s = "Cloud Density";
+	t.slidersmenuvalue[g.slidersmenumax][3].value = t.visuals.CloudDensity_f * 100;
+	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "Cloud Tint";
+	t.slidersmenuvalue[g.slidersmenumax][4].value = t.visuals.CloudTint_f * 100; 
+	t.slidersmenuvalue[g.slidersmenumax][5].name_s = "Player Latitude (Solar)";
+	if (t.visuals.SolarLatitude_f > 90)t.visuals.SolarLatitude_f = 90;
+	t.slidersmenuvalue[g.slidersmenumax][5].useCustomRange = 1;
+	t.slidersmenuvalue[g.slidersmenumax][5].valueMin = -90;
+	t.slidersmenuvalue[g.slidersmenumax][5].valueMax = 90;
+	t.slidersmenuvalue[g.slidersmenumax][5].value = t.visuals.SolarLatitude_f; 
+	t.slidersmenuvalue[g.slidersmenumax][6].useCustomRange = 1;
+	t.slidersmenuvalue[g.slidersmenumax][6].valueMin = 1;
+	t.slidersmenuvalue[g.slidersmenumax][6].valueMax = 30;
+	t.slidersmenuvalue[g.slidersmenumax][6].name_s = "Day of Month (Solar)";
+	t.slidersmenuvalue[g.slidersmenumax][6].value = t.visuals.SolarDay;
+	t.slidersmenuvalue[g.slidersmenumax][7].useCustomRange = 1;
+	t.slidersmenuvalue[g.slidersmenumax][7].valueMin = 1;
+	t.slidersmenuvalue[g.slidersmenumax][7].valueMax = 12;
+	t.slidersmenuvalue[g.slidersmenumax][7].name_s = "Month of Year (Solar)";
+	t.slidersmenuvalue[g.slidersmenumax][7].value = t.visuals.SolarMonth;
+	t.slidersmenuvalue[g.slidersmenumax][8].name_s = "Sim Sky Star Density";
+	t.slidersmenuvalue[g.slidersmenumax][8].value = t.visuals.StarDensity_f * 100;
+	t.slidersmenuvalue[g.slidersmenumax][9].name_s = "Sim Sky Effects";
+	t.slidersmenuvalue[g.slidersmenumax][9].value = t.visuals.SkyEffects_f * 100;
+	t.slidersmenuvalue[g.slidersmenumax][10].useCustomRange = 1;
+	t.slidersmenuvalue[g.slidersmenumax][10].valueMin = 1;
+	t.slidersmenuvalue[g.slidersmenumax][10].valueMax = 24;
+	t.slidersmenuvalue[g.slidersmenumax][10].name_s = "Time of Day (24 Hour Clock)";
+	t.slidersmenuvalue[g.slidersmenumax][10].value = t.sky.currenthour_f;
 
 	//  Quality panel
 	++g.slidersmenumax;
@@ -2517,13 +2531,82 @@ void sliders_write (bool bOnlyVisualSettings )
 			t.visuals.refreshshaders = 1;
 		}
 	}
-//  `if slidersmenuindex=slidersmenunames.sky
-	////  Sky settings
-	//terrain.sundirectionx#=0+((slidersmenuvalue(slidersmenuindex,1).value-50)*1000)
-	//terrain.sundirectiony#=0+((slidersmenuvalue(slidersmenuindex,2).value-0)*1000)
-	//terrain.sundirectionz#=0+((slidersmenuvalue(slidersmenuindex,3).value-50)*1000)
-	//visuals.refreshshaders=1
-//  `endif
+
+	if (t.slidersmenuindex == t.slidersmenunames.sky)//cyb
+	{
+		//  Sky settings
+		if (t.visuals.CloudCoverage_f != (float)t.slidersmenuvalue[t.slidersmenuindex][1].value / 100)
+		{
+			t.visuals.CloudCoverage_f = (float)t.slidersmenuvalue[t.slidersmenuindex][1].value / 100;
+			t.storeprojectmodified = 1;
+		}
+		if (t.visuals.CloudSpeed_f != (float)t.slidersmenuvalue[t.slidersmenuindex][2].value / 5000)
+		{
+			t.visuals.CloudSpeed_f = (float)t.slidersmenuvalue[t.slidersmenuindex][2].value / 5000;
+			t.storeprojectmodified = 1;
+		}
+		if (t.visuals.CloudDensity_f != (float)t.slidersmenuvalue[t.slidersmenuindex][3].value / 100)
+		{
+			t.visuals.CloudDensity_f = (float)t.slidersmenuvalue[t.slidersmenuindex][3].value / 100;
+			t.storeprojectmodified = 1;
+		}
+		if (t.visuals.CloudTint_f != (float)t.slidersmenuvalue[t.slidersmenuindex][4].value / 100)
+		{
+			t.visuals.CloudTint_f = (float)t.slidersmenuvalue[t.slidersmenuindex][4].value / 100;
+			t.storeprojectmodified = 1;
+		}
+	
+		bool solarUpdate = false;
+		//latitude
+		if (t.visuals.SolarLatitude_f != t.slidersmenuvalue[t.slidersmenuindex][5].value)
+		{
+			t.visuals.SolarLatitude_f = t.slidersmenuvalue[t.slidersmenuindex][5].value;
+			if (t.visuals.SolarLatitude_f > 90)t.visuals.SolarLatitude_f = 90;
+			solarUpdate = true;
+		}
+		//day - 6
+		if (t.visuals.SolarDay != t.slidersmenuvalue[t.slidersmenuindex][6].value)
+		{
+			t.visuals.SolarDay = t.slidersmenuvalue[t.slidersmenuindex][6].value;
+			solarUpdate = true;
+		}
+		//month - 7
+		if (t.visuals.SolarMonth != t.slidersmenuvalue[t.slidersmenuindex][7].value)
+		{
+			t.visuals.SolarMonth = t.slidersmenuvalue[t.slidersmenuindex][7].value;
+			solarUpdate = true;
+		}
+		//star density - 8
+		if (t.visuals.StarDensity_f != ((float)t.slidersmenuvalue[t.slidersmenuindex][8].value / 100))
+		{
+			t.visuals.StarDensity_f = ((float)t.slidersmenuvalue[t.slidersmenuindex][8].value / 100);
+		}
+		//sky effects - 9
+		if (t.visuals.SkyEffects_f != ((float)t.slidersmenuvalue[t.slidersmenuindex][9].value / 100))
+		{
+			t.visuals.SkyEffects_f = ((float)t.slidersmenuvalue[t.slidersmenuindex][9].value / 100);
+		}
+		
+		if (t.sky.currenthour_f != t.slidersmenuvalue[t.slidersmenuindex][10].value)
+		{
+			solarUpdate = true;
+		}
+	
+		if (solarUpdate)
+		{
+			t.sky.currenthour_f = t.slidersmenuvalue[t.slidersmenuindex][10].value;
+
+			//helper function
+			SetSolarSunDirection(t.sky.currenthour_f,t.visuals.SolarDay, t.visuals.SolarMonth, t.visuals.SolarLatitude_f);
+			
+			t.storeprojectmodified = 1;
+			t.visuals.refreshshaders = 1;
+
+			t.visuals.refreshskysettingsfromlua = true;
+			cubemap_generateglobalenvmap(); 
+		}
+	}
+
 	if (  t.slidersmenuindex == t.slidersmenunames.qualitypanel ) 
 	{
 		//  Quality panel

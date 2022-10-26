@@ -3731,6 +3731,7 @@ struct visualstype
 	float DistanceTransitionMultiplier_f;
 	int skyindex;
 	cstr sky_s;
+	int using_simulated_sky;
 	int lutindex;
 	cstr lut_s;
 	int terrainindex;
@@ -3763,6 +3764,15 @@ struct visualstype
 	float LensFlare_f;
 	float Saturation_f; 
 	float Sepia_f;
+	float CloudSpeed_f; 
+	float CloudCoverage_f;
+	float CloudDensity_f;
+	float CloudTint_f; 
+	float StarDensity_f;
+	float SkyEffects_f;
+	float SolarLatitude_f;
+	int	  SolarMonth;
+	int   SolarDay;
 	float WaterRed_f;
 	float WaterBlue_f;
 	float WaterGreen_f;
@@ -3783,6 +3793,15 @@ struct visualstype
 		 LensFlare_f = 0.5f;
 		 Saturation_f = 0.3f;
 		 Sepia_f = 0.0f;
+		 CloudSpeed_f = 0.002; 
+		 CloudCoverage_f = 0.1;
+		 CloudDensity_f = 0.1f;
+		 CloudTint_f = 0.5f;
+		 StarDensity_f = 0.5f;
+		 SkyEffects_f = 0.5f;
+		 SolarLatitude_f = 51.509865f;
+		 SolarMonth = 6;
+		 SolarDay = 21;
 		 SAORadius_f = 0.0f;
 		 SAOIntensity_f = 0.0f;
 		 SAOQuality_f = 0.0f;
@@ -3811,6 +3830,7 @@ struct visualstype
 		 terrain_s = "";
 		 terrainindex = 0;
 		 sky_s = "";
+		 using_simulated_sky = 0;
 		 skyindex = 0;
 		 lut_s = "";
 		 lutindex = 0;

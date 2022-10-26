@@ -2003,6 +2003,31 @@ SetEntityHighlight(e,v) -- set an overlay colour on entity, v = 0(none/remove),1
 ***** Dymanic sun commands.
 SetSunDirection(x,y,z) -- The direction will be multiplyid into a position so you can use ranges like -10 to 10 or similar.
 
+See simulated_sky_demo.lua for command example usage
+
+SetStarDensity(v) 0 to 100
+SetSolarLatitude(v) -90 to 90
+SetSolarDay(v) 1 to 31
+SetSolarMonth(v) 1 to 12
+SetSolarTime(v) 0 to 24
+SetSunTime(time_hours,day,month,latitude)
+SetCloudCoverage(v) 0 to 100
+SetCloudSpeed(v) 0 to 100
+SetCloudDensity(v) 0 to 100
+SetCloudTint(v) 0 to 100 -- lower darker
+SetSkyEffects(v) 0 to 100 -- note - values greater than zero and less than 50 enable aurora at night, > 50 enables lightning flashes any time of day
+
+GetStarDensity()
+GetSkyEffects()
+GetCloudCoverage()
+GetCloudSpeed()
+GetCloudDensity()
+GetCloudTint()
+GetSolarLatitude()
+GetSolarDay()
+GetSolarMonth()
+GetSolarTime()
+
 ***** Physics commands
 PushObject -- To be documented
 ConstrainObjMotion -- To be documented

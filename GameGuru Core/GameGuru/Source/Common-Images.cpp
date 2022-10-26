@@ -830,7 +830,7 @@ void cubemap_generateimage ( int iImageID, float fX, float fY, float fZ, LPSTR p
 	}
 }
 
-void cubemap_generateglobalenvmap ( void )
+void cubemap_generateglobalenvmap ( void ) 
 {
 	#ifdef VRTECH
 	if ( t.game.gameisexe == 0 || t.visuals.refreshskysettingsfromlua)

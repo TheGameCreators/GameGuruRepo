@@ -70,6 +70,7 @@ int LoadImage(lua_State *L);
 int CreateSprite(lua_State *L);
 int SetSpritePosition(lua_State *L);
 int SetSpriteSize( lua_State *L );
+int SetSolarSunDirection(float time, int day, int month, float latitude); // support function
 int GetFreeLUAImageID ( void ); // support function
 int GetFreeLUASpriteID ( void ); // support function
 void FreeLUASpritesAndImages ( void ); // support

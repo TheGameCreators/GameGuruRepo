@@ -88,7 +88,9 @@ float TotalSpecular = 1.0f;
 
 #ifdef PBRVEGETATION
  float GrassFadeDistance = 10000.0f;
+ #ifndef ENABLE_PULSE_HIGHLIGHTING
  float time: Time;
+ #endif
  float SwayAmount = 0.05f;
  float SwaySpeed = 1.0f;
  float ScaleOverride = 2.5f;
@@ -2029,6 +2031,12 @@ float4 PSMainBaked(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARG
 	return final;
 }
 
+float4 blackPS(in VSOutput input) : SV_TARGET
+{
+   clip(input.clip);
+   return float4(0,0,0,1);
+}
+
 DepthStencilState YesDepthRead
 {
   DepthFunc = LESS_EQUAL;
@@ -2250,6 +2258,16 @@ technique11 Distant
         SetDepthStencilState( YesDepthRead, 0 );
         SetRasterizerState ( BackwardCull );
         #endif
+    }
+}
+
+technique11 blacktextured
+{
+    pass P0
+    {
+		SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
+        SetPixelShader(CompileShader(ps_5_0, blackPS()));
+        SetGeometryShader(NULL);
     }
 }
 
