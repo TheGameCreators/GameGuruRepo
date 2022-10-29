@@ -391,6 +391,7 @@ void lua_loop_begin ( void )
 	LuaSetInt ( "g_KeyPressC", KeyState(g.keymap[46]) );
 	//LuaSetInt ( "g_KeyPressJ", !!done in player control code!! );
 	LuaSetInt ( "g_KeyPressSPACE", KeyState(g.keymap[57]) );
+	LuaSetInt ( "g_KeyPressALT"  , KeyState(g.keymap[56]));
 
 	// shift key for running/etc
 	#ifdef VRTECH

@@ -229,8 +229,8 @@ void terrain_setupedit ( void )
 	if ( GetEffectExist ( t.terrain.effectstartindex+1 ) == 0 )
 	{
 		LoadEffect ( "effectbank\\reloaded\\water_basic.fx",t.terrain.effectstartindex+1,0 );
-		t.effectparam.water.HudFogDist=GetEffectParameterIndex(t.terrain.effectstartindex+1,"HudFogDist");
-		t.effectparam.water.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+1,"HudFogColor");
+		//t.effectparam.water.HudFogDist=GetEffectParameterIndex(t.terrain.effectstartindex+1,"HudFogDist"); //cyb
+		//t.effectparam.water.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+1,"HudFogColor"); //cyb
 	}
 	SetObjectEffect ( t.terrain.objectstartindex+2, t.terrain.effectstartindex+1 );
 
@@ -3314,18 +3314,19 @@ void terrain_assignnewshader ( void )
 	memset ( &t.effectparam.terrain, 0, sizeof(t.effectparam.terrain) );
 	if ( GetEffectExist ( t.terrain.terrainshaderindex ) == 1 )
 	{
-		t.effectparam.terrain.g_lights_data=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_data");
-		t.effectparam.terrain.g_lights_pos0=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_pos0");
-		t.effectparam.terrain.g_lights_atten0=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_atten0");
-		t.effectparam.terrain.g_lights_diffuse0=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_diffuse0");
-		t.effectparam.terrain.g_lights_pos1=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_pos1");
-		t.effectparam.terrain.g_lights_atten1=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_atten1");
-		t.effectparam.terrain.g_lights_diffuse1=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_diffuse1");
-		t.effectparam.terrain.g_lights_pos2=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_pos2");
-		t.effectparam.terrain.g_lights_atten2=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_atten2");
-		t.effectparam.terrain.g_lights_diffuse2=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_diffuse2");
-		t.effectparam.terrain.SpotFlashPos=GetEffectParameterIndex(t.terrain.terrainshaderindex,"SpotFlashPos");
-		t.effectparam.terrain.SpotFlashColor=GetEffectParameterIndex(t.terrain.terrainshaderindex,"SpotFlashColor");
+		//cyb
+		//t.effectparam.terrain.g_lights_data=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_data");
+		//t.effectparam.terrain.g_lights_pos0=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_pos0");
+		//t.effectparam.terrain.g_lights_atten0=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_atten0");
+		//t.effectparam.terrain.g_lights_diffuse0=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_diffuse0");
+		//t.effectparam.terrain.g_lights_pos1=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_pos1");
+		//t.effectparam.terrain.g_lights_atten1=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_atten1");
+		//t.effectparam.terrain.g_lights_diffuse1=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_diffuse1");
+		//t.effectparam.terrain.g_lights_pos2=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_pos2");
+		//t.effectparam.terrain.g_lights_atten2=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_atten2");
+		//t.effectparam.terrain.g_lights_diffuse2=GetEffectParameterIndex(t.terrain.terrainshaderindex,"g_lights_diffuse2");
+		//t.effectparam.terrain.SpotFlashPos=GetEffectParameterIndex(t.terrain.terrainshaderindex,"SpotFlashPos");
+		//t.effectparam.terrain.SpotFlashColor=GetEffectParameterIndex(t.terrain.terrainshaderindex,"SpotFlashColor");
 
 		// wipe any previous param storage
 		ResetEffect ( t.terrain.terrainshaderindex );
@@ -4006,6 +4007,12 @@ void terrain_shadowupdate ( void )
 				//We need to make sunposition match shadow direction. (125,100,100) = 5000,10000,5000.
 				PositionLight(0, t.terrain.sundirectionx_f*0.75, t.terrain.sundirectiony_f*2.0, t.terrain.sundirectionz_f);
 				PointLight(0, 0.0, 0.0, 0.0); //direction match old sun pos.
+
+				if (t.visuals.using_simulated_sky == 1)
+				{
+					PositionLight(0, t.terrain.sundirectionx_f, t.terrain.sundirectiony_f, t.terrain.sundirectionz_f);
+					PointLight(0, 0.0, 0.0, 0.0);
+				}
 				#endif
 			}
 			#else

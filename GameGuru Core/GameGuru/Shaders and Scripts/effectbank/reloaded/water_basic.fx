@@ -233,7 +233,8 @@ float4 PS_Fresnel_Reflect(output IN) : COLOR
 
    float3 MaterialSpecularColor = float3(0.35,0.35,0.35);
    float3 E = normalize(IN.WPos.xyz-eyePos.xyz); // eye , facing the camera.
-   float3 R = reflect(-Ln,Nb); // reflect direction
+   //float3 R = reflect(-Ln,Nb); // reflect direction
+   float3 R = reflect(Ln,Nb); // reflect direction // CYB: Lightsource was the issue
    float cosAlpha = clamp(dot(E,R),0.0,1.0);
    cosAlpha = pow(cosAlpha,6.0);
    float3 spec = MaterialSpecularColor * cosAlpha;  //Specular
@@ -318,7 +319,8 @@ float4 PS_Fresnel_NoReflect(output IN) : COLOR
 
 	float3 MaterialSpecularColor = float3(0.35,0.35,0.35);
 	float3 E = normalize(IN.WPos.xyz - eyePos.xyz); // eye , facing the camera.
-	float3 R = reflect(-Ln,Nb); // reflect direction
+	//float3 R = reflect(-Ln,Nb); // reflect direction
+	float3 R = reflect(Ln,Nb); // reflect direction // CYB: Lightsource was the issue
 	float cosAlpha = clamp(dot(E,R),0.0,1.0);
 	cosAlpha = pow(cosAlpha,6.0);
 	float3 spec = MaterialSpecularColor * cosAlpha;  //Specular
