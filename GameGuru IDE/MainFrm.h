@@ -305,6 +305,7 @@ protected:
 	afx_msg void OnHelpLUAScriptingAdvice();
 	afx_msg void OnHelpToggleParentalControl();
 	afx_msg void OnHelpReadUserManual();
+	afx_msg void OnHelpReadChangeLog();	
 	afx_msg void OnStandaloneEasterGame();
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
