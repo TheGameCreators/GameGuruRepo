@@ -5203,6 +5203,7 @@ struct entityprofiletype
 	int onetexture;
 	cstr texpath_s;
 	cstr texd_s;
+	cstr texoverride_s[100];
 	int texdid;
 	int texnid;
 	int texsid;
