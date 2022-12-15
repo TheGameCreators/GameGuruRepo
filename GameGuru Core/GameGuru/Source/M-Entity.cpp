@@ -4180,15 +4180,33 @@ void c_entity_loadelementsdata ( void )
 
 					// get the index of the entity profile
 					t.ttentid=t.entityelement[t.e].bankindex;
-					#ifdef VRTECH
 					if (t.ttentid >= t.entityprofile.size())
 					{
+						#ifdef VRTECH
 						// somehow, the entity profile bank index was corrupted
 						t.ttentid = 0;
 						t.entityelement[t.e].bankindex = 0;
 						continue;
+						#else
+						//PE: Same in Classic do what we can.
+						t.ttentid = 0;
+						t.entityelement[t.e].bankindex = 0;
+						if (t.versionnumberload < 217)
+						{
+							//  FPGC - 300710 - older levels dont use particle override
+							t.entityelement[t.e].eleprof.particleoverride = 0;
+						}
+						if (t.versionnumberload < 312)
+						{
+							//  GameGuru 1.14 EBE
+							t.entityelement[t.e].iHasParentIndex = 0;
+						}
+						t.entityelement[t.e].entitydammult_f = 1.0;
+						t.entityelement[t.e].entityacc = 1.0;
+						continue;
+						#endif
 					}
-					#endif
+
 
 					// fill in the blanks if load older version
 					if (  t.versionnumberload<103 ) 
