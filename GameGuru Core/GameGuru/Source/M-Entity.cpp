@@ -1234,7 +1234,8 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].uvscaleu=1.0f;
 		t.entityprofile[t.entid].uvscalev=1.0f;
 		t.entityprofile[t.entid].invertnormal=0;
-		t.entityprofile[t.entid].preservetangents=0;		
+		t.entityprofile[t.entid].preservetangents=0;	
+		t.entityprofile[t.entid].parallaxstrength = 0;	
 		t.entityprofile[t.entid].colondeath=1;
 		t.entityprofile[t.entid].parententityindex=0;
 		t.entityprofile[t.entid].parentlimbindex=0;
@@ -1288,6 +1289,13 @@ void entity_loaddata ( void )
 
 		//  temp variable to hold which physics object we are on from the importer
 		t.tPhysObjCount = 0;
+
+		// can override texture by Mesh ID
+		bool bConfirmedNoUniversalTexture = false;
+		for (int iID = 0; iID < 100; iID++)
+		{
+			t.entityprofile[t.entid].texoverride_s[iID] = "";
+		}
 
 		//  Load entity Data from file
 		Dim (  t.data_s,400  );
@@ -1588,10 +1596,26 @@ void entity_loaddata ( void )
 						t.tryfield_s = "texturepath";
 						if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].texpath_s = t.value_s;
 						t.tryfield_s = "textured";
-						if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].texd_s = t.value_s;
+						if (t.field_s == t.tryfield_s)
+						{
+							t.entityprofile[t.entid].texd_s = t.value_s;
+							if (strlen(t.value_s.Get()) == 0) bConfirmedNoUniversalTexture = true;
+						}
 						t.tryfield_s = "texturealtd";
 						if (t.field_s == t.tryfield_s)  t.entityprofile[t.entid].texaltd_s = t.value_s;
+					}
 
+					// Support baseColorMap0-X field to texture object by mesh ID
+					if (bConfirmedNoUniversalTexture == true)
+					{
+						if (t.entityprofile[t.entid].ischaractercreator == 0)
+						{
+							for (int iID = 0; iID < 100; iID++)
+							{
+								t.tryfield_s = cstr("baseColorMap")+cstr(iID);
+								if (stricmp(t.field_s.Get(), t.tryfield_s.Get())==NULL)  t.entityprofile[t.entid].texoverride_s[iID] = t.value_s;
+							}
+						}
 					}
 
 					t.tryfield_s="effect";
@@ -1648,6 +1672,15 @@ void entity_loaddata ( void )
 					// can choose whether to generate tangent/binormal in the shader
 					t.tryfield_s="preservetangents";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].preservetangents = t.value1;
+
+					// for apbr_basic_parallax shader - strength of parallax effect 0 to 100
+					t.tryfield_s = "parallaxstrength";
+					if (t.field_s == t.tryfield_s)
+					{
+						t.entityprofile[t.entid].parallaxstrength = t.value1;
+						if (t.entityprofile[t.entid].parallaxstrength < 0 || t.entityprofile[t.entid].parallaxstrength > 100)
+							t.entityprofile[t.entid].parallaxstrength = 100;
+					}
 					
 					t.tryfield_s="zdepth";
 					if (  t.field_s == t.tryfield_s  )  t.entityprofile[t.entid].zdepth = t.value1;
@@ -3052,6 +3085,30 @@ void entity_loadtexturesandeffect ( void )
 		t.texdir_s="" ; t.texuseid=0;
 		t.texaltdid=0 ; t.entityprofile[t.entid].texaltdid=t.texaltdid;
 		bMultiMaterialObject = true;
+
+		// if multi material, check if we have any texture overrides (new)
+		sObject* pObject = GetObjectData (t.entobj);
+		for (int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++)
+		{
+			LPSTR pMeshIDTexture = t.entityprofile[t.entid].texoverride_s[iMeshIndex].Get();
+			if (strlen(pMeshIDTexture) > 0)
+			{
+				int iLoadMeshIDTexture = loadinternaltextureex(pMeshIDTexture, 1, t.tfullorhalfdivide);
+				sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+				if (pMesh) SetBaseTextureStage (pMesh, 0, iLoadMeshIDTexture);
+				if (stricmp(pMeshIDTexture+strlen(pMeshIDTexture)-strlen("_color.dds"), "_color.dds") == NULL)
+				{
+					// also attempt to load normal
+					char pNewTexName[MAX_PATH];
+					strcpy(pNewTexName, pMeshIDTexture);
+					pNewTexName[strlen(pNewTexName) - strlen("_color.dds")] = 0;
+					strcat(pNewTexName, "_normal.dds");
+					iLoadMeshIDTexture = loadinternaltextureex(pNewTexName, 1, t.tfullorhalfdivide);
+					sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+					if (pMesh) SetBaseTextureStage (pMesh, 2, iLoadMeshIDTexture);
+				}
+			}
+		}
 	}
 	
 	// 261117 - intercept and replace any legacy shaders with new PBR ones if game visuals using RealtimePBR (3) mode
@@ -5297,7 +5354,9 @@ void entity_savebank ( void )
 					}
 					if (  t.treadentid <= g.entidmaster ) 
 					{
-						t.entitybank_s[t.tttentid] = t.entitybank_s[t.treadentid];
+						if(t.tttentid != t.treadentid) //corrupts if string contains "&" character copied to itself, so avoid by not copying if same value anyway
+							t.entitybank_s[t.tttentid] = t.entitybank_s[t.treadentid];
+
 						t.entityprofileheader[t.tttentid]=t.entityprofileheader[t.treadentid];
 						t.entityprofile[t.tttentid]=t.entityprofile[t.treadentid];
 						if ( t.entityprofile[t.treadentid].ebe.pRLEData != NULL && t.tttentid < t.treadentid )

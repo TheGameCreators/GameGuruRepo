@@ -2449,6 +2449,10 @@ static void BT_Intern_RenderTerrain(s_BT_terrain* Terrain)
 		GGTECHNIQUE hNearTechnique = Mesh->pVertexShaderEffect->m_hCurrentTechnique;
 		GGTECHNIQUE hDistantTechnique = Effect->GetTechniqueByName ( "Distant" );
 
+		GGTECHNIQUE hblacktexturedTechnique = Effect->GetTechniqueByName("blacktextured");
+		if (hNearTechnique == hblacktexturedTechnique)
+			hDistantTechnique = hblacktexturedTechnique;
+
 		// Can also render terrain into the shadow map, so use super quick render type
 		int iQualityPassCount = 2;
 		if (g_bRenderTerrainForShadowMap == true)

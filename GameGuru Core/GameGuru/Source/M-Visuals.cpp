@@ -354,7 +354,6 @@ void visuals_updateskyterrainvegindex ( void )
 	g.lutindex = 1;
 	for (t.s = 1; t.s <= g.lutmax; t.s++)
 	{
-		//if (t.lutbank_s[t.s] == "1-LUT.png")  g.lutindex = t.s;
 		if (t.lutbank_s[t.s] == "none.png")  g.lutindex = t.s;
 	}
 	for (t.s = 1; t.s <= g.lutmax; t.s++)
@@ -532,6 +531,26 @@ void visuals_save ( void )
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.Sepia=" + Str(t.visuals.Sepia_f);
 	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.CloudSpeed=" + Str(t.visuals.CloudSpeed_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.CloudCoverage=" + Str(t.visuals.CloudCoverage_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.CloudDensity=" + Str(t.visuals.CloudDensity_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.CloudTint=" + Str(t.visuals.CloudTint_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.StarDensity=" + Str(t.visuals.StarDensity_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.SkyEffects=" + Str(t.visuals.SkyEffects_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.SolarLatitude=" + Str(t.visuals.SolarLatitude_f);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.SolarDay=" + Str(t.visuals.SolarDay);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.SolarMonth=" + Str(t.visuals.SolarMonth);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.CurrentHour=" + Str(t.sky.currenthour_f);
+	WriteString(1, t.strwork.Get());
 	//New Water Settings
 	t.strwork = ""; t.strwork = t.strwork + "visuals.Waterheight=" + Str(g.gdefaultwaterheight);
 	WriteString(1, t.strwork.Get());
@@ -602,6 +621,15 @@ void visuals_load ( void )
 	t.visuals.LensFlare_f=0.5f;
 	t.visuals.Saturation_f = 0.3f;
 	t.visuals.Sepia_f = 0.0f;
+	t.visuals.CloudSpeed_f = 0.00f; 
+	t.visuals.CloudCoverage_f = 0.5f; 
+	t.visuals.CloudDensity_f = 0.1f;
+	t.visuals.CloudTint_f = 0.5f; 
+	t.visuals.SolarDay = 21;
+	t.visuals.SolarMonth = 6;
+	t.visuals.SolarLatitude_f = 51.0f;
+	t.visuals.SkyEffects_f = 0.5f;
+
 	//water settings
 	visuals_water_reset();
 	
@@ -726,6 +754,16 @@ void visuals_load ( void )
 			t.try_s = "visuals.LensFlare" ; if (  t.tfield_s == t.try_s  )  t.visuals.LensFlare_f = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.Saturation"; if (t.tfield_s == t.try_s)  t.visuals.Saturation_f = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.Sepia"; if (t.tfield_s == t.try_s)  t.visuals.Sepia_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.CloudSpeed"; if (t.tfield_s == t.try_s)  t.visuals.CloudSpeed_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.CloudCoverage"; if (t.tfield_s == t.try_s)  t.visuals.CloudCoverage_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.CloudDensity"; if (t.tfield_s == t.try_s)  t.visuals.CloudDensity_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.CloudTint"; if (t.tfield_s == t.try_s)  t.visuals.CloudTint_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.StarDensity"; if (t.tfield_s == t.try_s)  t.visuals.StarDensity_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.SkyEffects"; if (t.tfield_s == t.try_s)  t.visuals.SkyEffects_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.SolarLatitude"; if (t.tfield_s == t.try_s)  t.visuals.SolarLatitude_f = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.SolarDay"; if (t.tfield_s == t.try_s)  t.visuals.SolarDay = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.SolarMonth"; if (t.tfield_s == t.try_s)  t.visuals.SolarMonth = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.CurrentHour"; if (t.tfield_s == t.try_s)  t.sky.currenthour_f = ValF(t.tvalue_s.Get());
 			//new water settings
 			t.try_s = "visuals.Waterheight"; if (t.tfield_s == t.try_s)  g.gdefaultwaterheight = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.Waterred"; if (t.tfield_s == t.try_s)  t.visuals.WaterRed_f = ValF(t.tvalue_s.Get());
@@ -1006,6 +1044,9 @@ void visuals_justshaderupdate ( void )
 		SetEffectConstantV(t.terrain.effectstartindex + 1, "flowdirection", g.terrainvectorindex);
 		SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterSpeed1", t.visuals.WaterSpeed1);
 		SetEffectConstantF(t.terrain.effectstartindex + 1, "distortion2", t.visuals.WaterDistortionWaves);
+
+		SetVector4(g.terrainvectorindex, t.terrain.sundirectionx_f, t.terrain.sundirectiony_f, t.terrain.sundirectionz_f, 0.0); //cyb
+		SetEffectConstantV(t.terrain.effectstartindex + 1, "LightSource", g.terrainvectorindex); //cyb
 	}
 
 	//  update fog shader
@@ -1053,6 +1094,19 @@ void visuals_justshaderupdate ( void )
 			SetEffectConstantF (  t.effectid,"GlobalSpecular",t.visuals.Specular_f );
 			SetEffectConstantF (  t.effectid,"GlobalSurfaceIntensity",t.visuals.SurfaceIntensity_f );
 		}
+	}
+
+	//cyb - skyscroll shader
+	if (GetEffectExist(t.terrain.effectstartindex + 9) == 1)
+	{
+		SetVector4(g.terrainvectorindex, t.terrain.suncolorr_f / 255.0, t.terrain.suncolorg_f / 255.0, t.terrain.suncolorb_f / 255.0, 0);
+		SetEffectConstantV(t.terrain.effectstartindex + 9, "SkyColor", g.terrainvectorindex);
+
+		SetVector4(g.terrainvectorindex, t.terrain.sunskyscrollx_f, t.terrain.sunskyscrollz_f, t.visuals.CloudCoverage_f, t.visuals.CloudSpeed_f);
+		SetEffectConstantV(t.terrain.effectstartindex + 9, "SkyScrollValues", g.terrainvectorindex);
+
+		SetVector4(g.terrainvectorindex, t.visuals.CloudTint_f, t.visuals.CloudDensity_f, t.visuals.StarDensity_f, t.visuals.SkyEffects_f);
+		SetEffectConstantV(t.terrain.effectstartindex + 9, "SkyClouds", g.terrainvectorindex);
 	}
 
 	//PE: HUD. did not get any visuals, shader variables.
@@ -1531,7 +1585,9 @@ void visuals_loop ( void )
 			}
 			if ( ObjectExist(t.terrain.objectstartindex+9) == 1 ) 
 			{
-				SetObjectMask (  t.terrain.objectstartindex+9,1);//(t.tskymaskforcamerasnoshadow),0,0,0 ); no relfection of scroll
+				//this mask also stops cloud layer obscuring light ray 'sun' //cyb
+				//SetObjectMask (  t.terrain.objectstartindex+9,1);//(t.tskymaskforcamerasnoshadow),0,0,0 ); no relfection of scroll
+				SetObjectMask(t.terrain.objectstartindex + 9,(t.tskymaskforcamerasnoshadow),0,0,0 );
 			}
 
 			// And, ensure terrain physics objects (used for occlusion) are never rendered
@@ -1645,6 +1701,8 @@ void visuals_loop ( void )
 		{
 			if ( ImageExist(t.terrain.imagestartindex+6) == 1 ) 
 			{
+				//g.greflectionrendersize = 5.12 * t.visuals.reflectionmode;
+				//if (g.greflectionrendersize < 128) g.greflectionrendersize = 128;
 				if ( t.terrain.reflsizer != g.greflectionrendersize ) 
 				{
 					t.terrain.reflsizer=g.greflectionrendersize;
@@ -1749,8 +1807,15 @@ void visuals_loop ( void )
 		// change day sky
 		g.skyindex = t.visuals.skyindex ; if (  g.skyindex>g.skymax  )  g.skyindex = g.skymax;
 		t.visuals.sky_s=t.skybank_s[g.skyindex];
-		t.terrainskyspecinitmode=0 ; sky_skyspec_init ( );
-		t.sky.currenthour_f=8.0;
+		t.terrainskyspecinitmode=0; 
+		sky_skyspec_init();
+		
+		//if (t.visuals.sky_s == "a simulated sky")
+		//{
+		//	SetSolarSunDirection(t.sky.currenthour_f, t.visuals.SolarDay, t.visuals.SolarMonth, t.visuals.SolarLatitude_f);
+		//}
+
+		//t.sky.currenthour_f=8.0;
 		t.sky.daynightprogress=0;
 		t.sky.changingsky=1;
 		t.visuals.refreshskysettings=0;
@@ -1778,7 +1843,7 @@ void visuals_loop ( void )
 
 		// Delete LUT texture for post processing (if used)
 		{
-			if (ImageExist(t.terrain.imagestartindex + 33) == 1)  DeleteImage(t.terrain.imagestartindex + 33); //Cogwheel
+			if (ImageExist(t.terrain.imagestartindex + 33) == 1)  DeleteImage(t.terrain.imagestartindex + 33); 
 
 			SetMipmapNum(1);
 			LoadImage(cstr(cstr("lutbank\\") + t.visuals.lut_s).Get(), t.terrain.imagestartindex + 33, 0, 0);

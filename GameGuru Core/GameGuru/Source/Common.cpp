@@ -48,9 +48,9 @@ extern bool bStartNewPrompt;
 extern bool bStartNewPrompt;
 #endif
 
-#ifdef ENABLEIMGUI //cyb
-extern bool bStartNewPrompt;
-#endif
+//#ifdef ENABLEIMGUI //cyb
+//extern bool bStartNewPrompt;
+//#endif
 
 
 // Globals
@@ -2164,6 +2164,7 @@ void FPSC_LoadSETUPINI ( bool bUseMySystemFolder )
 
 					// DOCDOC: reflectionrendersize = Sets the size of the texture plate dimension for rendering the reflections in water. Default is 512.
 					t.tryfield_s = "reflectionrendersize" ; if (  t.field_s == t.tryfield_s  )  g.greflectionrendersize = t.value1;
+					if (g.greflectionrendersize < 128) g.greflectionrendersize = 128;
 
 					// DOCDOC: ignoretitlepage = Forces the title page to be skipped in standalone games
 					t.tryfield_s = "ignoretitlepage" ; if (  t.field_s == t.tryfield_s  )  t.game.ignoretitle = t.value1;

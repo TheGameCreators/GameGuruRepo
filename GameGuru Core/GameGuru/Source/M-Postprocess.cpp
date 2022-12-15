@@ -219,6 +219,7 @@ void postprocess_init ( void )
 			}
 
 			//  Assign all parameter handles
+			/* //cyb
 			if (  GetEffectExist(g.postprocesseffectoffset+1) == 1 ) 
 			{
 				t.effectparam.postprocess.LightDir=GetEffectParameterIndex(g.postprocesseffectoffset+1,"LightDir");
@@ -239,6 +240,7 @@ void postprocess_init ( void )
 			{
 				t.effectparam.postprocess.ScreenColor4=GetEffectParameterIndex(g.postprocesseffectoffset+4,"ScreenColor");
 			}
+			*/
 		}
 		else
 		{
@@ -396,7 +398,7 @@ void postprocess_preterrain ( void )
 			#ifdef VRTECH
 			if ( t.t == -5  ) t.teffectid = g.controllerpbreffect;
 			#else
-			if ( t.t == -5  ) continue;
+			if (t.t == -5) t.teffectid = t.terrain.effectstartindex+9; 
 			#endif
 			if ( t.t == -4  )  t.teffectid = g.lightmappbreffect;
 			if ( t.t == -3  )  t.teffectid = g.thirdpersonentityeffect;
@@ -423,7 +425,21 @@ void postprocess_preterrain ( void )
 		if (  ObjectExist(t.terrain.objectstartindex+9) == 1 ) 
 		{
 			t.tskyobj3v=GetVisible(t.terrain.objectstartindex+9);
-			HideObject (  t.terrain.objectstartindex+9 );
+
+			if (t.visuals.using_simulated_sky == 1)
+				SetObjectMask(t.terrain.objectstartindex + 9, 1 << t.glightraycameraid);
+			else
+			{
+				SetObjectMask(t.terrain.objectstartindex + 9, 1);
+				HideObject (  t.terrain.objectstartindex+9 );
+			}
+
+			//calculate adjusted sky blocking position based on light ray camera pos and angle
+			float horizTranslate = (11000 - 1400) / tanf(CameraAngleX(0) * (KMATHS_PI / 180.0f));
+			float posX = CameraPositionX(0) + (sinf(CameraAngleY(0) * (KMATHS_PI / 180.0f)) * horizTranslate);
+			float posZ = CameraPositionZ(0) + (cosf(CameraAngleY(0) * (KMATHS_PI / 180.0f)) * horizTranslate);
+			PositionObject(t.terrain.objectstartindex+9, posX, CameraPositionY(0) + 1400, posZ);
+
 		}
 
 		// 051016 - moved here as still need to render lightray even if no terrain
@@ -449,7 +465,24 @@ void postprocess_preterrain ( void )
 			if ( ObjectExist(t.terrain.objectstartindex+4) == 1 && t.tskyobj1v == 1 ) ShowObject ( t.terrain.objectstartindex+4 );
 			if ( ObjectExist(t.terrain.objectstartindex+8) == 1 && t.tskyobj2v == 1 ) ShowObject ( t.terrain.objectstartindex+8 );
 			if ( ObjectExist(t.terrain.objectstartindex+9) == 1 && t.tskyobj3v == 1 ) ShowObject ( t.terrain.objectstartindex+9 );
+
+			if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(0), (11000 + t.terrain.waterliney_f), CameraPositionZ(0));
+		
+			//SetObjectMask (  t.terrain.objectstartindex+9,1);//(t.tskymaskforcamerasnoshadow),0,0,0 ); no relfection of scroll
+			SetObjectMask(t.terrain.objectstartindex + 9, (t.tskymaskforcamerasnoshadow), 0, 0, 0);
 		}
+
+		// reset skyscroll technique
+		if (GetEffectExist(t.terrain.effectstartindex+9) == 1)
+		{
+			SetEffectTechnique(t.terrain.effectstartindex+9, "Main");
+		}
+
+		if (GetEffectExist(t.terrain.effectstartindex+4) == 1)
+		{
+			SetEffectTechnique(t.terrain.effectstartindex+4, "Main");
+		}
+
 		//  restore to original technique
 		if ( t.terrain.vegetationshaderindex>0 ) 
 		{
@@ -702,10 +735,19 @@ void postprocess_apply ( void )
 				#endif
 
 				// update light ray sun object
-				PositionObject (  g.postprocessobjectoffset+2,CameraPositionX(0),CameraPositionY(0),CameraPositionZ(0) );
-				RotateObject (  g.postprocessobjectoffset+2,-20,0+g.rotvar_f,0 );
-				MoveObject (  g.postprocessobjectoffset+2,2000 );
-
+				if (t.visuals.using_simulated_sky == 1) 
+				{
+					// base on sun direction vector for simulated sky
+					PositionObject(g.postprocessobjectoffset + 2, CameraPositionX(0) + (12000 * t.terrain.sundirectionx_f), CameraPositionY(0) + (12000 * t.terrain.sundirectiony_f), CameraPositionZ(0) + (12000 * t.terrain.sundirectionz_f));
+					RotateObject(g.postprocessobjectoffset + 2, -30, CameraAngleY(0), 0); 
+				}
+				else
+				{
+					PositionObject(g.postprocessobjectoffset + 2, CameraPositionX(0), CameraPositionY(0), CameraPositionZ(0));
+					RotateObject(g.postprocessobjectoffset + 2, -20, 0 + g.rotvar_f, 0);
+					MoveObject(g.postprocessobjectoffset + 2, 2000);
+				}
+				
 				// update light ray scatter object
 				PositionObject (  g.postprocessobjectoffset+1,CameraPositionX(0),CameraPositionY(0),CameraPositionZ(0) );
 				RotateObject (  g.postprocessobjectoffset+1,CameraAngleX(0),CameraAngleY(0),CameraAngleZ(0) );
@@ -714,16 +756,19 @@ void postprocess_apply ( void )
 				// update light ray camera
 				PositionCamera ( t.glightraycameraid,CameraPositionX(0),CameraPositionY(0),CameraPositionZ(0) );
 				RotateCamera ( t.glightraycameraid,CameraAngleX(0),CameraAngleY(0),CameraAngleZ(0) );
-
+			
 				//  update scatter shader light direction
 				t.ldirDX_f=CameraPositionX(0)-ObjectPositionX(g.postprocessobjectoffset+2);
 				t.ldirDY_f=CameraPositionY(0)-ObjectPositionY(g.postprocessobjectoffset+2);
 				t.ldirDZ_f=CameraPositionZ(0)-ObjectPositionZ(g.postprocessobjectoffset+2);
 				t.ldirDD_f=Sqrt(abs(t.ldirDX_f*t.ldirDX_f)+abs(t.ldirDY_f*t.ldirDY_f)+abs(t.ldirDZ_f*t.ldirDZ_f));
 				t.ldirDA_f=WrapValue(atan2deg(t.ldirDX_f,t.ldirDZ_f))-WrapValue(CameraAngleY(0));
-				t.ldirDX_f=t.ldirDX_f/t.ldirDD_f;
-				t.ldirDY_f=t.ldirDY_f/t.ldirDD_f;
-				t.ldirDZ_f=t.ldirDZ_f/t.ldirDD_f;
+				//t.ldirDX_f = t.ldirDX_f / t.ldirDD_f;
+				//t.ldirDY_f = t.ldirDY_f / t.ldirDD_f;
+				//t.ldirDZ_f = t.ldirDZ_f / t.ldirDD_f;
+				t.ldirDX_f = t.terrain.sundirectionx_f;
+				t.ldirDY_f = t.terrain.sundirectiony_f;
+				t.ldirDZ_f = t.terrain.sundirectionz_f;
 				SetVector4 (  g.postprocesseffectoffset+1,t.ldirDX_f,t.ldirDY_f,t.ldirDZ_f,0 );
 				//SetEffectConstantVEx (  g.postprocesseffectoffset+1,t.effectparam.postprocess.LightDir,g.postprocesseffectoffset+1 );
 				SetEffectConstantV(g.postprocesseffectoffset + 1, "LightDir", g.postprocesseffectoffset + 1);//cyb

@@ -1581,7 +1581,7 @@ DARKSDK_DLL void SetObjectScrollScaleUV ( int iID, float fScrU, float fScrV, flo
 	}
 }
 
-DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags, float fBoostIntensity )
+DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags, float fBoostIntensity, float fParallaxStrength)
 {
 	// check the object exists
 	if ( !ConfirmObjectInstance ( iID ) )
@@ -1597,6 +1597,7 @@ DARKSDK_DLL void SetObjectArtFlags ( int iID, DWORD dwArtFlags, float fBoostInte
 		{
 			pMesh->dwArtFlags = dwArtFlags;
 			pMesh->fBoostIntensity = fBoostIntensity;
+			pMesh->fParallaxStrength = fParallaxStrength;
 		}
 	}
 }
@@ -4506,10 +4507,15 @@ DARKSDK_DLL void SetAlphaMappingOn ( int iID, float fPercentage, bool bForceUnTr
 				{
 					dwColorValueOnly = GGCOLOR_ARGB ( 255, 0, 128, 0 );
 				}
-				else
-				{
-					dwColorValueOnly = GGCOLOR_ARGB ( 255, 0, 128, 64 );
-				}
+					//cyb
+					if (fPercentage == 104.0f)
+					{
+						dwColorValueOnly = GGCOLOR_ARGB(255, 0, 128, 64);
+					}
+					else
+					{
+						dwColorValueOnly = GGCOLOR_ARGB(255, 128, 107, 0);  //'gold'
+					}
 			}
 			pActualObject->dwInstanceAlphaOverride = dwColorValueOnly;
 			pActualObject->bInstanceAlphaOverride = true;

@@ -2026,6 +2026,8 @@ int AIGetVisualSetting ( lua_State *L, int iMode )
 		case 18 : lua_pushnumber ( L, t.visuals.MotionIntensity_f ); break;
 		case 19 : lua_pushnumber ( L, t.visuals.DepthOfFieldDistance_f ); break;
 		case 20 : lua_pushnumber ( L, t.visuals.DepthOfFieldIntensity_f ); break;
+		case 21 : lua_pushnumber ( L, t.visuals.Saturation_f * 100.0f ); break;
+		case 22 : lua_pushnumber ( L, t.visuals.Sepia_f * 100.0f ); break;
 		default : lua_pushnumber ( L, 0 ); break;
 	}
 	return 1;
@@ -2051,6 +2053,8 @@ int GetPostMotionDistance(lua_State *L) { return AIGetVisualSetting ( L, 17 ); }
 int GetPostMotionIntensity(lua_State *L) { return AIGetVisualSetting ( L, 18 ); }
 int GetPostDepthOfFieldDistance(lua_State *L) { return AIGetVisualSetting ( L, 19 ); }
 int GetPostDepthOfFieldIntensity(lua_State *L) { return AIGetVisualSetting ( L, 20 ); }
+int GetPostSaturation(lua_State *L) { return AIGetVisualSetting(L, 21); }
+int GetPostSepia(lua_State *L) { return AIGetVisualSetting(L, 22); }
 
 int AICouldSee(lua_State *L )
 {
@@ -4407,6 +4411,242 @@ int GetIsTestgame(lua_State *L) {
 	return 1;
 }
 
+int GetLut(lua_State *L)
+{
+	lua = L;
+	t.s_s = t.lutbank_s[t.visuals.lutindex].Lower();
+	if (strnicmp(t.s_s.Get() + strlen(t.s_s.Get()) - 4, ".png", 4) == NULL)
+		t.s_s = Left(t.s_s.Get(), strlen(t.s_s.Get()) - 4);
+	lua_pushstring(L, t.s_s.Get());
+	return 1;
+}
+
+int GetStarDensity(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.StarDensity_f*100);
+	return 1;
+}
+int GetSkyEffects(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.SkyEffects_f*100);
+	return 1;
+}
+int GetCloudCoverage(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.CloudCoverage_f*100);
+	return 1;
+}
+int GetCloudSpeed(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.CloudSpeed_f*5000);
+	return 1;
+}
+int GetCloudDensity(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.CloudDensity_f*100);
+	return 1;
+}
+int GetCloudTint(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.CloudTint_f*100);
+	return 1;
+}
+int GetSolarLatitude(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.SolarLatitude_f);
+	return 1;
+}
+int GetSolarDay(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.SolarDay);
+	return 1;
+}
+int GetSolarMonth(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.visuals.SolarMonth);
+	return 1;
+}
+int GetSolarTime(lua_State *L)
+{
+	lua = L;
+	lua_pushnumber(L, t.sky.currenthour_f);
+	return 1;
+}
+
+int SetStarDensity(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	temp = temp / 100;
+	if (temp != t.visuals.StarDensity_f)
+	{
+		t.visuals.StarDensity_f = temp;
+		if (t.visuals.StarDensity_f < 0)
+			t.visuals.StarDensity_f = 0;
+		if (t.visuals.StarDensity_f > 1)
+			t.visuals.StarDensity_f = 1;
+	}
+	return 0;
+}
+int SetSkyEffects(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	temp = temp / 100;
+	if (temp != t.visuals.SkyEffects_f)
+	{
+		t.visuals.SkyEffects_f = temp;
+		if (t.visuals.SkyEffects_f < 0)
+			t.visuals.SkyEffects_f = 0;
+		if (t.visuals.SkyEffects_f > 1)
+			t.visuals.SkyEffects_f = 1;
+	}
+	return 0;
+}
+int SetCloudCoverage(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	temp = temp / 100;
+	if (temp != t.visuals.CloudCoverage_f)
+	{
+		t.visuals.CloudCoverage_f = temp;
+		if (t.visuals.CloudCoverage_f < 0)
+			t.visuals.CloudCoverage_f = 0;
+		if (t.visuals.CloudCoverage_f > 1)
+			t.visuals.CloudCoverage_f = 1;
+	}
+	return 0;
+}
+int SetCloudSpeed(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	temp = temp / 5000;
+	if (temp != t.visuals.CloudSpeed_f)
+	{
+		t.visuals.CloudSpeed_f = temp;
+		if (t.visuals.CloudSpeed_f < 0)
+			t.visuals.CloudSpeed_f = 0;
+		if (t.visuals.CloudSpeed_f > 0.06) //allow lua overdrive x3
+			t.visuals.CloudSpeed_f = 0.06;
+	}
+	return 0;
+}
+int SetCloudDensity(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	temp = temp / 100;
+	if (temp != t.visuals.CloudDensity_f)
+	{
+		t.visuals.CloudDensity_f = temp;
+		if (t.visuals.CloudDensity_f < 0)
+			t.visuals.CloudDensity_f = 0;
+		if (t.visuals.CloudDensity_f > 3)
+			t.visuals.CloudDensity_f = 3;
+	}
+	return 0;
+}
+int SetCloudTint(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	temp = temp / 100;
+	if (temp != t.visuals.CloudTint_f)
+	{
+		t.visuals.CloudTint_f = temp;
+		if (t.visuals.CloudTint_f < 0)
+			t.visuals.CloudTint_f = 0;
+		if (t.visuals.CloudTint_f > 1)
+			t.visuals.CloudTint_f = 1;
+	}
+	return 0;
+}
+int SetSolarLatitude(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	if (temp != t.visuals.SolarLatitude_f)
+	{
+		t.visuals.SolarLatitude_f = temp;
+		if (t.visuals.SolarLatitude_f < -90)
+			t.visuals.SolarLatitude_f = -90;
+		if (t.visuals.SolarLatitude_f > 90)
+			t.visuals.SolarLatitude_f = 90;
+	}
+	return 0;
+}
+int SetSolarDay(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	if (temp != t.visuals.SolarDay)
+	{
+		t.visuals.SolarDay = temp;
+		if (t.visuals.SolarDay < 1)
+			t.visuals.SolarDay = 1;
+		if (t.visuals.SolarDay > 31)
+			t.visuals.SolarDay = 31;
+	}
+	return 0;
+}
+int SetSolarMonth(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	if (temp != t.visuals.SolarMonth)
+	{
+		t.visuals.SolarMonth = temp;
+		if (t.visuals.SolarMonth < 1)
+			t.visuals.SolarMonth = 1;
+		if (t.visuals.SolarMonth > 12)
+			t.visuals.SolarMonth = 12;
+	}
+	return 0;
+}
+int SetSolarTime(lua_State *L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float temp = lua_tonumber(L, 1);
+	if (temp != t.sky.currenthour_f)
+	{
+		t.sky.currenthour_f = temp;
+		if (t.sky.currenthour_f < 0)
+			t.sky.currenthour_f = 0;
+		if (t.sky.currenthour_f > 24)
+			t.sky.currenthour_f = 24;
+
+		//helper function
+		SetSolarSunDirection(t.sky.currenthour_f, t.visuals.SolarDay, t.visuals.SolarMonth, t.visuals.SolarLatitude_f);
+
+		// Shader updates
+		visuals_justshaderupdate();
+
+		g.globals.speedshadows = 0;
+	}
+	return 0;
+}
+
 //Dynamic sun.
 
 int SetSunDirection(lua_State *L) {
@@ -4426,6 +4666,52 @@ int SetSunDirection(lua_State *L) {
 	t.terrain.sundirectionz_f = t.terrain.sundirectionz_f / t.tav_f;
 
 	//PE: When moving the sun we need to disable speedshadows.
+	g.globals.speedshadows = 0;
+	return 0;
+}
+
+int SetSunTime(lua_State *L) {
+	
+	//sets sun vector based on time of day, period in year and latitude of player
+
+	float time_hours = 12;
+	int day = 21;
+	int month = 6;
+	float latitude = 51.509865; //London Latitude example
+
+	time_hours = lua_tonumber(L, 1);
+	day = lua_tointeger(L, 2);
+	month = lua_tointeger(L, 3);
+	latitude = lua_tonumber(L, 4);
+
+	if (time_hours > 24)
+		time_hours = 24;
+	if (time_hours < 0)
+		time_hours = 0;
+	if (day > 31)
+		day = 31;
+	if (day < 1)
+		day = 1;
+	if (month > 12)
+		month = 12;
+	if (month < 1)
+		month = 1;
+	if (latitude > 90)
+		latitude = 90;
+	if (latitude < -90)
+		latitude = -90;
+
+	t.sky.currenthour_f = time_hours;
+	t.visuals.SolarDay = day;
+	t.visuals.SolarMonth = month;
+	t.visuals.SolarLatitude_f = latitude;
+
+	//helper function
+	SetSolarSunDirection(t.sky.currenthour_f, t.visuals.SolarDay, t.visuals.SolarMonth, t.visuals.SolarLatitude_f);
+
+	// Shader updates
+	visuals_justshaderupdate();
+	
 	g.globals.speedshadows = 0;
 	return 0;
 }
@@ -5908,6 +6194,34 @@ int GetBulletHit(lua_State *L)
 	return 0;
 }
 
+int SetSolarSunDirection(float time, int day, int month, float latitude) //helper
+{
+	float hour_angle = 15 * (time - 12);
+	float azim = hour_angle + 180; // GG 'north' adjustment
+	double radian = 0.01745329251994329576923690768489; //is very sensitive to fp
+
+	// solar_wholedays is the number of days since January 1st until day/month date we need the solar declination for
+	int jan1 = 30 + 1;
+	int to = month * 30 + day;
+	int solar_wholedays = to - jan1;
+
+	//double declination = 23.418297257996;
+	double day_factor = double(360.0 / 365.0);
+	double declination = -23.44 * cos((radian*(day_factor))*(solar_wholedays + 10));
+	double solar_elev = asin(sin(radian*latitude)*sin(radian*declination)) + cos(radian*latitude)*cos(-(radian*declination))*cos(-(radian*hour_angle));
+	double elev = 90 - (solar_elev / radian);
+
+	double s_x = sin(radian*elev) * sin(radian*azim);
+	double s_z = sin(radian*elev) * cos(radian*azim);
+	double s_y = cos(radian*elev);
+
+	t.terrain.sundirectionx_f = s_x;
+	t.terrain.sundirectiony_f = s_y;
+	t.terrain.sundirectionz_f = s_z;
+	
+	return 0;
+}
+
 // Image commands
 
 int GetFreeLUAImageID ( void )
@@ -5959,6 +6273,31 @@ void HideOrShowLUASprites ( bool hide )
 		}
 	}
 }
+
+//cyb
+int SetEntityHighlight(lua_State *L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	int entityID = lua_tointeger(L, 1);
+	if (entityID == 0)
+		return 0;
+	
+	int mappingMode = lua_tointeger(L, 2);
+	mappingMode += 100;
+	if (mappingMode < 100 || mappingMode >105)
+		return 0;
+
+	int objectToHighlight = t.entityelement[entityID].obj; 
+	
+	if(ObjectExist(objectToHighlight))
+		SetAlphaMappingOn(objectToHighlight, mappingMode); //101(red),102(pink),103(green),104(blue/green),105(gold)
+
+	return 0;
+}
+
 
 int SetFlashLight ( lua_State *L )
 {
@@ -6067,8 +6406,13 @@ int SetOcclusion ( lua_State *L )
 	if ( n < 1 )
 		return 0;
 
-	t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value = lua_tointeger(L, 1);
-	CPU3DSetPolyCount ( t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value );
+	//cyb - this causes a periodic stutter if called continuously even though value to be set may be same, so only call on change ...
+	int occValue = lua_tointeger(L, 1);
+	if (occValue != t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value)
+	{
+		t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value = occValue;
+		CPU3DSetPolyCount(t.slidersmenuvalue[t.slidersmenunames.graphicoptions][5].value);
+	}
 
 	return 0;
 }
@@ -6390,6 +6734,8 @@ void addFunctions()
 	lua_register(lua, "GetPostMotionIntensity" , GetPostMotionIntensity );
 	lua_register(lua, "GetPostDepthOfFieldDistance" , GetPostDepthOfFieldDistance );
 	lua_register(lua, "GetPostDepthOfFieldIntensity" , GetPostDepthOfFieldIntensity );
+	lua_register(lua, "GetPostSaturation", GetPostSaturation);
+	lua_register(lua, "GetPostSepia", GetPostSepia);
 
 	lua_register(lua, "LoadImage" , LoadImage );
 	lua_register(lua, "DeleteImage" , DeleteSpriteImage );
@@ -7030,6 +7376,10 @@ void addFunctions()
 
 	lua_register(lua, "GetBulletHit",             GetBulletHit);
 
+	//cyb
+	lua_register(lua, "SetEntityHighlight", SetEntityHighlight);
+
+
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	
 	lua_register(lua, "SetAttachmentVisible" , SetAttachmentVisible );
 	lua_register(lua, "SetOcclusion" , SetOcclusion );
@@ -7087,8 +7437,33 @@ void addFunctions()
 	lua_register(lua, "GetWaterDistortionWaves", GetWaterDistortionWaves);
 	lua_register(lua, "GetRippleWaterSpeed", GetRippleWaterSpeed);
 
+	lua_register(lua, "GetLut", GetLut);
+
+	lua_register(lua, "GetStarDensity", GetStarDensity);
+	lua_register(lua, "GetSkyEffects", GetSkyEffects);
+	lua_register(lua, "GetCloudCoverage", GetCloudCoverage);
+	lua_register(lua, "GetCloudSpeed", GetCloudSpeed);
+	lua_register(lua, "GetCloudDensity", GetCloudDensity);
+	lua_register(lua, "GetCloudTint", GetCloudTint);
+	lua_register(lua, "GetSolarLatitude", GetSolarLatitude);
+	lua_register(lua, "GetSolarDay", GetSolarDay);
+	lua_register(lua, "GetSolarMonth", GetSolarMonth);
+	lua_register(lua, "GetSolarTime", GetSolarTime);
+
+	lua_register(lua, "SetStarDensity", SetStarDensity);
+	lua_register(lua, "SetSkyEffects", SetSkyEffects);
+	lua_register(lua, "SetSolarLatitude", SetSolarLatitude);
+	lua_register(lua, "SetSolarDay", SetSolarDay);
+	lua_register(lua, "SetSolarMonth", SetSolarMonth);
+	lua_register(lua, "SetSolarTime", SetSolarTime);
+	lua_register(lua, "SetCloudCoverage", SetCloudCoverage);
+	lua_register(lua, "SetCloudSpeed", SetCloudSpeed);
+	lua_register(lua, "SetCloudDensity", SetCloudDensity);
+	lua_register(lua, "SetCloudTint", SetCloudTint);
+
 	//Dynamic sun.
 	lua_register(lua, "SetSunDirection", SetSunDirection);
+	lua_register(lua, "SetSunTime", SetSunTime);
 
 }
 

@@ -1615,8 +1615,30 @@ DARKSDK_DLL bool ConstructMesh ( sMesh** ppMesh, LPSTR* ppBlock )
 			break;
 
 			case DBOBLOCK_MESH_PRIMTYPE :		ReadDWORD              ( (DWORD*)&(*ppMesh)->iPrimitiveType, ppBlock );								break;
-			case DBOBLOCK_MESH_DRAWVERTCOUNT :	ReadDWORD              ( (DWORD*)&(*ppMesh)->iDrawVertexCount, ppBlock );							break;
-			case DBOBLOCK_MESH_DRAWPRIMCOUNT :	ReadDWORD              ( (DWORD*)&(*ppMesh)->iDrawPrimitives, ppBlock );							break;
+			
+			//DBOs created from MAX can leave these two fields blank! They can be recalculated here if it is a trilist :)
+			//case DBOBLOCK_MESH_DRAWVERTCOUNT :	ReadDWORD              ( (DWORD*)&(*ppMesh)->iDrawVertexCount, ppBlock );							break;
+			//case DBOBLOCK_MESH_DRAWPRIMCOUNT :	ReadDWORD              ( (DWORD*)&(*ppMesh)->iDrawPrimitives, ppBlock );							break;
+			case DBOBLOCK_MESH_DRAWVERTCOUNT:	
+			{
+				ReadDWORD              ((DWORD*)&(*ppMesh)->iDrawVertexCount, ppBlock);
+				if ((*ppMesh)->iDrawVertexCount == 0 && (*ppMesh)->iPrimitiveType == 4)
+				{
+					(*ppMesh)->iDrawVertexCount = (int)(*ppMesh)->dwVertexCount;
+				}
+			}
+			break;
+			case DBOBLOCK_MESH_DRAWPRIMCOUNT:	
+			{
+				ReadDWORD              ((DWORD*)&(*ppMesh)->iDrawPrimitives, ppBlock);
+				if ((*ppMesh)->iDrawPrimitives == 0 && (*ppMesh)->iPrimitiveType == 4)
+				{
+					int iTriangleCount = (*ppMesh)->dwIndexCount / 3;
+					(*ppMesh)->iDrawPrimitives = iTriangleCount;
+				}
+			}
+			break;
+
 			case DBOBLOCK_MESH_BONECOUNT :		ReadDWORD              ( &(*ppMesh)->dwBoneCount, ppBlock );										break;
 			case DBOBLOCK_MESH_BONESDATA : 		ConstructBones         ( &(*ppMesh)->pBones, (*ppMesh)->dwBoneCount, ppBlock );						break;
 			case DBOBLOCK_MESH_USEMATERIAL : 	ReadBOOL               ( &(*ppMesh)->bUsesMaterial, ppBlock );										break;

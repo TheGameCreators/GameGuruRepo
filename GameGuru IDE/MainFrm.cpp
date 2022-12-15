@@ -249,6 +249,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_COMMAND(ID_HELP_LUASCRIPTINGADVICE, OnHelpLUAScriptingAdvice)
 	ON_COMMAND(ID_HELP_TOGGLEPARENTALCONTROL, OnHelpToggleParentalControl)
 	ON_COMMAND(ID_HELP_READUSERMANUAL, OnHelpReadUserManual)
+	ON_COMMAND(ID_HELP_READCHANGELOG, OnHelpReadChangeLog)		
 	ON_COMMAND(ID_STANDALONE_EASTERGAME, OnStandaloneEasterGame)
 	ON_WM_SETFOCUS()
 	ON_WM_KILLFOCUS()
@@ -2920,12 +2921,23 @@ void CMainFrame::OnHelpReadUserManual()
 {
 	// Go to link
 	//ShellExecuteW( NULL, L"open", L"https://www.game-guru.com/downloads/pdfs/GameGuru%20-%20Getting%20Started%20Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
+#ifdef GGBRANDED
+	ShellExecuteW(NULL, L"open", L"Files\\languagebank\\english\\artwork\\branded\\Getting Started Guide.pdf", NULL, NULL, SW_SHOWMAXIMIZED);
+#else
+	ShellExecuteW(NULL, L"open", L"Files\\languagebank\\english\\artwork\\GameGuru - Getting Started Guide.pdf", NULL, NULL, SW_SHOWMAXIMIZED);
+#endif
+}
+
+void CMainFrame::OnHelpReadChangeLog()
+{
+	// Go to link
 	#ifdef GGBRANDED
-	ShellExecuteW( NULL, L"open", L"Files\\languagebank\\english\\artwork\\branded\\Getting Started Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
 	#else
-	ShellExecuteW( NULL, L"open", L"Files\\languagebank\\english\\artwork\\GameGuru - Getting Started Guide.pdf" , NULL, NULL, SW_SHOWMAXIMIZED );
+	ShellExecuteW(NULL, L"open", L"history.txt", NULL, NULL, SW_SHOWMAXIMIZED);
 	#endif
 }
+
+
 
 void CMainFrame::OnStandaloneEasterGame()
 {

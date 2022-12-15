@@ -391,6 +391,7 @@ void lua_loop_begin ( void )
 	LuaSetInt ( "g_KeyPressC", KeyState(g.keymap[46]) );
 	//LuaSetInt ( "g_KeyPressJ", !!done in player control code!! );
 	LuaSetInt ( "g_KeyPressSPACE", KeyState(g.keymap[57]) );
+	LuaSetInt ( "g_KeyPressALT"  , KeyState(g.keymap[56]));
 
 	// shift key for running/etc
 	#ifdef VRTECH
@@ -1203,7 +1204,7 @@ void lua_loop_finish ( void )
 			else if (strcmp(t.luaaction_s.Get(), "mp_aimovetox") == 0) { t.e = LuaMessageIndex(); t.tSteamX_f = LuaMessageFloat(); }
 			else if (strcmp(t.luaaction_s.Get(), "mp_aimovetoz") == 0) { t.e = LuaMessageIndex(); t.tSteamZ_f = LuaMessageFloat(); mp_COOP_aiMoveTo(); }
 			else if (strcmp(t.luaaction_s.Get(), "setplayerfov") == 0) { t.v = LuaMessageInt(); lua_setplayerfov(); }
-
+	
 		}
 		else if (iLen == 6)
 		{
@@ -1237,6 +1238,8 @@ void lua_loop_finish ( void )
 			else if (strcmp(t.luaaction_s.Get(), "loadgame") == 0) { lua_loadgame(); }
 			else if (strcmp(t.luaaction_s.Get(), "savegame") == 0) { lua_savegame(); }
 			else if (strcmp(t.luaaction_s.Get(), "quitgame") == 0) { lua_quitgame(); }
+			else if (strcmp(t.luaaction_s.Get(), "setsepia") == 0) { t.v_f = LuaMessageFloat(); lua_setsepia(); }
+			else if (strcmp(t.luaaction_s.Get(), "setlutto") == 0) { t.s_s = LuaMessageString(); lua_set_lut(); }
 		}
 		else if (iLen == 9)
 		{
@@ -1319,6 +1322,7 @@ void lua_loop_finish ( void )
 			else if (strcmp(t.luaaction_s.Get(), "nameplatesoff") == 0) { g.mp.nameplatesOff = 1; }
 			else if (strcmp(t.luaaction_s.Get(), "serverendplay") == 0) { mp_serverEndPlay(); }
 			else if (strcmp(t.luaaction_s.Get(), "triggerfadein") == 0) { lua_triggerfadein(); }
+			else if (strcmp(t.luaaction_s.Get(), "setsaturation") == 0) { t.v_f = LuaMessageFloat(); lua_setsaturation(); }
 			#ifdef VRTECH
 			else if (strcmp(t.luaaction_s.Get(), "lookattargete") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattargete(); }
 			#endif

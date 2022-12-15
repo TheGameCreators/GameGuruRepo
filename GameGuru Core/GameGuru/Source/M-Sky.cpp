@@ -74,7 +74,7 @@ void sky_init ( void )
 	timestampactivity(0, "finished sky bank scan");
 
 	// Default sky settings
-	t.sky.currenthour_f=12.0;
+	//t.sky.currenthour_f=12.0;
 	t.sky.daynightprogress=0;
 
 	//  Dir
@@ -236,16 +236,16 @@ void sky_skyspec_init ( void )
 		{
 			timestampactivity(0,cstr(cstr("Loading sky shaders:")+useSkyShader_s).Get() );
 			LoadEffect ( useSkyShader_s.Get(), t.terrain.effectstartindex+4, 0 );
-			t.effectparam.sky.HudFogDist=GetEffectParameterIndex(t.terrain.effectstartindex+4,"HudFogDist");
-			t.effectparam.sky.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+4,"HudFogColor");
+			//t.effectparam.sky.HudFogDist=GetEffectParameterIndex(t.terrain.effectstartindex+4,"HudFogDist"); //cyb
+			//t.effectparam.sky.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+4,"HudFogColor"); //cyb
 		}
 		if ( GetEffectExist(t.terrain.effectstartindex+9) == 0 ) 
 		{
 			timestampactivity(0,cstr(cstr("Loading sky shaders:")+useSkyScrollShader_s).Get() );
 			LoadEffect ( useSkyScrollShader_s.Get(), t.terrain.effectstartindex+9, 0 );
-			t.effectparam.skyscroll.SkyScrollValues=GetEffectParameterIndex(t.terrain.effectstartindex+9,"SkyScrollValues");
-			t.effectparam.skyscroll.HudFogDist=GetEffectParameterIndex(t.terrain.effectstartindex+9,"HudFogDist");
-			t.effectparam.skyscroll.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+9,"HudFogColor");
+			//t.effectparam.skyscroll.SkyScrollValues=GetEffectParameterIndex(t.terrain.effectstartindex+9,"SkyScrollValues"); //cyb
+			//t.effectparam.skyscroll.HudFogDist=GetEffectParameterIndex(t.terrain.effectstartindex+9,"HudFogDist"); //cyb
+			//t.effectparam.skyscroll.HudFogColor=GetEffectParameterIndex(t.terrain.effectstartindex+9,"HudFogColor"); //cyb
 		}
 		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
@@ -341,8 +341,8 @@ void sky_skyspec_init ( void )
 			if ( ObjectExist(t.terrain.objectstartindex+9) == 1 ) DeleteObject ( t.terrain.objectstartindex+9 );
 			if ( ObjectExist(t.terrain.objectstartindex+9) == 0 ) 
 			{
-				// Create sky scoll object
-				MakeObjectPlane ( t.terrain.objectstartindex+9,90000,90000 );
+				// Create sky scroll object
+				MakeObjectPlane(t.terrain.objectstartindex + 9, 150000, 150000); // 90000, 90000 );
 				SetObjectTextureMode ( t.terrain.objectstartindex+9,2,0 );
 				SetObjectTransparency ( t.terrain.objectstartindex+9,1 );
 				SetObjectCollisionOff ( t.terrain.objectstartindex+9 );
@@ -381,6 +381,10 @@ void sky_skyspec_init ( void )
 			// Load sky cloud portal
 			LoadImage ( "skybank\\cloudportal.dds",t.terrain.imagestartindex+10,0,g.gdividetexturesize );
 			TextureObject ( t.terrain.objectstartindex+9,1,t.terrain.imagestartindex+10 );
+
+			//env map for better lighting of clouds // cyb
+			//TODO - when all shaders refactored for GI
+			//TextureObject(t.terrain.objectstartindex + 9, 6, t.terrain.imagestartindex + 31);//EnvironmentMap
 		}
 		else
 		{
@@ -394,8 +398,17 @@ void sky_skyspec_init ( void )
 		SetMipmapNum ( -1 );
 	}
 
+	if (pestrcasestr(t.skybank_s[g.skyindex].Get(), "simulated sky"))
+	{
+		SetSolarSunDirection(t.sky.currenthour_f, t.visuals.SolarDay, t.visuals.SolarMonth, t.visuals.SolarLatitude_f);
+		t.visuals.using_simulated_sky = 1;
+	}
+	else
+		t.visuals.using_simulated_sky = 0;
+
 	// when change sky, due to sun direction, must update shader constants too
 	t.visuals.refreshshaders=1;
+
 }
 
 void sky_hide ( void )
@@ -469,12 +482,14 @@ void sky_loop ( void )
 		}
 		if ( ObjectExist(t.terrain.objectstartindex+9) == 1 ) 
 		{
-			PositionObject ( t.terrain.objectstartindex+9,CameraPositionX(t.terrain.gameplaycamera),CameraPositionY(t.terrain.gameplaycamera)+7000,CameraPositionZ(t.terrain.gameplaycamera) );
+			//PositionObject ( t.terrain.objectstartindex+9,CameraPositionX(t.terrain.gameplaycamera),CameraPositionY(t.terrain.gameplaycamera)+7000,CameraPositionZ(t.terrain.gameplaycamera) );
+			PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera) + 11000, CameraPositionZ(t.terrain.gameplaycamera));
+
 			if ( GetEffectExist(t.terrain.effectstartindex+9) == 1 ) 
 			{
 				t.terrain.sunskyscrollx_f=t.terrain.sunskyscrollx_f+(t.terrain.sunskyscrollspeedx_f*g.timeelapsed_f);
 				t.terrain.sunskyscrollz_f=t.terrain.sunskyscrollz_f+(t.terrain.sunskyscrollspeedz_f*g.timeelapsed_f);
-				SetVector4 ( g.terrainvectorindex,t.terrain.sunskyscrollx_f,t.terrain.sunskyscrollz_f,0,0 );
+				SetVector4(g.terrainvectorindex, t.terrain.sunskyscrollx_f, t.terrain.sunskyscrollz_f, t.visuals.CloudCoverage_f, t.visuals.CloudSpeed_f); //cyb
 				//SetEffectConstantVEx ( t.terrain.effectstartindex+9,t.effectparam.skyscroll.SkyScrollValues,g.terrainvectorindex );//cyb
 				SetEffectConstantV(t.terrain.effectstartindex + 9, "SkyScrollValues", g.terrainvectorindex);//cyb
 			}
@@ -490,6 +505,16 @@ void sky_loop ( void )
 		SetVector4 ( g.terrainvectorindex,t.visuals.FogR_f/255.0,t.visuals.FogG_f/255.0,t.visuals.FogB_f/255.0,t.visuals.FogA_f/255.0 );
 		//SetEffectConstantVEx ( t.terrain.effectstartindex+4,t.effectparam.sky.HudFogColor,g.terrainvectorindex );//cyb
 		SetEffectConstantV(t.terrain.effectstartindex + 4, "HudFogColor", g.terrainvectorindex);
+
+		//also set sun direction and star density in sky shaders esp. for - sky_atmosphere.fx //cyb
+		SetVector4(g.terrainvectorindex, t.terrain.sundirectionx_f, t.terrain.sundirectiony_f, t.terrain.sundirectionz_f, 0.0);
+		SetEffectConstantV(t.terrain.effectstartindex + 4, "LightSource", g.terrainvectorindex);
+		SetVector4(g.terrainvectorindex, t.visuals.CloudTint_f, t.visuals.CloudDensity_f, t.visuals.StarDensity_f, t.visuals.SkyEffects_f);
+		SetEffectConstantV(t.terrain.effectstartindex + 4, "SkyClouds", g.terrainvectorindex);
+
+		SetVector4(g.terrainvectorindex, t.terrain.sunskyscrollx_f, t.terrain.sunskyscrollz_f, t.visuals.CloudCoverage_f, t.visuals.CloudSpeed_f); 
+		SetEffectConstantV(t.terrain.effectstartindex + 4, "SkyScrollValues", g.terrainvectorindex);
+
 	}
 	if ( GetEffectExist(t.terrain.effectstartindex+9) == 1 ) 
 	{
@@ -499,5 +524,10 @@ void sky_loop ( void )
 		SetVector4 ( g.terrainvectorindex,t.visuals.FogR_f/255.0,t.visuals.FogG_f/255.0,t.visuals.FogB_f/255.0,t.visuals.FogA_f/255.0 );
 		//SetEffectConstantVEx ( t.terrain.effectstartindex+9,t.effectparam.skyscroll.HudFogColor,g.terrainvectorindex );//cyb
 		SetEffectConstantV(t.terrain.effectstartindex + 9, "HudFogColor", g.terrainvectorindex);
+
+		SetVector4(g.terrainvectorindex, t.terrain.sunskyscrollx_f, t.terrain.sunskyscrollz_f, t.visuals.CloudCoverage_f, t.visuals.CloudSpeed_f); //cyb
+		SetEffectConstantV(t.terrain.effectstartindex + 9, "SkyScrollValues", g.terrainvectorindex);//cyb
+		SetVector4(g.terrainvectorindex, t.visuals.CloudTint_f, t.visuals.CloudDensity_f, t.visuals.StarDensity_f, t.visuals.SkyEffects_f); //cyb
+		SetEffectConstantV(t.terrain.effectstartindex + 9, "SkyClouds", g.terrainvectorindex); //cyb
 	}
 }

@@ -1070,7 +1070,7 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 			PlayAnimation (  t.tvideoid );
 			PlaceAnimation (  t.tvideoid,0,0,GetDisplayWidth(),GetDisplayHeight() );
 			t.ttrackmouse=0;
-			while (  AnimationPlaying(t.tvideoid) == 1 ) 
+			while ( AnimationPlaying(t.tvideoid) == 1 )
 			{
 				if ( iNoSkipFlag == 0 )
 				{

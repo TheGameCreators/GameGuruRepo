@@ -398,6 +398,12 @@ end
 function SetPostBloom(v)
  SendMessageF("setpostbloom",v)
 end
+function SetPostSepia(v)
+ SendMessageF("setsepia",v)
+end
+function SetPostSaturation(v)
+ SendMessageF("setsaturation",v)
+end
 function SetPostVignetteRadius(v)
  SendMessageF("setpostvignetteradius",v)
 end
@@ -908,6 +914,9 @@ function PanelLocal(e,mode,x,y,x2,y2)
 end
 function SetSkyTo(str)
  SendMessageS("setskyto",str);
+end
+function SetLutTo(str)
+ SendMessageS("setlutto",str);
 end
 
 -- Common Multiplayer
@@ -1934,6 +1943,12 @@ ScaleObject : ScaleObject( obj, x, y, z ) -- Scales object in all axis (Note: us
 
 SetSkyTo : SetSkyTo ( str ) -- where str is the folder name of the sky you want to change to
 
+SetLutTo : SetLutTo ( "str" ) -- where str is the name of the post process filter effect to change to ("none" is default / none)
+SetPostSaturation : SetPostSaturation ( v ) -- where v is the value between 0 and 100 for post process saturation (30 is default)
+GetPostSaturation : value = GetPostSaturation ( ) -- gets the saturation value currently used in the game
+SetPostSepia : SetPostSepia ( v ) -- where v is the value between 0 and 100 for post process sepia effect (0 is default / none)
+GetPostSepia : value = GetPostSepia ( ) -- gets the sepia value currently used in the game
+
 ***** The following five functions return multiple values, if you do not need them all just replace 
 ***** the ones you don't need with '_' for example : _, _, _, Ax, Ay, Az = GetEntityPosAng( e ) would
 ***** just give you last three of the 6 values returned
@@ -1982,8 +1997,36 @@ GetWaterFlowSpeed() -- gets water setting attributes
 GetWaterDistortionWaves() -- gets water setting attributes
 GetRippleWaterSpeed() -- gets water setting attributes
 
+SetEntityHighlight(e,v) -- set an overlay colour on entity, v = 0(none/remove),1(red),2(pink),3(green),4(blue/green),5(gold)
+
+
 ***** Dymanic sun commands.
 SetSunDirection(x,y,z) -- The direction will be multiplyid into a position so you can use ranges like -10 to 10 or similar.
+
+See simulated_sky_demo.lua for command example usage
+
+SetStarDensity(v) 0 to 100
+SetSolarLatitude(v) -90 to 90
+SetSolarDay(v) 1 to 31
+SetSolarMonth(v) 1 to 12
+SetSolarTime(v) 0 to 24
+SetSunTime(time_hours,day,month,latitude)
+SetCloudCoverage(v) 0 to 100
+SetCloudSpeed(v) 0 to 100
+SetCloudDensity(v) 0 to 100
+SetCloudTint(v) 0 to 100 -- lower darker
+SetSkyEffects(v) 0 to 100 -- note - values greater than zero and less than 50 enable aurora at night, > 50 enables lightning flashes any time of day
+
+GetStarDensity()
+GetSkyEffects()
+GetCloudCoverage()
+GetCloudSpeed()
+GetCloudDensity()
+GetCloudTint()
+GetSolarLatitude()
+GetSolarDay()
+GetSolarMonth()
+GetSolarTime()
 
 ***** Physics commands
 PushObject -- To be documented

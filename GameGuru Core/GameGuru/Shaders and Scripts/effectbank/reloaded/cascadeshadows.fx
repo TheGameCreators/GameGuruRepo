@@ -10,7 +10,9 @@ float           m_fCascadeBlendArea;
 float           m_fTexelSize; // PE: looks fixed
 float           m_fCascadeFrustumsEyeSpaceDepths[8];
 float3          m_vLightDir;
-float 			ShadowStrength = 1.0f;
+#ifndef USEPARALLAXMAPPING
+	float 		ShadowStrength = 1.0f;
+#endif
 float4 			LightSource = {-1.0f, -1.0f, -1.0f, 1.0f};
 
 Texture2D DepthMapTX1 : register( t24 );
@@ -212,8 +214,12 @@ float GetShadowCore ( int iCurrentCascadeIndex, float fCurrentPixelDepth, float4
 	
 	// determine if surface can 'catch' shadow cast
 	float fCropForWhenLightParallelToSurfaceNormal = 0.0f; // 0.3f - good for building walls
+#ifdef PBRVEGETATION
+	float fCanCatchShadow = 1.0f;
+#else
 	float fCanCatchShadow = max(0,dot(WorldNormal,Ln)-fCropForWhenLightParallelToSurfaceNormal);
-	//fCanCatchShadow = 1.0;
+#endif
+	
     // shadow mapping code
     float4 vShadowMapTextureCoord = 0.0f;
     if ( ShadowStrength > 0.0f && fCanCatchShadow > 0.0f )
@@ -231,15 +237,10 @@ float GetShadowCore ( int iCurrentCascadeIndex, float fCurrentPixelDepth, float4
 
       // offset shadow pixel depth with surface bias and distance bias
 	  // now done by offsetting all geometry rendered to shadow map in light direction (DepthMap technique)
-//      float sbias = 0.0001f + (fCurrentPixelDepth/12000000.0f); //PE: (frontfaces) better when FAR away.
 	  float sbias = 0.0f; //-0.000075f; //PE:(backfaces)
-      //float sbias = -(fCurrentPixelDepth/12000000.0f); //PE: (frontfaces) better when FAR away.
 
 	  // projection aliasing should reduce offsets of PCF 'and' adjust bias for depth compare
-//	  float fRemoveProjectionBias = max(0,dot(WorldNormal,Ln)-0.4f)*1.666f;
 	  float fRemoveProjectionBias = max(0, dot(WorldNormal, -Ln) - 0.4f)*1.666f;
-	  //sbias -= max(0,(0.001f - (fRemoveProjectionBias*0.004761f))); // reduces full bias to zero when fRemoveProjectionBias is 0.21f
-	  //sbias -= max(0,(0.0001f - (fRemoveProjectionBias*0.0004761f))); // reduces full bias to zero when fRemoveProjectionBias is 0.21f
 
       // work out texture coordinate into specified shadow map
       ComputeCoordinatesTransform( iCurrentCascadeIndex, finalwpos, vShadowMapTextureCoord );    
@@ -274,7 +275,6 @@ float GetShadowCore ( int iCurrentCascadeIndex, float fCurrentPixelDepth, float4
 	fShadow = fShadow * fFinalFadeOut;
 	
     // finally modulate shadow with strength
-//    fShadow = min ( (fShadow * 4.0f * ShadowStrength), 1.0f );
     fShadow = min ( (fShadow * 3.0f * ShadowStrength), 1.0f ); //PE: Shadow can now go darker , so extent the range.
 
 	// return final shadow value

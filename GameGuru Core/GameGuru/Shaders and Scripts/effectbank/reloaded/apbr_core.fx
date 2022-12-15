@@ -2,7 +2,11 @@
 #define PI 3.1415926535897932384626433832795f
 #define GAMMA 2.2f                                                                                                                    
 #include "constantbuffers.fx"
-#include "settings.fx"                                                  
+#include "settings.fx"     
+
+#ifdef USEPARALLAXMAPPING
+	float 	ShadowStrength = 0.5f;
+#endif
 #include "cascadeshadows.fx"
 
 #define mSunColor (float3(1.0,1.0,1.0))
@@ -22,7 +26,7 @@ float4 GlowIntensity = float4(0,0,0,0);
 float AlphaOverride = 1.0f;
 float SpecularOverride = 1.0f;
 float4 EntityEffectControl = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Alpha Slice Y=not used
-float4 ArtFlagControl1 = {0.0f, 0.0f, 0.0f, 0.0f}; // X=Invert Normal (off by default) Y=Preserve Tangents (off by default) Z=DiffuseBoost
+float4 ArtFlagControl1 = {0.0f, 0.0f, 0.0f, 0.4f}; // X=Invert Normal (off by default) Y=Preserve Tangents (off by default) Z=DiffuseBoost W=ParallaxStrength
 float4 ShaderVariables = float4(0,0,0,0);
 float4 AmbiColorOverride = {1.0f, 1.0f, 1.0f, 1.0f};
 float4 clipPlane : ClipPlane;
@@ -34,6 +38,10 @@ float4 FloorColor = {0,0,0,0};
 float4 DistanceTransition = {0,0,0,0};
 float4 AmbiColor = {0.1f, 0.1f, 0.1f, 1.0f};
 float4 SurfColor = {1.0f, 1.0f, 1.0f, 1.0f};
+#ifdef ENABLE_PULSE_HIGHLIGHTING
+	//float sintime : SinTime;
+	float time : Time;
+#endif
 
 // Dynamic lights system
 float4 SpotFlashPos;
@@ -80,7 +88,9 @@ float TotalSpecular = 1.0f;
 
 #ifdef PBRVEGETATION
  float GrassFadeDistance = 10000.0f;
+ #ifndef ENABLE_PULSE_HIGHLIGHTING
  float time: Time;
+ #endif
  float SwayAmount = 0.05f;
  float SwaySpeed = 1.0f;
  float ScaleOverride = 2.5f;
@@ -317,6 +327,7 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
      //inputBinormal = normalize( float3(inputNormal.y*inputTangent.z, inputNormal.z*inputTangent.x-inputNormal.x*inputTangent.z, //-inputNormal.y*inputTangent.x) );
 	 
 	 // LEE: Fixed above tangent/binormal calculation (see Concrete Girder)
+#ifndef USEPARALLAXMAPPING
 	 if ( ArtFlagControl1.y == 0 )
 	 {
 		 float3 c1 = cross(output.normal, float3(0.0, 0.0, 1.0)); 
@@ -329,6 +340,7 @@ VSOutput VSMain(appdata input, uniform int geometrymode)
 		 inputTangent = normalize(output.tangent);
 		 inputBinormal = normalize(cross(inputTangent, output.normal)); 
      }
+#endif
      output.tangent = mul(inputTangent, wsTransform);
      output.binormal = mul(inputBinormal, wsTransform);
 	 
@@ -482,6 +494,121 @@ SamplerState SampleClamp
     AddressU = Clamp;
     AddressV = Clamp;
 };
+
+#ifndef PBRVEGETATION
+#ifndef PBRTERRAIN
+#ifdef USEPARALLAXMAPPING
+
+float parallaxSoftShadowMultiplier(in float3 L, in float2 initialTexCoord, in float initialHeight, in float parallaxOcclusionMapping)
+{
+	float shadowMultiplier = 1; //no shadow
+
+	const float minLayers = 15;
+	const float maxLayers = 30;
+
+	if (dot(float3(0, 0, 1), L) > 0)
+	{
+		float numSamplesUnderSurface = 0;
+		shadowMultiplier = 0;
+		float numLayers = lerp(maxLayers, minLayers, abs(dot(float3(0, 0, 1), L)));
+		float layerHeight = initialHeight / numLayers;
+		float2 texStep = parallaxOcclusionMapping * L.xy / L.z / numLayers;
+
+		float currentLayerHeight = initialHeight - layerHeight;
+		float2 currentTextureCoords = initialTexCoord + texStep;
+		float heightFromTexture = HeightMap.SampleLevel(SampleWrap, currentTextureCoords, 0).r;
+		int stepIndex = 1;
+
+		// while point is below depth 0.0 )
+		while (currentLayerHeight > 0 && stepIndex <= maxLayers)
+		{
+			if (heightFromTexture < currentLayerHeight)
+			{
+				numSamplesUnderSurface += 1;
+				float newShadowMultiplier = (currentLayerHeight - heightFromTexture) * (1.0 - stepIndex / numLayers);
+				newShadowMultiplier *= 4;
+				shadowMultiplier = max(shadowMultiplier, newShadowMultiplier);
+			}
+
+			stepIndex += 1;
+			currentLayerHeight -= layerHeight;
+			currentTextureCoords += texStep;
+			heightFromTexture = HeightMap.SampleLevel(SampleWrap, currentTextureCoords, 0).r;
+		}
+
+		if (numSamplesUnderSurface < 1)
+		{
+			shadowMultiplier = 1;
+		}
+		else
+		{
+			shadowMultiplier = 1.0 - shadowMultiplier;
+		}
+	}
+	return shadowMultiplier;
+}
+
+float2 ParallaxOcclusionMapping_Calc
+(
+	in float3 V,
+	in float3x3 TBN,
+	in float parallaxOcclusionMapping,
+	in float2 uv,
+	out float parallaxHeight
+)
+{
+
+	parallaxHeight = 0;
+	//int minLayers = 8;
+	//int maxLayers = 50;//32;
+	uint numSteps = 50; //abs( lerp(maxLayers, minLayers, abs(dot(float3(0.0, 0.0, 1.0), V))) );
+	//uint numSteps = abs( lerp(maxLayers, minLayers, dot( normalize(V), attributes.normal.xyz ) ) );
+
+	[branch]
+	if (parallaxOcclusionMapping > 0) //0 to 0.1
+	{
+		float2 uv_dx = ddx_coarse(uv);
+		float2 uv_dy = ddy_coarse(uv);
+
+		V = mul(TBN, V);
+		V.xy /= V.z;
+
+		float layerHeight = 1.0 / numSteps;
+		float curLayerHeight = 0;
+		float2 dtex = parallaxOcclusionMapping * V.xy / numSteps;
+
+		float2 currentTextureCoords = uv;
+		float heightFromTexture = 1 - HeightMap.SampleGrad(SampleWrap, currentTextureCoords, uv_dx, uv_dy).r;
+
+		uint iter = 0;
+		[loop]
+		while (heightFromTexture > curLayerHeight && iter < numSteps)
+		{
+			curLayerHeight += layerHeight;
+			currentTextureCoords -= dtex;
+			heightFromTexture = 1 - HeightMap.SampleGrad(SampleWrap, currentTextureCoords, uv_dx, uv_dy).r;
+			iter++;
+		}
+		float2 prevTCoords = currentTextureCoords + dtex;
+		float nextH = heightFromTexture - curLayerHeight;
+
+		float prevH = 1 - HeightMap.SampleGrad(SampleWrap, prevTCoords, uv_dx, uv_dy).r - curLayerHeight + layerHeight;
+		float weight = nextH / (nextH - prevH);
+		float2 finalTextureCoords = mad(prevTCoords, weight, currentTextureCoords * (1.0 - weight));
+		float2 difference = finalTextureCoords - uv;
+		uv += difference.xy;
+
+		// interpolation of depth values //for soft shadows
+		parallaxHeight = curLayerHeight + prevH * weight + nextH * (1.0 - weight);
+	}
+
+	return uv;
+
+}
+
+#endif
+#endif
+#endif
 
 #ifdef PBRTERRAIN
 float Atlas16GetUV ( in float textargetselectorV, in float texselectorV, in float2 TexCoord, out float2 texatlasuv, out int texcol, out int texrow )
@@ -1078,7 +1205,10 @@ float4 CharacterCreatorDiffuse(float4 diffusemap,float2 uv)
 float3 CalcExtLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap )
 {
 	float3 output = GlowIntensity.xyz;
-    float3 toLight;
+#ifdef ENABLE_PULSE_HIGHLIGHTING
+	output *= abs(sin(time*PULSE_HIGHLIGHTING_SPEED)); // abs(sintime);
+#endif
+	float3 toLight;
     float lightDist;
     float fAtten;
     float3 lightDir;
@@ -1111,6 +1241,9 @@ float3 CalcExtLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap,
 float3 CalcExtLightingPBR(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap, float3 toEye, float metallic, float roughness )
 {
 	float3 output = GlowIntensity.xyz;
+#ifdef ENABLE_PULSE_HIGHLIGHTING
+	output *= abs(sin(time*PULSE_HIGHLIGHTING_SPEED)); // abs(sintime);
+#endif
 	float3 loutp;
     float3 toLight;
     float lightDist;
@@ -1152,6 +1285,9 @@ float3 CalcExtLightingPBR(float3 Nb, float3 worldPos, float3 Vn, float3 diffusem
 float3 CalcLightingPBR(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap, float3 toEye, float metallic, float roughness )
 {
    float3 output = GlowIntensity.xyz;
+#ifdef ENABLE_PULSE_HIGHLIGHTING
+   output *= abs(sin(time*PULSE_HIGHLIGHTING_SPEED)); // abs(sintime);
+#endif
    #ifdef SKIPIFNODYNAMICLIGHTS
    if ( g_lights_data.x == 0 ) return output;
    #endif
@@ -1212,6 +1348,9 @@ float3 CalcLightingPBR(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap,
 float3 CalcLighting(float3 Nb, float3 worldPos, float3 Vn, float3 diffusemap, float3 specmap)
 {
    float3 output = GlowIntensity.xyz;
+#ifdef ENABLE_PULSE_HIGHLIGHTING
+   output *= abs(sin(time*PULSE_HIGHLIGHTING_SPEED)); // abs(sintime);
+#endif
    #ifdef SKIPIFNODYNAMICLIGHTS
    if ( g_lights_data.x == 0 ) return output;
    #endif
@@ -1263,7 +1402,12 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    float3 trueCameraPosition = float3(ViewInv._m30,ViewInv._m31,ViewInv._m32);
 //   float3 trueCameraPosition = input.cameraPosition; //PE: interpolated not as good , switch back for now.
 
+#ifndef PBRTERRAIN
    TotalSpecular = GlobalSpecular * clamp(((SpecularOverride - 1.0) * 0.25), 0.0, 20.0);
+   //TotalSpecular = 1.0 * clamp(((SpecularOverride - 1.0) * 0.25), 0.0, 20.0); //temp test
+#else
+   TotalSpecular = 2.0 * GlobalSpecular;
+#endif
 
    // put input data into attributes structure
    Attributes attributes;
@@ -1359,7 +1503,40 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
       rawglossmap = float3(rawdiffusemap.w,rawdiffusemap.w,rawdiffusemap.w);
 	 #endif
     #else
-     float4 rawdiffusemap = AlbedoMap.Sample(SampleWrapLimitLOD, attributes.uv);
+
+
+	 #ifdef USEPARALLAXMAPPING
+		
+		float amount = ArtFlagControl1.w / 1000.0f; 
+		// 0.04 is default of 0 to 0.1 range 
+		// per entity adjustment via fpe: parallaxstrength = 40 
+		// [TODO: change via UI if/when IMGUI build is public]
+
+		float3 camVec = trueCameraPosition - attributes.position;
+		#ifdef WITHANIMATION 
+			amount = clamp(amount, 0, 0.01);
+		#endif					
+
+		float POMshadowMultiplier = 0;
+		if (input.viewDepth < PARALLAX_RANGE) //player view range check to help performance
+		{
+			float3 surfaceT = normalize(input.tangent);
+			float3 binormal = normalize(input.binormal);
+			float3x3 TBNPOM = float3x3(surfaceT.xyz, binormal, attributes.normal.xyz);
+
+			float parallaxHeight; 
+			attributes.uv = ParallaxOcclusionMapping_Calc(camVec, TBNPOM, amount, attributes.uv, parallaxHeight);
+
+			//calc self shadows for POM
+			float3 lightVec = LightSource.xyz;
+			float3 L = mul(TBNPOM, normalize(lightVec));
+
+			POMshadowMultiplier = 1 - parallaxSoftShadowMultiplier(L, attributes.uv, parallaxHeight + 0.05, amount);
+		}
+	
+	 #endif
+
+	 float4 rawdiffusemap = AlbedoMap.Sample(SampleWrapLimitLOD, attributes.uv);
      float3 rawnormalmap = NormalMap.Sample(SampleWrap, attributes.uv).rgb;
      float SpecValue = min(MetalnessMap.Sample(SampleWrap, attributes.uv).r, 1);
      float3 rawmetalmap = float3(SpecValue,SpecValue,SpecValue);
@@ -1372,6 +1549,7 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
      #endif
     #endif
    #endif
+
 
    #ifdef ALPHADISABLED
     rawdiffusemap.a = 1;
@@ -1425,6 +1603,15 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
     norm = mul(norm.rgb, toWorld);
     attributes.normal = normalize(norm);
    #endif
+
+#ifdef USEPARALLAXMAPPING_2 //disabled
+	
+	//dot product zero (perpendicular) to one (parallel) 
+	float fCanCatchShadow = dot(normalize(LightSource.xyz), attributes.normal.xyz);
+	fCanCatchShadow = 1 - abs(fCanCatchShadow);
+	POMshadowMultiplier *= fCanCatchShadow;
+
+#endif
    
    // eye vector
    float3 eyeraw = trueCameraPosition - attributes.position;
@@ -1473,6 +1660,11 @@ float4 PSMainCore(in VSOutput input, uniform int fullshadowsoreditor)
    float fShadow = 0.0f;
 
    if ( fullshadowsoreditor == 1 ) fShadow = GetShadow ( input.viewDepth, input.position, originalNormal, normalize(LightSource.xyz), iCurrentCascadeIndex );
+
+#ifdef USEPARALLAXMAPPING
+   POMshadowMultiplier *= ShadowStrength;
+   fShadow = clamp(fShadow + POMshadowMultiplier, 0, 1);
+#endif
 
 #ifdef CALLEDFROMOLDTERRAIN
 #ifdef PBRTERRAIN
@@ -1839,6 +2031,12 @@ float4 PSMainBaked(in VSOutput input, uniform int fullshadowsoreditor) : SV_TARG
 	return final;
 }
 
+float4 blackPS(in VSOutput input) : SV_TARGET
+{
+   clip(input.clip);
+   return float4(0,0,0,1);
+}
+
 DepthStencilState YesDepthRead
 {
   DepthFunc = LESS_EQUAL;
@@ -2060,6 +2258,16 @@ technique11 Distant
         SetDepthStencilState( YesDepthRead, 0 );
         SetRasterizerState ( BackwardCull );
         #endif
+    }
+}
+
+technique11 blacktextured
+{
+    pass P0
+    {
+		SetVertexShader(CompileShader(vs_5_0, VSMain(1)));
+        SetPixelShader(CompileShader(ps_5_0, blackPS()));
+        SetGeometryShader(NULL);
     }
 }
 

@@ -484,7 +484,7 @@ struct sMeshInternalProperties
 
 	// reserved members
 	DWORD							fBoostIntensity;							// reserved - maintain plugin compat.
-	DWORD							dwReservedMIP2;								// reserved - maintain plugin compat.
+	DWORD							fParallaxStrength;							
 	DWORD							dwReservedMIP3;								// reserved - maintain plugin compat.
 };
 
