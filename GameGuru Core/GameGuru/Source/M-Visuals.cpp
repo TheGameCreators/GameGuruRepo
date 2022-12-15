@@ -118,12 +118,23 @@ void visuals_resetvalues ( void )
 	t.visuals.FogG_f=158;
 	t.visuals.FogB_f=173;
 	t.visuals.FogA_f=128;
-	t.visuals.AmbienceIntensity_f=128.0f;
 	t.visuals.FogNearest_f = 5800;
 	t.visuals.FogDistance_f = 50000;
+
+#ifdef PRODUCTCLASSIC
+	//PE: From old classic repo:
+	t.visuals.AmbienceIntensity_f = 60.0f;
+	t.visuals.AmbienceRed_f = 255;
+	t.visuals.AmbienceGreen_f = 255;
+	t.visuals.AmbienceBlue_f = 255;
+#else
+	//PE: From new 64bit repo;
+	t.visuals.AmbienceIntensity_f=128.0f;
 	t.visuals.AmbienceRed_f=128;
 	t.visuals.AmbienceGreen_f=128;
 	t.visuals.AmbienceBlue_f=128;
+#endif
+
 	t.visuals.SurfaceIntensity_f=1.333;
 	t.visuals.SurfaceRed_f=255;
 	t.visuals.SurfaceGreen_f=255;
@@ -215,10 +226,21 @@ void visuals_editordefaults ( void )
 	t.visuals.TerrainLOD2_f=15000.0;
 	t.visuals.TerrainLOD3_f=20000.0;
 	t.visuals.TerrainSize_f=100.0f;
-	t.visuals.AmbienceIntensity_f=89.25f;
+
+	t.visuals.AmbienceIntensity_f = 89.25f;
+
+	#ifdef PRODUCTCLASSIC
+	//PE: From old classic repo:
+	t.visuals.AmbienceRed_f = 255;
+	t.visuals.AmbienceGreen_f = 255;
+	t.visuals.AmbienceBlue_f = 255;
+	#else
+	//PE: From new 64bit repo;
 	t.visuals.AmbienceRed_f=128;
 	t.visuals.AmbienceGreen_f=128;
 	t.visuals.AmbienceBlue_f=128;
+	#endif
+
 	//PE: We should always have light in editor, addition to issue: https://github.com/TheGameCreators/GameGuruRepo/issues/352#event-2404317522
 	//PE: fix for commit: https://github.com/TheGameCreators/GameGuruRepo/commit/4aff257545b19a969e4676c7b057a42d8e93fdf1
 	t.visuals.SurfaceSunFactor_f = 1.0;
