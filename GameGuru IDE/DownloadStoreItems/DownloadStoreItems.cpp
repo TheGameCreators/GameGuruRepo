@@ -224,7 +224,6 @@ bool CDownloadStoreItems::UpdateList()
 	 m_hInternet = InternetOpen( TEXT("FPSCDownload"), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL,0 );
 		if ( m_hInternet != NULL )
 		{
-
 			DWORD timeout = DOWNLOADSTOREITEMS_TIMEOUT;
 			InternetSetOption ( m_hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeout, sizeof ( timeout ) );
 			InternetSetOption ( m_hInternet, INTERNET_OPTION_SEND_TIMEOUT, &timeout, sizeof ( timeout ) );
