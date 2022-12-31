@@ -386,6 +386,7 @@ void postprocess_preterrain ( void )
 	//  Render pre-terrain post process cameras for 'glightraycameraid' and 'rift mode' (below)
 	if (  g.gpostprocessing>0 && t.glightraycameraid>0 && t.visuals.lightraymode>0 ) 
 	{
+		
 		//  switch to black textures technique (fast)
 		if (  t.terrain.vegetationshaderindex>0 ) 
 		{
@@ -411,6 +412,7 @@ void postprocess_preterrain ( void )
 				SetEffectTechnique ( t.teffectid, "blacktextured" );
 			}
 		}
+
 		// remove sky from lightray
 		if (  ObjectExist(t.terrain.objectstartindex+4) == 1 ) 
 		{
@@ -468,8 +470,9 @@ void postprocess_preterrain ( void )
 
 			if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(0), (11000 + t.terrain.waterliney_f), CameraPositionZ(0));
 		
-			//SetObjectMask (  t.terrain.objectstartindex+9,1);//(t.tskymaskforcamerasnoshadow),0,0,0 ); no relfection of scroll
-			SetObjectMask(t.terrain.objectstartindex + 9, (t.tskymaskforcamerasnoshadow), 0, 0, 0);
+			//Bug-Fix: Frozen Weapon Animations when light rays in use
+			SetObjectMask (  t.terrain.objectstartindex+9,1);//(t.tskymaskforcamerasnoshadow),0,0,0 ); no relfection of scroll
+			////SetObjectMask(t.terrain.objectstartindex + 9, (t.tskymaskforcamerasnoshadow), 0, 0, 0);
 		}
 
 		// reset skyscroll technique
