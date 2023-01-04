@@ -3401,7 +3401,8 @@ void FPSC_VeryEarlySetup(void)
 	||  strcmp(Lower(Right(Appname(), 16)), "vr quest app.exe") == 0
 	||  strcmp(Lower(Right(Appname(), 15)), "gamegurumax.exe") == 0)
 	#else
-	if (strcmp(Lower(Right(Appname(), 18)), "guru-mapeditor.exe") == 0)
+	if (strcmp(Lower(Right(Appname(), 18)), "guru-mapeditor.exe") == 0
+		|| strcmp(Lower(Right(Appname(), 13)), "gameguru2.exe") == 0)
 	#endif
 	{
 		g.trueappname_s = "Guru-MapEditor";
