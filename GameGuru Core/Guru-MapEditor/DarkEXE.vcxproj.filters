@@ -216,6 +216,9 @@
     <ClCompile Include="..\GameGuru\Imgui\imgui.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_demo.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
     <ClCompile Include="..\GameGuru\Imgui\imgui_draw.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>

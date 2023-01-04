@@ -102,9 +102,12 @@
 
   #else
 	// Flags to compile the Classic version of GameGuru
+
 	//PE: Add ENABLEIMGUI,USERENDERTARGET to compile a imgui version of Classic.
+	//LB: Also ensure you 'include' in build the IMGUI source files, and add the necessary extra files in the root folder (i.e. tutorialbank, etc)
 	//#define ENABLEIMGUI
 	//#define USERENDERTARGET
+
 	#define FPSEXCHANGE
 	#define ENABLECUSTOMTERRAIN
 	#ifdef PRODUCTCONVERTER
