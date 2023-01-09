@@ -17,7 +17,7 @@ rotz          = 0
 defaultstatic = 1
 materialindex = 1
 collisionmode = 1
-orcesimpleobstacle = 3
+forcesimpleobstacle = 3
 
 ;statistics
 strength      = 25
