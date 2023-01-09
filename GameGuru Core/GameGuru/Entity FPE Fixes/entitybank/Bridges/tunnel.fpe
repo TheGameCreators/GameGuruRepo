@@ -1,0 +1,27 @@
+;header
+desc          = Tunnel
+
+;visualinfo
+textured      = Tunnel_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
+castshadow    = 0
+
+;ai
+aimain	      = default.lua
+
+;orientation
+model         = Tunnel.x
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+scale         = 0
+fixnewy       = 0
+defaultstatic = 1
+materialindex = 1
+collisionmode = 1
+forcesimpleobstacle = 3
+strength      = 25
+isimmobile    = 1
