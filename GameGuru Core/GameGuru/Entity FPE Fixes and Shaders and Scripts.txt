@@ -1,0 +1,8 @@
+Instructions
+------------
+
+* Any fixes can be submitted in these folder. Ensure the folder structure is identical so it can be placed in correct location of the correct CORE/DLL area.
+
+* Once the files have been incorporated into the master build (internally) and made part of the BETA build, we will remove files from this folder to retain control via a single instance of the file.
+
+* Keep the folder structures (empty folders is fine), but TGC will delete the files.
