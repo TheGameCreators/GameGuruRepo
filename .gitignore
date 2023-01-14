@@ -251,5 +251,62 @@ GameGuru Core/Dark Basic Public Shared/Lib64/Vectors.lib
 *.lock
 *.db-shm
 *.recipe
-*.lib
 *.ilk
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Animation.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Basic2D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Basic3D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Bitmap.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/BlitzTerrain.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/BlitzTerrain_RTTMSPlugin.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Bullet.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Camera.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/ConvX.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/CPU3D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/DarkAI.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/DarkLUA.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/DBDLLCore.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Enhancements.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/File.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/FTP.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Image.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/InfiniteVegetation.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Input.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Light.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/LightMapper.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Memblocks.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Setup.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Sound.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Sprites.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/SteamMultiplayer.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/System.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Text.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Vectors.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Animation.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Basic2D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Basic3D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Bitmap.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/BlitzTerrain.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/BlitzTerrain_RTTMSPlugin.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Bullet.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Camera.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/ConvX.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/CPU3D.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/DarkAI.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/DarkLUA.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/DBDLLCore.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Enhancements.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/File.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/FTP.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Image.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/InfiniteVegetation.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Input.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Light.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/LightMapper.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Memblocks.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Setup.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Sound.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Sprites.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/SteamMultiplayer.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/System.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Text.lib
+GameGuru Core/Dark Basic Public Shared/Lib64/Release/Vectors.lib
