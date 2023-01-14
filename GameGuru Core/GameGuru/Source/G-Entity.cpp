@@ -2406,7 +2406,10 @@ void entity_triggerdecalatimpact ( float fX, float fY, float fZ )
 		if ( t.tttriggerdecalimpact == 1 ) decal_triggerimpact ( );
 		if ( t.tttriggerdecalimpact == 2 ) 
 		{
-			if ( t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 ) 
+			//if ( t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 ) 
+			//https://github.com/TheGameCreators/GameGuruRepo/issues/4058
+
+			if (g.quickparentalcontrolmode != 2)
 			{
 				for ( t.iter = 1 ; t.iter <= 3+Rnd(1); t.iter++ )
 				{
