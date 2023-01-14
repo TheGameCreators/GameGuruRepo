@@ -1,20 +1,18 @@
 # The GameGuru Classic Repository
 
-This is not open source and remains the copyright of The Game Creators Ltd, see Wiki for more information on license matters. This repository contains a 64-bit version of Classic as the master trunk, and a legacy 32-bit version under the 'June-2022-(32bit)' branch for older OS platforms.
+This is not open source and remains the copyright of The Game Creators Ltd, see Wiki for more information on license matters. This repository contains a 64-bit version of Classic as the master trunk, and an older version under the 'VS2017-Legacy-JAN2023' branch that used the older VS2017 for compiling.
 
 GameGuru Classic is a 3D game maker for simple first and third person games and is available to buy from Steam. 
 
-Steam Product: https://store.steampowered.com/app/266310/GameGuru/
+Steam Product: https://store.steampowered.com/app/266310/?utm_source=githubrepo&utm_campaign=general&utm_medium=web
 
 You will need the media files associated with the above product to use this repository.
 
-This source code requires Visual Studio 2017 Professional Edition. here is a link to the older Visual Studio downloads: https://visualstudio.microsoft.com/vs/older-downloads/
+This source code requires Visual Studio 2022 Community Edition. You can get this for free from the Microsoft website.
 
-To download Visual Studio 2017 Professional, click the download button and log in with your Visual Studio Subscription account when prompted. If you don’t have a Visual Studio Subscription, you can create one for free by clicking on “Create a new Microsoft account” on the login page.
+When installing Visual Studio 2022, ensure you select the "Desktop C++" development track, and tick the optional Visual C++ MFC for x86 and x64 as you will need these additional files to compile the legacy GameGuru Classic executables.
 
-When installing Visual Studio 2017 Professional, ensure you select the "Desktop C++" development track, and tick the optional Visual C++ MFC for x86 and x64 as you will need these additional files to compile the legacy GameGuru Classic executables.
-
-To give you a better idea about getting started, we have made a 12 minute video showing the whole setup process from the very first download to running GameGuru Classic under your own binary creations. Do let the team know if you have any additional questions and we will post the answers below.
+To give you a better idea about getting started, a while ago we made a 12 minute video showing the whole setup process from the very first download to running GameGuru Classic under your own binary creations. This video shows VS2017 being used but the process remains the same.
 
 How To Use Repository Video: [[Click To Watch Video]](https://www.youtube.com/watch?v=gtkmwEDivxo)
 
