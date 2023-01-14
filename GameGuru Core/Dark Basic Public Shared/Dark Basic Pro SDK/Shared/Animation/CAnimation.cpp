@@ -788,6 +788,9 @@ void PlayVideoToImage( uint32_t imageID )
 			hr = g_pVideoSession->SetTopology( 0, pTopology );
 			if ( FAILED(hr) ) { Error1( "Failed to set session topology" ); goto failed; }
 
+			//LB: set time out if no sound card, the loop would never end
+			DWORD dwTimeElapsed = timeGetTime() + 5000; // 5 seconds
+
 			// must wait for topology to finish setting before we can get the volume interface
 			///float startTime = Timer();
 			IMFMediaEvent *pEvent = 0;
@@ -807,6 +810,7 @@ void PlayVideoToImage( uint32_t imageID )
 					pEvent->Release();
 					if ( eType == MESessionTopologyStatus ) break;
 				}
+				if (timeGetTime() > dwTimeElapsed) break;
 			} while( hr == S_OK || hr == (0xC00D3E80L) ); // MF_E_NO_EVENTS_AVAILABLE
 
 			if ( hr != S_OK )
