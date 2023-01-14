@@ -1,7 +1,7 @@
 // include definition
 #include <stdio.h>
 #include "cerror.h"
-#include "globstruct.h"
+//#include "globstruct.h"
 #pragma comment ( lib, "user32.lib" )
 #define DB_PRO 1
 

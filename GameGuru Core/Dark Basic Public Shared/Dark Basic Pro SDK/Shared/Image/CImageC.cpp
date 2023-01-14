@@ -11,6 +11,7 @@
 #include "globstruct.h"
 #include <stdio.h>
 #include <direct.h>
+#include <string>
 #include <vector>
 #include <map>
 #include ".\..\Core\SteamCheckForWorkshop.h"

@@ -256,6 +256,11 @@ GameGuru Core/SDK/OGG/lib64/Release/vorbisfile_static.lib
 GameGuru Core/SDK/OGG/lib64/Release/vorbis_static.lib
 GameGuru Core/SDK/OGG/lib64/Release/ogg_static.lib
 GameGuru Core/SDK/DirectX/Effect11/Bin/Desktop_2022/x64/Release/Effects11.lib
+*.vsidx
+*.lock
+*.db-shm
+*.recipe
+*.ilk
 GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Animation.lib
 GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Basic2D.lib
 GameGuru Core/Dark Basic Public Shared/Lib64/Debug/Basic3D.lib
@@ -314,3 +319,11 @@ GameGuru Core/Dark Basic Public Shared/Lib64/Release/SteamMultiplayer.lib
 GameGuru Core/Dark Basic Public Shared/Lib64/Release/System.lib
 GameGuru Core/Dark Basic Public Shared/Lib64/Release/Text.lib
 GameGuru Core/Dark Basic Public Shared/Lib64/Release/Vectors.lib
+GameGuru Core/.vs/GameGuru/v17/fileList.bin
+GameGuru Core/SDK/DirectX/Effect11/Bin/Desktop_2022/x64/Release/Effects11.lib
+GameGuru Core/SDK/DirectX/Effect11/Bin/Desktop_2022/x64/Release/Effects11_2022.vcxproj.FileListAbsolute.txt
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTex.lib
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTex_Desktop_2022.vcxproj.FileListAbsolute.txt
+GameGuru Core/SDK/OGG/lib64/Release/ogg_static.lib
+GameGuru Core/SDK/OGG/lib64/Release/vorbis_static.lib
+GameGuru Core/SDK/OGG/lib64/Release/vorbisfile_static.lib

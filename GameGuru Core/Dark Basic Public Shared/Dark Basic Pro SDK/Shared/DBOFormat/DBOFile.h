@@ -8,7 +8,7 @@
 #include "DBOData.h"
 
 #include "preprocessor-flags.h"
-#include "..\global.h"
+#include "global.h"
 
 extern char g_WindowsTempDirectory[_MAX_PATH];
 

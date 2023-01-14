@@ -3,7 +3,7 @@
 //
 
 #include "preprocessor-flags.h"
-#include "..\global.h"
+#include "global.h"
 
 #include "DBOFormat.h"
 
