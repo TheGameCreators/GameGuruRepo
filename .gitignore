@@ -247,3 +247,9 @@ GameGuru Core/Dark Basic Public Shared/Lib64/SteamMultiplayer.lib
 GameGuru Core/Dark Basic Public Shared/Lib64/System.lib
 GameGuru Core/Dark Basic Public Shared/Lib64/Text.lib
 GameGuru Core/Dark Basic Public Shared/Lib64/Vectors.lib
+*.vsidx
+*.lock
+*.db-shm
+*.recipe
+*.lib
+*.ilk

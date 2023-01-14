@@ -3,7 +3,7 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 
-#include "..\global.h"
+#include "global.h"
 #include <wtypes.h>
 
 extern DARKSDK void AddToRenderList(LPVOID pFunction, int iPriority);

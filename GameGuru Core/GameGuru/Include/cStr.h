@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <vector>
+#include <string>
 
 #ifndef __C_STR__
 

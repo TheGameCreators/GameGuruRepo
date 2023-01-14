@@ -262,7 +262,10 @@ DARKSDK void UpdateSound ( void )
 	if ( g_currentSoundHWND != hWnd )
 	{
 		g_currentSoundHWND = hWnd;
-		HRESULT hr = g_pSoundManager->m_pDS->SetCooperativeLevel( hWnd, DSSCL_PRIORITY );
+		if (g_pSoundManager->m_pDS)
+		{
+			HRESULT hr = g_pSoundManager->m_pDS->SetCooperativeLevel(hWnd, DSSCL_PRIORITY);
+		}
 	}
 }
 

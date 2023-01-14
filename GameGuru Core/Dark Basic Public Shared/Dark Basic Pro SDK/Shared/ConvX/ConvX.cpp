@@ -93,6 +93,7 @@ void ConvXFree ( LPSTR pBlock )
 #else
 */
 
+/* 64-bit VS2022 version of Classic no longer parses X files!
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -100,30 +101,17 @@ _CrtMemState g_crt_mem_state;
 #include "ConvX.h"
 #include "CGfxC.h"
 #include <initguid.h>
-#include "dxfile.h"
-#include "D3D9Types.h"
-#include "D3dx9mesh.h"
+///#include "D3D9Types.h"
+///#include "D3dx9mesh.h"
+///#include "dxfile.h"
 
 #define IMPL_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8)\
 EXTERN_C const GUID DECLSPEC_SELECTANY name = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
 IMPL_GUID(DBIID_IDirectXFileData,           0x3d82ab44, 0x62da, 0x11cf, 0xab, 0x39, 0x0, 0x20, 0xaf, 0x71, 0xe4, 0x33);
 IMPL_GUID(DBIID_IDirectXFileDataReference,  0x3d82ab45, 0x62da, 0x11cf, 0xab, 0x39, 0x0, 0x20, 0xaf, 0x71, 0xe4, 0x33);
-/*
-DEFINE_GUID(DXFILEOBJ_XSkinMeshHeader,
-0x3cf169ce, 0xff7c, 0x44ab, 0x93, 0xc0, 0xf7, 0x8f, 0x62, 0xd1, 0x72, 0xe2);
-DEFINE_GUID(DXFILEOBJ_SkinWeights, 
-0x6f0d123b, 0xbad2, 0x4167, 0xa0, 0xd0, 0x80, 0x22, 0x4f, 0x25, 0xfa, 0xbb);
-DEFINE_GUID(DXFILEOBJ_FVFData, 
-0xb6e70a0e, 0x8ef9, 0x4e83, 0x94, 0xad, 0xec, 0xc8, 0xb0, 0xc0, 0x48, 0x97);
-// 040908 - added for U70 to support TS76 new X file export (and others)
-DEFINE_GUID(DXFILEOBJ_DeclData, 
-0xbf22e553, 0x292c, 0x4781, 0x9f, 0xea, 0x62, 0xbd, 0x55, 0x4b, 0xdd, 0x93);
-DEFINE_GUID(DXFILEOBJ_VertexElement, 
-0xf752461c, 0x1e23, 0x48f6, 0xb9, 0xf8, 0x83, 0x50, 0x85, 0x0f, 0x33, 0x6f);
-*/
 
-#include "rmxftmpl.h"
-#include "rmxfguid.h"	
+//#include "rmxftmpl.h"
+//#include "rmxfguid.h"	
 
 #include < vector >
 using namespace std;
@@ -451,44 +439,35 @@ DARKSDK bool ConvXLoadModelData ( char* szFilename, sFrame* pFrame, bool bAnim )
 	// LB: 32bit work - alas porting the X file parser is a chunk of work and no guarentee the X model data loaded will be identical to the older 32bit
 	// solution. Better to call a 32-bit process to produce the DBO file identically as it used to, and then load the DBO file.
 	// see X to DBO filename convertsion via the g_pRootFolderConverter converter that remains 32 bit in the installation
-
-	/*
 	// setup variables
-	IDirectXFile*			pDXFile = NULL;	// file interface
-	IDirectXFileEnumObject* pDXEnum = NULL;	// object interface
-	IDirectXFileData*		pDXData = NULL;	// data interface
-	char*					szTexturePath = "";		// default texture path
-
-	// create the file object
-	if ( FAILED ( DirectXFileCreate ( &pDXFile ) ) )
-		return false;
-
-	// register the templates from RM
-	if ( FAILED ( pDXFile->RegisterTemplates ( ( LPVOID ) D3DRM_XTEMPLATES, D3DRM_XTEMPLATE_BYTES ) ) )
-		return false;
-
-	// create an enumeration object
-	if ( FAILED ( pDXFile->CreateEnumObject ( ( LPVOID ) szRealFilename, DXFILELOAD_FROMFILE, &pDXEnum ) ) )
-		return false;
-
-	// loop through all objects looking for the frames and meshes
-	while ( SUCCEEDED ( pDXEnum->GetNextDataObject ( &pDXData ) ) )
-	{
-		// check the current block of data
-		if ( !ParseXFileData ( pDXData, pFrame, szTexturePath, NULL, NULL, bAnim ) )
-			return false;
-		
-		// release it
-		SAFE_RELEASE ( pDXData );
-	}
-
-	// release dx handles
-	SAFE_RELEASE ( pDXEnum );
-	SAFE_RELEASE ( pDXFile );
-	*/
+	//IDirectXFile*			pDXFile = NULL;	// file interface
+	//IDirectXFileEnumObject* pDXEnum = NULL;	// object interface
+	//IDirectXFileData*		pDXData = NULL;	// data interface
+	//char*					szTexturePath = "";		// default texture path
+	//// create the file object
+	//if ( FAILED ( DirectXFileCreate ( &pDXFile ) ) )
+	//	return false;
+	//// register the templates from RM
+	//if ( FAILED ( pDXFile->RegisterTemplates ( ( LPVOID ) D3DRM_XTEMPLATES, D3DRM_XTEMPLATE_BYTES ) ) )
+	//	return false;
+	//// create an enumeration object
+	//if ( FAILED ( pDXFile->CreateEnumObject ( ( LPVOID ) szRealFilename, DXFILELOAD_FROMFILE, &pDXEnum ) ) )
+	//	return false;
+	//// loop through all objects looking for the frames and meshes
+	//while ( SUCCEEDED ( pDXEnum->GetNextDataObject ( &pDXData ) ) )
+	//{
+	//	// check the current block of data
+	//	if ( !ParseXFileData ( pDXData, pFrame, szTexturePath, NULL, NULL, bAnim ) )
+	//		return false;
+	//	// release it
+	//	SAFE_RELEASE ( pDXData );
+	//}
+	//// release dx handles
+	//SAFE_RELEASE ( pDXEnum );
+	//SAFE_RELEASE ( pDXFile );
 
 	// return to caller
-	return true;
+	return true; 
 }
 
 DARKSDK bool ConvXDelete ( void )
@@ -920,32 +899,6 @@ DARKSDK void XFILE_NEW_CopyNormalsToVertices ( void )
 			pNewVertexData [ dwVIndex ].vecNormal.z = g_pNormalList [ dwNIndex ].z;
 		}
 
-		/* leefix - 300109 - hud.x model had missing polys as last seven normals had same number in faceindex data
-		// create new vertex data allocation (based on normals data)
-		sNewVertex* pNewVertexData = new sNewVertex [ g_dwNormalCount ];
-		DWORD* pNewIndexData = new DWORD [ g_dwFaceCount * 3 ];
-
-		// can simply copy over the index table from the normals data (the new template for the index)
-		memcpy ( pNewIndexData, g_pNormalIndexList, sizeof(DWORD)*g_dwFaceCount*3 );
-
-		// copy existing vertex data to new data
-		for ( int i = 0; i < ( int ) g_dwFaceCount * 3; i++ )
-		{
-			// NEW vertex index based on normal data
-			DWORD dwNewExpandedIndex = g_pNormalIndexList [ i ];
-
-			// copy the vertex data from original position
-			DWORD dwOldIndex = g_pIndexList [ i ];
-			pNewVertexData [ dwNewExpandedIndex ] = g_pVertexList [ dwOldIndex ];
-
-			// copy the normal vector (using the normal face data for both indexes)
-			pNewVertexData [ dwNewExpandedIndex ].vecNormal.x = g_pNormalList [ dwNewExpandedIndex ].x;
-			pNewVertexData [ dwNewExpandedIndex ].vecNormal.y = g_pNormalList [ dwNewExpandedIndex ].y;
-			pNewVertexData [ dwNewExpandedIndex ].vecNormal.z = g_pNormalList [ dwNewExpandedIndex ].z;
-		}
-		g_dwVertexCount = g_dwNormalCount;
-		*/
-
 		// delete old and replace with new data
 		SAFE_DELETE ( g_pVertexList );
 		SAFE_DELETE ( g_pIndexList );
@@ -1375,32 +1328,6 @@ DARKSDK bool XFILE_NEW_GetMeshMaterialList ( IDirectXFileData* pSubData, sFrame*
 		SAFE_DELETE_ARRAY ( g_pFaceIndexOldRef );
 	}
 	#endif
-
-	// leefix - 041103 - consider materials reference by face and if we have 
-	// processed quads or greater, those face references have changed!
-	/*
-	if ( g_pFaceIndexOldRef )
-	{
-		// only works for QUADS (2poly) - later must cater for 5,6,7 poly-etc
-		DWORD newindex=0;
-		DWORD dwNewMaterialListIndexCount = 0;
-		dwNewMaterialListIndexCount = g_dwFaceCount;
-		DWORD* pNewMaterialList = new DWORD [ dwNewMaterialListIndexCount ];
-		for ( DWORD j = 0; j < ( int ) g_dwMaterialListIndexCount; j++ )
-		{
-			pNewMaterialList [ newindex+0 ] = g_pMaterialList [ j ];
-			pNewMaterialList [ newindex+1 ] = g_pMaterialList [ j ];
-			newindex+=2;
-		}
-		g_dwMaterialListIndexCount = dwNewMaterialListIndexCount;
-		SAFE_DELETE(g_pMaterialList);
-		g_pMaterialList = pNewMaterialList;
-
-		// rather redundant as really a quad equates to two identical index references
-		// might need this data though when we go for 5,6,7,8 sided polygons..
-		SAFE_DELETE_ARRAY ( g_pFaceIndexOldRef );
-	}
-	*/
 
 	// look for optional material and texture data
 	XFILE_NEW_GetOptionalMaterialData ( pSubData );
@@ -2635,156 +2562,7 @@ DARKSDK bool ParseXFileData ( IDirectXFileData* pDataObj, sFrame* pParentFrame, 
 	return true;
 }
 
-
-/* This seems redundant, if so, delete from exisrtance
-
-  void SetupTextures ( sMesh* pMesh, GGBASEMATERIAL* pMaterials, DWORD dwCount, DWORD* pAttribute, DWORD dwIndexCount )
-{
-	// at least one texture must be created
-	if ( dwCount < 1 ) dwCount=1;
-
-	// Store the attribute data for later processing (if any)
-	if ( pAttribute )
-	{
-		DWORD dwNumberOfFaces = dwIndexCount / 3;
-		pMesh->pAttributeWorkData = new DWORD [ dwNumberOfFaces ];
-		memcpy ( pMesh->pAttributeWorkData, pAttribute, sizeof(DWORD) * dwNumberOfFaces );
-	}
-
-	// get properties
-	pMesh->dwTextureCount = dwCount;							// save the number of textures
-	pMesh->pTextures      = new sTexture [ dwCount ];			// allocate texture memory
-
-	// if have a material 
-	if ( pMaterials )
-	{
-		// copy entire material buffer to temporary bank (in case mesh needs splitting)
-		pMesh->pMaterialBank  = new GGBASEMATERIAL [ dwCount ];
-		memcpy ( pMesh->pMaterialBank, pMaterials, sizeof ( GGBASEMATERIAL ) * dwCount );
-
-		// copy single material (normally the default if no splitting)
-		pMesh->bUsesMaterial = true;
-		memcpy ( &pMesh->mMaterial, &pMaterials [ 0 ].MatD3D, sizeof ( GGMATERIAL ) );
-
-		// run through all textures, get materials and store
-		for ( int iTexture = 0; iTexture < ( int ) dwCount; iTexture++ )
-		{
-			if ( pMaterials [ iTexture ].pTextureFilename )
-			{
-				DWORD dwSize = strlen ( pMaterials [ iTexture ].pTextureFilename );
-				strcpy ( pMesh->pTextures [ iTexture ].pName, pMaterials [ iTexture ].pTextureFilename );
-			}
-			else
-				strcpy ( pMesh->pTextures [ iTexture ].pName, "" );
-		}
-	}
-	else
-	{
-		// default material
-		GGMATERIAL material;
-		material.Diffuse.r = 0.0f;
-		material.Diffuse.g = 0.0f;
-		material.Diffuse.b = 0.0f;
-		material.Diffuse.a = 0.0f;
-		material.Ambient	= material.Diffuse;
-
-		// Store as base material
-		pMesh->mMaterial = material;
-
-		// create a single material bank item
-		pMesh->bUsesMaterial = true;
-		pMesh->pMaterialBank = new GGBASEMATERIAL [ 1 ];
-		pMesh->pMaterialBank[0].MatD3D = material;
-		pMesh->pMaterialBank[0].pTextureFilename = NULL;
-	}
-}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 // MIKE - 081003 - we need to keep this code because some of the DBO files refer to it without
@@ -2838,3 +2616,4 @@ DARKSDK void ConvXAnglesFromMatrix ( GGMATRIX* pmatMatrix, GGVECTOR3* pVecAngles
 }
 
 //#endif
+*/

@@ -6,18 +6,6 @@
 
 #include "directx-macros.h"
 
-/*
-#ifdef DX11
-
-// DX11 should call a DX9 compiled silent app to convert X to DBO files (no Direct X file support in DX11)
-void	SetLegacyModeOn		( void );
-void	SetLegacyModeOff	( void );
-bool	ConvXConvert		( LPSTR pFilename, DWORD *pBlock, DWORD* pdwSize );
-void	ConvXFree			( LPSTR );
-
-#else
-*/
-
 //////////////////////////////////////////////////////////////////////////////////
 // INCLUDE COMMON FILES //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +15,7 @@ void	ConvXFree			( LPSTR );
 #include <malloc.h> // _alloca
 #include <stdio.h>
 #include <eh.h>
-#include "DXFile.h"
+//#include "DXFile.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
 // DBOFORMAT INCLUDE /////////////////////////////////////////////////////////////////
@@ -88,7 +76,7 @@ DARKSDK bool	ConvXLoad ( char* szFilename );
 DARKSDK bool	ConvXLoadModelData ( char* szFilename, sFrame* pFrame, bool bAnim );
 DARKSDK bool	ConvXDelete ( void );
 
-DARKSDK bool    ParseXFileData ( IDirectXFileData* pDataObj, sFrame* pParentFrame, char* szTexturePath, sAnimationSet *pParentAnim, sAnimation *pCurrentAnim, bool bAnim );
+//DARKSDK bool    ParseXFileData ( IDirectXFileData* pDataObj, sFrame* pParentFrame, char* szTexturePath, sAnimationSet *pParentAnim, sAnimation *pCurrentAnim, bool bAnim );
 DARKSDK bool    MapFramesToBones ( sMesh** pMesh, sFrame *Frame, int iCount );
 DARKSDK bool    MapFramesToAnimations ( sObject* pObject, bool bCostlySort );
 DARKSDK void    SetupTextures ( sMesh* pMesh, D3DMATERIAL9* pMaterials, DWORD dwCount, DWORD* pAttribute, DWORD dwIndexCount );

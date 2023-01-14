@@ -2,7 +2,7 @@
 #define _CPOSITION_H_
 
 #include "directx-macros.h"
-#include "..\global.h"
+#include "global.h"
 
 struct tagObjectPos
 {
