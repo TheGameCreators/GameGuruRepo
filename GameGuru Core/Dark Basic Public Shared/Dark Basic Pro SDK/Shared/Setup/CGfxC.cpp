@@ -10,6 +10,7 @@
 #include <iostream> // can use STD:: with this include
 #include <vector>
 #include <DXGI.h>
+#include <string>
 
 #include "CTextC.h"
 #include "CBasic2DC.h"

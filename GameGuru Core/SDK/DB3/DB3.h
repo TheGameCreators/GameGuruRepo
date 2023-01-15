@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Windows.h>
-#include "../global.h"
+#include "global.h"
 
 #include <stdio.h>
 #include <stdint.h>

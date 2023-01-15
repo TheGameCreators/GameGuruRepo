@@ -5,7 +5,7 @@
 #include "DBOFormat.h"
 
 #include "preprocessor-flags.h"
-#include "..\global.h"
+#include "global.h"
 
 // Workhorse functions
 void ResetMaterial						( D3DMATERIAL9* pMaterial );

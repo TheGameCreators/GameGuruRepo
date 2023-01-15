@@ -4,8 +4,8 @@
 #define WIN32_LEAN_AND_MEAN 
 #include <windows.h>
 #include "directx-macros.h"
-#include "..\global.h"
-#include "d3d9types.h"
+#include "global.h"
+///#include "d3d9types.h"
 #include "d3dx9mesh.h"
 
 #define MAXDYNLIGHTS 80 // PE: Make sure to match this with the shaders.

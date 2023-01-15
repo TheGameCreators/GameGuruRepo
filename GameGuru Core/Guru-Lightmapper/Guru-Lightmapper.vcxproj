@@ -1,25 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseFREE|Win32">
-      <Configuration>ReleaseFREE</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="ReleaseFREE|x64">
-      <Configuration>ReleaseFREE</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -30,65 +14,25 @@
     <ProjectGuid>{759C0609-B350-4FC4-8925-E9443484C2A9}</ProjectGuid>
     <RootNamespace>DarkEXE</RootNamespace>
     <ProjectName>Guru-Lightmapper</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
@@ -99,129 +43,29 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\DEV\BUILDS\GameGuru Classic Build Area\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\DEV\BUILDS\GameGuru Classic Build Area\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">C:\DEV\BUILDS\GameGuru Classic Free Trial Build Area\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">$(ProjectDir)$(Configuration)\</IntDir>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'">false</LinkIncremental>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'" />
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'" />
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectXTex\DirectXTex\;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\include</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files %28x86%29\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\include;C:\Program Files %28x86%29\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.17763.0\ucrt;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.17763.0\um;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.17763.0\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectXTex\DirectXTex\;$(SolutionDir)SDK\DirectXTex\DDSTextureLoader\;$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectXTex\DirectXTex\;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\include</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files %28x86%29\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\include;C:\Program Files %28x86%29\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.17763.0\ucrt;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.17763.0\um;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.17763.0\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectXTex\DirectXTex\;$(SolutionDir)SDK\DirectXTex\DDSTextureLoader\;$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectXTex\DirectXTex\;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\include</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'">C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\include;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\include;C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10150.0\ucrt;C:\Program Files %28x86%29\Windows Kits\8.1\Include\um;C:\Program Files %28x86%29\Windows Kits\8.1\Include\shared;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectXTex\DirectXTex\;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\include</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\8.1\Lib\winv6.3\um\x86;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\DirectX\Effect11\Bin\Debug\;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);$(SolutionDir)SDK\OGG\lib;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2015\Win32\Debug;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\lib\vs2015\x86\debug</LibraryPath>
-    <GenerateManifest>true</GenerateManifest>
-    <EmbedManifest>true</EmbedManifest>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(WindowsSDK_IncludePath);$(VC_IncludePath);$(SolutionDir)SDK\DirectX;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\VuzixSDK\inc\;$(SolutionDir)SDK\DirectXTex\DirectXTex\;$(SolutionDir)SDK\DirectXTex\DDSTextureLoader\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(WindowsSDK_IncludePath);$(VC_IncludePath);$(SolutionDir)SDK\DirectX;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\VuzixSDK\inc\;$(SolutionDir)SDK\DirectXTex\DirectXTex\;$(SolutionDir)SDK\DirectXTex\DDSTextureLoader\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;C:\Program Files (x86)\Windows Kits\8.1\Lib\winv6.3\um\x86;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\DirectX\Effect11\Bin\Debug\;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);$(SolutionDir)SDK\OGG\lib;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2015\Win32\Debug;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\lib\vs2015\x86\debug</LibraryPath>
+    <LibraryPath>$(SolutionDir)SDK\DirectX\Lib\x64\;$(SolutionDir)SDK\DirectX\Effect11\Bin\Desktop_2022\x64\$(Configuration)\;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\$(Configuration)\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(SolutionDir)SDK\VuzixSDK\lib;$(SolutionDir)SDK\OGG\lib64\$(Configuration)\;$(SolutionDir)SDK\Steamworks SDK\redistributable_bin\win64\;$(LibraryPath)</LibraryPath>
     <GenerateManifest>true</GenerateManifest>
     <EmbedManifest>true</EmbedManifest>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\DirectX\Effect11\Bin\Release;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);$(SolutionDir)SDK\OGG\lib;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2017\Win32\Release;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\lib\vs2015\x86\release</LibraryPath>
-    <GenerateManifest>true</GenerateManifest>
-    <EmbedManifest>true</EmbedManifest>
+    <OutDir>D:\DEV\BUILD\GameGuru Classic Build Area\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>$(SolutionDir)SDK\DirectX\Lib\x64\;$(SolutionDir)SDK\DirectX\Effect11\Bin\Desktop_2015\x64\Release;$(SolutionDir)SDK\OGG\lib64\;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2017\x64\Release\;$(SolutionDir)SDK\Steamworks SDK\redistributable_bin\win64\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)SDK\DirectX\Lib\x64\;$(SolutionDir)SDK\DirectX\Effect11\Bin\Desktop_2022\x64\$(Configuration)\;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\$(Configuration)\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(SolutionDir)SDK\VuzixSDK\lib;$(SolutionDir)SDK\OGG\lib64\$(Configuration)\;$(SolutionDir)SDK\Steamworks SDK\redistributable_bin\win64\;$(LibraryPath)</LibraryPath>
     <GenerateManifest>true</GenerateManifest>
     <EmbedManifest>true</EmbedManifest>
-    <OutDir>C:\DEV\BUILDS\GameGuru Classic Build Area\</OutDir>
+    <OutDir>D:\DEV\BUILD\GameGuru Classic Build Area\</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">
-    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\DirectX\Effect11\Bin\Release;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);$(SolutionDir)SDK\OGG\lib;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2015\Win32\Release;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\lib\vs2015\x86\release</LibraryPath>
-    <GenerateManifest>true</GenerateManifest>
-    <EmbedManifest>true</EmbedManifest>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'">
-    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\atlmfc\lib;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;C:\Program Files %28x86%29\Microsoft Visual Studio 14.0\VC\lib;$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\DirectX\Effect11\Bin\Release;$(SolutionDir)SDK\NVAPI\x86;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(LibraryPath);$(SolutionDir)SDK\OGG\lib;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2015\Win32\Release;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.2\lib\vs2015\x86\release</LibraryPath>
-    <GenerateManifest>true</GenerateManifest>
-    <EmbedManifest>true</EmbedManifest>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/DarkEXE.tlb</TypeLibraryName>
-      <HeaderFileName>
-      </HeaderFileName>
-    </Midl>
-    <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GURULIGHTMAPPER;_USING_V110_SDK71_;DARKEXE;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <PrecompiledHeaderOutputFile>.\Debug/DarkEXE.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
-      <ObjectFileName>.\Debug/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
-      <BrowseInformation>false</BrowseInformation>
-      <WarningLevel>TurnOffAllWarnings</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\Dark Basic Public Shared\Include\;$(ProjectDir)..\GameGuru\Include;$(ProjectDir)..\GameGuruClassicLegacy\Include;$(ProjectDir)</AdditionalIncludeDirectories>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <DisableSpecificWarnings>4005;4091;4305</DisableSpecificWarnings>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0809</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalOptions>/FIXED:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/DarkEXE.pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <SubSystem>Windows</SubSystem>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <TargetMachine>MachineX86</TargetMachine>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <AllowIsolation>true</AllowIsolation>
-      <EnableUAC>true</EnableUAC>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Dark Basic Public Shared\Lib\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win32;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\Enhancements\</AdditionalLibraryDirectories>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -250,6 +94,7 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\Dark Basic Public Shared\Include\;$(ProjectDir)..\GameGuru\Include;$(ProjectDir)..\GameGuruClassicLegacy\Include;$(ProjectDir)</AdditionalIncludeDirectories>
       <ExceptionHandling>Sync</ExceptionHandling>
       <DisableSpecificWarnings>4005;4091;4305</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -257,7 +102,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies);strmiids.lib</AdditionalDependencies>
+      <AdditionalDependencies>Mfplat.lib;Mf.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;Effects11.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api64.lib;sdkencryptedappticket64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -270,72 +115,10 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AllowIsolation>true</AllowIsolation>
       <EnableUAC>true</EnableUAC>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Dark Basic Public Shared\Lib\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win32;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\Enhancements\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Dark Basic Public Shared\Lib64\$(Configuration)\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win64;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin\win64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/DarkEXE.tlb</TypeLibraryName>
-      <HeaderFileName>
-      </HeaderFileName>
-    </Midl>
-    <ClCompile>
-      <Optimization>Full</Optimization>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>GURULIGHTMAPPER;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <PrecompiledHeaderOutputFile>.\Release/DarkEXE.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\Dark Basic Public Shared\Include\;$(ProjectDir)..\GameGuru\Include;$(ProjectDir)..\GameGuruClassicLegacy\Include;$(ProjectDir)</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4005</DisableSpecificWarnings>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0809</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalOptions>/FIXED:NO /STACK:1000000 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/DarkEXE.pdb</ProgramDatabaseFile>
-      <SubSystem>Windows</SubSystem>
-      <HeapReserveSize>0</HeapReserveSize>
-      <StackReserveSize>0</StackReserveSize>
-      <BaseAddress>
-      </BaseAddress>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <FixedBaseAddress>
-      </FixedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <TargetMachine>MachineX86</TargetMachine>
-      <AllowIsolation>true</AllowIsolation>
-      <EnableUAC>true</EnableUAC>
-      <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Dark Basic Public Shared\Lib\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win32;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin</AdditionalLibraryDirectories>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-    </Link>
-    <Manifest />
-    <Manifest />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -365,6 +148,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\Dark Basic Public Shared\Include\;$(ProjectDir)..\GameGuru\Include;$(ProjectDir)..\GameGuruClassicLegacy\Include;$(ProjectDir)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4005</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -372,7 +156,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalOptions>/FIXED:NO /STACK:1000000 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>Mfplat.lib;Mf.lib;D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;Effects11.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api64.lib;sdkencryptedappticket64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Mfplat.lib;Mf.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;Effects11.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api64.lib;sdkencryptedappticket64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Release/DarkEXE.pdb</ProgramDatabaseFile>
@@ -389,129 +173,7 @@
       <AllowIsolation>true</AllowIsolation>
       <EnableUAC>true</EnableUAC>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Dark Basic Public Shared\Lib64\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win64;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin\win64</AdditionalLibraryDirectories>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-    </Link>
-    <Manifest />
-    <Manifest />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">
-    <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/DarkEXE.tlb</TypeLibraryName>
-      <HeaderFileName>
-      </HeaderFileName>
-    </Midl>
-    <ClCompile>
-      <Optimization>Full</Optimization>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>GURULIGHTMAPPER;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <PrecompiledHeaderOutputFile>.\Release/DarkEXE.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\Dark Basic Public Shared\Include\;$(ProjectDir)..\GameGuru\Include;$(ProjectDir)..\GameGuruClassicLegacy\Include;$(ProjectDir)</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4005</DisableSpecificWarnings>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0809</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalOptions>/FIXED:NO /STACK:1000000 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/DarkEXE.pdb</ProgramDatabaseFile>
-      <SubSystem>Windows</SubSystem>
-      <HeapReserveSize>0</HeapReserveSize>
-      <StackReserveSize>0</StackReserveSize>
-      <BaseAddress>
-      </BaseAddress>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <FixedBaseAddress>
-      </FixedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <TargetMachine>MachineX86</TargetMachine>
-      <AllowIsolation>true</AllowIsolation>
-      <EnableUAC>true</EnableUAC>
-      <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Dark Basic Public Shared\Lib\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win32;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin;</AdditionalLibraryDirectories>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-    </Link>
-    <Manifest />
-    <Manifest />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'">
-    <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TypeLibraryName>.\Release/DarkEXE.tlb</TypeLibraryName>
-      <HeaderFileName>
-      </HeaderFileName>
-    </Midl>
-    <ClCompile>
-      <Optimization>Full</Optimization>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>GURULIGHTMAPPER;_USING_V110_SDK71_;DARKEXE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <PrecompiledHeaderOutputFile>.\Release/DarkEXE.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(ProjectDir)..\Dark Basic Public Shared\Include\;$(ProjectDir)..\GameGuru\Include;$(ProjectDir)..\GameGuruClassicLegacy\Include;$(ProjectDir)</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4005</DisableSpecificWarnings>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0809</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalOptions>/FIXED:NO /STACK:1000000 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>D3dxof.lib;DXGI.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;D3DCompiler.lib;D3DX11Effects.lib;DBDLLCore.lib;Enhancements.lib;LightMapper.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;BlitzTerrain.lib;BlitzTerrain_RTTMSPlugin.lib;DarkAI.lib;Psapi.lib;system.lib;text.lib;input.lib;Bullet.lib;setup.lib;nvapi.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;d3dx9.lib;d3d9.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;olepro32.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;SteamMultiplayer.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;steam_api.lib;sdkencryptedappticket.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/DarkEXE.pdb</ProgramDatabaseFile>
-      <SubSystem>Windows</SubSystem>
-      <HeapReserveSize>0</HeapReserveSize>
-      <StackReserveSize>0</StackReserveSize>
-      <BaseAddress>
-      </BaseAddress>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <FixedBaseAddress>
-      </FixedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <AllowIsolation>true</AllowIsolation>
-      <EnableUAC>true</EnableUAC>
-      <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Dark Basic Public Shared\Lib\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win32;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\DarkSDKMore\DarkLUA\lua\;$(ProjectDir)..\Dark Basic Public Shared\Lib64\$(Configuration)\;$(ProjectDir)..\SDK\Steamworks SDK\public\steam\lib\win64;$(ProjectDir)..\SDK\Steamworks SDK\redistributable_bin\win64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
@@ -534,9 +196,11 @@
     </ClCompile>
     <ClCompile Include="..\GameGuru\Imgui\imgui_impl_win32.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\GameGuru\Imgui\imgui_widgets.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\GameGuru\Source\Common-File.cpp" />
     <ClCompile Include="..\GameGuru\Source\Common-Fonts.cpp" />

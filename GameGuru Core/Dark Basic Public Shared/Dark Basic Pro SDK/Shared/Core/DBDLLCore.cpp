@@ -2241,7 +2241,8 @@ DARKSDK DWORD InitDisplayEx(DWORD dwDisplayType, DWORD dwWidth, DWORD dwHeight, 
 			strcpy(pAppName, "GameGuru MAX");
 		bWeAreEditor = true;
 	#else
-	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0)
+	if (strcmp(Lower(Right(workstring, 18)), "guru-mapeditor.exe") == 0
+		|| strcmp(Lower(Right(workstring, 13)), "gameguru2.exe") == 0)
 	{
 		strcpy(pAppName, "Game Guru");
 		bWeAreEditor = true;

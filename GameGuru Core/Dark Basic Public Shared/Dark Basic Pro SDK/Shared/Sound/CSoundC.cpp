@@ -159,6 +159,8 @@ DARKSDK void SoundRefreshGRAFIX ( int iMode )
 
 DARKSDK float GetSoundPosition(int iID)
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
 	if (!g_pSoundManager->GetExists())
 		return 0.0f;
 
@@ -182,6 +184,8 @@ DARKSDK float GetSoundPosition(int iID)
 }
 DARKSDK void UpdateSound ( void )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
 	// check all sounds for forced looping boundaries
 	link* check = NULL;
 	if ( g_pSoundManager ) check = m_SDKSoundManager.GetList();
@@ -258,7 +262,10 @@ DARKSDK void UpdateSound ( void )
 	if ( g_currentSoundHWND != hWnd )
 	{
 		g_currentSoundHWND = hWnd;
-		HRESULT hr = g_pSoundManager->m_pDS->SetCooperativeLevel( hWnd, DSSCL_PRIORITY );
+		if (g_pSoundManager->m_pDS)
+		{
+			HRESULT hr = g_pSoundManager->m_pDS->SetCooperativeLevel(hWnd, DSSCL_PRIORITY);
+		}
 	}
 }
 
@@ -268,6 +275,9 @@ DARKSDK void UpdateSound ( void )
 
 DARKSDK float SoundPositionX ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// get sound x position
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
@@ -287,6 +297,9 @@ DARKSDK float SoundPositionX ( int iID )
 
 DARKSDK float SoundPositionY ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// get sound y position
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
@@ -306,6 +319,9 @@ DARKSDK float SoundPositionY ( int iID )
 
 DARKSDK float SoundPositionZ ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// get sound z position
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
@@ -403,6 +419,9 @@ DARKSDK void DB_GetWinTemp(LPSTR pWindowsTempDirectory)
 
 DARKSDK void LoadRawSoundCoreOgg ( LPSTR szFilename, int iID, bool b3DSound, int iSilentFail )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// load a sound into a buffer
 	
 	GUID    guid3DAlgorithm = SOUND_GUID_NULL;
@@ -462,6 +481,9 @@ DARKSDK void LoadRawSoundCoreOgg ( LPSTR szFilename, int iID, bool b3DSound, int
 
 DARKSDK void LoadRawSoundCore ( LPSTR szPassedInFilename, int iID, bool b3DSound, int iSilentFail, int iGlobalSound )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// first check if this file is actually in writable area
 	char szFilename[MAX_PATH];
 	strcpy(szFilename, szPassedInFilename);
@@ -783,6 +805,9 @@ DARKSDK void LoadSound ( LPSTR szFilename, int iID, int iFlag, int iSilentFail, 
 
 DARKSDK void PlaySound ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -822,6 +847,9 @@ DARKSDK void PlaySound ( int iID )
 
 DARKSDK void PlaySoundOffset ( int iID, int iOffset )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -866,6 +894,9 @@ DARKSDK void PlaySoundOffset ( int iID, int iOffset )
 
 DARKSDK void CloneSound ( int iDestination, int iSource )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -944,6 +975,9 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 
 DARKSDK void DeleteSound ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -969,6 +1003,9 @@ DARKSDK void DeleteSound ( int iID )
 
 DARKSDK void LoopSound ( int iID, int iStart, int iEnd, int iInitialPos )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1029,6 +1066,9 @@ DARKSDK void LoopSound ( int iID, int iStart, int iEnd )
 
 DARKSDK void StopSound ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1065,6 +1105,9 @@ DARKSDK void StopSound ( int iID )
 
 DARKSDK void ResumeSound ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1098,6 +1141,9 @@ DARKSDK void ResumeSound ( int iID )
 
 DARKSDK void PauseSound	( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1128,6 +1174,9 @@ DARKSDK void PauseSound	( int iID )
 
 DARKSDK void SetSoundPan ( int iID, int iPan )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1162,6 +1211,9 @@ DARKSDK void SetSoundPan ( int iID, int iPan )
 
 DARKSDK void SetSoundSpeed ( int iID, int iFrequency )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1199,6 +1251,9 @@ DARKSDK void SetSoundSpeed ( int iID, int iFrequency )
 
 DARKSDK void SetSoundVolume ( int iID, int iVolume )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1246,7 +1301,10 @@ DARKSDK void SetSoundVolume ( int iID, int iVolume )
 
 void dbSetSoundVolumeEx ( int iID, int iDecibels )
 {
-// mike - 010904 - 5.7 - silent return if sound card does not exist
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
+	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
 
@@ -1274,6 +1332,9 @@ void dbSetSoundVolumeEx ( int iID, int iDecibels )
 
 DARKSDK void RecordSound ( int iID, int iCaptureDuration )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1335,6 +1396,9 @@ DARKSDK void RecordSound ( int iID )
 
 DARKSDK void StopRecordingSound ( void )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1378,6 +1442,9 @@ DARKSDK void StopRecordingSound ( void )
 
 DARKSDK void SaveSound ( LPSTR szFilename, int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1444,6 +1511,9 @@ DARKSDK void Load3DSound ( LPSTR szFilename, int iID, int iSilentFail, int iGlob
 
 DARKSDK void PositionSound ( int iID, float fX, float fY, float fZ )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
@@ -1576,6 +1646,9 @@ DARKSDK void SetEAX ( int iEffect )
 
 DARKSDK int SoundExist ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1599,6 +1672,9 @@ DARKSDK int SoundExist ( int iID )
 
 DARKSDK int SoundType ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1629,6 +1705,9 @@ DARKSDK int SoundType ( int iID )
 
 DARKSDK int SoundPlaying ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1657,6 +1736,9 @@ DARKSDK int SoundPlaying ( int iID )
 
 DARKSDK int SoundLooping ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1684,6 +1766,9 @@ DARKSDK int SoundLooping ( int iID )
 
 DARKSDK int SoundPaused ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1711,6 +1796,9 @@ DARKSDK int SoundPaused ( int iID )
 
 DARKSDK int SoundPan ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1745,6 +1833,9 @@ DARKSDK int SoundPan ( int iID )
 
 DARKSDK int SoundSpeed ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1776,6 +1867,9 @@ DARKSDK int SoundSpeed ( int iID )
 
 DARKSDK int SoundVolume ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1803,6 +1897,9 @@ DARKSDK int SoundVolume ( int iID )
 
 DARKSDK DWORD SoundPositionXEx ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1831,6 +1928,9 @@ DARKSDK DWORD SoundPositionXEx ( int iID )
 
 DARKSDK DWORD SoundPositionYEx ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1859,6 +1959,9 @@ DARKSDK DWORD SoundPositionYEx ( int iID )
 
 DARKSDK DWORD SoundPositionZEx ( int iID )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return 0;
+
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
@@ -1972,6 +2075,9 @@ DARKSDK void GetSoundData( int iID, DWORD* dwBitsPerSecond, DWORD* Frequency, DW
 
 DARKSDK void SetSoundData( int iID, DWORD dwBitsPerSecond, DWORD Frequency, DWORD Duration, LPSTR pData, DWORD dwDataSize, WAVEFORMATEX wfx )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return;
+
 	// mike - 300305 - new param for waveformat
 
 	// Delete if exists
@@ -2023,6 +2129,8 @@ DARKSDK void SetSoundData( int iID, DWORD dwBitsPerSecond, DWORD Frequency, DWOR
 // MIKE - 090104
 DARKSDK LPDIRECTSOUND8 GetSoundInterface ( void )
 {
+	// if no sound card, leave now
+	if (!g_pSoundManager) return NULL;
 	return g_pSoundManager->m_pDS;
 }
 

@@ -8,6 +8,7 @@
 #include "SteamMultiplayer.h"
 #include "Leaderboards.h"
 #include <math.h>
+#include <string>
 
 //-----------------------------------------------------------------------------
 // Purpose: Menu that shows a leaderboard
