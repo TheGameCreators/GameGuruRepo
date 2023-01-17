@@ -5,7 +5,7 @@
 #ifndef DBDLLEXTCALLS_H
 #define DBDLLEXTCALLS_H
 
-#include "..\global.h"
+#include "global.h"
 DARKSDK bool CreateRenderOrderList(void);
 
 #endif

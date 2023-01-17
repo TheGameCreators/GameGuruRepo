@@ -4,7 +4,7 @@
 
 // Includes
 #include <windows.h>
-#include <dsetup.h>
+///#include <dsetup.h>
 #include <dsound.h>
 #include <mmreg.h>
 #include <msacm.h>

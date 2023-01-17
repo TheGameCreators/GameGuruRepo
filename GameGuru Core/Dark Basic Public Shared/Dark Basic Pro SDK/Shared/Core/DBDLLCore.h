@@ -17,7 +17,7 @@
 #include "macros.h"
 
 // Additional CoreHeader Includes
-#include "..\global.h"
+#include "global.h"
 #include "DBDLLExtCalls.h"
 #include <DB3Math.h>
 
