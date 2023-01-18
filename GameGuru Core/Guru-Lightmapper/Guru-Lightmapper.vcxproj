@@ -64,7 +64,7 @@
     <LibraryPath>$(SolutionDir)SDK\DirectX\Lib\x64\;$(SolutionDir)SDK\DirectX\Effect11\Bin\Desktop_2022\x64\$(Configuration)\;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\$(Configuration)\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\BCG\Bin7\;$(SolutionDir)SDK\EAX2\Libs\;$(SolutionDir)SDK\VuzixSDK\lib;$(SolutionDir)SDK\OGG\lib64\$(Configuration)\;$(SolutionDir)SDK\Steamworks SDK\redistributable_bin\win64\;$(LibraryPath)</LibraryPath>
     <GenerateManifest>true</GenerateManifest>
     <EmbedManifest>true</EmbedManifest>
-    <OutDir>D:\DEV\BUILD\GameGuru Classic Build Area\</OutDir>
+    <OutDir>C:\DEV\BUILD\GameGuru Classic Build Area\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
