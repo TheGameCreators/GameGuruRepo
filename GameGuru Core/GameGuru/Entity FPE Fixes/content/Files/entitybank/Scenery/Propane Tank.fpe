@@ -1,0 +1,35 @@
+;header
+desc          = Propane Tank
+
+;visualinfo
+textured      = propane-tank_d.dds
+effect        = effectbank\reloaded\entity_basic.fx
+castshadow    = 0
+
+;orientation
+model         = propane tank.X
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 2
+
+;statistics
+strength      = 25
+explodable    = 1
+debrisshape   = 1
+
+;ai
+aiinit	      = appear.lua
+aimain	      = default.lua
+aidestroy     = disappear.lua
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+
