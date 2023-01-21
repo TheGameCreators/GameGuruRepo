@@ -327,3 +327,5 @@ GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTex_
 GameGuru Core/SDK/OGG/lib64/Release/ogg_static.lib
 GameGuru Core/SDK/OGG/lib64/Release/vorbis_static.lib
 GameGuru Core/SDK/OGG/lib64/Release/vorbisfile_static.lib
+*.db-wal
+*.opendb
