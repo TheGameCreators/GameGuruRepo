@@ -1778,7 +1778,7 @@ function gameplayercontrol.control()
 	end
 
 	-- Screen REDNESS effect, and heartbeat, player is healthy, so fade away from redness
-	if ( g_PlayerHealth >= 100 ) then 
+	if ( g_PlayerHealth >= (g_gameloop_StartHealth/2) ) then
 		if ( GetGamePlayerControlRedDeathFog() > 0 ) then 
 			SetGamePlayerControlRedDeathFog(GetGamePlayerControlRedDeathFog() - GetElapsedTime())
 			if ( GetGamePlayerControlRedDeathFog() < 0 ) then SetGamePlayerControlRedDeathFog(0) end
