@@ -4004,6 +4004,41 @@ DARKSDK_DLL void SetObjectTextureStageEx ( int iID, int iStage, int iImage, int 
 
 }
 
+DARKSDK_DLL void TextureObjectMesh(int iID, int iStage, int iImage, int iDoNotSortTextures, int meshID)
+{
+	// check the object exists
+	g_pGlob->dwInternalFunctionCode = 11001;
+	if (!ConfirmObject(iID))
+		return;
+
+	// apply to all meshes
+	g_pGlob->dwInternalFunctionCode = 11011;
+	sObject* pObject = g_ObjectList[iID];
+
+	if (pObject->pInstanceOfObject)
+		pObject = pObject->pInstanceOfObject;
+
+	for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+	{
+		if (iMesh == meshID)
+		{
+
+			//iImage = pObject->ppMeshList[iMesh]->pTextures[iStage].iImageID;
+			//pObject->ppMeshList[iMesh]->pTextures[iStage].pTexturesRef = GetImagePointer(iImage);
+			//pObject->ppMeshList[iMesh]->pTextures[iStage].pTexturesRefView = GetImagePointerView(iImage);
+			SetBaseTextureStage(pObject->ppMeshList[iMesh], iStage, iImage);
+		}
+	}
+	// trigger a ew-new
+	g_pGlob->dwInternalFunctionCode = 11022;
+	m_ObjectManager.RenewReplacedMeshes(pObject);
+
+	// res-sort textures only if flagged
+	if (iDoNotSortTextures == 0) m_ObjectManager.UpdateTextures();
+	g_pGlob->dwInternalFunctionCode = 11023;
+}
+
+
 DARKSDK_DLL void ScrollObjectTexture ( int iID, int iStage, float fU, float fV )
 {
 	// check the object exists

@@ -81,7 +81,7 @@ DARKSDK void ResumeAnimation				( int animindex );
 DARKSDK void LoopAnimation					( int animindex );
 DARKSDK void PlayAnimation					( int animindex, int x1, int y1 );
 DARKSDK void PlayAnimation					( int animindex, int x1, int y1, int x2, int y2 );
-DARKSDK void PlayAnimationToImage			( int animindex, int imageindex, int x1, int y1, int x2, int y2 );
+DARKSDK void PlayAnimationToImage			( int animindex, int imageindex, int x1, int y1, int x2, int y2, int loop );
 DARKSDK void PlayAnimationToBitmap			( int animindex, int bitmapindex, int x1, int y1, int x2, int y2 );
 DARKSDK void LoopAnimationToBitmap			( int animindex, int bitmapindex, int x1, int y1, int x2, int y2 );
 DARKSDK void PlaceAnimation					( int animindex, int x1, int y1, int x2, int y2);

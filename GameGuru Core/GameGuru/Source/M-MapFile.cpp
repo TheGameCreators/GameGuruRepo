@@ -3259,6 +3259,7 @@ void mapfile_savestandalone_start ( void )
 
 	//  Stage 1 - specify all common files
 	addtocollection("editors\\gfx\\guru-forexe.ico");
+	addtocollection("editors\\gfx\\14.png");
 	addtocollection( cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-wordcount.ini").Get() );
 	addtocollection(cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-words.txt").Get() );
 	addtocollection(cstr(cstr("languagebank\\") + g.language_s + "\\inittext.ssp").Get());

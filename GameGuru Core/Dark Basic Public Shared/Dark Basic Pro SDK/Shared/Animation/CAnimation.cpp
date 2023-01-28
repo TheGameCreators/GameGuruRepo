@@ -68,6 +68,7 @@ struct
 	int							precacheframes;
 	bool						loaded;
 	int							videodelayedload;
+	LPGGTEXTURE					pOutputToTexture;
 } Anim[ANIMATIONMAX];
 
 struct ANIMATIONTYPE
@@ -796,7 +797,7 @@ void PlayVideoToImage( uint32_t imageID )
 			IMFMediaEvent *pEvent = 0;
 			do
 			{
-				Sleep( 100 );
+				Sleep( 100 ); 
 				///if ( agk::Timer() - startTime > 4 )
 				///{
 				///	Error1( "Failed to load video, format may not be supported" );
@@ -1270,6 +1271,79 @@ DARKSDK BOOL DB_PlayAnimationToScreen(int AnimIndex, int set, int x, int y, int 
 	return TRUE;
 }
 
+DARKSDK BOOL DB_PlayAnimationToImage(int iImageIndex, int AnimIndex, int set, int x, int y, int x2, int y2, bool bPlayFromScratch)
+{
+	// Regular full play animation
+	BOOL bResult = DB_PlayAnimationToScreen(AnimIndex, set, x, y, x2, y2, bPlayFromScratch);
+#ifndef _DEBUG
+
+	// Switch output to image
+	Anim[AnimIndex].iOutputToImage = iImageIndex;
+	if (1)
+	{
+		// If region exceeds image, delete image
+		if (ImageExist(iImageIndex))
+		{
+			if (x2 > ImageWidth(iImageIndex) || y2 > ImageHeight(iImageIndex))
+			{
+				DeleteImage(iImageIndex);
+			}
+		}
+
+		if (ImageExist(iImageIndex) == false)
+		{
+			// Create new image 
+			Anim[AnimIndex].pOutputToTexture = MakeImageUsage(iImageIndex, x2, y2, 0);
+		}
+		else
+		{
+			// Get existing image texture
+			Anim[AnimIndex].pOutputToTexture = GetImagePointer(iImageIndex);
+		}
+	}
+#endif
+	// Return result
+	return bResult;
+}
+
+DARKSDK void PlayAnimationToImage(int animindex, int imageindex, int x1, int y1, int x2, int y2, int loop)
+{
+	if (animindex >= 1 && animindex < ANIMATIONMAX)
+	{
+		if (animation[animindex].active == true)
+		{
+			if (imageindex <= 0 || imageindex > MAXIMUMVALUE)
+			{
+				RunTimeError(RUNTIMEERROR_IMAGEILLEGALNUMBER);
+				return;
+			}
+
+			if (DB_PlayAnimationToImage(imageindex, animindex, 1, x1, y1, x2, y2, true))
+			{
+				if (loop == 1)
+				{
+					Anim[animindex].loop = true;
+					animation[animindex].looped = true;
+				}
+				else
+				{
+					Anim[animindex].loop = false;
+					animation[animindex].looped = false;
+				}
+				animation[animindex].playing = true;
+				animation[animindex].paused = false;
+			}
+			else
+				RunTimeError(RUNTIMEERROR_ANIMALREADYPLAYING);
+		}
+		else
+			RunTimeError(RUNTIMEERROR_ANIMNOTEXIST);
+	}
+	else
+		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+
 DARKSDK BOOL DB_ResizeAnimation(int AnimIndex, int x1, int y1, int x2, int y2)
 {
 	Anim[AnimIndex].x1 = x1;
@@ -1478,7 +1552,7 @@ DARKSDK void UpdateAllAnimation(void)
 				#else
 				theoraplayer::VideoFrame* frame = Anim[AnimIndex].pMediaClip->fetchNextFrame();
 				#endif
-				if (frame != NULL && Anim[AnimIndex].pTexture )
+				if (frame != NULL && Anim[AnimIndex].pTexture)
 				{
 					// NOW we are really streaming
 					Anim[AnimIndex].bStreamingNow = true;
@@ -1648,18 +1722,13 @@ DARKSDK void UpdateAllAnimation(void)
 				}
 				else
 				{
-					//PE: Use:
-					//SetRenderAnimToImage(tut.bVideoID, true);
-					//ID3D11ShaderResourceView* lpTexture = GetAnimPointerView(tut.bVideoID);
-
-					/* no video to texture for now - but can be easily restored
 					// Get destination size
 					GGSURFACE_DESC destdesc;
 					LPGGSURFACE pTextureInterface = NULL;
 					Anim[AnimIndex].pOutputToTexture->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
 					pTextureInterface->GetDesc(&destdesc);
 					SAFE_RELEASE ( pTextureInterface );
-					DWORD dwDescBPP = GetBitDepthFromFormat ( destdesc.Format ) / 8;
+					DWORD dwDescBPP = 4;// GetBitDepthFromFormat(destdesc.Format) / 8;
 
 					// Get source size
 					GGSURFACE_DESC srcdesc;
@@ -1667,7 +1736,7 @@ DARKSDK void UpdateAllAnimation(void)
 					Anim[AnimIndex].pTexture->QueryInterface<ID3D11Texture2D>(&pTextureInterface);
 					pTextureInterface->GetDesc(&srcdesc);
 					SAFE_RELEASE ( pTextureInterface );
-					DWORD dwSrcBPP = GetBitDepthFromFormat ( srcdesc.Format ) / 8;
+					DWORD dwSrcBPP = 4;// GetBitDepthFromFormat(srcdesc.Format) / 8;
 
 					// Get region to draw animation to
 					RECT RegionRect = Anim[AnimIndex].WantRect;
@@ -1688,7 +1757,7 @@ DARKSDK void UpdateAllAnimation(void)
 					DWORD RegionWidth = RegionRect.right - RegionRect.left;
 					DWORD RegionHeight = RegionRect.bottom - RegionRect.top;
 
-					// if image texutre smaller than dest area, reduce dest area
+					// if image texture smaller than dest area, reduce dest area
 					DWORD dwWidth = Anim[AnimIndex].StreamRect.right;
 					DWORD dwHeight = Anim[AnimIndex].StreamRect.bottom;
 					if(destdesc.Width<dwWidth) dwWidth=destdesc.Width;
@@ -1697,10 +1766,11 @@ DARKSDK void UpdateAllAnimation(void)
 					float fAnimY=0.0f;
 					float fXBit=(float)Anim[AnimIndex].StreamRect.right/(float)RegionWidth;
 					float fYBit=(float)Anim[AnimIndex].StreamRect.bottom/(float)RegionHeight;
-
+										
 					// Sort out anim source
 					ID3D11Texture2D* pTempSysMemTexture = NULL;
 					D3D11_TEXTURE2D_DESC StagedDesc = { srcdesc.Width, srcdesc.Height, 1, 1, srcdesc.Format, 1, 0, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_READ, 0 };
+				
 					m_pD3D->CreateTexture2D( &StagedDesc, NULL, &pTempSysMemTexture );
 					if ( pTempSysMemTexture )
 					{
@@ -1714,6 +1784,7 @@ DARKSDK void UpdateAllAnimation(void)
 						{
 							ID3D11Texture2D* pTempDestStageTexture = NULL;
 							D3D11_TEXTURE2D_DESC StagedDestDesc = { destdesc.Width, destdesc.Height, 1, 1, destdesc.Format, 1, 0, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_WRITE, 0 };
+						
 							m_pD3D->CreateTexture2D( &StagedDestDesc, NULL, &pTempDestStageTexture );
 							if ( pTempDestStageTexture )
 							{
@@ -1730,6 +1801,7 @@ DARKSDK void UpdateAllAnimation(void)
 											// Get source pixel and write to dest
 											LPSTR pRead = (LPSTR)animd3dlr.pData+(int)fAnimX*dwSrcBPP+(animyadd);
 
+											/*
 											if ( dwDescBPP==2 )
 											{
 												DWORD dwPxl = *(WORD*)pRead;
@@ -1748,9 +1820,22 @@ DARKSDK void UpdateAllAnimation(void)
 												LPSTR pWrite = (LPSTR)grafixlr.pData+(int)iX*dwDescBPP+(yadd);
 												*(WORD*)pWrite = (WORD)dwPxl;
 											}
+											*/
+
 											if ( dwDescBPP==4 )
 											{
 												DWORD dwPxl = *(DWORD*)pRead;
+												//
+												//destdesc = 87 (DXGI_FORMAT_B8G8R8A8_UNORM)
+												//srcdesc  = 28 (DXGI_FORMAT_R8G8B8A8_UNORM)
+												BYTE byte_array[sizeof(DWORD)];
+												memcpy(byte_array, &dwPxl, sizeof(DWORD));
+												BYTE R = byte_array[0];
+												BYTE B = byte_array[2];
+												byte_array[0] = B;
+												byte_array[2] = R;
+												memcpy(&dwPxl, &byte_array, sizeof(DWORD));
+												//
 												LPSTR pWrite = (LPSTR)grafixlr.pData+(int)iX*dwDescBPP+(yadd);
 												*(DWORD*)pWrite = dwPxl;
 											}
@@ -1763,7 +1848,7 @@ DARKSDK void UpdateAllAnimation(void)
 										fAnimY += fYBit;
 										fAnimX = 0.0f;
 									}
-
+									
 									// release temp destination stage texture lock
 									m_pImmediateContext->Unmap(pTempDestStageTexture, 0);
 
@@ -1773,6 +1858,8 @@ DARKSDK void UpdateAllAnimation(void)
 								}
 							}
 
+							SAFE_RELEASE(pTempDestStageTexture);
+
 							// release temp stage texture lock
 							m_pImmediateContext->Unmap(pTempSysMemTexture, 0);
 						}
@@ -1780,7 +1867,6 @@ DARKSDK void UpdateAllAnimation(void)
 						// free temp system surface
 						SAFE_RELEASE(pTempSysMemTexture);
 					}
-					*/
 				}
 			}
 		}

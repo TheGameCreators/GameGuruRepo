@@ -2126,6 +2126,399 @@ int GetFirstEntitySpawn(lua_State *L)
 	return 1;
 }
 
+//Video & Texture 
+
+int PlayVideoOnEntity(lua_State* L) 
+{
+	//entity e number, video file path, [optional] loopvideo = 1/0
+
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	int ObjE = 0;
+	ObjE = lua_tointeger(L, 1);
+	int objectnumber = t.entityelement[ObjE].obj;
+
+	if (ObjectExist(objectnumber) != 1)
+		return 0;
+
+	char videoFile[MAX_PATH];
+	strcpy(videoFile, cstr("").Get());
+	strcat(videoFile, lua_tostring(L, 2));
+
+	t.tvideofile_s = videoFile;
+
+	// reserve/use video id 1 for all user play video (file path) requests, 
+	// only allow one at a time to prevent severe performance impact 
+	//                    >> so updates also made to: entity_loadvideoid();
+	t.tvideoid = 1;
+	if (AnimationExist(t.tvideoid) == 1)
+	{
+		DeleteAnimation(t.tvideoid);
+	}
+
+	t.text_s = Lower(Right(t.tvideofile_s.Get(), 4));
+	if (t.text_s == ".mp4") //only mp4 in 64bit build, but now also plays sound!
+	{
+		LoadAnimation(t.tvideofile_s.Get(), t.tvideoid, g.videoprecacheframes, g.videodelayedload,1);
+	}
+	else
+	{
+		return 0;
+	}
+
+	int loopVideo = 0;
+	loopVideo = lua_tointeger(L, 3);
+	if (loopVideo > 0)
+		loopVideo = 1;
+
+	t.entid = t.entityelement[ObjE].bankindex;
+	int TextureID = 0;
+	TextureID = t.entityprofile[t.entid].texdid;
+	
+	if (TextureID<1 || TextureID>MAXIMUMVALUE)
+	{
+		TextureID = loadinternaltextureex("editors\\gfx\\14.png", 1, t.tfullorhalfdivide);
+		t.entityprofile[t.entid].texdid = TextureID;
+		TextureObject(objectnumber, 0, TextureID);
+	}
+		
+	SetObjectEffect(objectnumber, g.guishadereffectindex);
+		
+	if (TextureID > 0)
+	{
+		if (AnimationExist(1) == 1)
+		{
+			StopAnimation(1);
+			PlayAnimationToImage(1, TextureID, 0, 0, 1024, 576, loopVideo);
+
+			///PlayAnimation(1);
+			///SetRenderAnimToImage(1, true);
+			///OverrideTextureWithAnimation(1, objectnumber);
+
+			t.luaglobal.lastvideonumber = t.tvideoid;
+		}
+	}
+
+	// ensure video trigger does not cause low FPS message
+	g.lowfpstarttimer = Timer();
+
+	return 0;
+}
+
+int StopVideoOnEntity(lua_State* L)
+{
+	//entity e number
+
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+
+	int ObjE = 0;
+	ObjE = lua_tointeger(L, 1);
+	int objectnumber = t.entityelement[ObjE].obj;
+
+	if (ObjectExist(objectnumber) != 1)
+		return 0;
+
+	t.entid = t.entityelement[ObjE].bankindex;
+
+	if (AnimationExist(1) == 1)
+	{
+		StopAnimation(1);
+		DeleteAnimation(1);
+		t.luaglobal.lastvideonumber = 0;
+	}
+
+	g.lowfpstarttimer = Timer();
+
+	return 0;
+}
+
+int IsVideoOnEntityPlaying(lua_State* L)
+{
+	lua = L;
+	int id = 0;
+
+	if (AnimationExist(1) == 1)
+	{
+		id = AnimationPlaying(1);
+	}
+
+	lua_pushinteger(L, id);
+	return 1;
+}
+
+
+int ChangeTexture(lua_State* L)
+{
+
+	//#define CT_DEBUG
+	//#define CT_EMISSIVE //don't use until/if PBR shader rewrite deployed
+
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	int ObjE = 0;
+	ObjE = lua_tointeger(L, 1);
+
+	if (ObjE > g.entityelementlist)
+		return 0;
+	if (ObjE <= 0)
+		return 0;
+
+	int objectnumber = t.entityelement[ObjE].obj;
+
+	if (ObjectExist(objectnumber) != 1)
+		return 0;
+
+	// If src is an instance, use that instances original for mesh data
+	if (g_ObjectList[objectnumber]->pInstanceOfObject)
+	{
+		int baseobj = objectnumber;
+		objectnumber = g_ObjectList[objectnumber]->pInstanceOfObject->dwObjectNumber;
+
+#ifdef CT_DEBUG
+		t.strwork = ""; t.strwork = t.strwork + "ChangeTexture OBJECT IS INSTANCE BASE OBJ NO: " + Str(baseobj) + "  PARENT OBJ: " + Str(objectnumber);
+		timestampactivity(0, t.strwork.Get());
+#endif
+
+	}
+
+	int mesh = 0;
+	sObject* pObject = g_ObjectList[objectnumber];
+
+	if (pObject->pInstanceOfObject)
+		pObject = pObject->pInstanceOfObject; 
+
+	if (pObject->iMeshCount > 1)
+		mesh = pObject->iMeshCount;
+	//mesh = GetMeshCount(pObject->pFrame, &pObject->iMeshCount);
+
+#ifdef CT_DEBUG
+	t.strwork = ""; t.strwork = t.strwork + "ChangeTexture MESH COUNT: " + Str(pObject->iMeshCount) + "  MESH: " + Str(mesh);
+	timestampactivity(0, t.strwork.Get());
+#endif
+
+	char szFilename[MAX_PATH];
+	strcpy(szFilename, cstr("").Get());
+	strcat(szFilename, lua_tostring(L, 2));
+
+	if (FileExist(szFilename) != 1)
+		return 0;
+
+	t.entid = t.entityelement[ObjE].bankindex;
+
+	int TextureID = 0;
+
+	int meshID = 0;
+	meshID = lua_tointeger(L, 3);
+
+	SetMipmapNum(-1);
+
+	if (t.entityprofile[t.entid].texd_s != szFilename) //prevent spamming of CT calls
+	{
+
+		TextureID = t.entityprofile[t.entid].texdid; 
+		if (ImageExist(TextureID) == 1) DeleteImage(TextureID);
+
+		if (TextureID<1 || TextureID>MAXIMUMVALUE)
+		{
+
+#ifdef CT_DEBUG
+			t.screenprompt_s = "ChangeTexture LOAD TEXTURE - NO TEX D ID";
+			timestampactivity(0, t.screenprompt_s.Get());
+#endif
+			TextureID = loadinternaltextureex(szFilename, 1, t.tfullorhalfdivide);
+			t.entityprofile[t.entid].texdid = TextureID;
+		}
+		else
+		{
+			LoadImage(szFilename, TextureID);
+
+#ifdef CT_DEBUG
+			t.screenprompt_s = "ChangeTexture LOAD TEXTURE - NEW IMAGE LOADED";
+			timestampactivity(0, t.screenprompt_s.Get());
+#endif
+		}
+
+		t.entityprofile[t.entid].texd_s = szFilename;
+
+		if (TextureID > 0)
+		{
+			if (mesh > 1)
+			{
+				TextureObjectMesh(objectnumber, 0, TextureID, 0, meshID);
+#ifdef CT_DEBUG
+				t.screenprompt_s = "ChangeTexture TEXTURE MULTI MESH OBJECT";
+				timestampactivity(0, t.screenprompt_s.Get());
+#endif
+			}
+			else
+			{
+				TextureObject(objectnumber, 0, TextureID);
+#ifdef CT_DEBUG
+				t.screenprompt_s = "ChangeTexture TEXTURE OBJECT";
+				timestampactivity(0, t.screenprompt_s.Get());
+#endif
+			}
+
+			//associated PBR & DINOS types? // illumination especially
+
+			//determine _illumination / _I from szFilename 
+			t.texdirnoext_s = "";
+			if (strnicmp(szFilename + strlen(szFilename) - 6, "_d.dds", 6) == NULL)
+			{
+				t.texdirnoext_s = Left(szFilename, Len(szFilename) - Len("_d.dds"));
+			}
+			else
+			{
+				if (strnicmp(szFilename + strlen(szFilename) - 10, "_color.dds", 10) == NULL)
+					t.texdirnoext_s = Left(szFilename, Len(szFilename) - Len("_color.dds"));
+				else
+					if (strnicmp(szFilename + strlen(szFilename) - 11, "_albedo.dds", 11) == NULL)
+						t.texdirnoext_s = Left(szFilename, Len(szFilename) - Len("_albedo.dds"));
+			}
+
+			bool emissiveExists = false;
+			cstr altTex_I = t.texdirnoext_s + "_illumination.dds";
+			if (FileExist(altTex_I.Get()) == 1)
+			{
+				emissiveExists = true;
+			}
+			else
+			{
+				altTex_I = t.texdirnoext_s + "_I.dds";
+				if (FileExist(altTex_I.Get()) == 1)
+				{
+					emissiveExists = true;
+				}
+				else
+				{
+					altTex_I = t.texdirnoext_s + "_emissive.dds";
+					if (FileExist(altTex_I.Get()) == 1)
+					{
+						emissiveExists = true;
+					}
+				}
+			}
+
+			if (emissiveExists)
+			{
+
+#ifdef CT_DEBUG
+				t.screenprompt_s = "ChangeTexture RELATED EMISSIVE TEXTURE FOUND";
+				timestampactivity(0, t.screenprompt_s.Get());
+#endif
+
+				if (ImageExist(t.entityprofile[t.entid].texlid) == 1) DeleteImage(t.entityprofile[t.entid].texlid);
+
+				if (t.entityprofile[t.entid].texlid < 1 || t.entityprofile[t.entid].texlid > MAXIMUMVALUE)
+				{
+#ifdef CT_DEBUG
+					t.screenprompt_s = "ChangeTexture NO TEX L ID FOUND";
+					timestampactivity(0, t.screenprompt_s.Get());
+#endif
+					t.entityprofile[t.entid].texlid = loadinternaltextureex(altTex_I.Get(), 1, t.tfullorhalfdivide);
+				}
+				else
+				{
+					LoadImage(altTex_I.Get(), t.entityprofile[t.entid].texlid);
+#ifdef CT_DEBUG
+					t.screenprompt_s = "ChangeTexture LOAD TEXTURE - NEW EMISSIVE LOADED";
+					timestampactivity(0, t.screenprompt_s.Get());
+#endif
+				}
+
+				if (mesh > 1)
+				{
+					TextureObjectMesh(objectnumber, 7, t.entityprofile[t.entid].texlid, 0, meshID);
+#ifdef CT_DEBUG
+					t.screenprompt_s = "ChangeTexture EMISSIVE TEXTURE MULTI MESH OBJECT";
+					timestampactivity(0, t.screenprompt_s.Get());
+#endif
+				}
+				else
+				{
+					TextureObject(objectnumber, 7, t.entityprofile[t.entid].texlid); //illum
+#ifdef CT_DEBUG
+					t.screenprompt_s = "ChangeTexture EMISSIVE TEXTURE OBJECT";
+					timestampactivity(0, t.screenprompt_s.Get());
+#endif
+				}
+
+			}
+#ifdef CT_EMISSIVE
+			else
+			{
+
+#ifdef CT_DEBUG
+				t.screenprompt_s = "ChangeTexture NO EMiSSIVE TEXTURE FOUND";
+				timestampactivity(0, t.screenprompt_s.Get());
+#endif
+				//wipe out any previous emissive that the object or mesh had assigned
+
+				altTex_I = "effectbank\\reloaded\\media\\blank_black.dds"; //black texture
+
+				if (ImageExist(t.entityprofile[t.entid].texlid) == 1) DeleteImage(t.entityprofile[t.entid].texlid);
+
+				if (t.entityprofile[t.entid].texlid < 1 || t.entityprofile[t.entid].texlid > MAXIMUMVALUE)
+				{
+					t.entityprofile[t.entid].texlid = loadinternaltextureex(altTex_I.Get(), 1, t.tfullorhalfdivide);
+				}
+				else
+				{
+					LoadImage(altTex_I.Get(), t.entityprofile[t.entid].texlid);
+				}
+
+#ifdef CT_DEBUG
+				if (t.entityprofile[t.entid].texlid < 1 || t.entityprofile[t.entid].texlid > MAXIMUMVALUE)
+				{
+					t.screenprompt_s = "ChangeTexture BLANK BLACK TEXTURE NOT FOUND - ERROR";
+					timestampactivity(0, t.screenprompt_s.Get());
+				}
+#endif
+
+				if (mesh > 1)
+				{
+					TextureObjectMesh(objectnumber, 7, t.entityprofile[t.entid].texlid, 0, meshID);
+#ifdef CT_DEBUG
+					t.screenprompt_s = "ChangeTexture WIPE MULTI MESH EMISSIVE TEXTURE OBJECT";
+					timestampactivity(0, t.screenprompt_s.Get());
+#endif
+				}
+				else
+				{
+					TextureObject(objectnumber, 7, t.entityprofile[t.entid].texlid); //illum
+#ifdef CT_DEBUG
+					t.screenprompt_s = "ChangeTexture WIPE EMISSIVE TEXTURE OBJECT";
+					timestampactivity(0, t.screenprompt_s.Get());
+#endif
+				}
+			}
+#endif
+
+#ifdef CT_DEBUG
+			t.screenprompt_s = "ChangeTexture EXEC COMPLETE";
+			timestampactivity(0, t.screenprompt_s.Get());
+#endif
+		}
+		else
+		{
+#ifdef CT_DEBUG
+			t.screenprompt_s = "ChangeTexture NO TEXTURE LOADED - ERROR";
+			timestampactivity(0, t.screenprompt_s.Get());
+#endif
+		}
+	}
+
+	g.lowfpstarttimer = Timer();
+
+	return 0;
+}
+
 // VR and Head Tracking
 
 int GetHeadTracker(lua_State *L)
@@ -6664,6 +7057,12 @@ void addFunctions()
 	lua_register(lua, "GetAmmoClipMax", GetAmmoClipMax);
 	lua_register(lua, "GetAmmoClip", GetAmmoClip);
 	lua_register(lua, "SetAmmoClip", SetAmmoClip);
+
+	//Texture
+	lua_register(lua, "ChangeTexture", ChangeTexture);
+	lua_register(lua, "PlayVideoOnEntity", PlayVideoOnEntity);
+	lua_register(lua, "StopVideoOnEntity", StopVideoOnEntity);
+	lua_register(lua, "IsVideoOnEntityPlaying", IsVideoOnEntityPlaying);
 
 	// Entity Physics
 	lua_register(lua, "FreezeEntity", FreezeEntity);
