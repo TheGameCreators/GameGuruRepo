@@ -151,6 +151,7 @@ DARKSDK void TextureObjectRef				( int iID, LPGGSHADERRESOURCEVIEW pTextureRef, 
 DARKSDK void TextureObject					( int iID, int iImage );
 DARKSDK void TextureObject					( int iID, int iStage, int iImage );
 DARKSDK void SetObjectTextureStageEx		( int iID, int iStage, int iImage, int iDoNotSortTextures );
+DARKSDK void TextureObjectMesh				( int iID, int iStage, int iImage, int iDoNotSortTextures, int meshID );
 DARKSDK void ScrollObjectTexture			( int iID, int iStage, float fU, float fV );
 DARKSDK void ScrollObjectTexture			( int iID, float fU, float fV );
 DARKSDK void ScaleObjectTexture				( int iID, int iStage, float fU, float fV );

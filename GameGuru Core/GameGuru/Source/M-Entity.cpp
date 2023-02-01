@@ -2569,7 +2569,8 @@ void entity_loadvideoid ( void )
 	if ( t.text_s == ".mp4" )
 	{
 		t.tvideoid=32;
-		for ( t.tt = 1 ; t.tt<=  32; t.tt++ )
+		//for ( t.tt = 1 ; t.tt<=  32; t.tt++ )
+		for (t.tt = 2; t.tt <= 32; t.tt++)
 		{
 			if ( AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
 		}
