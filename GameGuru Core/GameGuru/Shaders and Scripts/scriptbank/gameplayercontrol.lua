@@ -1803,7 +1803,7 @@ function gameplayercontrol.control()
 					end
 					SetGamePlayerControlHeartbeatTimeStamp(Timer()+1000)
 				end
-				ttTargetRed = 0.5 - (g_PlayerHealth/200.0)
+				ttTargetRed = 0.5 - (g_PlayerHealth/g_gameloop_StartHealth / 200.0)
 				if ( GetGamePlayerControlRedDeathFog() <= ttTargetRed ) then 
 					SetGamePlayerControlRedDeathFog(GetGamePlayerControlRedDeathFog() + GetElapsedTime())
 					if ( GetGamePlayerControlRedDeathFog() > ttTargetRed ) then SetGamePlayerControlRedDeathFog(ttTargetRed) end
