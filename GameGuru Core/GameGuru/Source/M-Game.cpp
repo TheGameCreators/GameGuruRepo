@@ -3641,6 +3641,14 @@ void game_main_snapshotsoundresume ( void )
 
 void game_main_snapshotsound ( bool bPauseForGameMenu )
 {
+	//stop any in-game user video (with sound) that may be playing
+	if (AnimationExist(1) == 1)
+	{
+		StopAnimation(1);
+		DeleteAnimation(1);
+		t.luaglobal.lastvideonumber = 0;
+	}
+		
 	// remember any looping sounds but exclude weapon and rocket sounds
 	if ( t.playercontrol.disablemusicreset == 0 ) 
 	{
