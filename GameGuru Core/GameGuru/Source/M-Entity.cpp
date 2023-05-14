@@ -573,10 +573,9 @@ bool entity_load ( void )
 						LoadFBX(t.tfile_s.Get(), t.entobj);
 					}
 					else
-
-							LoadObject(t.tfile_s.Get(), t.entobj);
-
-
+					{
+						LoadObject(t.tfile_s.Get(), t.entobj);
+					}
 
 					// 060718 - append animation data from other DBO files
 					if (bUsingAppendAnimFileModel == false)

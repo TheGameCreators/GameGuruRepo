@@ -7750,19 +7750,44 @@ DARKSDK_DLL void TextureLimb ( int iID, int iLimbID, int iImageID )
 	SetBaseTexture ( pMesh, -1, iImageID );
 }
 
-DARKSDK_DLL void TextureLimbStage ( int iID, int iLimbID, int iStage, int iImageID )
+DARKSDK_DLL void TextureLimbStageEx (int iID, int iLimbID, int iStage, int iImageID, LPSTR pImageName)
 {
 	// check the object limb exists
-	if ( !ConfirmObjectAndLimb ( iID, iLimbID ) )
+	if (!ConfirmObjectAndLimb (iID, iLimbID))
 		return;
 
 	// ensure limb has mesh
-	sMesh* pMesh = g_ObjectList [ iID ]->ppFrameList [ iLimbID ]->pMesh;
-	if ( !pMesh )
+	sMesh* pMesh = g_ObjectList[iID]->ppFrameList[iLimbID]->pMesh;
+	if (!pMesh)
 		return;
 
 	// apply to specific mesh
-	SetBaseTextureStage ( pMesh, iStage, iImageID );
+	SetBaseTextureStage (pMesh, iStage, iImageID);
+
+	// additionally, update texture name (happens when importing an FBX)
+	if (pImageName != NULL && strlen(pImageName) > 0)
+	{
+		if (iStage == -1) iStage = 0;
+		if (iStage < pMesh->dwTextureCount)
+		{
+			strcpy (pMesh->pTextures[iStage].pName, pImageName);
+		}
+	}
+}
+
+DARKSDK_DLL void TextureLimbStage (int iID, int iLimbID, int iStage, int iImageID)
+{
+	// check the object limb exists
+	if (!ConfirmObjectAndLimb (iID, iLimbID))
+		return;
+
+	// ensure limb has mesh
+	sMesh* pMesh = g_ObjectList[iID]->ppFrameList[iLimbID]->pMesh;
+	if (!pMesh)
+		return;
+
+	// apply to specific mesh
+	SetBaseTextureStage (pMesh, iStage, iImageID);
 }
 
 DARKSDK_DLL void ColorLimb ( int iID, int iLimbID, DWORD dwColor )

@@ -321,6 +321,7 @@ DARKSDK void LinkLimbEx					( int iID, int iParentID, int iLimbID, bool bDoNotRe
 DARKSDK void LinkLimb					( int iID, int iParentID, int iLimbID );
 DARKSDK void ChangeLimbName				( int iID, int iLimbID, LPSTR pNewName );
 DARKSDK void TextureLimb				( int iID, int iLimbID, int iImageID );
+DARKSDK void TextureLimbStageEx			( int iID, int iLimbID, int iStage, int iImageID, LPSTR pImageName);
 DARKSDK void TextureLimbStage			( int iID, int iLimbID, int iStage, int iImageID );
 DARKSDK void ColorLimb					( int iID, int iLimbID, DWORD dwColor );
 DARKSDK void ScrollLimbTexture			( int iID, int iLimbID, int iStage, float fU, float fV );
