@@ -1436,7 +1436,7 @@ void importer_applyimagelisttextures ( bool bCubeMapOnly, int iOptionalOnlyUpdat
 								{
 									TextureLimbStageEx (t.importer.objectnumber, tLimbIndex, iHeightStage, iImgHeight, iImgHeight_s.Get());
 								}
-								/* 140523 - textureing not enough, when expanding to PBR, need the correct names (see above)
+								/* include the name used to get imageID above
 								if ( iImgColor > 0 ) TextureLimbStage ( t.importer.objectnumber, tLimbIndex, iColorStage, iImgColor );
 								if ( iImgNormal > 0 ) TextureLimbStage ( t.importer.objectnumber, tLimbIndex, iNormalStage, iImgNormal );
 								if ( iImgSpecular > 0 ) TextureLimbStage ( t.importer.objectnumber, tLimbIndex, iSpecularStage, iImgSpecular );
@@ -1706,7 +1706,10 @@ void importer_loadmodel ( void )
 	{
 		if ( strnicmp ( t.strwork.Get() + strlen(t.strwork.Get()) - 4, ".fbx", 4 )==NULL )
 		{
+			extern bool g_bOverrideXCacheWhenUsingImporter;
+			g_bOverrideXCacheWhenUsingImporter = true;
 			LoadFBX ( t.strwork.Get(), t.importer.objectnumber );
+			g_bOverrideXCacheWhenUsingImporter = false;
 			//SetObjectRenderMatrixMode ( t.importer.objectnumber, 1 );
 			g_bLoadedFBXModel = true;
 		}

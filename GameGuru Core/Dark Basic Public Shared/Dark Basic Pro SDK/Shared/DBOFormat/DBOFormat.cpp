@@ -7342,6 +7342,7 @@ DARKSDK_DLL bool LoadDBODataBlock ( LPSTR pFilename, DWORD* pdwBlockSize, void**
 }
 
 enumScalingMode g_eLoadScalingMode = eScalingMode_Off;
+bool g_bOverrideXCacheWhenUsingImporter = false;
 
 DARKSDK_DLL void SetLoadScale ( enumScalingMode eScaleMode )
 {
@@ -7367,21 +7368,25 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 	//LB: 32bit no more X file loading in 64 bit version, old code uses a 32bit DLL
 	if (strnicmp(pFilename + strlen(pFilename) - 2, ".x", 2) == NULL)
 	{
-		//PE: Also support bCheckCacheXFile here.
-		if (pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':' && bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
+		if (g_bOverrideXCacheWhenUsingImporter == false)
 		{
-			//PE: cached version found and loaded.
-			bCached = true;
-			// construct the object
-			if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
+			//PE: Also support bCheckCacheXFile here.
+			if (pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':' && bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
 			{
-				RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
-				return false;
+				//PE: cached version found and loaded.
+				bCached = true;
+				// construct the object
+				if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
+				{
+					RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+					return false;
+				}
+				// free block when done
+				SAFE_DELETE_ARRAY(pDBOBlock);
+				return(true);
 			}
-			// free block when done
-			SAFE_DELETE_ARRAY(pDBOBlock);
-			return(true);
 		}
+
 		// DBO version
 		char pDBOVersion[MAX_PATH];
 		strcpy(pDBOVersion, pFilename);
@@ -7394,34 +7399,45 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 		// if no DBO need to make one in 64 bit version using the 32 bit converter
 		if (FileExist(pDBOVersion) == 0)
 		{
-			//PE: For now this workaround. .x->cachebank->"convert"->cachebank new dbo->recreate dbpdata.
 			bool bProcessNormally = false;
-			char* tmpfile = NULL;
-			char* bTempXToDBO(char* from, char* to);
-			tmpfile = bTempXToDBO(pFilename, pOrgFilename);
-			if (tmpfile == NULL)
+			if (g_bOverrideXCacheWhenUsingImporter == false)
 			{
-				bProcessNormally = true;
+				//PE: For now this workaround. .x->cachebank->"convert"->cachebank new dbo->recreate dbpdata.
+				char* tmpfile = NULL;
+				char* bTempXToDBO(char* from, char* to);
+				tmpfile = bTempXToDBO(pFilename, pOrgFilename);
+				if (tmpfile == NULL)
+				{
+					bProcessNormally = true;
+				}
+				else
+				{
+					//PE: Validate new dbo.
+					if (bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
+					{
+						//PE: Worked use it.
+						bCached = true;
+						// construct the object
+						if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
+						{
+							RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+							return false;
+						}
+						// free block when done
+						SAFE_DELETE_ARRAY(pDBOBlock);
+						return(true);
+					}
+					else
+					{
+						// this result can lead to nastiness as DBO may not exist beyond this line..
+						bProcessNormally = false;
+					}
+				}
 			}
 			else
 			{
-				//PE: Validate new dbo.
-				if (bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
-				{
-					//PE: Worked use it.
-					bCached = true;
-					// construct the object
-					if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
-					{
-						RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
-						return false;
-					}
-					// free block when done
-					SAFE_DELETE_ARRAY(pDBOBlock);
-					return(true);
-				}
-				else
-					bProcessNormally = false;
+				// importer needs converter to act - always!
+				bProcessNormally = true;
 			}
 			if (bProcessNormally)
 			{
@@ -7433,6 +7449,40 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 				{
 					Sleep(50); iCount--;
 				}
+				/* just a recompile of the converter seems to did it
+				// separate path from file
+				char pPath[MAX_PATH];
+				strcpy(pPath, pFilename);
+				char pFileOnly[MAX_PATH];
+				strcpy(pFileOnly, pFilename);
+				for (int n = strlen(pPath) - 1; n > 0; n--)
+				{
+					if (pPath[n] == '\\' || pPath[n] == '/')
+					{
+						strcpy(pFileOnly, pPath+n+1);
+						pPath[n] = 0;
+						break;
+					}
+				}
+				if (strlen(pFileOnly) > 0)
+				{
+					char pFileOnlyDBO[MAX_PATH];
+					strcpy(pFileOnlyDBO, pFileOnly);
+					pFileOnlyDBO[strlen(pFileOnlyDBO) - 2] = 0;
+					strcat(pFileOnlyDBO, ".dbo");
+					char pOldDir[MAX_PATH];
+					strcpy ( pOldDir, GetDir() );
+					SetDir(pPath);
+					extern char g_pRootFolderConverter[MAX_PATH];
+					ExecuteFile(g_pRootFolderConverter, pFileOnly, "", 1);
+					int iCount = 10; // wait a second for the file to show up!
+					while (FileExist(pFileOnlyDBO) == 0 && iCount > 0)
+					{
+						Sleep(50); iCount--;
+					}
+					SetDir(pOldDir);
+				}
+				*/
 			}
 		}
 
@@ -7487,8 +7537,7 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 	}
 	else
 	{
-	
-		if (pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':' && bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
+		if (g_bOverrideXCacheWhenUsingImporter == false && pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':' && bCheckCacheXFile(pOrgFilename, &dwBlockSize, &pDBOBlock))
 		{
 			//PE: cached version found and loaded.
 			bCached = true;
@@ -7509,15 +7558,17 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 			return false;
 		}
 
-		if (!bCached && pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':')
+		if (g_bOverrideXCacheWhenUsingImporter == false)
 		{
-			//PE: In standalone create a cached version of this, for faster loading can also be included in final standalone for faster loading.
-			CreateCacheXFile(pOrgFilename, pDBOBlock,dwBlockSize);
+			if (!bCached && pOrgFilename != NULL && strlen(pOrgFilename) > 1 && pOrgFilename[1] != ':')
+			{
+				//PE: In standalone create a cached version of this, for faster loading can also be included in final standalone for faster loading.
+				CreateCacheXFile(pOrgFilename, pDBOBlock, dwBlockSize);
+			}
 		}
 
 		// free block when done
 		SAFE_DELETE_ARRAY(pDBOBlock);
-
 	}
 
 	// okay
