@@ -2720,7 +2720,10 @@ void entity_monitorattachments ( void )
 								playinternalsoundinterupt(t.playercontrol.soundstartindex+16);
 								//  eventually this should be done in script
 								t.luaglobal.scriptprompttime=Timer()+3000;
-								t.luaglobal.scriptprompt_s="Collected enemy ammo";
+								if ( g.firemodes[t.weaponindex][0].settings.reloadqty == 0 )
+									t.luaglobal.scriptprompt_s = "Collected enemy weapon";
+								else
+									t.luaglobal.scriptprompt_s = "Collected enemy ammo";
 								//  weapon collected so remove from physics and visible world
 								ODEDestroyObject (  t.tobj );
 								HideObject (  t.tobj );

@@ -3274,6 +3274,12 @@ void mapfile_savestandalone_start ( void )
 	addtocollection("scriptbank\\gameplayercontrol.lua");
 	addtocollection("scriptbank\\global.lua");
 	addtocollection("scriptbank\\music.lua");
+
+	// ensure key scripts are part of standalone export
+	addtocollection("scriptbank\\physlib.lua");
+	addtocollection("scriptbank\\quatlib.lua");
+	addtocollection("scriptbank\\utillib.lua");
+
 	addfoldertocollection(cstr(cstr("languagebank\\")+g.language_s+"\\artwork\\watermark").Get() );
 	addfoldertocollection("scriptbank\\ai");
 	addfoldertocollection("scriptbank\\images");

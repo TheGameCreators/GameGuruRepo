@@ -2442,33 +2442,30 @@ void entity_lua_addplayerammo ( void )
 		//  increase ammo pool by ammo quantity
 		t.ammopool[t.tpool].ammo=t.ammopool[t.tpool].ammo+t.tqty;
 	}
-return;
-
 }
 
 void entity_lua_addplayerhealth ( void )
 {
-	//  collect health
-	t.tqty=t.entityelement[t.e].eleprof.quantity;
-	t.player[t.plrid].health=t.player[t.plrid].health+t.tqty;
-return;
-
+	// collect health up to the maximum allowed
+	float fPlayerMaxHealth = t.playercontrol.startstrength;
+	if (t.player[t.plrid].health < fPlayerMaxHealth)
+	{
+		t.tqty = t.entityelement[t.e].eleprof.quantity;
+		t.player[t.plrid].health = t.player[t.plrid].health + t.tqty;
+		if (t.player[t.plrid].health > fPlayerMaxHealth) t.player[t.plrid].health = fPlayerMaxHealth;
+	}
 }
 
 void entity_lua_setplayerpower ( void )
 {
 	//  increase power of player (levelup/magic)
 	t.player[t.plrid].powers.level=t.v;
-return;
-
 }
 
 void entity_lua_addplayerpower ( void )
 {
 	//  increase power of player (levelup/magic)
 	t.player[t.plrid].powers.level=t.player[t.plrid].powers.level+t.v;
-return;
-
 }
 
 void entity_lua_addplayerjetpack ( void )
