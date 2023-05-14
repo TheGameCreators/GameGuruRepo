@@ -684,7 +684,7 @@ function gameplayercontrol.lookmove()
 						-- sprinting speed, modified by directions.
 						SetGamePlayerControlBasespeed(2.0)
 						if ( GetGamePlayerControlThirdpersonEnabled() == 1 and GetGamePlayerControlThirdpersonCameraFollow() == 1 ) then 
-							-- WASD run speed
+							-- third person
 						else
 							if ( g_PlrKeyS == 1 ) then 
 								SetGamePlayerControlBasespeed(1.0)
@@ -775,10 +775,15 @@ function gameplayercontrol.control()
 		end
 		if ( GetGamePlayerControlGravityActive() == 1 and GetGamePlayerControlJumpMode() ~= 1 ) then 
 			-- on ground
-			ttWeaponMoveSpeedMod = 1.0
-			if ( GetGamePlayerStateGunID() > 0 ) then
-			 ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
-			 if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+			if ( GetGamePlayerControlThirdpersonEnabled() == 1 ) then 
+				-- cannot use weapon speed mod in third person as it messes sync with character anims
+				ttWeaponMoveSpeedMod = 1.0
+			else
+				ttWeaponMoveSpeedMod = 1.0
+				if ( GetGamePlayerStateGunID() > 0 ) then
+				 ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
+				 if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+				end
 			end
 			SetGamePlayerControlWobble(WrapValue(GetGamePlayerControlWobble()+(GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttWeaponMoveSpeedMod)))
 		else
@@ -992,13 +997,17 @@ function gameplayercontrol.control()
 			if ( GetGamePlayerStateGunID()>0 ) then 
 				if ( GetGamePlayerStateGameRunAsMultiplayer() == 0 and GetGamePlayerStateEnablePlrSpeedMods() == 1 ) then 
 					-- only for single player action - MP play is too muddy!
-					if ( GetFireModeSettingsIsEmpty() == 1 ) then 
-						ttfinalplrspeed=ttfinalplrspeed*GetFireModeSettingsPlrEmptySpeedMod()
+					if ( GetGamePlayerControlThirdpersonEnabled() == 1 ) then 
+						-- cannot use speed mod in third person as it messes sync with character anims
 					else
-						ttfinalplrspeed=ttfinalplrspeed*GetFireModeSettingsPlrMoveSpeedMod()
-					end
-					if ( GetGamePlayerStatePlrZoomIn()>1 ) then 
-						ttfinalplrspeed=ttfinalplrspeed*GetFireModeSettingsZoomWalkSpeed()
+						if ( GetFireModeSettingsIsEmpty() == 1 ) then 
+							ttfinalplrspeed=ttfinalplrspeed*GetFireModeSettingsPlrEmptySpeedMod()
+						else
+							ttfinalplrspeed=ttfinalplrspeed*GetFireModeSettingsPlrMoveSpeedMod()
+						end
+						if ( GetGamePlayerStatePlrZoomIn()>1 ) then 
+							ttfinalplrspeed=ttfinalplrspeed*GetFireModeSettingsZoomWalkSpeed()
+						end
 					end
 					if ( (GetGamePlayerStateGunMode() >= 121 and GetGamePlayerStateGunMode() <= 126) or (GetGamePlayerStateGunMode()>= 700 and GetGamePlayerStateGunMode() <= 707) or (GetGamePlayerStateGunMode() >= 7000 and GetGamePlayerStateGunMode()<= 7099) ) then 
 						if ( not (GetGamePlayerControlThirdpersonEnabled() == 1 and GetGamePlayerStateGunMode() == 125) ) then
@@ -1613,8 +1622,13 @@ function gameplayercontrol.control()
 				if ( GetGamePlayerControlPlrHitFloorMaterial() ~= 0 ) then 
 					if GetGamePlayerControlWobble() > 0.0 then 
 						ttWeaponMoveSpeedMod = GetFireModeSettingsPlrMoveSpeedMod()
-						if ttWeaponMoveSpeedMod == 0.0 then ttWeaponMoveSpeedMod = 1.0 end
-						if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+						if ( GetGamePlayerControlThirdpersonEnabled() == 1 ) then 
+							-- cannot use weapon speed mod in third person as it messes sync with character anims
+							ttWeaponMoveSpeedMod = 1.0
+						else
+							if ttWeaponMoveSpeedMod == 0.0 then ttWeaponMoveSpeedMod = 1.0 end
+							if ttWeaponMoveSpeedMod < 0.4 then ttWeaponMoveSpeedMod = 0.4 end
+						end
 						ttAddWobbleStep = GetGamePlayerControlWobbleSpeed()*GetElapsedTime()*GetGamePlayerControlBasespeed()*GetGamePlayerControlSpeedRatio()*ttFootfallPaceMultiplier*ttWeaponMoveSpeedMod
 						g_FootFallTimer = g_FootFallTimer + ttAddWobbleStep
 						if g_FootFallTimer > 315 and GetGamePlayerControlFootfallCount() == 0 then

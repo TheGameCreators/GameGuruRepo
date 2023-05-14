@@ -863,7 +863,7 @@ DARKSDK_DLL bool SetNewObjectFinalProperties ( int iID, float fRadius )
 	if ( pObject->ppFrameList==NULL )
 	{
 		// free object if insufficient data
-		RunTimeError ( RUNTIMEERROR_B3DOBJECTLOADFAILED );
+		RunTimeError (RUNTIMEERROR_B3DOBJECTLOADFAILED);
 		SAFE_DELETE ( g_ObjectList [ iID ] );
 		return false;
 	}

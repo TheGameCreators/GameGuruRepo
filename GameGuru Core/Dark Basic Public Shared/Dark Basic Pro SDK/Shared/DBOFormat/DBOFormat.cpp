@@ -7323,7 +7323,7 @@ DARKSDK_DLL bool LoadDBODataBlock ( LPSTR pFilename, DWORD* pdwBlockSize, void**
 		// load DBO object directly
 		if ( !DBOLoadBlockFile ( pFilename, ppDBOBlock, pdwBlockSize ) )
 		{
-			RunTimeError ( RUNTIMEERROR_B3DOBJECTLOADFAILED );
+			RunTimeError (RUNTIMEERROR_B3DOBJECTLOADFAILED, pFilename);
 			return false;
 		}
 	}
@@ -7332,7 +7332,7 @@ DARKSDK_DLL bool LoadDBODataBlock ( LPSTR pFilename, DWORD* pdwBlockSize, void**
 		// call converter DLL (ConvX.dll)
 		if ( !ConvertToDBOBlock ( pFilename, pExtension, ppDBOBlock, pdwBlockSize ) )
 		{
-			RunTimeError ( RUNTIMEERROR_B3DOBJECTLOADFAILED );
+			RunTimeError ( RUNTIMEERROR_B3DOBJECTLOADFAILED, pFilename );
 			return false;
 		}
 	}
@@ -7378,7 +7378,7 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 				// construct the object
 				if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
 				{
-					RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+					RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED, pFilename);
 					return false;
 				}
 				// free block when done
@@ -7420,7 +7420,7 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 						// construct the object
 						if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
 						{
-							RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+							RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED, pFilename);
 							return false;
 						}
 						// free block when done
@@ -7528,7 +7528,7 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 		// construct the object
 		if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
 		{
-			RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+			RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED, pFilename);
 			return false;
 		}
 
@@ -7547,14 +7547,14 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject, char* pO
 			// call converter DLL (ConvX.dll)
 			if (!ConvertToDBOBlock(pFilename, pExtension, &pDBOBlock, &dwBlockSize))
 			{
-				RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+				RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED, pFilename);
 				return false;
 			}
 		}
 		// construct the object
 		if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
 		{
-			RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
+			RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED, pFilename);
 			return false;
 		}
 
