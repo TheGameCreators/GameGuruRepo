@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by EditorVRQ.rc
+// Used by Editor.rc
 //
 #define IDCPREVIEW                      3
 #define IDR_EDITORTYPE_CNTR_IP          6
@@ -694,7 +694,7 @@
 #define ID_MOREMEDIA_BUILDINGSPACK      33021
 #define ID_MOREMEDIA_DEATHVALLEY        33022
 #define ID_MOREMEDIA_FANTASY            33023
-#define ID_TUTORIALS_COMMUNITYVIDEOS    33024
+#define ID_TOOLS_FOLDER				    33024
 #define ID_TUTORIALS_WHAT               33025
 #define ID_TUTORIALS_DEMOS              33026
 #define ID_TUTORIALS_CREATE             33027

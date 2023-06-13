@@ -255,7 +255,7 @@ protected:
 	afx_msg void OnTutorialDemos();
 	afx_msg void OnTutorialCreate();
 	afx_msg void OnTutorialFinish();
-	afx_msg void OnTutorialCommunity();
+	afx_msg void OnToolsFolder();
 
 	afx_msg void OnDemoGamesVideo();
 	afx_msg void OnDemoGamesS1();

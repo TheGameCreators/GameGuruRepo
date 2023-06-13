@@ -213,7 +213,7 @@ BOOL CBrowserNew::OnInitDialog ( )
 	if ( g_bDisableStoreMode==true )
 		bmpStoreButton->LoadBitmap( IDB_PORTAL_BUTTON );
 	else
-		bmpStoreButton->LoadBitmap( IDB_STORE_BUTTON );
+		bmpStoreButton->LoadBitmap(IDB_STORE_BUTTON);
 
 	m_btnStore.SetBitmap( *bmpStoreButton );
 	m_btnStore.Invalidate();

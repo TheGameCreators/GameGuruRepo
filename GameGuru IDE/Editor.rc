@@ -7,7 +7,8 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "afxres.h"
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -219,8 +220,6 @@ BEGIN
         MENUITEM "Download Store Items",        ID_FILE_DOWNLOADSTOREITEMS
         MENUITEM "Character Creator...",        ID_FILE_CHARACTERCREATOR33003
         MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
-        //MENUITEM SEPARATOR
-        //MENUITEM "Preferences...",              ID_FILE_PREFERENCES, INACTIVE
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
         MENUITEM SEPARATOR
@@ -241,10 +240,10 @@ BEGIN
         MENUITEM "Rock",                        ID_TERRAINMENU_ROCK
         MENUITEM "Grass",                       ID_TERRAINMENU_GRASS
     END
-    POPUP "Getting Started"
+    POPUP "Tools"
     BEGIN
-        MENUITEM "Welcome Screen",              ID_VIDEOTUTORIALS_SHOWVIDEOMENU
-        MENUITEM "Development Broadcasts",      ID_TUTORIALS_COMMUNITYVIDEOS
+        MENUITEM "Welcome Tool",                ID_VIDEOTUTORIALS_SHOWVIDEOMENU
+        MENUITEM "Tools Folder",				ID_TOOLS_FOLDER
     END
     POPUP "Help"
     BEGIN
@@ -257,8 +256,8 @@ BEGIN
         MENUITEM "LUA Scripting Advice",        ID_HELP_LUASCRIPTINGADVICE
         MENUITEM "Toggle Restricted Content",   ID_HELP_TOGGLEPARENTALCONTROL
         MENUITEM "Read User Manual",            ID_HELP_READUSERMANUAL
-		MENUITEM "Read Change Log",				ID_HELP_READCHANGELOG
-	END
+        MENUITEM "Read Change Log",             ID_HELP_READCHANGELOG
+    END
 END
 
 IDR_EDITORTYPE_CNTR_IP MENU
@@ -368,7 +367,6 @@ BEGIN
         MENUITEM "Save Standalone",             ID_FILE_BUILDGAME
         MENUITEM "Download Store Items",        ID_FILE_DOWNLOADSTOREITEMS
         MENUITEM "Character Creator...",        ID_FILE_CHARACTERCREATOR33003
-        //MENUITEM "Import Model...",             ID_FILE_IMPORTMODEL
         MENUITEM SEPARATOR
         MENUITEM "Preferences...",              ID_FILE_PREFERENCES, INACTIVE
         MENUITEM SEPARATOR
@@ -405,7 +403,7 @@ BEGIN
         MENUITEM "Getting Started: 3D Edit Mode", ID_TUTORIALS_3DEDITMODE
         MENUITEM "Learning Zone: The Widget Tool", ID_TUTORIALS_THEWIDGETTOOL
         MENUITEM "Learning Zone: Multiplayer Games", ID_TUTORIALS_HOSTINGJOININGMULTIPLAYERGAMES
-        MENUITEM "GameGuru Development Broadcasts", ID_TUTORIALS_COMMUNITYVIDEOS
+        MENUITEM "Tools Folder", ID_TOOLS_FOLDER
     END
     POPUP "Demo Games"
     BEGIN
@@ -2031,7 +2029,8 @@ LANGUAGE 9, 1
 #include "afxolecl.rc"       // OLE container resources
 #include "BCGControlBar.rc"
 #endif
-
+
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
