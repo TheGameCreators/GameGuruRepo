@@ -1,0 +1,47 @@
+;header
+desc          = Syringe
+
+;identity details
+isweapon      = 0
+isammo	      = 0
+ishealth      = 1
+isimmobile    = 1
+
+;ai
+aiinit	      =
+aimain	      = healthboost.lua
+aidestroy     =
+
+;Sound
+soundset      = audiobank\misc\health.wav
+
+;specific data
+quantity      = 50
+
+;visualinfo
+textured      = syringe_D.dds
+effect        = effectbank\reloaded\entity_basic.fx
+castshadow    = 0
+
+;orientation
+model         = syringe.x
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+defaultstatic = 0
+materialindex = 3
+
+;statistics
+strength      = 25
+explodable    = 0
+debrisshape   = 1
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+
