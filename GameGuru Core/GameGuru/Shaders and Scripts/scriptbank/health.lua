@@ -1,6 +1,14 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
 -- Player Collects Health
 
+function health_init(e)
+local item_name
+end
+
+function health_init_name(e,name)
+item_name = name
+end
+
 function health_main(e)
  PlayerDist = GetPlayerDistance(e)
  if PlayerDist < 80 then
