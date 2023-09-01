@@ -231,20 +231,24 @@ void entity_lua_getentityinzone ( void )
 
 void entity_lua_hide ( void )
 {
-	t.tobj=t.entityelement[t.e].obj;
-	if (  t.tobj>0 ) 
+	int entid = t.entityelement[t.e].bankindex;
+	if (entid > 0 && t.entityprofile[entid].ismarker != 2 && t.entityprofile[entid].ismarker != 5) // ignore lights and entity lights
 	{
-		if (  ObjectExist(t.tobj) == 1 ) 
+		t.tobj = t.entityelement[t.e].obj;
+		if (t.tobj > 0)
 		{
-			HideObject (  t.tobj );
+			if (ObjectExist(t.tobj) == 1)
+			{
+				HideObject (t.tobj);
+			}
 		}
-	}
-	t.tattobj=t.entityelement[t.e].attachmentobj;
-	if (  t.tattobj>0 ) 
-	{
-		if (  ObjectExist(t.tattobj) == 1 ) 
+		t.tattobj = t.entityelement[t.e].attachmentobj;
+		if (t.tattobj > 0)
 		{
-			HideObject (  t.tattobj );
+			if (ObjectExist(t.tattobj) == 1)
+			{
+				HideObject (t.tattobj);
+			}
 		}
 	}
 }
@@ -253,20 +257,24 @@ void entity_lua_show ( void )
 {
 	if ( t.entityelement[t.e].active != 0 )
 	{
-		t.tobj=t.entityelement[t.e].obj;
-		if (  t.tobj>0 ) 
+		int entid = t.entityelement[t.e].bankindex;
+		if (entid > 0 && t.entityprofile[entid].ismarker != 2 && t.entityprofile[entid].ismarker != 5) // ignore lights and entity lights
 		{
-			if (  ObjectExist(t.tobj) == 1 ) 
+			t.tobj = t.entityelement[t.e].obj;
+			if (t.tobj > 0)
 			{
-				ShowObject (  t.tobj );
+				if (ObjectExist(t.tobj) == 1)
+				{
+					ShowObject (t.tobj);
+				}
 			}
-		}
-		t.tattobj=t.entityelement[t.e].attachmentobj;
-		if (  t.tattobj>0 ) 
-		{
-			if (  ObjectExist(t.tattobj) == 1 ) 
+			t.tattobj = t.entityelement[t.e].attachmentobj;
+			if (t.tattobj > 0)
 			{
-				ShowObject (  t.tattobj );
+				if (ObjectExist(t.tattobj) == 1)
+				{
+					ShowObject (t.tattobj);
+				}
 			}
 		}
 	}

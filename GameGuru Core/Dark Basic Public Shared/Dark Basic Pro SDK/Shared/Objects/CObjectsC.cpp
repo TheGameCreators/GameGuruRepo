@@ -2369,6 +2369,14 @@ DARKSDK_DLL void CloneObject ( int iDestinationID, int iSourceID, int iCloneShar
 
 	// 110416 - copy over matrix mode state (some models use special FBX rendering matrix styles)
 	g_ObjectList [ iDestinationID ]->dwApplyOriginalScaling = g_ObjectList [ iSourceID ]->dwApplyOriginalScaling;
+
+	// 010923 - also copy character creator settings
+	if (g_ObjectList[iSourceID]->pCharacterCreator)
+	{
+		SAFE_DELETE(g_ObjectList[iDestinationID]->pCharacterCreator);
+		g_ObjectList[iDestinationID]->pCharacterCreator = new sObjectCharacterCreator;
+		memcpy (g_ObjectList[iDestinationID]->pCharacterCreator, g_ObjectList[iSourceID]->pCharacterCreator, sizeof(sObjectCharacterCreator));
+	}
 }
 
 DARKSDK_DLL void CloneObject ( int iDestinationID, int iSourceID )
@@ -2438,6 +2446,14 @@ DARKSDK_DLL void InstanceObject ( int iDestinationID, int iSourceID )
 	// mike - 021005 - retain pivot from source
 	g_ObjectList [ iDestinationID ]->position.bApplyPivot = g_ObjectList [ iSourceID ]->position.bApplyPivot;
 	g_ObjectList [ iDestinationID ]->position.matPivot = g_ObjectList [ iSourceID ]->position.matPivot;
+
+	// 010923 - also copy character creator settings
+	if (g_ObjectList[iSourceID]->pCharacterCreator)
+	{
+		SAFE_DELETE(g_ObjectList[iDestinationID]->pCharacterCreator);
+		g_ObjectList[iDestinationID]->pCharacterCreator = new sObjectCharacterCreator;
+		memcpy (g_ObjectList[iDestinationID]->pCharacterCreator, g_ObjectList[iSourceID]->pCharacterCreator, sizeof(sObjectCharacterCreator));
+	}
 
 	// add object id to shortlist
 	AddObjectToObjectListRef ( iDestinationID );
