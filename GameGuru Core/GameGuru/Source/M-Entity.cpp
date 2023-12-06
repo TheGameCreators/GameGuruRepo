@@ -3090,22 +3090,26 @@ void entity_loadtexturesandeffect ( void )
 		sObject* pObject = GetObjectData (t.entobj);
 		for (int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++)
 		{
-			LPSTR pMeshIDTexture = t.entityprofile[t.entid].texoverride_s[iMeshIndex].Get();
-			if (strlen(pMeshIDTexture) > 0)
+			// texoverride_s has maximum of 100 slots
+			if (iMeshIndex < 100)
 			{
-				int iLoadMeshIDTexture = loadinternaltextureex(pMeshIDTexture, 1, t.tfullorhalfdivide);
-				sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
-				if (pMesh) SetBaseTextureStage (pMesh, 0, iLoadMeshIDTexture);
-				if (stricmp(pMeshIDTexture+strlen(pMeshIDTexture)-strlen("_color.dds"), "_color.dds") == NULL)
+				LPSTR pMeshIDTexture = t.entityprofile[t.entid].texoverride_s[iMeshIndex].Get();
+				if (strlen(pMeshIDTexture) > 0)
 				{
-					// also attempt to load normal
-					char pNewTexName[MAX_PATH];
-					strcpy(pNewTexName, pMeshIDTexture);
-					pNewTexName[strlen(pNewTexName) - strlen("_color.dds")] = 0;
-					strcat(pNewTexName, "_normal.dds");
-					iLoadMeshIDTexture = loadinternaltextureex(pNewTexName, 1, t.tfullorhalfdivide);
+					int iLoadMeshIDTexture = loadinternaltextureex(pMeshIDTexture, 1, t.tfullorhalfdivide);
 					sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
-					if (pMesh) SetBaseTextureStage (pMesh, 2, iLoadMeshIDTexture);
+					if (pMesh) SetBaseTextureStage (pMesh, 0, iLoadMeshIDTexture);
+					if (stricmp(pMeshIDTexture + strlen(pMeshIDTexture) - strlen("_color.dds"), "_color.dds") == NULL)
+					{
+						// also attempt to load normal
+						char pNewTexName[MAX_PATH];
+						strcpy(pNewTexName, pMeshIDTexture);
+						pNewTexName[strlen(pNewTexName) - strlen("_color.dds")] = 0;
+						strcat(pNewTexName, "_normal.dds");
+						iLoadMeshIDTexture = loadinternaltextureex(pNewTexName, 1, t.tfullorhalfdivide);
+						sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+						if (pMesh) SetBaseTextureStage (pMesh, 2, iLoadMeshIDTexture);
+					}
 				}
 			}
 		}

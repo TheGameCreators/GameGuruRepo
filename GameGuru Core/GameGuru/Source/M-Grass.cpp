@@ -325,10 +325,9 @@ void grass_clearregion ( void )
 
 void grass_updatedirtyregionfast ( void )
 {
-	/* seems this is now never used in GG
-	//  scan vegmap image and extract grass values into veggrass memblock
+	// used when in F9 mode and using grass paint mode (0 key)
+	// scan vegmap image and extract grass values into veggrass memblock
 	SetCurrentBitmap (  g.terrainworkbitmapindex );
-//  `paste image terrain.imagestartindex+1,0,0
 
 	PasteImage (  t.terrain.imagestartindex+2,0,0 );
 	LockPixels (  );
@@ -366,7 +365,6 @@ void grass_updatedirtyregionfast ( void )
 		t.terrain.lastgrassupdatez1 = t.tRegionZ1;
 		t.terrain.lastgrassupdatez2 = t.tRegionZ2;
 	}
-	*/
 }
 
 void grass_clamptomemblockres ( void )
