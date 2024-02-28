@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Detonate proximity mine
+
 
 function hurt_init(e)
  StartTimer(e)
