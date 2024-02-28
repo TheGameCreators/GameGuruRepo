@@ -28,22 +28,23 @@ function proximine_main(e)
 	 end
     end
    end
-   if PlayerDist<90 then 
+   if PlayerDist < 90 or g_Entity[e]['activated'] == 1 and proximine_started[e] == 0 then 
     proximine_started[e] = GetTimer(e)+2500
     PlaySound(e,0)
    end
   end
  end
- if proximine_started[e]>0 then
+ if proximine_started[e] > 0 then
   --if g_Entity[e] ~= nil then
   -- Prompt ( "timer=" .. GetTimer(e) .. " started=" .. proximine_started[e] .. " health = " .. g_Entity[e]['health'] )
   --end
   if GetTimer(e) > proximine_started[e] then
    SetEntityHealth(e,0)
-   proximine_started[e]=0
+   proximine_started[e]= -1
+   StopSound(e,0)
   end
  end
  if g_Entity[e]['health'] <= 0 then
-  StopSound(e)
+  StopSound(e,0)
  end
 end
