@@ -2369,6 +2369,14 @@ DARKSDK_DLL void CloneObject ( int iDestinationID, int iSourceID, int iCloneShar
 
 	// 110416 - copy over matrix mode state (some models use special FBX rendering matrix styles)
 	g_ObjectList [ iDestinationID ]->dwApplyOriginalScaling = g_ObjectList [ iSourceID ]->dwApplyOriginalScaling;
+
+	// 010923 - also copy character creator settings
+	if (g_ObjectList[iSourceID]->pCharacterCreator)
+	{
+		SAFE_DELETE(g_ObjectList[iDestinationID]->pCharacterCreator);
+		g_ObjectList[iDestinationID]->pCharacterCreator = new sObjectCharacterCreator;
+		memcpy (g_ObjectList[iDestinationID]->pCharacterCreator, g_ObjectList[iSourceID]->pCharacterCreator, sizeof(sObjectCharacterCreator));
+	}
 }
 
 DARKSDK_DLL void CloneObject ( int iDestinationID, int iSourceID )
@@ -2438,6 +2446,14 @@ DARKSDK_DLL void InstanceObject ( int iDestinationID, int iSourceID )
 	// mike - 021005 - retain pivot from source
 	g_ObjectList [ iDestinationID ]->position.bApplyPivot = g_ObjectList [ iSourceID ]->position.bApplyPivot;
 	g_ObjectList [ iDestinationID ]->position.matPivot = g_ObjectList [ iSourceID ]->position.matPivot;
+
+	// 010923 - also copy character creator settings
+	if (g_ObjectList[iSourceID]->pCharacterCreator)
+	{
+		SAFE_DELETE(g_ObjectList[iDestinationID]->pCharacterCreator);
+		g_ObjectList[iDestinationID]->pCharacterCreator = new sObjectCharacterCreator;
+		memcpy (g_ObjectList[iDestinationID]->pCharacterCreator, g_ObjectList[iSourceID]->pCharacterCreator, sizeof(sObjectCharacterCreator));
+	}
 
 	// add object id to shortlist
 	AddObjectToObjectListRef ( iDestinationID );
@@ -7750,19 +7766,44 @@ DARKSDK_DLL void TextureLimb ( int iID, int iLimbID, int iImageID )
 	SetBaseTexture ( pMesh, -1, iImageID );
 }
 
-DARKSDK_DLL void TextureLimbStage ( int iID, int iLimbID, int iStage, int iImageID )
+DARKSDK_DLL void TextureLimbStageEx (int iID, int iLimbID, int iStage, int iImageID, LPSTR pImageName)
 {
 	// check the object limb exists
-	if ( !ConfirmObjectAndLimb ( iID, iLimbID ) )
+	if (!ConfirmObjectAndLimb (iID, iLimbID))
 		return;
 
 	// ensure limb has mesh
-	sMesh* pMesh = g_ObjectList [ iID ]->ppFrameList [ iLimbID ]->pMesh;
-	if ( !pMesh )
+	sMesh* pMesh = g_ObjectList[iID]->ppFrameList[iLimbID]->pMesh;
+	if (!pMesh)
 		return;
 
 	// apply to specific mesh
-	SetBaseTextureStage ( pMesh, iStage, iImageID );
+	SetBaseTextureStage (pMesh, iStage, iImageID);
+
+	// additionally, update texture name (happens when importing an FBX)
+	if (pImageName != NULL && strlen(pImageName) > 0)
+	{
+		if (iStage == -1) iStage = 0;
+		if (iStage < pMesh->dwTextureCount)
+		{
+			strcpy (pMesh->pTextures[iStage].pName, pImageName);
+		}
+	}
+}
+
+DARKSDK_DLL void TextureLimbStage (int iID, int iLimbID, int iStage, int iImageID)
+{
+	// check the object limb exists
+	if (!ConfirmObjectAndLimb (iID, iLimbID))
+		return;
+
+	// ensure limb has mesh
+	sMesh* pMesh = g_ObjectList[iID]->ppFrameList[iLimbID]->pMesh;
+	if (!pMesh)
+		return;
+
+	// apply to specific mesh
+	SetBaseTextureStage (pMesh, iStage, iImageID);
 }
 
 DARKSDK_DLL void ColorLimb ( int iID, int iLimbID, DWORD dwColor )

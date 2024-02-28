@@ -189,7 +189,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_COMMAND(ID_TUTORIALS_DEMOS, OnTutorialDemos)
 	ON_COMMAND(ID_TUTORIALS_CREATE, OnTutorialCreate)
 	ON_COMMAND(ID_TUTORIALS_FINISH, OnTutorialFinish)
-	ON_COMMAND(ID_TUTORIALS_COMMUNITYVIDEOS, OnTutorialCommunity)
+	ON_COMMAND(ID_TOOLS_FOLDER, OnToolsFolder)
 
 	ON_COMMAND(ID_DEMOGAMES_GAMEGURUGAMESPACKVIDEO, OnDemoGamesVideo)
 	ON_COMMAND(ID_DEMOGAMES_SINGLEPLAYER, OnDemoGamesS1)
@@ -2517,10 +2517,11 @@ void CMainFrame::OnTutorialFinish()
 {
 	ShellExecuteW( NULL, L"open", L"https://youtu.be/OPxsxGzuivo" , NULL, NULL, SW_SHOWMAXIMIZED );
 }
-void CMainFrame::OnTutorialCommunity()
+void CMainFrame::OnToolsFolder()
 {
 	//ShellExecuteW( NULL, L"open", L"https://www.game-guru.com/tutorials/1030" , NULL, NULL, SW_SHOWMAXIMIZED );
-	ShellExecuteW( NULL, L"open", L"https://www.game-guru.com/live-streams" , NULL, NULL, SW_SHOWMAXIMIZED );
+	//ShellExecuteW( NULL, L"open", L"https://www.game-guru.com/live-streams" , NULL, NULL, SW_SHOWMAXIMIZED );
+	ShellExecuteW(NULL, L"open", L"Tools", NULL, NULL, SW_SHOWMAXIMIZED);
 }
 
 void CMainFrame::OnDemoGamesVideo()

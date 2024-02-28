@@ -1,0 +1,1 @@
+C:\DEV\GAMEGURUREPO\GameGuru Core\SDK\DirectX\Effect11\Bin\Desktop_2022\x64\Debug\Effects11.lib

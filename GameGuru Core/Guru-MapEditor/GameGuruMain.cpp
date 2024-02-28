@@ -59,6 +59,10 @@ void LoadFBX ( LPSTR szFilename, int iID )
 		}
 	}
 
+	// 1c. delete OLD temp folder so new one can be created
+	cstr sOldFBXFileConverted = sTempFolder + "tempFBXVersion6.dbo";
+	if (FileExist (sOldFBXFileConverted.Get()) == 1) DeleteFile (sOldFBXFileConverted.Get());
+
 	// 2a. Switch to converter tool folder
 	cstr sConverterFolder = g.rootdir_s + "importer\\converter\\";
 	SetDir ( sConverterFolder.Get() );

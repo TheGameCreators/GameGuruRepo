@@ -1077,49 +1077,51 @@ function module_combatcore.exit(e)
 end
 
 function module_combatcore.evasiveactions(e,AIObjNo,PlayerDist)
-	if ai_bot_state[e] ~= ai_state_idle and ai_bot_state[e] ~= ai_state_move and ai_bot_state[e] ~= ai_state_startmove and ai_bot_state[e] ~= ai_state_roll and ai_bot_state[e] ~= ai_state_strafeleft and ai_bot_state[e] ~= ai_state_strafeleftstart and ai_bot_state[e] ~= ai_state_straferightstart and ai_bot_state[e] ~= ai_state_straferight and ai_bot_state[e] ~= ai_state_duckstart and ai_bot_state[e] ~= ai_state_duck and ai_bot_state[e] ~= ai_state_unduckstart then 
-		if math.random(1,2) == 1 then 
-			local pdist = GetPlayerDistance(e)
-			if pdist > 200 then 
-				if module_combatcore.playerlooking(e,pdist,10) == 1 then 
-					local rays = module_combatcore.checkplayertoentityrays(pdist+5,0,0,60)
-					if rays == g_Entity[e]['obj'] or rays == 0 then 
-						local temp = math.random(1,6) --set max to 7 or higher to add a chance to roll
-						if temp < 7 then 
-							if module_combatcore.entitylookingatplayer(e,PlayerDist,10) ~= 1 then 
-								temp = 99
+	if ai_bot_state[e] ~= ai_state_startreload and ai_bot_state[e] ~= ai_state_reload and ai_bot_state[e] ~= ai_state_reloadsettle then
+		if ai_bot_state[e] ~= ai_state_idle and ai_bot_state[e] ~= ai_state_move and ai_bot_state[e] ~= ai_state_startmove and ai_bot_state[e] ~= ai_state_roll and ai_bot_state[e] ~= ai_state_strafeleft and ai_bot_state[e] ~= ai_state_strafeleftstart and ai_bot_state[e] ~= ai_state_straferightstart and ai_bot_state[e] ~= ai_state_straferight and ai_bot_state[e] ~= ai_state_duckstart and ai_bot_state[e] ~= ai_state_duck and ai_bot_state[e] ~= ai_state_unduckstart then 
+			if math.random(1,2) == 1 then 
+				local pdist = GetPlayerDistance(e)
+				if pdist > 200 then 
+					if module_combatcore.playerlooking(e,pdist,10) == 1 then 
+						local rays = module_combatcore.checkplayertoentityrays(pdist+5,0,0,60)
+						if rays == g_Entity[e]['obj'] or rays == 0 then 
+							local temp = math.random(1,6) --set max to 7 or higher to add a chance to roll
+							if temp < 7 then 
+								if module_combatcore.entitylookingatplayer(e,PlayerDist,10) ~= 1 then 
+									temp = 99
+								end 
 							end 
+							if ai_bot_last_sidestep[e] == nil then ai_bot_last_sidestep[e] = 0 end 
+							if temp < 4 then 
+								if ai_bot_last_sidestep[e] == 0 then 
+									ai_bot_last_sidestep[e] = -15
+									ai_bot_state[e] = ai_state_strafeleftstart
+								else 
+									if ai_bot_last_sidestep[e] < 0 then 
+										ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] + 1
+									else 
+										ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] - 1
+									end 
+								end 
+							elseif temp < 7 then 
+								if ai_bot_last_sidestep[e] == 0 then 
+									ai_bot_last_sidestep[e] = 15 
+									ai_bot_state[e] = ai_state_straferightstart
+								else 
+									if ai_bot_last_sidestep[e] < 0 then 
+										ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] + 1
+									else 
+										ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] - 1
+									end 
+								end 
+							elseif temp < 8 then 
+								ai_bot_state[e] = ai_state_rollstart							
+							end 												
 						end 
-						if ai_bot_last_sidestep[e] == nil then ai_bot_last_sidestep[e] = 0 end 
-						if temp < 4 then 
-							if ai_bot_last_sidestep[e] == 0 then 
-								ai_bot_last_sidestep[e] = -15
-								ai_bot_state[e] = ai_state_strafeleftstart
-							else 
-								if ai_bot_last_sidestep[e] < 0 then 
-									ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] + 1
-								else 
-									ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] - 1
-								end 
-							end 
-						elseif temp < 7 then 
-							if ai_bot_last_sidestep[e] == 0 then 
-								ai_bot_last_sidestep[e] = 15 
-								ai_bot_state[e] = ai_state_straferightstart
-							else 
-								if ai_bot_last_sidestep[e] < 0 then 
-									ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] + 1
-								else 
-									ai_bot_last_sidestep[e] = ai_bot_last_sidestep[e] - 1
-								end 
-							end 
-						elseif temp < 8 then 
-							ai_bot_state[e] = ai_state_rollstart							
-						end 												
 					end 
 				end 
 			end 
-		end 
+		end
 	end 
 end
 

@@ -2379,7 +2379,8 @@ void titleslua_main_stage3_inloop(void)
 		SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
 		#else
 		terrain_shadowupdate();
-		terrain_update ( );
+		//PE: Request from GraPhiX , not to display terrain when ingame menu and terrain is hidden. 
+		if (t.hardwareinfoglobals.noterrain == 0) terrain_update ( );
 		t.tmastersyncmask=0;
 		//SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
 		//PE: We need to render everything to also see shadows.

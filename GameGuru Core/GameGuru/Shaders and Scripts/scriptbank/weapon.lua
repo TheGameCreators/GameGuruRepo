@@ -43,8 +43,15 @@ function weapon_main(e)
 	end
 	
 	if Result < 20.0 and weapon_therecanbeonlyone==e then
-		if g_PlayerGunCount < 9 then
-			if g_PlayerGunID > 0 then
+		local thisWeaponID = GetEntityWeaponID(e)
+		local havethisweapon = 0
+		for tindex = 1, 10, 1 do
+			if GetWeaponSlot(tindex) == thisWeaponID then
+				havethisweapon = 1
+			end
+		end
+		if g_PlayerGunCount < 9 or havethisweapon == 1 then
+			if g_PlayerGunID > 0 and havethisweapon == 0 then
 				if g_PlayerController==0 then
 					Prompt("Press E to pick up the " .. weapon_name[e] .. " or T to replace" )
 				else
