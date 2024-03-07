@@ -247,7 +247,7 @@ void sliders_init ( void )
 	t.slidersmenuvalue[g.slidersmenumax][1].value=t.visuals.CameraFAR_f/3000.0;
 	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Camera Horizontal FOV";
 	t.slidersmenuvalue[g.slidersmenumax][2].value=(((t.visuals.CameraFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Camera Zoom Percentage";
+	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Weapon Zoom Percentage";
 	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.CameraFOVZoomed_f*100;
 	#ifdef VRTECH
 	 t.slidersmenuvalue[g.slidersmenumax][4].name_s="HUD Horizontal FOV";
