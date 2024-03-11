@@ -701,7 +701,7 @@ void lua_loop_allentities ( void )
 			t.tfrm=0 ; t.tobj=t.entityelement[t.e].obj;
 			if (  t.tobj>0 ) 
 			{
-				if (  ObjectExist(t.tobj) == 1 ) 
+				if (ObjectExist(t.tobj) == 1)
 				{
 					#ifdef PRODUCTCLASSIC
 					t.tfrm = g_ObjectList[t.tobj]->fAnimFrame; //PE: Object already validated above.
@@ -709,7 +709,7 @@ void lua_loop_allentities ( void )
 					t.tfrm = GetFrame(t.tobj);
 					#endif
 					t.tentid = t.entityelement[t.e].bankindex;
-					if (  t.entityprofile[t.tentid].collisionmode != 21 && t.entityprofile[t.tentid].ischaracter != 1 )
+					if (t.entityprofile[t.tentid].collisionmode != 21 && t.entityprofile[t.tentid].ischaracter != 1)
 					{
 						#ifdef PRODUCTCLASSIC
 						t.entityelement[t.e].x = g_ObjectList[t.tobj]->position.vecPosition.x; //PE: already validated.
@@ -717,12 +717,14 @@ void lua_loop_allentities ( void )
 						t.entityelement[t.e].z = g_ObjectList[t.tobj]->position.vecPosition.z; //PE: already validated.
 						#else
 						//  except entity driven physics objects
-						t.entityelement[t.e].x=ObjectPositionX(t.tobj);
-						t.entityelement[t.e].y=ObjectPositionY(t.tobj);
-						t.entityelement[t.e].z=ObjectPositionZ(t.tobj);
+						t.entityelement[t.e].x = ObjectPositionX(t.tobj);
+						t.entityelement[t.e].y = ObjectPositionY(t.tobj);
+						t.entityelement[t.e].z = ObjectPositionZ(t.tobj);
 						#endif
 					}
 				}
+				else
+					t.tobj = 0;
 			}
 
 			// Initial population of LUA data
@@ -830,19 +832,15 @@ void lua_loop_allentities ( void )
 				//  Detect when entity object animation over
 				if (  t.entityelement[t.e].lua.animating == 1 ) 
 				{
-					t.obj=t.entityelement[t.e].obj;
-					if (  t.obj>0 ) 
+					if ( t.tobj >0 )
 					{
-						if (  ObjectExist(t.obj) == 1 ) 
+						if (  GetPlaying(t.tobj) == 0 && t.smoothanim[t.tobj].transition == 0 )
 						{
-							if (  GetPlaying(t.obj) == 0 && t.smoothanim[t.obj].transition == 0 ) 
-							{
-								t.entityelement[t.e].lua.animating=0;
-								LuaSetFunction (  "UpdateEntityAnimatingFlag",2,0 );
-								LuaPushInt (  t.e );
-								LuaPushInt (  t.entityelement[t.e].lua.animating );
-								LuaCall (  );
-							}
+							t.entityelement[t.e].lua.animating=0;
+							LuaSetFunction (  "UpdateEntityAnimatingFlag",2,0 );
+							LuaPushInt (  t.e );
+							LuaPushInt (  t.entityelement[t.e].lua.animating );
+							LuaCall (  );
 						}
 					}
 				}
