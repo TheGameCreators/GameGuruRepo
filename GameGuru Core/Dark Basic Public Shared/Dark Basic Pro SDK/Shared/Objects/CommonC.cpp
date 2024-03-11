@@ -879,6 +879,53 @@ DARKSDK_DLL bool SetNewObjectFinalProperties ( int iID, float fRadius )
 				bUpdateBones = false;
 		}
 	}
+
+	//PE: OPTIMIZING 2024 - delete anim scale keys if all is set to 1.0;
+	if (pObject->pAnimationSet)
+	{
+		sAnimationSet* pAnimSet = pObject->pAnimationSet;
+		while (pAnimSet != NULL)
+		{
+			sAnimation* pAnim = pAnimSet->pAnimation;
+			while (pAnim != NULL)
+			{
+				// scans all animation data and creates the interpolation vectors between all keyframes (vital)
+				if (pAnim && pAnim->dwNumScaleKeys > 0)
+				{
+					bool bRemoveKeys = true;
+					for (int i = 0; i < pAnim->dwNumScaleKeys; i++)
+					{
+						if (pAnim->pScaleKeys[i].vecScale.x != 1.0f)
+						{
+							bRemoveKeys = false;
+							break;
+						}
+						if (pAnim->pScaleKeys[i].vecScale.y != 1.0f)
+						{
+							bRemoveKeys = false;
+							break;
+						}
+						if (pAnim->pScaleKeys[i].vecScale.z != 1.0f)
+						{
+							bRemoveKeys = false;
+							break;
+						}
+					}
+					if (bRemoveKeys)
+					{
+						SAFE_DELETE(pAnim->pScaleKeys);
+						pAnim->pScaleKeys = nullptr;
+						pAnim->dwNumScaleKeys = 0;
+					}
+				}
+				pAnim = pAnim->pNext;
+			}
+			pAnimSet = pAnimSet->pNext;
+		}
+	}
+
+
+
 	if ( bUpdateBones )
 	{
 		if ( pObject->ppMeshList )
