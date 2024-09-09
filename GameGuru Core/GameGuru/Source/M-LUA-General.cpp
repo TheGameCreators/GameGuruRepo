@@ -953,6 +953,8 @@ void lua_unfreezeai ( void )
 
 void lua_freezeplayer ( void )
 {
+	// clear mousemove deltas
+	int deltaclear = MouseMoveX() + MouseMoveY();
 	
 	// skip player logic (freezing it)
 	t.aisystem.processplayerlogic = 0;
@@ -977,6 +979,14 @@ void lua_freezeplayer ( void )
 	t.freezeplayerspeed = 0;
 	t.freezeplayerposonly = t.v;
 
+	// and ensure when switch to playerlogic off, the camera angle is the same as the frozen angle!
+	if (t.freezeplayerposonly == 0)
+	{
+		t.terrain.playerax_f = t.freezeplayerax;
+		t.terrain.playeray_f = t.freezeplayeray;
+		t.terrain.playeraz_f = t.freezeplayeraz;
+	}
+
 	// freeze any animation of third person when player frozen
 	if ( t.playercontrol.thirdperson.enabled == 1 ) 
 	{
@@ -995,6 +1005,8 @@ void lua_freezeplayer ( void )
 
 void lua_unfreezeplayer ( void )
 {
+	// clear mousemove deltas
+	int deltaclear = MouseMoveX() + MouseMoveY();
 
 	// allow regular player control
 	t.aisystem.processplayerlogic = 1;

@@ -287,8 +287,8 @@ void decalelement_create ( void )
 	t.tddd=Sqrt(abs(t.tdxx*t.tdxx)+abs(t.tdyy*t.tdyy)+abs(t.tdzz*t.tdzz));
 
 	//  limit decal usage to X distance
-	if (  g.decalrange == 0  )  g.decalrange = 1000;
-	if (  t.tddd>g.decalrange  )  return;
+	if ( g.decalrange == 0 ) g.decalrange = 3000;
+	if ( t.tddd>g.decalrange ) return;
 
 	//  find free decal element
 	for ( t.d = 1 ; t.d<=  g.decalelementmax; t.d++ )

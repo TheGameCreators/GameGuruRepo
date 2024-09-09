@@ -382,7 +382,7 @@ void common_init ( void )
 	g.linkz = 0;
 	g.plrcamoffseton = 0;
 	g.eplayercam = 0;
-	g.decalrange = 800;
+	g.decalrange = 3000; // was 800
 	g.cullmodelast = g.cullmode;
 	g.cullmodechange = 0;
 	//  Scene Commander - made global as otherwise it is being ignored in functions

@@ -32,6 +32,7 @@ void weapon_mp_projectile_reset ( void );
 void weapon_projectile_setDistFromPlayer ( void );
 void weapon_projectile_destroy ( void );
 void weapon_projectileresult_make ( void );
+void weapon_projectileresult_make_hitplayer (void);
 void weapon_loadsound ( void );
 void weapon_LUA_addWeapon ( void );
 void weapon_LUA_addProjectileBase ( void );

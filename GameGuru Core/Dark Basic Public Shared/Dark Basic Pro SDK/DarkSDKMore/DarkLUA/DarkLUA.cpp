@@ -5641,6 +5641,8 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 188 : lua_pushnumber ( L, t.huddamage.immunity ); break;	
 		case 189 : lua_pushnumber ( L, g.charanimindex ); break;				
 
+		case 198: lua_pushnumber (L, t.aisystem.processplayerlogic); break;
+
 		#ifdef VRTECH
 		case 190 : if ( GGVR_IsHmdPresent() > 0 ) { lua_pushnumber ( L, 1 ); } else { lua_pushnumber ( L, 0 ); } break;
 		case 191 : lua_pushnumber ( L, GGVR_IsHmdPresent() ); break;				
@@ -5666,7 +5668,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 195 : 
 		case 196 : 
 		case 197 : 
-		case 198 : 
+		//case 198 : 
 		case 199 : 
 		case 200 : 
 		case 251 : 
@@ -6120,6 +6122,9 @@ int CombatControllerTrigger ( lua_State *L ) { return GetGamePlayerControlData (
 int CombatControllerGrip ( lua_State *L ) { return GetGamePlayerControlData ( L, 195 ); }
 int CombatControllerThumbstickX ( lua_State *L ) { return GetGamePlayerControlData ( L, 196 ); }
 int CombatControllerThumbstickY ( lua_State *L ) { return GetGamePlayerControlData ( L, 197 ); }
+
+int GetGamePlayerStatePlrLogic (lua_State* L) { return GetGamePlayerControlData (L, 198); }
+
 int MotionControllerBestX ( lua_State *L ) { return GetGamePlayerControlData ( L, 251 ); }
 int MotionControllerBestY ( lua_State *L ) { return GetGamePlayerControlData ( L, 252 ); }
 int MotionControllerBestZ ( lua_State *L ) { return GetGamePlayerControlData ( L, 253 ); }
@@ -7646,6 +7651,9 @@ void addFunctions()
 	lua_register(lua, "CombatControllerGrip" , CombatControllerGrip );
 	lua_register(lua, "CombatControllerThumbstickX" , CombatControllerThumbstickX );
 	lua_register(lua, "CombatControllerThumbstickY" , CombatControllerThumbstickY );
+
+	lua_register(lua, "GetGamePlayerStatePlrLogic", GetGamePlayerStatePlrLogic);
+
 	lua_register(lua, "MotionControllerBestX" , MotionControllerBestX );
 	lua_register(lua, "MotionControllerBestY" , MotionControllerBestY );
 	lua_register(lua, "MotionControllerBestZ" , MotionControllerBestZ );

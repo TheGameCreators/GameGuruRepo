@@ -412,7 +412,7 @@ void weapon_projectile_loop ( void )
 					t.tProjectileName_s = t.WeaponProjectileBase[t.tProjType].name_s;
 				else
 					t.tProjectileName_s = "";
-				t.tProjectileResult = WEAPON_PROJECTILERESULT_EXPLODE;
+				t.tProjectileResult = t.WeaponProjectileBase[t.tProjType].resultEndOfLife; //WEAPON_PROJECTILERESULT_EXPLODE; obey non/damage/explode choices in projectile spec
 				if ( t.tProjectileResult == 2 && t.WeaponProjectileBase[t.tProjType].explosionType == 99 ) 
 				{
 					t.tProjectileResult = WEAPON_PROJECTILERESULT_CUSTOM;
@@ -462,7 +462,7 @@ void weapon_projectile_loop ( void )
 							t.tProjectileName_s = t.WeaponProjectileBase[t.tProjType].name_s;
 						else
 							t.tProjectileName_s = "";
-						t.tProjectileResult = WEAPON_PROJECTILERESULT_EXPLODE;
+						t.tProjectileResult = t.WeaponProjectileBase[t.tProjType].resultBounce;// WEAPON_PROJECTILERESULT_EXPLODE; obey non/damage/explode choices in projectile spec
 						if ( t.tProjectileResult == 2 && t.WeaponProjectileBase[t.tProjType].explosionType == 99 ) 
 						{
 							t.tProjectileResult = WEAPON_PROJECTILERESULT_CUSTOM;
@@ -480,7 +480,7 @@ void weapon_projectile_loop ( void )
 						t.tSoundID = t.WeaponProjectile[t.tProj].soundDeath;
 						t.tSourceEntity = t.WeaponProjectile[t.tProj].sourceEntity;
 						t.tHitObj = 0;
-						weapon_projectileresult_make ( );
+						weapon_projectileresult_make_hitplayer();
 						weapon_projectile_destroy ( );
 						t.tthisprojectileexploded=1;
 
@@ -1580,6 +1580,10 @@ void weapon_projectileresult_make ( void )
 					}
 				}
 			}
+			else
+			{
+				// see weapon_projectileresult_make_hitplayer
+			}
 		}
 		break;
 
@@ -1676,6 +1680,23 @@ void weapon_projectileresult_make ( void )
 			}
 			physics_explodesphere ( );
 			t.tResult = 1;
+		}
+		break;
+	}
+}
+
+void weapon_projectileresult_make_hitplayer (void)
+{
+	// regular projectile handling
+	weapon_projectileresult_make();
+
+	// and if known to have hit player..
+	switch (t.tProjectileResult)
+	{
+		case WEAPON_PROJECTILERESULT_DAMAGE:
+		{
+			t.tdamage = (int)t.tDamage_f; t.te = 0; t.tDrownDamageFlag = 0;
+			physics_player_takedamage ();
 		}
 		break;
 	}
