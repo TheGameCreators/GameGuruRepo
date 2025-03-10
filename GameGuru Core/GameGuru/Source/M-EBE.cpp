@@ -3219,6 +3219,22 @@ int ebe_save ( int iEntityIndex )
 		return 0;
 	}
 
+	// LEE:100325 - Ensure EBE file ALWAYS has the .ebe extension
+	if (Right(tSaveFile.Get(), 4) != ".ebe")
+	{
+		// remove any current extension of any length
+		int iPos = tSaveFile.Len();
+		for (; iPos > 0; iPos--)
+		{
+			if (tSaveFile.Get()[iPos] == '.')
+				break;
+		}
+		if ( iPos > 0 ) tSaveFile = Left(tSaveFile.Get(), iPos);
+
+		// append the correct extension
+		tSaveFile = tSaveFile + ".ebe";
+	}
+
 	// Truncate file from absolute save filename
 	LPSTR pFileNameOnly = NULL;
 	LPSTR pThisSaveFile = tSaveFile.Get();
