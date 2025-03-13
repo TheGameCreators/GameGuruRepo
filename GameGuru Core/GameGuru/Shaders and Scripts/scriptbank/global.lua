@@ -633,6 +633,9 @@ end
 function MoveUp(e,v)
  SendMessageF("moveup",e,v);
 end
+function MoveDown( e, v )
+MoveUp( e, -v )
+end
 function MoveForward(e,v)
  SendMessageF("moveforward",e,v);
 end
