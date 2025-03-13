@@ -16,7 +16,7 @@ function gameloop.main()
   -- dont regen health if dead or at max health
   if g_PlayerLastHitTime > 0 then
    -- handle player health regeneration
-   if g_Time > g_PlayerLastHitTime + g_gameloop_RegenDelay then
+   if g_Time > g_PlayerLastHitTime + g_gameloop_RegenDelay and  GetGamePlayerControlInWaterState() < 3 then
     if g_Time > gameloop_RegenTickTime then
 	 gameloop_RegenTickTime = g_Time + g_gameloop_RegenSpeed
 	 newHealth = g_PlayerHealth + g_gameloop_RegenRate
