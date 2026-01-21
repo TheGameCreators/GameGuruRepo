@@ -1,0 +1,66 @@
+name: Forward crash issue to GameGuruMAX
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  forward:
+    if: github.event.label.name == 'forward-to-max'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create mirrored issue in GameGuruMAX
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.MAX_ISSUE_BOT_TOKEN }}
+          script: |
+            const sourceOwner = context.repo.owner;
+            const sourceRepo  = context.repo.repo;
+            const sourceNum   = context.payload.issue.number;
+
+            const targetOwner = "Dark-Basic-Software-Limited";
+            const targetRepo  = "GameGuruMAX";
+
+            const issue = context.payload.issue;
+
+            // Build body with backlink
+            const sourceUrl = issue.html_url;
+            const body =
+`🔁 **Forwarded from** ${sourceOwner}/${sourceRepo}#${sourceNum}
+Source: ${sourceUrl}
+
+---
+
+${issue.body ?? ""}`;
+
+            // Create issue in target repo
+            const created = await github.rest.issues.create({
+              owner: targetOwner,
+              repo: targetRepo,
+              title: issue.title,
+              body,
+              labels: ["crash-triage", "from-gururepo"]
+            });
+
+            const targetUrl = created.data.html_url;
+
+            // Comment back on the source issue with the link
+            await github.rest.issues.createComment({
+              owner: sourceOwner,
+              repo: sourceRepo,
+              issue_number: sourceNum,
+              body: `✅ Forwarded to: ${targetUrl}\n\n(Automation will post triage results there.)`
+            });
+
+            // Optional: add a label or close the original
+            // await github.rest.issues.update({
+            //   owner: sourceOwner,
+            //   repo: sourceRepo,
+            //   issue_number: sourceNum,
+            //   state: "closed"
+            // });
