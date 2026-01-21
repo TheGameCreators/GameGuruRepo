@@ -67,8 +67,7 @@ jobs:
               : "";
 
             const bodyLines = [
-              "🔁 **Forwarded from** " + sourceOwner + "/" + sourceRepo + "#" + sourceNum,
-              issue.html_url,
+              "**Source issue:** [" + sourceOwner + "/" + sourceRepo + "#" + sourceNum + "](" + issue.html_url + ")",
               "",
               "---",
               "",
