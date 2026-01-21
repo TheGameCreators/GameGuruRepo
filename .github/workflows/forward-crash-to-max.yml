@@ -5,8 +5,8 @@ on:
     types: [labeled]
 
 permissions:
-  issues: write
   contents: read
+  issues: write
 
 jobs:
   forward:
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Create mirrored issue in GameGuruMAX
+      - name: Forward issue to GameGuruMAX
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.MAX_ISSUE_BOT_TOKEN }}
@@ -22,45 +22,31 @@ jobs:
             const sourceOwner = context.repo.owner;
             const sourceRepo  = context.repo.repo;
             const sourceNum   = context.payload.issue.number;
+            const issue       = context.payload.issue;
 
             const targetOwner = "Dark-Basic-Software-Limited";
             const targetRepo  = "GameGuruMAX";
 
-            const issue = context.payload.issue;
+            const bodyLines = [
+              "🔁 **Forwarded from** " + sourceOwner + "/" + sourceRepo + "#" + sourceNum,
+              issue.html_url,
+              "",
+              "---",
+              "",
+              issue.body || ""
+            ];
 
-            // Build body with backlink
-            const sourceUrl = issue.html_url;
-            const body =
-`🔁 **Forwarded from** ${sourceOwner}/${sourceRepo}#${sourceNum}
-Source: ${sourceUrl}
-
----
-
-${issue.body ?? ""}`;
-
-            // Create issue in target repo
             const created = await github.rest.issues.create({
               owner: targetOwner,
               repo: targetRepo,
               title: issue.title,
-              body,
-              labels: ["crash-triage", "from-gururepo"]
+              body: bodyLines.join("\n"),
+              labels: ["crash-triage"]
             });
 
-            const targetUrl = created.data.html_url;
-
-            // Comment back on the source issue with the link
             await github.rest.issues.createComment({
               owner: sourceOwner,
               repo: sourceRepo,
               issue_number: sourceNum,
-              body: `✅ Forwarded to: ${targetUrl}\n\n(Automation will post triage results there.)`
+              body: "✅ Forwarded to: " + created.data.html_url
             });
-
-            // Optional: add a label or close the original
-            // await github.rest.issues.update({
-            //   owner: sourceOwner,
-            //   repo: sourceRepo,
-            //   issue_number: sourceNum,
-            //   state: "closed"
-            // });
