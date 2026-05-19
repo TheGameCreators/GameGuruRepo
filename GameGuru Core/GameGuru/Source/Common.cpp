@@ -101,7 +101,8 @@ void common_init ( void )
 	_chdir(g_WindowsTempDirectory);
 	_mkdir("dbpdata");
 	// path to location of all files we want to decrypt
-	LPSTR pPathToClassicEncryptedFiles = "D:\\Hunted One Step Too Far DECRYPTED";
+	//LPSTR pPathToClassicEncryptedFiles = "D:\\Hunted One Step Too Far DECRYPTED";
+	LPSTR pPathToClassicEncryptedFiles = "D:\\AnthropoceneEpochDECRYPTED";
 	// set to work path and add everything from Files to a list
 	SetDir(pPathToClassicEncryptedFiles);
 	addallinfoldertocollection("Files","");
