@@ -20,3 +20,6 @@ How To Use Repository Video: [[Click To Watch Video]](https://www.youtube.com/wa
 
 Q> Is GameGuru Classic open source?
 A> No, the product and it's source code is copyright The Game Creators Ltd. We make the source code available so contributors from the community can integrate additional functionality, and to enable any user to scan through the code to find out how the inner workings of this game maker works.
+
+Q> I can no longer find the LFS large media files in the Repository?
+A> Due to this public repository being hammered by anonymous cloning, we have moved the media files to "GAMEGURUREPO_LARGEFILES.zip", available from our GDrive at: https://drive.google.com/file/d/17nCbOLPEbfHLbgN8ua7CgJQJMWpELQGG/view?usp=sharing
