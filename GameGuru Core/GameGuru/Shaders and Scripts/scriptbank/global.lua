@@ -1201,6 +1201,7 @@ GetCameraAngleZ : V = GetCameraAngleZ ( c ) where V is the Z angle of the specif
 
 ForcePlayer : ForcePlayer ( angle, velocity ) where angle is the angle and physics velocity to push the player
 
+GetEntityName(e) -- Returns name of entity.
 SetEntityActive: SetEntityActive ( e, active flag ) -- Sets the entity data directly, e is entity index
 SetEntityActivated: SetEntityActivated ( e, activated flag ) -- Sets the entity data directly, e is entity index
 SetEntityCollected: SetEntityCollected ( e, collected flag ) -- Sets the entity data directly, e is entity index
@@ -1313,6 +1314,7 @@ GetGamePlayerControlJetpackParticleEmitterIndex: iValue = GetGamePlayerControlJe
 SetGamePlayerControlJetpackThrust: SetGamePlayerControlJetpackThrust ( iValue ) -- sets the player control data to specified value
 GetGamePlayerControlJetpackThrust: iValue = GetGamePlayerControlJetpackThrust() -- gets the specified player control data value
 
+SetPlayerRun: SetPlayerRun(1) -- 1:enable or 2:disable player's ability to run.
 SetPlayerWeapons: SetPlayerWeapons(0) disabled player weapons, SetPlayerWeapons(1) restores them
 SetAttachmentVisible: SetAttachmentVisible(e,1). 1 sets the entities attachment to be visible (such as their weapon), 0 switches it off
 SetFlashLight: SetFlashLight(1), 1 switches the flash light on, 0 off
@@ -1705,8 +1707,8 @@ SetGamePlayerStateGameRunAsMultiplayer: SetGamePlayerStateGameRunAsMultiplayer()
 GetGamePlayerStateGameRunAsMultiplayer: GetGamePlayerStateGameRunAsMultiplayer() -- command used by the default player control mechanism
 SetGamePlayerStateSteamWorksRespawnLeft: SetGamePlayerStateSteamWorksRespawnLeft() -- command used by the default player control mechanism
 GetGamePlayerStateSteamWorksRespawnLeft: GetGamePlayerStateSteamWorksRespawnLeft() -- command used by the default player control mechanism
-SetGamePlayerStateTabMode: SetGamePlayerStateTabMode() -- command used by the default player control mechanism
-GetGamePlayerStateTabMode: GetGamePlayerStateTabMode() -- command used by the default player control mechanism
+SetGamePlayerStateTabMode: SetGamePlayerStateTabMode(v) -- 1:force open editor tab menu, 2:force open full tab menu 
+GetGamePlayerStateTabMode: GetGamePlayerStateTabMode() -- 1:editor tab menu open, 2:editor full tab menu open
 SetGamePlayerStateLowFpsWarning: SetGamePlayerStateLowFpsWarning() -- command used by the default player control mechanism
 GetGamePlayerStateLowFpsWarning: GetGamePlayerStateLowFpsWarning() -- command used by the default player control mechanism
 SetGamePlayerStateCameraFov: SetGamePlayerStateCameraFov() -- command used by the default player control mechanism
@@ -2101,5 +2103,6 @@ QuatLERP -- To be documented
 ***** utility
 MsgBox("") -- Display pop-up "Lua Message" confirmation dialogue box. Do not run this on loop!
 Reset(Fade() -- To be documented
+Include(file) -- to include a LUA script file from scriptbank. 
 
 --]]
