@@ -1052,17 +1052,17 @@ function TriggerFadeIn()
 end
 
 function SetGameQuality(v)
- SendMessageI("setgamequality",v);
+ SendMessageI("setgamequality",v); -- 1 = Low, 2 = Medium, 3 = High
 end
-function SetPlayerFOV(v)
+function SetPlayerFOV(v) -- 0 to 100
  g_PlayerFOV = v
  SendMessageI("setplayerfov",v);
 end
-function SetGameSoundVolume(v)
- SendMessageI("setgamesoundvolume",v);
+function SetGameSoundVolume(v) 
+ SendMessageI("setgamesoundvolume",v); -- 0 to 100
 end
-function SetGameMusicVolume(v)
- SendMessageI("setgamemusicvolume",v);
+function SetGameMusicVolume(v) 
+ SendMessageI("setgamemusicvolume",v); -- 0 to 100
 end
 function SetLoadingResource(i,v)
  SendMessageI("setloadingresource",i,v);
