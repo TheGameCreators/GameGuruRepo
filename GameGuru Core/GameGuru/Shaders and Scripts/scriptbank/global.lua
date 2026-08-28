@@ -1163,6 +1163,10 @@ ResetWeaponSystems: ResetWeaponSystems ( ) -- resets any projectiles currently a
 
 SetWeaponSlot: SetWeaponSlot ( index, got flag, preference flag ) -- Sets the weapon data directly, index is 1 through 10. The got flag value is the weapon ID of the weapon you have in that slot. By setting it, you can effectively grant the player that weapon without them having to pick it up, but you should ensure that weapon is placed somewhere in the level so it can load it the particulars.  The preference flag value also takes a Weapon ID and is used when you want to make sure when a weapon is collected, it will go to that slot, so  SetWeaponSlot ( 9, 0, 12 ) will make sure that when you collect Weapon ID 12 it will automatically be assigned to slot 9.
 
+FirePlayerWeapon(#) -- set to 1 to force player to fire current weapon
+GetWeaponSlotGot(weapon slot) - Returns weapon ID of slot number (1-9)
+GetWeaponSlotNoSelect() -- To be documented.
+
 GetWeaponAmmo: quantity = GetWeaponAmmo ( index ) -- Gets the weapon data directly, index is 1 through 10
 SetWeaponAmmo: SetWeaponAmmo ( index, ammo quantity ) -- Sets the weapon data directly, index is 1 through 10
 GetWeaponClipAmmo: quantity = GetWeaponClipAmmo ( index ) -- Gets the weapon data directly, index is 1 through 10
@@ -1965,10 +1969,32 @@ GetHeadTrackerYaw : GetHeadTrackerYaw() - returns the yaw of the head tracker if
 GetHeadTrackerPitch : GetHeadTrackerPitch() - returns the pitch of the head tracker if attached
 GetHeadTrackerRoll : GetHeadTrackerRoll() - returns the roll of the head tracker if attached
 
+GetGamePlayerStateMotionController -- to be documented.
+GetGamePlayerStateMotionControllerType -- to be documented.
+MotionControllerThumbstickX -- to be documented.
+MotionControllerThumbstickY -- to be documented.
+CombatControllerTrigger -- to be documented.
+CombatControllerGrip -- to be documented.
+CombatControllerThumbstickX -- to be documented.
+CombatControllerThumbstickY -- to be documented.
+
+MotionControllerBestX -- to be documented.
+MotionControllerBestY -- to be documented.
+MotionControllerBestZ -- to be documented.
+MotionControllerBestAngleX -- to be documented.
+MotionControllerBestAngleY -- to be documented.
+MotionControllerBestAngleZ -- to be documented.
+MotionControllerLaserGuidedEntityObj -- to be documented.
+
 Prompt3D : Prompt3D(text,duration) -- renders a 3D text panel in front of camera showing 'text'
 PositionPrompt3D : PositionPrompt3D(x,y,z,angle) -- repositions 3D text panel to any XYZ world coordinate
 
 ScaleObject : ScaleObject( obj, x, y, z ) -- Scales object in all axis (Note: uses object id not entity!)
+
+GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
+GetObjectCentre(object id) -- returns center of object
+GetLimbName : name = GetLimbName ( obj, limbindex ) -- returns name of limb specified by object number and limb index
+GetLimbPosAng(obj,limbindex) -- returns the position and angle of a limb: x,y,z,anglex,angley,anglez.
 
 SetSkyTo : SetSkyTo ( str ) -- where str is the folder name of the sky you want to change to
 
@@ -2002,6 +2028,8 @@ SetLightPosition : SetLightPosition ( lightNum, x, y, z ) -- sets the new positi
 SetLightAngle : SetLightAngle( lightNum, xv, yv, zv ) -- sets the angle vector of the specified light ( e.g. 0, 0, 1 would be 'North' or +Z axis )
 SetLightRGB : SetLightRGB ( lightNum, r, g, b ) -- sets the new color of the specified dynamic light
 SetLightRange : SetLightRange ( lightNum, range ) -- sets the new range (1 to 10000) of the specified light
+
+GetEntityMarkerMode(e) -- returns marker mode (1=player,2=lights,3=trigger zone,4=decal particle emitter,5=entity lights,6=checkpoint zone,7=multiplayer start,8=floor zone,9=cover zone,10=new particle emitter)
 
 ***Water Shader Settings*** Look into the shader for informations about these values(open effectbank/reloaded/water_basic.fx with i.e. notepad)
 SetWaterHeight(value) -- sets water setting attributes
@@ -2051,16 +2079,16 @@ SetCloudDensity(v) 0 to 100
 SetCloudTint(v) 0 to 100 -- lower darker
 SetSkyEffects(v) 0 to 100 -- note - values greater than zero and less than 50 enable aurora at night, > 50 enables lightning flashes any time of day
 
-GetStarDensity()
-GetSkyEffects()
-GetCloudCoverage()
-GetCloudSpeed()
-GetCloudDensity()
-GetCloudTint()
-GetSolarLatitude()
-GetSolarDay()
-GetSolarMonth()
-GetSolarTime()
+GetStarDensity() -- return star density.
+GetSkyEffects() -- return sky effects.
+GetCloudCoverage() -- return cloud coverage.
+GetCloudSpeed() -- return cloud speed.
+GetCloudDensity() -- return cloud density.
+GetCloudTint() -- return cloud tint.
+GetSolarLatitude() -- return solar latitude.
+GetSolarDay() -- return solar day.
+GetSolarMonth() -- return solar month.
+GetSolarTime() -- return solar time.
 
 ***** Physics commands
 PushObject -- To be documented
